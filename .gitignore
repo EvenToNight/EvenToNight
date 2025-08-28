@@ -1,0 +1,34 @@
+# ----------------------
+# Gradle
+# ----------------------
+.gradle/
+build/
+out/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Logs
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db
+
+# ----------------------
+# Node / VitePress
+# ----------------------
+node_modules/
+docs/node_modules/
+docs/.vitepress/cache/
+docs/.vitepress/dist/
+
+# Lock files (se non vuoi committarli)
+package-lock.json
+pnpm-lock.yaml
+yarn.lock
+
+# ----------------------
+# IDEs / Editors
+# ----------------------
+.idea/
+.vscode/
+*.iml
