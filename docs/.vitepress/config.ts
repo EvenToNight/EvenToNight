@@ -1,4 +1,5 @@
 export default {
+    base: "/EvenToNight/",
     title: "Report Progetto",
     themeConfig: {
         nav: [
