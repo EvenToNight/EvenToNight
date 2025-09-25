@@ -6,3 +6,12 @@
  */
 
 rootProject.name = "EvenToNight"
+
+plugins {
+    id("org.danilopianini.gradle-pre-commit-git-hooks") version "2.1.2"
+}
+
+gitHooks{
+    commitMsg { conventionalCommits() }
+    createHooks()
+}
