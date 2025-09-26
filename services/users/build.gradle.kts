@@ -10,7 +10,11 @@ dependencies {
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
     implementation("com.lihaoyi:cask_3:0.10.1")
     testImplementation("org.scalatest:scalatest_3:3.2.19")
+    testRuntimeOnly("org.junit.platform:junit-platform-engine:1.13.1")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.1")
+    testRuntimeOnly("org.scalatestplus:junit-5-13_3:3.2.19.0")
 }
+
 
 application {
     mainClass.set("Main")
@@ -19,5 +23,19 @@ application {
 tasks.withType<ScalaCompile> {
     scalaCompileOptions.apply {
         additionalParameters = listOf("-deprecation", "-feature")
+    }
+}
+tasks.register<Exec>("dockerComposeUp") {
+    commandLine("docker", "compose", "-f", "../../docker-compose-dev.yaml", "up", "-d", "--wait")
+}
+
+tasks.test{
+    dependsOn("dockerComposeUp")
+    useJUnitPlatform {
+        includeEngines("scalatest")
+        testLogging {
+            showStandardStreams = true
+            events("passed", "skipped", "failed")
+        }
     }
 }
