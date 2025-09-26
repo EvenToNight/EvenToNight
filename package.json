@@ -21,6 +21,6 @@
   },
   "homepage": "https://github.com/EvenToNight/EvenToNight#readme",
   "devDependencies": {
-    "semantic-release-preconfigured-conventional-commits": "24.2.9"
+    "semantic-release-preconfigured-conventional-commits": "1.1.146"
   }
 }
