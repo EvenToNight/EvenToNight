@@ -1,0 +1,40 @@
+services:
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    restart: unless-stopped
+    networks:
+      - dev-network
+    ports:
+      - '5672:5672'
+      - '15672:15672'
+    healthcheck:
+      test: ['CMD', 'rabbitmq-diagnostics', '-q', 'ping']
+
+  mongo:
+    image: mongo
+    restart: unless-stopped
+    networks:
+      - dev-network
+    ports:
+      - '27017:27017'
+    healthcheck:
+      test: |
+        host=`hostname --ip-address || echo '127.0.0.1'`;
+        mongo --quiet $${host}/test --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)' && echo 0 || echo 1
+
+  mongo-express:
+    image: mongo-express:latest
+    restart: always
+    networks:
+      - dev-network
+    ports:
+      - '8081:8081'
+    environment:
+      ME_CONFIG_MONGODB_SERVER: 'mongo'
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+networks:
+  dev-network:
+    driver: bridge
