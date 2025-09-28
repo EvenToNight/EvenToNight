@@ -12,3 +12,11 @@ allprojects {
         mavenCentral()
     }
 }
+
+tasks.register<Exec>("teardownDevEnvironment") {
+    commandLine("./scripts/composeAll.sh", "down", "--remove-orphans")
+}
+tasks.register<Exec>("setupDevEnvironment") {
+    dependsOn("teardownDevEnvironment")
+    commandLine("./scripts/composeAll.sh", "up", "-d", "--wait")
+}

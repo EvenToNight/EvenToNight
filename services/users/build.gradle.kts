@@ -1,3 +1,6 @@
+import jdk.internal.org.jline.utils.ExecHelper.exec
+import org.gradle.api.tasks.Exec
+
 plugins {
     scala
     application
@@ -25,12 +28,9 @@ tasks.withType<ScalaCompile> {
         additionalParameters = listOf("-deprecation", "-feature")
     }
 }
-tasks.register<Exec>("dockerComposeUp") {
-    commandLine("docker", "compose", "-f", "../../docker-compose-dev.yaml", "up", "-d", "--wait")
-}
 
 tasks.test{
-    dependsOn("dockerComposeUp")
+    dependsOn(rootProject.tasks.named("setupDevEnvironment"))
     useJUnitPlatform {
         includeEngines("scalatest")
         testLogging {
