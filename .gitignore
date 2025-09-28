@@ -34,3 +34,4 @@ yarn.lock
 *.iml
 
 .metals/
+.env
