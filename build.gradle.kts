@@ -14,9 +14,9 @@ allprojects {
 }
 
 tasks.register<Exec>("teardownDevEnvironment") {
-    commandLine("./scripts/composeAll.sh", "down", "--remove-orphans")
+    commandLine("./scripts/composeDevEnvironment.sh", "down", "--remove-orphans")
 }
 tasks.register<Exec>("setupDevEnvironment") {
     dependsOn("teardownDevEnvironment")
-    commandLine("./scripts/composeAll.sh", "up", "-d", "--wait")
+    commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--wait")
 }
