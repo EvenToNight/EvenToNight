@@ -59,6 +59,11 @@ SKIP_NEXT=false
 SKIP_TYPE=""
 
 for arg in "$@"; do
+    if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+      sed -n '/^: \x27$/,/^'\''$/p' "$0" | sed '1d;$d'
+      exit 0
+    fi
+
     if [[ "$SKIP_NEXT" == true ]]; then
         if [[ "$SKIP_TYPE" == "project-name" ]]; then
             PROJECT_NAME="$arg"
