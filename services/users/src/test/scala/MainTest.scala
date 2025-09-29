@@ -14,3 +14,5 @@ class MainTest extends AnyFlatSpec with Matchers:
     val message = "Hello from Scala 3!"
     channel.basicPublish("", queueName, null, message.getBytes())
     println(s"Sent message to RabbitMQ: '$message'")
+    channel.close()
+    connection.close()

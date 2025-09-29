@@ -1,6 +1,3 @@
-import jdk.internal.org.jline.utils.ExecHelper.exec
-import org.gradle.api.tasks.Exec
-
 plugins {
     scala
     application
