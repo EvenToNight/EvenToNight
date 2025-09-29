@@ -20,7 +20,6 @@ object Main extends cask.MainRoutes{
     channel.basicPublish("", queueName, null, message.getBytes())
     println(s"Sent message to RabbitMQ: '$message'")
     "Hello World!"
-    "ahgsha"
   }
 
   initialize()

@@ -35,3 +35,5 @@ yarn.lock
 
 .metals/
 .env
+
+.kotlin

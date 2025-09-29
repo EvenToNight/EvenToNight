@@ -4,6 +4,10 @@
  * This is a general purpose Gradle build.
  * To learn more about Gradle by exploring our Samples at https://docs.gradle.org/8.4/samples
  */
+import AnsiColors.GREEN
+import AnsiColors.RED
+import AnsiColors.RESET
+
 group = "org.eventonight.eventonight"
 version = "1.0-SNAPSHOT"
 
@@ -14,9 +18,20 @@ allprojects {
 }
 
 tasks.register<Exec>("teardownDevEnvironment") {
-    commandLine("./scripts/composeDevEnvironment.sh", "down", "--remove-orphans")
+    commandLine("./scripts/composeDevEnvironment.sh", "down", "-v", "--remove-orphans")
 }
 tasks.register<Exec>("setupDevEnvironment") {
-    dependsOn("teardownDevEnvironment")
-    commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--wait")
+//    dependsOn("teardownDevEnvironment")
+    doFirst {
+        val exitCode = ProcessBuilder("./scripts/composeDevEnvironment.sh", "down", "-v", "--remove-orphans")
+            .inheritIO()
+            .start()
+            .waitFor()
+        if (exitCode != 0) {
+            throw GradleException("${RED}Teardown failed with exit code $exitCode ${RESET}")
+        }
+        println("${GREEN}Teardown completed${RESET}")
+
+    }
+    commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--force-recreate", "--wait")
 }
