@@ -8,7 +8,11 @@ services:
       - '5672:5672'
       - '15672:15672'
     healthcheck:
-      test: [ 'CMD', 'rabbitmq-diagnostics', '-q', 'ping' ]
+      test: [ 'CMD', 'rabbitmq-diagnostics', 'check_port_connectivity' ]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+      start_period: 0s
 
   mongo:
     image: mongo
@@ -18,9 +22,11 @@ services:
     ports:
       - '27017:27017'
     healthcheck:
-      test: |
-        host=`hostname --ip-address || echo '127.0.0.1'`;
-        mongo --quiet $${host}/test --eval 'quit(db.runCommand({ ping: 1 }).ok ? 0 : 2)' && echo 0 || echo 1
+      test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+      start_period: 0s
 
 networks:
   dev-network:
