@@ -32,4 +32,9 @@ set -e
 
 cd "$(dirname "$0")/.." || exit 1
 
+if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+  sed -n '/^: \x27$/,/^'\''$/p' "$0" | sed '1d;$d'
+  exit 0
+fi
+
 ./scripts/composeAll.sh --project-name eventonight-dev-environment -p ./dev-environment "$@"
