@@ -21,6 +21,19 @@ object Main extends cask.MainRoutes{
     println(s"Sent message to RabbitMQ: '$message'")
     "Hello World!"
   }
-
+  
+  sys.addShutdownHook{
+    try {
+      channel.close()
+    } catch {
+      case e: Exception => println(s"Error closing channel: ${e.getMessage}")
+    }
+    try {
+      connection.close()
+    } catch {
+      case e: Exception => println(s"Error closing connection: ${e.getMessage}")
+    }
+  }
+  
   initialize()
 }
