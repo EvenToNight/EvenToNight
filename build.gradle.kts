@@ -11,6 +11,8 @@ import AnsiColors.RESET
 group = "org.eventonight.eventonight"
 version = "1.0-SNAPSHOT"
 
+val isWindows = System.getProperty("os.name").lowercase().contains("windows")
+
 allprojects {
     repositories {
         mavenCentral()
@@ -18,20 +20,39 @@ allprojects {
 }
 
 tasks.register<Exec>("teardownDevEnvironment") {
-    commandLine("./scripts/composeDevEnvironment.sh", "down", "-v", "--remove-orphans")
+    if(isWindows){
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh down -v --remove-orphans'")
+    } else {
+        commandLine("./scripts/composeDevEnvironment.sh", "down", "-v", "--remove-orphans")
+    }
 }
+
 tasks.register<Exec>("setupDevEnvironment") {
 //    dependsOn("teardownDevEnvironment")
     doFirst {
-        val exitCode = ProcessBuilder("./scripts/composeDevEnvironment.sh", "down", "-v", "--remove-orphans")
+        var exitCode = -1
+        if(isWindows){
+            exitCode = ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh down -v --remove-orphans'")
             .inheritIO()
             .start()
             .waitFor()
+        } else {
+            exitCode = ProcessBuilder("./scripts/composeDevEnvironment.sh", "down", "-v", "--remove-orphans")
+            .inheritIO()
+            .start()
+            .waitFor()
+        }
+        
         if (exitCode != 0) {
             throw GradleException("${RED}Teardown failed with exit code $exitCode ${RESET}")
         }
         println("${GREEN}Teardown completed${RESET}")
-
     }
-    commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--force-recreate", "--wait")
+    
+    if(isWindows){
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up -d --force-recreate --wait'")
+    } else {
+        commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--force-recreate", "--wait")
+    }
+    
 }
