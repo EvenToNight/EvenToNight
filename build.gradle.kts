@@ -11,12 +11,37 @@ import AnsiColors.RESET
 group = "org.eventonight.eventonight"
 version = "1.0-SNAPSHOT"
 
+plugins {
+    base
+}
+
 val isWindows = System.getProperty("os.name").lowercase().contains("windows")
 
 allprojects {
     repositories {
         mavenCentral()
     }
+}
+
+tasks.register("checkEnvFile") {
+    description = "Checks if .env file exists, otherwise copies from .env.template"
+    group = "setup"
+
+    val envFile = file(".env")
+    val envTemplate = file(".env.template")
+
+    if (!envFile.exists() && envTemplate.exists()) {
+        envTemplate.copyTo(envFile)
+        println("${GREEN} .env file created from .env.template${RESET}")
+    } else if (!envTemplate.exists()) {
+        throw GradleException("${RED} Error: .env.template not found in project root!${RESET}")
+    } else {
+        println("${GREEN} .env file already present${RESET}")
+    }
+}
+
+tasks.named("build") {
+    dependsOn("checkEnvFile")
 }
 
 tasks.register<Exec>("teardownDevEnvironment") {
@@ -30,17 +55,16 @@ tasks.register<Exec>("teardownDevEnvironment") {
 tasks.register<Exec>("setupDevEnvironment") {
 //    dependsOn("teardownDevEnvironment")
     doFirst {
-        var exitCode = -1
-        if(isWindows){
-            exitCode = ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh down -v --remove-orphans'")
-            .inheritIO()
-            .start()
-            .waitFor()
+        val exitCode = if(isWindows){
+            ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh down -v --remove-orphans'")
+                .inheritIO()
+                .start()
+                .waitFor()
         } else {
-            exitCode = ProcessBuilder("./scripts/composeDevEnvironment.sh", "down", "-v", "--remove-orphans")
-            .inheritIO()
-            .start()
-            .waitFor()
+            ProcessBuilder("./scripts/composeDevEnvironment.sh", "down", "-v", "--remove-orphans")
+                .inheritIO()
+                .start()
+                .waitFor()
         }
         
         if (exitCode != 0) {
@@ -48,11 +72,11 @@ tasks.register<Exec>("setupDevEnvironment") {
         }
         println("${GREEN}Teardown completed${RESET}")
     }
-    
-    if(isWindows){
-        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up -d --force-recreate --wait'")
-    } else {
-        commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--force-recreate", "--wait")
+    doLast{
+        if(isWindows){
+            commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up -d --force-recreate --wait'")
+        } else {
+            commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--force-recreate", "--wait")
+        }
     }
-    
 }
