@@ -6,7 +6,6 @@ services:
       - dev-network
     ports:
       - '5672:5672'
-      - '15672:15672'
     healthcheck:
       test: [ 'CMD', 'rabbitmq-diagnostics', 'check_port_connectivity' ]
       interval: 2s
