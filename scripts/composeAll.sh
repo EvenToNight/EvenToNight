@@ -51,7 +51,8 @@ cd "$(dirname "$0")/.." || exit 1
 # Default values
 PROJECT_NAME="eventonight"
 USE_DEV=false
-SEARCH_PATHS=(".")
+HAS_CUSTOM_PATH=false
+SEARCH_PATHS=()
 
 # Parse arguments
 FILTERED_ARGS=()
@@ -68,6 +69,7 @@ for arg in "$@"; do
         if [[ "$SKIP_TYPE" == "project-name" ]]; then
             PROJECT_NAME="$arg"
         elif [[ "$SKIP_TYPE" == "path" ]]; then
+            HAS_CUSTOM_PATH=true
             SEARCH_PATHS+=("$arg")
         fi
         SKIP_NEXT=false
@@ -87,6 +89,10 @@ for arg in "$@"; do
         FILTERED_ARGS+=("$arg")
     fi
 done
+
+if [[ "$HAS_CUSTOM_PATH" == false ]]; then
+    SEARCH_PATHS=(".")
+fi
 
 COMPOSE_FILES=""
 for path in "${SEARCH_PATHS[@]}"; do
