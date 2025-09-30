@@ -11,7 +11,7 @@ services:
       test: [ 'CMD', 'rabbitmq-diagnostics', 'check_port_connectivity' ]
       interval: 2s
       timeout: 3s
-      retries: 10
+      retries: 100
       start_period: 0s
 
   mongo:
