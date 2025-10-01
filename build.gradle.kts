@@ -15,8 +15,6 @@ plugins {
     base
 }
 
-val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-
 allprojects {
     repositories {
         mavenCentral()
@@ -45,6 +43,7 @@ tasks.named("build") {
 }
 
 tasks.register<Exec>("teardownDevEnvironment") {
+    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
     if(isWindows){
         commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh down -v --remove-orphans'")
     } else {
@@ -54,6 +53,7 @@ tasks.register<Exec>("teardownDevEnvironment") {
 
 tasks.register<Exec>("setupDevEnvironment") {
 //    dependsOn("teardownDevEnvironment")
+    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
     doFirst {
         val exitCode = if(isWindows){
             ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh down -v --remove-orphans'")
@@ -72,11 +72,11 @@ tasks.register<Exec>("setupDevEnvironment") {
         }
         println("${GREEN}Teardown completed${RESET}")
     }
-    doLast{
-        if(isWindows){
-            commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up -d --force-recreate --wait'")
-        } else {
-            commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--force-recreate", "--wait")
-        }
+
+    if(isWindows){
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up -d --force-recreate --wait'")
+    } else {
+        commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--force-recreate", "--wait")
     }
+
 }
