@@ -11,7 +11,7 @@ services:
       interval: 2s
       timeout: 3s
       retries: 100
-      start_period: 5s
+      start_period: 10s
 
   mongo:
     image: mongo
