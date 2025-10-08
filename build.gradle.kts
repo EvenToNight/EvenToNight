@@ -51,17 +51,26 @@ tasks.register<Exec>("teardownDevEnvironment") {
     }
 }
 
+tasks.register<Exec>("teardownTestEnvironment") {
+    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
+    if(isWindows){
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh --project-name eventonight-test-environment down -v --remove-orphans'")
+    } else {
+        commandLine("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "down", "-v", "--remove-orphans")
+    }
+}
+
 tasks.register<Exec>("setupDevEnvironment") {
 //    dependsOn("teardownDevEnvironment")
     val isWindows = System.getProperty("os.name").lowercase().contains("windows")
     doFirst {
         val exitCode = if(isWindows){
-            ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh down -v --remove-orphans'")
+            ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh down --dev -v --remove-orphans'")
                 .inheritIO()
                 .start()
                 .waitFor()
         } else {
-            ProcessBuilder("./scripts/composeDevEnvironment.sh", "down", "-v", "--remove-orphans")
+            ProcessBuilder("./scripts/composeDevEnvironment.sh", "down", "-v", "--dev", "--remove-orphans")
                 .inheritIO()
                 .start()
                 .waitFor()
@@ -74,9 +83,38 @@ tasks.register<Exec>("setupDevEnvironment") {
     }
 
     if(isWindows){
-        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up -d --force-recreate --wait'")
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up -d --force-recreate")
     } else {
-        commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--force-recreate", "--wait")
+        commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--force-recreate")
     }
 
+}
+
+tasks.register<Exec>("setupTestEnvironment") {
+    //    dependsOn("teardownDevEnvironment")
+        val isWindows = System.getProperty("os.name").lowercase().contains("windows")
+        doFirst {
+            val exitCode = if(isWindows){
+                ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh --project-name eventonight-test-environment down -v --remove-orphans'")
+                    .inheritIO()
+                    .start()
+                    .waitFor()
+            } else {
+                ProcessBuilder("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "down", "-v", "--remove-orphans")
+                    .inheritIO()
+                    .start()
+                    .waitFor()
+            }
+            
+            if (exitCode != 0) {
+                throw GradleException("${RED}Teardown failed with exit code $exitCode ${RESET}")
+            }
+            println("${GREEN}Teardown completed${RESET}")
+        }
+    
+        if(isWindows){
+            commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up --project-name eventonight-test-environment -d --force-recreate --wait'")
+        } else {
+            commandLine("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "up", "-d", "--force-recreate", "--wait")
+        } 
 }

@@ -27,8 +27,8 @@ tasks.withType<ScalaCompile> {
 }
 
 tasks.test{
-    dependsOn(rootProject.tasks.named("setupDevEnvironment"))
-    finalizedBy(rootProject.tasks.named("teardownDevEnvironment"))
+    dependsOn(rootProject.tasks.named("setupTestEnvironment"))
+    finalizedBy(rootProject.tasks.named("teardownTestEnvironment"))
     useJUnitPlatform {
         includeEngines("scalatest")
         testLogging {
