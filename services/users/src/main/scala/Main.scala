@@ -1,6 +1,6 @@
 import com.rabbitmq.client.{ConnectionFactory, Connection, Channel}
 
-object Main extends cask.MainRoutes{
+object Main extends cask.MainRoutes {
   override def port: Int = 9000 // Use your desired port here
 
   // --- RabbitMQ connection ---
@@ -13,7 +13,7 @@ object Main extends cask.MainRoutes{
   val queueName = "testQueue"
   channel.queueDeclare(queueName, false, false, false, null)
   val message = "Hello from Scala 3!"
-    
+
   @cask.get("/")
   def hello(request: cask.Request) = {
     print(request.headers)
@@ -21,8 +21,8 @@ object Main extends cask.MainRoutes{
     println(s"Sent message to RabbitMQ: '$message'")
     "Hello World!"
   }
-  
-  sys.addShutdownHook{
+
+  sys.addShutdownHook {
     try {
       channel.close()
     } catch {
@@ -34,6 +34,6 @@ object Main extends cask.MainRoutes{
       case e: Exception => println(s"Error closing connection: ${e.getMessage}")
     }
   }
-  
+
   initialize()
 }

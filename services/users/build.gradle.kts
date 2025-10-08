@@ -1,6 +1,15 @@
 plugins {
     scala
     application
+    id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
+}
+
+scalafmt {
+    configFilePath = ".scalafmt.conf"
+}
+
+tasks.withType(cz.alenkacz.gradle.scalafmt.ScalafmtTask::class).configureEach {
+    notCompatibleWithConfigurationCache("Scalafmt plugin uses Project at execution time")
 }
 
 dependencies {
