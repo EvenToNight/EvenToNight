@@ -37,3 +37,8 @@ yarn.lock
 .env
 
 .kotlin
+
+# Scala / bloop / bsp
+.bloop/
+.bsp/
+.bloop

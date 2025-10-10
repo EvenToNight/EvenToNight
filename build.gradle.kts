@@ -42,12 +42,18 @@ tasks.named("build") {
     dependsOn("checkEnvFile")
 }
 
+// Aggregate scalafmt check across subprojects so CI can run `./gradlew checkScalafmt`
+tasks.register("scalafmtCheck") {
+    dependsOn(subprojects.map { proj -> proj.tasks.matching { it.name.startsWith("checkScalafmt") } })
+}
+
+
 tasks.register<Exec>("teardownDevEnvironment") {
     val isWindows = System.getProperty("os.name").lowercase().contains("windows")
     if(isWindows){
-        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh down -v --remove-orphans'")
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh --dev down -v --remove-orphans'")
     } else {
-        commandLine("./scripts/composeDevEnvironment.sh", "down", "-v", "--remove-orphans")
+        commandLine("./scripts/composeDevEnvironment.sh", "--dev", "down", "-v", "--remove-orphans")
     }
 }
 
@@ -61,7 +67,6 @@ tasks.register<Exec>("teardownTestEnvironment") {
 }
 
 tasks.register<Exec>("setupDevEnvironment") {
-//    dependsOn("teardownDevEnvironment")
     val isWindows = System.getProperty("os.name").lowercase().contains("windows")
     doFirst {
         val exitCode = if(isWindows){
@@ -83,38 +88,37 @@ tasks.register<Exec>("setupDevEnvironment") {
     }
 
     if(isWindows){
-        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up -d --force-recreate")
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up --dev -d --force-recreate'")
     } else {
-        commandLine("./scripts/composeDevEnvironment.sh", "up", "-d", "--force-recreate")
+        commandLine("./scripts/composeDevEnvironment.sh", "up", "--dev", "-d", "--force-recreate")
     }
 
 }
 
 tasks.register<Exec>("setupTestEnvironment") {
-    //    dependsOn("teardownDevEnvironment")
-        val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-        doFirst {
-            val exitCode = if(isWindows){
-                ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh --project-name eventonight-test-environment down -v --remove-orphans'")
-                    .inheritIO()
-                    .start()
-                    .waitFor()
-            } else {
-                ProcessBuilder("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "down", "-v", "--remove-orphans")
-                    .inheritIO()
-                    .start()
-                    .waitFor()
-            }
-            
-            if (exitCode != 0) {
-                throw GradleException("${RED}Teardown failed with exit code $exitCode ${RESET}")
-            }
-            println("${GREEN}Teardown completed${RESET}")
-        }
-    
-        if(isWindows){
-            commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up --project-name eventonight-test-environment -d --force-recreate --wait'")
+    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
+    doFirst {
+        val exitCode = if(isWindows){
+            ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh --project-name eventonight-test-environment down -v --remove-orphans'")
+                .inheritIO()
+                .start()
+                .waitFor()
         } else {
-            commandLine("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "up", "-d", "--force-recreate", "--wait")
-        } 
+            ProcessBuilder("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "down", "-v", "--remove-orphans")
+                .inheritIO()
+                .start()
+                .waitFor()
+        }
+            
+        if (exitCode != 0) {
+            throw GradleException("${RED}Teardown failed with exit code $exitCode ${RESET}")
+        }
+        println("${GREEN}Teardown completed${RESET}")
+    }
+    
+    if(isWindows){
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up --project-name eventonight-test-environment -d --force-recreate --wait'")
+    } else {
+        commandLine("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "up", "-d", "--force-recreate", "--wait")
+    } 
 }

@@ -18,4 +18,5 @@ gitHooks{
 }
 
 include("services:users")
+include("services:events")
 
