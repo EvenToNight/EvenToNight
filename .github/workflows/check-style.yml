@@ -1,7 +1,6 @@
 name: Check Style
 
 on:
-  push:
   pull_request:
     branches: ["main"]
 
