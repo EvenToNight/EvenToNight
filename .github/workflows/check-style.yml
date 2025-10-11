@@ -1,10 +1,9 @@
-name: scalafmt-check
+name: Check Style
 
 on:
   push:
-    branches: ["**"]
   pull_request:
-    branches: ["**"]
+    branches: ["main"]
 
 jobs:
   scalafmt:
@@ -27,5 +26,5 @@ jobs:
             ~/.gradle/wrapper
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*','**/gradle-wrapper.properties') }}
 
-      - name: Run scalafmt check
-        run: ./gradlew --no-configuration-cache --no-daemon checkScalafmt
+      - name: Run check style
+        run: ./gradlew --no-configuration-cache checkStyle
