@@ -12,6 +12,10 @@ tasks.withType(cz.alenkacz.gradle.scalafmt.ScalafmtTask::class).configureEach {
     notCompatibleWithConfigurationCache("Scalafmt plugin uses Project at execution time")
 }
 
+tasks.register("checkStyle") {
+    dependsOn("checkScalafmtAll")
+}
+
 dependencies {
     implementation("org.scala-lang:scala3-library_3:3.7.2")
     implementation("org.mongodb:mongodb-driver-sync:5.5.1")

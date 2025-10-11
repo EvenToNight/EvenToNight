@@ -42,12 +42,6 @@ tasks.named("build") {
     dependsOn("checkEnvFile")
 }
 
-// Aggregate scalafmt check across subprojects so CI can run `./gradlew checkScalafmt`
-tasks.register("scalafmtCheck") {
-    dependsOn(subprojects.map { proj -> proj.tasks.matching { it.name.startsWith("checkScalafmt") } })
-}
-
-
 tasks.register<Exec>("teardownDevEnvironment") {
     val isWindows = System.getProperty("os.name").lowercase().contains("windows")
     if(isWindows){
