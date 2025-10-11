@@ -13,8 +13,9 @@ plugins {
 }
 
 gitHooks{
+    preCommit { tasks("formatAndLintPreCommit") }
     commitMsg { conventionalCommits() }
-    createHooks()
+    createHooks(true)
 }
 
 include("services:users")

@@ -7,7 +7,7 @@ services:
     ports:
       - '5672:5672'
     healthcheck:
-      test: [ 'CMD', 'rabbitmq-diagnostics', 'check_port_connectivity' ]
+      test: [ 'CMD', 'rabbitmq-diagnostics', 'status' ]
       interval: 2s
       timeout: 3s
       retries: 100
