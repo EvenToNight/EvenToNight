@@ -1,0 +1,32 @@
+{
+  "files.watcherExclude": {
+      "**/target": true
+  },
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "metals.javaHome": "/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home/",
+
+  "files.associations": {
+    "*.gradle.kts": "kotlin",
+    "build.gradle.kts": "kotlin",
+    "settings.gradle.kts": "kotlin"
+  },
+  "kotlin.languageServer.enabled": true,
+  "eslint.workingDirectories": [
+  {
+    "mode": "auto"
+  },
+  {
+    "directory": "services/frontend",
+    "changeProcessCWD": true
+  }],
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact",
+    "vue"
+  ],
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit"
+  },
+}
