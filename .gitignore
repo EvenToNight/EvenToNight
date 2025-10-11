@@ -30,7 +30,7 @@ yarn.lock
 # IDEs / Editors
 # ----------------------
 .idea/
-.vscode/
+#.vscode/
 *.iml
 
 .metals/

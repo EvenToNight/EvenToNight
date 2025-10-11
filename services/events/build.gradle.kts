@@ -8,8 +8,8 @@ scalafmt {
     configFilePath = ".scalafmt.conf"
 }
 
-tasks.withType(cz.alenkacz.gradle.scalafmt.ScalafmtTask::class).configureEach {
-    notCompatibleWithConfigurationCache("Scalafmt plugin uses Project at execution time")
+tasks.matching { it.name.contains("Scalafmt", ignoreCase = true) }.configureEach {
+        notCompatibleWithConfigurationCache("Scalafmt plugin not compatible with Gradle configuration cache")
 }
 
 tasks.register("checkStyle") {
@@ -38,7 +38,7 @@ tasks.withType<ScalaCompile> {
     }
 }
 
-tasks.test{
+tasks.test {
     dependsOn(rootProject.tasks.named("setupTestEnvironment"))
     finalizedBy(rootProject.tasks.named("teardownTestEnvironment"))
     useJUnitPlatform {
