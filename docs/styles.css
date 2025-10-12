@@ -1,0 +1,145 @@
+:root {
+  --primary: #6b63f8;        /* softened purple */
+  --primary-dark: #4a3dcf;   /* deeper purple */
+  --accent: #ffde7a;         /* warm accent yellow */
+  --background: #fcfcfd;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  align-items: stretch;
+  background: var(--background);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+.split-container {
+  display: flex;
+  flex: 1;
+  flex-direction: row;
+  flex-wrap: wrap;
+}
+
+.panel {
+  flex: 1 1 50%;
+  padding: 3rem 2rem;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.panel-live {
+  background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 100%);
+  color: #fff;
+}
+
+.panel-docs {
+  background: #fff;
+  color: #131330;
+}
+
+.panel h2 {
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+  font-weight: 600;
+}
+
+/* ⚡ Modern CTA Button */
+.cta-container {
+  position: relative;
+  z-index: 1;
+}
+
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  font-size: 1.15em;
+  font-weight: 600;
+  color: #131330;
+  background: var(--accent);
+  border-radius: 12px;
+  padding: 1em 2.2em;
+  text-decoration: none;
+  transition: all 0.25s ease;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  position: relative;
+}
+
+.cta-button:hover,
+.cta-button:focus-visible {
+  background: #fff;
+  color: var(--primary-dark);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+}
+
+.cta-button:active {
+  transform: translateY(-1px);
+}
+
+.cta-button svg {
+  width: 1.4em;
+  height: 1.4em;
+  transition: transform 0.25s ease;
+}
+
+.cta-button:hover svg {
+  transform: translateX(3px);
+}
+
+/* 📘 Documentation Links */
+.doc-links {
+  list-style: none;
+  padding: 0;
+  margin: 2rem 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+  max-width: 320px;
+}
+
+.doc-links a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f7f8fc;
+  border-radius: 10px;
+  padding: 1rem 1.2rem;
+  font-weight: 500;
+  color: var(--primary-dark);
+  text-decoration: none;
+  transition: background 0.2s, transform 0.2s;
+  box-shadow: 0 2px 8px rgba(99, 102, 241, 0.05);
+}
+
+.doc-links a:hover,
+.doc-links a:focus-visible {
+  background: #eef0ff;
+  transform: translateY(-2px);
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.doc-links img {
+  height: 24px;
+}
+
+@media (max-width: 768px) {
+  .split-container {
+    flex-direction: column;
+  }
+  .panel {
+    flex: 1 1 100%;
+    padding: 2rem 1rem;
+  }
+  .cta-button {
+    width: 100%;
+    justify-content: center;
+  }
+}
