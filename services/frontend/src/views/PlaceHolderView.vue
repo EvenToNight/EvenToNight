@@ -66,7 +66,7 @@ export default defineComponent({
 </script>
 
 <template>
-  <div id="dvd" :style="dvdStyle">EvenToNight🎉</div>
+  <div id="dvd" :style="dvdStyle">🎉EvenToNight🎉</div>
 </template>
 
 <style scoped>
