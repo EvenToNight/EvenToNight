@@ -8,17 +8,20 @@ on:
 
 env:
   JAVA_VERSION: 21
+  NODE_VERSION: 22.19
 
 jobs:
   release:
     concurrency:
-      group: release-${{ github.event.number || github.ref }}
-      cancel-in-progress: true
+      group: release-${{ github.head_ref || github.ref_name || github.run_id }}
+      cancel-in-progress: false
     permissions:
       contents: write
       pull-requests: write
       issues: write
     runs-on: ubuntu-22.04
+    outputs:
+      release_done: ${{ steps.evaluate_release.outputs.release }}
     steps:
       - name: Generate a token
         id: generate-token
@@ -26,21 +29,110 @@ jobs:
         with:
           app-id: ${{ vars.SEMANTIC_RELEASE_APP_ID }}
           private-key: ${{ secrets.SEMANTIC_RELEASE_APP_KEY }}
+
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           token: ${{ steps.generate-token.outputs.token }}
-      - uses: actions/setup-java@v4
+
+      - name: Fetch all tags
+        run: git fetch --tags
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
         with:
           java-version: ${{ env.JAVA_VERSION }}
           distribution: "temurin"
-      - name: Set up Node.js
+
+      - name: Set up Node.js ${{ env.NODE_VERSION }}
         uses: actions/setup-node@v4
         with:
-          node-version: "lts/*"
+          node-version: ${{ env.NODE_VERSION }}
+
       - name: Install dependencies
         run: npm install
+
       - name: Run semantic-release
+        id: semantic-release
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
-        run: npx semantic-release
+        run: |
+          set -e
+          echo "Running semantic-release…"
+          before_tags=$(git tag)
+          npx semantic-release || true
+          after_tags=$(git tag)
+          
+          # Detect if new tag appeared
+          new_tag=$(comm -13 <(echo "$before_tags" | sort) <(echo "$after_tags" | sort) | tail -n 1 || true)
+
+          if [ -n "$new_tag" ]; then
+            echo "✅ Semantic-release created a new tag: $new_tag"
+            echo "release_done=true" >> $GITHUB_OUTPUT
+          else
+            echo "⚠️ No new release tag created"
+            echo "release_done=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Detect changes under /services
+        id: detect_services
+        if : ${{ steps.semantic-release.outputs.release_done == 'false' }}
+        run: |
+          echo "🔍 Checking for changes under services/..."
+          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^services/' || true)
+          if [ -n "$CHANGED" ]; then
+            echo "✅ Detected changes under /services:"
+            echo "services_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "ℹ️ No changes detected under /services"
+            echo "services_changed=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Detect changes under /infrastructure
+        id: detect_infrastructure
+        if : ${{ steps.semantic-release.outputs.release_done == 'false' && steps.detect_services.outputs.services_changed == 'false' }}
+        run: |
+          echo "🔍 Checking for changes under infrastructure/..."
+          CHANGED=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^infrastructure/' || true)
+          if [ -n "$CHANGED" ]; then
+            echo "✅ Detected changes under /infrastructure:"
+            echo "infrastructure_changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "ℹ️ No changes detected under /infrastructure"
+            echo "infrastructure_changed=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Evaluate release
+        id: evaluate_release
+        run: |
+          pre_release=$([[ "${{ steps.semantic-release.outputs.release_done }}" == "false" && ( "${{ steps.detect_services.outputs.services_changed }}" == "true" || "${{ steps.detect_infrastructure.outputs.infrastructure_changed }}" == "true" ) ]])
+          release=$([[ "${{ steps.semantic-release.outputs.release_done }}" == "true" || "$pre_release" == "true" ]])
+
+          echo "pre-release=$pre_release" >> $GITHUB_OUTPUT
+          echo "release=$release" >> $GITHUB_OUTPUT
+
+      - name: Create dev pre-release
+        if: ${{steps.evaluate_release.outputs.pre_release == 'true'}}
+        env:
+          GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+        run: |
+          set -e
+          echo "⚙️ No relevant commits — creating dev pre-release"
+
+          last_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v1.0.0")
+          echo "Last tag: $last_tag"
+
+          core_version=$(echo "$last_tag" | sed -E 's/^v([0-9]+\.[0-9]+\.[0-9]+).*/\1/')
+          IFS=. read -r major minor patch <<< "$core_version"
+
+          if [[ "$last_tag" =~ -dev\.([0-9]+)$ ]]; then
+            new_tag="v${major}.${minor}.${patch}-dev.$((${BASH_REMATCH[1]}+1))"
+          else
+            new_tag="v${major}.${minor}.$((patch+1))-dev.1"
+          fi
+
+          echo "New tag: $new_tag"
+          git tag "$new_tag" && git push origin "$new_tag"
+          gh release create "$new_tag" --title "$new_tag" --notes "Automated pre-release" --prerelease
+          echo "✅ Created $new_tag"
