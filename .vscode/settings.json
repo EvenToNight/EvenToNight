@@ -1,6 +1,6 @@
 {
   "files.watcherExclude": {
-      "**/target": true
+    "**/target": true
   },
   "java.configuration.updateBuildConfiguration": "interactive",
   "metals.javaHome": "/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home/",

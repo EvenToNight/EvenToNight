@@ -108,7 +108,7 @@ jobs:
           pre_release=$([[ "${{ steps.semantic-release.outputs.release_done }}" == "false" && ( "${{ steps.detect_services.outputs.services_changed }}" == "true" || "${{ steps.detect_infrastructure.outputs.infrastructure_changed }}" == "true" ) ]] && echo "true" || echo "false")
           release=$([[ "${{ steps.semantic-release.outputs.release_done }}" == "true" || "$pre_release" == "true" ]] && echo "true" || echo "false")
 
-          echo "pre-release=$pre_release" >> $GITHUB_OUTPUT
+          echo "pre_release=$pre_release" >> $GITHUB_OUTPUT
           echo "release=$release" >> $GITHUB_OUTPUT
 
       - name: Create dev pre-release
