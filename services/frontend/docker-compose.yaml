@@ -1,0 +1,12 @@
+services:
+  frontend:
+    image: ghcr.io/eventonight/eventonight/frontend:latest
+    networks:
+      - eventonight-network
+    environment:
+      - PORT=${FRONTEND_SERVICE_PORT}
+    restart: unless-stopped
+
+networks:
+  eventonight-network:
+    driver: bridge
