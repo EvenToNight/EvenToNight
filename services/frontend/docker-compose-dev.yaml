@@ -1,0 +1,6 @@
+services:
+  frontend:
+    build:
+      context: ./services/frontend
+    ports:
+      - "${FRONTEND_SERVICE_PORT}:${FRONTEND_SERVICE_PORT}"  
