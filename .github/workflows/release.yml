@@ -148,6 +148,10 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+      
+      - name: Fetch previous commit
+        run: |
+          git fetch origin ${{ github.event.before }} --depth=1 || echo "⚠️ Could not fetch previous commit"
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -159,9 +163,18 @@ jobs:
       - name: Find all modified service directories with Dockerfiles
         id: services
         run: |
-          dirs=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^services/.*Dockerfile' | sed 's|/Dockerfile||')
-          echo "Found modified service dirs:"
+          modified_dirs=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^services/' | awk -F/ '{print "services/"$2}')
+          dirs=""
+          echo "$modified_dirs"
+          for dir in $modified_dirs; do
+            if [ -f "$dir/Dockerfile" ]; then
+              dirs="$dirs $dir"
+            fi
+          done
+
+          echo "Found modified service dirs with Dockerfiles:"
           echo "$dirs"
+
           echo "dirs=$dirs" >> $GITHUB_OUTPUT
 
       - name: Get latest GitHub Release tag
