@@ -33,4 +33,4 @@ while IFS= read -r line || [ -n "$line" ]; do
 done < "$TEMPLATE_FILE"
 
 mv "$TMP_FILE" "$ENV_FILE"
-echo ".env aggiornato correttamente."
+echo ".env updated successfully."
