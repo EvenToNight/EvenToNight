@@ -1,7 +1,7 @@
 :root {
-  --primary: #6b63f8;        /* softened purple */
-  --primary-dark: #4a3dcf;   /* deeper purple */
-  --accent: #ffde7a;         /* warm accent yellow */
+  --primary: #6b63f8;
+  --primary-dark: #4a3dcf;
+  --accent: #ffd93d;
   --background: #fcfcfd;
 }
 
@@ -39,16 +39,16 @@ body {
 
 .panel-docs {
   background: #fff;
-  color: #131330;
+  color: #1a0f4d;
 }
 
 .panel h2 {
   margin-bottom: 1.5rem;
   font-size: 2rem;
   font-weight: 600;
+  color: #1a0f4d;
 }
 
-/* ⚡ Modern CTA Button */
 .cta-container {
   position: relative;
   z-index: 1;
@@ -60,22 +60,21 @@ body {
   gap: 0.7em;
   font-size: 1.15em;
   font-weight: 600;
-  color: #131330;
-  background: var(--accent);
+  color: var(--primary-dark);     
+  background-color: hsl(245, 73%, 100%);
   border-radius: 12px;
   padding: 1em 2.2em;
   text-decoration: none;
-  transition: all 0.25s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
-  position: relative;
+  transition: all 0.25s ease, color 0.25s ease;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.08);
 }
 
 .cta-button:hover,
 .cta-button:focus-visible {
-  background: #fff;
-  color: var(--primary-dark);
-  transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  background-color: var(--accent);
+  color: #131330;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  transform: translateY(-2px);
 }
 
 .cta-button:active {
@@ -83,8 +82,9 @@ body {
 }
 
 .cta-button svg {
-  width: 1.4em;
-  height: 1.4em;
+  width: 1.3em;
+  height: 1.3em;
+  stroke: currentColor;
   transition: transform 0.25s ease;
 }
 
@@ -92,7 +92,6 @@ body {
   transform: translateX(3px);
 }
 
-/* 📘 Documentation Links */
 .doc-links {
   list-style: none;
   padding: 0;

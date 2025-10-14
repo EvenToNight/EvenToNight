@@ -2,8 +2,8 @@ name: Deploy Report
 
 on:
   push:
-    branches: [main]
-
+    branches:
+      - main
   workflow_dispatch:
 
 permissions:
@@ -16,9 +16,10 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  # Build website
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
+    env:
+      SITE: site
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,18 +34,24 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
       
+      - name: Create artifacts directory
+        run: |
+          mkdir -p ${{ env.SITE }}
+          cp ./docs/github-pages-index.html ${{ env.SITE }}/index.html
+          cp ./docs/styles.css ${{ env.SITE }}/styles.css
+      
       - name: Install dependencies
         run: npm install
-        working-directory: ./docs
+        working-directory: ./docs/report
 
       - name: Build with VitePress
-        run: npm run docs:build
-        working-directory: ./docs
+        run: npm run docs:build -- --base /EvenToNight/report/ --outDir ../../site/report
+        working-directory: ./docs/report
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: docs/.vitepress/dist
+          path: ${{ env.SITE }}
 
   deploy:
     environment:
