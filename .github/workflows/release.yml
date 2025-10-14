@@ -190,3 +190,43 @@ jobs:
             docker push "$image_latest"
             docker push "$image_release"
           done
+
+  dev-deploy:
+    needs: build-and-push-docker-images
+    name: Run SSH command
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Connect and run command on remote server
+        uses: and-fm/cloudflared-ssh-action@v3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USERNAME }}
+          private_key_filename: ${{ secrets.SSH_PRIVATE_KEY_FILENAME }}
+          private_key_value: ${{ secrets.SSH_PRIVATE_KEY_VALUE }}
+          port: ${{ secrets.SSH_PORT }}
+          service_token_id: ${{ secrets.SERVICE_TOKEN_ID }}
+          service_token_secret: ${{ secrets.SERVICE_TOKEN_SECRET }}
+          commands: |
+            set -e
+
+            REPO_URL="https://github.com/EvenToNight/EvenToNight.git"
+            DEST_DIR="EvenToNight-production"
+
+            # pull or clone fresh
+            if ! git -C "$DEST_DIR" pull; then
+              echo "Pull failed, removing directory and cloning fresh..."
+              rm -rf "$DEST_DIR"
+              git clone "$REPO_URL" "$DEST_DIR"
+            fi
+            
+            cd "$DEST_DIR"
+            # check environment
+            ./scripts/updateLocalEnv.sh
+            ./scripts/checkEnvSetup.sh
+
+            # update .env
+            perl -pi -e 's/^HOST=.*/HOST=eventonight.site/' .env
+
+            # deploy
+            ./scripts/composeApplication.sh pull
+            ./scripts/composeApplication.sh up -d
