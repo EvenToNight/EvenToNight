@@ -29,7 +29,6 @@ tasks.register<NpmTask>("formatAndLint"){
     npmCommand.set(listOf("run","lint:fix"))
 }
 
-tasks.register<Exec>("formatAndLintPreCommit"){
+tasks.register("formatAndLintPreCommit"){
     dependsOn("formatAndLint")
-    commandLine("git", "add", "-u")
 }
