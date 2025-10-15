@@ -9,6 +9,7 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`${HOST}`)"
       - "traefik.http.routers.frontend.entrypoints=web"
+      - "traefik.http.services.frontend.loadbalancer.server.port=${FRONTEND_SERVICE_PORT}"
     restart: unless-stopped
 
 networks:
