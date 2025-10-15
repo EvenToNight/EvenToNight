@@ -50,3 +50,7 @@ tasks.test{
         }
     }
 }
+
+tasks.register("formatAndLintPreCommit") {
+    dependsOn("scalafmtAll")
+}

@@ -116,3 +116,14 @@ tasks.register<Exec>("setupTestEnvironment") {
         commandLine("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "up", "-d", "--force-recreate", "--wait")
     } 
 }
+
+tasks.register<Exec>("updateStagedFiles") {
+    commandLine("git", "add", "-u")
+}
+
+tasks.register("formatAndLintPreCommit") {
+    dependsOn(subprojects.mapNotNull { proj ->
+        proj.tasks.findByName("formatAndLintPreCommit")?.let { proj.path + ":formatAndLintPreCommit" }
+    })
+    finalizedBy("updateStagedFiles")
+}
