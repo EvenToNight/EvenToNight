@@ -4,16 +4,8 @@ plugins {
     id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
 }
 
-scalafmt {
-    configFilePath = ".scalafmt.conf"
-}
-
-tasks.matching { it.name.contains("Scalafmt", ignoreCase = true) }.configureEach {
-        notCompatibleWithConfigurationCache("Scalafmt plugin not compatible with Gradle configuration cache")
-}
-
-tasks.register("checkStyle") {
-    dependsOn("checkScalafmtAll")
+application {
+    mainClass.set("Main")
 }
 
 dependencies {
@@ -28,8 +20,20 @@ dependencies {
     testRuntimeOnly("org.scalatestplus:junit-5-13_3:3.2.19.0")
 }
 
-application {
-    mainClass.set("Main")
+scalafmt {
+    configFilePath = ".scalafmt.conf"
+}
+
+tasks.matching { it.name.contains("Scalafmt", ignoreCase = true) }.configureEach {
+        notCompatibleWithConfigurationCache("Scalafmt plugin not compatible with Gradle configuration cache")
+}
+
+tasks.register("checkStyle") {
+    dependsOn("checkScalafmtAll")
+}
+
+tasks.register("formatAndLintPreCommit") {
+    dependsOn("scalafmtAll")
 }
 
 tasks.withType<ScalaCompile> {
@@ -48,8 +52,4 @@ tasks.test {
             events("passed", "skipped", "failed")
         }
     }
-}
-
-tasks.register("formatAndLintPreCommit") {
-    dependsOn("scalafmtAll")
 }

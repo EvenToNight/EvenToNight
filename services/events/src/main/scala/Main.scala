@@ -1,5 +1,6 @@
 object Main extends cask.MainRoutes {
-  override def port: Int = 9010 // events service port
+  override def port: Int    = 9010 // events service port
+  override def host: String = "0.0.0.0"
 
   @cask.get("/health")
   def health(request: cask.Request) = {
