@@ -129,16 +129,15 @@ tasks.register("formatAndLintPreCommit") {
 }
 
 tasks.register<Exec>("setupApplicationEnvironment") {
-    // compose Application Environment
     val isWindows = System.getProperty("os.name").lowercase().contains("windows")
     doFirst {
         val exitCode = if(isWindows){
-            ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeApplication.sh --project-name eventonight-app-environment down -v --remove-orphans'")
+            ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeApplication.sh down -v --remove-orphans'")
                 .inheritIO()
                 .start()
                 .waitFor()
         } else {
-            ProcessBuilder("./scripts/composeApplication.sh", "--project-name", "eventonight-app-environment", "down", "-v", "--remove-orphans")
+            ProcessBuilder("./scripts/composeApplication.sh", "down", "-v", "--remove-orphans")
                 .inheritIO()
                 .start()
                 .waitFor()
@@ -151,8 +150,8 @@ tasks.register<Exec>("setupApplicationEnvironment") {
     }
     
     if(isWindows){
-        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeApplication.sh up --project-name eventonight-app-environment -d --force-recreate --wait'")
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeApplication.sh up -d --force-recreate --wait'")
     } else {
-        commandLine("./scripts/composeApplication.sh", "--project-name", "eventonight-app-environment", "up", "-d", "--force-recreate", "--wait")
+        commandLine("./scripts/composeApplication.sh", "up", "-d", "--force-recreate", "--wait")
     }
 }
