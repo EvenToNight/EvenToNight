@@ -127,3 +127,32 @@ tasks.register("formatAndLintPreCommit") {
     })
     finalizedBy("updateStagedFiles")
 }
+
+tasks.register<Exec>("setupApplicationEnvironment") {
+    // compose Application Environment
+    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
+    doFirst {
+        val exitCode = if(isWindows){
+            ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeApplication.sh --project-name eventonight-app-environment down -v --remove-orphans'")
+                .inheritIO()
+                .start()
+                .waitFor()
+        } else {
+            ProcessBuilder("./scripts/composeApplication.sh", "--project-name", "eventonight-app-environment", "down", "-v", "--remove-orphans")
+                .inheritIO()
+                .start()
+                .waitFor()
+        }
+            
+        if (exitCode != 0) {
+            throw GradleException("${RED}Teardown failed with exit code $exitCode ${RESET}")
+        }
+        println("${GREEN}Teardown completed${RESET}")
+    }
+    
+    if(isWindows){
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeApplication.sh up --project-name eventonight-app-environment -d --force-recreate --wait'")
+    } else {
+        commandLine("./scripts/composeApplication.sh", "--project-name", "eventonight-app-environment", "up", "-d", "--force-recreate", "--wait")
+    }
+}
