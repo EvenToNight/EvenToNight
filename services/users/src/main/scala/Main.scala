@@ -1,4 +1,4 @@
-import com.rabbitmq.client.{ConnectionFactory, Connection, Channel}
+import com.rabbitmq.client.{Channel, Connection, ConnectionFactory}
 
 object Main extends cask.MainRoutes {
   override def port: Int = 9000 // Use your desired port here
@@ -11,7 +11,7 @@ object Main extends cask.MainRoutes {
     case None       => factory.setHost("localhost") // RabbitMQ service hostname
   factory.setPort(5672) // default RabbitMQ port
   val connection: Connection = factory.newConnection()
-  val channel: Channel = connection.createChannel()
+  val channel: Channel       = connection.createChannel()
 
   val queueName = "testQueue"
   channel.queueDeclare(queueName, false, false, false, null)
