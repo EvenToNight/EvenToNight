@@ -9,18 +9,18 @@ COPY ./buildSrc ./buildSrc
 COPY ./gradle ./gradle
 COPY ./gradlew .
 
-COPY ./services/events/build.gradle.kts ./services/events/build.gradle.kts
+COPY ./services/users/build.gradle.kts ./services/users/build.gradle.kts
 
 RUN ./gradlew dependencies --no-daemon
 
-COPY ./services/events/src ./services/events/src
+COPY ./services/users/src ./services/users/src
 
 RUN ./gradlew shadowJar --no-daemon -x test
 
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /home/app
 
-COPY --from=builder /home/app/services/events/build/libs/*.jar ./app.jar
+COPY --from=builder /home/app/services/users/build/libs/*.jar ./app.jar
 
 EXPOSE $PORT
 

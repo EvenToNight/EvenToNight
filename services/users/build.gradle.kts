@@ -1,6 +1,7 @@
 plugins {
     scala
     application
+    id("com.github.johnrengelman.shadow") version "8.1.1"
     id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
 }
 
@@ -53,4 +54,11 @@ tasks.test{
 
 tasks.register("formatAndLintPreCommit") {
     dependsOn("scalafmtAll")
+}
+
+tasks.shadowJar {
+    archiveFileName.set("users.jar") 
+    manifest {
+        attributes["Main-Class"] = "Main"
+    }
 }
