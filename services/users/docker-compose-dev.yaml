@@ -1,0 +1,7 @@
+services:
+  users:
+    build:
+      context: .
+      dockerfile: ./services/users/Dockerfile
+    ports:
+      - "${USERS_SERVICE_PORT}:${USERS_SERVICE_PORT}"  

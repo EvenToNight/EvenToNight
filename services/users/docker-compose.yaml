@@ -1,28 +1,28 @@
 services:
-  events:
-    image: ghcr.io/eventonight/eventonight/events:latest
+  users:
+    image: ghcr.io/eventonight/eventonight/users:latest
     networks:
       - eventonight-network
-      - events-network
+      - users-network
     environment:
-      - PORT=${EVENTS_SERVICE_PORT}
+      - PORT=${USERS_SERVICE_PORT}
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.events.rule=Host(`events.${HOST}`)"
-      - "traefik.http.routers.events.entrypoints=web"
-      - "traefik.http.services.events.loadbalancer.server.port=${EVENTS_SERVICE_PORT}"
+      - "traefik.http.routers.users.rule=Host(`users.${HOST}`)"
+      - "traefik.http.routers.users.entrypoints=web"
+      - "traefik.http.services.users.loadbalancer.server.port=${USERS_SERVICE_PORT}"
     restart: unless-stopped
     depends_on:
-      mongo-events:
+      mongo-users:
         condition: service_healthy
-      rabbitmq-events:
+      rabbitmq-users:
         condition: service_healthy
-  
-  rabbitmq-events:
+
+  rabbitmq-users:
     image: rabbitmq:3-management-alpine
     restart: unless-stopped
     networks:
-      - events-network
+      - users-network
     healthcheck:
       test: [ 'CMD', 'rabbitmq-diagnostics', 'status' ]
       interval: 2s
@@ -30,11 +30,11 @@ services:
       retries: 100
       start_period: 60s
 
-  mongo-events:
+  mongo-users:
     image: mongo
     restart: unless-stopped
     networks:
-      - events-network
+      - users-network
     healthcheck:
       test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
       interval: 2s
@@ -45,5 +45,5 @@ services:
 networks:
   eventonight-network:
     driver: bridge
-  events-network:
+  users-network:
     driver: bridge
