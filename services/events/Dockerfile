@@ -1,14 +1,24 @@
-FROM gradle:8.8 AS builder
+FROM eclipse-temurin:21-jre-alpine AS builder
 WORKDIR /home/app
 
-COPY ./services/events /home/app
+RUN mkdir -p .git/hooks
 
-RUN gradle shadowJar --no-daemon -x test
+COPY ./build.gradle.kts .
+COPY ./settings.gradle.kts .
+COPY ./buildSrc ./buildSrc
+COPY ./gradle ./gradle
+COPY ./gradlew .
 
-FROM eclipse-temurin:21
+COPY ./services/events ./services/events
+
+RUN ./gradlew dependencies --no-daemon
+
+RUN ./gradlew shadowJar --no-daemon -x test
+
+FROM eclipse-temurin:21-jre-alpine
 WORKDIR /home/app
 
-COPY --from=builder /home/app/build/libs/events.jar ./app.jar
+COPY --from=builder /home/app/services/events/build/libs/*.jar ./app.jar
 
 EXPOSE 9010
 
