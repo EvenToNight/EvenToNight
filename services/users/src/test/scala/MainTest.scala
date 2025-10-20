@@ -8,8 +8,8 @@ class MainTest extends AnyFlatSpec with Matchers:
     factory.setHost("localhost")
     factory.setPort(5672)
     val connection: Connection = factory.newConnection()
-    val channel: Channel = connection.createChannel()
-    val queueName = "testQueue"
+    val channel: Channel       = connection.createChannel()
+    val queueName              = "testQueue"
     channel.queueDeclare(queueName, false, false, false, null)
     val message = "Hello from Scala 3!"
     channel.basicPublish("", queueName, null, message.getBytes())
