@@ -6,6 +6,7 @@ services:
       - users-network
     environment:
       - PORT=${USERS_SERVICE_PORT}
+      - RABBITMQ_HOST=rabbitmq-users
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.users.rule=Host(`users.${HOST}`)"
