@@ -20,6 +20,6 @@ WORKDIR /home/app
 
 COPY --from=builder /home/app/services/events/build/libs/*.jar ./app.jar
 
-EXPOSE 9010
+EXPOSE $PORT
 
 ENTRYPOINT ["java", "-jar", "/home/app/app.jar"]

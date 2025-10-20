@@ -1,0 +1,7 @@
+services:
+  events:
+    build:
+      context: .
+      dockerfile: ./services/events/Dockerfile
+    ports:
+      - "${EVENTS_SERVICE_PORT}:${EVENTS_SERVICE_PORT}"  

@@ -197,7 +197,7 @@ jobs:
             image_release="${image_base}:${release_tag}"
 
             echo "🚀 Building image for $service_name"
-            docker build -t "$image_latest" -t "$image_release" "$dir"
+            docker build -t "$image_latest" -t "$image_release" -f "$dir/Dockerfile" .
 
             echo "📤 Pushing $image_latest and $image_release"
             docker push "$image_latest"
