@@ -53,3 +53,9 @@ tasks.test {
         }
     }
 }
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = "src.main.Main"
+    }
+}

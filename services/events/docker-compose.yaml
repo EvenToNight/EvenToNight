@@ -1,0 +1,17 @@
+services:
+  events:
+    image: ghcr.io/eventonight/eventonight/events:latest
+    networks:
+      - eventonight-network
+    environment:
+      - PORT=${EVENTS_SERVICE_PORT}
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.events.rule=Host(`${HOST}`)"
+      - "traefik.http.routers.events.entrypoints=web"
+      - "traefik.http.services.events.loadbalancer.server.port=${EVENTS_SERVICE_PORT}"
+    restart: unless-stopped
+
+networks:
+  eventonight-network:
+    driver: bridge
