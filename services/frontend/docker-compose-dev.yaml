@@ -1,6 +1,7 @@
 services:
   frontend:
     build:
-      context: ./services/frontend
+      context: .
+      dockerfile: ./services/frontend/Dockerfile
     ports:
       - "${FRONTEND_SERVICE_PORT}:${FRONTEND_SERVICE_PORT}"  
