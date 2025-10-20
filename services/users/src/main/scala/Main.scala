@@ -6,7 +6,9 @@ object Main extends cask.MainRoutes {
 
   // --- RabbitMQ connection ---
   val factory = new ConnectionFactory()
-  factory.setHost("localhost")
+  Option(System.getenv("RABBITMQ_HOST")) match
+    case Some(host) => factory.setHost(host)
+    case None       => factory.setHost("localhost") // RabbitMQ service hostname
   factory.setPort(5672) // default RabbitMQ port
   val connection: Connection = factory.newConnection()
   val channel: Channel = connection.createChannel()
