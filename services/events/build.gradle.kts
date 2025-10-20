@@ -5,10 +5,6 @@ plugins {
     id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
 }
 
-repositories {
-        mavenCentral()
-}
-
 application {
     mainClass.set("Main")
 }
