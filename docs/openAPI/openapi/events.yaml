@@ -1,0 +1,11 @@
+openapi: 3.0.1
+info:
+  title: EvenToNight - Events API
+  version: 1.0.0
+paths:
+  /events:
+    get:
+      summary: Ottieni la lista degli eventi
+      responses:
+        '200':
+          description: OK
