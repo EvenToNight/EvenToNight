@@ -117,16 +117,50 @@ tasks.register<Exec>("setupTestEnvironment") {
     } 
 }
 
-tasks.register<Exec>("updateStagedFiles") {
-    commandLine("git", "add", "-u")
+tasks.register("saveStagedFiles") {
+    val stagedFiles = mutableListOf<String>()
+    doLast {
+        val output = ProcessBuilder("git", "diff", "--name-only", "--cached")
+            .redirectErrorStream(true)
+            .start()
+            .inputStream.bufferedReader().readLines()
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+        stagedFiles.addAll(output)
+        println("💾 Saved ${stagedFiles.size} staged file(s)")
+    }
+    extensions.add("stagedFilesList", stagedFiles)
+}
+
+tasks.register("updateStagedFiles") {
+    doLast {
+        val stagedFiles = (tasks.named("saveStagedFiles").get().extensions["stagedFilesList"] as? List<String>) ?: emptyList()
+        stagedFiles.forEach { file ->
+            exec { commandLine("git", "add", file) }
+        }
+        println("✅ Re-staged ${stagedFiles.size} file(s) after formatting.")
+    }
+}
+
+tasks.named("saveStagedFiles") {
+    notCompatibleWithConfigurationCache("Saving staged files is not compatible with configuration cache")
+}
+
+tasks.named("updateStagedFiles") {
+    notCompatibleWithConfigurationCache("Updating staged files is not compatible with configuration cache")
 }
 
 tasks.register("formatAndLintPreCommit") {
-    dependsOn(subprojects.mapNotNull { proj ->
-        proj.tasks.findByName("formatAndLintPreCommit")?.let { proj.path + ":formatAndLintPreCommit" }
-    })
+    dependsOn("saveStagedFiles")
+
+    val subPreCommitTasks = subprojects.mapNotNull { proj ->
+        proj.tasks.findByName("formatAndLintPreCommit")
+    }
+    subPreCommitTasks.forEach { it.mustRunAfter(rootProject.tasks.named("saveStagedFiles")) }
+    dependsOn(subPreCommitTasks)
+    
     finalizedBy("updateStagedFiles")
-}
+ }
 
 tasks.register<Exec>("setupApplicationEnvironment") {
     val isWindows = System.getProperty("os.name").lowercase().contains("windows")

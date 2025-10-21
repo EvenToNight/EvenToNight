@@ -3,7 +3,7 @@ import com.rabbitmq.client.Connection
 import com.rabbitmq.client.ConnectionFactory
 
 object Main extends cask.MainRoutes {
-  override def port: Int = 9000 // Use your desired port here
+  override def port: Int    = 9000 // Use your desired port here
   override def host: String = "0.0.0.0"
 
   // --- RabbitMQ connection ---
