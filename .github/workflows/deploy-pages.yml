@@ -40,8 +40,8 @@ jobs:
           cp ./docs/github-pages-index.html ${{ env.SITE }}/index.html
           cp ./docs/styles.css ${{ env.SITE }}/styles.css
           mkdir -p ${{ env.SITE }}/openapi
-          cp ./docs/openAPI/index.html ${{ env.SITE }}/api-index.html # 
-          cp ./docs/openAPI/openapi-index.html ${{ env.SITE }}/openapi-viewer.html
+          cp ./docs/openAPI/index.html ${{ env.SITE }}/api-index.html 
+          cp ./docs/openAPI/openapi-viewer.html ${{ env.SITE }}/openapi-viewer.html
           cp ./docs/openAPI/openapi/users.yaml ${{ env.SITE }}/openapi/users.yaml
           cp ./docs/openAPI/openapi/events.yaml ${{ env.SITE }}/openapi/events.yaml
       
@@ -52,10 +52,6 @@ jobs:
       - name: Build with VitePress
         run: npm run docs:build -- --base /EvenToNight/report/ --outDir ../../site/report
         working-directory: ./docs/report
-
-      - name: Update Swagger Links
-        run: |
-          sed -i 's/openapi-index.html/openapi-viewer.html/g' ${{ env.SITE }}/api-index.html
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3

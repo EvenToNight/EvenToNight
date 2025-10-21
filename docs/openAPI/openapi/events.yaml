@@ -5,7 +5,7 @@ info:
 paths:
   /events:
     get:
-      summary: Ottieni la lista degli eventi
+      summary: Get events list
       responses:
         '200':
           description: OK
