@@ -1,8 +1,14 @@
+import io.github.cosmicsilence.scalafix.ScalafixTask
+import io.github.cosmicsilence.scalafix.ConfigSemanticDbTask
+import org.gradle.api.tasks.scala.ScalaCompile
+
 plugins {
     scala
     application
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
+    id("io.github.cosmicsilence.scalafix") version "0.2.5"
+
 }
 
 scalafmt {
@@ -59,8 +65,20 @@ tasks.register("formatAndLintPreCommit") {
 }
 
 tasks.shadowJar {
-    archiveFileName.set("users.jar") 
+    archiveFileName.set("users.jar")
     manifest {
         attributes["Main-Class"] = "Main"
     }
+}
+tasks.withType<ScalafixTask>().configureEach {
+    notCompatibleWithConfigurationCache("Scalafix Gradle plugin is not compatible with configuration cache")
+}
+
+tasks.withType<ConfigSemanticDbTask>().configureEach {
+    notCompatibleWithConfigurationCache("Scalafix Gradle plugin is not compatible with configuration cache")
+}
+
+tasks.withType<ScalaCompile>().configureEach {
+    scalaCompileOptions.additionalParameters =
+        listOf("-Wunused:imports", "-Wunused:all")
 }

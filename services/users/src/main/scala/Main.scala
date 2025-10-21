@@ -1,4 +1,6 @@
-import com.rabbitmq.client.{Channel, Connection, ConnectionFactory}
+import com.rabbitmq.client.Channel
+import com.rabbitmq.client.Connection
+import com.rabbitmq.client.ConnectionFactory
 
 object Main extends cask.MainRoutes {
   override def port: Int = 9000 // Use your desired port here
