@@ -28,7 +28,7 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-sync:5.5.1")
     implementation("com.rabbitmq:amqp-client:5.26.0")
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
-    implementation("com.lihaoyi:cask_3:0.10.1")
+    implementation("com.lihaoyi:cask_3:0.11.3")
     testImplementation("org.scalatest:scalatest_3:3.2.19")
     testRuntimeOnly("org.junit.platform:junit-platform-engine:1.13.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.1")
