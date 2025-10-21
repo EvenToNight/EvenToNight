@@ -8,7 +8,6 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
     id("io.github.cosmicsilence.scalafix") version "0.2.5"
-
 }
 
 scalafmt {
@@ -29,12 +28,13 @@ dependencies {
     implementation("com.rabbitmq:amqp-client:5.26.0")
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
     implementation("com.lihaoyi:cask_3:0.11.3")
+    implementation("io.undertow:undertow-core:2.3.12.Final")
+    implementation("org.jboss.logging:jboss-logging:3.5.3.Final")
     testImplementation("org.scalatest:scalatest_3:3.2.19")
     testRuntimeOnly("org.junit.platform:junit-platform-engine:1.13.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.1")
     testRuntimeOnly("org.scalatestplus:junit-5-13_3:3.2.19.0")
-    implementation("io.undertow:undertow-core:2.3.12.Final")
-    implementation("org.jboss.logging:jboss-logging:3.5.3.Final")
+    compileOnly("org.wartremover:wartremover_2.13:3.1.5")
 }
 
 
@@ -48,7 +48,17 @@ tasks.withType<ScalaCompile> {
     }
 }
 
-tasks.test{
+tasks.withType<ScalaCompile>().configureEach {
+    options.compilerArgs.addAll(
+        listOf(
+            "-Xplugin-require:wartremover",
+            "-P:wartremover:traverser:org.wartremover.warts.Unsafe",
+            "-Xfatal-warnings"
+        )
+    )
+}
+
+tasks.test {
     dependsOn(rootProject.tasks.named("setupTestEnvironment"))
     finalizedBy(rootProject.tasks.named("teardownTestEnvironment"))
     useJUnitPlatform {
@@ -61,6 +71,7 @@ tasks.test{
 }
 
 tasks.register("formatAndLintPreCommit") {
+    dependsOn("scalafix")
     dependsOn("scalafmtAll")
 }
 
