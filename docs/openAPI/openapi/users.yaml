@@ -1,6 +1,6 @@
 openapi: 3.0.1
 info:
-  title: EventToNight - Users API
+  title: EvenToNight - Users API
   version: 1.0.0
 paths:
   /users:
