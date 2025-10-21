@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Open API</title>
+  <style>
+    body {
+      font-family: system-ui, sans-serif;
+      background: #fafafa;
+      margin: 2rem;
+    }
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      color: #222;
+    }
+    .service-list {
+      max-width: 500px;
+      margin: 2rem auto;
+    }
+    .service {
+      background: white;
+      margin: 1rem 0;
+      padding: 1rem 1.5rem;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      transition: all 0.2s ease;
+    }
+    .service:hover {
+      background: #f8f9fa;
+      transform: translateY(-2px);
+    }
+    a {
+      text-decoration: none;
+      color: #2a6edb;
+      font-size: 1.2rem;
+      font-weight: 500;
+    }
+  </style>
+</head>
+<body>
+  <h1>Open API</h1>
+
+  <div class="service-list">
+    <div class="service">
+      <a href="openapi-index.html?url=openapi/users.yaml">Users Service</a>
+    </div>
+    <div class="service">
+      <a href="openapi-index.html?url=openapi/events.yaml">Events Service</a>
+    </div>
+  </div>
+</body>
+</html>

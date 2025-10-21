@@ -1,0 +1,11 @@
+openapi: 3.0.1
+info:
+  title: EventToNight - Users API
+  version: 1.0.0
+paths:
+  /users:
+    get:
+      summary: Ottieni la lista degli utenti
+      responses:
+        '200':
+          description: OK
