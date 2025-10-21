@@ -1,8 +1,13 @@
+import io.github.cosmicsilence.scalafix.ScalafixTask
+import io.github.cosmicsilence.scalafix.ConfigSemanticDbTask
+import org.gradle.api.tasks.scala.ScalaCompile
+
 plugins {
     scala
     application
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
+    id("io.github.cosmicsilence.scalafix") version "0.2.5"
 }
 
 application {
@@ -15,12 +20,13 @@ dependencies {
     implementation("com.rabbitmq:amqp-client:5.26.0")
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
     implementation("com.lihaoyi:cask_3:0.10.1")
+    implementation("io.undertow:undertow-core:2.3.12.Final")
+    implementation("org.jboss.logging:jboss-logging:3.5.3.Final")
     testImplementation("org.scalatest:scalatest_3:3.2.19")
     testRuntimeOnly("org.junit.platform:junit-platform-engine:1.13.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.1")
     testRuntimeOnly("org.scalatestplus:junit-5-13_3:3.2.19.0")
-    implementation("io.undertow:undertow-core:2.3.12.Final")
-    implementation("org.jboss.logging:jboss-logging:3.5.3.Final")
+    compileOnly("org.wartremover:wartremover_2.13:3.1.5")
 }
 
 scalafmt {
@@ -31,11 +37,21 @@ tasks.matching { it.name.contains("Scalafmt", ignoreCase = true) }.configureEach
         notCompatibleWithConfigurationCache("Scalafmt plugin not compatible with Gradle configuration cache")
 }
 
+tasks.withType<ScalaCompile>().configureEach {
+    options.compilerArgs.addAll(listOf(
+    "-Xplugin-require:wartremover",
+    "-P:wartremover:traverser:org.wartremover.warts.Unsafe",
+    "-Xfatal-warnings"
+    ))
+}
+
 tasks.register("checkStyle") {
+    dependsOn("checkScalafix")
     dependsOn("checkScalafmtAll")
 }
 
 tasks.register("formatAndLintPreCommit") {
+    dependsOn("scalafix")
     dependsOn("scalafmtAll")
 }
 
@@ -62,4 +78,17 @@ tasks.shadowJar {
     manifest {
         attributes["Main-Class"] = "Main"
     }
+}
+
+tasks.withType<ScalafixTask>().configureEach {
+    notCompatibleWithConfigurationCache("Scalafix Gradle plugin is not compatible with configuration cache")
+}
+
+tasks.withType<ConfigSemanticDbTask>().configureEach {
+    notCompatibleWithConfigurationCache("Scalafix Gradle plugin is not compatible with configuration cache")
+}
+
+tasks.withType<ScalaCompile>().configureEach {
+    scalaCompileOptions.additionalParameters =
+        listOf("-Wunused:imports", "-Wunused:all")
 }
