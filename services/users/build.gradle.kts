@@ -93,3 +93,27 @@ tasks.withType<ScalaCompile>().configureEach {
     scalaCompileOptions.additionalParameters =
         listOf("-Wunused:imports", "-Wunused:all")
 }
+
+tasks {
+    val shadowJar by getting(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class)
+
+    named<Jar>("jar") {
+        enabled = false
+    }
+
+    named("build") {
+        dependsOn(shadowJar)
+    }
+
+    named("distZip") {
+        dependsOn(shadowJar)
+    }
+
+    named("distTar") {
+        dependsOn(shadowJar)
+    }
+
+    named("startScripts") {
+        dependsOn(shadowJar)
+    }
+}
