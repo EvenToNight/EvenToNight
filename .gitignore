@@ -45,3 +45,6 @@ yarn.lock
 
 # Swagger
 swagger-ui/
+
+# Vite cache
+cache/
