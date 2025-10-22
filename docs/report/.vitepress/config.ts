@@ -1,6 +1,9 @@
 export default {
     base: "/EvenToNight/",
     title: "Report Progetto",
+    head: [
+        ["link", { rel: "icon", type: "image/png", href: "/logo.png" }]
+    ],
     themeConfig: {
         nav: [
         { text: "Introduzione", link: "/" },

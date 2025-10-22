@@ -39,6 +39,7 @@ jobs:
           mkdir -p ${{ env.SITE }}
           cp ./docs/github-pages-index.html ${{ env.SITE }}/index.html
           cp ./docs/styles.css ${{ env.SITE }}/styles.css
+          cp ./docs/logo.png ${{ env.SITE }}/logo.png
           mkdir -p ${{ env.SITE }}/openapi
           cp ./docs/openAPI/index.html ${{ env.SITE }}/api-index.html 
           cp ./docs/openAPI/openapi-viewer.html ${{ env.SITE }}/openapi-viewer.html
