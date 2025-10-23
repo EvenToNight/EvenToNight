@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/EvenToNight/EvenToNight/compare/v1.1.0...v1.2.0) (2025-10-23)
+
+### Features
+
+* **project-configuration:** complete basic project setup ([ec0cf1e](https://github.com/EvenToNight/EvenToNight/commit/ec0cf1e4e554f905787c83769e40faf0e1db1f78))
+
 ## [1.1.0](https://github.com/EvenToNight/EvenToNight/compare/v1.0.0...v1.1.0) (2025-09-30)
 
 ### Features
