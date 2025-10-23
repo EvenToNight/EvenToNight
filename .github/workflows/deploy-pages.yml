@@ -42,7 +42,7 @@ jobs:
           cp ./docs/logo.png ${{ env.SITE }}/logo.png
           mkdir -p ${{ env.SITE }}/openapi
           cp -R ./docs/openAPI ${{ env.SITE }}/
-          cd -R ./docs/asynAPI ${{ env.SITE }}/
+          cp -R ./docs/asyncAPI ${{ env.SITE }}/
       
       - name: Install dependencies
         run: npm install
