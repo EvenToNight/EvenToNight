@@ -41,10 +41,8 @@ jobs:
           cp ./docs/styles.css ${{ env.SITE }}/styles.css
           cp ./docs/logo.png ${{ env.SITE }}/logo.png
           mkdir -p ${{ env.SITE }}/openapi
-          cp ./docs/openAPI/index.html ${{ env.SITE }}/api-index.html 
-          cp ./docs/openAPI/openapi-viewer.html ${{ env.SITE }}/openapi-viewer.html
-          cp ./docs/openAPI/openapi/users.yaml ${{ env.SITE }}/openapi/users.yaml
-          cp ./docs/openAPI/openapi/events.yaml ${{ env.SITE }}/openapi/events.yaml
+          cp -R ./docs/openAPI ${{ env.SITE }}/
+          cd -R ./docs/asynAPI ${{ env.SITE }}/
       
       - name: Install dependencies
         run: npm install
