@@ -15,20 +15,8 @@ services:
     depends_on:
       mongo-events:
         condition: service_healthy
-      rabbitmq-events:
+      rabbitmq:
         condition: service_healthy
-  
-  rabbitmq-events:
-    image: rabbitmq:3-management-alpine
-    restart: unless-stopped
-    networks:
-      - events-network
-    healthcheck:
-      test: [ 'CMD', 'rabbitmq-diagnostics', 'status' ]
-      interval: 2s
-      timeout: 3s
-      retries: 100
-      start_period: 60s
 
   mongo-events:
     image: mongo
