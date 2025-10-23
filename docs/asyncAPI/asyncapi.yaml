@@ -1,0 +1,35 @@
+asyncapi: "2.5.0"
+info:
+  title: EvenToNight - Async API
+  version: "1.0.0"
+  description: API for rabbitmq
+
+channels:
+  user-created:
+    subscribe:
+      summary: User Created Event
+      description: Event triggered when a new user is created.
+      operationId: onUserCreated
+      message:
+        contentType: application/json
+        payload:
+          $ref: "#/components/schemas/UserCreatedEvent"
+          
+components:
+  schemas:
+    UserCreatedEvent:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+          nullable: true
+        description:
+          type: string
+          nullable: true
+        profilePicture:
+          type: string
+          nullable: true
+      required:
+        - username
