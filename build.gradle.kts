@@ -135,10 +135,21 @@ tasks.register("saveStagedFiles") {
 tasks.register("updateStagedFiles") {
     doLast {
         val stagedFiles = (tasks.named("saveStagedFiles").get().extensions["stagedFilesList"] as? List<String>) ?: emptyList()
+        var reStagedCount = 0
         stagedFiles.forEach { file ->
-            exec { commandLine("git", "add", file) }
+            val f = file(file)
+            if (f.exists()) {
+                try {
+                    exec { commandLine("git", "add", file) }
+                    reStagedCount++
+                } catch (e: Exception) {
+                    println("⚠️ Failed to re-stage $file: ${'$'}{e.message}")
+                }
+            } else {
+                println("⚠️ Skipping re-stage for missing file: $file")
+            }
         }
-        println("✅ Re-staged ${stagedFiles.size} file(s) after formatting.")
+        println("✅ Re-staged $reStagedCount file(s) after formatting.")
     }
 }
 
