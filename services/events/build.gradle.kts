@@ -11,7 +11,7 @@ plugins {
 }
 
 application {
-    mainClass.set("Main")
+    mainClass.set("app.Main")
 }
 
 dependencies {
@@ -76,7 +76,7 @@ tasks.test {
 tasks.shadowJar {
     archiveFileName.set("events.jar") 
     manifest {
-        attributes["Main-Class"] = "Main"
+        attributes["Main-Class"] = "app.Main"
     }
 }
 
