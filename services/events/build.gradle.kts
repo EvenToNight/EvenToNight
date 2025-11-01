@@ -19,14 +19,13 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-sync:5.5.1")
     implementation("com.rabbitmq:amqp-client:5.26.0")
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
-    implementation("com.lihaoyi:cask_3:0.10.1")
+    implementation("com.lihaoyi:cask_3:0.11.3")
     implementation("io.undertow:undertow-core:2.3.12.Final")
     implementation("org.jboss.logging:jboss-logging:3.5.3.Final")
     testImplementation("org.scalatest:scalatest_3:3.2.19")
     testRuntimeOnly("org.junit.platform:junit-platform-engine:1.13.1")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.1")
     testRuntimeOnly("org.scalatestplus:junit-5-13_3:3.2.19.0")
-    compileOnly("org.wartremover:wartremover_2.13:3.1.5")
 }
 
 scalafmt {
@@ -35,14 +34,6 @@ scalafmt {
 
 tasks.matching { it.name.contains("Scalafmt", ignoreCase = true) }.configureEach {
         notCompatibleWithConfigurationCache("Scalafmt plugin not compatible with Gradle configuration cache")
-}
-
-tasks.withType<ScalaCompile>().configureEach {
-    options.compilerArgs.addAll(listOf(
-    "-Xplugin-require:wartremover",
-    "-P:wartremover:traverser:org.wartremover.warts.Unsafe",
-    "-Xfatal-warnings"
-    ))
 }
 
 tasks.register("checkStyle") {
@@ -92,6 +83,7 @@ tasks.withType<ScalaCompile>().configureEach {
     scalaCompileOptions.additionalParameters =
         listOf("-Wunused:imports", "-Wunused:all")
 }
+
 
 tasks {
     val shadowJar by getting(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class)
