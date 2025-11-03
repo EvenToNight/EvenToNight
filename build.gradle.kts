@@ -21,25 +21,14 @@ allprojects {
     }
 }
 
-tasks.register("checkEnvFile") {
-    description = "Checks if .env file exists, otherwise copies from .env.template"
+tasks.register<Exec>("updateAndCheckEnvFile") {
+    description = "Update the .env file from the .env.template and check if some values are missing."
     group = "setup"
-
-    val envFile = file(".env")
-    val envTemplate = file(".env.template")
-
-    if (!envFile.exists() && envTemplate.exists()) {
-        envTemplate.copyTo(envFile)
-        println("${GREEN} .env file created from .env.template${RESET}")
-    } else if (!envTemplate.exists()) {
-        throw GradleException("${RED} Error: .env.template not found in project root!${RESET}")
-    } else {
-        println("${GREEN} .env file already present${RESET}")
-    }
+    commandLine("bash", "./scripts/checkEnvSetup.sh")
 }
 
 tasks.named("build") {
-    dependsOn("checkEnvFile")
+    dependsOn("updateAndCheckEnvFile")
 }
 
 tasks.register<Exec>("teardownDevEnvironment") {
