@@ -37,4 +37,5 @@ if [[ $ERROR -eq 0 ]]; then
   echo "✅ All checks passed!"
 else
   echo "⚠️ There were $ERROR error(s)."
+  exit 1
 fi
