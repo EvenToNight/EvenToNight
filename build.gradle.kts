@@ -21,89 +21,62 @@ allprojects {
     }
 }
 
-tasks.register<Exec>("updateAndCheckEnvFile") {
-    description = "Update the .env file from the .env.template and check if some values are missing."
-    group = "setup"
-    commandLine("bash", "./scripts/checkEnvSetup.sh")
-}
-
 tasks.named("build") {
     dependsOn("updateAndCheckEnvFile")
 }
 
-tasks.register<Exec>("teardownDevEnvironment") {
-    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-    if(isWindows){
-        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh --dev down -v --remove-orphans'")
-    } else {
-        commandLine("./scripts/composeDevEnvironment.sh", "--dev", "down", "-v", "--remove-orphans")
-    }
+tasks.register<ExecTask>("updateAndCheckEnvFile") {
+    description = "Update the .env file from the .env.template and check if some values are missing."
+    group = "setup"
+    bashCommands("./scripts/updateLocalEnv.sh", "./scripts/checkEnvSetup.sh")
 }
 
-tasks.register<Exec>("teardownTestEnvironment") {
-    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-    if(isWindows){
-        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh --project-name eventonight-test-environment down -v --remove-orphans'")
-    } else {
-        commandLine("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "down", "-v", "--remove-orphans")
-    }
+tasks.register<ExecTask>("teardownTestEnvironment") {
+    description = "Tear down the Docker test environment."
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_TEST_ENVIRONMENT)
 }
 
-tasks.register<Exec>("setupDevEnvironment") {
-    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-    doFirst {
-        val exitCode = if(isWindows){
-            ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh down --dev -v --remove-orphans'")
-                .inheritIO()
-                .start()
-                .waitFor()
-        } else {
-            ProcessBuilder("./scripts/composeDevEnvironment.sh", "down", "-v", "--dev", "--remove-orphans")
-                .inheritIO()
-                .start()
-                .waitFor()
-        }
-        
-        if (exitCode != 0) {
-            throw GradleException("${RED}Teardown failed with exit code $exitCode ${RESET}")
-        }
-        println("${GREEN}Teardown completed${RESET}")
-    }
-
-    if(isWindows){
-        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up --dev -d --force-recreate'")
-    } else {
-        commandLine("./scripts/composeDevEnvironment.sh", "up", "--dev", "-d", "--force-recreate")
-    }
-
+tasks.register<ExecTask>("teardownDevEnvironment") {
+    description = "Tear down the Docker development environment."
+    group = "docker"
+    bashCommand(DockerCommands.TEARDOWN_DEV_ENVIRONMENT)
 }
 
-tasks.register<Exec>("setupTestEnvironment") {
-    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-    doFirst {
-        val exitCode = if(isWindows){
-            ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh --project-name eventonight-test-environment down -v --remove-orphans'")
-                .inheritIO()
-                .start()
-                .waitFor()
-        } else {
-            ProcessBuilder("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "down", "-v", "--remove-orphans")
-                .inheritIO()
-                .start()
-                .waitFor()
-        }
-            
-        if (exitCode != 0) {
-            throw GradleException("${RED}Teardown failed with exit code $exitCode ${RESET}")
-        }
-        println("${GREEN}Teardown completed${RESET}")
+tasks.register<ExecTask>("teardownApplicationEnvironment") {
+    description = "Tear down the Docker application environment."
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_APPLICATION_ENVIRONMENT)
+}
+
+tasks.register<ExecTask>("setupTestEnvironment") {
+    description = "Set up the Docker test environment."
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_TEST_ENVIRONMENT).onFailure { code ->
+        println("${RED}Teardown failed with exit code ${code}.${RESET}")
     }
-    
-    if(isWindows){
-        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeDevEnvironment.sh up --project-name eventonight-test-environment -d --force-recreate --wait'")
-    } else {
-        commandLine("./scripts/composeDevEnvironment.sh", "--project-name", "eventonight-test-environment", "up", "-d", "--force-recreate", "--wait")
-    } 
+    println("💬 Setting up the test environment...")
+    bashCommands(DockerCommands.SETUP_TEST_ENVIRONMENT)
+}
+
+tasks.register<ExecTask>("setupDevEnvironment") {
+    description = "Set up the Docker development environment."
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_DEV_ENVIRONMENT).onFailure { code ->
+        println("${RED}Teardown failed with exit code ${code}.${RESET}")
+    }
+    println("💬 Setting up the development environment...")
+    bashCommands(DockerCommands.SETUP_DEV_ENVIRONMENT)
+}
+
+tasks.register<ExecTask>("setupApplicationEnvironment") {
+    description = "Set up the Docker application environment."
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_APPLICATION_ENVIRONMENT).onFailure { code ->
+        println("${RED}Teardown failed with exit code ${code}.${RESET}")
+    }
+    println("💬 Setting up the application environment...")
+    bashCommands(DockerCommands.SETUP_APPLICATION_ENVIRONMENT)
 }
 
 tasks.register("saveStagedFiles") {
@@ -151,30 +124,3 @@ tasks.register("formatAndLintPreCommit") {
     finalizedBy("updateStagedFiles")
  }
 
-tasks.register<Exec>("setupApplicationEnvironment") {
-    val isWindows = System.getProperty("os.name").lowercase().contains("windows")
-    doFirst {
-        val exitCode = if(isWindows){
-            ProcessBuilder("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeApplication.sh down --dev -v --remove-orphans'")
-                .inheritIO()
-                .start()
-                .waitFor()
-        } else {
-            ProcessBuilder("./scripts/composeApplication.sh", "down", "-v", "--dev", "--remove-orphans")
-                .inheritIO()
-                .start()
-                .waitFor()
-        }
-            
-        if (exitCode != 0) {
-            throw GradleException("${RED}Teardown failed with exit code $exitCode ${RESET}")
-        }
-        println("${GREEN}Teardown completed${RESET}")
-    }
-    
-    if(isWindows){
-        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/composeApplication.sh up -d --dev --build --force-recreate --wait'")
-    } else {
-        commandLine("./scripts/composeApplication.sh", "up", "-d", "--dev", "--build", "--force-recreate", "--wait")
-    }
-}
