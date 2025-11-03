@@ -5,14 +5,12 @@ import infrastructure.db.MockEventRepository
 import infrastructure.messaging.MockEventPublisher
 import service.EventService
 
-import scala.concurrent.ExecutionContext.Implicits.global
-
 object Main extends App {
 
-  val repo      = new MockEventRepository()
-  val publisher = new MockEventPublisher()
+  val database      = new MockEventRepository()
+  val messageBroker = new MockEventPublisher()
 
-  val eventService = new EventService(repo, publisher)
+  val eventService = new EventService(database, messageBroker)
 
   val controller = new EventController(eventService)
 

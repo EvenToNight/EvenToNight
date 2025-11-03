@@ -7,7 +7,7 @@ object Commands:
       title: String,
       description: String,
       poster: String,
-      tag: Tag,
+      tag: List[EventTag],
       location: String,
       date: LocalDateTime,
       id_creator: String,

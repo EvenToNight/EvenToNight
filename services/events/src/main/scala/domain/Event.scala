@@ -4,15 +4,12 @@ import domain.Commands.CreateEventDraftCommand
 import java.time.LocalDateTime
 import java.util.UUID
 
-enum Tag:
-  case Concert, Disco, Festival, Sports, Other
-
 case class Event(
     id: String,
     title: String,
     description: String,
     poster: String,
-    tag: Tag,
+    tag: List[EventTag],
     location: String,
     date: LocalDateTime,
     status: EventStatus,
@@ -44,16 +41,7 @@ object Event:
     )
 
     val eventDraftCreated = EventDraftCreated(
-      id = newId,
-      title = command.title,
-      description = command.description,
-      poster = command.poster,
-      tag = command.tag,
-      location = command.location,
-      date = command.date,
-      instant = java.time.Instant.now(),
-      id_creator = command.id_creator,
-      id_collaborator = command.id_collaborator
+      eventId = newId
     )
 
     (newEvent, eventDraftCreated)
