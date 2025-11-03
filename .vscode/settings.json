@@ -2,7 +2,13 @@
   "files.watcherExclude": {
     "**/target": true
   },
-  "java.configuration.updateBuildConfiguration": "interactive",
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "kotlin.languageServer.enabled": false,
+  "files.exclude": {
+    "**/.gradle": true,
+    "**/build": true,
+    "**/buildSrc": false,
+  },
   "metals.javaHome": "/opt/homebrew/opt/openjdk/libexec/openjdk.jdk/Contents/Home/",
 
   "files.associations": {
@@ -10,7 +16,6 @@
     "build.gradle.kts": "kotlin",
     "settings.gradle.kts": "kotlin"
   },
-  "kotlin.languageServer.enabled": true,
   "eslint.workingDirectories": [
   {
     "mode": "auto"
