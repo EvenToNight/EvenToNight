@@ -100,7 +100,7 @@ tasks.register("saveStagedFiles") {
     notCompatibleWithConfigurationCache("Saving staged files is not compatible with configuration cache")
     val stagedFiles = mutableListOf<String>()
     doLast {
-        val output = ProcessBuilder("git", "diff", "--name-only", "--cached")
+        val output = ProcessBuilder("git", "diff", "--name-only", "--cached", "--diff-filter=d")
             .redirectErrorStream(true)
             .start()
             .inputStream.bufferedReader().readLines()
