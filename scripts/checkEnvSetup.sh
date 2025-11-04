@@ -14,7 +14,7 @@ extract_keys() {
 keys_env=$(extract_keys "$ENV_FILE" || true)
 keys_template=$(extract_keys "$TEMPLATE_FILE" || true)
 
-diff_output=$(diff <(echo "$keys_env") <(echo "$keys_template") || true)
+diff_output=$(comm -3 <(echo "$keys_env" | sort) <(echo "$keys_template" | sort))
 if [[ -n "$diff_output" ]]; then
   echo "❌ Mismatch found between $ENV_FILE and $TEMPLATE_FILE:"
   echo "$diff_output"
