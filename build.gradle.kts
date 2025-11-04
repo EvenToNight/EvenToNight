@@ -31,6 +31,14 @@ tasks.register<ExecTask>("updateAndCheckEnvFile") {
     bashCommands("./scripts/updateLocalEnv.sh", "./scripts/checkEnvSetup.sh")
 }
 
+gradle.projectsEvaluated {
+    tasks.configureEach {
+        if (group == "docker") {
+            dependsOn(tasks.named("updateAndCheckEnvFile"))
+        }
+    }
+}
+
 tasks.register<ExecTask>("teardownTestEnvironment") {
     description = "Tear down the Docker test environment."
     group = "docker"
