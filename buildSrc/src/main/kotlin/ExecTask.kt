@@ -2,7 +2,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.GradleException
 import org.gradle.api.tasks.TaskAction
 import org.gradle.process.ExecOperations
-import org.gradle.process.ExecSpec
 import javax.inject.Inject
 import kotlin.io.println as kPrintln
 
