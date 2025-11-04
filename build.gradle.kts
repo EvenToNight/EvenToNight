@@ -28,7 +28,14 @@ tasks.named("build") {
 tasks.register<ExecTask>("updateAndCheckEnvFile") {
     description = "Update the .env file from the .env.template and check if some values are missing."
     group = "setup"
-    bashCommands("./scripts/updateLocalEnv.sh", "./scripts/checkEnvSetup.sh")
+    bashCommands("./scripts/updateLocalEnv.sh")
+    finalizedBy("checkEnvSetup")
+}
+
+tasks.register<ExecTask>("checkEnvSetup") {
+    description = "Check if the .env file and .env.template file are properly set up."
+    group = "setup"
+    bashCommand("./scripts/checkEnvSetup.sh")
 }
 
 gradle.projectsEvaluated {

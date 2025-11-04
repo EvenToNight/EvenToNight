@@ -13,7 +13,7 @@ plugins {
 }
 
 gitHooks{
-    preCommit { tasks("formatAndLintPreCommit") }
+    preCommit { tasks("formatAndLintPreCommit", "checkEnvSetup") }
     commitMsg { conventionalCommits() }
     createHooks(true)
 }
