@@ -80,6 +80,9 @@ tasks.register<ExecTask>("setupApplicationEnvironment") {
 }
 
 tasks.register("saveStagedFiles") {
+    description = "Saves the list of currently staged files to re-stage them later."
+    group = "git"
+    notCompatibleWithConfigurationCache("Saving staged files is not compatible with configuration cache")
     val stagedFiles = mutableListOf<String>()
     doLast {
         val output = ProcessBuilder("git", "diff", "--name-only", "--cached")
@@ -95,6 +98,10 @@ tasks.register("saveStagedFiles") {
 }
 
 tasks.register("updateStagedFiles") {
+    description = "Re-stages the files that were previously saved."
+    group = "git"
+    notCompatibleWithConfigurationCache("Updating staged files is not compatible with configuration cache")
+    dependsOn("saveStagedFiles")
     doLast {
         val stagedFiles = (tasks.named("saveStagedFiles").get().extensions["stagedFilesList"] as? List<String>) ?: emptyList()
         stagedFiles.forEach { file ->
@@ -104,15 +111,9 @@ tasks.register("updateStagedFiles") {
     }
 }
 
-tasks.named("saveStagedFiles") {
-    notCompatibleWithConfigurationCache("Saving staged files is not compatible with configuration cache")
-}
-
-tasks.named("updateStagedFiles") {
-    notCompatibleWithConfigurationCache("Updating staged files is not compatible with configuration cache")
-}
-
 tasks.register("formatAndLintPreCommit") {
+    description = "Formats and lints the codebase."
+    group = "git"
     dependsOn("saveStagedFiles")
 
     val subPreCommitTasks = subprojects.mapNotNull { proj ->
@@ -120,7 +121,6 @@ tasks.register("formatAndLintPreCommit") {
     }
     subPreCommitTasks.forEach { it.mustRunAfter(rootProject.tasks.named("saveStagedFiles")) }
     dependsOn(subPreCommitTasks)
-    
+
     finalizedBy("updateStagedFiles")
  }
-
