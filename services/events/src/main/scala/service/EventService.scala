@@ -18,6 +18,6 @@ class EventService(
 
     publisher.publish(eventToPublish)
 
-    newEvent.id
+    newEvent._id
   }
 }
