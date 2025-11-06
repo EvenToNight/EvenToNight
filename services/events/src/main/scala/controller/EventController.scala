@@ -12,8 +12,31 @@ class EventController(eventService: EventService) extends MainRoutes:
   override def port: Int    = 9010
   override def host: String = "0.0.0.0"
 
+  override def decorators = Seq(
+    new cask.RawDecorator {
+      def wrapFunction(ctx: cask.Request, delegate: Delegate) = {
+        delegate(ctx, Map()).map { response =>
+          cask.model.Response(
+            response.data.data,
+            response.data.statusCode,
+            response.data.headers ++ Seq(
+              "Access-Control-Allow-Origin"  -> "*",
+              "Access-Control-Allow-Methods" -> "GET, POST, PUT, DELETE, OPTIONS",
+              "Access-Control-Allow-Headers" -> "Content-Type, Authorization"
+            )
+          )
+        }
+      }
+    }
+  )
+
+  @cask.options("/:segments...")
+  def handlePreflight() = {
+    cask.Response("", statusCode = 204)
+  }
+
   @cask.get("/events/draft")
-  def createDraft() = {
+  def createDraft() =
     val command = CreateEventDraftCommand(
       title = "Sample Event",
       description = "This is a sample event description.",
@@ -26,10 +49,9 @@ class EventController(eventService: EventService) extends MainRoutes:
     )
     val eventId: String = eventService.handleCreateDraft(command)
     eventId
-  }
 
   @cask.get("/tags")
-  def getTags(): ujson.Value =
+  def getTags() =
     val tags = List(
       ("TypeOfEvent", EventTag.TypeOfEvents),
       ("VenueType", EventTag.VenueTypes),
