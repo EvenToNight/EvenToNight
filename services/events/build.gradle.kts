@@ -8,6 +8,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
     id("io.github.cosmicsilence.scalafix") version "0.2.5"
+    jacoco
 }
 
 application {
@@ -18,18 +19,17 @@ dependencies {
     implementation("org.scala-lang:scala3-library_3:3.7.2")
     implementation("org.mongodb:mongodb-driver-sync:5.5.1")
     implementation("com.rabbitmq:amqp-client:5.26.0")
-    implementation("io.github.cdimascio:dotenv-java:3.2.0")
     implementation("com.lihaoyi:cask_3:0.11.3")
-    implementation("io.undertow:undertow-core:2.3.12.Final")
-    implementation("org.jboss.logging:jboss-logging:3.5.3.Final")
     testImplementation("org.scalatest:scalatest_3:3.2.19")
-    testRuntimeOnly("org.junit.platform:junit-platform-engine:1.13.1")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.1")
     testRuntimeOnly("org.scalatestplus:junit-5-13_3:3.2.19.0")
 }
 
 scalafmt {
     configFilePath = ".scalafmt.conf"
+}
+
+jacoco {
+    toolVersion = "0.8.12" 
 }
 
 tasks.matching { it.name.contains("Scalafmt", ignoreCase = true) }.configureEach {
@@ -62,6 +62,7 @@ tasks.test {
             events("passed", "skipped", "failed")
         }
     }
+    finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.shadowJar {
@@ -106,5 +107,13 @@ tasks {
 
     named("startScripts") {
         dependsOn(shadowJar)
+    }
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
     }
 }
