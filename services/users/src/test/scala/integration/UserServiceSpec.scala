@@ -10,6 +10,7 @@ import model.member.MemberProfile
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import repository.MemberRepository
+import repository.MongoMemberRepository
 import service.UserService
 
 class UserServiceSpec extends AnyFlatSpec with Matchers:
@@ -20,7 +21,7 @@ class UserServiceSpec extends AnyFlatSpec with Matchers:
   val memberProfilesColl: MongoCollection[MemberProfile] =
     membersDB.getCollection("member_profiles", classOf[MemberProfile])
 
-  val memberRepo: MemberRepository = new MemberRepository(memberAccountsColl, memberProfilesColl)
+  val memberRepo: MemberRepository = new MongoMemberRepository(memberAccountsColl, memberProfilesColl)
   val service: UserService         = new UserService(memberRepo)
 
   "insertMember" should "insert the member account and profile into their respective MongoDB collections" in:
