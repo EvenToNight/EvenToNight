@@ -21,4 +21,4 @@ gitHooks{
 include("services:users")
 include("services:events")
 include("services:frontend")
-
+include("services:media")
