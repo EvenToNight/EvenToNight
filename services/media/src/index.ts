@@ -15,7 +15,6 @@ const s3 = new S3Client({
   forcePathStyle: true
 });
 
-// Upload file
 app.post("/upload", upload.single("file"), async (req, res) => {
   try {
     const { file } = req;
@@ -42,5 +41,30 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
 app.get("/health", (_, res) => res.send("ok"));
 
-const PORT = process.env.PORT || 8081;
-app.listen(PORT, () => console.log(`📸 Media service running on ${PORT}`));
+const PORT = process.env.PORT || 9020;
+const server = app.listen(PORT, () => console.log(`📸 Media service running on ${PORT}`));
+
+// Gestione graceful shutdown
+const shutdown = () => {
+  console.log('\nShutdown signal received: closing HTTP server');
+  server.close(() => {
+    console.log('HTTP server closed');
+    process.exit(0);
+  });
+
+  // Forza la chiusura dopo 5 secondi se il server non si chiude gracefully
+  setTimeout(() => {
+    console.log('Forcing server shutdown after timeout');
+    process.exit(1);
+  }, 5000);
+};
+
+// Gestione dei segnali di terminazione
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
+
+// Gestione delle rejected promises non catturate
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  shutdown();
+});

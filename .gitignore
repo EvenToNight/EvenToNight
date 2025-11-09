@@ -20,6 +20,7 @@ node_modules/
 docs/node_modules/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
+dist/
 
 # Lock files (se non vuoi committarli)
 package-lock.json

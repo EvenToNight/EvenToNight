@@ -1,0 +1,35 @@
+plugins {
+    id 'base'
+    id("com.github.node-gradle.node") version "7.1.0"
+}
+
+node {
+    version = '18.18.0'
+    download = true
+    workDir = file("${project.buildDir}/nodejs")
+    npmWorkDir = file("${project.buildDir}/npm")
+    nodeProjectDir = file("${project.projectDir}")
+}
+
+tasks.named('build') {
+    dependsOn 'npmInstall'
+}
+
+task checkStyle(type: com.github.gradle.node.npm.task.NpmTask) {
+    dependsOn 'npmInstall'
+    args = ['run', 'lint']
+}
+
+task formatAndLint(type: com.github.gradle.node.npm.task.NpmTask) {
+    dependsOn 'npmInstall'
+    args = ['run', 'lint:fix']
+}
+
+task run(type: com.github.gradle.node.npm.task.NpmTask) {
+    dependsOn 'npmInstall'
+    args = ['run', 'start']
+}
+
+task formatAndLintPreCommit {
+    dependsOn 'formatAndLint'
+}
