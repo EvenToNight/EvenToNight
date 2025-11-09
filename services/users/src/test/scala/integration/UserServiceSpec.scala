@@ -24,7 +24,7 @@ class UserServiceSpec extends AnyFlatSpec with Matchers:
   val memberRepo: MemberRepository = new MongoMemberRepository(memberAccountsColl, memberProfilesColl)
   val service: UserService         = new UserService(memberRepo)
 
-  "insertMember" should "insert the member account and profile into their respective MongoDB collections" in:
+  "insertUser" should "insert the member account and profile into their respective MongoDB collections" in:
     service.insertUser(member)
     val accountOpt = Option(memberAccountsColl.find(eqFilter("_id", member.account.id)).first())
     accountOpt match
