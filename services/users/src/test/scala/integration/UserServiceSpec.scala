@@ -5,24 +5,35 @@ import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters.{eq => eqFilter}
 import connection.MongoConnection
 import fixtures.MemberFixtures.member
+import fixtures.OrganizationFixtures.organization
 import model.member.MemberAccount
 import model.member.MemberProfile
+import model.organization.OrganizationAccount
+import model.organization.OrganizationProfile
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import repository.MemberRepository
 import repository.MongoMemberRepository
+import repository.MongoOrganizationRepository
+import repository.OrganizationRepository
 import service.UserService
 
 class UserServiceSpec extends AnyFlatSpec with Matchers:
   val membersDB: MongoDatabase = MongoConnection.membersDB
+  val orgsDB: MongoDatabase    = MongoConnection.organizationsDB
 
   val memberAccountsColl: MongoCollection[MemberAccount] =
     membersDB.getCollection("member_accounts", classOf[MemberAccount])
   val memberProfilesColl: MongoCollection[MemberProfile] =
     membersDB.getCollection("member_profiles", classOf[MemberProfile])
+  val orgAccountsColl: MongoCollection[OrganizationAccount] =
+    orgsDB.getCollection("organization_accounts", classOf[OrganizationAccount])
+  val orgProfilesColl: MongoCollection[OrganizationProfile] =
+    orgsDB.getCollection("organization_profiles", classOf[OrganizationProfile])
 
-  val memberRepo: MemberRepository = new MongoMemberRepository(memberAccountsColl, memberProfilesColl)
-  val service: UserService         = new UserService(memberRepo)
+  val memberRepo: MemberRepository    = new MongoMemberRepository(memberAccountsColl, memberProfilesColl)
+  val orgRepo: OrganizationRepository = new MongoOrganizationRepository(orgAccountsColl, orgProfilesColl)
+  val service: UserService            = new UserService(memberRepo, orgRepo)
 
   "insertUser" should "insert the member account and profile into their respective MongoDB collections" in:
     service.insertUser(member)
@@ -34,3 +45,14 @@ class UserServiceSpec extends AnyFlatSpec with Matchers:
     profileOpt match
       case Some(profileOpt) => profileOpt.accountId shouldEqual member.profile.accountId
       case None             => fail("Member profile not found in member_profiles collection")
+
+  "insertUser" should "insert the organization account and profile into their respective MongoDB collections" in:
+    service.insertUser(organization)
+    val accountOpt = Option(orgAccountsColl.find(eqFilter("_id", organization.account.id)).first())
+    accountOpt match
+      case Some(accountOpt) => accountOpt.id shouldEqual organization.account.id
+      case None             => fail("Organization account not found in organization_accounts collection")
+    val profileOpt = Option(orgProfilesColl.find(eqFilter("_id", organization.profile.accountId)).first())
+    profileOpt match
+      case Some(profileOpt) => profileOpt.accountId shouldEqual organization.profile.accountId
+      case None             => fail("Organization profile not found in organization_profiles collection")
