@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+import { S3Client, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 
 const app = express();
 const upload = multer();
@@ -41,30 +41,34 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 
 app.get("/health", (_, res) => res.send("ok"));
 
-const PORT = process.env.PORT || 9020;
-const server = app.listen(PORT, () => console.log(`📸 Media service running on ${PORT}`));
+app.get("/:key", async (req, res) => {
+  try {
+    const { key } = req.params;
 
-// Gestione graceful shutdown
-const shutdown = () => {
-  console.log('\nShutdown signal received: closing HTTP server');
-  server.close(() => {
-    console.log('HTTP server closed');
-    process.exit(0);
-  });
+    const command = new GetObjectCommand({
+      Bucket: process.env.MINIO_BUCKET,
+      Key: key,
+    });
 
-  // Forza la chiusura dopo 5 secondi se il server non si chiude gracefully
-  setTimeout(() => {
-    console.log('Forcing server shutdown after timeout');
-    process.exit(1);
-  }, 5000);
-};
+    const data = await s3.send(command);
+    
+    if (!data.Body) {
+      throw new Error("No data received from S3");
+    }
 
-// Gestione dei segnali di terminazione
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+    res.setHeader("Content-Type", data.ContentType || "application/octet-stream");
+    res.setHeader("Content-Length", data.ContentLength || 0);
 
-// Gestione delle rejected promises non catturate
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-  shutdown();
+    const chunks: Uint8Array[] = [];
+    for await (const chunk of data.Body as AsyncIterable<Uint8Array>) {
+      chunks.push(chunk);
+    }
+    res.send(Buffer.concat(chunks));
+  } catch (err) {
+    console.error("File retrieval error:", err);
+    res.status(404).send("File not found");
+  }
 });
+
+const PORT = process.env.PORT;
+app.listen(PORT, () => console.log(`📸 Media service running on ${PORT}`));

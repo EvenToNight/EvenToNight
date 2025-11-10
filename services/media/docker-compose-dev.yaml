@@ -1,0 +1,15 @@
+services:
+  media:
+    build:
+      context: .
+      dockerfile: ./services/media/Dockerfile
+    ports:
+      - "${MEDIA_SERVICE_PORT}:${MEDIA_SERVICE_PORT}"
+  minio:
+    command: server /data --console-address ":9001"
+    ports:
+      - "9022:9001"
+
+volumes:
+  minio-data:
+    

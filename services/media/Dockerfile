@@ -1,11 +1,11 @@
 FROM node:20-alpine
 WORKDIR /app
 
-COPY package*.json ./
+COPY ./services/media/package*.json ./
 RUN npm install
 
-COPY src ./src
-COPY tsconfig.json ./
+COPY ./services/media/src ./src
+COPY ./services/media/tsconfig.json ./
 
 RUN npm run build
 
