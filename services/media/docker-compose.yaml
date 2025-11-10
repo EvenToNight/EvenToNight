@@ -7,9 +7,9 @@ services:
     environment:
       - PORT=9020
       - MINIO_ENDPOINT=http://minio:9000
-      - MINIO_ACCESS_KEY=admin
-      - MINIO_SECRET_KEY=password
-      - MINIO_BUCKET=event-images
+      - MINIO_ACCESS_KEY=eventonightadmin
+      - MINIO_SECRET_KEY=eventonightpassword
+      - MINIO_BUCKET=eventonight-media
       - MINIO_PUBLIC_URL=http://minio:9021
     labels:
       - "traefik.enable=true"
@@ -26,8 +26,8 @@ services:
     ports:
       - "9021:9000"
     environment:
-      - MINIO_ROOT_USER=admin
-      - MINIO_ROOT_PASSWORD=password
+      - MINIO_ROOT_USER=eventonightadmin
+      - MINIO_ROOT_PASSWORD=eventonightpassword
     volumes:
       - minio-data:/data
     networks:
@@ -40,4 +40,4 @@ networks:
   eventonight-network:
     driver: bridge
   media-network:
-    driver: bridge  
+    driver: bridge
