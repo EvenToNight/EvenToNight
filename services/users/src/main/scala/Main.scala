@@ -1,35 +1,17 @@
-import com.rabbitmq.client.Channel
-import com.rabbitmq.client.Connection
-import com.rabbitmq.client.ConnectionFactory
+import Wiring._
+import connection.MongoConnection.client
+import connection.RabbitConnection._
+import route.UserRoutes
 
 object Main extends cask.MainRoutes {
-  override def port: Int    = 9000 // Use your desired port here
-  override def host: String = "0.0.0.0"
-
-  // --- RabbitMQ connection ---
-  val factory = new ConnectionFactory()
-  Option(System.getenv("RABBITMQ_HOST")) match
-    case Some(host) => factory.setHost(host)
-    case None       => factory.setHost("localhost") // RabbitMQ service hostname
-  factory.setPort(5672) // default RabbitMQ port
-  val connection: Connection = factory.newConnection()
-  val channel: Channel       = connection.createChannel()
-
-  val queueName = "testQueue"
-  channel.queueDeclare(queueName, false, false, false, null)
-  val message = "Hello from Scala 3!"
-
-  @cask.get("/")
-  def hello(request: cask.Request) = {
-    print(request.headers)
-    channel.basicPublish("", queueName, null, message.getBytes())
-    println(s"Sent message to RabbitMQ: '$message'")
-    "Hello World!"
-  }
+  override def port: Int                   = 9000 // Use your desired port here
+  override def host: String                = "0.0.0.0"
+  override def allRoutes: Seq[cask.Routes] = Seq(new UserRoutes(userService))
 
   sys.addShutdownHook {
     try {
       channel.close()
+      client.close()
     } catch {
       case e: Exception => println(s"Error closing channel: ${e.getMessage}")
     }
