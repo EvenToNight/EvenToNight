@@ -3,9 +3,9 @@ package integration
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters.{eq => eqFilter}
-import connection.MongoConnection
 import fixtures.MemberFixtures.member
 import fixtures.OrganizationFixtures.organization
+import infrastructure.MongoConnection
 import model.member.MemberAccount
 import model.member.MemberProfile
 import model.organization.OrganizationAccount

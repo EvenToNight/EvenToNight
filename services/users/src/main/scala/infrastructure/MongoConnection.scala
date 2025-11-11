@@ -1,4 +1,4 @@
-package connection
+package infrastructure
 
 import codec.member.MemberAccountCodec
 import codec.member.MemberProfileCodec

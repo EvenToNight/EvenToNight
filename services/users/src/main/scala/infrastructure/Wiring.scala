@@ -1,5 +1,6 @@
+package infrastructure
+
 import com.mongodb.client.MongoCollection
-import connection.MongoConnection._
 import model.member.MemberAccount
 import model.member.MemberProfile
 import model.organization.OrganizationAccount
@@ -9,6 +10,8 @@ import repository.MongoMemberRepository
 import repository.MongoOrganizationRepository
 import repository.OrganizationRepository
 import service.UserService
+
+import MongoConnection._
 
 object Wiring:
   val memberAccountsColl: MongoCollection[MemberAccount] =

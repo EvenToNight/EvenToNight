@@ -1,7 +1,9 @@
-import Wiring._
-import connection.MongoConnection.client
-import connection.RabbitConnection._
-import route.UserRoutes
+package app
+
+import controller.UserRoutes
+import infrastructure.MongoConnection.client
+import infrastructure.RabbitConnection._
+import infrastructure.Wiring._
 
 object Main extends cask.MainRoutes {
   override def port: Int                   = 9000 // Use your desired port here

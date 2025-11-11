@@ -38,9 +38,8 @@ dependencies {
     compileOnly("org.wartremover:wartremover_2.13:3.1.5")
 }
 
-
 application {
-    mainClass.set("Main")
+    mainClass.set("app.Main")
 }
 
 tasks.withType<ScalaCompile> {

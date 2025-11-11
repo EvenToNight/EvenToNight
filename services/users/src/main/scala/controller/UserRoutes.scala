@@ -1,6 +1,6 @@
-package route
+package controller
 
-import connection.RabbitConnection._
+import infrastructure.RabbitConnection._
 import service.UserService
 
 class UserRoutes(userService: UserService) extends cask.Routes {
