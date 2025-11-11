@@ -117,3 +117,14 @@ tasks.jacocoTestReport {
         html.required.set(true)
     }
 }
+
+tasks.register("runCoverage") {
+    description = "Run coverage analysis for Events service"
+    group = "verification"
+    dependsOn("test", "jacocoTestReport")
+    
+    doLast {
+        println("✅ Events service coverage completed!")
+        println("📋 Report available at: build/reports/jacoco/test/jacocoTestReport.xml")
+    }
+}

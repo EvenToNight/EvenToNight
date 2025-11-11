@@ -49,8 +49,6 @@ app.get("/*", async (req, res) => {
     await getImagesFromBucket(s3, bucketName, key, res);
 
   } catch (err) {
-    console.error("File retrieval error:", err);
-    
     try {
       const type = req.path.split("/")[1] || "";
       const defaultKey = returnDefault(type);
@@ -64,4 +62,5 @@ app.get("/*", async (req, res) => {
   }
 })
 
-app.listen(process.env.PORT, () => console.log(`📸 Media service running on ${process.env.PORT}`))
+const PORT = process.env.MEDIA_SERVICE_PORT || 9020
+app.listen(PORT, () => console.log(`📸 Media service running on ${PORT}`))

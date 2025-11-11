@@ -22,10 +22,10 @@ export function checkData(file: Express.Multer.File | undefined, type: string, e
  */
 export function returnDefault(type?: string): string {
   const lowerType = (type || "").toString().toLowerCase();
-  
-  if (lowerType.includes("event")) {
+
+  if (lowerType === "events") {
     return "events/default.png";
-  } else if (lowerType.includes("user")) {
+  } else if (lowerType === "users") {
     return "users/default.png";
   } else {
     return "default.png";

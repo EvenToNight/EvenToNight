@@ -49,3 +49,6 @@ swagger-ui/
 
 # Vite cache
 cache/
+
+# coverage
+coverage/

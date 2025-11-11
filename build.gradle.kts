@@ -21,15 +21,10 @@ allprojects {
     }
 }
 
-tasks.named("build") {
-    dependsOn("updateAndCheckEnvFile")
-}
-
-tasks.register<ExecTask>("updateAndCheckEnvFile") {
+tasks.register<ExecTask>("updateEnvFile") {
     description = "Update the .env file from the .env.template and check if some values are missing."
     group = "setup"
     bashCommands("./scripts/updateLocalEnv.sh")
-    finalizedBy("checkEnvSetup")
 }
 
 tasks.register<ExecTask>("checkEnvSetup") {
@@ -41,7 +36,7 @@ tasks.register<ExecTask>("checkEnvSetup") {
 gradle.projectsEvaluated {
     tasks.configureEach {
         if (group == "docker") {
-            dependsOn(tasks.named("updateAndCheckEnvFile"))
+            dependsOn(tasks.named("updateEnvFile"))
         }
     }
 }
@@ -140,4 +135,14 @@ tasks.register("formatAndLintPreCommit") {
     dependsOn(subPreCommitTasks)
 
     finalizedBy("updateStagedFiles")
+}
+
+tasks.register("runCoverage") {
+    description = "Run coverage analysis for all services"
+    group = "verification"
+    
+    val coverageTasks = subprojects.mapNotNull { proj ->
+        proj.tasks.findByName("runCoverage")
+    }
+    dependsOn(coverageTasks)
 }

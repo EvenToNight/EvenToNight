@@ -1,3 +1,4 @@
+import com.github.gradle.node.npm.task.NpmTask
 plugins {
     id 'base'
     id("com.github.node-gradle.node") version "7.1.0"
@@ -15,19 +16,40 @@ tasks.named('build') {
     dependsOn 'npmInstall'
 }
 
-task checkStyle(type: com.github.gradle.node.npm.task.NpmTask) {
+task checkStyle(type: NpmTask) {
     dependsOn 'npmInstall'
     args = ['run', 'lint']
 }
 
-task formatAndLint(type: com.github.gradle.node.npm.task.NpmTask) {
+task formatAndLint(type: NpmTask) {
     dependsOn 'npmInstall'
     args = ['run', 'lint:fix']
 }
 
-task run(type: com.github.gradle.node.npm.task.NpmTask) {
-    dependsOn 'npmInstall'
+task run(type: NpmTask) {
+    dependsOn 'npmInstall', 'build'
     args = ['run', 'start']
+}
+
+task test(type: NpmTask) {
+    dependsOn 'npmInstall'
+    args = ['run', 'test']
+}
+
+task testWithCoverage(type: NpmTask) {
+    dependsOn 'npmInstall'
+    args = ['run', 'test:coverage']
+}
+
+task runCoverage {
+    description = "Run coverage analysis for Media service"
+    group = "verification"
+    dependsOn 'testWithCoverage'
+    
+    doLast {
+        println "✅ Media service coverage completed!"
+        println "📋 Report available at: coverage/lcov.info"
+    }
 }
 
 task formatAndLintPreCommit {
