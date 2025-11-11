@@ -6,6 +6,7 @@ RUN npm install
 
 COPY ./services/media/src ./src
 COPY ./services/media/tsconfig.json ./
+COPY ./services/media/res ./res
 
 RUN npm run build
 
