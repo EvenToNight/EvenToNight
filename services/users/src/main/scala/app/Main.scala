@@ -13,14 +13,18 @@ object Main extends cask.MainRoutes {
   sys.addShutdownHook {
     try {
       channel.close()
-      client.close()
     } catch {
-      case e: Exception => println(s"Error closing channel: ${e.getMessage}")
+      case e: Exception => println(s"Error closing RabbitMQ channel: ${e.getMessage}")
     }
     try {
       connection.close()
     } catch {
-      case e: Exception => println(s"Error closing connection: ${e.getMessage}")
+      case e: Exception => println(s"Error closing RabbitMQ connection: ${e.getMessage}")
+    }
+    try {
+      client.close()
+    } catch {
+      case e: Exception => println(s"Error closing Mongo client: ${e.getMessage}")
     }
   }
 
