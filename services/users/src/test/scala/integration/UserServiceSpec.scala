@@ -12,7 +12,9 @@ import model.organization.OrganizationAccount
 import model.organization.OrganizationProfile
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import repository.AccountProfileRepository
 import repository.MemberRepository
+import repository.MongoAccountProfileRepository
 import repository.MongoMemberRepository
 import repository.MongoOrganizationRepository
 import repository.OrganizationRepository
@@ -31,8 +33,12 @@ class UserServiceSpec extends AnyFlatSpec with Matchers:
   val orgProfilesColl: MongoCollection[OrganizationProfile] =
     orgsDB.getCollection("organization_profiles", classOf[OrganizationProfile])
 
-  val memberRepo: MemberRepository    = new MongoMemberRepository(memberAccountsColl, memberProfilesColl)
-  val orgRepo: OrganizationRepository = new MongoOrganizationRepository(orgAccountsColl, orgProfilesColl)
+  val memberAccountProfileRepo: AccountProfileRepository[MemberAccount, MemberProfile] =
+    new MongoAccountProfileRepository(memberAccountsColl, memberProfilesColl)
+  val memberRepo: MemberRepository = new MongoMemberRepository(memberAccountProfileRepo)
+  val orgAccountProfileRepo: AccountProfileRepository[OrganizationAccount, OrganizationProfile] =
+    new MongoAccountProfileRepository(orgAccountsColl, orgProfilesColl)
+  val orgRepo: OrganizationRepository = new MongoOrganizationRepository(orgAccountProfileRepo)
   val service: UserService            = new UserService(memberRepo, orgRepo)
 
   "insertUser" should "insert the member account and profile into their respective MongoDB collections" in:
