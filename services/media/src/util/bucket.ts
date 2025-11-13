@@ -29,7 +29,13 @@ export function createS3Client(): S3Client {
  * @param contentType - The content type of the file
  * @returns Promise<string> - Returns the uploaded file key
  */
-export async function uploadFileToS3(s3Client: S3Client, bucketName: string | undefined, key: string, body: Buffer, contentType: string): Promise<string> {
+export async function uploadFile(
+  s3Client: S3Client, 
+  bucketName: string, 
+  key: string, 
+  body: Buffer, 
+  contentType: string
+): Promise<string> {
   if (!bucketName) {
     throw new Error("Bucket name is required");
   }
@@ -52,7 +58,7 @@ export async function uploadFileToS3(s3Client: S3Client, bucketName: string | un
  * @param bucketName - The name of the bucket to check/create
  * @returns Promise<void>
  */
-export async function ensureBucketWithDefaults(s3Client: S3Client, bucketName: string | undefined): Promise<void> {
+export async function ensureBucketWithDefaults(s3Client: S3Client, bucketName: string): Promise<void> {
   if (!bucketName) {
     throw new Error("Bucket name is required")
   }
@@ -89,7 +95,7 @@ async function uploadDefaultImages(s3Client: S3Client, bucketName: string): Prom
     try {
       const fp = path.join(resourcesDir, f.fileName);
       const body = await fs.readFile(fp);
-      const updatedKey = await uploadFileToS3(s3Client, bucketName, f.key, body, f.contentType);
+      const updatedKey = await uploadFile(s3Client, bucketName, f.key, body, f.contentType);
       console.log(`Uploaded default ${f.fileName} to ${updatedKey}`);
     } catch (uploadErr) {
       console.error(`Failed uploading default ${f.fileName}:`, uploadErr);

@@ -60,14 +60,14 @@ describe('Validation Utils', () => {
   describe('returnDefault', () => {
     it('should return events default for event-related types', () => {
       const type = "events/events1/test.png".split("/")[0];
-      const type2 = "Events/events2/test.png".split("/")[0];
+      const type2 = "events/events2/test.png".split("/")[0];
       expect(returnDefault(type)).toBe('events/default.png');
       expect(returnDefault(type2)).toBe('events/default.png');
     });
 
     it('should return users default for user-related types', () => {
       const type = "users/".split("/")[0];
-      const type2 = 'USERS/user1/test.png'.split("/")[0];
+      const type2 = 'users/user1/test.png'.split("/")[0];
       expect(returnDefault(type)).toBe('users/default.png');
       expect(returnDefault(type2)).toBe('users/default.png');
     });
@@ -79,7 +79,7 @@ describe('Validation Utils', () => {
     });
 
     it('should return generic default for undefined type', () => {
-      expect(returnDefault(undefined)).toBe('default.png');
+      expect(returnDefault("")).toBe('default.png');
     });
   });
 });

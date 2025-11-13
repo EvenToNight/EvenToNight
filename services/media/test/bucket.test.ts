@@ -1,5 +1,5 @@
 import { S3Client, HeadBucketCommand, GetObjectCommand, CreateBucketCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import { createS3Client, uploadFileToS3, ensureBucketWithDefaults, getImagesFromBucket } from '../src/util/bucket.js';
+import { createS3Client, uploadFile, ensureBucketWithDefaults, getImagesFromBucket } from '../src/util/bucket.js';
 import { Readable } from 'stream';
 import express from 'express';
 import fs from 'fs/promises';
@@ -78,7 +78,7 @@ describe('Bucket Utils', () => {
       const bucketName = 'test-bucket';
       const contentType = 'image/jpeg';
       
-      const result = await uploadFileToS3(mockS3Client as unknown as S3Client, bucketName, key, buffer, contentType);
+      const result = await uploadFile(mockS3Client as unknown as S3Client, bucketName, key, buffer, contentType);
       
       expect(mockS3Client.send).toHaveBeenCalledWith(
         expect.any(PutObjectCommand)
@@ -91,7 +91,7 @@ describe('Bucket Utils', () => {
       const buffer = Buffer.from('test');
       
       await expect(
-        uploadFileToS3(mockS3Client as unknown as S3Client, undefined, 'key', buffer, 'image/jpeg')
+        uploadFile(mockS3Client as unknown as S3Client, "", 'key', buffer, 'image/jpeg')
       ).rejects.toThrow('Bucket name is required');
       
       expect(mockS3Client.send).not.toHaveBeenCalled();
@@ -101,7 +101,7 @@ describe('Bucket Utils', () => {
       const buffer = Buffer.from('test');
       
       await expect(
-        uploadFileToS3(mockS3Client as unknown as S3Client, '', 'key', buffer, 'image/jpeg')
+        uploadFile(mockS3Client as unknown as S3Client, '', 'key', buffer, 'image/jpeg')
       ).rejects.toThrow('Bucket name is required');
     });
 
@@ -112,7 +112,7 @@ describe('Bucket Utils', () => {
       const buffer = Buffer.from('test');
       
       await expect(
-        uploadFileToS3(mockS3Client as unknown as S3Client, 'bucket', 'key', buffer, 'image/jpeg')
+        uploadFile(mockS3Client as unknown as S3Client, 'bucket', 'key', buffer, 'image/jpeg')
       ).rejects.toThrow('S3 upload failed');
     });
   });
@@ -154,7 +154,7 @@ describe('Bucket Utils', () => {
 
     it('should throw error when bucket name is undefined', async () => {
       await expect(
-        ensureBucketWithDefaults(mockS3Client as unknown as S3Client, undefined)
+        ensureBucketWithDefaults(mockS3Client as unknown as S3Client, "")
       ).rejects.toThrow('Bucket name is required');
     });
 

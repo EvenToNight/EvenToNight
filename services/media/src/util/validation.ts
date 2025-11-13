@@ -17,15 +17,13 @@ export function checkData(file: Express.Multer.File | undefined, type: string, e
 
 /**
  * Returns the appropriate default file key based on the type
- * @param type - The type string (e.g., "users", "events", etc.)
+ * @param type - The type string
  * @returns The default file key path
  */
-export function returnDefault(type?: string): string {
-  const lowerType = (type || "").toString().toLowerCase();
-
-  if (lowerType === "events") {
+export function returnDefault(type: string): string {
+  if (type === "events") {
     return "events/default.png";
-  } else if (lowerType === "users") {
+  } else if (type === "users") {
     return "users/default.png";
   } else {
     return "default.png";
