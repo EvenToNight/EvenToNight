@@ -1,4 +1,4 @@
-package unit
+package unit.repository
 
 import fixtures.OrganizationFixtures.organization
 import model.organization.OrganizationAccount

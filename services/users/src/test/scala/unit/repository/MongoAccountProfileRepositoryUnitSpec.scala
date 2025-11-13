@@ -1,4 +1,4 @@
-package unit
+package unit.repository
 
 import com.mongodb.client.MongoCollection
 import fixtures.MemberFixtures.member

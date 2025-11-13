@@ -1,4 +1,4 @@
-package unit
+package unit.service
 
 import fixtures.MemberFixtures.member
 import fixtures.OrganizationFixtures.organization

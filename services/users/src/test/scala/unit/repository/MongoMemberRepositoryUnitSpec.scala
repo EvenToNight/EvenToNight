@@ -1,4 +1,4 @@
-package unit
+package unit.repository
 
 import fixtures.MemberFixtures.member
 import model.member.MemberAccount
