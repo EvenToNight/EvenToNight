@@ -9,7 +9,10 @@ export function checkData(file: Express.Multer.File | undefined, type: string, e
   if (!file) {
     return { isValid: false, error: "File missing" }
   }
-  if (!type || !entityId) {
+  if (!["users", "events"].includes(type)) {
+    return { isValid: false, error: "Invalid path" }
+  }
+  if (!entityId) {
     return { isValid: false, error: "Metadata missing" }
   }
   return { isValid: true, error: null }

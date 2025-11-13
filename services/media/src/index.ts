@@ -10,32 +10,6 @@ const port = process.env.MEDIA_SERVICE_PORT || 9020
 
 const s3 = createS3Client()
 
-app.post("/", upload.single("file"), async (req, res) => {
-  try {
-    const { file } = req
-    const { type, entityId } = req.body
-    const { isValid, error } = checkData(file, type, entityId)
-    if (!isValid) {
-      return res.status(400).send(error)
-    }
-    const validatedFile = file!
-
-    await ensureBucketWithDefaults(s3, bucketName)
-
-    const key = `${type}/${entityId}/${Date.now()}-${validatedFile.originalname}`
-
-    try {
-      const updatedKey = await uploadFile(s3, bucketName, key, validatedFile.buffer, validatedFile.mimetype);
-      res.json({ url: updatedKey });
-    } catch (uploadErr) {
-      const defaultKey = returnDefault(type)
-      res.json({ url: defaultKey });
-    }
-  } catch (err) {
-    console.error("Upload error:", err)
-  }
-});
-
 app.get("/*", async (req, res) => {
   try {
     await ensureBucketWithDefaults(s3, bucketName);
@@ -59,5 +33,32 @@ app.get("/*", async (req, res) => {
     }
   }
 })
+
+app.post("/:type/:entityId", upload.single("file"), async (req, res) => {
+  try {
+    const { file } = req
+    const { type, entityId} = req.params
+
+    const { isValid, error } = checkData(file, type, entityId)
+    if (!isValid) {
+      return res.status(400).send(error)
+    }
+    const validatedFile = file!
+
+    await ensureBucketWithDefaults(s3, bucketName)
+
+    const key = `${type}/${entityId}/${validatedFile.originalname}`
+
+    try {
+      const updatedKey = await uploadFile(s3, bucketName, key, validatedFile.buffer, validatedFile.mimetype);
+      res.json({ url: updatedKey });
+    } catch (uploadErr) {
+      const defaultKey = returnDefault(type)
+      res.json({ url: defaultKey });
+    }
+  } catch (err) {
+    console.error("Upload error:", err)
+  }
+});
 
 app.listen(port, () => console.log(`📸 Media service running on ${port}`))

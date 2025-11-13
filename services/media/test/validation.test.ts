@@ -21,7 +21,7 @@ describe('Validation Utils', () => {
       const result = checkData(mockFile, '', '123');
       
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Metadata missing');
+      expect(result.error).toBe('Invalid path');
     });
 
     it('should return invalid when entityId is missing', () => {
