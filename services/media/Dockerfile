@@ -10,6 +10,6 @@ COPY ./services/media/res ./res
 
 RUN npm run build
 
-EXPOSE 9030
+EXPOSE 9020
 
 CMD ["npm", "start"]

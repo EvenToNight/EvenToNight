@@ -5,12 +5,10 @@ services:
       - eventonight-network
       - media-network
     environment:
-      - PORT=9020
       - MINIO_ENDPOINT=http://minio:9000
       - MINIO_ACCESS_KEY=eventonightadmin
       - MINIO_SECRET_KEY=${MINIO_PASSWORD:?}
       - MINIO_BUCKET=eventonight-media
-      - MINIO_PUBLIC_URL=http://minio:9021
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.media.rule=Host(`media.${HOST}`)"

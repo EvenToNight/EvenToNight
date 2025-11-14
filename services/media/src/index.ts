@@ -1,7 +1,7 @@
 import express from "express"
 import multer from "multer"
-import { checkData, returnDefault } from "./utils/utils.js"
-import { ensureBucketWithDefaults, uploadFile, createS3Client, getImagesFromBucket, fileExists } from "./utils/bucket.js"
+import { validateUploadFile, returnDefault, validateDeleteParams } from "./utils/utils.js"
+import { ensureBucketWithDefaults, uploadFile, createS3Client, getImagesFromBucket, fileExists, deleteFile } from "./utils/bucket.js"
 import cors from "cors"
 
 const app = express()
@@ -41,7 +41,7 @@ app.post("/:type/:entityId", upload.single("file"), async (req, res) => {
     const { file } = req
     const { type, entityId} = req.params
 
-    const { isValid, error } = checkData(file, type, entityId)
+    const { isValid, error } = validateUploadFile(file, type, entityId)
     if (!isValid) {
       return res.status(400).send(error)
     }
@@ -68,7 +68,7 @@ app.put("/:type/:entityId", upload.single("file"), async (req, res) => {
     const { file } = req
     const { type, entityId} = req.params
 
-    const { isValid, error } = checkData(file, type, entityId)
+    const { isValid, error } = validateUploadFile(file, type, entityId)
     if (!isValid) {
       return res.status(400).send(error)
     }
@@ -95,5 +95,32 @@ app.put("/:type/:entityId", upload.single("file"), async (req, res) => {
     res.status(500).send("Internal server error")
   }
 });
+
+app.delete("/:type/:entityId/:filename", async (req, res) => {
+  try {
+    const { type, entityId, filename } = req.params;
+    
+    const { isValid, error } = validateDeleteParams(type, entityId, filename);
+    if (!isValid) {
+      return res.status(400).send(error);
+    }
+    
+    await ensureBucketWithDefaults(s3, bucketName);
+    const key = `${type}/${entityId}/${filename}`;
+    
+    const exists = await fileExists(s3, bucketName, key);
+    if (!exists) {
+      return res.status(404).send(`File with key '${key}' not found.`);
+    }
+    
+    await deleteFile(s3, bucketName, key);
+    
+    res.json({ message: `File with key '${key}' deleted successfully.` });
+  } catch (err) {
+    console.error("Delete error:", err);
+    res.status(500).send("Internal server error");
+  }
+});
+
 
 app.listen(port, () => console.log(`📸 Media service running on ${port}`))

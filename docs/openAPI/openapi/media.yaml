@@ -56,30 +56,12 @@ paths:
                 example: 245760
         '400':
           description: Bad request - missing or invalid file path
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: "Key missing"
         '404':
           description: File not found and no default available
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: "File not found and no default available"
         '500':
           description: Internal server error during file retrieval
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Storage service unavailable"
       tags:
-        - Get
+        - Default
 
   "/{type}/{entityId}":
     post:
@@ -131,32 +113,13 @@ paths:
                   url:
                     type: string
                     description: The path/key of the uploaded file or default image
-                    example: "users/dnfjd/profile.jpg"
+                    example: "users/userId/profile.jpg"
         '400':
           description: Bad request - invalid or missing data
-          content:
-            text/plain:
-              schema:
-                type: string
-                examples:
-                  missing_file:
-                    value: "File is required"
-                  invalid_type:
-                    value: "Type must be 'events' or 'users'"
-                  missing_entity:
-                    value: "Entity ID is required"
         '500':
           description: Internal server error during upload
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  error:
-                    type: string
-                    example: "Upload failed"
       tags:
-        - Upload
+        - Default
     put:
       summary: Update existing media file
       description: |
@@ -207,38 +170,64 @@ paths:
                   url:
                     type: string
                     description: The path/key of the updated file
-                    example: "users/dnfjd/profile.jpg"
-                  message:
-                    type: string
-                    example: "File successfully updated"
+                    example: "users/userId/profile.jpg"
         '400':
           description: Bad request - invalid or missing data
-          content:
-            text/plain:
-              schema:
-                type: string
-                examples:
-                  missing_file:
-                    value: "File is required"
-                  invalid_type:
-                    value: "Type must be 'events' or 'users'"
         '404':
           description: File not found - use POST to create new files
-          content:
-            text/plain:
-              schema:
-                type: string
-                example: "File with key 'users/dnfjd/profile.jpg' not found. Use POST to create a new file."
         '500':
           description: Internal server error during update
-          content:
-            text/plain:
-              schema:
-                type: string
-                examples:
-                  update_failed:
-                    value: "Failed to update file"
-                  server_error:
-                    value: "Internal server error"
       tags:
-        - Upload
+        - Default
+  "/{type}/{entityId}/{filename}":
+    delete:
+      summary: Delete media file
+      description: |
+        Deletes a specific media file from the storage bucket.
+        The file must exist at `{type}/{entityId}/{filename}`.
+        **Note**: This endpoint is documented only for development purposes.
+      servers:
+        - url: http://localhost:9020
+          description: Available only in local development
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [events, users]
+          description: The type of entity (events or users)
+          example: "users"
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the entity
+          example: "userId"
+        - name: filename
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The name of the file to delete
+          example: "profile.jpg"
+      responses:
+        '200':
+          description: File deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "File with key 'users/userId/profile.jpg' deleted successfully."
+        '400':
+          description: Bad request - invalid parameters
+        '404':
+          description: File not found
+        '500':
+          description: Internal server error during deletion
+      tags:
+        - Default

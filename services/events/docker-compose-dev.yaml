@@ -14,7 +14,7 @@ services:
     ports:
       - '${MONGO_EXPRESS_EVENTS_PORT}:8081'
     environment:
-      ME_CONFIG_MONGODB_SERVER: 'mongo-events'
+      - ME_CONFIG_MONGODB_SERVER='mongo-events'
     depends_on:
       mongo-events:
         condition: service_healthy

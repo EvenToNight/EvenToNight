@@ -1,4 +1,4 @@
-import { checkData, returnDefault } from '../src/utils/utils.js';
+import { validateUploadFile, returnDefault, validateDeleteParams } from '../src/utils/utils.js';
 
 describe('Utils', () => {
   const mockFile = {
@@ -12,27 +12,27 @@ describe('Utils', () => {
 
   describe('checkData', () => {
     it('should return invalid when file is missing', () => {
-      const result = checkData(undefined, 'users', '123');
+      const result = validateUploadFile(undefined, 'users', '123');
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('File missing');
     });
 
     it('should return invalid when type is missing', () => {
-      const result = checkData(mockFile, '', '123');
+      const result = validateUploadFile(mockFile, '', '123');
       
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('Invalid type');
     });
 
     it('should return invalid when entityId is missing', () => {
-      const result = checkData(mockFile, 'users', '');
+      const result = validateUploadFile(mockFile, 'users', '');
       
       expect(result.isValid).toBe(false);
       expect(result.error).toBe('Missing entityId');
     });
 
     it('should return valid when all required data is provided', () => {
-      const result = checkData(mockFile, 'users', '123');
+      const result = validateUploadFile(mockFile, 'users', '123');
       
       expect(result.isValid).toBe(true);
       expect(result.error).toBe(null);
@@ -58,6 +58,38 @@ describe('Utils', () => {
 
     it('should return generic default for undefined type', () => {
       expect(returnDefault("")).toBe('default.png');
+    });
+  });
+
+  describe('validateDeleteParams', () => {
+    it('should return invalid when type is not users or events', () => {
+      const result = validateDeleteParams('posts', 'entityId', 'filename.jpg');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Invalid type');
+    });
+
+    it('should return invalid when entityId is missing', () => {
+      const result = validateDeleteParams('users', '', 'filename.jpg');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Missing entityId');
+    });
+
+    it('should return invalid when filename is missing', () => {
+      const result = validateDeleteParams('users', 'entityId', '');
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('Missing filename');
+    });
+
+    it('should return valid when all parameters are correct for users', () => {
+      const result = validateDeleteParams('users', 'user123', 'profile.jpg');
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBe(null);
+    });
+
+    it('should return valid when all parameters are correct for events', () => {
+      const result = validateDeleteParams('events', 'event456', 'poster.png');
+      expect(result.isValid).toBe(true);
+      expect(result.error).toBe(null);
     });
   });
 });

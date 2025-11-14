@@ -1,5 +1,5 @@
-import { S3Client, HeadBucketCommand, GetObjectCommand, CreateBucketCommand, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
-import { createS3Client, uploadFile, ensureBucketWithDefaults, getImagesFromBucket, fileExists } from '../src/utils/bucket.js';
+import { S3Client, HeadBucketCommand, GetObjectCommand, CreateBucketCommand, PutObjectCommand, HeadObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
+import { createS3Client, uploadFile, ensureBucketWithDefaults, getImagesFromBucket, fileExists, deleteFile } from '../src/utils/bucket.js';
 import { Readable } from 'stream';
 import express from 'express';
 
@@ -199,6 +199,31 @@ describe('Bucket Utils', () => {
       const result = await fileExists(client, 'bucket', 'missing-file.jpg');
       
       expect(result).toBe(false);
+    });
+  });
+
+  describe('deleteFile', () => {
+    const client = mockS3Client as unknown as S3Client;
+
+    it('deletes file successfully', async () => {
+      mockS3Client.send.mockResolvedValue({});
+      
+      await deleteFile(client, 'bucket', 'file-to-delete.jpg');
+      
+      expect(mockS3Client.send).toHaveBeenCalledWith(expect.any(DeleteObjectCommand));
+    });
+
+    it('throws error for empty bucket name', async () => {
+      await expect(deleteFile(client, '', 'file.jpg'))
+        .rejects.toThrow('Bucket name is required');
+    });
+
+    it('propagates S3 delete errors', async () => {
+      const deleteError = new Error('Delete failed');
+      mockS3Client.send.mockRejectedValue(deleteError);
+      
+      await expect(deleteFile(client, 'bucket', 'file.jpg'))
+        .rejects.toThrow('Delete failed');
     });
   });
 });

@@ -1,4 +1,4 @@
-import { S3Client, HeadBucketCommand, GetObjectCommand, CreateBucketCommand, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3"
+import { S3Client, HeadBucketCommand, GetObjectCommand, CreateBucketCommand, PutObjectCommand, HeadObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3"
 import fs from "fs/promises"
 import path from "path"
 import { Readable } from "stream"
@@ -103,7 +103,7 @@ async function uploadDefaultImages(s3Client: S3Client, bucketName: string): Prom
   }
 }
 
-export async function getImagesFromBucket(s3: S3Client, bucketName: string | undefined, key: string, res: express.Response): Promise<void> {
+export async function getImagesFromBucket(s3: S3Client, bucketName: string, key: string, res: express.Response): Promise<void> {
     const command = new GetObjectCommand({
           Bucket: bucketName,
           Key: key,
@@ -142,4 +142,22 @@ export async function fileExists(s3Client: S3Client, bucketName: string, key: st
     }
     throw error;
   }
+}
+
+/**
+ * Deletes a file from the S3 bucket
+ * @param s3Client - The S3 client instance
+ * @param bucketName - The name of the bucket
+ * @param key - The S3 object key to delete
+ * @returns Promise<void>
+ */
+export async function deleteFile(s3Client: S3Client, bucketName: string, key: string): Promise<void> {
+  if (!bucketName) {
+    throw new Error("Bucket name is required");
+  }
+
+  await s3Client.send(new DeleteObjectCommand({
+    Bucket: bucketName,
+    Key: key
+  }));
 }
