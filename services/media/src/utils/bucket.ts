@@ -1,4 +1,4 @@
-import { S3Client, HeadBucketCommand, GetObjectCommand, CreateBucketCommand, PutObjectCommand } from "@aws-sdk/client-s3"
+import { S3Client, HeadBucketCommand, GetObjectCommand, CreateBucketCommand, PutObjectCommand, HeadObjectCommand } from "@aws-sdk/client-s3"
 import fs from "fs/promises"
 import path from "path"
 import { Readable } from "stream"
@@ -117,4 +117,29 @@ export async function getImagesFromBucket(s3: S3Client, bucketName: string | und
     if (!data.Body) throw new Error("No data received from S3")
     const body = data.Body as Readable
     body.pipe(res)
+}
+
+/**
+ * Checks if a file exists in the S3 bucket
+ * @param s3Client - The S3 client instance
+ * @param bucketName - The name of the bucket
+ * @param key - The S3 object key to check
+ * @returns Promise<boolean> - Returns true if file exists, false otherwise
+ */
+export async function fileExists(s3Client: S3Client, bucketName: string, key: string): Promise<boolean> {
+  try {
+    await s3Client.send(new HeadObjectCommand({
+      Bucket: bucketName,
+      Key: key
+    }));
+    return true;
+  } catch (error: unknown) {
+    if (error && typeof error === "object" && "name" in error) {
+      const errorName = (error as { name?: string }).name;
+      if (errorName === "NotFound" || errorName === "NoSuchKey") {
+        return false;
+      }
+    }
+    throw error;
+  }
 }

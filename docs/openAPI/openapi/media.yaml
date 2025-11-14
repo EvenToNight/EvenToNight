@@ -17,7 +17,7 @@ paths:
             The path to the media file in the bucket. Can be:
             - `events/{eventId}/{filename}` for event-related media
             - `users/{userId}/{filename}` for user-related media
-          example: "users/proadsffva/test.png"
+          example: "users/prova/test.png"
       servers:
         - url: http://localhost:9020
           description: Media service (local development)
@@ -90,7 +90,7 @@ paths:
         If upload fails, returns a default image URL for the specified type.
       servers:
         - url: http://localhost:9020
-          description: Media service (local development)  
+          description: Available only in local development 
       parameters:
         - name: type
           in: path
@@ -106,7 +106,7 @@ paths:
           schema:
             type: string
           description: The unique identifier of the entity
-          example: "dnfjd"
+          example: "userId"
       requestBody:
         required: true
         content:
@@ -157,4 +157,88 @@ paths:
                     example: "Upload failed"
       tags:
         - Upload
-
+    put:
+      summary: Update existing media file
+      description: |
+        Updates an existing media file in the storage bucket. 
+        The file must already exist at `{type}/{entityId}/{filename}`.
+        If the file doesn't exist, returns 404 (use POST to create new files).
+        **Note**: This endpoint is documented only for development purposes.
+      servers:
+        - url: http://localhost:9020
+          description: Available only in local development
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [events, users]
+          description: The type of entity (events or users)
+          example: "users"
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the entity
+          example: "userId"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The media file to update (must have same filename as existing file)
+      responses:
+        '200':
+          description: File updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: The path/key of the updated file
+                    example: "users/dnfjd/profile.jpg"
+                  message:
+                    type: string
+                    example: "File successfully updated"
+        '400':
+          description: Bad request - invalid or missing data
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  missing_file:
+                    value: "File is required"
+                  invalid_type:
+                    value: "Type must be 'events' or 'users'"
+        '404':
+          description: File not found - use POST to create new files
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "File with key 'users/dnfjd/profile.jpg' not found. Use POST to create a new file."
+        '500':
+          description: Internal server error during update
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  update_failed:
+                    value: "Failed to update file"
+                  server_error:
+                    value: "Internal server error"
+      tags:
+        - Upload

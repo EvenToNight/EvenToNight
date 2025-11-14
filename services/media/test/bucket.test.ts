@@ -1,5 +1,5 @@
-import { S3Client, HeadBucketCommand, GetObjectCommand, CreateBucketCommand, PutObjectCommand } from '@aws-sdk/client-s3';
-import { createS3Client, uploadFile, ensureBucketWithDefaults, getImagesFromBucket } from '../src/utils/bucket.js';
+import { S3Client, HeadBucketCommand, GetObjectCommand, CreateBucketCommand, PutObjectCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
+import { createS3Client, uploadFile, ensureBucketWithDefaults, getImagesFromBucket, fileExists } from '../src/utils/bucket.js';
 import { Readable } from 'stream';
 import express from 'express';
 
@@ -159,6 +159,46 @@ describe('Bucket Utils', () => {
       
       await expect(getImagesFromBucket(client, 'bucket', 'missing.jpg', mockResponse))
         .rejects.toThrow('Object not found');
+    });
+  });
+
+  describe('fileExists', () => {
+    const client = mockS3Client as unknown as S3Client;
+
+    it('returns true when file exists', async () => {
+      mockS3Client.send.mockResolvedValue({});
+      
+      const result = await fileExists(client, 'bucket', 'existing-file.jpg');
+      
+      expect(mockS3Client.send).toHaveBeenCalledWith(expect.any(HeadObjectCommand));
+      expect(result).toBe(true);
+    });
+
+    it('returns false when file does not exist (NotFound error)', async () => {
+      const notFoundError = { name: 'NotFound' };
+      mockS3Client.send.mockRejectedValue(notFoundError);
+      
+      const result = await fileExists(client, 'bucket', 'missing-file.jpg');
+      
+      expect(mockS3Client.send).toHaveBeenCalledWith(expect.any(HeadObjectCommand));
+      expect(result).toBe(false);
+    });
+
+    it('propagates non-NotFound errors', async () => {
+      const networkError = new Error('Network error');
+      mockS3Client.send.mockRejectedValue(networkError);
+      
+      await expect(fileExists(client, 'bucket', 'file.jpg'))
+        .rejects.toThrow('Network error');
+    });
+
+    it('handles NoSuchKey error as file not found', async () => {
+      const noSuchKeyError = { name: 'NoSuchKey' };
+      mockS3Client.send.mockRejectedValue(noSuchKeyError);
+      
+      const result = await fileExists(client, 'bucket', 'missing-file.jpg');
+      
+      expect(result).toBe(false);
     });
   });
 });

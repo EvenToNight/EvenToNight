@@ -1,7 +1,7 @@
 import express from "express"
 import multer from "multer"
 import { checkData, returnDefault } from "./utils/utils.js"
-import { ensureBucketWithDefaults, uploadFile, createS3Client, getImagesFromBucket } from "./utils/bucket.js"
+import { ensureBucketWithDefaults, uploadFile, createS3Client, getImagesFromBucket, fileExists } from "./utils/bucket.js"
 import cors from "cors"
 
 const app = express()
@@ -17,7 +17,7 @@ app.get("/*", async (req, res) => {
     await ensureBucketWithDefaults(s3, bucketName);
     
     const key = decodeURIComponent(req.path);
-    
+
     if (!key) return res.status(400).send("Key missing");
 
     await getImagesFromBucket(s3, bucketName, key, res);
@@ -60,6 +60,39 @@ app.post("/:type/:entityId", upload.single("file"), async (req, res) => {
     }
   } catch (err) {
     console.error("Upload error:", err)
+  }
+});
+
+app.put("/:type/:entityId", upload.single("file"), async (req, res) => {
+  try {
+    const { file } = req
+    const { type, entityId} = req.params
+
+    const { isValid, error } = checkData(file, type, entityId)
+    if (!isValid) {
+      return res.status(400).send(error)
+    }
+    const validatedFile = file!
+
+    await ensureBucketWithDefaults(s3, bucketName)
+
+    const key = `${type}/${entityId}/${validatedFile.originalname}`
+
+    const exists = await fileExists(s3, bucketName, key)
+    if (!exists) {
+      return res.status(404).send(`File with key '${key}' not found. Use POST to create a new file.`)
+    }
+
+    try {
+      const updatedKey = await uploadFile(s3, bucketName, key, validatedFile.buffer, validatedFile.mimetype);
+      res.json({ url: updatedKey });
+    } catch (uploadErr) {
+      console.error("Update error:", uploadErr)
+      res.status(500).send("Failed to update file")
+    }
+  } catch (err) {
+    console.error("Update error:", err)
+    res.status(500).send("Internal server error")
   }
 });
 
