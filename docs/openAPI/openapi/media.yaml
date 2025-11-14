@@ -1,0 +1,160 @@
+openapi: 3.0.1
+info:
+  title: EvenToNight - Media API
+  version: 1.0.0
+  
+paths:
+  "/{filePath}":
+    get:
+      summary: Retrieve media file
+      parameters:
+        - name: filePath
+          in: path
+          required: true
+          schema:
+            type: string
+          description: |
+            The path to the media file in the bucket. Can be:
+            - `events/{eventId}/{filename}` for event-related media
+            - `users/{userId}/{filename}` for user-related media
+          example: "users/proadsffva/test.png"
+      servers:
+        - url: http://localhost:9020
+          description: Media service (local development)
+        - url: https://media.eventonight.site
+          description: Media service (production)        
+      responses:
+        '200':
+          description: Media file retrieved successfully
+          content:
+            image/*:
+              schema:
+                type: string
+                format: binary
+              examples:
+                image_jpeg:
+                  summary: JPEG image
+                  description: A JPEG image file
+                image_png:
+                  summary: PNG image  
+                  description: A PNG image file
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+              description: Generic binary file when content type cannot be determined
+          headers:
+            Content-Type:
+              description: The MIME type of the returned file
+              schema:
+                type: string
+                example: "image/jpeg"
+            Content-Length:
+              description: The size of the file in bytes
+              schema:
+                type: integer
+                example: 245760
+        '400':
+          description: Bad request - missing or invalid file path
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "Key missing"
+        '404':
+          description: File not found and no default available
+          content:
+            text/plain:
+              schema:
+                type: string
+                example: "File not found and no default available"
+        '500':
+          description: Internal server error during file retrieval
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Storage service unavailable"
+      tags:
+        - Get
+
+  "/{type}/{entityId}":
+    post:
+      summary: Upload media file (development only)
+      description: |
+        Uploads a media file to the storage bucket. The file will be stored at
+        `{type}/{entityId}/{filename}` where filename is the original name of the uploaded file.
+        If upload fails, returns a default image URL for the specified type.
+      servers:
+        - url: http://localhost:9020
+          description: Media service (local development)  
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [events, users]
+          description: The type of entity (events or users)
+          example: "users"
+        - name: entityId
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the entity
+          example: "dnfjd"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The media file to upload
+      responses:
+        '200':
+          description: File uploaded successfully or default returned
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  url:
+                    type: string
+                    description: The path/key of the uploaded file or default image
+                    example: "users/dnfjd/profile.jpg"
+        '400':
+          description: Bad request - invalid or missing data
+          content:
+            text/plain:
+              schema:
+                type: string
+                examples:
+                  missing_file:
+                    value: "File is required"
+                  invalid_type:
+                    value: "Type must be 'events' or 'users'"
+                  missing_entity:
+                    value: "Entity ID is required"
+        '500':
+          description: Internal server error during upload
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "Upload failed"
+      tags:
+        - Upload
+

@@ -1,9 +1,11 @@
 import express from "express"
 import multer from "multer"
-import { checkData, returnDefault } from "./util/validation.js"
-import { ensureBucketWithDefaults, uploadFile, createS3Client, getImagesFromBucket } from "./util/bucket.js"
+import { checkData, returnDefault } from "./utils/utils.js"
+import { ensureBucketWithDefaults, uploadFile, createS3Client, getImagesFromBucket } from "./utils/bucket.js"
+import cors from "cors"
 
 const app = express()
+app.use(cors())
 const upload = multer()
 const bucketName = process.env.MINIO_BUCKET || ""
 const port = process.env.MEDIA_SERVICE_PORT || 9020
@@ -14,8 +16,8 @@ app.get("/*", async (req, res) => {
   try {
     await ensureBucketWithDefaults(s3, bucketName);
     
-    const key = req.path
-
+    const key = decodeURIComponent(req.path);
+    
     if (!key) return res.status(400).send("Key missing");
 
     await getImagesFromBucket(s3, bucketName, key, res);

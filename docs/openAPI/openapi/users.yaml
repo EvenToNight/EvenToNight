@@ -2,6 +2,11 @@ openapi: 3.0.1
 info:
   title: EvenToNight - Users API
   version: 1.0.0
+servers:
+  - url: http://localhost:9000
+    description: Users service (local development)
+  - url: https://users.eventonight.site
+    description: Users service (production)
 paths:
   /users:
     get:

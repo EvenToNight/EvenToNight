@@ -10,7 +10,7 @@ servers:
 paths:
   /events/draft:
     get:
-      summary: Get events list
+      summary: Create a draft event
       responses:
         '200':
           description: OK

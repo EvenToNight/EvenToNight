@@ -30,7 +30,7 @@ class EventController(eventService: EventService) extends MainRoutes:
     }
   )
 
-  @cask.options("/:segments...")
+  @cask.options("/*")
   def handlePreflight() = {
     cask.Response("", statusCode = 204)
   }

@@ -1,6 +1,15 @@
-import { checkData, returnDefault } from '../src/util/validation.js';
+import { checkData, returnDefault } from '../src/utils/utils.js';
 
-describe('Validation Utils', () => {
+describe('Utils', () => {
+  const mockFile = {
+    fieldname: 'file',
+    originalname: 'test.jpg',
+    encoding: '7bit',
+    mimetype: 'image/jpeg',
+    buffer: Buffer.from('test'),
+    size: 100
+  } as Express.Multer.File;
+
   describe('checkData', () => {
     it('should return invalid when file is missing', () => {
       const result = checkData(undefined, 'users', '123');
@@ -9,47 +18,20 @@ describe('Validation Utils', () => {
     });
 
     it('should return invalid when type is missing', () => {
-      const mockFile = {
-        fieldname: 'file',
-        originalname: 'test.jpg',
-        encoding: '7bit',
-        mimetype: 'image/jpeg',
-        buffer: Buffer.from('test'),
-        size: 100
-      } as Express.Multer.File;
-
       const result = checkData(mockFile, '', '123');
       
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Invalid path');
+      expect(result.error).toBe('Invalid type');
     });
 
     it('should return invalid when entityId is missing', () => {
-      const mockFile = {
-        fieldname: 'file',
-        originalname: 'test.jpg',
-        encoding: '7bit',
-        mimetype: 'image/jpeg',
-        buffer: Buffer.from('test'),
-        size: 100
-      } as Express.Multer.File;
-
       const result = checkData(mockFile, 'users', '');
       
       expect(result.isValid).toBe(false);
-      expect(result.error).toBe('Metadata missing');
+      expect(result.error).toBe('Missing entityId');
     });
 
     it('should return valid when all required data is provided', () => {
-      const mockFile = {
-        fieldname: 'file',
-        originalname: 'test.jpg',
-        encoding: '7bit',
-        mimetype: 'image/jpeg',
-        buffer: Buffer.from('test'),
-        size: 100
-      } as Express.Multer.File;
-
       const result = checkData(mockFile, 'users', '123');
       
       expect(result.isValid).toBe(true);
@@ -59,17 +41,13 @@ describe('Validation Utils', () => {
 
   describe('returnDefault', () => {
     it('should return events default for event-related types', () => {
-      const type = "events/events1/test.png".split("/")[0];
-      const type2 = "events/events2/test.png".split("/")[0];
+      const type = "events/eventId/test.png".split("/")[0];
       expect(returnDefault(type)).toBe('events/default.png');
-      expect(returnDefault(type2)).toBe('events/default.png');
     });
 
     it('should return users default for user-related types', () => {
-      const type = "users/".split("/")[0];
-      const type2 = 'users/user1/test.png'.split("/")[0];
+      const type = "users/userId/test.png".split("/")[0];
       expect(returnDefault(type)).toBe('users/default.png');
-      expect(returnDefault(type2)).toBe('users/default.png');
     });
 
     it('should return generic default for unknown types', () => {

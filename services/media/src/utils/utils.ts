@@ -10,10 +10,10 @@ export function checkData(file: Express.Multer.File | undefined, type: string, e
     return { isValid: false, error: "File missing" }
   }
   if (!["users", "events"].includes(type)) {
-    return { isValid: false, error: "Invalid path" }
+    return { isValid: false, error: "Invalid type" }
   }
   if (!entityId) {
-    return { isValid: false, error: "Metadata missing" }
+    return { isValid: false, error: "Missing entityId" }
   }
   return { isValid: true, error: null }
 }
