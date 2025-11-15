@@ -8,7 +8,7 @@
 // -----------------------------------------------------------------------------
 // Quasar Brand Colors
 // -----------------------------------------------------------------------------
-$primary: $color-secondary;
+$primary: $color-primary;
 $secondary: $color-secondary;
 $accent: $color-accent;
 
@@ -44,9 +44,9 @@ $space-y-base: $spacing-4;
 // -----------------------------------------------------------------------------
 // Border Radius
 // -----------------------------------------------------------------------------
-$generic-border-radius: $radius-base;
-$button-border-radius: $radius-md;
-$input-border-radius: $radius-md;
+$generic-border-radius: 4px;
+$button-border-radius: 6px;
+$input-border-radius: 6px;
 
 // -----------------------------------------------------------------------------
 // Shadows

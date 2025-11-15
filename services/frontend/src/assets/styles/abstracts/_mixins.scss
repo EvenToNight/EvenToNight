@@ -193,20 +193,28 @@
 }
 
 // -----------------------------------------------------------------------------
-// Dark Mode
+// Dark Mode (Quasar-based)
 // -----------------------------------------------------------------------------
+@mixin light-mode {
+  body.body--light & {
+    @content;
+  }
+}
+
 @mixin dark-mode {
-  @media (prefers-color-scheme: dark) {
+  body.body--dark & {
     @content;
   }
 }
 
 // Usage:
 // .element {
-//   background: $color-white;
+//   background: white;
+//   color: black;
 //
 //   @include dark-mode {
-//     background: $color-gray-900;
+//     background: #121212;
+//     color: white;
 //   }
 // }
 

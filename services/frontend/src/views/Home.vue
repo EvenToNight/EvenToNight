@@ -1,5 +1,12 @@
 <script setup lang="ts">
+import { useQuasar } from 'quasar'
 import NavigationBar from '../components/NavigationBar.vue'
+
+const $q = useQuasar()
+
+const toggleDarkMode = () => {
+  $q.dark.toggle()
+}
 </script>
 
 <template>
@@ -9,6 +16,15 @@ import NavigationBar from '../components/NavigationBar.vue'
       <div class="container">
         <h1>Navigation Demo</h1>
         <p>This page demonstrates the Quasar navigation bar.</p>
+
+        <div class="theme-selector">
+          <q-btn
+            :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+            :label="$q.dark.isActive ? 'Light Mode' : 'Dark Mode'"
+            color="primary"
+            @click="toggleDarkMode"
+          />
+        </div>
       </div>
     </div>
   </div>
@@ -29,6 +45,10 @@ import NavigationBar from '../components/NavigationBar.vue'
 
   h1 {
     margin-bottom: $spacing-4;
+  }
+
+  .theme-selector {
+    margin-top: $spacing-6;
   }
 }
 </style>

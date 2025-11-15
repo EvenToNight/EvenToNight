@@ -28,13 +28,36 @@
 html, body {
   overflow-x: auto;
   overflow-y: auto;
-  min-width: 700px;
+  min-width: 300px;
   min-height: 300px;
+}
+
+// Light/Dark mode backgrounds
+body {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+body.body--light {
+  background-color: white;
+  color: #000;
+
+  h1, h2, h3, h4, h5, h6, p, span, div, a {
+    color: #000;
+  }
+}
+
+body.body--dark {
+  background-color: #121212;
+  color: #fff;
+
+  h1, h2, h3, h4, h5, h6, p, span, div {
+    color: #fff;
+  }
 }
 
 #app {
   font-weight: normal;
-  min-width: 700px;
+  min-width: 300px;
   min-height: 300px;
 
   // // Applica max-width e padding solo alle pagine che non hanno .home-fullscreen
@@ -47,13 +70,29 @@ html, body {
 
 // Quasar layout fixes per responsive - dimensioni minime app
 .q-layout {
-  min-width: 700px;
+  min-width: 300px;
   min-height: 300px;
 }
 
 .q-page-container {
-  min-width: 700px;
+  min-width: 300px;
   min-height: 300px;
+}
+
+// Force white text and icons on all buttons EXCEPT flat buttons
+body.body--light .q-btn:not(.q-btn--flat),
+body.body--dark .q-btn:not(.q-btn--flat) {
+  .q-btn__content {
+    color: #fff !important;
+
+    span {
+      color: #fff !important;
+    }
+  }
+
+  .q-icon {
+    color: #fff !important;
+  }
 }
 
 // -----------------------------------------------------------------------------
