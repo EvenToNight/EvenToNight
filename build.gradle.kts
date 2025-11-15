@@ -33,6 +33,16 @@ tasks.register<ExecTask>("checkEnvSetup") {
     bashCommand("./scripts/checkEnvSetup.sh")
 }
 
+tasks.named("checkEnvSetup") {
+    mustRunAfter("updateEnvFile")
+}
+
+tasks.register("updateAndCheckEnvSetup") {
+    description = "Update the .env file and check if it is properly set up."
+    group = "setup"
+    dependsOn("updateEnvFile", "checkEnvSetup")    
+}
+
 gradle.projectsEvaluated {
     tasks.configureEach {
         if (group == "docker") {
