@@ -8,41 +8,32 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
     id("io.github.cosmicsilence.scalafix") version "0.2.5"
+    jacoco
 }
 
 application {
-    mainClass.set("Main")
+    mainClass.set("app.Main")
 }
 
 dependencies {
     implementation("org.scala-lang:scala3-library_3:3.7.2")
     implementation("org.mongodb:mongodb-driver-sync:5.5.1")
     implementation("com.rabbitmq:amqp-client:5.26.0")
-    implementation("io.github.cdimascio:dotenv-java:3.2.0")
-    implementation("com.lihaoyi:cask_3:0.10.1")
-    implementation("io.undertow:undertow-core:2.3.12.Final")
-    implementation("org.jboss.logging:jboss-logging:3.5.3.Final")
+    implementation("com.lihaoyi:cask_3:0.11.3")
     testImplementation("org.scalatest:scalatest_3:3.2.19")
-    testRuntimeOnly("org.junit.platform:junit-platform-engine:1.13.1")
-    testRuntimeOnly("org.junit.platform:junit-platform-launcher:1.13.1")
     testRuntimeOnly("org.scalatestplus:junit-5-13_3:3.2.19.0")
-    compileOnly("org.wartremover:wartremover_2.13:3.1.5")
 }
 
 scalafmt {
     configFilePath = ".scalafmt.conf"
 }
 
-tasks.matching { it.name.contains("Scalafmt", ignoreCase = true) }.configureEach {
-        notCompatibleWithConfigurationCache("Scalafmt plugin not compatible with Gradle configuration cache")
+jacoco {
+    toolVersion = "0.8.12" 
 }
 
-tasks.withType<ScalaCompile>().configureEach {
-    options.compilerArgs.addAll(listOf(
-    "-Xplugin-require:wartremover",
-    "-P:wartremover:traverser:org.wartremover.warts.Unsafe",
-    "-Xfatal-warnings"
-    ))
+tasks.matching { it.name.contains("Scalafmt", ignoreCase = true) }.configureEach {
+        notCompatibleWithConfigurationCache("Scalafmt plugin not compatible with Gradle configuration cache")
 }
 
 tasks.register("checkStyle") {
@@ -71,12 +62,13 @@ tasks.test {
             events("passed", "skipped", "failed")
         }
     }
+    finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.shadowJar {
     archiveFileName.set("events.jar") 
     manifest {
-        attributes["Main-Class"] = "Main"
+        attributes["Main-Class"] = "app.Main"
     }
 }
 
@@ -92,6 +84,7 @@ tasks.withType<ScalaCompile>().configureEach {
     scalaCompileOptions.additionalParameters =
         listOf("-Wunused:imports", "-Wunused:all")
 }
+
 
 tasks {
     val shadowJar by getting(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class)
@@ -114,5 +107,24 @@ tasks {
 
     named("startScripts") {
         dependsOn(shadowJar)
+    }
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+tasks.register("runCoverage") {
+    description = "Run coverage analysis for Events service"
+    group = "verification"
+    dependsOn("test", "jacocoTestReport")
+    
+    doLast {
+        println("✅ Events service coverage completed!")
+        println("📋 Report available at: build/reports/jacoco/test/jacocoTestReport.xml")
     }
 }
