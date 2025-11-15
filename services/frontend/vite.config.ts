@@ -21,5 +21,12 @@ export default defineConfig(async () => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
     },
+    css: {
+      preprocessorOptions: {
+        scss: {
+          additionalData: `@use "@/assets/styles/abstracts" as *;`,
+        },
+      },
+    },
   }
 })

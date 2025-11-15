@@ -12,7 +12,7 @@
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .item {
   margin-top: 2rem;
   display: flex;
@@ -30,50 +30,70 @@ i {
   place-content: center;
   width: 32px;
   height: 32px;
+  color: $color-text-primary;
 
-  color: var(--color-text);
+  @include dark-mode {
+    color: $color-text-dark;
+  }
 }
 
 h3 {
   font-size: 1.2rem;
   font-weight: 500;
   margin-bottom: 0.4rem;
-  color: var(--color-heading);
+  color: $color-heading;
+
+  @include dark-mode {
+    color: $color-heading-dark;
+  }
 }
 
-@media (min-width: 1024px) {
+@include respond-to('lg') {
   .item {
     margin-top: 0;
-    padding: 0.4rem 0 1rem calc(var(--section-gap) / 2);
+    padding: 0.4rem 0 1rem calc($spacing-section / 2);
   }
 
   i {
     top: calc(50% - 25px);
     left: -26px;
     position: absolute;
-    border: 1px solid var(--color-border);
-    background: var(--color-background);
+    border: 1px solid $color-border;
+    background: $color-background;
     border-radius: 8px;
     width: 50px;
     height: 50px;
+
+    @include dark-mode {
+      border-color: $color-border-dark;
+      background: $color-background-dark;
+    }
   }
 
   .item:before {
     content: ' ';
-    border-left: 1px solid var(--color-border);
+    border-left: 1px solid $color-border;
     position: absolute;
     left: 0;
     bottom: calc(50% + 25px);
     height: calc(50% - 25px);
+
+    @include dark-mode {
+      border-color: $color-border-dark;
+    }
   }
 
   .item:after {
     content: ' ';
-    border-left: 1px solid var(--color-border);
+    border-left: 1px solid $color-border;
     position: absolute;
     left: 0;
     top: calc(50% + 25px);
     height: calc(50% - 25px);
+
+    @include dark-mode {
+      border-color: $color-border-dark;
+    }
   }
 
   .item:first-of-type:before {

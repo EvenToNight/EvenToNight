@@ -1,0 +1,109 @@
+// =============================================================================
+// Main SCSS Entry Point
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// 1. Abstracts - Variables, Mixins, Functions
+// -----------------------------------------------------------------------------
+@use 'abstracts' as *;
+
+// -----------------------------------------------------------------------------
+// 2. Base - Reset, Typography, Global Styles
+// -----------------------------------------------------------------------------
+@use 'base/reset';
+
+// -----------------------------------------------------------------------------
+// 3. Components - Reusable Component Styles
+// -----------------------------------------------------------------------------
+// Import component styles here as you create them
+// @import 'components/buttons';
+// @import 'components/cards';
+// @import 'components/forms';
+
+// -----------------------------------------------------------------------------
+// 4. Layout - App specific styles
+// -----------------------------------------------------------------------------
+
+#app {
+  font-weight: normal;
+
+  // Applica max-width e padding solo alle pagine che non hanno .home-fullscreen
+  &:not(:has(.home-fullscreen)) {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 2rem;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// 5. Utilities - Helper Classes
+// -----------------------------------------------------------------------------
+
+// Container
+.container {
+  @include container;
+}
+
+// Flexbox utilities
+.flex {
+  display: flex;
+}
+
+.flex-center {
+  @include flex-center;
+}
+
+.flex-between {
+  @include flex-between;
+}
+
+.flex-column {
+  @include flex-column;
+}
+
+// Text utilities
+.text-center {
+  text-align: center;
+}
+
+.text-left {
+  text-align: left;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.text-truncate {
+  @include text-truncate;
+}
+
+// Visibility
+.hidden {
+  display: none;
+}
+
+.visible {
+  display: block;
+}
+
+// Spacing utilities (add as needed)
+.mt-1 { margin-top: $spacing-1; }
+.mt-2 { margin-top: $spacing-2; }
+.mt-3 { margin-top: $spacing-3; }
+.mt-4 { margin-top: $spacing-4; }
+.mt-6 { margin-top: $spacing-6; }
+.mt-8 { margin-top: $spacing-8; }
+
+.mb-1 { margin-bottom: $spacing-1; }
+.mb-2 { margin-bottom: $spacing-2; }
+.mb-3 { margin-bottom: $spacing-3; }
+.mb-4 { margin-bottom: $spacing-4; }
+.mb-6 { margin-bottom: $spacing-6; }
+.mb-8 { margin-bottom: $spacing-8; }
+
+.p-2 { padding: $spacing-2; }
+.p-3 { padding: $spacing-3; }
+.p-4 { padding: $spacing-4; }
+.p-6 { padding: $spacing-6; }
+.p-8 { padding: $spacing-8; }
