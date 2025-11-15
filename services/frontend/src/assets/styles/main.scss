@@ -24,12 +24,15 @@
 // 4. Layout - App specific styles
 // -----------------------------------------------------------------------------
 
-// Permetti lo scroll orizzontale e verticale quando necessario
-html, body {
-  overflow-x: auto;
-  overflow-y: auto;
+// Permetti lo scroll quando necessario
+html {
+  overflow-y: scroll;
+  min-height: 100vh;
+}
+
+body {
   min-width: 300px;
-  min-height: 300px;
+  min-height: 100vh;
 }
 
 // Light/Dark mode backgrounds
