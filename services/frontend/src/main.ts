@@ -11,16 +11,7 @@ import router from './router'
 
 const app = createApp(App)
 
-app.use(Quasar, {
-  plugins: {}, // import Quasar plugins and add here
-  config: {
-    brand: {
-      primary: '#3b82f6',
-    },
-  },
-})
-
+app.use(Quasar)
 app.use(createPinia())
 app.use(router)
-
 app.mount('#app')
