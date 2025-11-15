@@ -163,7 +163,12 @@ jobs:
       - name: Find all modified service directories with Dockerfiles
         id: services
         run: |
-          modified_dirs=$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep '^services/' | awk -F/ '{print "services/"$2}')
+          modified_dirs=$(
+            git diff --name-only ${{ github.event.before }} ${{ github.sha }} \
+            | grep '^services/' \
+            | awk -F/ '{print "services/"$2}' \
+            | sort -u
+          )
           dirs=""
           echo "$modified_dirs"
           for dir in $modified_dirs; do
@@ -242,4 +247,4 @@ jobs:
 
             # deploy
             ./scripts/composeApplication.sh pull
-            ./scripts/composeApplication.sh up -d
+            ./scripts/composeApplication.sh up -d --remove-orphans
