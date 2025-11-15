@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import type { Component } from 'vue'
 import HomeView from '../views/HomeView.vue'
 import PlaceHolderView from '../views/PlaceHolderView.vue'
 
@@ -9,6 +10,11 @@ const router = createRouter({
       path: '/',
       name: 'placeholder',
       component: PlaceHolderView,
+    },
+    {
+      path: '/navigation',
+      name: 'navigation',
+      component: () => import('../views/NavigationView.vue') as Promise<Component>,
     },
     {
       path: '/home',

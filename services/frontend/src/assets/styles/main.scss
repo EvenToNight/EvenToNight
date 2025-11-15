@@ -24,15 +24,36 @@
 // 4. Layout - App specific styles
 // -----------------------------------------------------------------------------
 
+// Permetti lo scroll orizzontale e verticale quando necessario
+html, body {
+  overflow-x: auto;
+  overflow-y: auto;
+  min-width: 700px;
+  min-height: 300px;
+}
+
 #app {
   font-weight: normal;
+  min-width: 700px;
+  min-height: 300px;
 
-  // Applica max-width e padding solo alle pagine che non hanno .home-fullscreen
-  &:not(:has(.home-fullscreen)) {
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 2rem;
-  }
+  // // Applica max-width e padding solo alle pagine che non hanno .home-fullscreen
+  // &:not(:has(.home-fullscreen)) {
+  //   max-width: 1280px;
+  //   margin: 0 auto;
+  //   padding: 2rem;
+  // }
+}
+
+// Quasar layout fixes per responsive - dimensioni minime app
+.q-layout {
+  min-width: 700px;
+  min-height: 300px;
+}
+
+.q-page-container {
+  min-width: 700px;
+  min-height: 300px;
 }
 
 // -----------------------------------------------------------------------------
