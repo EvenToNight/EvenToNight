@@ -1,0 +1,58 @@
+version: "3.9"
+
+services:
+  postgres-keycloak:
+    image: postgres:15
+    container_name: postgres-keycloak
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - keycloak-postgres-data:/var/lib/postgresql/data
+    networks:
+      - eventonight-network
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "keycloak"]
+      interval: 5s
+      retries: 5
+      timeout: 5s
+
+  keycloak:
+    build:
+      context: .
+      dockerfile: Dockerfile-keycloak
+    image: eventonight/keycloak:custom
+    container_name: keycloak
+    environment:
+      KC_DB: postgres
+      KC_DB_URL_HOST: postgres-keycloak
+      KC_DB_USERNAME: ${KC_DB_USERNAME}
+      KC_DB_PASSWORD: ${KC_DB_PASSWORD}
+      KC_DB_SCHEMA: public
+      KC_HTTP_ENABLED: "true"
+      KC_HOSTNAME: localhost
+      KC_LOGLEVEL: INFO
+      KC_METRICS_ENABLED: "true"
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+
+    ports:
+      - "8082:8080"
+    depends_on:
+      postgres-keycloak:
+        condition: service_healthy
+    networks:
+      - eventonight-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/auth/realms/master || exit 1"]
+      interval: 5s
+      retries: 20
+      start_period: 10s  
+
+volumes:
+  keycloak-postgres-data:
+
+networks:
+  eventonight-network:
+    driver: bridge
