@@ -72,7 +72,7 @@ paths:
         If upload fails, returns a default image URL for the specified type.
       servers:
         - url: http://localhost:9020
-          description: Available only in local development 
+          description: Media service (local development)
       parameters:
         - name: type
           in: path
@@ -129,7 +129,7 @@ paths:
         **Note**: This endpoint is documented only for development purposes.
       servers:
         - url: http://localhost:9020
-          description: Available only in local development
+          description: Media service (local development)
       parameters:
         - name: type
           in: path
@@ -188,7 +188,7 @@ paths:
         **Note**: This endpoint is documented only for development purposes.
       servers:
         - url: http://localhost:9020
-          description: Available only in local development
+          description: Media service (local development)
       parameters:
         - name: type
           in: path

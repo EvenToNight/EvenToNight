@@ -1,13 +1,12 @@
-package controller
+package controller.routes
 
-import cask.main.Routes
-import domain.Commands._
-import domain.EventTag
+import domain.commands.CreateEventDraftCommand
+import domain.models.EventTag
 import service.EventService
 
 import java.time.LocalDateTime
 
-class EventCommandApi(eventService: EventService) extends Routes {
+class EventCommandApi(eventService: EventService) extends BaseRoutes {
 
   @cask.get("/events/draft")
   def createDraft() = {
@@ -17,7 +16,7 @@ class EventCommandApi(eventService: EventService) extends Routes {
       poster = "poster",
       tag = List(EventTag.TypeOfEvent.Concert),
       location = "location",
-      date = LocalDateTime.parse("2024-12-31T20:00:00"),
+      date = LocalDateTime.parse("2028-12-31T20:00:00"),
       id_creator = "id_creator",
       id_collaborator = None
     )

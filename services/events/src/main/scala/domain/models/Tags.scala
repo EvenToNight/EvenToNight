@@ -1,4 +1,4 @@
-package domain
+package domain.models
 
 sealed trait EventTag:
   val displayName: String

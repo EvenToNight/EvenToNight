@@ -1,9 +1,8 @@
-package controller
-import cask.Routes
-import domain.EventTag
+package controller.routes
+import domain.models.EventTag
 import ujson._
 
-class EventTagApi extends Routes:
+class EventTagApi extends BaseRoutes:
 
   @cask.get("/tags")
   def getTags() =

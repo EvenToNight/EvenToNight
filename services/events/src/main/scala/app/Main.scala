@@ -1,6 +1,6 @@
 package app
 
-import controller.EventRoutes
+import controller.Controller
 import infrastructure.db.MongoEventRepository
 import infrastructure.messaging.MockEventPublisher
 import service.EventService
@@ -16,6 +16,6 @@ object Main extends App {
 
   val eventService = new EventService(database, messageBroker)
 
-  val routes = new EventRoutes(eventService)
+  val routes = new Controller(eventService)
   routes.main(Array())
 }

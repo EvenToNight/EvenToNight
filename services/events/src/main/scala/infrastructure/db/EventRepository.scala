@@ -6,7 +6,8 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.ReplaceOptions
-import domain.Event
+import domain.models.Event
+import domain.models.EventConversions._
 import org.bson.Document
 
 trait EventRepository {

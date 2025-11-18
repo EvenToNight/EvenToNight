@@ -2,22 +2,40 @@ openapi: 3.0.1
 info:
   title: EvenToNight - Events API
   version: 1.0.0
-servers:
-  - url: http://localhost:9010
-    description: Events service (local development)
-  - url: https://events.eventonight.site
-    description: Events service (production)
 paths:
   /events/draft:
     get:
       summary: Create a draft event
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
       responses:
         '200':
           description: OK
+      tags:
+        - Event Command API      
+  
+  /events/draft/{eventId}:
+    get:
+      summary: Retrieve a event by ID
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
+      tags:
+        - Event Query API
+  
+  
   /tags:
     get:
       summary: Get available event tags grouped by category
       description: Returns a list of tag categories and their tags used by the Events service.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
       responses:
         '200':
           description: A JSON array of tag categories
@@ -41,4 +59,6 @@ paths:
                   {"category": "TypeOfEvent", "tags": ["Party", "Live Music"]},
                   {"category": "VenueType", "tags": ["Club", "Bar"]}
                 ]
+      tags: 
+        - Event Tag API          
   

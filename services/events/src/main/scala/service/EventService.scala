@@ -1,9 +1,16 @@
 package service
 
-import domain.Commands.CreateEventDraftCommand
-import domain.Event
+import domain.commands.CreateEventDraftCommand
+import domain.commands.validators.Validator
+import domain.commands.validators.Validators
+import domain.commands.validators.Validators.given
+import domain.messaging.EventDraftCreated
+import domain.models.Event
 import infrastructure.db.EventRepository
 import infrastructure.messaging.EventPublisher
+
+import java.time.Instant
+import java.util.UUID
 
 class EventService(
     repo: EventRepository,
@@ -11,13 +18,33 @@ class EventService(
 ) {
 
   def handleCreateDraft(command: CreateEventDraftCommand): String = {
+    Validator.validateCommand(command) match {
+      case Left(validationErrors) =>
+        "Validation failed " + validationErrors.mkString(", ")
+      case Right(_) =>
+        val newEvent =
+          Event.createDraft(
+            title = command.title,
+            description = command.description,
+            poster = command.poster,
+            tag = command.tag,
+            location = command.location,
+            date = command.date,
+            id_creator = command.id_creator,
+            id_collaborator = command.id_collaborator
+          )
 
-    val (newEvent, eventToPublish) = Event.create(command)
+        repo.save(newEvent)
 
-    repo.save(newEvent)
+        val domainEvent = EventDraftCreated(
+          id = UUID.randomUUID().toString(),
+          timestamp = Instant.now(),
+          eventId = newEvent._id
+        )
 
-    publisher.publish(eventToPublish)
+        publisher.publish(domainEvent)
 
-    newEvent._id
+        newEvent._id
+    }
   }
 }
