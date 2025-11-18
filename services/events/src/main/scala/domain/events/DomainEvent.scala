@@ -1,4 +1,4 @@
-package domain.messaging
+package domain.events
 
 import java.time.Instant
 

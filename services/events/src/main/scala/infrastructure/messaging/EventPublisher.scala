@@ -1,5 +1,5 @@
 package infrastructure.messaging
-import domain.messaging.DomainEvent
+import domain.events.DomainEvent
 
 trait EventPublisher {
   def publish(event: DomainEvent): Unit

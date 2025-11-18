@@ -4,7 +4,7 @@ import domain.commands.CreateEventDraftCommand
 import domain.commands.validators.Validator
 import domain.commands.validators.Validators
 import domain.commands.validators.Validators.given
-import domain.messaging.EventDraftCreated
+import domain.events.EventDraftCreated
 import domain.models.Event
 import infrastructure.db.EventRepository
 import infrastructure.messaging.EventPublisher
