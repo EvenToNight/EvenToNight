@@ -12,11 +12,11 @@ class CorsDecorator extends RawDecorator:
     "Access-Control-Allow-Headers" -> "Content-Type, Authorization"
   )
 
-  def wrapFunction(ctx: cask.Request, delegate: Delegate): cask.router.Result[Response.Raw] = {
+  def wrapFunction(ctx: cask.Request, delegate: Delegate): cask.router.Result[Response.Raw] =
 
     val method = ctx.exchange.getRequestMethod.toString
 
-    if (method == "OPTIONS") {
+    if method == "OPTIONS" then
       Result.Success(
         Response(
           data = "",
@@ -24,7 +24,7 @@ class CorsDecorator extends RawDecorator:
           headers = corsHeaders
         )
       )
-    } else {
+    else
       delegate(ctx, Map()).map { response =>
         Response(
           data = response.data.data,
@@ -32,5 +32,3 @@ class CorsDecorator extends RawDecorator:
           headers = response.data.headers ++ corsHeaders
         )
       }
-    }
-  }

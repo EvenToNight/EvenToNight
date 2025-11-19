@@ -6,10 +6,10 @@ import org.scalatest.matchers.should.Matchers
 
 import java.time.Instant
 import java.time.LocalDateTime
-import scala.jdk.CollectionConverters._
+import scala.jdk.CollectionConverters.*
 
 class EventConversionsSpec extends AnyFlatSpec with Matchers:
-  import EventConversions._
+  import EventConversions.*
 
   private val sampleInstant = Instant.parse("2024-11-18T10:00:00Z")
   private val sampleDate    = LocalDateTime.of(2024, 12, 25, 0, 0)

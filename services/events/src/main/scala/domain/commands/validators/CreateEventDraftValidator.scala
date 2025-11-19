@@ -16,6 +16,7 @@ object CreateEventDraftValidator extends Validator[CreateEventDraftCommand]:
       nonEmpty(cmd.title, "Title"),
       nonEmpty(cmd.description, "Description"),
       nonEmpty(cmd.location, "Location"),
+      nonEmpty(cmd.id_creator, "Creator Id"),
       futureDate(cmd.date).map(_ => "")
     )
 

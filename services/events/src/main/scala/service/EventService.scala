@@ -15,10 +15,10 @@ import java.util.UUID
 class EventService(
     repo: EventRepository,
     publisher: EventPublisher
-) {
+):
 
-  def handleCreateDraft(command: CreateEventDraftCommand): String = {
-    Validator.validateCommand(command) match {
+  def handleCreateDraft(command: CreateEventDraftCommand): String =
+    Validator.validateCommand(command) match
       case Left(validationErrors) =>
         "Validation failed " + validationErrors.mkString(", ")
       case Right(_) =>
@@ -45,6 +45,3 @@ class EventService(
         publisher.publish(domainEvent)
 
         newEvent._id
-    }
-  }
-}

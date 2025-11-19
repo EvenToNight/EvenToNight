@@ -10,18 +10,17 @@ import scala.compiletime.uninitialized
 class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   var event: EventDraftCreated = uninitialized
-  val domainEventId            = "domainEventId"
-  val timestamp                = Instant.now()
-  val eventId                  = "eventId"
+  val domainEventId: String    = "domainEventId"
+  val timestamp: Instant       = Instant.now()
+  val eventId: String          = "eventId"
 
-  override def beforeEach(): Unit = {
+  override def beforeEach(): Unit =
     super.beforeEach()
     event = EventDraftCreated(
       id = domainEventId,
       timestamp = timestamp,
       eventId = eventId
     )
-  }
 
   "EventDraftCreated" should "implement DomainEvent trait correctly" in:
     event shouldBe a[DomainEvent]

@@ -12,7 +12,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       title: String = "Test Event",
       tag: List[EventTag],
       id_collaborator: Option[String] = Some("collaborator-123")
-  ): Event = {
+  ): Event =
     Event(
       _id = "test-id",
       title = title,
@@ -26,7 +26,6 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_creator = "creator-123",
       id_collaborator = id_collaborator
     )
-  }
 
   "Event case class" should "store properties correctly" in:
     val event = createEvent("Custom Title", tag = List(EventTag.TypeOfEvent.Concert), None)

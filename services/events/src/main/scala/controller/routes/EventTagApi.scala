@@ -1,11 +1,11 @@
 package controller.routes
 import domain.models.EventTag
-import ujson._
+import ujson.*
 
 class EventTagApi extends BaseRoutes:
 
   @cask.get("/tags")
-  def getTags() =
+  def getTags(): Arr =
     val tags = List(
       ("TypeOfEvent", EventTag.TypeOfEvents),
       ("VenueType", EventTag.VenueTypes),
@@ -25,8 +25,8 @@ class EventTagApi extends BaseRoutes:
     )
 
   @cask.get("/tags/:category")
-  def getTagsByCategory(category: String) =
-    val tags = category match {
+  def getTagsByCategory(category: String): Obj =
+    val tags = category match
       case "TypeOfEvent" => EventTag.TypeOfEvents
       case "VenueType"   => EventTag.VenueTypes
       case "MusicGenre"  => EventTag.MusicGenres
@@ -34,7 +34,6 @@ class EventTagApi extends BaseRoutes:
       case "Target"      => EventTag.Targets
       case "Extra"       => EventTag.Extras
       case _             => List.empty
-    }
 
     Obj("category" -> category, "tags" -> ujson.Arr.from(tags.map(t => Str(t.toString))))
 

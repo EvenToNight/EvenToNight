@@ -13,11 +13,10 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   private var baseDate: LocalDateTime    = uninitialized
   private var sampleTags: List[EventTag] = uninitialized
 
-  override def beforeEach(): Unit = {
+  override def beforeEach(): Unit =
     super.beforeEach()
     baseDate = LocalDateTime.of(2025, 12, 31, 20, 0)
     sampleTags = List(EventTag.TypeOfEvent.Party, EventTag.VenueType.Club)
-  }
 
   private def createCommand(
       title: String = "Test Event",

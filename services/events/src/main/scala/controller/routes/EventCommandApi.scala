@@ -6,10 +6,10 @@ import service.EventService
 
 import java.time.LocalDateTime
 
-class EventCommandApi(eventService: EventService) extends BaseRoutes {
+class EventCommandApi(eventService: EventService) extends BaseRoutes:
 
   @cask.get("/events/draft")
-  def createDraft() = {
+  def createDraft(): String =
     val command = CreateEventDraftCommand(
       title = "title",
       description = "description",
@@ -22,7 +22,5 @@ class EventCommandApi(eventService: EventService) extends BaseRoutes {
     )
     val eventId = eventService.handleCreateDraft(command)
     "Event Created " + eventId
-  }
 
   initialize()
-}
