@@ -9,7 +9,7 @@ services:
     volumes:
       - keycloak-postgres-data:/var/lib/postgresql/data
     networks:
-      - eventonight-network
+      - keycloak-network
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
       interval: 5s
@@ -17,10 +17,7 @@ services:
       timeout: 5s
 
   keycloak:
-    build:
-      context: .
-      dockerfile: Dockerfile-keycloak
-    image: eventonight/keycloak:custom
+    image: ghcr.io/eventonight/eventonight/keycloak:latest
     container_name: keycloak
     environment:
       KC_DB: postgres
@@ -42,6 +39,7 @@ services:
         condition: service_healthy
     networks:
       - eventonight-network
+      - keycloak-network
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8080/realms/master || exit 1"]
       interval: 5s
@@ -53,4 +51,6 @@ volumes:
 
 networks:
   eventonight-network:
+    driver: bridge
+  keycloak-network:
     driver: bridge

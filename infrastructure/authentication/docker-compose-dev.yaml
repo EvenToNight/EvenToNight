@@ -1,0 +1,5 @@
+services:
+    keycloak:
+      build:
+        context: .
+        dockerfile: ./infrastructure/authentication/Dockerfile
