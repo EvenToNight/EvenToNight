@@ -88,3 +88,16 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     )
 
     event1._id should not equal event2._id
+
+  "Event.nil" should "create a nil event with default values" in:
+    val nilEvent = Event.nil()
+
+    nilEvent._id shouldBe ""
+    nilEvent.title shouldBe ""
+    nilEvent.description shouldBe ""
+    nilEvent.poster shouldBe ""
+    nilEvent.tag shouldBe empty
+    nilEvent.location shouldBe ""
+    nilEvent.status shouldBe EventStatus.DRAFT
+    nilEvent.id_creator shouldBe ""
+    nilEvent.id_collaborator shouldBe None

@@ -12,7 +12,7 @@ class Controller(eventService: EventService) extends MainRoutes:
 
   override val allRoutes: Seq[Routes] = Seq(
     new EventCommandApi(eventService),
-    new EventQueryApi(),
+    new EventQueryApi(eventService),
     new EventTagApi()
   )
 

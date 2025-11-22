@@ -1,6 +1,7 @@
 package service
 
 import domain.commands.CreateEventDraftCommand
+import domain.commands.GetEventCommand
 import domain.commands.validators.Validator
 import domain.commands.validators.Validators
 import domain.commands.validators.Validators.given
@@ -17,10 +18,10 @@ class EventService(
     publisher: EventPublisher
 ):
 
-  def handleCreateDraft(command: CreateEventDraftCommand): String =
+  def handleCommand(command: CreateEventDraftCommand): String =
     Validator.validateCommand(command) match
       case Left(validationErrors) =>
-        "Validation failed " + validationErrors.mkString(", ")
+        ("Validation failed " + validationErrors.mkString(", "))
       case Right(_) =>
         val newEvent =
           Event.createDraft(
@@ -45,3 +46,12 @@ class EventService(
         publisher.publish(domainEvent)
 
         newEvent._id
+
+  def handleCommand(command: GetEventCommand): Event =
+    Validator.validateCommand(command) match
+      case Left(_) =>
+        Event.nil()
+      case Right(_) =>
+        val event = repo.findById(command.id_event)
+        println(event.getOrElse(Event.nil()).tag)
+        event.getOrElse(Event.nil())

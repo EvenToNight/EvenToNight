@@ -24,17 +24,4 @@ class EventTagApi extends BaseRoutes:
       }
     )
 
-  @cask.get("/tags/:category")
-  def getTagsByCategory(category: String): Obj =
-    val tags = category match
-      case "TypeOfEvent" => EventTag.TypeOfEvents
-      case "VenueType"   => EventTag.VenueTypes
-      case "MusicGenre"  => EventTag.MusicGenres
-      case "Theme"       => EventTag.Themes
-      case "Target"      => EventTag.Targets
-      case "Extra"       => EventTag.Extras
-      case _             => List.empty
-
-    Obj("category" -> category, "tags" -> ujson.Arr.from(tags.map(t => Str(t.toString))))
-
   initialize()

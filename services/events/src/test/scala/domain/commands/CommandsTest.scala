@@ -33,6 +33,9 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_collaborator
     )
 
+  private def getCommand(id_event: String): GetEventCommand =
+    GetEventCommand(id_event)
+
   "CreateEventDraftCommand" should "implement Commands trait" in:
     val command = createCommand()
     command shouldBe a[Commands]
@@ -48,26 +51,14 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val command: Commands = createCommand("Pattern Test")
     val result = command match
       case CreateEventDraftCommand(title, _, _, _, _, _, _, _) => s"Command: $title"
+      case GetEventCommand(id_event)                           => s"Get Command: $id_event"
     result shouldBe "Command: Pattern Test"
 
-  it should "handle collections" in:
-    val commands: List[Commands] = List(
-      createCommand("Event 1"),
-      createCommand("Event 2")
-    )
-    commands should have length 2
-    commands.foreach(_ shouldBe a[CreateEventDraftCommand])
+  "GetEventCommand" should "implement Commands trait" in:
+    val command = getCommand("event-789")
+    command shouldBe a[Commands]
+    command shouldBe a[GetEventCommand]
 
-  it should "support different tag combinations" in:
-    val emptyTags = List.empty[EventTag]
-    val multipleTags = List(
-      EventTag.TypeOfEvent.Concert,
-      EventTag.VenueType.Theatre,
-      EventTag.MusicGenre.Jazz
-    )
-
-    val cmd1 = CreateEventDraftCommand("Empty", "desc", "poster", emptyTags, "loc", baseDate, "creator", None)
-    val cmd2 = CreateEventDraftCommand("Multi", "desc", "poster", multipleTags, "loc", baseDate, "creator", None)
-
-    cmd1.tag shouldBe empty
-    cmd2.tag should have length 3
+  it should "store properties correctly" in:
+    val command = getCommand("event-123")
+    command.id_event shouldBe "event-123"

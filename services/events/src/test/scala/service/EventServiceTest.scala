@@ -1,9 +1,11 @@
 package service
 
 import domain.commands.CreateEventDraftCommand
+import domain.commands.GetEventCommand
+import domain.models.Event
 import domain.models.EventTag
 import infrastructure.db.EventRepository
-import infrastructure.db.MockEventRepository
+import infrastructure.db.MongoEventRepository
 import infrastructure.messaging.EventPublisher
 import infrastructure.messaging.MockEventPublisher
 import org.scalatest.BeforeAndAfterEach
@@ -21,41 +23,36 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
   override def beforeEach(): Unit =
     super.beforeEach()
-    repo = new MockEventRepository
+    repo = new MongoEventRepository("mongodb://localhost:27017", "eventonight_test")
     publisher = new MockEventPublisher
     service = new EventService(repo, publisher)
 
-  private def correctCreateEventDraftCommand(
-      title: String = "test",
-      description: String = "test",
-      poster: String = "test",
+  private def validCreateEventDraftCommand(
+      title: String = "Test Event",
+      description: String = "Test Description",
+      poster: String = "test-poster.jpg",
       tag: List[EventTag] = List(EventTag.VenueType.Bar),
-      location: String = "test",
+      location: String = "Test Location",
       date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
-      id_creator: String = "test",
+      id_creator: String = "creator-123",
       id_collaborator: Option[String] = None
   ): CreateEventDraftCommand =
     CreateEventDraftCommand(title, description, poster, tag, location, date, id_creator, id_collaborator)
 
+  private def validGetEventCommand(id_event: String): GetEventCommand =
+    GetEventCommand(id_event)
+
   "EventService" should "be instantiated correctly" in:
-    service shouldBe a[EventService]
+    service.`should`(be(a[EventService]))
 
-  "HandleCreateDraft" should "handle valid command with all required fields" in:
-    val command = correctCreateEventDraftCommand()
+  "handleCommand with CreateEventDraftCommand" should "create event draft successfully with valid command" in:
+    val command = validCreateEventDraftCommand()
 
-    val eventId = service.handleCreateDraft(command)
+    val eventId = service.handleCommand(command)
     eventId should not be empty
     eventId should have length 36
 
-  it should "handle command without collaborator" in:
-    val command = correctCreateEventDraftCommand(
-      id_collaborator = None
-    )
-
-    val eventId = service.handleCreateDraft(command)
-    eventId should not be empty
-
-  it should "handle command with multiple tags" in:
+  it should "handle multiple event tags correctly" in:
     val multipleTags = List(
       EventTag.TypeOfEvent.Concert,
       EventTag.VenueType.Theatre,
@@ -63,44 +60,71 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       EventTag.Theme.Festival,
       EventTag.Target.Students
     )
-    val command = correctCreateEventDraftCommand(tag = multipleTags)
+    val command = validCreateEventDraftCommand(tag = multipleTags)
 
-    val eventId = service.handleCreateDraft(command)
+    val eventId = service.handleCommand(command)
     eventId should not be empty
 
-  it should "handle command with empty tag list" in:
-    val command = correctCreateEventDraftCommand(tag = List.empty)
+  it should "handle empty tag list" in:
+    val command = validCreateEventDraftCommand(tag = List.empty)
 
-    val eventId = service.handleCreateDraft(command)
+    val eventId = service.handleCommand(command)
     eventId should not be empty
 
-  it should "return validation error for invalid command" in:
-    val invalidCommand = correctCreateEventDraftCommand(title = "")
+  it should "return validation error message for empty title" in:
+    val invalidCommand = validCreateEventDraftCommand(title = "")
 
-    val result = service.handleCreateDraft(invalidCommand)
+    val result = service.handleCommand(invalidCommand)
     result should startWith("Validation failed")
+    result should include("Title")
 
   it should "return validation error for past date" in:
     val pastDate       = LocalDateTime.of(2020, 1, 1, 12, 0)
-    val invalidCommand = correctCreateEventDraftCommand(date = pastDate)
+    val invalidCommand = validCreateEventDraftCommand(date = pastDate)
 
-    val result = service.handleCreateDraft(invalidCommand)
+    val result = service.handleCommand(invalidCommand)
     result should startWith("Validation failed")
+    result should include("Date")
 
-  it should "reject empty description" in:
-    val invalidCommand = correctCreateEventDraftCommand(description = "")
+  it should "return validation error for empty description" in:
+    val invalidCommand = validCreateEventDraftCommand(description = "")
 
-    val result = service.handleCreateDraft(invalidCommand)
+    val result = service.handleCommand(invalidCommand)
     result should startWith("Validation failed")
+    result should include("Description")
 
-  it should "reject empty location" in:
-    val invalidCommand = correctCreateEventDraftCommand(location = "")
+  it should "return validation error for empty location" in:
+    val invalidCommand = validCreateEventDraftCommand(location = "")
 
-    val result = service.handleCreateDraft(invalidCommand)
+    val result = service.handleCommand(invalidCommand)
     result should startWith("Validation failed")
+    result should include("Location")
 
-  it should "reject empty creator id" in:
-    val invalidCommand = correctCreateEventDraftCommand(id_creator = "")
+  it should "return validation error for empty creator id" in:
+    val invalidCommand = validCreateEventDraftCommand(id_creator = "")
 
-    val result = service.handleCreateDraft(invalidCommand)
+    val result = service.handleCommand(invalidCommand)
     result should startWith("Validation failed")
+    result should include("Creator")
+
+  "handleCommand with GetEventCommand" should "return event when found" in:
+    val createCommand = validCreateEventDraftCommand()
+    val eventId       = service.handleCommand(createCommand)
+
+    val getCommand     = validGetEventCommand(eventId)
+    val retrievedEvent = service.handleCommand(getCommand)
+
+    retrievedEvent._id shouldBe eventId
+    retrievedEvent should not be Event.nil()
+
+  it should "return nil event when not found" in:
+    val getCommand     = validGetEventCommand("non-existent")
+    val retrievedEvent = service.handleCommand(getCommand)
+
+    retrievedEvent shouldBe Event.nil()
+
+  it should "return nil event for invalid command with empty id" in:
+    val invalidGetCommand = validGetEventCommand("")
+    val retrievedEvent    = service.handleCommand(invalidGetCommand)
+
+    retrievedEvent shouldBe Event.nil()

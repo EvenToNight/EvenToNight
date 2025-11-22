@@ -15,3 +15,7 @@ case class CreateEventDraftCommand(
     id_creator: String,
     id_collaborator: Option[String]
 ) extends Commands
+
+case class GetEventCommand(
+    id_event: String
+) extends Commands

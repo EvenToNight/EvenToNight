@@ -19,6 +19,21 @@ case class Event(
 
 object Event:
 
+  def nil(): Event =
+    Event(
+      _id = "",
+      title = "",
+      description = "",
+      poster = "",
+      tag = List(),
+      location = "",
+      date = LocalDateTime.parse("0000-01-01T00:00"),
+      status = EventStatus.DRAFT,
+      instant = java.time.Instant.MAX,
+      id_creator = "",
+      id_collaborator = None
+    )
+
   def createDraft(
       title: String,
       description: String,

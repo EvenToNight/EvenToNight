@@ -3,29 +3,156 @@ info:
   title: EvenToNight - Events API
   version: 1.0.0
 paths:
-  /events/draft:
-    get:
-      summary: Create a draft event
+  /event/:
+    post:
+      summary: Create a new event draft
+      description: Creates a new event in draft status with the provided information.
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - title
+                - description
+                - poster
+                - tags
+                - location
+                - date
+                - id_creator
+              properties:
+                title:
+                  type: string
+                  description: Event title
+                  example: "Summer Music Festival"
+                description:
+                  type: string
+                  description: Event description
+                  example: "An amazing summer music festival with top artists"
+                poster:
+                  type: string
+                  format: binary
+                  description: Event poster image file
+                tags:
+                  type: string
+                  description: Comma-separated list of event tags
+                  example: "Concert,Festival,Live Music"
+                location:
+                  type: string
+                  description: Event location
+                  example: "Central Park, New York"
+                date:
+                  type: string
+                  format: date-time
+                  description: Event date and time
+                  example: "2025-07-15T20:00:00"
+                id_creator:
+                  type: string
+                  description: ID of the event creator
+                  example: "user-123"
+                id_collaborator:
+                  type: string
+                  description: Optional ID of a collaborator
+                  required: false
+                  example: "user-456"
       responses:
         '200':
-          description: OK
+          description: Event draft created successfully
+          content:
+            application/json:
+              schema:
+                type: string
+                description: The ID of the created event
+              example: "event-uuid-123"
+        '400':
+          description: Validation error
       tags:
-        - Event Command API      
+        - Event Command API
   
-  /events/draft/{eventId}:
+  /event/{eventId}:
     get:
-      summary: Retrieve a event by ID
+      summary: Get event details by ID
+      description: Retrieves detailed information about a specific event.
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
         - url: https://events.eventonight.site
           description: Events service (production)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: The ID of the event to retrieve
+          schema:
+            type: string
+            example: "event-uuid-123"
+      responses:
+        '200':
+          description: Event details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_event:
+                    type: string
+                    description: Event ID
+                  title:
+                    type: string
+                    description: Event title
+                  description:
+                    type: string
+                    description: Event description
+                  poster:
+                    type: string
+                    description: Event poster filename
+                  tag:
+                    type: array
+                    items:
+                      type: string
+                    description: List of event tags
+                  location:
+                    type: string
+                    description: Event location
+                  date:
+                    type: string
+                    format: date-time
+                    description: Event date and time
+                  status:
+                    type: string
+                    enum: [DRAFT, PUBLISHED, CANCELLED]
+                    description: Event status
+                  instant:
+                    type: string
+                    format: date-time
+                    description: Event creation timestamp
+                  id_creator:
+                    type: string
+                    description: ID of the event creator
+                  id_collaborator:
+                    type: string
+                    description: ID of the collaborator (if any)
+                    nullable: true
+              example:
+                id_event: "event-uuid-123"
+                title: "Summer Music Festival"
+                description: "An amazing summer music festival"
+                poster: "poster-123.jpg"
+                tag: ["Concert", "Festival", "Live Music"]
+                location: "Central Park, New York"
+                date: "2025-07-15T20:00:00"
+                status: "DRAFT"
+                instant: "2025-11-22T10:00:00Z"
+                id_creator: "user-123"
+                id_collaborator: ""
+        '404':
+          description: Event not found
       tags:
-        - Event Query API
-  
+        - Event Query API 
   
   /tags:
     get:
