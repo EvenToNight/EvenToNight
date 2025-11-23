@@ -64,6 +64,12 @@ tasks.register<ExecTask>("teardownApplicationEnvironment") {
     bashCommands(DockerCommands.TEARDOWN_APPLICATION_ENVIRONMENT)
 }
 
+tasks.register<ExecTask>("teardownKeycloak") {
+    description = "Tear down Keycloak"
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_KEYCLOAK)
+}
+
 tasks.register<ExecTask>("setupTestEnvironment") {
     description = "Set up the Docker test environment."
     group = "docker"
@@ -92,6 +98,16 @@ tasks.register<ExecTask>("setupApplicationEnvironment") {
     }
     println("💬 Setting up the application environment...")
     bashCommands(DockerCommands.SETUP_APPLICATION_ENVIRONMENT)
+}
+
+tasks.register<ExecTask>("setupKeycloak") {
+    description = "Set up Keycloak"
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_KEYCLOAK).onFailure { code ->
+        println("${RED}Teardown failed with exit code ${code}.${RESET}")
+    }
+    println("Setting up Keycloak...")
+    bashCommands(DockerCommands.SETUP_KEYCLOAK)
 }
 
 tasks.register("saveStagedFiles") {
