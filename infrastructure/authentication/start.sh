@@ -8,4 +8,13 @@ if [ ! -f "$REALM_FILE" ]; then
 fi
 
 echo "Starting Keycloak..."
-exec /opt/keycloak/bin/kc.sh start-dev --import-realm
+exec /opt/keycloak/bin/kc.sh start \
+  --db=postgres \
+  --db-url-host="${KC_DB_URL_HOST}" \
+  --db-username="${KC_DB_USERNAME}" \
+  --db-password="${KC_DB_PASSWORD}" \
+  --http-enabled=true \
+  --hostname="${KC_HOSTNAME}" \
+  --hostname-strict=false \
+  --hostname-strict-https=false \
+  --import-realm
