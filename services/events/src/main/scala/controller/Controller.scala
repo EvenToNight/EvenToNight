@@ -4,7 +4,7 @@ import cask.MainRoutes
 import cask.main.Routes
 import service.EventService
 
-import routes.*
+import routes._
 
 class Controller(eventService: EventService) extends MainRoutes:
   override def port: Int    = sys.env.get("EVENTS_SERVICE_PORT").map(_.toInt).getOrElse(9010)

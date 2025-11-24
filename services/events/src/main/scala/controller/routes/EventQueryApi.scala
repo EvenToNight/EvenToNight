@@ -1,7 +1,7 @@
 package controller.routes
 
 import domain.commands.GetEventCommand
-import domain.models.EventConversions.*
+import domain.models.EventConversions._
 import service.EventService
 
 class EventQueryApi(eventService: EventService) extends BaseRoutes:

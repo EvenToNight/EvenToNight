@@ -1,6 +1,6 @@
 package controller.routes
 import domain.models.EventTag
-import ujson.*
+import ujson._
 
 class EventTagApi extends BaseRoutes:
 

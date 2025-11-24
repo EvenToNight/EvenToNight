@@ -3,7 +3,7 @@ package domain.models
 import domain.models.EventTag.validateTagList
 import org.bson.Document
 
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 
 object EventConversions:
   extension (event: Event)

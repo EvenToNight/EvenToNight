@@ -3,7 +3,7 @@ package domain.commands.validators
 import domain.commands.CreateEventDraftCommand
 import domain.models.EventTag
 import org.scalatest.BeforeAndAfterEach
-import org.scalatest.EitherValues.*
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -102,7 +102,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     )
 
   "Validator trait with given instance" should "work with validateCommand" in:
-    import Validators.given
+    import ValidatorsInstances.given
 
     val validCommand   = createValidCommand()
     val invalidCommand = createValidCommand(title = "")
@@ -132,7 +132,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   "Validator trait with GetEventCommand" should "work with validateCommand using given instance" in:
     import domain.commands.GetEventCommand
-    import Validators.given
+    import ValidatorsInstances.given
 
     val validCommand   = GetEventCommand("valid-id")
     val invalidCommand = GetEventCommand("")

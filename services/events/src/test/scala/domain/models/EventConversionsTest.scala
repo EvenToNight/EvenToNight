@@ -6,7 +6,7 @@ import org.scalatest.matchers.should.Matchers
 
 import java.time.Instant
 import java.time.LocalDateTime
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 
 class EventConversionsSpec extends AnyFlatSpec with Matchers:
   import EventConversions.*
