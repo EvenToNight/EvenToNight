@@ -130,6 +130,32 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Event ID cannot be empty")
 
+  "UpdateEventPosterValidator" should "validate valid command successfully" in:
+    import domain.commands.UpdateEventPosterCommand
+
+    val command = UpdateEventPosterCommand("valid-event-123", "https://example.com/poster.jpg")
+    val result  = UpdateEventPosterValidator.validate(command)
+
+    result shouldBe Right(command)
+
+  it should "reject empty event ID" in:
+    import domain.commands.UpdateEventPosterCommand
+
+    val command = UpdateEventPosterCommand("", "https://example.com/poster.jpg")
+    val result  = UpdateEventPosterValidator.validate(command)
+
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Event ID cannot be empty")
+
+  it should "reject empty poster URL" in:
+    import domain.commands.UpdateEventPosterCommand
+
+    val command = UpdateEventPosterCommand("valid-event-123", "")
+    val result  = UpdateEventPosterValidator.validate(command)
+
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Poster URL cannot be empty")
+
   "Validator trait with GetEventCommand" should "work with validateCommand using given instance" in:
     import domain.commands.GetEventCommand
     import ValidatorsInstances.given

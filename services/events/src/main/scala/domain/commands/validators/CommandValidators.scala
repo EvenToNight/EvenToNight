@@ -2,6 +2,7 @@ package domain.commands.validators
 
 import domain.commands.CreateEventDraftCommand
 import domain.commands.GetEventCommand
+import domain.commands.UpdateEventPosterCommand
 
 import ValidationRules.{futureDate, nonEmpty}
 import Validator.combine
@@ -23,4 +24,12 @@ object GetEventValidator extends Validator[GetEventCommand]:
   override def validate(cmd: GetEventCommand): Either[List[String], GetEventCommand] =
     combine(
       nonEmpty(cmd.id_event, "Event ID")
+    ).map(_ => cmd)
+
+object UpdateEventPosterValidator extends Validator[UpdateEventPosterCommand]:
+
+  override def validate(cmd: UpdateEventPosterCommand): Either[List[String], UpdateEventPosterCommand] =
+    combine(
+      nonEmpty(cmd.eventId, "Event ID"),
+      nonEmpty(cmd.posterUrl, "Poster URL")
     ).map(_ => cmd)

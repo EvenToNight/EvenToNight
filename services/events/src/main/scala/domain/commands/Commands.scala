@@ -19,3 +19,8 @@ case class CreateEventDraftCommand(
 case class GetEventCommand(
     id_event: String
 ) extends Commands
+
+case class UpdateEventPosterCommand(
+    eventId: String,
+    posterUrl: String
+) extends Commands

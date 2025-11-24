@@ -16,6 +16,7 @@ trait EventRepository:
 
   def save(event: Event): Unit
   def findById(id_event: String): Option[Event]
+  def update(event: Event): Unit
 
 case class MongoEventRepository(connectionString: String, databaseName: String, collectionName: String = "events")
     extends EventRepository:
@@ -33,6 +34,11 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
     val doc = collection.find(Filters.eq("_id", id_event)).first()
     if doc != null then Some(fromDocument(doc))
     else None
+
+  override def update(event: Event): Unit =
+    val replaceOptions = new ReplaceOptions().upsert(false)
+    collection.replaceOne(Filters.eq("_id", event._id), event.toDocument, replaceOptions)
+    println(s"[MongoDB] Updated Event ID: ${event._id} with status:" + s" ${event.status}")
 
   def close(): Unit =
     mongoClient.close()
@@ -59,3 +65,6 @@ case class MockEventRepository() extends EventRepository:
           id_creator = "mock-creator",
           id_collaborator = None
         ))
+
+  override def update(event: Event): Unit =
+    println(s"[MOCK REPO] Updated Event ID: ${event._id} with" + s" status: ${event.status}")

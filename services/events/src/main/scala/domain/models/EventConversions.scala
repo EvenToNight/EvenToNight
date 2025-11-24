@@ -38,9 +38,7 @@ object EventConversions:
 
   def fromDocument(doc: Document): Event =
     val tagsString = doc.getList("tag", classOf[String]).asScala.mkString(",")
-    println(s"Converting from Document, tagsString: $tagsString")
-    val tagList = validateTagList(tagsString)
-    println(s"Converted tags: $tagList")
+    val tagList    = validateTagList(tagsString)
     Event(
       _id = doc.getString("_id"),
       title = doc.getString("title"),

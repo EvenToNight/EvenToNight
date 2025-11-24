@@ -85,14 +85,9 @@ object EventTag:
 
   def validateTagList(tags: String): List[EventTag] =
     val tagList =
-      try
-        if tags.trim.startsWith("[") && tags.trim.endsWith("]") then
-          ujson.read(tags).arr.map(_.str).toList
-        else
-          tags.split(",").map(_.trim).toList
-      catch
-        case _: Exception =>
-          tags.split(",").map(_.trim).toList
-    println(s"Validating tag list: $tagList")
+      if tags.trim.startsWith("[") && tags.trim.endsWith("]") then
+        ujson.read(tags).arr.map(_.str).toList
+      else
+        tags.split(",").map(_.trim).toList
     val eventTags = tagList.map(t => EventTag.fromString(t))
     eventTags.filterNot(t => t.isInstanceOf[InvalidTag])
