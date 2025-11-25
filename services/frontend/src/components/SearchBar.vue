@@ -1,23 +1,55 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
+import type { QInput } from 'quasar'
 
 interface Props {
-  modelValue: string
-  placeholder?: string
+  searchQuery?: string
+  searchHint?: string
   autofocus?: boolean
+  hasFocus?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  placeholder: 'Search...',
+  searchQuery: '',
+  searchHint: 'Search...',
   autofocus: false,
+  hasFocus: false,
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
-  search: [query: string]
+  'update:searchQuery': [value: string]
+  'update:hasFocus': [value: boolean]
 }>()
 
 const showSuggestions = ref(false)
+const searchQuery = ref(props.searchQuery)
+const inputRef = ref<QInput | null>(null)
+
+watch(
+  () => props.searchQuery,
+  (value) => {
+    searchQuery.value = value
+  }
+)
+
+watch(searchQuery, (value) => emit('update:searchQuery', value))
+
+watch(
+  () => props.hasFocus,
+  (shouldFocus) => {
+    if (shouldFocus && inputRef.value) {
+      inputRef.value?.focus()
+    } else if (!shouldFocus && inputRef.value) {
+      inputRef.value?.blur()
+    }
+  }
+)
+
+onMounted(() => {
+  if (searchQuery.value.length > 0) {
+    showSuggestions.value = true
+  }
+})
 
 const suggestions = [
   'JavaScript tutorials',
@@ -32,14 +64,6 @@ const suggestions = [
   'API integration guide',
 ]
 
-const searchQuery = computed({
-  get: () => props.modelValue,
-  set: (value: string) => {
-    emit('update:modelValue', value)
-    showSuggestions.value = value.length > 0
-  },
-})
-
 const filteredSuggestions = computed(() => {
   if (!searchQuery.value) return []
   const query = searchQuery.value.toLowerCase()
@@ -47,42 +71,56 @@ const filteredSuggestions = computed(() => {
 })
 
 const handleSearch = () => {
-  emit('search', searchQuery.value)
-  showSuggestions.value = false
+  console.log('Search query:', searchQuery.value)
+  // TODO: Implement search logic
 }
 
 const selectSuggestion = (suggestion: string) => {
-  emit('update:modelValue', suggestion)
+  searchQuery.value = suggestion
   showSuggestions.value = false
-  emit('search', suggestion)
+  handleSearch()
 }
 
 const hideSuggestions = () => {
-  setTimeout(() => {
-    showSuggestions.value = false
-  }, 200)
+  showSuggestions.value = false
+}
+
+const updateQuery = (value: string | number | null) => {
+  searchQuery.value = String(value || '')
+  showSuggestions.value = searchQuery.value.length > 0
+}
+
+const handleFocus = () => {
+  showSuggestions.value = searchQuery.value.length > 0
+  emit('update:hasFocus', true)
+}
+
+const handleBlur = () => {
+  hideSuggestions()
+  emit('update:hasFocus', false)
 }
 </script>
 
 <template>
   <div class="search-bar-wrapper">
     <q-input
-      v-model="searchQuery"
+      ref="inputRef"
+      :model-value="searchQuery"
       dense
       standout
-      :placeholder="placeholder"
+      :placeholder="searchHint"
       :autofocus="autofocus"
       class="search-input"
+      @update:model-value="updateQuery"
       @keyup.enter="handleSearch"
-      @focus="showSuggestions = searchQuery.length > 0"
-      @blur="hideSuggestions"
+      @focus="handleFocus"
+      @blur="handleBlur"
     >
       <template #append>
         <q-icon name="search" class="cursor-pointer" @click="handleSearch" />
       </template>
     </q-input>
 
-    <!-- Suggestions dropdown -->
     <div v-if="showSuggestions && filteredSuggestions.length > 0" class="suggestions-dropdown">
       <div
         v-for="(suggestion, index) in filteredSuggestions"

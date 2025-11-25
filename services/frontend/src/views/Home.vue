@@ -7,7 +7,7 @@ import SearchBar from '../components/SearchBar.vue'
 const $q = useQuasar()
 const showSearchInNavbar = ref(false)
 const searchQuery = ref('')
-const heroSearchRef = ref<HTMLElement | null>(null)
+const searchBarHasFocus = ref(false)
 const heroSearchPlaceholderRef = ref<HTMLElement | null>(null)
 
 const toggleDarkMode = () => {
@@ -19,11 +19,6 @@ const handleScroll = () => {
     const rect = heroSearchPlaceholderRef.value.getBoundingClientRect()
     showSearchInNavbar.value = rect.bottom <= NAVBAR_HEIGHT
   }
-}
-
-const handleSearch = (query: string) => {
-  console.log('Search query:', query)
-  // TODO: Implement search logic
 }
 
 onMounted(() => {
@@ -38,10 +33,14 @@ onUnmounted(() => {
 <template>
   <div class="navigation-view">
     <div class="scroll-wrapper">
-      <NavigationBar v-model="searchQuery" :show-search="showSearchInNavbar" />
+      <NavigationBar
+        v-model:search-query="searchQuery"
+        v-model:has-focus="searchBarHasFocus"
+        :show-search="showSearchInNavbar"
+      />
       <div class="page-content">
         <div class="container">
-          <h1>Navigation Demo</h1>
+          <h4>Navigation Demo</h4>
           <p>This page demonstrates the Quasar navigation bar.</p>
 
           <div class="theme-selector">
@@ -52,10 +51,14 @@ onUnmounted(() => {
               @click="toggleDarkMode"
             />
           </div>
-          <!-- Search bar in content (visible when not scrolled) -->
           <div ref="heroSearchPlaceholderRef" class="hero-search">
             <div v-if="!showSearchInNavbar" ref="heroSearchRef" class="hero-search-container">
-              <SearchBar v-model="searchQuery" @search="handleSearch" />
+              <SearchBar
+                ref="searchBarRef"
+                v-model:search-query="searchQuery"
+                v-model:has-focus="searchBarHasFocus"
+                :autofocus="searchBarHasFocus"
+              />
             </div>
           </div>
 
@@ -109,7 +112,7 @@ onUnmounted(() => {
 .hero-search {
   margin-bottom: $spacing-8;
   max-width: 600px;
-  min-height: 40px; // Mantiene l'altezza della search bar per evitare scatti
+  min-height: 40px;
   min-width: 20px;
   .hero-search-container {
     position: relative;

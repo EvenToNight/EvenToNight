@@ -3,31 +3,52 @@ export const NAVBAR_HEIGHT = 64
 </script>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import SearchBar from './SearchBar.vue'
 
 interface Props {
   showSearch?: boolean
-  modelValue?: string
+  searchQuery?: string
+  hasFocus?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  showSearch: false,
-  modelValue: '',
-})
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'update:modelValue': [value: string]
+  'update:searchQuery': [value: string]
+  'update:hasFocus': [value: boolean]
 }>()
 
-const showMobileSearch = ref(false)
+const mobileSearchOpen = ref(false)
+const searchQuery = ref(props.searchQuery)
+const searchBarHasFocus = ref(props.hasFocus)
 
-const searchQuery = computed({
-  get: () => props.modelValue,
-  set: (value: string) => {
-    emit('update:modelValue', value)
-  },
+watch(
+  () => props.searchQuery,
+  (value) => {
+    searchQuery.value = value
+  }
+)
+
+watch(
+  () => props.hasFocus,
+  (value) => {
+    searchBarHasFocus.value = value
+    mobileSearchOpen.value = value
+  }
+)
+
+watch(searchBarHasFocus, (value) => {
+  emit('update:hasFocus', value)
 })
+
+const showMobileSearch = computed(() => {
+  return searchBarHasFocus.value && props.showSearch
+})
+
+const updateSearchQuery = (value: string) => {
+  emit('update:searchQuery', value)
+}
 
 const handleSignIn = () => {
   console.log('Sign In clicked')
@@ -39,13 +60,15 @@ const handleSignUp = () => {
   // TODO: Implement sign up logic
 }
 
-const handleSearch = (query: string) => {
-  console.log('Search query:', query)
-  // TODO: Implement search logic
-}
-
 const toggleMobileSearch = () => {
-  showMobileSearch.value = !showMobileSearch.value
+  if (mobileSearchOpen.value) {
+    mobileSearchOpen.value = false
+    emit('update:searchQuery', '')
+    emit('update:hasFocus', false)
+  } else {
+    mobileSearchOpen.value = true
+    emit('update:hasFocus', true)
+  }
 }
 </script>
 
@@ -55,27 +78,31 @@ const toggleMobileSearch = () => {
       <!-- Mobile search bar (full width) -->
       <div v-if="showMobileSearch" class="mobile-search-bar">
         <div class="mobile-search-container">
-          <SearchBar v-model="searchQuery" autofocus @search="handleSearch" />
+          <SearchBar
+            v-model:search-query="searchQuery"
+            v-model:has-focus="searchBarHasFocus"
+            :autofocus="hasFocus"
+            @update:search-query="updateSearchQuery"
+          />
         </div>
-        <q-btn flat dense icon="close" @click="toggleMobileSearch" />
+        <q-btn flat dense icon="close" @mousedown.prevent="toggleMobileSearch" />
       </div>
 
-      <!-- Normal navbar -->
       <template v-else>
         <q-toolbar-title class="brand-title">
           <router-link to="/" class="brand-link"> EvenToNight </router-link>
         </q-toolbar-title>
-
         <q-space />
-
-        <!-- Search bar centered (only shown when showSearch is true) -->
         <div v-if="showSearch" class="search-container">
-          <SearchBar v-model="searchQuery" @search="handleSearch" />
+          <SearchBar
+            v-model:search-query="searchQuery"
+            v-model:has-focus="searchBarHasFocus"
+            :autofocus="hasFocus"
+            @update:search-query="updateSearchQuery"
+          />
         </div>
 
         <q-space v-if="showSearch" class="desktop-space" />
-
-        <!-- Search icon only (mobile) - shown when showSearch is true -->
         <q-btn
           v-if="showSearch"
           flat
@@ -85,7 +112,6 @@ const toggleMobileSearch = () => {
           @click="toggleMobileSearch"
         />
 
-        <!-- Auth buttons -->
         <div class="auth-buttons">
           <q-btn
             flat
