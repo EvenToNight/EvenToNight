@@ -1,40 +1,61 @@
+<script lang="ts">
+export const NAVBAR_HEIGHT = 64
+</script>
+
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import SearchBar from './SearchBar.vue'
+
+interface Props {
+  showSearch?: boolean
+  modelValue?: string
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  showSearch: false,
+  modelValue: '',
+})
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string]
+}>()
+
+const showMobileSearch = ref(false)
+
+const searchQuery = computed({
+  get: () => props.modelValue,
+  set: (value: string) => {
+    emit('update:modelValue', value)
+  },
+})
+
+const handleSignIn = () => {
+  console.log('Sign In clicked')
+  // TODO: Implement sign in logic
+}
+
+const handleSignUp = () => {
+  console.log('Sign Up clicked')
+  // TODO: Implement sign up logic
+}
+
+const handleSearch = (query: string) => {
+  console.log('Search query:', query)
+  // TODO: Implement search logic
+}
+
+const toggleMobileSearch = () => {
+  showMobileSearch.value = !showMobileSearch.value
+}
+</script>
+
 <template>
   <div class="navbar-wrapper">
     <q-toolbar class="navigation-bar">
       <!-- Mobile search bar (full width) -->
       <div v-if="showMobileSearch" class="mobile-search-bar">
         <div class="mobile-search-container">
-          <q-input
-            v-model="searchQuery"
-            dense
-            standout
-            placeholder="Search..."
-            class="search-input"
-            autofocus
-            @keyup.enter="handleSearch"
-            @focus="showSuggestions = searchQuery.length > 0"
-            @blur="hideSuggestions"
-          >
-            <template #append>
-              <q-icon name="search" class="cursor-pointer" @click="handleSearch" />
-            </template>
-          </q-input>
-
-          <!-- Suggestions dropdown for mobile -->
-          <div
-            v-if="showSuggestions && filteredSuggestions.length > 0"
-            class="suggestions-dropdown"
-          >
-            <div
-              v-for="(suggestion, index) in filteredSuggestions"
-              :key="index"
-              class="suggestion-item"
-              @click="selectSuggestion(suggestion)"
-            >
-              <q-icon name="search" size="18px" class="suggestion-icon" />
-              <span>{{ suggestion }}</span>
-            </div>
-          </div>
+          <SearchBar v-model="searchQuery" autofocus @search="handleSearch" />
         </div>
         <q-btn flat dense icon="close" @click="toggleMobileSearch" />
       </div>
@@ -49,36 +70,7 @@
 
         <!-- Search bar centered (only shown when showSearch is true) -->
         <div v-if="showSearch" class="search-container">
-          <q-input
-            v-model="searchQuery"
-            dense
-            standout
-            placeholder="Search..."
-            class="search-input"
-            @keyup.enter="handleSearch"
-            @focus="showSuggestions = searchQuery.length > 0"
-            @blur="hideSuggestions"
-          >
-            <template #append>
-              <q-icon name="search" class="cursor-pointer" @click="handleSearch" />
-            </template>
-          </q-input>
-
-          <!-- Suggestions dropdown -->
-          <div
-            v-if="showSuggestions && filteredSuggestions.length > 0"
-            class="suggestions-dropdown"
-          >
-            <div
-              v-for="(suggestion, index) in filteredSuggestions"
-              :key="index"
-              class="suggestion-item"
-              @click="selectSuggestion(suggestion)"
-            >
-              <q-icon name="search" size="18px" class="suggestion-icon" />
-              <span>{{ suggestion }}</span>
-            </div>
-          </div>
+          <SearchBar v-model="searchQuery" @search="handleSearch" />
         </div>
 
         <q-space v-if="showSearch" class="desktop-space" />
@@ -108,86 +100,6 @@
     </q-toolbar>
   </div>
 </template>
-
-<script lang="ts">
-import { defineComponent } from 'vue'
-
-export default defineComponent({
-  name: 'NavigationBar',
-  props: {
-    showSearch: {
-      type: Boolean,
-      default: false,
-    },
-    modelValue: {
-      type: String,
-      default: '',
-    },
-  },
-  emits: ['update:modelValue'],
-  data() {
-    return {
-      showMobileSearch: false,
-      showSuggestions: false,
-      suggestions: [
-        'JavaScript tutorials',
-        'Vue.js documentation',
-        'React vs Vue comparison',
-        'TypeScript best practices',
-        'CSS Grid layout',
-        'Quasar components',
-        'Frontend development',
-        'Web design trends 2024',
-        'Node.js server setup',
-        'API integration guide',
-      ],
-    }
-  },
-  computed: {
-    searchQuery: {
-      get(): string {
-        return this.modelValue
-      },
-      set(value: string) {
-        this.$emit('update:modelValue', value)
-        this.showSuggestions = value.length > 0
-      },
-    },
-    filteredSuggestions(): string[] {
-      if (!this.searchQuery) return []
-      const query = this.searchQuery.toLowerCase()
-      return this.suggestions.filter((s) => s.toLowerCase().includes(query)).slice(0, 5)
-    },
-  },
-  methods: {
-    handleSignIn() {
-      console.log('Sign In clicked')
-      // TODO: Implement sign in logic
-    },
-    handleSignUp() {
-      console.log('Sign Up clicked')
-      // TODO: Implement sign up logic
-    },
-    handleSearch() {
-      console.log('Search query:', this.searchQuery)
-      // TODO: Implement search logic
-    },
-    toggleMobileSearch() {
-      this.showMobileSearch = !this.showMobileSearch
-    },
-    selectSuggestion(suggestion: string) {
-      this.$emit('update:modelValue', suggestion)
-      this.showSuggestions = false
-      this.handleSearch()
-    },
-    hideSuggestions() {
-      setTimeout(() => {
-        this.showSuggestions = false
-      }, 200)
-    },
-  },
-})
-</script>
 
 <style lang="scss">
 .navbar-wrapper {
@@ -250,61 +162,6 @@ export default defineComponent({
   @media (max-width: 800px) {
     display: none;
   }
-}
-
-.suggestions-dropdown {
-  position: absolute;
-  top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  background: white;
-  border-radius: 8px;
-  box-shadow: $shadow-lg;
-  overflow: hidden;
-  z-index: 1000;
-
-  @include dark-mode {
-    background: #2c2c2c;
-  }
-}
-
-.suggestion-item {
-  display: flex;
-  align-items: center;
-  gap: $spacing-2;
-  padding: $spacing-3 $spacing-4;
-  cursor: pointer;
-  transition: background-color 0.15s ease;
-
-  @include light-mode {
-    color: $color-text-primary;
-
-    &:hover {
-      background-color: $color-gray-100;
-    }
-  }
-
-  @include dark-mode {
-    color: $color-text-white;
-
-    &:hover {
-      background-color: #3a3a3a;
-    }
-  }
-
-  .suggestion-icon {
-    color: $color-gray-400;
-  }
-
-  span {
-    flex: 1;
-    font-size: $font-size-sm;
-  }
-}
-
-.search-input {
-  width: 100%;
-  min-width: 50px;
 }
 
 .search-icon-mobile {

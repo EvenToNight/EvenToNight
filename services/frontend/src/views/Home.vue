@@ -1,70 +1,30 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
-import NavigationBar from '../components/NavigationBar.vue'
+import NavigationBar, { NAVBAR_HEIGHT } from '../components/NavigationBar.vue'
+import SearchBar from '../components/SearchBar.vue'
 
 const $q = useQuasar()
 const showSearchInNavbar = ref(false)
 const searchQuery = ref('')
 const heroSearchRef = ref<HTMLElement | null>(null)
 const heroSearchPlaceholderRef = ref<HTMLElement | null>(null)
-const showSuggestions = ref(false)
-
-const suggestions = [
-  'JavaScript tutorials',
-  'Vue.js documentation',
-  'React vs Vue comparison',
-  'TypeScript best practices',
-  'CSS Grid layout',
-  'Quasar components',
-  'Frontend development',
-  'Web design trends 2024',
-  'Node.js server setup',
-  'API integration guide',
-]
-
-const filteredSuggestions = computed(() => {
-  if (!searchQuery.value) return []
-  const query = searchQuery.value.toLowerCase()
-  return suggestions.filter((s) => s.toLowerCase().includes(query)).slice(0, 5)
-})
 
 const toggleDarkMode = () => {
   $q.dark.toggle()
 }
 
 const handleScroll = () => {
-  const navbarHeight = 64
-
   if (heroSearchPlaceholderRef.value) {
     const rect = heroSearchPlaceholderRef.value.getBoundingClientRect()
-    // Usa sempre la stessa soglia: quando il placeholder passa sotto la navbar
-    showSearchInNavbar.value = rect.bottom <= navbarHeight
+    showSearchInNavbar.value = rect.bottom <= NAVBAR_HEIGHT
   }
 }
 
-const handleSearch = () => {
-  console.log('Search query:', searchQuery.value)
+const handleSearch = (query: string) => {
+  console.log('Search query:', query)
   // TODO: Implement search logic
 }
-
-const selectSuggestion = (suggestion: string) => {
-  searchQuery.value = suggestion
-  showSuggestions.value = false
-  handleSearch()
-}
-
-const hideSuggestions = () => {
-  setTimeout(() => {
-    showSuggestions.value = false
-  }, 200)
-}
-
-watch(searchQuery, (newValue) => {
-  if (newValue.length > 0 && document.activeElement?.classList.contains('search-input-hero')) {
-    showSuggestions.value = true
-  }
-})
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll)
@@ -95,36 +55,7 @@ onUnmounted(() => {
           <!-- Search bar in content (visible when not scrolled) -->
           <div ref="heroSearchPlaceholderRef" class="hero-search">
             <div v-if="!showSearchInNavbar" ref="heroSearchRef" class="hero-search-container">
-              <q-input
-                v-model="searchQuery"
-                dense
-                standout
-                placeholder="Search..."
-                class="search-input-hero"
-                @keyup.enter="handleSearch"
-                @focus="showSuggestions = searchQuery.length > 0"
-                @blur="hideSuggestions"
-              >
-                <template #append>
-                  <q-icon name="search" class="cursor-pointer" @click="handleSearch" />
-                </template>
-              </q-input>
-
-              <!-- Suggestions dropdown -->
-              <div
-                v-if="showSuggestions && filteredSuggestions.length > 0"
-                class="suggestions-dropdown"
-              >
-                <div
-                  v-for="(suggestion, index) in filteredSuggestions"
-                  :key="index"
-                  class="suggestion-item"
-                  @click="selectSuggestion(suggestion)"
-                >
-                  <q-icon name="search" size="18px" class="suggestion-icon" />
-                  <span>{{ suggestion }}</span>
-                </div>
-              </div>
+              <SearchBar v-model="searchQuery" @search="handleSearch" />
             </div>
           </div>
 
@@ -182,60 +113,6 @@ onUnmounted(() => {
   min-width: 20px;
   .hero-search-container {
     position: relative;
-  }
-
-  .search-input-hero {
-    width: 100%;
-  }
-
-  .suggestions-dropdown {
-    position: absolute;
-    top: calc(100% + 4px);
-    left: 0;
-    right: 0;
-    background: white;
-    border-radius: 8px;
-    box-shadow: $shadow-lg;
-    overflow: hidden;
-    z-index: 100;
-
-    @include dark-mode {
-      background: #2c2c2c;
-    }
-  }
-
-  .suggestion-item {
-    display: flex;
-    align-items: center;
-    gap: $spacing-2;
-    padding: $spacing-3 $spacing-4;
-    cursor: pointer;
-    transition: background-color 0.15s ease;
-
-    @include light-mode {
-      color: $color-text-primary;
-
-      &:hover {
-        background-color: $color-gray-100;
-      }
-    }
-
-    @include dark-mode {
-      color: $color-text-white;
-
-      &:hover {
-        background-color: #3a3a3a;
-      }
-    }
-
-    .suggestion-icon {
-      color: $color-gray-400;
-    }
-
-    span {
-      flex: 1;
-      font-size: $font-size-sm;
-    }
   }
 }
 
