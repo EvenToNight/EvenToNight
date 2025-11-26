@@ -1,5 +1,6 @@
 <script lang="ts">
 export const NAVBAR_HEIGHT = 64
+export const MOBILE_BREAKPOINT = 800
 </script>
 
 <script setup lang="ts">
@@ -45,7 +46,7 @@ watch(searchBarHasFocus, (value) => {
   emit('update:hasFocus', value)
 })
 
-const isMobile = computed(() => $q.screen.width <= 800)
+const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
 
 const showMobileSearch = computed(() => {
   return searchBarHasFocus.value && props.showSearch && isMobile.value
@@ -113,7 +114,10 @@ const handleSignUpAndClose = () => {
 
       <template v-else>
         <q-toolbar-title class="brand-title">
-          <router-link to="/" class="brand-link"> EvenToNight </router-link>
+          <router-link to="/" class="brand-link">
+            <img src="/logo.png" alt="EvenToNight Logo" class="brand-icon" />
+            <span class="brand-text">EvenToNight</span>
+          </router-link>
         </q-toolbar-title>
         <q-space />
         <div v-if="showSearch" class="search-container">
@@ -230,12 +234,27 @@ const handleSignUpAndClose = () => {
   font-weight: 600;
   transition: opacity $transition-base;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
 
   &:hover {
     opacity: 0.8;
+  }
+
+  .brand-icon {
+    flex-shrink: 0;
+    height: 32px;
+    width: auto;
+    object-fit: contain;
+  }
+
+  .brand-text {
+    color: $color-primary;
+
+    @media (max-width: $breakpoint-mobile) {
+      display: none;
+    }
   }
 }
 
@@ -246,7 +265,7 @@ const handleSignUpAndClose = () => {
   margin: 0 $spacing-2;
   position: relative;
 
-  @media (max-width: 800px) {
+  @media (max-width: $breakpoint-mobile) {
     display: none;
   }
 }
@@ -254,13 +273,13 @@ const handleSignUpAndClose = () => {
 .search-icon-mobile {
   display: none;
 
-  @media (max-width: 800px) {
+  @media (max-width: $breakpoint-mobile) {
     display: inline-flex;
   }
 }
 
 .desktop-space {
-  @media (max-width: 800px) {
+  @media (max-width: $breakpoint-mobile) {
     display: none;
   }
 }
@@ -278,7 +297,7 @@ const handleSignUpAndClose = () => {
     padding: 0 8px;
   }
 
-  @media (max-width: 800px) {
+  @media (max-width: $breakpoint-mobile) {
     display: none;
   }
 }
@@ -286,7 +305,7 @@ const handleSignUpAndClose = () => {
 .hamburger-menu-mobile {
   display: none;
 
-  @media (max-width: 800px) {
+  @media (max-width: $breakpoint-mobile) {
     display: inline-flex;
   }
 }

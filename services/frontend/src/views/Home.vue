@@ -3,12 +3,54 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import NavigationBar, { NAVBAR_HEIGHT } from '../components/NavigationBar.vue'
 import SearchBar from '../components/SearchBar.vue'
+import EventCard from '@/components/EventCard.vue'
+import CardSlider from '@/components/CardSlider.vue'
 
 const $q = useQuasar()
 const showSearchInNavbar = ref(false)
 const searchQuery = ref('')
 const searchBarHasFocus = ref(false)
 const heroSearchPlaceholderRef = ref<HTMLElement | null>(null)
+
+// Sample event data
+const events = ref([
+  {
+    id: 1,
+    imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80',
+    title: 'Techno vibes',
+    subtitle: 'Coccorico - Riccione',
+    date: new Date(2024, 11, 8),
+    favorite: false,
+  },
+  {
+    id: 2,
+    imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80',
+    title: 'House Music Night',
+    subtitle: 'Fabric - London',
+    date: new Date(2024, 11, 15),
+    favorite: false,
+  },
+  {
+    id: 3,
+    imageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
+    title: 'Electronic Dreams',
+    subtitle: 'Berghain - Berlin',
+    date: new Date(2024, 11, 22),
+    favorite: true,
+  },
+])
+
+const handleFavoriteToggle = (eventId: number, isFavorite: boolean) => {
+  const event = events.value.find((e) => e.id === eventId)
+  if (event) {
+    event.favorite = isFavorite
+  }
+}
+
+const handleSeeAllEvents = () => {
+  console.log('See all events clicked')
+  // Navigate to events page or show all events
+}
 
 const toggleDarkMode = () => {
   $q.dark.toggle()
@@ -63,8 +105,18 @@ onUnmounted(() => {
           </div>
 
           <div class="content-section">
-            <h4>Welcome to EvenToNight</h4>
-            <div class="colored-box"></div>
+            <CardSlider title="Upcoming Events" @see-all="handleSeeAllEvents">
+              <EventCard
+                v-for="event in events"
+                :key="event.id"
+                :image-url="event.imageUrl"
+                :title="event.title"
+                :subtitle="event.subtitle"
+                :date="event.date"
+                :favorite="event.favorite"
+                @favorite-toggle="handleFavoriteToggle(event.id, $event)"
+              />
+            </CardSlider>
           </div>
         </div>
       </div>
@@ -124,12 +176,26 @@ onUnmounted(() => {
 
   h2 {
     margin-top: $spacing-8;
-    margin-bottom: $spacing-4;
+    margin-bottom: $spacing-6;
+    font-size: 2rem;
+    font-weight: 700;
   }
 
   h3 {
     margin-top: $spacing-6;
     margin-bottom: $spacing-3;
+  }
+
+  .events-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: $spacing-6;
+    margin-bottom: $spacing-8;
+
+    @media (max-width: 768px) {
+      grid-template-columns: 1fr;
+      gap: $spacing-4;
+    }
   }
 
   .colored-box {
