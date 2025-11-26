@@ -1,10 +1,21 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useRouter, useRoute } from 'vue-router'
 
 const { t, locale, availableLocales } = useI18n()
+const router = useRouter()
+const route = useRoute()
 
 const changeLanguage = (lang: string) => {
-  locale.value = lang
+  // Get the current path without the locale prefix
+  const currentPath = route.path
+  const currentLocale = route.params.locale as string
+
+  // Replace the locale in the path
+  const newPath = currentPath.replace(`/${currentLocale}`, `/${lang}`)
+
+  // Navigate to the new path
+  router.push(newPath)
 }
 console.log(availableLocales)
 </script>

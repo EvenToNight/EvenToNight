@@ -6,7 +6,7 @@ import { getEventById } from '@/data/mockEvents'
 
 const route = useRoute()
 const router = useRouter()
-const { t } = useI18n()
+const { t, locale } = useI18n()
 
 // Get event ID from route params
 const eventId = computed(() => route.params.id as string)
@@ -26,7 +26,7 @@ const goBack = () => {
 }
 
 const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat(t('locale'), {
+  return new Intl.DateTimeFormat(locale.value, {
     weekday: 'long',
     year: 'numeric',
     month: 'long',
@@ -35,7 +35,7 @@ const formatDate = (date: Date) => {
 }
 
 const formatTime = (date: Date) => {
-  return new Intl.DateTimeFormat(t('locale'), {
+  return new Intl.DateTimeFormat(locale.value, {
     hour: '2-digit',
     minute: '2-digit',
   }).format(date)
