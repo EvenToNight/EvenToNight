@@ -1,4 +1,4 @@
-FROM quay.io/keycloak/keycloak:21.1.1
+FROM quay.io/keycloak/keycloak:26.4
 
 COPY ./infrastructure/authentication/start.sh /opt/keycloak/start.sh
 

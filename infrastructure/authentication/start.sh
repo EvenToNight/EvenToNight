@@ -16,5 +16,4 @@ exec /opt/keycloak/bin/kc.sh start \
   --http-enabled=true \
   --hostname="${KC_HOSTNAME}" \
   --hostname-strict=false \
-  --hostname-strict-https=false \
   --import-realm
