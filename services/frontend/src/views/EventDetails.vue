@@ -43,16 +43,26 @@ const formatTime = (date: Date) => {
 
 // Parallax effect
 const heroImageRef = ref<HTMLDivElement | null>(null)
+let ticking = false
 
-const handleScroll = () => {
+const updateParallax = () => {
   if (!heroImageRef.value) return
 
   const scrolled = window.scrollY
   const parallaxSpeed = 0.5
-  const opacity = Math.max(1 - scrolled / 400, 0)
+  const opacity = Math.max(1 - scrolled / 500, 0)
 
   heroImageRef.value.style.transform = `translateY(${scrolled * parallaxSpeed}px)`
   heroImageRef.value.style.opacity = opacity.toString()
+
+  ticking = false
+}
+
+const handleScroll = () => {
+  if (!ticking) {
+    requestAnimationFrame(updateParallax)
+    ticking = true
+  }
 }
 
 onMounted(() => {
@@ -173,9 +183,6 @@ onUnmounted(() => {
   width: 100%;
   height: 100%;
   will-change: transform, opacity;
-  transition:
-    transform 0.1s ease-out,
-    opacity 0.1s ease-out;
 }
 
 .hero-image {
