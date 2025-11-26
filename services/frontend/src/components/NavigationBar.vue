@@ -20,6 +20,7 @@ const emit = defineEmits<{
 }>()
 
 const mobileSearchOpen = ref(false)
+const mobileMenuOpen = ref(false)
 const searchQuery = ref(props.searchQuery)
 const searchBarHasFocus = ref(props.hasFocus)
 
@@ -69,6 +70,24 @@ const toggleMobileSearch = () => {
     mobileSearchOpen.value = true
     emit('update:hasFocus', true)
   }
+}
+
+const toggleMobileMenu = () => {
+  mobileMenuOpen.value = !mobileMenuOpen.value
+}
+
+const closeMobileMenu = () => {
+  mobileMenuOpen.value = false
+}
+
+const handleSignInAndClose = () => {
+  handleSignIn()
+  closeMobileMenu()
+}
+
+const handleSignUpAndClose = () => {
+  handleSignUp()
+  closeMobileMenu()
 }
 </script>
 
@@ -120,10 +139,48 @@ const toggleMobileSearch = () => {
             color="primary"
             @click="handleSignIn"
           />
-          <q-btn unelevated label="Sign Up" color="primary" @click="handleSignUp" />
+          <q-btn
+            unelevated
+            label="Sign Up"
+            color="primary"
+            class="sign-up-btn"
+            @click="handleSignUp"
+          />
         </div>
+
+        <!-- Hamburger menu icon (mobile only) -->
+        <q-btn flat dense icon="menu" class="hamburger-menu-mobile" @click="toggleMobileMenu" />
       </template>
     </q-toolbar>
+
+    <!-- Mobile menu drawer -->
+    <Transition name="drawer">
+      <div v-if="mobileMenuOpen" class="mobile-drawer-overlay" @click="closeMobileMenu">
+        <div class="mobile-drawer" @click.stop>
+          <div class="mobile-drawer-header">
+            <q-btn flat dense icon="close" @click="closeMobileMenu" />
+          </div>
+          <div class="mobile-drawer-content">
+            <div class="mobile-drawer-buttons">
+              <q-btn
+                flat
+                label="Sign In"
+                color="primary"
+                class="full-width mobile-menu-btn"
+                @click="handleSignInAndClose"
+              />
+              <q-btn
+                unelevated
+                label="Sign Up"
+                color="primary"
+                class="full-width mobile-menu-btn"
+                @click="handleSignUpAndClose"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
@@ -217,10 +274,16 @@ const toggleMobileSearch = () => {
     padding: 0 8px;
   }
 
-  .sign-in-btn {
-    @media (max-width: 800px) {
-      display: none;
-    }
+  @media (max-width: 800px) {
+    display: none;
+  }
+}
+
+.hamburger-menu-mobile {
+  display: none;
+
+  @media (max-width: 800px) {
+    display: inline-flex;
   }
 }
 
@@ -234,6 +297,88 @@ const toggleMobileSearch = () => {
     flex: 1;
     position: relative;
     width: 100%;
+  }
+}
+
+.mobile-drawer-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.mobile-drawer {
+  width: 300px;
+  max-width: 80vw;
+  height: 100%;
+  background: white;
+  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+
+  @include dark-mode {
+    background: #1d1d1d;
+  }
+}
+
+.mobile-drawer-header {
+  display: flex;
+  justify-content: flex-end;
+  padding: $spacing-4;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+  @include dark-mode {
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.mobile-drawer-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: $spacing-10;
+}
+
+.mobile-drawer-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+}
+
+.mobile-menu-btn {
+  height: 48px;
+  font-size: 16px;
+}
+
+.drawer-enter-active,
+.drawer-leave-active {
+  transition: opacity 0.3s ease;
+
+  .mobile-drawer {
+    transition: transform 0.3s ease;
+  }
+}
+
+.drawer-enter-from,
+.drawer-leave-to {
+  opacity: 0;
+
+  .mobile-drawer {
+    transform: translateX(100%);
+  }
+}
+
+.drawer-enter-to,
+.drawer-leave-from {
+  opacity: 1;
+
+  .mobile-drawer {
+    transform: translateX(0);
   }
 }
 </style>
