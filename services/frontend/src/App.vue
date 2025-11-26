@@ -10,7 +10,7 @@ import { RouterView } from 'vue-router'
 
 <style lang="scss">
 .app-container {
-  max-width: 1440px;
+  max-width: $app-max-width;
   margin: 0 auto;
   width: 100%;
 }

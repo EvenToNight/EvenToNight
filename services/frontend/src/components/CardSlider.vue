@@ -3,7 +3,10 @@
     <!-- Header with Title and See All Button -->
     <div class="slider-header">
       <h2 class="slider-title">{{ title }}</h2>
-      <q-btn flat no-caps class="see-all-btn" label="See All" @click="handleSeeAll" />
+      <span class="see-all-link" @click="handleSeeAll">
+        <span class="see-all-text">See All</span>
+        <q-icon name="arrow_forward" size="18px" class="see-all-arrow" />
+      </span>
     </div>
 
     <!-- Cards Container with Horizontal Scroll -->
@@ -129,14 +132,41 @@ onUnmounted(() => {
   }
 }
 
-.see-all-btn {
+.see-all-link {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  cursor: pointer;
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--q-primary);
-  padding: $spacing-2 $spacing-3;
+  transition: gap 0.3s ease;
+  user-select: none;
 
   &:hover {
-    background-color: rgba(var(--q-primary-rgb), 0.1);
+    gap: $spacing-3;
+
+    .see-all-arrow {
+      transform: translateX(4px);
+    }
+  }
+
+  .see-all-text {
+    transition: transform 0.3s ease;
+  }
+
+  .see-all-arrow {
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+    color: currentColor;
+
+    @include light-mode {
+      color: #000 !important;
+    }
+
+    @include dark-mode {
+      color: #fff !important;
+    }
   }
 }
 
@@ -148,7 +178,7 @@ onUnmounted(() => {
 
 .cards-container {
   display: flex;
-  gap: $spacing-16;
+  gap: $spacing-8;
   overflow-x: auto;
   overflow-y: hidden;
   scroll-behavior: smooth;

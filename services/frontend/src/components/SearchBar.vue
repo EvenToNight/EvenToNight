@@ -41,12 +41,15 @@ watch(
       inputRef.value?.focus()
     } else if (!shouldFocus && inputRef.value) {
       inputRef.value?.blur()
+      // Hide suggestions when focus is lost
+      showSuggestions.value = false
     }
   }
 )
 
 onMounted(() => {
-  if (searchQuery.value.length > 0) {
+  // Only show suggestions if there's text AND the input has focus
+  if (searchQuery.value.length > 0 && props.hasFocus) {
     showSuggestions.value = true
   }
 })
@@ -144,6 +147,10 @@ const handleBlur = () => {
 .search-input {
   width: 100%;
   min-width: 50px;
+
+  :deep(.q-field__control) {
+    border-radius: 8px;
+  }
 }
 
 .suggestions-dropdown {
