@@ -1,5 +1,5 @@
 <template>
-  <div class="event-card">
+  <div class="event-card" @click="navigateToEvent">
     <div class="card-image-container">
       <img :src="imageUrl" :alt="title" class="card-image" />
 
@@ -41,8 +41,10 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 interface Props {
+  id: number | string
   imageUrl: string
   title: string
   subtitle: string
@@ -58,11 +60,17 @@ const emit = defineEmits<{
   favoriteToggle: [value: boolean]
 }>()
 
+const router = useRouter()
 const isFavorite = ref(props.favorite)
 
-const toggleFavorite = () => {
+const toggleFavorite = (event: Event) => {
+  event.stopPropagation()
   isFavorite.value = !isFavorite.value
   emit('favoriteToggle', isFavorite.value)
+}
+
+const navigateToEvent = () => {
+  router.push({ name: 'event-details', params: { id: props.id } })
 }
 
 const day = computed(() => {

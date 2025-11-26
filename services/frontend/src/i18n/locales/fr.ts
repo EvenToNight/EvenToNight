@@ -1,11 +1,11 @@
 export default {
   nav: {
     login: 'Se connecter',
-    register: 'S\'inscrire',
+    register: "S'inscrire",
   },
   home: {
     hero: {
-      title: 'Trouvez l\'événement pour vous',
+      title: "Trouvez l'événement pour vous",
     },
     sections: {
       upcomingEvents: 'Événements à venir',

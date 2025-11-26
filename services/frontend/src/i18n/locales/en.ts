@@ -1,4 +1,5 @@
 export default {
+  locale: 'en-US',
   nav: {
     login: 'Login',
     register: 'Sign Up',
@@ -10,6 +11,15 @@ export default {
     sections: {
       upcomingEvents: 'Upcoming Events',
     },
+  },
+  eventDetails: {
+    date: 'Date',
+    time: 'Time',
+    location: 'Location',
+    price: 'Price',
+    about: 'About this event',
+    organizer: 'Organized by',
+    buyTickets: 'Buy Tickets',
   },
   footer: {
     about: 'About',

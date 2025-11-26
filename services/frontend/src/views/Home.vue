@@ -7,6 +7,7 @@ import SearchBar from '../components/SearchBar.vue'
 import EventCard from '@/components/EventCard.vue'
 import CardSlider from '@/components/CardSlider.vue'
 import Footer from '@/components/Footer.vue'
+import { mockEvents } from '@/data/mockEvents'
 
 const $q = useQuasar()
 const { t } = useI18n()
@@ -15,57 +16,8 @@ const searchQuery = ref('')
 const searchBarHasFocus = ref(false)
 const heroSearchPlaceholderRef = ref<HTMLElement | null>(null)
 
-// Sample event data
-const events = ref([
-  {
-    id: 1,
-    imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80',
-    title: 'Techno vibes',
-    subtitle: 'Coccorico - Riccione',
-    date: new Date(2024, 11, 8),
-    favorite: false,
-  },
-  {
-    id: 2,
-    imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80',
-    title: 'House Music Night',
-    subtitle: 'Fabric - London',
-    date: new Date(2024, 11, 15),
-    favorite: false,
-  },
-  {
-    id: 3,
-    imageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
-    title: 'Electronic Dreams',
-    subtitle: 'Berghain - Berlin',
-    date: new Date(2024, 11, 22),
-    favorite: true,
-  },
-  {
-    id: 1,
-    imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80',
-    title: 'Techno vibes',
-    subtitle: 'Coccorico - Riccione',
-    date: new Date(2024, 11, 8),
-    favorite: false,
-  },
-  {
-    id: 2,
-    imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80',
-    title: 'House Music Night',
-    subtitle: 'Fabric - London',
-    date: new Date(2024, 11, 15),
-    favorite: false,
-  },
-  {
-    id: 3,
-    imageUrl: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
-    title: 'Electronic Dreams',
-    subtitle: 'Berghain - Berlin',
-    date: new Date(2024, 11, 22),
-    favorite: true,
-  },
-])
+// Use shared mock events data
+const events = ref(mockEvents)
 
 const handleFavoriteToggle = (eventId: number, isFavorite: boolean) => {
   const event = events.value.find((e) => e.id === eventId)
@@ -140,6 +92,7 @@ onUnmounted(() => {
             <CardSlider :title="t('home.sections.upcomingEvents')" @see-all="handleSeeAllEvents">
               <EventCard
                 v-for="event in events"
+                :id="event.id"
                 :key="event.id"
                 :image-url="event.imageUrl"
                 :title="event.title"
