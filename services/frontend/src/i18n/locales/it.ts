@@ -1,5 +1,5 @@
 export default {
-  locale: 'it-IT',
+  locale: 'it-USA',
   nav: {
     login: 'Login',
     register: 'Iscrizione',
@@ -14,12 +14,12 @@ export default {
   },
   eventDetails: {
     date: 'Data',
-    time: 'Orario',
-    location: 'Luogo',
+    time: 'Tempo',
+    location: 'Posizione',
     price: 'Prezzo',
-    about: "Informazioni sull'evento",
+    about: 'A proposito di questo evento',
     organizer: 'Organizzato da',
-    buyTickets: 'Acquista Biglietti',
+    buyTickets: 'Acquista i biglietti',
   },
   footer: {
     about: 'Di',
