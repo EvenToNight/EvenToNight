@@ -1,0 +1,21 @@
+name: Auto Translate i18n
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - feature/frontend-service
+
+permissions:
+  contents: write
+
+jobs:
+  translate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Translate i18n files
+        uses: eventonight/auto-i18n@v1.4.0
+        with:
+          source: 'en'
+          targets: 'it,fr,de,es'
+          input_file: 'services/frontend/src/i18n/locales/en.ts'

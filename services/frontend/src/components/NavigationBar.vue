@@ -6,6 +6,7 @@ export const MOBILE_BREAKPOINT = 800
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import SearchBar from './SearchBar.vue'
 
 interface Props {
@@ -16,6 +17,7 @@ interface Props {
 
 const props = defineProps<Props>()
 const $q = useQuasar()
+const { t } = useI18n()
 
 const emit = defineEmits<{
   'update:searchQuery': [value: string]
@@ -142,14 +144,14 @@ const handleSignUpAndClose = () => {
         <div class="auth-buttons">
           <q-btn
             flat
-            label="Sign In"
+            :label="t('nav.login')"
             class="q-mr-sm sign-in-btn"
             color="primary"
             @click="handleSignIn"
           />
           <q-btn
             unelevated
-            label="Sign Up"
+            :label="t('nav.register')"
             color="primary"
             class="sign-up-btn"
             @click="handleSignUp"
@@ -172,14 +174,14 @@ const handleSignUpAndClose = () => {
             <div class="mobile-drawer-buttons">
               <q-btn
                 flat
-                label="Sign In"
+                :label="t('nav.login')"
                 color="primary"
                 class="full-width mobile-menu-btn"
                 @click="handleSignInAndClose"
               />
               <q-btn
                 unelevated
-                label="Sign Up"
+                :label="t('nav.register')"
                 color="primary"
                 class="full-width mobile-menu-btn"
                 @click="handleSignUpAndClose"

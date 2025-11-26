@@ -8,6 +8,7 @@ import 'quasar/src/css/index.sass'
 
 import App from './App.vue'
 import router from './router'
+import i18n from './i18n'
 
 const app = createApp(App)
 
@@ -22,4 +23,5 @@ Dark.set(false)
 //Dark.set(true)
 app.use(createPinia())
 app.use(router)
+app.use(i18n)
 app.mount('#app')

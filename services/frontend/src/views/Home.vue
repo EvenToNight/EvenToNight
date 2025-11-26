@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import NavigationBar, { NAVBAR_HEIGHT } from '../components/NavigationBar.vue'
 import SearchBar from '../components/SearchBar.vue'
 import EventCard from '@/components/EventCard.vue'
@@ -8,6 +9,7 @@ import CardSlider from '@/components/CardSlider.vue'
 import Footer from '@/components/Footer.vue'
 
 const $q = useQuasar()
+const { t } = useI18n()
 const showSearchInNavbar = ref(false)
 const searchQuery = ref('')
 const searchBarHasFocus = ref(false)
@@ -118,7 +120,7 @@ onUnmounted(() => {
             </div>
 
             <div class="hero-content">
-              <h1 class="hero-title">Trova l'evento che fa per te</h1>
+              <h1 class="hero-title">{{ t('home.hero.title') }}</h1>
               <div ref="heroSearchPlaceholderRef" class="hero-search-wrapper">
                 <div v-if="!showSearchInNavbar">
                   <SearchBar
@@ -135,7 +137,7 @@ onUnmounted(() => {
 
         <div class="container">
           <div class="content-section">
-            <CardSlider title="Upcoming Events" @see-all="handleSeeAllEvents">
+            <CardSlider :title="t('home.sections.upcomingEvents')" @see-all="handleSeeAllEvents">
               <EventCard
                 v-for="event in events"
                 :key="event.id"

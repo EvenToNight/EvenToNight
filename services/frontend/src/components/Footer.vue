@@ -1,3 +1,14 @@
+<script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+
+const { t, locale, availableLocales } = useI18n()
+
+const changeLanguage = (lang: string) => {
+  locale.value = lang
+}
+console.log(availableLocales)
+</script>
+
 <template>
   <footer class="footer">
     <div class="footer-container">
@@ -8,14 +19,26 @@
         </div>
 
         <div class="footer-links">
-          <a href="#" class="footer-link">About</a>
-          <a href="#" class="footer-link">Events</a>
-          <a href="#" class="footer-link">Contact</a>
-          <a href="#" class="footer-link">Privacy Policy</a>
+          <a href="#" class="footer-link">{{ t('footer.about') }}</a>
+          <a href="#" class="footer-link">{{ t('footer.events') }}</a>
+          <a href="#" class="footer-link">{{ t('footer.contact') }}</a>
+          <a href="#" class="footer-link">{{ t('footer.privacy') }}</a>
+        </div>
+
+        <div class="footer-language">
+          <span
+            v-for="lang in availableLocales"
+            :key="lang"
+            class="language-option"
+            :class="{ active: locale === lang }"
+            @click="changeLanguage(lang)"
+          >
+            {{ lang.toUpperCase() }}
+          </span>
         </div>
 
         <div class="footer-bottom">
-          <p class="footer-copyright">© 2025 EvenToNight. All rights reserved.</p>
+          <p class="footer-copyright">{{ t('footer.copyright') }}</p>
         </div>
       </div>
     </div>
@@ -82,6 +105,51 @@
 
   @media (max-width: 480px) {
     gap: $spacing-3;
+  }
+}
+
+.footer-language {
+  display: flex;
+  gap: $spacing-3;
+  justify-content: center;
+  align-items: center;
+}
+
+.language-option {
+  cursor: pointer;
+  font-size: 0.875rem;
+  font-weight: 500;
+  padding: $spacing-1 $spacing-2;
+  border-radius: $radius-base;
+  transition: all $transition-base;
+  user-select: none;
+
+  @include light-mode {
+    color: $color-text-muted;
+
+    &:hover {
+      color: $color-primary;
+      background-color: rgba($color-primary, 0.1);
+    }
+
+    &.active {
+      color: $color-white;
+      background-color: $color-primary;
+    }
+  }
+
+  @include dark-mode {
+    color: rgba($color-text-dark, 0.7);
+
+    &:hover {
+      color: $color-primary;
+      background-color: rgba($color-primary, 0.1);
+    }
+
+    &.active {
+      color: $color-white;
+      background-color: $color-primary;
+    }
   }
 }
 
