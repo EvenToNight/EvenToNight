@@ -5,6 +5,7 @@ import NavigationBar, { NAVBAR_HEIGHT } from '../components/NavigationBar.vue'
 import SearchBar from '../components/SearchBar.vue'
 import EventCard from '@/components/EventCard.vue'
 import CardSlider from '@/components/CardSlider.vue'
+import Footer from '@/components/Footer.vue'
 
 const $q = useQuasar()
 const showSearchInNavbar = ref(false)
@@ -150,6 +151,8 @@ onUnmounted(() => {
             <div class="colored-box"></div>
           </div>
         </div>
+
+        <Footer />
       </div>
     </div>
   </div>
