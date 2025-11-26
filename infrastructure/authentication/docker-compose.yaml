@@ -41,10 +41,26 @@ services:
       - eventonight-network
       - keycloak-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8080/realms/master || exit 1"]
+      test: ["CMD-SHELL", "timeout 2 bash -c '</dev/tcp/localhost/8080' || exit 1"]
       interval: 5s
+      timeout: 5s
       retries: 20
-      start_period: 10s
+      start_period: 600s
+
+  keycloak-provision:
+    build:
+      context: .
+      dockerfile: ./infrastructure/authentication/Dockerfile-keycloak-provision
+    container_name: keycloak-provision
+    environment:
+      KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
+      KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
+      USERS_SERVICE_SECRET: ${USERS_SERVICE_SECRET}
+    depends_on:
+      keycloak:
+        condition: service_healthy
+    networks:
+      - keycloak-network
 
 volumes:
   keycloak-postgres-data:

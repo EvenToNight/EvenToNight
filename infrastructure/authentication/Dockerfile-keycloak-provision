@@ -1,0 +1,5 @@
+FROM quay.io/keycloak/keycloak:26.4
+
+COPY ./infrastructure/authentication/provision.sh /opt/keycloak/provision.sh
+
+ENTRYPOINT ["/opt/keycloak/provision.sh"]
