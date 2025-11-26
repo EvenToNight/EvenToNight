@@ -27,7 +27,7 @@ object Event:
       poster = "",
       tag = List(),
       location = "",
-      date = LocalDateTime.parse("0000-01-01T00:00"),
+      date = LocalDateTime.MAX,
       status = EventStatus.DRAFT,
       instant = java.time.Instant.MAX,
       id_creator = "",

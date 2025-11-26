@@ -43,8 +43,8 @@ tasks.register("checkStyle") {
 }
 
 tasks.register("formatAndLintPreCommit") {
-    dependsOn("scalafix")
     dependsOn("scalafmtAll")
+    dependsOn("scalafix")
 }
 
 tasks.withType<ScalaCompile> {
@@ -138,5 +138,11 @@ tasks.register("runCoverage") {
     doLast {
         println("✅ Events service coverage completed!")
         println("📋 Report available at: build/reports/jacoco/test/jacocoTestReport.xml")
+    }
+}
+
+afterEvaluate {
+    tasks.named("scalafix") {
+        mustRunAfter("scalafmtAll")
     }
 }

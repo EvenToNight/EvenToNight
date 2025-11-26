@@ -11,3 +11,9 @@ case class EventDraftCreated(
     timestamp: Instant,
     eventId: String
 ) extends DomainEvent
+
+case class EventUpdated(
+    id: String,
+    timestamp: Instant,
+    eventId: String
+) extends DomainEvent

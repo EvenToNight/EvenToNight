@@ -5,7 +5,7 @@ import domain.models.Event
 import domain.models.EventConversions._
 import service.EventService
 
-class EventQueryApi(eventService: EventService) extends BaseRoutes:
+class EventQueryRoutes(eventService: EventService) extends BaseRoutes:
 
   @cask.get("/event/:id_event")
   def getEvent(id_event: String): ujson.Value =

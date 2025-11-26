@@ -187,5 +187,5 @@ paths:
                   {"category": "VenueType", "tags": ["Club", "Bar"]}
                 ]
       tags: 
-        - Event Tag API          
+        - Event Tag Routes     
   

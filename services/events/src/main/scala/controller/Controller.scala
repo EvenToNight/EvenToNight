@@ -11,9 +11,9 @@ class Controller(eventService: EventService) extends MainRoutes:
   override def host: String = sys.env.getOrElse("EVENTS_SERVICE_HOST", "0.0.0.0")
 
   override val allRoutes: Seq[Routes] = Seq(
-    new EventCommandApi(eventService),
-    new EventQueryApi(eventService),
-    new EventTagApi()
+    new DomainEventRoutes(eventService),
+    new EventQueryRoutes(eventService),
+    new EventTagRoutes()
   )
 
   initialize()

@@ -12,11 +12,15 @@ import domain.models.EventConversions.toDocument
 import domain.models.EventStatus
 import org.bson.Document
 
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
+
 trait EventRepository:
 
-  def save(event: Event): Unit
+  def save(event: Event): Either[Throwable, Unit]
   def findById(id_event: String): Option[Event]
-  def update(event: Event): Unit
+  def update(event: Event): Either[Throwable, Unit]
 
 case class MongoEventRepository(connectionString: String, databaseName: String, collectionName: String = "events")
     extends EventRepository:
@@ -25,27 +29,40 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
   private val database: MongoDatabase               = mongoClient.getDatabase(databaseName)
   private val collection: MongoCollection[Document] = database.getCollection(collectionName)
 
-  override def save(event: Event): Unit =
+  override def save(event: Event): Either[Throwable, Unit] =
     val replaceOptions = new ReplaceOptions().upsert(true)
-    collection.replaceOne(Filters.eq("_id", event._id), event.toDocument, replaceOptions)
-    println(s"[MongoDB] Saved Event ID: ${event._id} with status: ${event.status}")
+
+    Try {
+      collection.replaceOne(Filters.eq("_id", event._id), event.toDocument, replaceOptions)
+      println(s"[MongoDB] Saved Event ID: ${event._id} with status: ${event.status}")
+    } match
+      case Success(_) => Right(())
+      case Failure(ex) =>
+        println(s"[MongoDB][Error] Failed to save Event ID: ${event._id} - ${ex.getMessage}")
+        Left(ex)
 
   override def findById(id_event: String): Option[Event] =
     val doc = collection.find(Filters.eq("_id", id_event)).first()
     if doc != null then Some(fromDocument(doc))
     else None
 
-  override def update(event: Event): Unit =
-    val replaceOptions = new ReplaceOptions().upsert(false)
-    collection.replaceOne(Filters.eq("_id", event._id), event.toDocument, replaceOptions)
-    println(s"[MongoDB] Updated Event ID: ${event._id} with status:" + s" ${event.status}")
+  override def update(event: Event): Either[Throwable, Unit] =
+    Try {
+      val replaceOptions = new ReplaceOptions().upsert(false)
+      collection.replaceOne(Filters.eq("_id", event._id), event.toDocument, replaceOptions)
+    } match
+      case Success(_) => Right(())
+      case Failure(ex) =>
+        println(s"[MongoDB][Error] Failed to update Event ID: ${event._id} - ${ex.getMessage}")
+        Left(ex)
 
   def close(): Unit =
     mongoClient.close()
 
 case class MockEventRepository() extends EventRepository:
-  override def save(event: Event): Unit =
+  override def save(event: Event): Either[Throwable, Unit] =
     println(s"[MOCK REPO] Saved Event ID: ${event._id} with status: ${event.status}")
+    Right(())
 
   override def findById(id_event: String): Option[Event] =
     println(s"[MOCK REPO] Finding Event ID: $id_event")
@@ -66,5 +83,6 @@ case class MockEventRepository() extends EventRepository:
           id_collaborator = None
         ))
 
-  override def update(event: Event): Unit =
+  override def update(event: Event): Either[Throwable, Unit] =
     println(s"[MOCK REPO] Updated Event ID: ${event._id} with" + s" status: ${event.status}")
+    Right(())

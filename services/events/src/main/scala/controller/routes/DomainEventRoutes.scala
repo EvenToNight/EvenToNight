@@ -8,7 +8,7 @@ import ujson.Obj
 
 import java.time.LocalDateTime
 
-class EventCommandApi(eventService: EventService) extends BaseRoutes:
+class DomainEventRoutes(eventService: EventService) extends BaseRoutes:
 
   private val mediaServiceUrl = "http://media:9020"
 
