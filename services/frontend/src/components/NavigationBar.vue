@@ -4,6 +4,7 @@ export const NAVBAR_HEIGHT = 64
 
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { useQuasar } from 'quasar'
 import SearchBar from './SearchBar.vue'
 
 interface Props {
@@ -13,6 +14,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const $q = useQuasar()
 
 const emit = defineEmits<{
   'update:searchQuery': [value: string]
@@ -43,8 +45,10 @@ watch(searchBarHasFocus, (value) => {
   emit('update:hasFocus', value)
 })
 
+const isMobile = computed(() => $q.screen.width <= 800)
+
 const showMobileSearch = computed(() => {
-  return searchBarHasFocus.value && props.showSearch
+  return searchBarHasFocus.value && props.showSearch && isMobile.value
 })
 
 const updateSearchQuery = (value: string) => {
