@@ -6,5 +6,5 @@ object DockerCommands {
     const val SETUP_TEST_ENVIRONMENT = "./scripts/composeDevEnvironment.sh --project-name eventonight-test-environment up -d --force-recreate --wait"
     const val SETUP_DEV_ENVIRONMENT = "./scripts/composeDevEnvironment.sh --dev up -d --force-recreate"
     const val SETUP_APPLICATION_ENVIRONMENT = "./scripts/composeApplication.sh --dev up -d --build --force-recreate --wait"
-    const val SETUP_KEYCLOAK = "./scripts/composeAll.sh -p ./infrastructure/authentication/ --dev up --force-recreate --build -d"
+    const val SETUP_KEYCLOAK = "./scripts/composeAll.sh -p ./infrastructure/authentication/ --dev up --force-recreate --build -d --wait"
 }
