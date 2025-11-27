@@ -1,11 +1,4 @@
-#!/bin/bash
-
-echo "[Provisioning] Waiting for Keycloak to start..."
-until /opt/keycloak/bin/kc.sh show-config >/dev/null 2>&1; do
-  echo "[Provisioning] Keycloak not ready..."
-  sleep 2
-done
-echo "[Provisioning] Keycloak is running!"
+#!/usr/bin/env bash
 
 echo "[Provisioning] Logging in with kcadm..."
 /opt/keycloak/bin/kcadm.sh config credentials \

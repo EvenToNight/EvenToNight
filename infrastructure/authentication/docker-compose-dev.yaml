@@ -2,4 +2,9 @@ services:
     keycloak:
       build:
         context: .
-        dockerfile: ./infrastructure/authentication/Dockerfile
+        dockerfile: ./infrastructure/authentication/Dockerfile-keycloak
+
+    keycloak-provision:
+      build:
+        context: .
+        dockerfile: ./infrastructure/authentication/Dockerfile-keycloak-provision    
