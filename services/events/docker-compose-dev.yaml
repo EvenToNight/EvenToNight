@@ -5,3 +5,16 @@ services:
       dockerfile: ./services/events/Dockerfile
     ports:
       - "${EVENTS_SERVICE_PORT}:${EVENTS_SERVICE_PORT}"  
+
+  mongo-events-express:
+    image: mongo-express:1.0.2-20-alpine3.19
+    restart: unless-stopped
+    networks:
+      - events-network
+    ports:
+      - '${MONGO_EXPRESS_EVENTS_PORT}:8081'
+    environment:
+      - ME_CONFIG_MONGODB_SERVER='mongo-events'
+    depends_on:
+      mongo-events:
+        condition: service_healthy
