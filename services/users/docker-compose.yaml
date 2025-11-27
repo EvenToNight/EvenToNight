@@ -18,6 +18,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      keycloak-provision:
+        condition: service_completed_successfully
 
   mongo-users:
     image: mongo
