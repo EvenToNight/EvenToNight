@@ -1,3 +1,14 @@
+export interface Organizer {
+  name: string
+  description?: string
+  avatar?: string
+}
+
+export interface Collaborator {
+  name: string
+  avatar?: string
+}
+
 export interface Event {
   id: number
   imageUrl: string
@@ -8,7 +19,10 @@ export interface Event {
   description: string
   location: string
   price: string
-  organizer: string
+  organizer: Organizer
+  likes: number
+  tags: string[]
+  collaborators?: Collaborator[]
 }
 
 export const mockEvents: Event[] = [
@@ -23,7 +37,17 @@ export const mockEvents: Event[] = [
       'Join us for an unforgettable night of electronic music featuring top DJs from around the world. Experience the best techno vibes in one of the most iconic venues. The night will feature multiple stages with different music styles, from deep house to hard techno.',
     location: 'Coccorico, Via Chieti 44, Riccione RN, Italy',
     price: '€25',
-    organizer: 'Coccorico Events',
+    organizer: {
+      name: 'Coccorico Events',
+      description: 'Legendary nightclub hosting the best electronic music events in Italy',
+      avatar: 'https://i.pravatar.cc/150?img=1',
+    },
+    likes: 1247,
+    tags: ['Techno', 'Electronic', 'Night Club'],
+    collaborators: [
+      { name: 'Riviera Sounds', avatar: 'https://i.pravatar.cc/150?img=11' },
+      { name: 'Italy Music Group', avatar: 'https://i.pravatar.cc/150?img=12' },
+    ],
   },
   {
     id: 2,
@@ -36,7 +60,13 @@ export const mockEvents: Event[] = [
       "Experience the finest house music in London's legendary Fabric nightclub. Featuring international DJs and the best sound system in the UK. Get ready for a night of deep grooves and unforgettable beats.",
     location: 'Fabric, 77A Charterhouse Street, London EC1M 6HJ, UK',
     price: '£20',
-    organizer: 'Fabric London',
+    organizer: {
+      name: 'Fabric London',
+      description: "London's most iconic nightclub since 1999",
+      avatar: 'https://i.pravatar.cc/150?img=2',
+    },
+    likes: 2156,
+    tags: ['House', 'Deep House', 'Electronic'],
   },
   {
     id: 3,
@@ -49,7 +79,14 @@ export const mockEvents: Event[] = [
       "Step into the legendary Berghain for a night of pure electronic music. One of the world's most famous techno clubs brings you an exceptional lineup of underground artists. Experience techno at its finest.",
     location: 'Berghain, Am Wriezener Bahnhof, Berlin, Germany',
     price: '€18',
-    organizer: 'Berghain Events',
+    organizer: {
+      name: 'Berghain Events',
+      description: 'The most legendary techno club in the world',
+      avatar: 'https://i.pravatar.cc/150?img=3',
+    },
+    likes: 3890,
+    tags: ['Techno', 'Underground', 'Berlin'],
+    collaborators: [{ name: 'Ostgut Ton', avatar: 'https://i.pravatar.cc/150?img=13' }],
   },
   {
     id: 4,
@@ -62,7 +99,17 @@ export const mockEvents: Event[] = [
       'The biggest summer festival of the year featuring over 50 artists across 5 stages. From sunset to sunrise, enjoy electronic music in a beautiful outdoor setting with camping options available.',
     location: 'Festival Grounds, Countryside Park',
     price: '€85',
-    organizer: 'Summer Sounds Productions',
+    organizer: {
+      name: 'Summer Sounds Productions',
+      description: 'Creating unforgettable festival experiences',
+      avatar: 'https://i.pravatar.cc/150?img=4',
+    },
+    likes: 5642,
+    tags: ['Festival', 'Outdoor', 'Multi-stage'],
+    collaborators: [
+      { name: 'Green Events', avatar: 'https://i.pravatar.cc/150?img=14' },
+      { name: 'Music Alliance', avatar: 'https://i.pravatar.cc/150?img=15' },
+    ],
   },
   {
     id: 5,
@@ -75,7 +122,13 @@ export const mockEvents: Event[] = [
       "Immerse yourself in the smooth sounds of deep house at Berlin's Watergate. Located by the river with stunning views, this venue offers an intimate setting for true house music lovers.",
     location: 'Watergate, Falckensteinstraße 49, Berlin, Germany',
     price: '€15',
-    organizer: 'Watergate Club',
+    organizer: {
+      name: 'Watergate Club',
+      description: 'Riverside venue with the best house music in Berlin',
+      avatar: 'https://i.pravatar.cc/150?img=5',
+    },
+    likes: 876,
+    tags: ['Deep House', 'Berlin', 'Riverside'],
   },
   {
     id: 6,
@@ -88,7 +141,14 @@ export const mockEvents: Event[] = [
       "Celebrate the summer at Amnesia Ibiza with a special minimal techno night. World-renowned DJs will take you on a journey through hypnotic beats and driving basslines in one of Ibiza's most iconic clubs.",
     location: 'Amnesia, Carretera Ibiza a San Antonio, Ibiza, Spain',
     price: '€50',
-    organizer: 'Amnesia Ibiza',
+    organizer: {
+      name: 'Amnesia Ibiza',
+      description: 'Iconic Ibiza superclub with world-class events',
+      avatar: 'https://i.pravatar.cc/150?img=6',
+    },
+    likes: 4523,
+    tags: ['Minimal', 'Techno', 'Ibiza'],
+    collaborators: [{ name: 'White Isle Music', avatar: 'https://i.pravatar.cc/150?img=16' }],
   },
 ]
 

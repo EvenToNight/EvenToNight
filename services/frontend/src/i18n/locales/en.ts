@@ -19,6 +19,7 @@ export default {
     price: 'Price',
     about: 'About this event',
     organizer: 'Organized by',
+    collaborators: 'In collaboration with',
     buyTickets: 'Buy Tickets',
   },
   footer: {

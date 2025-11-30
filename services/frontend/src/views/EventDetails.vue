@@ -41,6 +41,29 @@ const formatTime = (date: Date) => {
   }).format(date)
 }
 
+// Like functionality - use refs to make it reactive
+const isFavorite = ref(false)
+const likesCount = ref(0)
+
+// Initialize values when event is loaded
+watchEffect(() => {
+  if (event.value) {
+    isFavorite.value = event.value.favorite
+    likesCount.value = event.value.likes
+  }
+})
+
+const toggleLike = () => {
+  isFavorite.value = !isFavorite.value
+  likesCount.value += isFavorite.value ? 1 : -1
+
+  // Update the original event in mockEvents
+  if (event.value) {
+    event.value.favorite = isFavorite.value
+    event.value.likes = likesCount.value
+  }
+}
+
 // Parallax effect
 const heroImageRef = ref<HTMLDivElement | null>(null)
 let ticking = false
@@ -66,6 +89,8 @@ const handleScroll = () => {
 }
 
 onMounted(() => {
+  // Scroll to top when component mounts
+  window.scrollTo(0, 0)
   window.addEventListener('scroll', handleScroll, { passive: true })
 })
 
@@ -88,8 +113,20 @@ onUnmounted(() => {
     <!-- Event Info Box -->
     <div class="content-wrapper">
       <div class="info-box">
-        <h1 class="event-title">{{ event.title }}</h1>
-        <p class="event-subtitle">{{ event.subtitle }}</p>
+        <div class="title-row">
+          <div class="title-content">
+            <h1 class="event-title">{{ event.title }}</h1>
+            <p class="event-subtitle">{{ event.subtitle }}</p>
+          </div>
+          <button class="like-button" :class="{ liked: isFavorite }" @click="toggleLike">
+            <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="24px" />
+            <span class="like-count">{{ likesCount }}</span>
+          </button>
+        </div>
+
+        <div v-if="event.tags && event.tags.length" class="tags-container">
+          <span v-for="tag in event.tags.slice(0, 3)" :key="tag" class="tag">{{ tag }}</span>
+        </div>
 
         <div class="info-list">
           <div class="info-item">
@@ -132,7 +169,35 @@ onUnmounted(() => {
 
         <div class="organizer-section">
           <h3 class="section-subtitle">{{ t('eventDetails.organizer') }}</h3>
-          <p class="organizer-name">{{ event.organizer }}</p>
+          <div class="organizer-card">
+            <img
+              v-if="event.organizer.avatar"
+              :src="event.organizer.avatar"
+              :alt="event.organizer.name"
+              class="organizer-avatar"
+            />
+            <div class="organizer-info">
+              <h4 class="organizer-name">{{ event.organizer.name }}</h4>
+              <p v-if="event.organizer.description" class="organizer-description">
+                {{ event.organizer.description }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div v-if="event.collaborators && event.collaborators.length" class="collaborators-section">
+          <h3 class="section-subtitle">{{ t('eventDetails.collaborators') }}</h3>
+          <div class="collaborators-list">
+            <div v-for="collab in event.collaborators" :key="collab.name" class="collaborator-card">
+              <img
+                v-if="collab.avatar"
+                :src="collab.avatar"
+                :alt="collab.name"
+                class="collaborator-avatar"
+              />
+              <span class="collaborator-name">{{ collab.name }}</span>
+            </div>
+          </div>
         </div>
 
         <q-btn
@@ -266,6 +331,24 @@ onUnmounted(() => {
   }
 }
 
+.title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: $spacing-4;
+  margin-bottom: $spacing-4;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+    gap: $spacing-3;
+  }
+}
+
+.title-content {
+  flex: 1;
+  min-width: 0;
+}
+
 .event-title {
   font-size: 2.5rem;
   font-weight: 700;
@@ -280,8 +363,97 @@ onUnmounted(() => {
 .event-subtitle {
   font-size: 1.25rem;
   color: $color-primary;
-  margin: 0 0 $spacing-6 0;
+  margin: 0;
   font-weight: 500;
+}
+
+.like-button {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-3 $spacing-4;
+  border-radius: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+
+  @include light-mode {
+    border-color: rgba(0, 0, 0, 0.1);
+    color: $color-text-primary;
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    &.liked {
+      background: rgba($color-primary, 0.1);
+      border-color: $color-primary;
+      color: $color-primary;
+
+      .q-icon {
+        color: $color-primary;
+      }
+    }
+  }
+
+  @include dark-mode {
+    border-color: rgba(255, 255, 255, 0.15);
+    color: $color-text-dark;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    &.liked {
+      background: rgba($color-primary, 0.15);
+      border-color: $color-primary;
+      color: $color-primary;
+
+      .q-icon {
+        color: $color-primary;
+      }
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: $spacing-2 $spacing-3;
+    align-self: flex-start;
+  }
+}
+
+.like-count {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  margin-bottom: $spacing-6;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: $spacing-2 $spacing-3;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  background: $color-primary;
+  color: white;
+  transition: transform 0.2s ease;
+
+  &:hover {
+    transform: translateY(-2px);
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.813rem;
+    padding: $spacing-1 $spacing-2;
+  }
 }
 
 .info-list {
@@ -371,20 +543,133 @@ onUnmounted(() => {
 }
 
 .organizer-section {
-  margin-bottom: $spacing-8;
+  margin-bottom: $spacing-6;
 }
 
 .section-subtitle {
   font-size: 1.125rem;
   font-weight: 600;
-  margin: 0 0 $spacing-2 0;
+  margin: 0 0 $spacing-4 0;
   opacity: 0.7;
 }
 
+.organizer-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
+  padding: $spacing-4;
+  border-radius: 16px;
+  background: rgba(0, 0, 0, 0.02);
+
+  @include dark-mode {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  @media (max-width: 768px) {
+    padding: $spacing-3;
+    gap: $spacing-3;
+  }
+}
+
+.organizer-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 3px solid $color-primary;
+
+  @media (max-width: 768px) {
+    width: 56px;
+    height: 56px;
+  }
+}
+
+.organizer-info {
+  flex: 1;
+  min-width: 0;
+}
+
 .organizer-name {
-  font-size: 1rem;
+  font-size: 1.125rem;
+  margin: 0 0 $spacing-1 0;
+  font-weight: 600;
+
+  @media (max-width: 768px) {
+    font-size: 1rem;
+  }
+}
+
+.organizer-description {
+  font-size: 0.938rem;
   margin: 0;
-  font-weight: 500;
+  opacity: 0.7;
+  line-height: 1.4;
+
+  @media (max-width: 768px) {
+    font-size: 0.875rem;
+  }
+}
+
+.collaborators-section {
+  margin-bottom: $spacing-8;
+}
+
+.collaborators-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-3;
+}
+
+.collaborator-card {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  border-radius: 12px;
+  background: rgba(0, 0, 0, 0.02);
+  transition: all 0.3s ease;
+  cursor: default;
+
+  @include dark-mode {
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+
+    @include dark-mode {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+  }
+
+  @media (max-width: 768px) {
+    padding: $spacing-2;
+  }
+}
+
+.collaborator-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 2px solid rgba($color-primary, 0.5);
+
+  @media (max-width: 768px) {
+    width: 36px;
+    height: 36px;
+  }
+}
+
+.collaborator-name {
+  font-size: 0.938rem;
+  font-weight: 600;
+
+  @media (max-width: 768px) {
+    font-size: 0.875rem;
+  }
 }
 
 .buy-button {
