@@ -17,8 +17,9 @@ export default {
     time: 'Zeit',
     location: 'Standort',
     price: 'Preis',
-    about: 'Über diese Veranstaltung',
+    about: 'Um',
     organizer: 'Organisiert von',
+    collaborators: 'In Zusammenarbeit mit',
     buyTickets: 'Kaufen Sie Tickets',
   },
   footer: {
