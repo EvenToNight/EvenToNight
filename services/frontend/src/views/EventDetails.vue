@@ -274,10 +274,10 @@ onUnmounted(() => {
 }
 
 .back-button {
-  position: absolute;
+  position: fixed;
   top: $spacing-4;
   left: $spacing-4;
-  z-index: 10;
+  z-index: 1000;
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
   color: white !important;
