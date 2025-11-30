@@ -1,10 +1,12 @@
 export interface Organizer {
+  id: number
   name: string
   description?: string
   avatar?: string
 }
 
 export interface Collaborator {
+  id: number
   name: string
   avatar?: string
 }
@@ -38,6 +40,7 @@ export const mockEvents: Event[] = [
     location: 'Coccorico, Via Chieti 44, Riccione RN, Italy',
     price: '€25',
     organizer: {
+      id: 1,
       name: 'Coccorico Events',
       description: 'Legendary nightclub hosting the best electronic music events in Italy',
       avatar: 'https://i.pravatar.cc/150?img=1',
@@ -45,8 +48,8 @@ export const mockEvents: Event[] = [
     likes: 1247,
     tags: ['Techno', 'Electronic', 'Night Club'],
     collaborators: [
-      { name: 'Riviera Sounds', avatar: 'https://i.pravatar.cc/150?img=11' },
-      { name: 'Italy Music Group', avatar: 'https://i.pravatar.cc/150?img=12' },
+      { id: 11, name: 'Riviera Sounds', avatar: 'https://i.pravatar.cc/150?img=11' },
+      { id: 12, name: 'Italy Music Group', avatar: 'https://i.pravatar.cc/150?img=12' },
     ],
   },
   {
@@ -61,6 +64,7 @@ export const mockEvents: Event[] = [
     location: 'Fabric, 77A Charterhouse Street, London EC1M 6HJ, UK',
     price: '£20',
     organizer: {
+      id: 2,
       name: 'Fabric London',
       description: "London's most iconic nightclub since 1999",
       avatar: 'https://i.pravatar.cc/150?img=2',
@@ -80,13 +84,14 @@ export const mockEvents: Event[] = [
     location: 'Berghain, Am Wriezener Bahnhof, Berlin, Germany',
     price: '€18',
     organizer: {
+      id: 3,
       name: 'Berghain Events',
       description: 'The most legendary techno club in the world',
       avatar: 'https://i.pravatar.cc/150?img=3',
     },
     likes: 3890,
     tags: ['Techno', 'Underground', 'Berlin'],
-    collaborators: [{ name: 'Ostgut Ton', avatar: 'https://i.pravatar.cc/150?img=13' }],
+    collaborators: [{ id: 13, name: 'Ostgut Ton', avatar: 'https://i.pravatar.cc/150?img=13' }],
   },
   {
     id: 4,
@@ -100,6 +105,7 @@ export const mockEvents: Event[] = [
     location: 'Festival Grounds, Countryside Park',
     price: '€85',
     organizer: {
+      id: 4,
       name: 'Summer Sounds Productions',
       description: 'Creating unforgettable festival experiences',
       avatar: 'https://i.pravatar.cc/150?img=4',
@@ -107,8 +113,8 @@ export const mockEvents: Event[] = [
     likes: 5642,
     tags: ['Festival', 'Outdoor', 'Multi-stage'],
     collaborators: [
-      { name: 'Green Events', avatar: 'https://i.pravatar.cc/150?img=14' },
-      { name: 'Music Alliance', avatar: 'https://i.pravatar.cc/150?img=15' },
+      { id: 14, name: 'Green Events', avatar: 'https://i.pravatar.cc/150?img=14' },
+      { id: 15, name: 'Music Alliance', avatar: 'https://i.pravatar.cc/150?img=15' },
     ],
   },
   {
@@ -123,6 +129,7 @@ export const mockEvents: Event[] = [
     location: 'Watergate, Falckensteinstraße 49, Berlin, Germany',
     price: '€15',
     organizer: {
+      id: 5,
       name: 'Watergate Club',
       description: 'Riverside venue with the best house music in Berlin',
       avatar: 'https://i.pravatar.cc/150?img=5',
@@ -142,13 +149,16 @@ export const mockEvents: Event[] = [
     location: 'Amnesia, Carretera Ibiza a San Antonio, Ibiza, Spain',
     price: '€50',
     organizer: {
+      id: 6,
       name: 'Amnesia Ibiza',
       description: 'Iconic Ibiza superclub with world-class events',
       avatar: 'https://i.pravatar.cc/150?img=6',
     },
     likes: 4523,
     tags: ['Minimal', 'Techno', 'Ibiza'],
-    collaborators: [{ name: 'White Isle Music', avatar: 'https://i.pravatar.cc/150?img=16' }],
+    collaborators: [
+      { id: 16, name: 'White Isle Music', avatar: 'https://i.pravatar.cc/150?img=16' },
+    ],
   },
 ]
 

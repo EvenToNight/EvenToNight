@@ -68,6 +68,11 @@ const router = createRouter({
           component: () => import('../views/EventDetails.vue'),
         },
         {
+          path: 'organization/:id',
+          name: 'organization-profile',
+          component: () => import('../views/OrganizationProfile.vue'),
+        },
+        {
           path: ':pathMatch(.*)*',
           name: 'not-found',
           component: PlaceHolderView,

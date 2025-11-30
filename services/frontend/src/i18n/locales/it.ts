@@ -29,4 +29,15 @@ export default {
     privacy: 'politica sulla riservatezza',
     copyright: '© 2025 EvenToNight. Tutti i diritti riservati.',
   },
+  profile: {
+    editProfile: 'Modifica Profilo',
+    createEvent: 'Crea Evento',
+    followers: 'Follower',
+    following: 'Seguiti',
+    postedEvents: 'Eventi Pubblicati',
+    draftedEvents: 'Bozze',
+    draft: 'Bozza',
+    noPostedEvents: 'Nessun evento pubblicato',
+    noDraftedEvents: 'Nessuna bozza',
+  },
 }

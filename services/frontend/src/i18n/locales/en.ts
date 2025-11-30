@@ -29,4 +29,15 @@ export default {
     privacy: 'Privacy Policy',
     copyright: '© 2025 EvenToNight. All rights reserved.',
   },
+  profile: {
+    editProfile: 'Edit Profile',
+    createEvent: 'Create Event',
+    followers: 'Followers',
+    following: 'Following',
+    postedEvents: 'Posted Events',
+    draftedEvents: 'Drafted Events',
+    draft: 'Draft',
+    noPostedEvents: 'No posted events yet',
+    noDraftedEvents: 'No drafted events yet',
+  },
 }

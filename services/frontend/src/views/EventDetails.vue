@@ -64,6 +64,16 @@ const toggleLike = () => {
   }
 }
 
+const goToOrganizationProfile = (organizationId: number) => {
+  router.push({
+    name: 'organization-profile',
+    params: {
+      locale: route.params.locale,
+      id: organizationId,
+    },
+  })
+}
+
 // Parallax effect
 const heroImageRef = ref<HTMLDivElement | null>(null)
 let ticking = false
@@ -169,7 +179,7 @@ onUnmounted(() => {
 
         <div class="organizer-section">
           <h3 class="section-subtitle">{{ t('eventDetails.organizer') }}</h3>
-          <div class="organizer-card">
+          <div class="organizer-card" @click="goToOrganizationProfile(event.organizer.id)">
             <img
               v-if="event.organizer.avatar"
               :src="event.organizer.avatar"
@@ -188,7 +198,12 @@ onUnmounted(() => {
         <div v-if="event.collaborators && event.collaborators.length" class="collaborators-section">
           <h3 class="section-subtitle">{{ t('eventDetails.collaborators') }}</h3>
           <div class="collaborators-list">
-            <div v-for="collab in event.collaborators" :key="collab.name" class="collaborator-card">
+            <div
+              v-for="collab in event.collaborators"
+              :key="collab.id"
+              class="collaborator-card"
+              @click="goToOrganizationProfile(collab.id)"
+            >
               <img
                 v-if="collab.avatar"
                 :src="collab.avatar"
@@ -560,9 +575,21 @@ onUnmounted(() => {
   padding: $spacing-4;
   border-radius: 16px;
   background: rgba(0, 0, 0, 0.02);
+  cursor: pointer;
+  transition: all 0.3s ease;
 
   @include dark-mode {
     background: rgba(255, 255, 255, 0.05);
+  }
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+    background: rgba(0, 0, 0, 0.04);
+
+    @include dark-mode {
+      background: rgba(255, 255, 255, 0.08);
+    }
   }
 
   @media (max-width: 768px) {
