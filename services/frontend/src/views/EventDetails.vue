@@ -111,7 +111,7 @@ onUnmounted(() => {
 
 <template>
   <div v-if="event" class="event-details-view">
-    <!-- Hero Image with Back Button -->
+    <!-- Hero Image -->
     <div class="hero-image-container">
       <div ref="heroImageRef" class="hero-image-wrapper">
         <img :src="event.imageUrl" :alt="event.title" class="hero-image" />
@@ -247,12 +247,12 @@ onUnmounted(() => {
   position: relative;
   width: 100%;
   height: 60vh;
-  min-height: 400px;
+  max-height: 600px;
   overflow: hidden;
 
   @media (max-width: 768px) {
     height: 50vh;
-    min-height: 300px;
+    max-height: 600px;
   }
 }
 
@@ -289,7 +289,7 @@ onUnmounted(() => {
 }
 
 .back-button {
-  position: fixed;
+  position: absolute;
   top: $spacing-4;
   left: $spacing-4;
   z-index: 1000;
@@ -305,6 +305,10 @@ onUnmounted(() => {
   &:hover {
     background: rgba(0, 0, 0, 0.8);
     transform: scale(1.05);
+  }
+
+  @media (max-width: 330px) {
+    left: $spacing-2;
   }
 }
 

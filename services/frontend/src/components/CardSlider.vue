@@ -140,20 +140,20 @@ onUnmounted(() => {
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--q-primary);
-  transition: gap 0.3s ease;
+  // transition: gap 0.3s ease;
   user-select: none;
 
   &:hover {
-    gap: $spacing-3;
+    // gap: $spacing-3;
 
     .see-all-arrow {
       transform: translateX(4px);
     }
   }
 
-  .see-all-text {
-    transition: transform 0.3s ease;
-  }
+  // .see-all-text {
+  //   transition: transform 0.3s ease;
+  // }
 
   .see-all-arrow {
     font-size: 1.2rem;

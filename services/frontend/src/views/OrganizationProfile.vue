@@ -69,8 +69,7 @@ const goToEditProfile = () => {
 }
 
 const goToCreateEvent = () => {
-  // TODO: Navigate to create event page
-  console.log('Create event')
+  router.push({ name: 'create-event' })
 }
 
 const goToEvent = (eventId: number) => {
@@ -84,29 +83,75 @@ const goBack = () => {
 
 <template>
   <div class="organization-profile">
-    <!-- Cover Image -->
-    <div class="cover-image-container">
-      <img :src="organization.coverImage" :alt="organization.name" class="cover-image" />
-      <div class="cover-overlay"></div>
-      <q-btn icon="arrow_back" flat round dense color="white" class="back-button" @click="goBack" />
-    </div>
+    <q-btn icon="arrow_back" flat round dense class="back-button" @click="goBack" />
 
     <!-- Profile Info -->
     <div class="profile-container">
-      <div class="profile-header">
-        <div class="avatar-section">
-          <img :src="organization.avatar" :alt="organization.name" class="profile-avatar" />
-        </div>
+      <div class="profile-header-card">
+        <div class="profile-header">
+          <div class="avatar-section">
+            <img :src="organization.avatar" :alt="organization.name" class="profile-avatar" />
+          </div>
 
-        <div class="profile-info">
-          <div class="profile-name-row">
-            <h1 class="profile-name">{{ organization.name }}</h1>
-            <div class="profile-actions">
+          <div class="profile-info">
+            <div class="profile-name-row">
+              <h1 class="profile-name">{{ organization.name }}</h1>
+              <div class="profile-actions desktop-only">
+                <q-btn
+                  flat
+                  :label="t('profile.editProfile')"
+                  icon="edit"
+                  dense
+                  class="action-btn edit-btn"
+                  @click="goToEditProfile"
+                />
+                <q-btn
+                  unelevated
+                  color="primary"
+                  :label="t('profile.createEvent')"
+                  icon="add"
+                  dense
+                  class="action-btn create-btn"
+                  @click="goToCreateEvent"
+                />
+              </div>
+            </div>
+
+            <div class="stats-inline">
+              <div class="stat-inline-item">
+                <span class="stat-inline-value">{{ organization.followers.toLocaleString() }}</span>
+                <span class="stat-inline-label">{{ t('profile.followers') }}</span>
+              </div>
+              <div class="stat-divider-inline"></div>
+              <div class="stat-inline-item">
+                <span class="stat-inline-value">{{ organization.following.toLocaleString() }}</span>
+                <span class="stat-inline-label">{{ t('profile.following') }}</span>
+              </div>
+            </div>
+
+            <!-- Bio -->
+            <p v-if="organization.bio" class="profile-bio">{{ organization.bio }}</p>
+
+            <!-- Website -->
+            <div v-if="organization.website" class="profile-website">
+              <q-icon name="language" size="18px" />
+              <a
+                :href="organization.website"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="website-link"
+              >
+                {{ organization.website }}
+              </a>
+            </div>
+
+            <!-- Mobile buttons -->
+            <div class="profile-actions mobile-only">
               <q-btn
                 flat
-                dense
                 :label="t('profile.editProfile')"
                 icon="edit"
+                dense
                 class="action-btn edit-btn"
                 @click="goToEditProfile"
               />
@@ -115,47 +160,13 @@ const goBack = () => {
                 color="primary"
                 :label="t('profile.createEvent')"
                 icon="add"
+                dense
                 class="action-btn create-btn"
                 @click="goToCreateEvent"
               />
             </div>
           </div>
-          <p v-if="organization.location" class="profile-location">
-            <q-icon name="location_on" size="18px" />
-            {{ organization.location }}
-          </p>
         </div>
-      </div>
-
-      <!-- Stats -->
-      <div class="stats-section">
-        <div class="stat-item">
-          <span class="stat-value">{{ organization.followers.toLocaleString() }}</span>
-          <span class="stat-label">{{ t('profile.followers') }}</span>
-        </div>
-        <div class="stat-divider"></div>
-        <div class="stat-item">
-          <span class="stat-value">{{ organization.following.toLocaleString() }}</span>
-          <span class="stat-label">{{ t('profile.following') }}</span>
-        </div>
-      </div>
-
-      <!-- Bio -->
-      <div v-if="organization.bio" class="bio-section">
-        <p class="bio-text">{{ organization.bio }}</p>
-      </div>
-
-      <!-- Website -->
-      <div v-if="organization.website" class="website-section">
-        <q-icon name="language" size="20px" />
-        <a
-          :href="organization.website"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="website-link"
-        >
-          {{ organization.website }}
-        </a>
       </div>
 
       <!-- Tabs -->
@@ -228,6 +239,8 @@ const goBack = () => {
 .organization-profile {
   min-height: 100vh;
   background: var(--q-background);
+  position: relative;
+  padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
 
   @include light-mode {
     background: #f5f5f5;
@@ -238,34 +251,8 @@ const goBack = () => {
   }
 }
 
-.cover-image-container {
-  position: relative;
-  width: 100%;
-  height: 320px;
-  overflow: hidden;
-
-  @media (max-width: 768px) {
-    height: 220px;
-  }
-}
-
-.cover-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.cover-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.4) 100%);
-}
-
 .back-button {
-  position: fixed;
+  position: absolute;
   top: $spacing-4;
   left: $spacing-4;
   z-index: 1000;
@@ -282,16 +269,40 @@ const goBack = () => {
     background: rgba(0, 0, 0, 0.8);
     transform: scale(1.05);
   }
+
+  @media (max-width: 330px) {
+    left: $spacing-2;
+  }
 }
 
 .profile-container {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 0 $spacing-6;
+  padding: 0 $spacing-6 $spacing-8;
   position: relative;
 
   @media (max-width: 768px) {
-    padding: 0 $spacing-4;
+    padding: 0 $spacing-4 $spacing-6;
+  }
+}
+
+.profile-header-card {
+  background: var(--q-background);
+  border-radius: 16px;
+  box-shadow: $shadow-base;
+  padding: $spacing-6;
+  margin-bottom: $spacing-6;
+
+  @include light-mode {
+    background: white;
+  }
+
+  @include dark-mode {
+    background: #1d1d1d;
+  }
+
+  @media (max-width: 768px) {
+    padding: $spacing-4;
   }
 }
 
@@ -299,16 +310,13 @@ const goBack = () => {
   display: flex;
   align-items: flex-start;
   gap: $spacing-6;
-  margin-top: -80px;
-  margin-bottom: $spacing-6;
   position: relative;
-  z-index: 10;
 
   @media (max-width: 768px) {
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     gap: $spacing-4;
-    margin-top: -60px;
   }
 }
 
@@ -317,35 +325,25 @@ const goBack = () => {
 }
 
 .profile-avatar {
-  width: 160px;
-  height: 160px;
+  width: 120px;
+  height: 120px;
   border-radius: 50%;
-  border: 6px solid var(--q-background);
   object-fit: cover;
-  box-shadow: $shadow-lg;
-
-  @include light-mode {
-    border-color: white;
-  }
-
-  @include dark-mode {
-    border-color: #1d1d1d;
-  }
+  box-shadow: $shadow-md;
 
   @media (max-width: 768px) {
-    width: 120px;
-    height: 120px;
-    border-width: 4px;
+    width: 100px;
+    height: 100px;
   }
 }
 
 .profile-info {
   flex: 1;
-  padding-top: $spacing-20;
 
   @media (max-width: 768px) {
-    padding-top: 0;
     width: 100%;
+    display: flex;
+    flex-direction: column;
   }
 }
 
@@ -354,12 +352,14 @@ const goBack = () => {
   align-items: center;
   justify-content: space-between;
   gap: $spacing-4;
-  margin-bottom: $spacing-2;
+  margin-bottom: $spacing-3;
 
   @media (max-width: 768px) {
     flex-direction: column;
-    align-items: flex-start;
-    gap: $spacing-3;
+    align-items: center;
+    gap: $spacing-2;
+    order: 1;
+    margin-bottom: 0;
   }
 }
 
@@ -370,19 +370,67 @@ const goBack = () => {
 
   @media (max-width: 768px) {
     font-size: 1.5rem;
+    text-align: center;
   }
 }
 
-.profile-location {
+.stats-inline {
   display: flex;
   align-items: center;
-  gap: $spacing-1;
-  font-size: 1rem;
-  opacity: 0.7;
-  margin: 0;
+  gap: $spacing-4;
+  margin-bottom: $spacing-4;
 
   @media (max-width: 768px) {
     justify-content: center;
+    order: 2;
+    margin-bottom: $spacing-4;
+  }
+}
+
+.stat-inline-item {
+  display: flex;
+  align-items: baseline;
+  gap: $spacing-1;
+}
+
+.stat-inline-value {
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: $color-text-primary;
+
+  @include dark-mode {
+    color: $color-text-dark;
+  }
+}
+
+.stat-inline-label {
+  font-size: 0.875rem;
+  opacity: 0.6;
+}
+
+.stat-divider-inline {
+  width: 1px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.2);
+
+  @include dark-mode {
+    background: rgba(255, 255, 255, 0.2);
+  }
+}
+
+.desktop-only {
+  display: flex;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.mobile-only {
+  display: none;
+
+  @media (max-width: 768px) {
+    display: flex;
   }
 }
 
@@ -391,8 +439,12 @@ const goBack = () => {
   gap: $spacing-2;
   flex-shrink: 0;
 
-  @media (max-width: 768px) {
-    width: 100%;
+  &.mobile-only {
+    @media (max-width: 768px) {
+      width: 100%;
+      order: 5;
+      margin-top: $spacing-2;
+    }
   }
 }
 
@@ -429,108 +481,37 @@ const goBack = () => {
   }
 }
 
-.create-btn {
-  // Primary button already has good styling from Quasar
-}
-
-.stats-section {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-8;
-  padding: $spacing-6;
-  background: var(--q-background);
-  border-radius: 16px;
-  box-shadow: $shadow-base;
-  margin-bottom: $spacing-6;
-
-  @include light-mode {
-    background: white;
-  }
-
-  @include dark-mode {
-    background: #1d1d1d;
-  }
-
-  @media (max-width: 768px) {
-    gap: $spacing-6;
-    padding: $spacing-4;
-  }
-}
-
-.stat-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: $spacing-1;
-}
-
-.stat-value {
-  font-size: 1.75rem;
-  font-weight: 700;
-  color: $color-primary;
-
-  @media (max-width: 768px) {
-    font-size: 1.5rem;
-  }
-}
-
-.stat-label {
-  font-size: 0.875rem;
-  opacity: 0.6;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.stat-divider {
-  width: 1px;
-  height: 40px;
-  background: rgba(0, 0, 0, 0.1);
-
-  @include dark-mode {
-    background: rgba(255, 255, 255, 0.1);
-  }
-}
-
-.bio-section {
-  padding: $spacing-4 $spacing-6;
-  background: var(--q-background);
-  border-radius: 16px;
-  box-shadow: $shadow-base;
-  margin-bottom: $spacing-4;
-
-  @include light-mode {
-    background: white;
-  }
-
-  @include dark-mode {
-    background: #1d1d1d;
-  }
-}
-
-.bio-text {
+.profile-bio {
   font-size: 1rem;
   line-height: 1.6;
-  margin: 0;
-  opacity: 0.9;
+  margin: 0 0 $spacing-3 0;
+  opacity: 0.8;
+  color: $color-text-primary;
+
+  @include dark-mode {
+    color: $color-text-dark;
+  }
+
+  @media (max-width: 768px) {
+    font-size: 0.9375rem;
+    order: 3;
+  }
 }
 
-.website-section {
+.profile-website {
   display: flex;
   align-items: center;
   gap: $spacing-2;
-  padding: $spacing-3 $spacing-4;
-  background: var(--q-background);
-  border-radius: 12px;
-  box-shadow: $shadow-sm;
-  margin-bottom: $spacing-6;
+  margin: 0;
+  opacity: 0.9;
 
-  @include light-mode {
-    background: white;
+  .q-icon {
+    opacity: 0.7;
   }
 
-  @include dark-mode {
-    background: #1d1d1d;
+  @media (max-width: 768px) {
+    order: 4;
+    margin-bottom: $spacing-3;
   }
 }
 
@@ -538,10 +519,12 @@ const goBack = () => {
   color: $color-primary;
   text-decoration: none;
   font-weight: 500;
+  font-size: 0.9375rem;
   transition: opacity 0.2s ease;
 
   &:hover {
     opacity: 0.8;
+    text-decoration: underline;
   }
 }
 
