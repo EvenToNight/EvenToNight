@@ -2,6 +2,7 @@ package service
 
 import domain.commands.Commands
 import domain.commands.CreateEventDraftCommand
+import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventPosterCommand
 import domain.commands.validators.Validator
@@ -21,6 +22,7 @@ class EventService(
       case c: CreateEventDraftCommand  => validateAnd(c)(eventCommandService.createEventDraft)
       case c: UpdateEventPosterCommand => validateAnd(c)(eventCommandService.updatePoster)
       case c: GetEventCommand          => validateAnd(c)(eventQueryService.getEvent)
+      case _: GetAllEventsCommand      => eventQueryService.getAllPublishedEvents()
 
   private def validateAnd[C <: Commands, R](cmd: C)(f: C => Either[String, R])(using
       v: Validator[C]

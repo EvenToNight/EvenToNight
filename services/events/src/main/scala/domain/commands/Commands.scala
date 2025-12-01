@@ -16,11 +16,13 @@ case class CreateEventDraftCommand(
     id_collaborator: Option[String]
 ) extends Commands
 
-case class GetEventCommand(
-    id_event: String
-) extends Commands
-
 case class UpdateEventPosterCommand(
     eventId: String,
     posterUrl: String
 ) extends Commands
+
+case class GetEventCommand(
+    id_event: String
+) extends Commands
+
+case class GetAllEventsCommand() extends Commands

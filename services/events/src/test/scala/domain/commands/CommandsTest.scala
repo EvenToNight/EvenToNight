@@ -59,6 +59,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       case CreateEventDraftCommand(title, _, _, _, _, _, _, _) => s"Command: $title"
       case GetEventCommand(id_event)                           => s"Get Command: $id_event"
       case UpdateEventPosterCommand(eventId, posterUrl)        => s"Update Poster Command: $eventId"
+      case GetAllEventsCommand()                               => "Get All Events Command"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:
@@ -79,3 +80,8 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val command = updatePosterCommand("custom-event-456", "https://custom.com/poster.png")
     command.eventId shouldBe "custom-event-456"
     command.posterUrl shouldBe "https://custom.com/poster.png"
+
+  "GetAllEventsCommand" should "implement Commands trait" in:
+    val command = GetAllEventsCommand()
+    command shouldBe a[Commands]
+    command shouldBe a[GetAllEventsCommand]

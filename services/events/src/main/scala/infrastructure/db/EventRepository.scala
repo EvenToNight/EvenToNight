@@ -12,6 +12,7 @@ import domain.models.EventConversions.toDocument
 import domain.models.EventStatus
 import org.bson.Document
 
+import scala.jdk.CollectionConverters._
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -21,6 +22,7 @@ trait EventRepository:
   def save(event: Event): Either[Throwable, Unit]
   def findById(id_event: String): Option[Event]
   def update(event: Event): Either[Throwable, Unit]
+  def findAllPublished(): Either[Throwable, List[Event]]
 
 case class MongoEventRepository(connectionString: String, databaseName: String, collectionName: String = "events")
     extends EventRepository:
@@ -56,33 +58,18 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
         println(s"[MongoDB][Error] Failed to update Event ID: ${event._id} - ${ex.getMessage}")
         Left(ex)
 
+  override def findAllPublished(): Either[Throwable, List[Event]] =
+    Try {
+      collection
+        .find(Filters.eq("status", EventStatus.PUBLISHED.toString))
+        .into(new java.util.ArrayList[Document]())
+        .asScala
+        .map(fromDocument)
+        .toList
+    }.toEither.left.map { ex =>
+      println(s"[MongoDB][Error] Failed to retrieve published events - ${ex.getMessage}")
+      ex
+    }
+
   def close(): Unit =
     mongoClient.close()
-
-case class MockEventRepository() extends EventRepository:
-  override def save(event: Event): Either[Throwable, Unit] =
-    println(s"[MOCK REPO] Saved Event ID: ${event._id} with status: ${event.status}")
-    Right(())
-
-  override def findById(id_event: String): Option[Event] =
-    println(s"[MOCK REPO] Finding Event ID: $id_event")
-    id_event match
-      case "non-existent" => Some(Event.nil())
-      case _ =>
-        Some(Event(
-          _id = id_event,
-          title = "Mock Event",
-          description = "This is a mock event",
-          poster = "mock-poster.jpg",
-          tag = List(),
-          location = "Mock Location",
-          date = java.time.LocalDateTime.now().plusDays(10),
-          status = EventStatus.DRAFT,
-          instant = java.time.Instant.now(),
-          id_creator = "mock-creator",
-          id_collaborator = None
-        ))
-
-  override def update(event: Event): Either[Throwable, Unit] =
-    println(s"[MOCK REPO] Updated Event ID: ${event._id} with" + s" status: ${event.status}")
-    Right(())

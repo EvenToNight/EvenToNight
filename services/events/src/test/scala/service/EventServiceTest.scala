@@ -1,6 +1,7 @@
 package service
 
 import domain.commands.CreateEventDraftCommand
+import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventPosterCommand
 import domain.models.EventTag
@@ -47,6 +48,9 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       posterUrl: String = "poster-url.jpg"
   ): UpdateEventPosterCommand =
     UpdateEventPosterCommand(eventId, posterUrl)
+
+  private def validGetAllEventsCommand(): GetAllEventsCommand =
+    GetAllEventsCommand()
 
   "EventService" should "be instantiated correctly" in:
     service.`should`(be(a[EventService]))
@@ -158,11 +162,25 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     val command = validGetEventCommand()
     noException should be thrownBy service.handleCommand(command)
 
+  it should "route GetAllEventsCommand to appropriate service method" in:
+    val command = validGetAllEventsCommand()
+    noException should be thrownBy service.handleCommand(command)
+
+  it should "successfully process GetAllEventsCommand and return published events" in:
+    val command = validGetAllEventsCommand()
+    val result  = service.handleCommand(command)
+
+    result shouldBe a[Right[?, ?]]
+    result match
+      case Right(events) => events shouldBe a[List[?]]
+      case Left(error)   => fail(s"Expected Right with events list, but got Left: $error")
+
   it should "handle all command types without throwing exceptions" in:
     val commands = List(
       validCreateEventDraftCommand(),
       validUpdateEventPosterCommand(),
-      validGetEventCommand()
+      validGetEventCommand(),
+      validGetAllEventsCommand()
     )
     commands.foreach: cmd =>
       noException should be thrownBy service.handleCommand(cmd)

@@ -1,6 +1,7 @@
 package service
 import domain.commands.GetEventCommand
 import domain.models.Event
+import domain.models.EventStatus
 import domain.models.EventTag
 import infrastructure.db.EventRepository
 import infrastructure.db.MongoEventRepository
@@ -19,14 +20,8 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
     repo = new MongoEventRepository("mongodb://localhost:27017", "eventonight_test")
     service = new EventQueryService(repo)
 
-  private def validGetEventCommand(id_event: String): GetEventCommand =
-    GetEventCommand(id_event)
-
-  "EventQueryService" should "be instantiated correctly" in:
-    service.`should`(be(a[EventQueryService]))
-
-  it should "retrieve an existing event by ID" in:
-    val event = Event.createDraft(
+  private def createEvent(): Event =
+    Event.createDraft(
       title = "Sample Event",
       description = "This is a sample event.",
       poster = "sample_poster.png",
@@ -36,6 +31,15 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       id_creator = "creator123",
       id_collaborator = None
     )
+
+  private def validGetEventCommand(id_event: String): GetEventCommand =
+    GetEventCommand(id_event)
+
+  "EventQueryService" should "be instantiated correctly" in:
+    service.`should`(be(a[EventQueryService]))
+
+  "Get Event" should "retrieve an existing event by ID" in:
+    val event = createEvent()
     repo.save(event)
 
     val cmd    = validGetEventCommand(event._id)
@@ -52,3 +56,19 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
     val cmd    = validGetEventCommand("nonexistent_id")
     val result = service.getEvent(cmd)
     result shouldBe Left("Event with id nonexistent_id not found")
+
+  "Get All Published Events" should "retrieve all published events" in:
+    val event1 = createEvent().copy(status = EventStatus.PUBLISHED)
+    val event2 = createEvent()
+    val event3 = createEvent().copy(status = EventStatus.PUBLISHED)
+
+    repo.save(event1)
+    repo.save(event2)
+    repo.save(event3)
+
+    val result = service.getAllPublishedEvents()
+    result match
+      case Right(events) =>
+        events should contain allElementsOf List(event1, event3)
+      case Left(error) =>
+        fail(s"Expected to retrieve published events, but got error: $error")

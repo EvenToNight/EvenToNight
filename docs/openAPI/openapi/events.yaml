@@ -3,7 +3,7 @@ info:
   title: EvenToNight - Events API
   version: 1.0.0
 paths:
-  /event/:
+  /:
     post:
       summary: Create a new event draft
       description: Creates a new event in draft status with the provided information.
@@ -72,8 +72,68 @@ paths:
           description: Validation error
       tags:
         - Event Command API
+    
+    get:
+      summary: Get all public events
+      description: Retrieves a list of all events published.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
+      responses:
+        '200':
+          description: A JSON array of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id_event:
+                      type: string
+                      description: Event ID
+                    title:
+                      type: string
+                      description: Event title
+                    description:
+                      type: string
+                      description: Event description
+                    poster:
+                      type: string
+                      description: Event poster filename
+                    tag:
+                      type: array
+                      items:
+                        type: string
+                      description: List of event tags
+                    location:
+                      type: string
+                      description: Event location
+                    date:
+                      type: string
+                      format: date-time
+                      description: Event date and time
+                    status:
+                      type: string
+                      enum: [PUBLISHED]
+                      description: Event status
+                    instant:
+                      type: string
+                      format: date-time
+                      description: Event creation timestamp
+                    id_creator:
+                      type: string
+                      description: ID of the event creator
+                    id_collaborator:
+                      type: string
+                      description: ID of the collaborator (if any)
+                      nullable: true
+      tags:
+        - Event Query API
   
-  /event/{eventId}:
+  /{eventId}:
     get:
       summary: Get event details by ID
       description: Retrieves detailed information about a specific event.
@@ -187,5 +247,41 @@ paths:
                   {"category": "VenueType", "tags": ["Club", "Bar"]}
                 ]
       tags: 
-        - Event Tag Routes     
+        - Event Tag Routes   
   
+  /tags/{category}:
+    get:
+      summary: Get tags by category
+      description: Returns the list of tags associated with the specified category.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
+      parameters:
+        - in: path
+          name: category
+          required: true
+          schema:
+            type: string
+            enum:
+              - TypeOfEvent
+              - VenueType
+              - MusicGenre
+              - Theme
+              - Target
+              - Extra
+          description: The category of tags to retrieve.
+      responses:
+        '200':
+          description: List of tags for the given category.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+        '400':
+          description: Invalid category.
+      tags:
+        - Event Tag Routes

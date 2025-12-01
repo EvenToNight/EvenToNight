@@ -12,7 +12,7 @@ class DomainEventRoutes(eventService: EventService) extends BaseRoutes:
 
   private val mediaServiceUrl = "http://media:9020"
 
-  @cask.postForm("/event")
+  @cask.postForm("/")
   def createDraft(
       title: String,
       description: String,
@@ -51,7 +51,7 @@ class DomainEventRoutes(eventService: EventService) extends BaseRoutes:
                 requests.MultiItem(
                   name = "file",
                   data = fileBytes,
-                  filename = poster.fileName
+                  filename = s"${eventId}_poster.jpg"
                 )
               )
             )
