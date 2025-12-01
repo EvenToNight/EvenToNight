@@ -3,5 +3,8 @@ services:
     build:
       context: .
       dockerfile: ./services/frontend/Dockerfile
+      args:
+        - VITE_HOST=${HOST}
+        - PORT=${FRONTEND_SERVICE_PORT}
     ports:
       - "${FRONTEND_SERVICE_PORT}:${FRONTEND_SERVICE_PORT}"

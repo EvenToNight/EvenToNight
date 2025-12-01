@@ -64,7 +64,8 @@ const allOrganizations = [
   { label: 'Villa delle Rose', value: 5 },
 ]
 
-const filterCollaborators = (val: string, update: (callback: () => void) => void) => {
+// eslint-disable-next-line no-unused-vars
+const filterCollaborators = (val: string, update: (fn: () => void) => void) => {
   if (val === '') {
     update(() => {
       collaboratorOptions.value = allOrganizations
@@ -80,7 +81,8 @@ const filterCollaborators = (val: string, update: (callback: () => void) => void
   })
 }
 
-const filterLocations = async (val: string, update: (callback: () => void) => void) => {
+// eslint-disable-next-line no-unused-vars
+const filterLocations = async (val: string, update: (fn: () => void) => void) => {
   if (val.length < 3) {
     update(() => {
       locationOptions.value = []
@@ -98,13 +100,38 @@ const filterLocations = async (val: string, update: (callback: () => void) => vo
       }
     )
     const data = await response.json()
+    console.log(data)
 
     update(() => {
-      locationOptions.value = data.map((item: any) => ({
-        label: item.display_name,
-        value: item,
-        description: item.type,
-      }))
+      locationOptions.value = data.map((item: any) => {
+        // Format address properly: combine house number with street
+        const addr = item.address || {}
+        const street = addr.road || addr.street || ''
+        const houseNumber = addr.house_number || ''
+        const streetAddress = [street, houseNumber].filter(Boolean).join(' ')
+
+        const fullAddress = [
+          streetAddress,
+          addr.postcode,
+          addr.city || addr.town || addr.village,
+          addr.state,
+          addr.country,
+        ]
+          .filter(Boolean)
+          .join(', ')
+
+        return {
+          label: item.display_name,
+          value: {
+            address: fullAddress,
+            lat: parseFloat(item.lat),
+            lon: parseFloat(item.lon),
+            type: item.type,
+            placeId: item.place_id,
+          },
+          description: item.type,
+        }
+      })
     })
   } catch (err) {
     console.error('Error fetching locations:', err)

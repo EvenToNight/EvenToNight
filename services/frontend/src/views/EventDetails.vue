@@ -74,6 +74,38 @@ const goToOrganizationProfile = (organizationId: number) => {
   })
 }
 
+// Helper to get location details
+const locationAddress = computed(() => {
+  if (!event.value) return ''
+  const loc = event.value.location
+  return typeof loc === 'string' ? loc : loc.address
+})
+
+const locationCoords = computed(() => {
+  if (!event.value) return null
+  const loc = event.value.location
+  if (typeof loc === 'string') return null
+  return { lat: loc.lat, lon: loc.lon }
+})
+
+const mapsUrl = computed(() => {
+  if (!event.value) return null
+
+  // Prefer coordinates if available (more accurate)
+  const coords = locationCoords.value
+  if (coords) {
+    return `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}`
+  }
+
+  // Fallback to address search
+  const address = locationAddress.value
+  if (address) {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
+  }
+
+  return null
+})
+
 // Parallax effect
 const heroImageRef = ref<HTMLDivElement | null>(null)
 let ticking = false
@@ -159,8 +191,18 @@ onUnmounted(() => {
             <q-icon name="location_on" class="info-icon" />
             <div class="info-text">
               <span class="info-label">{{ t('eventDetails.location') }}</span>
-              <span class="info-value">{{ event.location }}</span>
+              <span class="info-value">{{ locationAddress }}</span>
             </div>
+            <a
+              v-if="mapsUrl"
+              :href="mapsUrl"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="maps-link"
+              title="Open in Google Maps"
+            >
+              <q-icon name="open_in_new" size="20px" />
+            </a>
           </div>
 
           <div class="info-item">
@@ -708,5 +750,35 @@ onUnmounted(() => {
   height: 56px;
   font-size: 1.125rem;
   font-weight: 600;
+}
+
+.maps-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-2;
+  border-radius: 8px;
+  background: rgba($color-primary, 0.1);
+  color: $color-primary;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  flex-shrink: 0;
+
+  &:hover {
+    background: rgba($color-primary, 0.2);
+    transform: scale(1.05);
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+
+  .q-icon {
+    color: $color-primary;
+  }
+
+  @media (max-width: 768px) {
+    padding: $spacing-1;
+  }
 }
 </style>

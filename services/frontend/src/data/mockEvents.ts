@@ -11,6 +11,14 @@ export interface Collaborator {
   avatar?: string
 }
 
+export interface Location {
+  address: string
+  lat: number
+  lon: number
+  type?: string
+  placeId?: number
+}
+
 export interface Event {
   id: number
   imageUrl: string
@@ -19,7 +27,7 @@ export interface Event {
   date: Date
   favorite: boolean
   description: string
-  location: string
+  location: string | Location
   price: string
   organizer: Organizer
   likes: number
@@ -37,7 +45,12 @@ export const mockEvents: Event[] = [
     favorite: false,
     description:
       'Join us for an unforgettable night of electronic music featuring top DJs from around the world. Experience the best techno vibes in one of the most iconic venues. The night will feature multiple stages with different music styles, from deep house to hard techno.',
-    location: 'Coccorico, Via Chieti 44, Riccione RN, Italy',
+    location: {
+      address: 'Coccorico, Via Chieti 44, 47838 Riccione RN, Italy',
+      lat: 43.9986,
+      lon: 12.6663,
+      type: 'nightclub',
+    },
     price: '€25',
     organizer: {
       id: 1,
