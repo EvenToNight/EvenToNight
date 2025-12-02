@@ -1,4 +1,6 @@
-export const mockEventInteractions = [
+import type { EventInteraction } from '../../types/interaction'
+
+export const mockEventInteractions: EventInteraction[] = [
   {
     id: '1',
     eventId: '1',

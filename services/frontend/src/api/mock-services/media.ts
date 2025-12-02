@@ -1,10 +1,5 @@
 import type { MediaAPI } from '../interfaces/media'
-import type {
-  MediaGetRequest,
-  MediaGetResponse,
-  MediaUploadRequest,
-  MediaUploadResponse,
-} from '../interfaces/media'
+import type { MediaGetResponse, MediaUploadRequest, MediaUploadResponse } from '../interfaces/media'
 
 const delay = (ms: number = 0) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -26,14 +21,14 @@ const DEFAULT_IMAGES: Record<string, string> = Object.entries(imageModules).redu
   {} as Record<string, string>
 )
 
-const getImageFromStorage = async (request: MediaGetRequest): Promise<MediaGetResponse> => {
-  const image = localStorage.getItem(request.url)
+const getImageFromStorage = async (url: string): Promise<MediaGetResponse> => {
+  const image = localStorage.getItem(url)
   if (image) {
     const parsed = JSON.parse(image) as MediaUploadRequest
     return { file: parsed.file }
   } else {
-    const fileName = request.url.split('/').pop() || ''
-    const imageKey = request.url
+    const fileName = url.split('/').pop() || ''
+    const imageKey = url
       .replace('media/', '')
       .replace(/\.[^.]+$/, '')
       .trim()
@@ -41,7 +36,7 @@ const getImageFromStorage = async (request: MediaGetRequest): Promise<MediaGetRe
     let imageUrl = DEFAULT_IMAGES[imageKey]
 
     if (!imageUrl) {
-      const imageType = request.url.split('/')[1]
+      const imageType = url.split('/')[1]
       if (imageType === 'events' || imageType === 'users') {
         imageUrl = DEFAULT_IMAGES[`default-${imageType}`]
       } else {
@@ -61,10 +56,10 @@ const saveImageToStorage = (image: MediaUploadRequest): MediaUploadResponse => {
   return { url: key }
 }
 
-export const mockImagesApi: MediaAPI = {
-  async get(request: MediaGetRequest): Promise<MediaGetResponse> {
+export const mockMediaApi: MediaAPI = {
+  async get(url: string): Promise<MediaGetResponse> {
     await delay()
-    return getImageFromStorage(request)
+    return getImageFromStorage(url)
   },
   async upload(request: MediaUploadRequest): Promise<MediaUploadResponse> {
     await delay()

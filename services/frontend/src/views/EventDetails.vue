@@ -22,7 +22,7 @@ const collaborators = ref<User[]>([])
 // Load organizer data
 const loadOrganizer = async (userId: string) => {
   try {
-    const response = await api.users.getUserById({ userId })
+    const response = await api.users.getUserById(userId)
     organizer.value = response.user
   } catch (error) {
     console.error('Failed to load organizer:', error)
@@ -33,7 +33,7 @@ const loadOrganizer = async (userId: string) => {
 // Load collaborators data
 const loadCollaborators = async (userIds: string[]) => {
   try {
-    const promises = userIds.map((userId) => api.users.getUserById({ userId }))
+    const promises = userIds.map((userId) => api.users.getUserById(userId))
     const responses = await Promise.all(promises)
     collaborators.value = responses.map((response) => response.user)
   } catch (error) {
@@ -45,7 +45,7 @@ const loadCollaborators = async (userIds: string[]) => {
 // Load event data
 const loadEvent = async () => {
   try {
-    const response = await api.events.getEventById({ eventId: eventId.value })
+    const response = await api.events.getEventById(eventId.value)
     event.value = response.event
 
     // Load organizer data
@@ -96,7 +96,7 @@ const loadInteractions = async () => {
   if (!eventId.value) return
 
   try {
-    const interaction = await api.interactions.getEventInteractions({ eventId: eventId.value })
+    const interaction = await api.interactions.getEventInteractions(eventId.value)
     likesCount.value = interaction.likes.length
     // TODO: Check if current user has liked the event
     isFavorite.value = false

@@ -1,21 +1,14 @@
-import type {
-  GetEventInteractionRequest,
-  GetEventInteractionsResponse,
-  InteractionAPI,
-} from '../interfaces/interactions'
+import type { GetEventInteractionsResponse, InteractionAPI } from '../interfaces/interactions'
+import type { EventID } from '../types/events'
 import { mockEventInteractions } from './data/interactions'
 
 export const mockInteractionsApi: InteractionAPI = {
-  async getEventInteractions(
-    request: GetEventInteractionRequest
-  ): Promise<GetEventInteractionsResponse> {
-    const interaction = mockEventInteractions.find(
-      (interaction) => interaction.eventId === request.eventId
-    )
+  async getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse> {
+    const interaction = mockEventInteractions.find((interaction) => interaction.eventId === eventId)
 
     if (!interaction) {
       throw {
-        message: `Interaction for ${request.eventId} not found`,
+        message: `Interaction for ${eventId} not found`,
         code: 'INTERACTION_NOT_FOUND',
         status: 404,
       }

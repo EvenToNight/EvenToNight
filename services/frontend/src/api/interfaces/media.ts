@@ -1,7 +1,3 @@
-export interface MediaGetRequest {
-  url: string
-}
-
 export interface MediaGetResponse {
   file: File
 }
@@ -23,6 +19,6 @@ export interface MediaUploadResponse {
 }
 
 export interface MediaAPI {
-  get(request: MediaGetRequest): Promise<MediaGetResponse>
+  get(url: string): Promise<MediaGetResponse>
   upload(request: MediaUploadRequest): Promise<MediaUploadResponse>
 }

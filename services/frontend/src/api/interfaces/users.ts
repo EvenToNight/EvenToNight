@@ -1,11 +1,9 @@
-import type { User } from '../types/users'
-export interface GetUserByIdRequest {
-  userId: string
-}
+import type { User, UserID } from '../types/users'
+
 export interface GetUserByIdResponse {
   user: User
 }
 
 export interface UsersAPI {
-  getUserById(request: GetUserByIdRequest): Promise<GetUserByIdResponse>
+  getUserById(id: UserID): Promise<GetUserByIdResponse>
 }

@@ -1,12 +1,10 @@
 import type { UserID } from '../types/users'
+import type { EventID } from '../types/events'
 
-export interface GetEventInteractionRequest {
-  eventId: string
-}
 export interface GetEventInteractionsResponse {
   likes: UserID[]
 }
 
 export interface InteractionAPI {
-  getEventInteractions(request: GetEventInteractionRequest): Promise<GetEventInteractionsResponse>
+  getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse>
 }

@@ -1,10 +1,13 @@
-import { createEventsClient } from '../client'
-import type { EventAPI } from '../interfaces/events'
+import type { ApiClient } from '../client'
+import type { EventAPI, GetEventByIdResponse } from '../interfaces/events'
 import type { GetTagResponse } from '../interfaces/events'
+import type { EventID } from '../types/events'
 
-export const eventsApi: EventAPI = {
+export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async getTags(): Promise<GetTagResponse> {
-    const eventsClient = createEventsClient()
     return eventsClient.get<GetTagResponse>('/tags')
   },
-}
+  async getEventById(id: EventID): Promise<GetEventByIdResponse> {
+    return eventsClient.get<GetEventByIdResponse>(`/events/${id}`)
+  },
+})

@@ -1,4 +1,4 @@
-import type { Tag, Event } from '../types/events'
+import type { Tag, Event, EventID } from '../types/events'
 
 export interface TagCategory {
   category: string
@@ -7,13 +7,11 @@ export interface TagCategory {
 
 export type GetTagResponse = TagCategory[]
 
-export interface GetEventByIdRequest {
-  eventId: string
-}
 export interface GetEventByIdResponse {
   event: Event
 }
+
 export interface EventAPI {
   getTags(): Promise<GetTagResponse>
-  getEventById(request: GetEventByIdRequest): Promise<GetEventByIdResponse>
+  getEventById(id: EventID): Promise<GetEventByIdResponse>
 }

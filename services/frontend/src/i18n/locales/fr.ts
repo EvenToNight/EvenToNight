@@ -2,11 +2,11 @@ export default {
   locale: 'fr-US',
   nav: {
     login: 'Se connecter',
-    register: 'S\'inscrire',
+    register: "S'inscrire",
   },
   home: {
     hero: {
-      title: 'Trouvez l\'événement pour vous',
+      title: "Trouvez l'événement pour vous",
     },
     sections: {
       upcomingEvents: 'Événements à venir',
@@ -37,7 +37,7 @@ export default {
     postedEvents: 'Événements publiés',
     draftedEvents: 'Événements rédigés',
     draft: 'Brouillon',
-    noPostedEvents: 'Aucun événement publié pour l\'instant',
-    noDraftedEvents: 'Aucun événement rédigé pour l\'instant',
+    noPostedEvents: "Aucun événement publié pour l'instant",
+    noDraftedEvents: "Aucun événement rédigé pour l'instant",
   },
 }

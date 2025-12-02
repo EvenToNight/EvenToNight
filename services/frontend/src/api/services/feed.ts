@@ -1,10 +1,9 @@
-import { createFeedClient } from '../client'
+import { ApiClient } from '../client'
 import type { FeedAPI } from '../interfaces/feed'
 import type { GetUpcomingResponse } from '../interfaces/feed'
 
-export const feedApi: FeedAPI = {
+export const createFeedApi = (feedClient: ApiClient): FeedAPI => ({
   async getUpcomingEvents(): Promise<GetUpcomingResponse> {
-    const eventsClient = createFeedClient()
-    return eventsClient.get<GetUpcomingResponse>('/upcoming-events  ')
+    return feedClient.get<GetUpcomingResponse>('/upcoming-events')
   },
-}
+})

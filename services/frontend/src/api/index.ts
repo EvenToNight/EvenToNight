@@ -1,19 +1,26 @@
 import { mockEventsApi } from './mock-services/events'
-import { eventsApi } from './services/events'
-import { mockImagesApi } from './mock-services/media'
-import { mediaApi } from './services/media'
+import { createEventsApi } from './services/events'
+import { mockMediaApi } from './mock-services/media'
+import { createMediaApi } from './services/media'
 import { mockFeedApi } from './mock-services/feed'
-import { feedApi } from './services/feed'
+import { createFeedApi } from './services/feed'
 import { mockInteractionsApi } from './mock-services/interactions'
-import { interactionsApi } from './services/interactions'
-import { mockUserApi } from './mock-services/users'
-import { userApi } from './services/users'
+import { createInteractionsApi } from './services/interactions'
+import { mockUsersApi } from './mock-services/users'
+import { createUsersApi } from './services/users'
+import {
+  createEventsClient,
+  createFeedClient,
+  createInteractionsClient,
+  createMediaClient,
+  createUsersClient,
+} from './client'
 
 const isDev = import.meta.env.DEV
 export const api = {
-  events: isDev ? mockEventsApi : eventsApi,
-  images: isDev ? mockImagesApi : mediaApi,
-  feed: isDev ? mockFeedApi : feedApi,
-  interactions: isDev ? mockInteractionsApi : interactionsApi,
-  users: isDev ? mockUserApi : userApi,
+  events: isDev ? mockEventsApi : createEventsApi(createEventsClient()),
+  images: isDev ? mockMediaApi : createMediaApi(createMediaClient()),
+  feed: isDev ? mockFeedApi : createFeedApi(createFeedClient()),
+  interactions: isDev ? mockInteractionsApi : createInteractionsApi(createInteractionsClient()),
+  users: isDev ? mockUsersApi : createUsersApi(createUsersClient()),
 }

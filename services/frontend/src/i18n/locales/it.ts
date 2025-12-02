@@ -6,7 +6,7 @@ export default {
   },
   home: {
     hero: {
-      title: 'Trova l\'evento che fa per te',
+      title: "Trova l'evento che fa per te",
     },
     sections: {
       upcomingEvents: 'Prossimi eventi',

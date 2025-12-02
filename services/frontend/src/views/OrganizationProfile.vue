@@ -15,7 +15,7 @@ const organization = ref<User | null>(null)
 const loadOrganization = async () => {
   try {
     const organizationId = route.params.id as string
-    const response = await api.users.getUserById({ userId: organizationId })
+    const response = await api.users.getUserById(organizationId)
     organization.value = response.user
   } catch (error) {
     console.error('Failed to load organization:', error)

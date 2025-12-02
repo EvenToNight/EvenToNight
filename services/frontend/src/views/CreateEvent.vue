@@ -59,7 +59,6 @@ const allOrganizations = [
   { label: 'Villa delle Rose', value: 5 },
 ]
 
-// eslint-disable-next-line no-unused-vars
 const filterCollaborators = (val: string, update: (fn: () => void) => void) => {
   if (val === '') {
     update(() => {
@@ -76,7 +75,6 @@ const filterCollaborators = (val: string, update: (fn: () => void) => void) => {
   })
 }
 
-// eslint-disable-next-line no-unused-vars
 const filterLocations = async (val: string, update: (fn: () => void) => void) => {
   if (val.length < 3) {
     update(() => {

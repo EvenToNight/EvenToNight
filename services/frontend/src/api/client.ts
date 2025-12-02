@@ -1,4 +1,4 @@
-import type { ApiError } from './types/common'
+import type { ApiError } from './interfaces/commons'
 
 const getServiceUrl = (service: string): string => {
   const host = import.meta.env.VITE_HOST
@@ -83,3 +83,4 @@ export const createEventsClient = () => new ApiClient('events')
 export const createUsersClient = () => new ApiClient('users')
 export const createMediaClient = () => new ApiClient('media')
 export const createFeedClient = () => new ApiClient('feed')
+export const createInteractionsClient = () => new ApiClient('interactions')

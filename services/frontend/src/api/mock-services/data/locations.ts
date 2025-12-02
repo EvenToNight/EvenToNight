@@ -17,13 +17,13 @@ const event1Location: Location = {
 }
 event1Location.link = extractLocationMapsLink(event1Location)
 
-const event2Location = event1Location
-const event3Location = event1Location
-const event4Location = event1Location
-const event5Location = event1Location
-const event6Location = event1Location
-const event7Location = event1Location
-const event8Location = event1Location
+const event2Location: Location = event1Location
+const event3Location: Location = event1Location
+const event4Location: Location = event1Location
+const event5Location: Location = event1Location
+const event6Location: Location = event1Location
+const event7Location: Location = event1Location
+const event8Location: Location = event1Location
 
 export {
   event1Location,
