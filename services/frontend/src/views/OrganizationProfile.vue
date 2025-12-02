@@ -1,23 +1,30 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import BackButton from '@/components/BackButton.vue'
+import { api } from '@/api'
+import type { User } from '@/api/types/users'
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 
-// Mock data - will be replaced with real data later
-const organization = ref({
-  id: 1,
-  name: 'Coccorico Events',
-  avatar: 'https://i.pravatar.cc/300?img=1',
-  coverImage: 'https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=1200&q=80',
-  bio: 'Legendary nightclub hosting the best electronic music events in Italy since 1989',
-  location: 'Riccione, Italy',
-  website: 'https://coccorico.it',
-  followers: 12547,
-  following: 234,
+const organization = ref<User | null>(null)
+
+const loadOrganization = async () => {
+  try {
+    const organizationId = route.params.id as string
+    const response = await api.users.getUserById({ userId: organizationId })
+    organization.value = response.user
+  } catch (error) {
+    console.error('Failed to load organization:', error)
+    organization.value = null
+  }
+}
+
+onMounted(() => {
+  loadOrganization()
 })
 
 const postedEvents = ref([
@@ -83,11 +90,11 @@ const goToEvent = (eventId: number) => {
     <BackButton />
 
     <!-- Profile Info -->
-    <div class="profile-container">
+    <div v-if="organization" class="profile-container">
       <div class="profile-header-card">
         <div class="profile-header">
           <div class="avatar-section">
-            <img :src="organization.avatar" :alt="organization.name" class="profile-avatar" />
+            <img :src="organization.avatarUrl" :alt="organization.name" class="profile-avatar" />
           </div>
 
           <div class="profile-info">
@@ -114,13 +121,16 @@ const goToEvent = (eventId: number) => {
               </div>
             </div>
 
-            <div class="stats-inline">
-              <div class="stat-inline-item">
+            <div v-if="organization.followers || organization.following" class="stats-inline">
+              <div v-if="organization.followers" class="stat-inline-item">
                 <span class="stat-inline-value">{{ organization.followers.toLocaleString() }}</span>
                 <span class="stat-inline-label">{{ t('profile.followers') }}</span>
               </div>
-              <div class="stat-divider-inline"></div>
-              <div class="stat-inline-item">
+              <div
+                v-if="organization.followers && organization.following"
+                class="stat-divider-inline"
+              ></div>
+              <div v-if="organization.following" class="stat-inline-item">
                 <span class="stat-inline-value">{{ organization.following.toLocaleString() }}</span>
                 <span class="stat-inline-label">{{ t('profile.following') }}</span>
               </div>

@@ -7,7 +7,8 @@ import SearchBar from '../components/SearchBar.vue'
 import EventCard from '@/components/EventCard.vue'
 import CardSlider from '@/components/CardSlider.vue'
 import Footer from '@/components/Footer.vue'
-import { mockEvents } from '@/data/mockEvents'
+import { api } from '@/api'
+import type { Event } from '@/api/types/events'
 
 const $q = useQuasar()
 const { t } = useI18n()
@@ -15,15 +16,14 @@ const showSearchInNavbar = ref(false)
 const searchQuery = ref('')
 const searchBarHasFocus = ref(false)
 const heroSearchPlaceholderRef = ref<HTMLElement | null>(null)
+const upcomingEvents = ref<Event[]>([])
 
-// Use shared mock events data
-const events = ref(mockEvents)
-
-const handleFavoriteToggle = (eventId: number, isFavorite: boolean) => {
-  const event = events.value.find((e) => e.id === eventId)
-  if (event) {
-    event.favorite = isFavorite
-  }
+const handleFavoriteToggle = (eventId: string, isFavorite: boolean) => {
+  console.log(`Event ID: ${eventId}, Favorite: ${isFavorite}`)
+  // const event = upcomingEvents.value.find((e) => e.id === eventId)
+  // if (event) {
+  //   event.favorite = isFavorite
+  // }
 }
 
 const handleSeeAllEvents = () => {
@@ -42,8 +42,10 @@ const handleScroll = () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
+  const response = await api.feed.getUpcomingEvents()
+  upcomingEvents.value = response.events
 })
 
 onUnmounted(() => {
@@ -91,14 +93,14 @@ onUnmounted(() => {
           <div class="content-section">
             <CardSlider :title="t('home.sections.upcomingEvents')" @see-all="handleSeeAllEvents">
               <EventCard
-                v-for="event in events"
+                v-for="event in upcomingEvents"
                 :id="event.id"
                 :key="event.id"
-                :image-url="event.imageUrl"
+                :image-url="event.posterLink"
                 :title="event.title"
-                :subtitle="event.subtitle"
+                :subtitle="event.location.name || event.location.city"
                 :date="event.date"
-                :favorite="event.favorite"
+                :favorite="false"
                 @favorite-toggle="handleFavoriteToggle(event.id, $event)"
               />
             </CardSlider>

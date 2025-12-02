@@ -1,9 +1,10 @@
+import type { MediaAPI } from '../interfaces/media'
 import type {
   MediaGetRequest,
   MediaGetResponse,
   MediaUploadRequest,
   MediaUploadResponse,
-} from '../types/media'
+} from '../interfaces/media'
 
 const delay = (ms: number = 0) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -60,7 +61,7 @@ const saveImageToStorage = (image: MediaUploadRequest): MediaUploadResponse => {
   return { url: key }
 }
 
-export const mockImagesApi = {
+export const mockImagesApi: MediaAPI = {
   async get(request: MediaGetRequest): Promise<MediaGetResponse> {
     await delay()
     return getImageFromStorage(request)

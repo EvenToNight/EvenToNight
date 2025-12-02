@@ -21,3 +21,8 @@ export interface MediaUploadResponse {
   mimeType?: string
   thumbnailUrl?: string
 }
+
+export interface MediaAPI {
+  get(request: MediaGetRequest): Promise<MediaGetResponse>
+  upload(request: MediaUploadRequest): Promise<MediaUploadResponse>
+}

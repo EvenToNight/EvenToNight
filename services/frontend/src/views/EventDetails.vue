@@ -2,8 +2,10 @@
 import { computed, watchEffect, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import { getEventById } from '@/data/mockEvents'
 import BackButton from '@/components/BackButton.vue'
+import { api } from '@/api'
+import type { Event } from '@/api/types/events'
+import type { User } from '@/api/types/users'
 
 const route = useRoute()
 const router = useRouter()
@@ -13,12 +15,59 @@ const { t, locale } = useI18n()
 const eventId = computed(() => route.params.id as string)
 
 // Get event data based on ID
-const event = computed(() => getEventById(eventId.value))
+const event = ref<Event | null>(null)
+const organizer = ref<User | null>(null)
+const collaborators = ref<User[]>([])
+
+// Load organizer data
+const loadOrganizer = async (userId: string) => {
+  try {
+    const response = await api.users.getUserById({ userId })
+    organizer.value = response.user
+  } catch (error) {
+    console.error('Failed to load organizer:', error)
+    organizer.value = null
+  }
+}
+
+// Load collaborators data
+const loadCollaborators = async (userIds: string[]) => {
+  try {
+    const promises = userIds.map((userId) => api.users.getUserById({ userId }))
+    const responses = await Promise.all(promises)
+    collaborators.value = responses.map((response) => response.user)
+  } catch (error) {
+    console.error('Failed to load collaborators:', error)
+    collaborators.value = []
+  }
+}
+
+// Load event data
+const loadEvent = async () => {
+  try {
+    const response = await api.events.getEventById({ eventId: eventId.value })
+    event.value = response.event
+
+    // Load organizer data
+    if (event.value.creatorId) {
+      await loadOrganizer(event.value.creatorId)
+    }
+
+    // Load collaborators data
+    if (event.value.collaboratorsId && event.value.collaboratorsId.length > 0) {
+      await loadCollaborators(event.value.collaboratorsId)
+    }
+  } catch (error) {
+    console.error('Failed to load event:', error)
+    event.value = null
+    router.push({ name: 'home' })
+  }
+}
 
 // Redirect to home if event not found
 watchEffect(() => {
   if (eventId.value && !event.value) {
-    router.push({ name: 'home' })
+    loadEvent()
   }
 })
 
@@ -42,26 +91,29 @@ const formatTime = (date: Date) => {
 const isFavorite = ref(false)
 const likesCount = ref(0)
 
-// Initialize values when event is loaded
-watchEffect(() => {
-  if (event.value) {
-    isFavorite.value = event.value.favorite
-    likesCount.value = event.value.likes
+// Load event interactions
+const loadInteractions = async () => {
+  if (!eventId.value) return
+
+  try {
+    const interaction = await api.interactions.getEventInteractions({ eventId: eventId.value })
+    likesCount.value = interaction.likes.length
+    // TODO: Check if current user has liked the event
+    isFavorite.value = false
+  } catch (error) {
+    console.error('Failed to load interactions:', error)
+    likesCount.value = 0
+    isFavorite.value = false
   }
-})
+}
 
 const toggleLike = () => {
   isFavorite.value = !isFavorite.value
   likesCount.value += isFavorite.value ? 1 : -1
-
-  // Update the original event in mockEvents
-  if (event.value) {
-    event.value.favorite = isFavorite.value
-    event.value.likes = likesCount.value
-  }
+  // TODO: Call API to update like status
 }
 
-const goToOrganizationProfile = (organizationId: number) => {
+const goToOrganizationProfile = (organizationId: string) => {
   router.push({
     name: 'organization-profile',
     params: {
@@ -75,32 +127,16 @@ const goToOrganizationProfile = (organizationId: number) => {
 const locationAddress = computed(() => {
   if (!event.value) return ''
   const loc = event.value.location
-  return typeof loc === 'string' ? loc : loc.address
-})
-
-const locationCoords = computed(() => {
-  if (!event.value) return null
-  const loc = event.value.location
-  if (typeof loc === 'string') return null
-  return { lat: loc.lat, lon: loc.lon }
+  // Build address from location parts
+  return [loc.name, loc.road, loc.house_number, loc.city, loc.province, loc.country]
+    .filter(Boolean)
+    .join(', ')
 })
 
 const mapsUrl = computed(() => {
   if (!event.value) return null
-
-  // Prefer coordinates if available (more accurate)
-  const coords = locationCoords.value
-  if (coords) {
-    return `https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}`
-  }
-
-  // Fallback to address search
-  const address = locationAddress.value
-  if (address) {
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`
-  }
-
-  return null
+  // Use the link from location object
+  return event.value.location.link
 })
 
 // Parallax effect
@@ -127,10 +163,14 @@ const handleScroll = () => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
   // Scroll to top when component mounts
   window.scrollTo(0, 0)
   window.addEventListener('scroll', handleScroll, { passive: true })
+
+  // Load event and interactions
+  await loadEvent()
+  await loadInteractions()
 })
 
 onUnmounted(() => {
@@ -143,7 +183,7 @@ onUnmounted(() => {
     <!-- Hero Image -->
     <div class="hero-image-container">
       <div ref="heroImageRef" class="hero-image-wrapper">
-        <img :src="event.imageUrl" :alt="event.title" class="hero-image" />
+        <img :src="event.posterLink" :alt="event.title" class="hero-image" />
       </div>
       <BackButton />
       <div class="hero-overlay"></div>
@@ -155,7 +195,7 @@ onUnmounted(() => {
         <div class="title-row">
           <div class="title-content">
             <h1 class="event-title">{{ event.title }}</h1>
-            <p class="event-subtitle">{{ event.subtitle }}</p>
+            <p class="event-subtitle">{{ event.location.name || event.location.city }}</p>
           </div>
           <button class="like-button" :class="{ liked: isFavorite }" @click="toggleLike">
             <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="24px" />
@@ -206,7 +246,7 @@ onUnmounted(() => {
             <q-icon name="confirmation_number" class="info-icon" />
             <div class="info-text">
               <span class="info-label">{{ t('eventDetails.price') }}</span>
-              <span class="info-value">{{ event.price }}</span>
+              <span class="info-value">€{{ event.price }}</span>
             </div>
           </div>
         </div>
@@ -216,36 +256,38 @@ onUnmounted(() => {
           <p class="event-description">{{ event.description }}</p>
         </div>
 
-        <div class="organizer-section">
+        <!-- Organizer section -->
+        <div v-if="organizer" class="organizer-section">
           <h3 class="section-subtitle">{{ t('eventDetails.organizer') }}</h3>
-          <div class="organizer-card" @click="goToOrganizationProfile(event.organizer.id)">
+          <div class="organizer-card" @click="goToOrganizationProfile(event.creatorId)">
             <img
-              v-if="event.organizer.avatar"
-              :src="event.organizer.avatar"
-              :alt="event.organizer.name"
+              v-if="organizer.avatarUrl"
+              :src="organizer.avatarUrl"
+              :alt="organizer.name"
               class="organizer-avatar"
             />
             <div class="organizer-info">
-              <h4 class="organizer-name">{{ event.organizer.name }}</h4>
-              <p v-if="event.organizer.description" class="organizer-description">
-                {{ event.organizer.description }}
+              <h4 class="organizer-name">{{ organizer.name }}</h4>
+              <p v-if="organizer.bio" class="organizer-description">
+                {{ organizer.bio }}
               </p>
             </div>
           </div>
         </div>
 
-        <div v-if="event.collaborators && event.collaborators.length" class="collaborators-section">
+        <!-- Collaborators section -->
+        <div v-if="collaborators.length > 0" class="collaborators-section">
           <h3 class="section-subtitle">{{ t('eventDetails.collaborators') }}</h3>
           <div class="collaborators-list">
             <div
-              v-for="collab in event.collaborators"
+              v-for="collab in collaborators"
               :key="collab.id"
               class="collaborator-card"
               @click="goToOrganizationProfile(collab.id)"
             >
               <img
-                v-if="collab.avatar"
-                :src="collab.avatar"
+                v-if="collab.avatarUrl"
+                :src="collab.avatarUrl"
                 :alt="collab.name"
                 class="collaborator-avatar"
               />
