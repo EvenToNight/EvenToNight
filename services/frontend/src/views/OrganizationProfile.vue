@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import BackButton from '@/components/BackButton.vue'
 
 const { t } = useI18n()
 const router = useRouter()
@@ -75,15 +76,11 @@ const goToCreateEvent = () => {
 const goToEvent = (eventId: number) => {
   router.push({ name: 'event', params: { id: eventId } })
 }
-
-const goBack = () => {
-  router.back()
-}
 </script>
 
 <template>
   <div class="organization-profile">
-    <q-btn icon="arrow_back" flat round dense class="back-button" @click="goBack" />
+    <BackButton />
 
     <!-- Profile Info -->
     <div class="profile-container">
@@ -248,30 +245,6 @@ const goBack = () => {
 
   @include dark-mode {
     background: #121212;
-  }
-}
-
-.back-button {
-  position: absolute;
-  top: $spacing-4;
-  left: $spacing-4;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  color: white !important;
-  transition: all 0.3s ease;
-
-  :deep(.q-icon) {
-    color: white !important;
-  }
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.8);
-    transform: scale(1.05);
-  }
-
-  @media (max-width: 330px) {
-    left: $spacing-2;
   }
 }
 

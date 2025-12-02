@@ -3,6 +3,7 @@ import { computed, watchEffect, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { getEventById } from '@/data/mockEvents'
+import BackButton from '@/components/BackButton.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -20,10 +21,6 @@ watchEffect(() => {
     router.push({ name: 'home' })
   }
 })
-
-const goBack = () => {
-  router.back()
-}
 
 const formatDate = (date: Date) => {
   return new Intl.DateTimeFormat(locale.value, {
@@ -148,7 +145,7 @@ onUnmounted(() => {
       <div ref="heroImageRef" class="hero-image-wrapper">
         <img :src="event.imageUrl" :alt="event.title" class="hero-image" />
       </div>
-      <q-btn icon="arrow_back" flat round dense color="white" class="back-button" @click="goBack" />
+      <BackButton />
       <div class="hero-overlay"></div>
     </div>
 
@@ -328,30 +325,6 @@ onUnmounted(() => {
   );
   pointer-events: none;
   z-index: 1;
-}
-
-.back-button {
-  position: absolute;
-  top: $spacing-4;
-  left: $spacing-4;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  color: white !important;
-  transition: all 0.3s ease;
-
-  :deep(.q-icon) {
-    color: white !important;
-  }
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.8);
-    transform: scale(1.05);
-  }
-
-  @media (max-width: 330px) {
-    left: $spacing-2;
-  }
 }
 
 .content-wrapper {

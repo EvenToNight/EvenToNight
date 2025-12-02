@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRouter } from 'vue-router'
+import BackButton from '@/components/BackButton.vue'
 
 const $q = useQuasar()
-const router = useRouter()
-
-const goBack = () => {
-  router.back()
-}
 
 const event = ref({
   name: '',
@@ -161,7 +156,7 @@ const onSubmit = () => {
 
 <template>
   <div class="create-event-page">
-    <q-btn icon="arrow_back" flat round dense color="white" class="back-button" @click="goBack" />
+    <BackButton />
 
     <div class="page-content">
       <div class="container">
@@ -322,30 +317,6 @@ const onSubmit = () => {
   flex-direction: column;
   position: relative;
   padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
-}
-
-.back-button {
-  position: absolute;
-  top: $spacing-4;
-  left: $spacing-4;
-  z-index: 1000;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
-  color: white !important;
-  transition: all 0.3s ease;
-
-  :deep(.q-icon) {
-    color: white !important;
-  }
-
-  &:hover {
-    background: rgba(0, 0, 0, 0.8);
-    transform: scale(1.05);
-  }
-
-  @media (max-width: 330px) {
-    left: $spacing-2;
-  }
 }
 
 .page-content {
