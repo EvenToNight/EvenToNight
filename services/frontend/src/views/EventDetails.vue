@@ -91,6 +91,9 @@ const formatTime = (date: Date) => {
 const isFavorite = ref(false)
 const likesCount = ref(0)
 
+// Mock user ID - in a real app, this would come from auth context
+const currentUserId = 'current-user-id'
+
 // Load event interactions
 const loadInteractions = async () => {
   if (!eventId.value) return
@@ -98,8 +101,8 @@ const loadInteractions = async () => {
   try {
     const interaction = await api.interactions.getEventInteractions(eventId.value)
     likesCount.value = interaction.likes.length
-    // TODO: Check if current user has liked the event
-    isFavorite.value = false
+    // Check if current user has liked the event
+    isFavorite.value = interaction.likes.includes(currentUserId)
   } catch (error) {
     console.error('Failed to load interactions:', error)
     likesCount.value = 0
@@ -107,10 +110,29 @@ const loadInteractions = async () => {
   }
 }
 
-const toggleLike = () => {
+const toggleLike = async () => {
+  if (!eventId.value) return
+
+  const wasLiked = isFavorite.value
+
+  // Optimistic update
   isFavorite.value = !isFavorite.value
   likesCount.value += isFavorite.value ? 1 : -1
-  // TODO: Call API to update like status
+
+  try {
+    if (!wasLiked) {
+      // Like the event
+      await api.interactions.likeEvent(eventId.value, currentUserId)
+    } else {
+      // Unlike functionality not yet implemented in API
+      console.warn('Unlike functionality not yet implemented')
+    }
+  } catch (error) {
+    console.error('Failed to toggle like:', error)
+    // Revert optimistic update on error
+    isFavorite.value = wasLiked
+    likesCount.value += wasLiked ? 1 : -1
+  }
 }
 
 const goToOrganizationProfile = (organizationId: string) => {

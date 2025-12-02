@@ -18,12 +18,22 @@ const searchBarHasFocus = ref(false)
 const heroSearchPlaceholderRef = ref<HTMLElement | null>(null)
 const upcomingEvents = ref<Event[]>([])
 
-const handleFavoriteToggle = (eventId: string, isFavorite: boolean) => {
-  console.log(`Event ID: ${eventId}, Favorite: ${isFavorite}`)
-  // const event = upcomingEvents.value.find((e) => e.id === eventId)
-  // if (event) {
-  //   event.favorite = isFavorite
-  // }
+// Mock user ID - in a real app, this would come from auth context
+const currentUserId = 'current-user-id'
+
+const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
+  try {
+    if (isFavorite) {
+      // Like the event
+      await api.interactions.likeEvent(eventId, currentUserId)
+      console.log(`Event ${eventId} liked`)
+    } else {
+      // Unlike functionality not yet implemented in API
+      console.warn('Unlike functionality not yet implemented')
+    }
+  } catch (error) {
+    console.error('Failed to toggle favorite:', error)
+  }
 }
 
 const handleSeeAllEvents = () => {
