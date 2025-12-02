@@ -2,11 +2,11 @@ export default {
   locale: 'fr-US',
   nav: {
     login: 'Se connecter',
-    register: "S'inscrire",
+    register: 'S\'inscrire',
   },
   home: {
     hero: {
-      title: "Trouvez l'événement pour vous",
+      title: 'Trouvez l\'événement pour vous',
     },
     sections: {
       upcomingEvents: 'Événements à venir',
@@ -17,7 +17,7 @@ export default {
     time: 'Temps',
     location: 'Emplacement',
     price: 'Prix',
-    about: 'À propos',
+    about: 'À propos de cet événement',
     organizer: 'Organisé par',
     collaborators: 'En collaboration avec',
     buyTickets: 'Acheter des billets',
@@ -28,5 +28,16 @@ export default {
     contact: 'Contact',
     privacy: 'politique de confidentialité',
     copyright: '© 2025 EvenToNight. Tous droits réservés.',
+  },
+  profile: {
+    editProfile: 'Modifier le profil',
+    createEvent: 'Créer un événement',
+    followers: 'Abonnés',
+    following: 'Suivant',
+    postedEvents: 'Événements publiés',
+    draftedEvents: 'Événements rédigés',
+    draft: 'Brouillon',
+    noPostedEvents: 'Aucun événement publié pour l\'instant',
+    noDraftedEvents: 'Aucun événement rédigé pour l\'instant',
   },
 }

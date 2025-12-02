@@ -6,7 +6,7 @@ export default {
   },
   home: {
     hero: {
-      title: "Trova l'evento che fa per te",
+      title: 'Trova l\'evento che fa per te',
     },
     sections: {
       upcomingEvents: 'Prossimi eventi',
@@ -17,7 +17,7 @@ export default {
     time: 'Tempo',
     location: 'Posizione',
     price: 'Prezzo',
-    about: 'Di',
+    about: 'A proposito di questo evento',
     organizer: 'Organizzato da',
     collaborators: 'In collaborazione con',
     buyTickets: 'Acquista i biglietti',
@@ -30,14 +30,14 @@ export default {
     copyright: '© 2025 EvenToNight. Tutti i diritti riservati.',
   },
   profile: {
-    editProfile: 'Modifica Profilo',
-    createEvent: 'Crea Evento',
-    followers: 'Follower',
-    following: 'Seguiti',
-    postedEvents: 'Eventi Pubblicati',
-    draftedEvents: 'Bozze',
+    editProfile: 'Modifica profilo',
+    createEvent: 'Crea evento',
+    followers: 'Seguaci',
+    following: 'Seguente',
+    postedEvents: 'Eventi pubblicati',
+    draftedEvents: 'Eventi redatti',
     draft: 'Bozza',
-    noPostedEvents: 'Nessun evento pubblicato',
-    noDraftedEvents: 'Nessuna bozza',
+    noPostedEvents: 'Nessun evento ancora pubblicato',
+    noDraftedEvents: 'Nessun evento ancora in bozza',
   },
 }
