@@ -275,11 +275,20 @@ const goToProfile = () => {
 
 <style lang="scss">
 .navbar-wrapper {
-  position: sticky;
-  top: 0;
-  z-index: $z-index-sticky;
   min-width: 300px;
   width: 100%;
+
+  // Desktop: sticky per rimanere in cima durante scroll verticale
+  @media (min-width: calc($breakpoint-mobile + 1px)) {
+    position: sticky;
+    top: 0;
+    z-index: $z-index-sticky;
+  }
+
+  // Mobile: non sticky, scrolla con il contenuto sia verticalmente che orizzontalmente
+  @media (max-width: $breakpoint-mobile) {
+    position: relative;
+  }
 }
 
 .navigation-bar {
@@ -353,6 +362,7 @@ const goToProfile = () => {
 
 .search-icon-mobile {
   display: none;
+  flex-shrink: 0;
 
   @media (max-width: $breakpoint-mobile) {
     display: inline-flex;
@@ -385,6 +395,7 @@ const goToProfile = () => {
 
 .hamburger-menu-mobile {
   display: none;
+  flex-shrink: 0;
 
   @media (max-width: $breakpoint-mobile) {
     display: inline-flex;
@@ -402,6 +413,10 @@ const goToProfile = () => {
     position: relative;
     width: 100%;
   }
+
+  > .q-btn {
+    flex-shrink: 0;
+  }
 }
 
 .mobile-drawer-overlay {
@@ -414,19 +429,33 @@ const goToProfile = () => {
   z-index: 9999;
   display: flex;
   justify-content: flex-end;
+
+  @media (max-width: $breakpoint-mobile) {
+    // Su mobile usa absolute per essere solidale con l'app, non con la viewport
+    position: absolute;
+  }
 }
 
 .mobile-drawer {
   width: 300px;
   max-width: 80vw;
+  min-width: 240px;
   height: 100%;
   background: white;
   box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
+  flex-shrink: 0;
 
   @include dark-mode {
     background: #1d1d1d;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    // Assicura che l'altezza sia relativa al contenitore
+    height: 100vh;
+    position: sticky;
+    top: 0;
   }
 }
 
