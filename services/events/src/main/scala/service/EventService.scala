@@ -19,10 +19,10 @@ class EventService(
 
   def handleCommand(cmd: Commands): Either[String, Any] =
     cmd match
-      case c: CreateEventDraftCommand  => validateAnd(c)(eventCommandService.createEventDraft)
-      case c: UpdateEventPosterCommand => validateAnd(c)(eventCommandService.updatePoster)
-      case c: GetEventCommand          => validateAnd(c)(eventQueryService.getEvent)
-      case _: GetAllEventsCommand      => eventQueryService.getAllPublishedEvents()
+      case c: CreateEventDraftCommand  => validateAnd(c)(eventCommandService.execCommand)
+      case c: UpdateEventPosterCommand => validateAnd(c)(eventCommandService.execCommand)
+      case c: GetEventCommand          => validateAnd(c)(eventQueryService.execCommand)
+      case c: GetAllEventsCommand      => eventQueryService.execCommand(c)
 
   private def validateAnd[C <: Commands, R](cmd: C)(f: C => Either[String, R])(using
       v: Validator[C]

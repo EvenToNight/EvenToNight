@@ -5,6 +5,7 @@ import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventPosterCommand
 import domain.models.EventTag
+import domain.models.Location
 import infrastructure.db.EventRepository
 import infrastructure.db.MongoEventRepository
 import infrastructure.messaging.EventPublisher
@@ -33,12 +34,22 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       description: String = "Test Description",
       poster: String = "test-poster.jpg",
       tag: List[EventTag] = List(EventTag.VenueType.Bar),
-      location: String = "Test Location",
+      location: Location = Location.create(
+        country = "Test Country",
+        country_code = "TC",
+        road = "Test Road",
+        postcode = "12345",
+        house_number = "10A",
+        lat = 45.0,
+        lon = 90.0,
+        link = "http://example.com/location"
+      ),
+      price: Double = 15.0,
       date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
       id_creator: String = "creator-123",
       id_collaborator: Option[String] = None
   ): CreateEventDraftCommand =
-    CreateEventDraftCommand(title, description, poster, tag, location, date, id_creator, id_collaborator)
+    CreateEventDraftCommand(title, description, poster, tag, location, date, price, id_creator, id_collaborator)
 
   private def validGetEventCommand(id_event: String = "event-123"): GetEventCommand =
     GetEventCommand(id_event)
@@ -76,11 +87,11 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     result shouldBe Left("Date must be in the future")
 
   it should "return validation errors for CreateEventDraftCommand with empty location" in:
-    val command = validCreateEventDraftCommand(location = "")
+    val command = validCreateEventDraftCommand(location = Location.Nil())
 
     val result = service.handleCommand(command)
 
-    result shouldBe Left("Location cannot be empty")
+    result shouldBe Left("Location has invalid parameters")
 
   it should "return validation errors for CreateEventDraftCommand with empty description" in:
     val command = validCreateEventDraftCommand(description = "")
@@ -90,7 +101,8 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     result shouldBe Left("Description cannot be empty")
 
   it should "concatenate multiple validation errors for CreateEventDraftCommand" in:
-    val command = validCreateEventDraftCommand(title = "", date = LocalDateTime.of(2020, 1, 1, 0, 0), location = "")
+    val command =
+      validCreateEventDraftCommand(title = "", date = LocalDateTime.of(2020, 1, 1, 0, 0), location = Location.Nil())
 
     val result = service.handleCommand(command) match
       case Left(errors) => errors

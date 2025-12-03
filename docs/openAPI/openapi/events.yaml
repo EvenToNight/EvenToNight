@@ -23,6 +23,7 @@ paths:
                 - tags
                 - location
                 - date
+                - price
                 - id_creator
               properties:
                 title:
@@ -50,6 +51,11 @@ paths:
                   format: date-time
                   description: Event date and time
                   example: "2025-07-15T20:00:00"
+                price:
+                  type: number
+                  format: double
+                  description: Event ticket price
+                  example: 25.50
                 id_creator:
                   type: string
                   description: ID of the event creator
@@ -65,11 +71,34 @@ paths:
           content:
             application/json:
               schema:
-                type: string
-                description: The ID of the created event
-              example: "event-uuid-123"
+                type: object
+                properties:
+                  id_event:
+                    type: string
+                    description: Unique identifier of the created event
+                    example: "evt_789xyz"
         '400':
-          description: Validation error
+          description: Bad request - validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message describing what went wrong
+                    example: "Invalid date format"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Unknown error occurred during event creation"
       tags:
         - Event Command API
     
@@ -115,6 +144,10 @@ paths:
                       type: string
                       format: date-time
                       description: Event date and time
+                    price:
+                      type: number
+                      format: double
+                      description: Event ticket price  
                     status:
                       type: string
                       enum: [PUBLISHED]
@@ -130,6 +163,18 @@ paths:
                       type: string
                       description: ID of the collaborator (if any)
                       nullable: true
+        '404':
+          description: No events found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Could not retrieve events"
+          
       tags:
         - Event Query API
   
@@ -182,6 +227,10 @@ paths:
                     type: string
                     format: date-time
                     description: Event date and time
+                  price:
+                    type: number
+                    format: double
+                    description: Event ticket price
                   status:
                     type: string
                     enum: [DRAFT, PUBLISHED, CANCELLED]
@@ -211,6 +260,15 @@ paths:
                 id_collaborator: ""
         '404':
           description: Event not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Event not found"  
       tags:
         - Event Query API 
   
@@ -281,7 +339,5 @@ paths:
                 type: array
                 items:
                   type: string
-        '400':
-          description: Invalid category.
       tags:
         - Event Tag Routes

@@ -1,6 +1,7 @@
 package domain.commands
 
 import domain.models.EventTag
+import domain.models.Location
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -12,11 +13,22 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   private var baseDate: LocalDateTime    = uninitialized
   private var sampleTags: List[EventTag] = uninitialized
+  private var sampleLocation: Location   = uninitialized
 
   override def beforeEach(): Unit =
     super.beforeEach()
     baseDate = LocalDateTime.of(2025, 12, 31, 20, 0)
     sampleTags = List(EventTag.TypeOfEvent.Party, EventTag.VenueType.Club)
+    sampleLocation = Location.create(
+      country = "Test Country",
+      country_code = "TC",
+      road = "Test Road",
+      postcode = "12345",
+      house_number = "10A",
+      lat = 45.0,
+      lon = 90.0,
+      link = "http://example.com/location"
+    )
 
   private def createCommand(
       title: String = "Test Event",
@@ -27,8 +39,9 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       "Test description",
       "poster.jpg",
       sampleTags,
-      "Test Location",
+      sampleLocation,
       baseDate,
+      15.0,
       "creator-123",
       id_collaborator
     )
@@ -52,14 +65,16 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.title shouldBe "Custom Title"
     command.id_collaborator shouldBe None
     command.tag shouldBe sampleTags
+    command.location shouldBe sampleLocation
+    command.date shouldBe baseDate
 
   it should "support pattern matching" in:
     val command: Commands = createCommand("Pattern Test")
     val result = command match
-      case CreateEventDraftCommand(title, _, _, _, _, _, _, _) => s"Command: $title"
-      case GetEventCommand(id_event)                           => s"Get Command: $id_event"
-      case UpdateEventPosterCommand(eventId, posterUrl)        => s"Update Poster Command: $eventId"
-      case GetAllEventsCommand()                               => "Get All Events Command"
+      case CreateEventDraftCommand(title, _, _, _, _, _, _, _, _) => s"Command: $title"
+      case GetEventCommand(id_event)                              => s"Get Command: $id_event"
+      case UpdateEventPosterCommand(eventId, posterUrl)           => s"Update Poster Command: $eventId"
+      case GetAllEventsCommand()                                  => "Get All Events Command"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:

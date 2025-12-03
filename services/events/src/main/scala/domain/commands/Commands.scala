@@ -1,5 +1,6 @@
 package domain.commands
 import domain.models.EventTag
+import domain.models.Location
 
 import java.time.LocalDateTime
 
@@ -10,8 +11,9 @@ case class CreateEventDraftCommand(
     description: String,
     poster: String,
     tag: List[EventTag],
-    location: String,
+    location: Location,
     date: LocalDateTime,
+    price: Double,
     id_creator: String,
     id_collaborator: Option[String]
 ) extends Commands

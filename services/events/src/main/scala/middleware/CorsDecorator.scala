@@ -26,9 +26,7 @@ class CorsDecorator extends RawDecorator:
       )
     else
       delegate(ctx, Map()).map { response =>
-        Response(
-          data = response.data.data,
-          statusCode = response.data.statusCode,
+        response.copy(
           headers = response.data.headers ++ corsHeaders
         )
       }

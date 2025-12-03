@@ -4,7 +4,7 @@ import domain.commands.CreateEventDraftCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventPosterCommand
 
-import ValidationRules.{futureDate, nonEmpty}
+import ValidationRules.{futureDate, nonEmpty, correctLocality}
 import Validator.combine
 
 object CreateEventDraftValidator extends Validator[CreateEventDraftCommand]:
@@ -14,7 +14,7 @@ object CreateEventDraftValidator extends Validator[CreateEventDraftCommand]:
       nonEmpty(cmd.title, "Title"),
       nonEmpty(cmd.description, "Description"),
       nonEmpty(cmd.id_creator, "Creator Id"),
-      nonEmpty(cmd.location, "Location"),
+      correctLocality(cmd.location, "Location"),
       futureDate(cmd.date, "Date")
     )
     validations.map(_ => cmd)

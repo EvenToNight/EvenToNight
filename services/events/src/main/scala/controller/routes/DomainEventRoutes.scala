@@ -5,6 +5,8 @@ import domain.commands.UpdateEventPosterCommand
 import domain.models.EventTag.validateTagList
 import service.EventService
 import ujson.Obj
+import utils.Utils.parseLocationFromJson
+import utils.Utils.uploadPosterToMediaService
 
 import java.time.LocalDateTime
 
@@ -13,63 +15,56 @@ class DomainEventRoutes(eventService: EventService) extends BaseRoutes:
   private val mediaServiceUrl = "http://media:9020"
 
   @cask.postForm("/")
-  def createDraft(
+  def createEventDraft(
       title: String,
       description: String,
       poster: cask.FormFile,
       tags: String,
       location: String,
       date: String,
+      price: Double,
       id_creator: String,
       id_collaborator: Option[String] = None
-  ): ujson.Value =
-    val tagList = validateTagList(tags)
+  ): cask.Response[ujson.Value] =
+    val tagList     = validateTagList(tags)
+    val localityObj = parseLocationFromJson(location)
+
     val command = CreateEventDraftCommand(
       title = title,
       description = description,
       poster = "",
       tag = tagList,
-      location = location,
+      location = localityObj,
       date = LocalDateTime.parse(date),
+      price = price,
       id_creator = id_creator,
       id_collaborator = id_collaborator.filter(_.nonEmpty)
     )
 
-    val eventId = eventService.handleCommand(command) match
-      case Right(id: String) => id
-      case _                 => ""
+    eventService.handleCommand(command) match
+      case Right(eventId: String) =>
+        val posterUrl = uploadPosterToMediaService(eventId, poster, mediaServiceUrl)
 
-    val posterUrl =
-      try
-        val fileBytesOpt = poster.filePath.map(path => java.nio.file.Files.readAllBytes(path))
+        val updateCommand = UpdateEventPosterCommand(
+          eventId = eventId,
+          posterUrl = posterUrl
+        )
 
-        fileBytesOpt match
-          case Some(fileBytes) =>
-            val response = requests.post(
-              s"$mediaServiceUrl/events/$eventId",
-              data = requests.MultiPart(
-                requests.MultiItem(
-                  name = "file",
-                  data = fileBytes,
-                  filename = s"${eventId}_poster.jpg"
-                )
-              )
-            )
-            ujson.read(response.text())("url").str
-          case None =>
-            s"/events/$eventId/default.jpg"
-      catch
-        case e: Exception =>
-          println(s"Error upload poster: ${e.getMessage}")
-          s"/events/$eventId/default.jpg"
+        eventService.handleCommand(updateCommand)
 
-    val updateCommand = UpdateEventPosterCommand(
-      eventId = eventId,
-      posterUrl = posterUrl
-    )
-
-    eventService.handleCommand(updateCommand)
-
-    Obj("id_event" -> eventId)
+        cask.Response(
+          Obj("id_event" -> eventId),
+          statusCode = 200
+        )
+      case Left(value) =>
+        cask.Response(
+          Obj("error" -> value),
+          statusCode = 400
+        )
+      case _ =>
+        cask.Response(
+          Obj("error" -> "Unknown error occurred during event creation"),
+          statusCode = 500
+        )
 
   initialize()

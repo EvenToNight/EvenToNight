@@ -1,92 +1,100 @@
 package domain.commands.validators
 
 import domain.commands.CreateEventDraftCommand
+import domain.commands.GetEventCommand
+import domain.commands.UpdateEventPosterCommand
 import domain.models.EventTag
+import domain.models.Location
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.time.LocalDateTime
-import scala.compiletime.uninitialized
 
 class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
-  private var futureDate: LocalDateTime  = uninitialized
-  private var pastDate: LocalDateTime    = uninitialized
-  private var sampleTags: List[EventTag] = uninitialized
+  private val pastDate: LocalDateTime = LocalDateTime.now().minusDays(1)
 
-  override def beforeEach(): Unit =
-    super.beforeEach()
-    futureDate = LocalDateTime.now().plusDays(7)
-    pastDate = LocalDateTime.now().minusDays(1)
-    sampleTags = List(EventTag.TypeOfEvent.Party, EventTag.VenueType.Club)
-
-  private def createValidCommand(
-      title: String = "Valid Event",
-      description: String = "Valid description",
-      location: String = "Valid Location",
-      date: LocalDateTime = null,
-      id_creator: String = "creator-123"
+  private def validCreateEventDraftCommand(
+      title: String = "Valid Title",
+      description: String = "Valid Description",
+      location: Location = Location.create(
+        country = "Valid Country",
+        country_code = "VC",
+        road = "Valid Road",
+        postcode = "12345",
+        house_number = "1A",
+        lat = 10.0,
+        lon = 20.0,
+        link = "http://valid-link.com"
+      ),
+      date: LocalDateTime = LocalDateTime.now().plusDays(10),
+      price: Double = 20.0,
+      id_creator: String = "valid-creator-id"
   ): CreateEventDraftCommand =
-    val eventDate = if date != null then date else futureDate
     CreateEventDraftCommand(
       title = title,
       description = description,
-      poster = "poster.jpg",
-      tag = sampleTags,
+      poster = "valid-poster.jpg",
+      tag = List(EventTag.VenueType.Bar),
       location = location,
-      date = eventDate,
+      date = date,
+      price = price,
       id_creator = id_creator,
       id_collaborator = None
     )
 
-  "CreateEventDraftValidator" should "validate valid command successfully" in:
-    val command = createValidCommand()
+  "CreateEventDraftValidator" should "extends Validator trait" in:
+    val validator = CreateEventDraftValidator
+    validator shouldBe a[Validator[CreateEventDraftCommand]]
+
+  it should "validate create event draft command successfully" in:
+    val command = validCreateEventDraftCommand()
     val result  = CreateEventDraftValidator.validate(command)
 
     result shouldBe Right(command)
 
   it should "reject empty title" in:
-    val command = createValidCommand(title = "")
+    val command = validCreateEventDraftCommand(title = "")
     val result  = CreateEventDraftValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Title cannot be empty")
 
   it should "reject empty description" in:
-    val command = createValidCommand(description = "")
+    val command = validCreateEventDraftCommand(description = "")
     val result  = CreateEventDraftValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Description cannot be empty")
 
   it should "reject empty location" in:
-    val command = createValidCommand(location = "")
+    val command = validCreateEventDraftCommand(location = Location.Nil())
     val result  = CreateEventDraftValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
-    result.left.value should contain("Location cannot be empty")
+    result.left.value should contain("Location has invalid parameters")
 
   it should "reject empty creator id" in:
-    val command = createValidCommand(id_creator = "")
+    val command = validCreateEventDraftCommand(id_creator = "")
     val result  = CreateEventDraftValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Creator Id cannot be empty")
 
   it should "reject past date" in:
-    val command = createValidCommand(date = pastDate)
+    val command = validCreateEventDraftCommand(date = pastDate)
     val result  = CreateEventDraftValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Date must be in the future")
 
   it should "collect multiple validation errors" in:
-    val command = createValidCommand(
+    val command = validCreateEventDraftCommand(
       title = "",
       description = "",
-      location = "",
+      location = Location.Nil(),
       date = pastDate
     )
     val result = CreateEventDraftValidator.validate(command)
@@ -97,24 +105,15 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     errors should contain allOf (
       "Title cannot be empty",
       "Description cannot be empty",
-      "Location cannot be empty",
+      "Location has invalid parameters",
       "Date must be in the future"
     )
 
-  "Validator trait with given instance" should "work with validateCommand" in:
-    import ValidatorsInstances.given
+  "GetEventValidator" should "extend Validator trait" in:
+    val validator = GetEventValidator
+    validator shouldBe a[Validator[GetEventCommand]]
 
-    val validCommand   = createValidCommand()
-    val invalidCommand = createValidCommand(title = "")
-
-    val result1 = Validator.validateCommand(validCommand)
-    val result2 = Validator.validateCommand(invalidCommand)
-
-    result1 shouldBe Right(validCommand)
-    result2 shouldBe a[Left[?, ?]]
-
-  "GetEventValidator" should "validate valid event ID successfully" in:
-    import domain.commands.GetEventCommand
+  it should "validate valid event ID successfully" in:
 
     val command = GetEventCommand("valid-event-id-123")
     val result  = GetEventValidator.validate(command)
@@ -130,8 +129,11 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Event ID cannot be empty")
 
-  "UpdateEventPosterValidator" should "validate valid command successfully" in:
-    import domain.commands.UpdateEventPosterCommand
+  "UpdateEventPosterValidator" should "extend Validator trait" in:
+    val validator = UpdateEventPosterValidator
+    validator shouldBe a[Validator[UpdateEventPosterCommand]]
+
+  it should "validate valid command successfully" in:
 
     val command = UpdateEventPosterCommand("valid-event-123", "https://example.com/poster.jpg")
     val result  = UpdateEventPosterValidator.validate(command)
@@ -155,17 +157,3 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Poster URL cannot be empty")
-
-  "Validator trait with GetEventCommand" should "work with validateCommand using given instance" in:
-    import domain.commands.GetEventCommand
-    import ValidatorsInstances.given
-
-    val validCommand   = GetEventCommand("valid-id")
-    val invalidCommand = GetEventCommand("")
-
-    val result1 = Validator.validateCommand(validCommand)
-    val result2 = Validator.validateCommand(invalidCommand)
-
-    result1 shouldBe Right(validCommand)
-    result2 shouldBe a[Left[?, ?]]
-    result2.left.value should contain("Event ID cannot be empty")

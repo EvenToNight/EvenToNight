@@ -54,12 +54,6 @@ paths:
               schema:
                 type: integer
                 example: 245760
-        '400':
-          description: Bad request - missing or invalid file path
-        '404':
-          description: File not found and no default available
-        '500':
-          description: Internal server error during file retrieval
       tags:
         - Default
 
@@ -114,10 +108,6 @@ paths:
                     type: string
                     description: The path/key of the uploaded file or default image
                     example: "users/userId/profile.jpg"
-        '400':
-          description: Bad request - invalid or missing data
-        '500':
-          description: Internal server error during upload
       tags:
         - Default
     put:
@@ -171,12 +161,6 @@ paths:
                     type: string
                     description: The path/key of the updated file
                     example: "users/userId/profile.jpg"
-        '400':
-          description: Bad request - invalid or missing data
-        '404':
-          description: File not found - use POST to create new files
-        '500':
-          description: Internal server error during update
       tags:
         - Default
   "/{type}/{entityId}/{filename}":
@@ -223,11 +207,5 @@ paths:
                   message:
                     type: string
                     example: "File with key 'users/userId/profile.jpg' deleted successfully."
-        '400':
-          description: Bad request - invalid parameters
-        '404':
-          description: File not found
-        '500':
-          description: Internal server error during deletion
       tags:
         - Default

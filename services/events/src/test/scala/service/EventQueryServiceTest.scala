@@ -1,8 +1,10 @@
 package service
+import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
 import domain.models.Event
 import domain.models.EventStatus
 import domain.models.EventTag
+import domain.models.Location
 import infrastructure.db.EventRepository
 import infrastructure.db.MongoEventRepository
 import org.scalatest.BeforeAndAfterEach
@@ -15,6 +17,7 @@ import scala.compiletime.uninitialized
 class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   var repo: EventRepository      = uninitialized
   var service: EventQueryService = uninitialized
+
   override def beforeEach(): Unit =
     super.beforeEach()
     repo = new MongoEventRepository("mongodb://localhost:27017", "eventonight_test")
@@ -26,7 +29,17 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       description = "This is a sample event.",
       poster = "sample_poster.png",
       tag = List(EventTag.TypeOfEvent.Concert),
-      location = "Sample Location",
+      location = Location.create(
+        country = "Test Country",
+        country_code = "TC",
+        road = "Test Road",
+        postcode = "12345",
+        house_number = "10A",
+        lat = 45.0,
+        lon = 90.0,
+        link = "http://example.com/location"
+      ),
+      price = 15.0,
       date = LocalDateTime.now().plusDays(1),
       id_creator = "creator123",
       id_collaborator = None
@@ -34,6 +47,9 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
 
   private def validGetEventCommand(id_event: String): GetEventCommand =
     GetEventCommand(id_event)
+
+  private def valideGetAllEventsCommand(): GetAllEventsCommand =
+    GetAllEventsCommand()
 
   "EventQueryService" should "be instantiated correctly" in:
     service.`should`(be(a[EventQueryService]))
@@ -43,7 +59,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
     repo.save(event)
 
     val cmd    = validGetEventCommand(event._id)
-    val result = service.getEvent(cmd)
+    val result = service.execCommand(cmd)
 
     result match
       case Right(retrievedEvent) =>
@@ -54,7 +70,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
 
   it should "return an error when retrieving a non-existing event" in:
     val cmd    = validGetEventCommand("nonexistent_id")
-    val result = service.getEvent(cmd)
+    val result = service.execCommand(cmd)
     result shouldBe Left("Event with id nonexistent_id not found")
 
   "Get All Published Events" should "retrieve all published events" in:
@@ -66,7 +82,8 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
     repo.save(event2)
     repo.save(event3)
 
-    val result = service.getAllPublishedEvents()
+    val cmd    = valideGetAllEventsCommand()
+    val result = service.execCommand(cmd)
     result match
       case Right(events) =>
         events should contain allElementsOf List(event1, event3)

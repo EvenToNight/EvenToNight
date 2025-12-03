@@ -13,7 +13,7 @@ import java.util.UUID
 
 class DomainEventService(repo: EventRepository, publisher: EventPublisher):
 
-  def createEventDraft(cmd: CreateEventDraftCommand): Either[String, String] =
+  def execCommand(cmd: CreateEventDraftCommand): Either[String, String] =
     val newEvent =
       Event.createDraft(
         title = cmd.title,
@@ -22,6 +22,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         tag = cmd.tag,
         location = cmd.location,
         date = cmd.date,
+        price = cmd.price,
         id_creator = cmd.id_creator,
         id_collaborator = cmd.id_collaborator
       )
@@ -38,7 +39,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         )
         Right(newEvent._id)
 
-  def updatePoster(cmd: UpdateEventPosterCommand): Either[String, Unit] =
+  def execCommand(cmd: UpdateEventPosterCommand): Either[String, Unit] =
     repo.findById(cmd.eventId) match
       case Some(event) =>
         repo.update(event.copy(poster = cmd.posterUrl))
