@@ -7,7 +7,7 @@ import ImageCropUpload from '@/components/upload/ImageCropUpload.vue'
 import { api } from '@/api'
 import type { EventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
-
+import { parseLocation } from '@/api/types/common'
 const $q = useQuasar()
 const router = useRouter()
 
@@ -188,41 +188,36 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
     console.log(data)
 
     update(() => {
-      locationOptions.value = data.map((item: any) => {
-        // Format address properly: combine house number with street
-        const addr = item.address || {}
-        const street = addr.road || addr.street || ''
-        const houseNumber = addr.house_number || ''
-        const streetAddress = [street, houseNumber].filter(Boolean).join(' ')
-
-        const fullAddress = [
-          streetAddress,
-          addr.postcode,
-          addr.city || addr.town || addr.village,
-          addr.state,
-          addr.country,
-        ]
-          .filter(Boolean)
-          .join(', ')
-
-        return {
-          label: item.display_name,
-          value: {
-            address: fullAddress,
-            lat: parseFloat(item.lat),
-            lon: parseFloat(item.lon),
-            type: item.type,
-            placeId: item.place_id,
-          },
-          description: item.type,
-        }
-      })
+      locationOptions.value = data
+        .map((item: any) => {
+          try {
+            const [displayName, locationData] = parseLocation(item)
+            return {
+              label: displayName,
+              value: locationData,
+              description: item.type,
+            }
+          } catch (error) {
+            console.warn('Skipping invalid location:', error)
+            return null
+          }
+        })
+        .filter((option: any) => option !== null)
     })
   } catch (err) {
     console.error('Error fetching locations:', err)
     update(() => {
       locationOptions.value = []
     })
+  }
+}
+
+const handleLocationSelect = (location: any) => {
+  event.value.location = location
+  if (location) {
+    console.log('Location selected:', location.value.link)
+    // Clear any previous location error
+    errors.value.location = ''
   }
 }
 
@@ -542,6 +537,7 @@ const onSubmit = async () => {
               :error="!!errors.location"
               :error-message="errors.location"
               @filter="filterLocations"
+              @update:model-value="handleLocationSelect"
             >
               <template #no-option>
                 <q-item>
