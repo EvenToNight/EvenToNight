@@ -7,6 +7,8 @@ export const MOBILE_BREAKPOINT = 800
 import { computed, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import SearchBar from './SearchBar.vue'
 
 interface Props {
@@ -18,6 +20,8 @@ interface Props {
 const props = defineProps<Props>()
 const $q = useQuasar()
 const { t } = useI18n()
+const router = useRouter()
+const authStore = useAuthStore()
 
 const emit = defineEmits<{
   'update:searchQuery': [value: string]
@@ -59,13 +63,11 @@ const updateSearchQuery = (value: string) => {
 }
 
 const handleSignIn = () => {
-  console.log('Sign In clicked')
-  // TODO: Implement sign in logic
+  router.push({ name: 'login' })
 }
 
 const handleSignUp = () => {
-  console.log('Sign Up clicked')
-  // TODO: Implement sign up logic
+  router.push({ name: 'register' })
 }
 
 const toggleMobileSearch = () => {
@@ -95,6 +97,17 @@ const handleSignInAndClose = () => {
 const handleSignUpAndClose = () => {
   handleSignUp()
   closeMobileMenu()
+}
+
+const handleLogout = async () => {
+  await authStore.logout()
+  router.push({ name: 'home' })
+}
+
+const goToProfile = () => {
+  if (authStore.user) {
+    router.push({ name: 'user-profile', params: { id: authStore.user.id } })
+  }
 }
 </script>
 
@@ -141,7 +154,37 @@ const handleSignUpAndClose = () => {
           @click="toggleMobileSearch"
         />
 
-        <div class="auth-buttons">
+        <!-- Authenticated user avatar -->
+        <div v-if="authStore.isAuthenticated" class="user-menu">
+          <q-btn flat round>
+            <q-avatar size="40px">
+              <img
+                :src="authStore.user?.avatarUrl || '/default-avatar.png'"
+                :alt="authStore.user?.name"
+              />
+            </q-avatar>
+            <q-menu>
+              <q-list style="min-width: 200px">
+                <q-item clickable @click="goToProfile">
+                  <q-item-section avatar>
+                    <q-icon name="person" />
+                  </q-item-section>
+                  <q-item-section>{{ t('nav.profile') }}</q-item-section>
+                </q-item>
+                <q-separator />
+                <q-item clickable @click="handleLogout">
+                  <q-item-section avatar>
+                    <q-icon name="logout" />
+                  </q-item-section>
+                  <q-item-section>{{ t('nav.logout') }}</q-item-section>
+                </q-item>
+              </q-list>
+            </q-menu>
+          </q-btn>
+        </div>
+
+        <!-- Login/Register buttons for guests -->
+        <div v-else class="auth-buttons">
           <q-btn
             flat
             :label="t('nav.login')"
@@ -171,7 +214,43 @@ const handleSignUpAndClose = () => {
             <q-btn flat dense icon="close" @click="closeMobileMenu" />
           </div>
           <div class="mobile-drawer-content">
-            <div class="mobile-drawer-buttons">
+            <!-- Authenticated user -->
+            <div v-if="authStore.isAuthenticated" class="mobile-user-section">
+              <div class="mobile-user-info">
+                <q-avatar size="60px">
+                  <img
+                    :src="authStore.user?.avatarUrl || '/default-avatar.png'"
+                    :alt="authStore.user?.name"
+                  />
+                </q-avatar>
+                <div class="mobile-user-details">
+                  <div class="mobile-user-name">{{ authStore.user?.name }}</div>
+                  <div class="mobile-user-email">{{ authStore.user?.email }}</div>
+                </div>
+              </div>
+              <q-separator class="q-my-md" />
+              <div class="mobile-drawer-buttons">
+                <q-btn
+                  flat
+                  icon="person"
+                  :label="t('nav.profile')"
+                  color="primary"
+                  class="full-width mobile-menu-btn"
+                  @click="(goToProfile(), closeMobileMenu())"
+                />
+                <q-btn
+                  flat
+                  icon="logout"
+                  :label="t('nav.logout')"
+                  color="negative"
+                  class="full-width mobile-menu-btn"
+                  @click="(handleLogout(), closeMobileMenu())"
+                />
+              </div>
+            </div>
+
+            <!-- Guest buttons -->
+            <div v-else class="mobile-drawer-buttons">
               <q-btn
                 flat
                 :label="t('nav.login')"
@@ -404,6 +483,64 @@ const handleSignUpAndClose = () => {
 
   .mobile-drawer {
     transform: translateX(0);
+  }
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+
+  @media (max-width: $breakpoint-mobile) {
+    display: none;
+  }
+}
+
+.mobile-user-section {
+  display: flex;
+  flex-direction: column;
+}
+
+.mobile-user-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-2 0;
+}
+
+.mobile-user-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobile-user-name {
+  font-weight: 600;
+  font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+
+  @include light-mode {
+    color: #1d1d1d;
+  }
+
+  @include dark-mode {
+    color: #ffffff;
+  }
+}
+
+.mobile-user-email {
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 2px;
+
+  @include light-mode {
+    color: #666;
+  }
+
+  @include dark-mode {
+    color: #aaa;
   }
 }
 </style>

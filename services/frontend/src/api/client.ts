@@ -8,6 +8,20 @@ const getServiceUrl = (service: string): string => {
   return `http://${service}.${host}`
 }
 
+// Token provider function - will be set by the app
+let tokenProvider: (() => string | null) | null = null
+
+export const setTokenProvider = (provider: () => string | null) => {
+  tokenProvider = provider
+}
+
+// Callback when token needs refresh (401/403 response)
+let onTokenExpired: (() => Promise<boolean>) | null = null
+
+export const setTokenExpiredCallback = (callback: () => Promise<boolean>) => {
+  onTokenExpired = callback
+}
+
 export class ApiClient {
   private baseUrl: string
 
@@ -15,33 +29,47 @@ export class ApiClient {
     this.baseUrl = getServiceUrl(service)
   }
 
-  async get<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'GET' })
+  async get<T>(endpoint: string, options?: { credentials?: boolean }): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'GET',
+      ...(options?.credentials && { credentials: 'include' }),
+    })
   }
 
-  async post<T>(endpoint: string, data?: unknown): Promise<T> {
+  async post<T>(endpoint: string, data?: unknown, options?: { credentials?: boolean }): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(data),
+      ...(options?.credentials && { credentials: 'include' }),
     })
   }
 
-  async put<T>(endpoint: string, data?: unknown): Promise<T> {
+  async put<T>(endpoint: string, data?: unknown, options?: { credentials?: boolean }): Promise<T> {
     return this.request<T>(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
+      ...(options?.credentials && { credentials: 'include' }),
     })
   }
 
-  async delete<T>(endpoint: string): Promise<T> {
-    return this.request<T>(endpoint, { method: 'DELETE' })
+  async delete<T>(endpoint: string, options?: { credentials?: boolean }): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'DELETE',
+      ...(options?.credentials && { credentials: 'include' }),
+    })
   }
 
-  private async request<T>(endpoint: string, options: RequestInit): Promise<T> {
+  private async request<T>(endpoint: string, options: RequestInit, isRetry = false): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
 
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string>),
+    }
+
+    // Add JWT token if available
+    const token = tokenProvider?.()
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`
     }
 
     // Only add Content-Type for requests with a body
@@ -56,6 +84,15 @@ export class ApiClient {
 
     try {
       const response = await fetch(url, config)
+
+      // Handle token expiration (401 Unauthorized)
+      if (response.status === 401 && !isRetry && onTokenExpired) {
+        const refreshed = await onTokenExpired()
+        if (refreshed) {
+          // Retry the request with new token
+          return this.request<T>(endpoint, options, true)
+        }
+      }
 
       if (!response.ok) {
         const error: ApiError = {

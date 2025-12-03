@@ -3,6 +3,12 @@ export default {
   nav: {
     login: 'Login',
     register: 'Sign Up',
+    profile: 'Profile',
+    logout: 'Logout',
+  },
+  auth: {
+    notLoggedIn: 'Oops! Not logged in',
+    loginRequired: 'You need to be logged in to perform this action',
   },
   home: {
     hero: {
@@ -34,10 +40,16 @@ export default {
     createEvent: 'Create Event',
     followers: 'Followers',
     following: 'Following',
+    follow: 'Follow',
+    followingAlready: 'Following',
     postedEvents: 'Posted Events',
     draftedEvents: 'Drafted Events',
     draft: 'Draft',
     noPostedEvents: 'No posted events yet',
     noDraftedEvents: 'No drafted events yet',
+    myTickets: 'My Tickets',
+    myEvents: 'My Events',
+    noTickets: 'No tickets yet',
+    noEvents: 'No events yet',
   },
 }

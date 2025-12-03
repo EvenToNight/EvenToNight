@@ -3,6 +3,7 @@ import Home from '../views/Home.vue'
 import PlaceHolderView from '../views/PlaceHolderView.vue'
 import LocaleWrapper from '../views/LocaleWrapper.vue'
 import i18n, { SUPPORTED_LOCALES, DEFAULT_LOCALE, type Locale } from '../i18n'
+import { requireGuest } from './guards'
 
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')
@@ -41,6 +42,18 @@ const router = createRouter({
           path: '',
           name: 'home',
           component: Home,
+        },
+        {
+          path: 'login',
+          name: 'login',
+          component: () => import('../views/Login.vue'),
+          beforeEnter: requireGuest,
+        },
+        {
+          path: 'register',
+          name: 'register',
+          component: () => import('../views/Login.vue'),
+          beforeEnter: requireGuest,
         },
         {
           path: 'location',

@@ -2,7 +2,9 @@
 import { computed, watchEffect, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth'
 import BackButton from '@/components/navigation/BackButton.vue'
+import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'
@@ -10,9 +12,11 @@ import type { User } from '@/api/types/users'
 const route = useRoute()
 const router = useRouter()
 const { t, locale } = useI18n()
+const authStore = useAuthStore()
 
 // Get event ID from route params
 const eventId = computed(() => route.params.id as string)
+const showAuthDialog = ref(false)
 
 // Get event data based on ID
 const event = ref<Event | null>(null)
@@ -91,9 +95,6 @@ const formatTime = (date: Date) => {
 const isFavorite = ref(false)
 const likesCount = ref(0)
 
-// Mock user ID - in a real app, this would come from auth context
-const currentUserId = 'current-user-id'
-
 // Load event interactions
 const loadInteractions = async () => {
   if (!eventId.value) return
@@ -102,7 +103,9 @@ const loadInteractions = async () => {
     const interaction = await api.interactions.getEventInteractions(eventId.value)
     likesCount.value = interaction.likes.length
     // Check if current user has liked the event
-    isFavorite.value = interaction.likes.includes(currentUserId)
+    if (authStore.user?.id) {
+      isFavorite.value = interaction.likes.includes(authStore.user.id)
+    }
   } catch (error) {
     console.error('Failed to load interactions:', error)
     likesCount.value = 0
@@ -113,6 +116,11 @@ const loadInteractions = async () => {
 const toggleLike = async () => {
   if (!eventId.value) return
 
+  if (!authStore.isAuthenticated) {
+    showAuthDialog.value = true
+    return
+  }
+
   const wasLiked = isFavorite.value
 
   // Optimistic update
@@ -122,7 +130,7 @@ const toggleLike = async () => {
   try {
     if (!wasLiked) {
       // Like the event
-      await api.interactions.likeEvent(eventId.value, currentUserId)
+      await api.interactions.likeEvent(eventId.value, authStore.user!.id)
     } else {
       // Unlike functionality not yet implemented in API
       console.warn('Unlike functionality not yet implemented')
@@ -202,6 +210,9 @@ onUnmounted(() => {
 
 <template>
   <div v-if="event" class="event-details-view">
+    <!-- Auth Required Dialog -->
+    <AuthRequiredDialog v-model="showAuthDialog" />
+
     <!-- Hero Image -->
     <div class="hero-image-container">
       <div ref="heroImageRef" class="hero-image-wrapper">

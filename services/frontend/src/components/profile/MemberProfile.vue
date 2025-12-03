@@ -13,25 +13,25 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
-const organization = ref<User | null>(null)
+const member = ref<User | null>(null)
 const isFollowing = ref(false)
 const showAuthDialog = ref(false)
 
 // Check if the current user is viewing their own profile
 const isOwnProfile = computed(() => {
-  return authStore.isAuthenticated && authStore.user?.id === organization.value?.id
+  return authStore.isAuthenticated && authStore.user?.id === member.value?.id
 })
 
-const loadOrganization = async () => {
+const loadMember = async () => {
   try {
-    const organizationId = route.params.id as string
-    const response = await api.users.getUserById(organizationId)
-    organization.value = response.user
+    const memberId = route.params.id as string
+    const response = await api.users.getUserById(memberId)
+    member.value = response.user
     // TODO: Load following status from API
     isFollowing.value = false
   } catch (error) {
-    console.error('Failed to load organization:', error)
-    organization.value = null
+    console.error('Failed to load member:', error)
+    member.value = null
   }
 }
 
@@ -46,8 +46,8 @@ const handleFollowToggle = async () => {
     isFollowing.value = !isFollowing.value
 
     // Update follower count
-    if (organization.value) {
-      organization.value.followers += isFollowing.value ? 1 : -1
+    if (member.value) {
+      member.value.followers += isFollowing.value ? 1 : -1
     }
   } catch (error) {
     console.error('Failed to toggle follow:', error)
@@ -55,44 +55,46 @@ const handleFollowToggle = async () => {
 }
 
 onMounted(() => {
-  loadOrganization()
+  loadMember()
 })
 
-const postedEvents = ref([
+// Mock data for tickets
+const myTickets = ref([
   {
     id: 1,
     title: 'Techno vibes',
     imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80',
     date: new Date(2024, 11, 8, 23, 0),
     location: 'Coccorico - Riccione',
-    status: 'published',
+    ticketNumber: 'TKT-001234',
   },
+])
+
+// Mock data for my events (participated/will participate)
+const myEvents = ref([
   {
     id: 2,
     title: 'Summer Festival 2024',
     imageUrl: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80',
     date: new Date(2025, 5, 8, 18, 0),
     location: 'Open Air Stage',
-    status: 'published',
+    attended: false,
   },
-])
-
-const draftedEvents = ref([
   {
     id: 3,
     title: 'New Year Special',
     imageUrl: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=800&q=80',
-    date: new Date(2024, 11, 31, 23, 0),
+    date: new Date(2023, 11, 31, 23, 0),
     location: 'Coccorico - Riccione',
-    status: 'draft',
+    attended: true,
   },
 ])
 
-// Default to 'posted' always, since non-owners can only see posted events
-const activeTab = ref<'posted' | 'drafted'>('posted')
+// Default to 'events' if viewing someone else's profile
+const activeTab = ref<'tickets' | 'events'>('events')
 
-const displayedEvents = computed(() => {
-  return activeTab.value === 'posted' ? postedEvents.value : draftedEvents.value
+const displayedItems = computed(() => {
+  return activeTab.value === 'tickets' ? myTickets.value : myEvents.value
 })
 
 const formatDate = (date: Date) => {
@@ -108,33 +110,29 @@ const goToEditProfile = () => {
   console.log('Edit profile')
 }
 
-const goToCreateEvent = () => {
-  router.push({ name: 'create-event' })
-}
-
 const goToEvent = (eventId: number) => {
   router.push({ name: 'event', params: { id: eventId } })
 }
 </script>
 
 <template>
-  <div class="organization-profile">
+  <div class="member-profile">
     <BackButton />
 
     <!-- Auth Required Dialog -->
     <AuthRequiredDialog v-model="showAuthDialog" />
 
     <!-- Profile Info -->
-    <div v-if="organization" class="profile-container">
+    <div v-if="member" class="profile-container">
       <div class="profile-header-card">
         <div class="profile-header">
           <div class="avatar-section">
-            <img :src="organization.avatarUrl" :alt="organization.name" class="profile-avatar" />
+            <img :src="member.avatarUrl" :alt="member.name" class="profile-avatar" />
           </div>
 
           <div class="profile-info">
             <div class="profile-name-row">
-              <h1 class="profile-name">{{ organization.name }}</h1>
+              <h1 class="profile-name">{{ member.name }}</h1>
               <div v-if="isOwnProfile" class="profile-actions desktop-only">
                 <q-btn
                   flat
@@ -143,15 +141,6 @@ const goToEvent = (eventId: number) => {
                   dense
                   class="action-btn edit-btn"
                   @click="goToEditProfile"
-                />
-                <q-btn
-                  unelevated
-                  color="primary"
-                  :label="t('profile.createEvent')"
-                  icon="add"
-                  dense
-                  class="action-btn create-btn"
-                  @click="goToCreateEvent"
                 />
               </div>
               <div v-else class="profile-actions desktop-only">
@@ -166,34 +155,31 @@ const goToEvent = (eventId: number) => {
               </div>
             </div>
 
-            <div v-if="organization.followers || organization.following" class="stats-inline">
-              <div v-if="organization.followers" class="stat-inline-item">
-                <span class="stat-inline-value">{{ organization.followers.toLocaleString() }}</span>
+            <div v-if="member.followers || member.following" class="stats-inline">
+              <div v-if="member.followers" class="stat-inline-item">
+                <span class="stat-inline-value">{{ member.followers.toLocaleString() }}</span>
                 <span class="stat-inline-label">{{ t('profile.followers') }}</span>
               </div>
-              <div
-                v-if="organization.followers && organization.following"
-                class="stat-divider-inline"
-              ></div>
-              <div v-if="organization.following" class="stat-inline-item">
-                <span class="stat-inline-value">{{ organization.following.toLocaleString() }}</span>
+              <div v-if="member.followers && member.following" class="stat-divider-inline"></div>
+              <div v-if="member.following" class="stat-inline-item">
+                <span class="stat-inline-value">{{ member.following.toLocaleString() }}</span>
                 <span class="stat-inline-label">{{ t('profile.following') }}</span>
               </div>
             </div>
 
             <!-- Bio -->
-            <p v-if="organization.bio" class="profile-bio">{{ organization.bio }}</p>
+            <p v-if="member.bio" class="profile-bio">{{ member.bio }}</p>
 
             <!-- Website -->
-            <div v-if="organization.website" class="profile-website">
+            <div v-if="member.website" class="profile-website">
               <q-icon name="language" size="18px" />
               <a
-                :href="organization.website"
+                :href="member.website"
                 target="_blank"
                 rel="noopener noreferrer"
                 class="website-link"
               >
-                {{ organization.website }}
+                {{ member.website }}
               </a>
             </div>
 
@@ -204,17 +190,8 @@ const goToEvent = (eventId: number) => {
                 :label="t('profile.editProfile')"
                 icon="edit"
                 dense
-                class="action-btn edit-btn"
+                class="action-btn edit-btn full-width"
                 @click="goToEditProfile"
-              />
-              <q-btn
-                unelevated
-                color="primary"
-                :label="t('profile.createEvent')"
-                icon="add"
-                dense
-                class="action-btn create-btn"
-                @click="goToCreateEvent"
               />
             </div>
             <div v-else class="profile-actions mobile-only">
@@ -235,49 +212,49 @@ const goToEvent = (eventId: number) => {
       <div class="tabs-section">
         <div class="tabs-header">
           <button
-            class="tab-button"
-            :class="{ active: activeTab === 'posted' }"
-            @click="activeTab = 'posted'"
-          >
-            {{ t('profile.postedEvents') }}
-            <span class="tab-count">{{ postedEvents.length }}</span>
-          </button>
-          <button
             v-if="isOwnProfile"
             class="tab-button"
-            :class="{ active: activeTab === 'drafted' }"
-            @click="activeTab = 'drafted'"
+            :class="{ active: activeTab === 'tickets' }"
+            @click="activeTab = 'tickets'"
           >
-            {{ t('profile.draftedEvents') }}
-            <span class="tab-count">{{ draftedEvents.length }}</span>
+            {{ t('profile.myTickets') }}
+            <span class="tab-count">{{ myTickets.length }}</span>
+          </button>
+          <button
+            class="tab-button"
+            :class="{ active: activeTab === 'events' }"
+            @click="activeTab = 'events'"
+          >
+            {{ t('profile.myEvents') }}
+            <span class="tab-count">{{ myEvents.length }}</span>
           </button>
         </div>
 
-        <!-- Events Grid -->
+        <!-- Items Grid -->
         <div class="events-grid">
           <div
-            v-for="event in displayedEvents"
-            :key="event.id"
+            v-for="item in displayedItems"
+            :key="item.id"
             class="event-card"
-            @click="activeTab === 'posted' ? goToEvent(event.id) : null"
+            @click="goToEvent(item.id)"
           >
             <div class="event-image-container">
-              <img :src="event.imageUrl" :alt="event.title" class="event-image" />
-              <div v-if="event.status === 'draft'" class="draft-badge">
-                <q-icon name="edit_note" size="16px" />
-                {{ t('profile.draft') }}
+              <img :src="item.imageUrl" :alt="item.title" class="event-image" />
+              <div v-if="activeTab === 'tickets' && 'ticketNumber' in item" class="ticket-badge">
+                <q-icon name="confirmation_number" size="16px" />
+                {{ item.ticketNumber }}
               </div>
             </div>
             <div class="event-info">
-              <h3 class="event-title">{{ event.title }}</h3>
+              <h3 class="event-title">{{ item.title }}</h3>
               <div class="event-details">
                 <span class="event-date">
                   <q-icon name="event" size="16px" />
-                  {{ formatDate(event.date) }}
+                  {{ formatDate(item.date) }}
                 </span>
                 <span class="event-location">
                   <q-icon name="location_on" size="16px" />
-                  {{ event.location }}
+                  {{ item.location }}
                 </span>
               </div>
             </div>
@@ -285,12 +262,10 @@ const goToEvent = (eventId: number) => {
         </div>
 
         <!-- Empty State -->
-        <div v-if="displayedEvents.length === 0" class="empty-state">
-          <q-icon :name="activeTab === 'posted' ? 'event_busy' : 'edit_note'" size="64px" />
+        <div v-if="displayedItems.length === 0" class="empty-state">
+          <q-icon :name="activeTab === 'tickets' ? 'confirmation_number' : 'event'" size="64px" />
           <p class="empty-text">
-            {{
-              activeTab === 'posted' ? t('profile.noPostedEvents') : t('profile.noDraftedEvents')
-            }}
+            {{ activeTab === 'tickets' ? t('profile.noTickets') : t('profile.noEvents') }}
           </p>
         </div>
       </div>
@@ -299,7 +274,7 @@ const goToEvent = (eventId: number) => {
 </template>
 
 <style lang="scss" scoped>
-.organization-profile {
+.member-profile {
   min-height: 100vh;
   background: var(--q-background);
   position: relative;
@@ -490,10 +465,6 @@ const goToEvent = (eventId: number) => {
 .action-btn {
   font-size: 0.875rem;
   padding: $spacing-2 $spacing-3;
-
-  @media (max-width: 768px) {
-    flex: 1;
-  }
 }
 
 .edit-btn {
@@ -724,7 +695,7 @@ const goToEvent = (eventId: number) => {
   }
 }
 
-.draft-badge {
+.ticket-badge {
   position: absolute;
   top: $spacing-3;
   right: $spacing-3;

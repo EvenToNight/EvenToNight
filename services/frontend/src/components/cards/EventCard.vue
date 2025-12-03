@@ -43,6 +43,7 @@
 <script setup lang="ts">
 import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 
 interface Props {
@@ -60,9 +61,11 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   favoriteToggle: [value: boolean]
+  authRequired: []
 }>()
 
 const router = useRouter()
+const authStore = useAuthStore()
 const isFavorite = ref(props.favorite)
 const imageObjectUrl = ref<string>('')
 const isLoadingImage = ref(false)
@@ -107,6 +110,12 @@ onUnmounted(() => {
 
 const toggleFavorite = (event: Event) => {
   event.stopPropagation()
+
+  if (!authStore.isAuthenticated) {
+    emit('authRequired')
+    return
+  }
+
   isFavorite.value = !isFavorite.value
   emit('favoriteToggle', isFavorite.value)
 }

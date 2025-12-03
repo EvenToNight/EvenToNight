@@ -3,6 +3,12 @@ export default {
   nav: {
     login: 'Login',
     register: 'Iscrizione',
+    profile: 'Profilo',
+    logout: 'Esci',
+  },
+  auth: {
+    notLoggedIn: 'Ops! Non sei loggato',
+    loginRequired: 'Devi essere loggato per eseguire questa azione',
   },
   home: {
     hero: {
@@ -34,10 +40,16 @@ export default {
     createEvent: 'Crea evento',
     followers: 'Seguaci',
     following: 'Seguente',
+    follow: 'Segui',
+    followingAlready: 'Segui già',
     postedEvents: 'Eventi pubblicati',
     draftedEvents: 'Eventi redatti',
     draft: 'Bozza',
     noPostedEvents: 'Nessun evento ancora pubblicato',
     noDraftedEvents: 'Nessun evento ancora in bozza',
+    myTickets: 'I miei biglietti',
+    myEvents: 'I miei eventi',
+    noTickets: 'Nessun biglietto ancora',
+    noEvents: 'Nessun evento ancora',
   },
 }

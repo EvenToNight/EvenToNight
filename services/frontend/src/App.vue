@@ -1,21 +1,40 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
-import { api } from '@/api'
+import { setTokenProvider, setTokenExpiredCallback } from '@/api/client'
+import { useAuthStore } from '@/stores/auth'
 
-const isDev = import.meta.env.DEV
-console.log(`🔌 API Mode: ${isDev ? 'MOCK (Development)' : 'REAL (Production)'}`)
-api.events.getTags().then((tags) => console.log('Tags:', tags))
-fetch('http://events.localhost/tags')
-  .then((response) => {
-    console.log('✅ Response status:', response.status)
-    return response.json()
+const authStore = useAuthStore()
+
+onMounted(() => {
+  // Initialize auth from localStorage
+  authStore.initializeAuth()
+
+  // Setup auto-refresh for tokens
+  authStore.setupAutoRefresh()
+
+  if (import.meta.env.VITE_AUTO_LOGIN === 'true') {
+    authStore.login(import.meta.env.VITE_DEV_EMAIL, import.meta.env.VITE_DEV_PASSWORD)
+  }
+  // Configure API client to use auth tokens
+  setTokenProvider(() => authStore.accessToken)
+
+  // Handle token expiration
+  setTokenExpiredCallback(async () => {
+    const success = await authStore.refreshAccessToken()
+    if (success) {
+      authStore.setupAutoRefresh() // Setup next refresh
+    }
+    return success
   })
-  .then((tags) => {
-    console.log('✅ Tags:', tags)
-  })
-  .catch((error) => {
-    console.error('❌ Error:', error)
-  })
+
+  // Dev logging
+  const isDev = import.meta.env.DEV
+  console.log(`🔌 API Mode: ${isDev ? 'MOCK (Development)' : 'REAL (Production)'}`)
+  if (authStore.isAuthenticated) {
+    console.log('🔐 User authenticated:', authStore.user?.email)
+  }
+})
 </script>
 
 <template>

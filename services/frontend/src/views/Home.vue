@@ -2,30 +2,36 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth'
 import NavigationBar, { NAVBAR_HEIGHT } from '../components/navigation/NavigationBar.vue'
 import SearchBar from '../components/navigation/SearchBar.vue'
 import EventCard from '@/components/cards/EventCard.vue'
 import CardSlider from '@/components/cards/CardSlider.vue'
 import Footer from '@/components/navigation/Footer.vue'
+import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 
 const $q = useQuasar()
 const { t } = useI18n()
+const authStore = useAuthStore()
 const showSearchInNavbar = ref(false)
 const searchQuery = ref('')
 const searchBarHasFocus = ref(false)
 const heroSearchPlaceholderRef = ref<HTMLElement | null>(null)
 const upcomingEvents = ref<Event[]>([])
-
-// Mock user ID - in a real app, this would come from auth context
-const currentUserId = 'current-user-id'
+const showAuthDialog = ref(false)
 
 const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
+  if (!authStore.isAuthenticated || !authStore.user) {
+    showAuthDialog.value = true
+    return
+  }
+
   try {
     if (isFavorite) {
       // Like the event
-      await api.interactions.likeEvent(eventId, currentUserId)
+      await api.interactions.likeEvent(eventId, authStore.user.id)
       console.log(`Event ${eventId} liked`)
     } else {
       // Unlike functionality not yet implemented in API
@@ -55,7 +61,7 @@ const handleScroll = () => {
 onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
   const response = await api.feed.getUpcomingEvents()
-  upcomingEvents.value = response.events
+  upcomingEvents.value = response.items
 })
 
 onUnmounted(() => {
@@ -65,6 +71,9 @@ onUnmounted(() => {
 
 <template>
   <div class="navigation-view">
+    <!-- Auth Required Dialog -->
+    <AuthRequiredDialog v-model="showAuthDialog" />
+
     <div class="scroll-wrapper">
       <NavigationBar
         v-model:search-query="searchQuery"
@@ -112,6 +121,7 @@ onUnmounted(() => {
                 :date="event.date"
                 :favorite="false"
                 @favorite-toggle="handleFavoriteToggle(event.id, $event)"
+                @auth-required="showAuthDialog = true"
               />
             </CardSlider>
 
