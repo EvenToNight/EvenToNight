@@ -274,6 +274,8 @@ const goToEvent = (eventId: number) => {
 </template>
 
 <style lang="scss" scoped>
+@use 'sass:color';
+
 .member-profile {
   min-height: 100vh;
   background: var(--q-background);
@@ -496,7 +498,7 @@ const goToEvent = (eventId: number) => {
   color: white;
 
   &:hover {
-    background: darken($color-primary, 8%);
+    background: color.adjust($color-primary, $lightness: -8%);
   }
 }
 
