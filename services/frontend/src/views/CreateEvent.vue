@@ -27,6 +27,15 @@ const event = ref({
   status: 'draft' as 'draft' | 'published',
 })
 
+// Error states for validation
+const errors = ref({
+  title: '',
+  date: '',
+  time: '',
+  location: '',
+  poster: '',
+})
+
 const handleImageError = (message: string) => {
   $q.notify({
     color: 'negative',
@@ -278,13 +287,44 @@ const saveDraft = async () => {
 }
 
 const onSubmit = async () => {
-  if (
-    !event.value.title ||
-    !event.value.date ||
-    !event.value.time ||
-    !event.value.location ||
-    !event.value.poster
-  ) {
+  // Reset errors
+  errors.value = {
+    title: '',
+    date: '',
+    time: '',
+    location: '',
+    poster: '',
+  }
+
+  // Validate required fields
+  let hasErrors = false
+
+  if (!event.value.title) {
+    errors.value.title = 'Event Title is required'
+    hasErrors = true
+  }
+
+  if (!event.value.date) {
+    errors.value.date = 'Date is required'
+    hasErrors = true
+  }
+
+  if (!event.value.time) {
+    errors.value.time = 'Time is required'
+    hasErrors = true
+  }
+
+  if (!event.value.location) {
+    errors.value.location = 'Location is required'
+    hasErrors = true
+  }
+
+  if (!event.value.poster) {
+    errors.value.poster = 'Event Poster is required'
+    hasErrors = true
+  }
+
+  if (hasErrors) {
     $q.notify({
       color: 'negative',
       message: 'Please fill all required fields',
@@ -346,7 +386,9 @@ const onSubmit = async () => {
               v-model="event.title"
               label="Event Title *"
               outlined
-              :rules="[(val) => !!val || 'Title is required']"
+              hide-bottom-space
+              :error="!!errors.title"
+              :error-message="errors.title"
             />
           </div>
 
@@ -357,7 +399,9 @@ const onSubmit = async () => {
               type="date"
               label="Date *"
               outlined
-              :rules="[(val) => !!val || 'Date is required']"
+              hide-bottom-space
+              :error="!!errors.date"
+              :error-message="errors.date"
             >
               <template #prepend>
                 <q-icon
@@ -376,7 +420,9 @@ const onSubmit = async () => {
               type="time"
               label="Time *"
               outlined
-              :rules="[(val) => !!val || 'Time is required']"
+              hide-bottom-space
+              :error="!!errors.time"
+              :error-message="errors.time"
             >
               <template #prepend>
                 <q-icon
@@ -394,6 +440,7 @@ const onSubmit = async () => {
               type="textarea"
               label="Description"
               outlined
+              hide-bottom-space
               rows="4"
             />
           </div>
@@ -404,6 +451,7 @@ const onSubmit = async () => {
               type="number"
               label="Price (€)"
               outlined
+              hide-bottom-space
               prefix="€"
             />
           </div>
@@ -414,6 +462,7 @@ const onSubmit = async () => {
               :options="tagOptions"
               label="Tags"
               outlined
+              hide-bottom-space
               multiple
               use-chips
               use-input
@@ -462,6 +511,7 @@ const onSubmit = async () => {
               :options="collaboratorOptions"
               label="Collaborators"
               outlined
+              hide-bottom-space
               multiple
               use-chips
               use-input
@@ -484,11 +534,13 @@ const onSubmit = async () => {
               :options="locationOptions"
               label="Location *"
               outlined
+              hide-bottom-space
               use-input
               fill-input
               hide-selected
               input-debounce="500"
-              :rules="[(val) => !!val || 'Location is required']"
+              :error="!!errors.location"
+              :error-message="errors.location"
               @filter="filterLocations"
             >
               <template #no-option>
@@ -516,6 +568,9 @@ const onSubmit = async () => {
               :max-size="5000000"
               @error="handleImageError"
             />
+            <div v-if="errors.poster" class="error-message">
+              {{ errors.poster }}
+            </div>
           </div>
           <div class="form-actions">
             <q-btn
@@ -581,9 +636,11 @@ const onSubmit = async () => {
     margin-bottom: 0;
   }
 
-  // Add padding to fields without bottom area to match those with it
-  :deep(.q-field:not(.q-field--with-bottom)) {
-    padding-bottom: 22px;
+  // Hide error area when there's no error
+  :deep(.q-field:not(.q-field--error) .q-field__bottom) {
+    display: none !important;
+    min-height: 0 !important;
+    padding: 0 !important;
   }
 
   // Hide native date/time icons completely
@@ -602,6 +659,17 @@ const onSubmit = async () => {
     .q-chip__content {
       color: white !important;
     }
+  }
+}
+
+.error-message {
+  color: #c10015;
+  font-size: 12px;
+  padding: 8px 12px 0;
+  line-height: 1;
+
+  @include dark-mode {
+    color: #f5b0b0;
   }
 }
 

@@ -2,7 +2,7 @@ import './assets/styles/main.scss'
 
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
-import { Quasar, Dark } from 'quasar'
+import { Quasar, Dark, Notify } from 'quasar'
 import '@quasar/extras/material-icons/material-icons.css'
 import 'quasar/src/css/index.sass'
 
@@ -15,6 +15,7 @@ const app = createApp(App)
 app.use(Quasar, {
   plugins: {
     Dark,
+    Notify,
   },
 })
 
