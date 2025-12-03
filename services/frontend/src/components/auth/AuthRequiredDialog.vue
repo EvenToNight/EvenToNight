@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { watch } from 'vue'
 
 interface Props {
   modelValue: boolean
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
 }>()
@@ -27,6 +28,39 @@ const goToRegister = () => {
   close()
   router.push({ name: 'register' })
 }
+
+// Lock/unlock scroll quando il dialog si apre/chiude
+watch(
+  () => props.modelValue,
+  (isOpen) => {
+    if (isOpen) {
+      // Salva la posizione di scroll corrente
+      const scrollY = window.scrollY
+      const scrollX = window.scrollX
+
+      // Blocca solo scroll verticale
+      document.body.style.overflowY = 'hidden'
+      document.body.style.position = 'fixed'
+      document.body.style.top = `-${scrollY}px`
+      document.body.style.left = `-${scrollX}px`
+      document.body.style.right = '0'
+      document.body.style.width = '100%'
+    } else {
+      // Ripristina la posizione di scroll
+      const scrollY = parseInt(document.body.style.top || '0') * -1
+      const scrollX = parseInt(document.body.style.left || '0') * -1
+
+      document.body.style.overflowY = ''
+      document.body.style.position = ''
+      document.body.style.top = ''
+      document.body.style.left = ''
+      document.body.style.right = ''
+      document.body.style.width = ''
+
+      window.scrollTo(scrollX, scrollY)
+    }
+  }
+)
 </script>
 
 <template>
