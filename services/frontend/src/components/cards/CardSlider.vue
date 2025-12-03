@@ -18,7 +18,7 @@
 
     <!-- Optional Navigation Arrows for Desktop -->
     <button
-      v-if="showNavigation && canScrollLeft"
+      v-if="shouldShowNavigation && canScrollLeft"
       class="nav-arrow nav-arrow-left"
       aria-label="Scroll left"
       @click="scrollLeft"
@@ -26,7 +26,7 @@
       <q-icon name="chevron_left" size="32px" />
     </button>
     <button
-      v-if="showNavigation && canScrollRight"
+      v-if="shouldShowNavigation && canScrollRight"
       class="nav-arrow nav-arrow-right"
       aria-label="Scroll right"
       @click="scrollRight"
@@ -37,14 +37,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { useQuasar } from 'quasar'
 
 interface Props {
   title: string
   showNavigation?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   showNavigation: true,
 })
 
@@ -52,9 +53,16 @@ const emit = defineEmits<{
   seeAll: []
 }>()
 
+const $q = useQuasar()
 const cardsContainer = ref<HTMLElement | null>(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
+
+// Calcola se siamo in modalità desktop (> 800px)
+const isDesktop = computed(() => $q.screen.width > 800)
+
+// Mostra i bottoni solo se siamo in desktop E showNavigation è true
+const shouldShowNavigation = computed(() => props.showNavigation && isDesktop.value)
 
 const handleSeeAll = () => {
   emit('seeAll')
@@ -117,7 +125,7 @@ onUnmounted(() => {
   margin-bottom: $spacing-4;
   padding: 0 $spacing-2;
 
-  @media (max-width: 768px) {
+  @media (max-width: 800px) {
     padding: 0;
   }
 }
@@ -127,7 +135,7 @@ onUnmounted(() => {
   font-size: 1.75rem;
   font-weight: 700;
 
-  @media (max-width: 768px) {
+  @media (max-width: 800px) {
     font-size: 1.5rem;
   }
 }
@@ -213,10 +221,9 @@ onUnmounted(() => {
       margin-left: 0;
     }
 
-    @media (max-width: 768px) {
-      width: calc((100vw - 64px) / 1.5 - 32px);
-      max-width: 280px;
-      min-width: 180px;
+    @media (max-width: 800px) {
+      // Shrink lineare da 800px in giù: da 320px a ~180px
+      width: clamp(180px, 40vw, 320px);
     }
   }
 }
@@ -246,10 +253,6 @@ onUnmounted(() => {
 
   &:active {
     transform: translateY(-50%) scale(0.95);
-  }
-
-  @media (max-width: 768px) {
-    display: none;
   }
 }
 
