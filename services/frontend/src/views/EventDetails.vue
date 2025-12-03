@@ -137,7 +137,7 @@ const toggleLike = async () => {
 
 const goToOrganizationProfile = (organizationId: string) => {
   router.push({
-    name: 'organization-profile',
+    name: 'user-profile',
     params: {
       locale: route.params.locale,
       id: organizationId,

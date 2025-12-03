@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
 import BackButton from '@/components/navigation/BackButton.vue'
+import ImageCropUpload from '@/components/upload/ImageCropUpload.vue'
 import { api } from '@/api'
 import type { EventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
@@ -26,33 +27,11 @@ const event = ref({
   status: 'draft' as 'draft' | 'published',
 })
 
-const imagePreview = ref<string | null>(null)
-const fileInputRef = ref<HTMLInputElement | null>(null)
-
-const onImageSelect = (e: Event) => {
-  const target = e.target as HTMLInputElement
-  const file = target.files?.[0]
-
-  if (!file) return
-
-  event.value.poster = file
-  const reader = new FileReader()
-  reader.onload = (e) => {
-    imagePreview.value = e.target?.result as string
-  }
-  reader.readAsDataURL(file)
-}
-
-const removeImage = () => {
-  event.value.poster = null
-  imagePreview.value = null
-  if (fileInputRef.value) {
-    fileInputRef.value.value = ''
-  }
-}
-
-const triggerFileInput = () => {
-  fileInputRef.value?.click()
+const handleImageError = (message: string) => {
+  $q.notify({
+    color: 'negative',
+    message,
+  })
 }
 
 const tagOptions = ['Music', 'Techno', 'House', 'Live', 'Art', 'Food', 'Workshop', 'Nightlife']
@@ -206,29 +185,13 @@ const onSubmit = async () => {
 
         <q-form class="form-container" @submit="onSubmit">
           <div class="form-field">
-            <label class="field-label">Event Image</label>
-            <div v-if="imagePreview" class="image-preview-container">
-              <img :src="imagePreview" alt="Event preview" class="preview-image" />
-              <q-btn
-                icon="close"
-                round
-                dense
-                color="negative"
-                class="remove-image-btn"
-                @click="removeImage"
-              />
-            </div>
-            <div v-else class="image-upload-area" @click="triggerFileInput">
-              <q-icon name="add_photo_alternate" size="48px" class="upload-icon" />
-              <span class="upload-text">Click to upload event image</span>
-              <input
-                ref="fileInputRef"
-                type="file"
-                accept="image/*"
-                class="hidden-file-input"
-                @change="onImageSelect"
-              />
-            </div>
+            <ImageCropUpload
+              v-model="event.poster"
+              label="Event Poster *"
+              button-label="Upload Poster"
+              :max-size="5000000"
+              @error="handleImageError"
+            />
           </div>
 
           <div class="form-field">
@@ -394,88 +357,5 @@ const onSubmit = async () => {
 
 .form-field:last-of-type {
   margin-bottom: 0;
-}
-
-.field-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: $spacing-2;
-  opacity: 0.8;
-}
-
-.hidden-file-input {
-  display: none;
-}
-
-.image-upload-area {
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border: 2px dashed rgba(0, 0, 0, 0.2);
-  border-radius: 12px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-2;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: rgba(0, 0, 0, 0.02);
-
-  @include dark-mode {
-    border-color: rgba(255, 255, 255, 0.2);
-    background: rgba(255, 255, 255, 0.02);
-  }
-
-  &:hover {
-    border-color: $color-primary;
-    background: rgba($color-primary, 0.05);
-
-    .upload-icon {
-      color: $color-primary;
-      transform: scale(1.1);
-    }
-  }
-}
-
-.upload-icon {
-  color: rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
-
-  @include dark-mode {
-    color: rgba(255, 255, 255, 0.4);
-  }
-}
-
-.upload-text {
-  font-size: 0.938rem;
-  opacity: 0.7;
-  font-weight: 500;
-}
-
-.image-preview-container {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 9;
-  border-radius: 12px;
-  overflow: hidden;
-  background: rgba(0, 0, 0, 0.05);
-
-  @include dark-mode {
-    background: rgba(255, 255, 255, 0.05);
-  }
-}
-
-.preview-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.remove-image-btn {
-  position: absolute;
-  top: $spacing-2;
-  right: $spacing-2;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 </style>
