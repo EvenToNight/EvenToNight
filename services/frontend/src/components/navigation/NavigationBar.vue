@@ -109,6 +109,13 @@ const goToProfile = () => {
     router.push({ name: 'user-profile', params: { id: authStore.user.id } })
   }
 }
+
+const scrollToTop = () => {
+  window.scrollTo({
+    top: 0,
+    behavior: 'auto', //'smooth',
+  })
+}
 </script>
 
 <template>
@@ -129,7 +136,7 @@ const goToProfile = () => {
 
       <template v-else>
         <q-toolbar-title class="brand-title">
-          <router-link to="/" class="brand-link">
+          <router-link to="/" class="brand-link" @click="scrollToTop">
             <img src="/logo.png" alt="EvenToNight Logo" class="brand-icon" />
             <span class="brand-text">EvenToNight</span>
           </router-link>
