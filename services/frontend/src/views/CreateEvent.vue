@@ -352,22 +352,40 @@ const onSubmit = async () => {
 
           <div class="form-field">
             <q-input
+              ref="dateInput"
               v-model="event.date"
               type="date"
               label="Date *"
               outlined
               :rules="[(val) => !!val || 'Date is required']"
-            />
+            >
+              <template #prepend>
+                <q-icon
+                  name="event"
+                  class="cursor-pointer"
+                  @click="($refs.dateInput as any).$el.querySelector('input').showPicker()"
+                />
+              </template>
+            </q-input>
           </div>
 
           <div class="form-field">
             <q-input
+              ref="timeInput"
               v-model="event.time"
               type="time"
               label="Time *"
               outlined
               :rules="[(val) => !!val || 'Time is required']"
-            />
+            >
+              <template #prepend>
+                <q-icon
+                  name="access_time"
+                  class="cursor-pointer"
+                  @click="($refs.timeInput as any).$el.querySelector('input').showPicker()"
+                />
+              </template>
+            </q-input>
           </div>
 
           <div class="form-field">
@@ -566,6 +584,17 @@ const onSubmit = async () => {
   // Add padding to fields without bottom area to match those with it
   :deep(.q-field:not(.q-field--with-bottom)) {
     padding-bottom: 22px;
+  }
+
+  // Hide native date/time icons completely
+  :deep(input[type='date']::-webkit-calendar-picker-indicator),
+  :deep(input[type='time']::-webkit-calendar-picker-indicator) {
+    display: none;
+  }
+
+  :deep(input[type='date']::-webkit-inner-spin-button),
+  :deep(input[type='time']::-webkit-inner-spin-button) {
+    display: none;
   }
 
   // Fix white text in chips
