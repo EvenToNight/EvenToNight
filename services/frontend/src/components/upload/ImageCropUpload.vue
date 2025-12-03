@@ -15,15 +15,11 @@
     </div>
 
     <div v-else class="upload-button-container">
-      <q-btn
-        :label="buttonLabel"
-        color="primary"
-        outline
-        size="lg"
-        class="upload-trigger-btn"
-        @click="triggerFileInput"
-      >
-        <q-icon name="add_photo_alternate" left />
+      <q-btn outline size="md" class="upload-trigger-btn outline-btn-fix" @click="triggerFileInput">
+        <div class="row items-center no-wrap">
+          <q-icon name="add_photo_alternate" size="20px" />
+          <span class="q-ml-sm">{{ buttonLabel }}</span>
+        </div>
       </q-btn>
       <input
         ref="fileInput"
@@ -43,20 +39,26 @@
         </q-card-section>
 
         <q-card-section class="cropper-container">
-          <Cropper
-            ref="cropperRef"
-            class="cropper"
-            :src="selectedImage"
-            :stencil-component="CircleStencil"
-            :stencil-props="{
-              aspectRatio: 1,
-              movable: false,
-              resizable: false,
-              handlers: {},
-              lines: {},
-            }"
-            image-restriction="stencil"
-          />
+          <div class="cropper-wrapper">
+            <Cropper
+              ref="cropperRef"
+              class="cropper"
+              :src="selectedImage"
+              :stencil-component="RectangleStencil"
+              :stencil-props="{
+                aspectRatio: 1,
+                movable: false,
+                resizable: false,
+                handlers: {},
+                lines: {},
+              }"
+              :stencil-size="{
+                width: 320,
+                height: 320,
+              }"
+              image-restriction="stencil"
+            />
+          </div>
         </q-card-section>
 
         <q-card-actions align="right" class="dialog-actions">
@@ -70,7 +72,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import { Cropper, CircleStencil } from 'vue-advanced-cropper'
+import { Cropper, RectangleStencil } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 
 interface Props {
@@ -199,23 +201,29 @@ const closeCropper = () => {
 .upload-button-container {
   display: flex;
   justify-content: center;
-  padding: $spacing-4 0;
 }
 
 .upload-trigger-btn {
-  min-width: 200px;
+  min-width: 160px;
 }
 
 .image-preview-container {
   position: relative;
-  width: 100%;
+  width: 200px;
+  height: 200px;
   aspect-ratio: 1; // Square ratio matching EventCard
-  border-radius: 50%; // Circular preview
+  border-radius: 24px; // Rounded corners matching EventCard
   overflow: hidden;
   background: rgba(0, 0, 0, 0.05);
+  margin: 0 auto;
 
   @include dark-mode {
     background: rgba(255, 255, 255, 0.05);
+  }
+
+  @media (max-width: 768px) {
+    width: 150px;
+    height: 150px;
   }
 }
 
@@ -253,17 +261,35 @@ const closeCropper = () => {
   align-items: center;
   justify-content: center;
   padding: $spacing-4;
+}
 
-  .cropper {
-    max-height: 100%;
-    width: 100%;
+.cropper-wrapper {
+  width: 100%;
+  height: 100%;
+  max-width: 800px;
+  max-height: 600px;
+  aspect-ratio: 4 / 3;
+
+  @media (max-width: 768px) {
+    max-width: 95vw;
+    max-height: 70vh;
   }
+}
+
+.cropper {
+  width: 100%;
+  height: 100%;
 
   // Hide stencil handlers (resize corners)
   :deep(.vue-handler),
   :deep(.vue-line-handler),
   :deep(.vue-corner-handler) {
     display: none !important;
+  }
+
+  // Round the stencil corners to match EventCard
+  :deep(.vue-rectangle-stencil__preview) {
+    border-radius: 24px;
   }
 }
 
@@ -273,6 +299,147 @@ const closeCropper = () => {
 
   @include dark-mode {
     border-top-color: rgba(255, 255, 255, 0.12);
+  }
+}
+</style>
+
+<style lang="scss">
+.outline-btn-fix.q-btn.q-btn--outline {
+  color: #6f00ff !important;
+  border-color: #6f00ff !important;
+  background: transparent !important;
+
+  .q-btn__content,
+  .q-btn__content span,
+  .q-btn__content div,
+  .q-btn__content div span,
+  .q-btn__content .block,
+  span,
+  span.block,
+  span.q-ml-sm,
+  .q-icon,
+  i,
+  i.q-icon,
+  i.material-icons {
+    color: #6f00ff !important;
+  }
+
+  // Deep selectors for scoped components
+  :deep(.q-icon),
+  :deep(i),
+  :deep(i.material-icons),
+  :deep(span),
+  :deep(span.q-ml-sm),
+  :deep(div),
+  :deep(div span),
+  :deep(.row span) {
+    color: #6f00ff !important;
+  }
+
+  // Fix all interactive states
+  &.q-btn--active,
+  &:active,
+  &:hover,
+  &:focus,
+  &.q-hoverable:hover,
+  &.q-focusable:focus {
+    color: #6f00ff !important;
+    background: rgba(111, 0, 255, 0.1) !important;
+
+    .q-btn__content,
+    .q-btn__content span,
+    .q-btn__content div,
+    .q-btn__content div span,
+    .q-btn__content .block,
+    span,
+    span.block,
+    span.q-ml-sm,
+    .q-icon,
+    i,
+    i.q-icon,
+    i.material-icons {
+      color: #6f00ff !important;
+    }
+
+    :deep(.q-icon),
+    :deep(i),
+    :deep(i.material-icons),
+    :deep(span),
+    :deep(span.q-ml-sm),
+    :deep(div),
+    :deep(div span),
+    :deep(.row span) {
+      color: #6f00ff !important;
+    }
+  }
+}
+
+body.body--dark .outline-btn-fix.q-btn.q-btn--outline {
+  color: #bb86fc !important;
+  border-color: #bb86fc !important;
+  background: transparent !important;
+
+  .q-btn__content,
+  .q-btn__content span,
+  .q-btn__content div,
+  .q-btn__content div span,
+  .q-btn__content .block,
+  span,
+  span.block,
+  span.q-ml-sm,
+  .q-icon,
+  i,
+  i.q-icon,
+  i.material-icons {
+    color: #bb86fc !important;
+  }
+
+  :deep(.q-icon),
+  :deep(i),
+  :deep(i.material-icons),
+  :deep(span),
+  :deep(span.q-ml-sm),
+  :deep(div),
+  :deep(div span),
+  :deep(.row span) {
+    color: #bb86fc !important;
+  }
+
+  // Fix all interactive states in dark mode
+  &.q-btn--active,
+  &:active,
+  &:hover,
+  &:focus,
+  &.q-hoverable:hover,
+  &.q-focusable:focus {
+    color: #bb86fc !important;
+    background: rgba(187, 134, 252, 0.1) !important;
+
+    .q-btn__content,
+    .q-btn__content span,
+    .q-btn__content div,
+    .q-btn__content div span,
+    .q-btn__content .block,
+    span,
+    span.block,
+    span.q-ml-sm,
+    .q-icon,
+    i,
+    i.q-icon,
+    i.material-icons {
+      color: #bb86fc !important;
+    }
+
+    :deep(.q-icon),
+    :deep(i),
+    :deep(i.material-icons),
+    :deep(span),
+    :deep(span.q-ml-sm),
+    :deep(div),
+    :deep(div span),
+    :deep(.row span) {
+      color: #bb86fc !important;
+    }
   }
 }
 </style>
