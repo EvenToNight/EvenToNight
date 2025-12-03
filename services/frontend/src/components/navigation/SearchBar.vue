@@ -1,6 +1,29 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, watch, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import type { QInput } from 'quasar'
+import { api } from '@/api'
+
+interface SearchResultEvent {
+  type: 'event'
+  id: string
+  title: string
+  location: string
+  date: Date
+  imageUrl?: string
+  relevance: number
+}
+
+interface SearchResultUser {
+  type: 'organization' | 'member'
+  id: string
+  name: string
+  bio?: string
+  avatarUrl?: string
+  relevance: number
+}
+
+type SearchResult = SearchResultEvent | SearchResultUser
 
 interface Props {
   searchQuery?: string
@@ -21,9 +44,14 @@ const emit = defineEmits<{
   'update:hasFocus': [value: boolean]
 }>()
 
+const router = useRouter()
 const showSuggestions = ref(false)
 const searchQuery = ref(props.searchQuery)
 const inputRef = ref<QInput | null>(null)
+const searchResults = ref<SearchResult[]>([])
+const isSearching = ref(false)
+
+let searchTimeout: number | null = null
 
 watch(
   () => props.searchQuery,
@@ -51,37 +79,135 @@ onMounted(() => {
   // Only show suggestions if there's text AND the input has focus
   if (searchQuery.value.length > 0 && props.hasFocus) {
     showSuggestions.value = true
+    performSearch()
   }
 })
 
-const suggestions = [
-  'JavaScript tutorials',
-  'Vue.js documentation',
-  'React vs Vue comparison',
-  'TypeScript best practices',
-  'CSS Grid layout',
-  'Quasar components',
-  'Frontend development',
-  'Web design trends 2024',
-  'Node.js server setup',
-  'API integration guide',
-]
+// Calculate relevance score for a text match (0-100)
+const calculateRelevance = (query: string, text: string): number => {
+  const lowerQuery = query.toLowerCase().trim()
+  const lowerText = text.toLowerCase()
 
-const filteredSuggestions = computed(() => {
-  if (!searchQuery.value) return []
-  const query = searchQuery.value.toLowerCase()
-  return suggestions.filter((s) => s.toLowerCase().includes(query)).slice(0, 5)
-})
+  if (!lowerQuery || !lowerText) return 0
 
-const handleSearch = () => {
-  console.log('Search query:', searchQuery.value)
-  // TODO: Implement search logic
+  // Exact match = 100
+  if (lowerText === lowerQuery) return 100
+
+  // Starts with query = 80
+  if (lowerText.startsWith(lowerQuery)) return 80
+
+  // Contains query at word boundary = 60
+  const words = lowerText.split(/\s+/)
+  if (words.some((word) => word.startsWith(lowerQuery))) return 60
+
+  // Contains query anywhere = 40
+  if (lowerText.includes(lowerQuery)) return 40
+
+  // Partial word matches = 20
+  if (lowerQuery.length >= 3) {
+    for (let i = 0; i <= lowerQuery.length - 3; i++) {
+      const substr = lowerQuery.substring(i, i + 3)
+      if (lowerText.includes(substr)) return 20
+    }
+  }
+
+  return 0
 }
 
-const selectSuggestion = (suggestion: string) => {
-  searchQuery.value = suggestion
+// Perform debounced search
+const performSearch = async () => {
+  const query = searchQuery.value.trim()
+
+  if (!query) {
+    searchResults.value = []
+    return
+  }
+
+  isSearching.value = true
+
+  try {
+    // Call both APIs in parallel
+    const [eventsResponse, usersResponse] = await Promise.all([
+      api.events.searchByName(query),
+      api.users.searchByName(query),
+    ])
+
+    const results: SearchResult[] = []
+
+    // Process events
+    for (const event of eventsResponse.events) {
+      const titleRelevance = calculateRelevance(query, event.title)
+      const locationRelevance = calculateRelevance(
+        query,
+        event.location.name || event.location.city
+      )
+      const tagsRelevance = Math.max(...event.tags.map((tag) => calculateRelevance(query, tag)), 0)
+      const maxRelevance = Math.max(titleRelevance, locationRelevance, tagsRelevance)
+
+      if (maxRelevance > 0) {
+        results.push({
+          type: 'event',
+          id: event.id,
+          title: event.title,
+          location: event.location.name || event.location.city,
+          date: new Date(event.date),
+          imageUrl: event.posterLink,
+          relevance: maxRelevance,
+        })
+      }
+    }
+
+    // Process users (organizations and members)
+    for (const user of usersResponse.users) {
+      const nameRelevance = calculateRelevance(query, user.name)
+      const bioRelevance = calculateRelevance(query, user.bio || '')
+      const maxRelevance = Math.max(nameRelevance, bioRelevance)
+
+      if (maxRelevance > 0) {
+        results.push({
+          type: user.role,
+          id: user.id,
+          name: user.name,
+          bio: user.bio,
+          avatarUrl: user.avatarUrl,
+          relevance: maxRelevance,
+        })
+      }
+    }
+
+    // Sort by relevance DESC, then by type priority (event > organization > member)
+    const typePriority = { event: 3, organization: 2, member: 1 }
+    results.sort((a, b) => {
+      if (b.relevance !== a.relevance) return b.relevance - a.relevance
+      return typePriority[b.type] - typePriority[a.type]
+    })
+
+    // Limit to 5 results
+    searchResults.value = results.slice(0, 5)
+  } catch (error) {
+    console.error('Search failed:', error)
+    searchResults.value = []
+  } finally {
+    isSearching.value = false
+  }
+}
+
+const handleSearch = () => {
+  const firstResult = searchResults.value[0]
+  if (firstResult) {
+    selectResult(firstResult)
+  }
+}
+
+const selectResult = (result: SearchResult) => {
   showSuggestions.value = false
-  handleSearch()
+
+  if (result.type === 'event') {
+    router.push({ name: 'event-details', params: { id: result.id } })
+  } else {
+    // Navigate to user profile (organization or member)
+    router.push({ name: 'user-profile', params: { id: result.id } })
+  }
 }
 
 const hideSuggestions = () => {
@@ -91,6 +217,48 @@ const hideSuggestions = () => {
 const updateQuery = (value: string | number | null) => {
   searchQuery.value = String(value || '')
   showSuggestions.value = searchQuery.value.length > 0
+
+  // Debounce search
+  if (searchTimeout) {
+    clearTimeout(searchTimeout)
+  }
+
+  if (searchQuery.value.trim()) {
+    searchTimeout = setTimeout(() => {
+      performSearch()
+    }, 300)
+  } else {
+    searchResults.value = []
+  }
+}
+
+// Helper functions
+const getResultIcon = (result: SearchResult): string => {
+  if (result.type === 'event') return 'event'
+  if (result.type === 'organization') return 'business'
+  return 'person'
+}
+
+const getResultTypeLabel = (result: SearchResult): string => {
+  if (result.type === 'event') return 'Event'
+  if (result.type === 'organization') return 'Organization'
+  return 'Member'
+}
+
+const getResultPrimaryText = (result: SearchResult): string => {
+  return result.type === 'event' ? result.title : result.name
+}
+
+const getResultSecondaryText = (result: SearchResult): string => {
+  if (result.type === 'event') {
+    return `${result.location} • ${formatDate(result.date)}`
+  }
+  return result.bio || ''
+}
+
+const formatDate = (date: Date): string => {
+  const dateObj = typeof date === 'string' ? new Date(date) : date
+  return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 const handleFocus = () => {
@@ -99,8 +267,11 @@ const handleFocus = () => {
 }
 
 const handleBlur = () => {
-  hideSuggestions()
-  emit('update:hasFocus', false)
+  // Add delay to allow click events on results to fire first
+  setTimeout(() => {
+    hideSuggestions()
+    emit('update:hasFocus', false)
+  }, 200)
 }
 </script>
 
@@ -124,15 +295,40 @@ const handleBlur = () => {
       </template>
     </q-input>
 
-    <div v-if="showSuggestions && filteredSuggestions.length > 0" class="suggestions-dropdown">
+    <div v-if="showSuggestions && searchResults.length > 0" class="suggestions-dropdown">
       <div
-        v-for="(suggestion, index) in filteredSuggestions"
-        :key="index"
+        v-for="result in searchResults"
+        :key="`${result.type}-${result.id}`"
         class="suggestion-item"
-        @click="selectSuggestion(suggestion)"
+        @click="selectResult(result)"
       >
-        <q-icon name="search" size="18px" class="suggestion-icon" />
-        <span>{{ suggestion }}</span>
+        <!-- Show icon for events wrapped in same-sized container as avatar -->
+        <div v-if="result.type === 'event'" class="event-icon-container">
+          <q-icon :name="getResultIcon(result)" size="20px" class="suggestion-icon" />
+        </div>
+
+        <!-- Show avatar for organizations and members -->
+        <q-avatar v-if="result.type !== 'event'" size="32px" class="result-avatar">
+          <img v-if="result.avatarUrl" :src="result.avatarUrl" />
+          <q-icon v-else :name="getResultIcon(result)" size="20px" />
+        </q-avatar>
+
+        <div class="result-content">
+          <div class="result-primary">{{ getResultPrimaryText(result) }}</div>
+          <div class="result-secondary">
+            <span class="result-type">{{ getResultTypeLabel(result) }}</span>
+            <span v-if="getResultSecondaryText(result)" class="result-detail">
+              • {{ getResultSecondaryText(result) }}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div v-else-if="showSuggestions && isSearching" class="suggestions-dropdown loading">
+      <div class="loading-item">
+        <q-spinner size="20px" color="primary" />
+        <span>Searching...</span>
       </div>
     </div>
   </div>
@@ -172,7 +368,7 @@ const handleBlur = () => {
 .suggestion-item {
   display: flex;
   align-items: center;
-  gap: $spacing-2;
+  gap: $spacing-3;
   padding: $spacing-3 $spacing-4;
   cursor: pointer;
   transition: background-color 0.15s ease;
@@ -193,12 +389,97 @@ const handleBlur = () => {
     }
   }
 
+  .event-icon-container {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
   .suggestion-icon {
     color: $color-gray-400;
   }
 
-  span {
+  .result-avatar {
+    flex-shrink: 0;
+  }
+
+  .result-content {
     flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .result-primary {
+    font-size: $font-size-base;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @include light-mode {
+      color: $color-text-primary;
+    }
+
+    @include dark-mode {
+      color: $color-text-white;
+    }
+  }
+
+  .result-secondary {
+    font-size: $font-size-xs;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    @include light-mode {
+      color: $color-text-secondary;
+    }
+
+    @include dark-mode {
+      color: rgba(255, 255, 255, 0.6);
+    }
+  }
+
+  .result-type {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 10px;
+    letter-spacing: 0.5px;
+    color: $color-primary;
+    flex-shrink: 0;
+  }
+
+  .result-detail {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.loading-item {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-2;
+  padding: $spacing-4;
+
+  @include light-mode {
+    color: $color-text-secondary;
+  }
+
+  @include dark-mode {
+    color: rgba(255, 255, 255, 0.6);
+  }
+
+  span {
     font-size: $font-size-sm;
   }
 }

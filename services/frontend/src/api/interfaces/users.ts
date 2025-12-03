@@ -25,9 +25,14 @@ export interface LogoutResponse {
   success: boolean
 }
 
+export interface SearchUsersByNameResponse {
+  users: User[]
+}
+
 export interface UsersAPI {
   getUserById(id: UserID): Promise<GetUserByIdResponse>
   login(credentials: LoginRequest): Promise<LoginResponse>
   logout(): Promise<LogoutResponse>
   refreshToken(): Promise<RefreshTokenResponse>
+  searchByName(query: string): Promise<SearchUsersByNameResponse>
 }

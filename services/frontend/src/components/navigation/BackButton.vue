@@ -26,7 +26,7 @@ const goBack = () => {
   <q-btn
     icon="arrow_back"
     flat
-    :round="props.variant === 'default'"
+    round
     dense
     :color="props.variant === 'default' ? 'white' : undefined"
     :class="props.variant === 'default' ? 'back-button' : 'back-button-minimal'"
@@ -64,7 +64,8 @@ const goBack = () => {
   top: $spacing-4;
   left: $spacing-4;
   z-index: 1000;
-  transition: all 0.3s ease;
+  opacity: 0.6;
+  transition: opacity 0.2s ease;
 
   :deep(.q-icon) {
     @include light-mode {
@@ -76,7 +77,7 @@ const goBack = () => {
   }
 
   &:hover {
-    transform: scale(1.1);
+    opacity: 1;
   }
 
   @media (max-width: 330px) {

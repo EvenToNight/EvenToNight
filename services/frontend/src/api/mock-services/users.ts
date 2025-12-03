@@ -5,6 +5,7 @@ import type {
   LoginResponse,
   RefreshTokenResponse,
   LogoutResponse,
+  SearchUsersByNameResponse,
 } from '../interfaces/users'
 import type { ApiError } from '../interfaces/commons'
 import { mockOrganizations } from './data/organizations'
@@ -66,5 +67,22 @@ export const mockUsersApi: UsersAPI = {
       expiresIn: 900,
       user: getMockUser(currentLoggedInEmail),
     }
+  },
+
+  async searchByName(query: string): Promise<SearchUsersByNameResponse> {
+    if (!query || query.trim().length === 0) {
+      return { users: [] }
+    }
+
+    const lowerQuery = query.toLowerCase().trim()
+    const allUsers = [...mockOrganizations, ...mockUsers]
+
+    const matchedUsers = allUsers.filter((user) => {
+      const nameMatch = user.name.toLowerCase().includes(lowerQuery)
+      const bioMatch = user.bio?.toLowerCase().includes(lowerQuery)
+      return nameMatch || bioMatch
+    })
+
+    return { users: matchedUsers }
   },
 }

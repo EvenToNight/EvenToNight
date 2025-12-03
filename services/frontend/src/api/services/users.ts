@@ -5,6 +5,7 @@ import type {
   LoginResponse,
   RefreshTokenResponse,
   LogoutResponse,
+  SearchUsersByNameResponse,
 } from '../interfaces/users'
 import type { UserID } from '../types/users'
 import type { ApiClient } from '../client'
@@ -24,5 +25,11 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
 
   async refreshToken(): Promise<RefreshTokenResponse> {
     return usersClient.post<RefreshTokenResponse>('/auth/refresh', undefined, { credentials: true })
+  },
+
+  async searchByName(query: string): Promise<SearchUsersByNameResponse> {
+    return usersClient.get<SearchUsersByNameResponse>(
+      `/users/search?q=${encodeURIComponent(query)}`
+    )
   },
 })
