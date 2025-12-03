@@ -144,6 +144,8 @@ onUnmounted(() => {
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  position: relative;
+  min-width: 300px;
 }
 
 .scroll-wrapper {

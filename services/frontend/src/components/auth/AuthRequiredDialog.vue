@@ -30,42 +30,68 @@ const goToRegister = () => {
 </script>
 
 <template>
-  <q-dialog :model-value="modelValue" @update:model-value="close">
-    <q-card class="auth-required-dialog">
-      <q-btn flat dense round icon="close" class="close-button" @click="close" />
+  <Transition name="dialog">
+    <div v-if="modelValue" class="dialog-overlay" @click="close">
+      <q-card class="auth-required-dialog" @click.stop>
+        <q-btn flat dense round icon="close" class="close-button" @click="close" />
 
-      <q-card-section class="dialog-header">
-        <div class="dialog-icon">
-          <q-icon name="lock" size="48px" />
-        </div>
-        <h2 class="dialog-title">{{ t('auth.notLoggedIn') }}</h2>
-        <p class="dialog-message">{{ t('auth.loginRequired') }}</p>
-      </q-card-section>
+        <q-card-section class="dialog-header">
+          <div class="dialog-icon">
+            <q-icon name="lock" size="48px" />
+          </div>
+          <h2 class="dialog-title">{{ t('auth.notLoggedIn') }}</h2>
+          <p class="dialog-message">{{ t('auth.loginRequired') }}</p>
+        </q-card-section>
 
-      <q-card-actions class="dialog-actions">
-        <q-btn
-          unelevated
-          color="primary"
-          :label="t('nav.login')"
-          class="action-button"
-          @click="goToLogin"
-        />
-        <q-btn flat :label="t('nav.register')" class="action-button" @click="goToRegister" />
-      </q-card-actions>
-    </q-card>
-  </q-dialog>
+        <q-card-actions class="dialog-actions">
+          <q-btn
+            unelevated
+            color="primary"
+            :label="t('nav.login')"
+            class="action-button"
+            @click="goToLogin"
+          />
+          <q-btn flat :label="t('nav.register')" class="action-button" @click="goToRegister" />
+        </q-card-actions>
+      </q-card>
+    </div>
+  </Transition>
 </template>
 
 <style scoped lang="scss">
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  @media (max-width: 768px) {
+    // Su mobile diventa absolute per essere solidale all'app
+    position: absolute;
+    // Si estende per tutta la larghezza dell'app
+    left: 0;
+    right: 0;
+    // Ma rimane fixed verticalmente
+    top: 0;
+    height: 100vh;
+    bottom: auto;
+  }
+}
+
 .auth-required-dialog {
-  min-width: 320px;
+  min-width: 280px;
   max-width: 400px;
   border-radius: 16px;
   padding: $spacing-4;
   position: relative;
 
   @media (max-width: 768px) {
-    min-width: 280px;
     margin: $spacing-4;
   }
 }
@@ -137,5 +163,37 @@ const goToRegister = () => {
   padding: $spacing-3;
   font-size: 1rem;
   font-weight: 600;
+}
+
+// Animazioni per il dialog
+.dialog-enter-active,
+.dialog-leave-active {
+  transition: opacity 0.3s ease;
+
+  .auth-required-dialog {
+    transition:
+      transform 0.3s ease,
+      opacity 0.3s ease;
+  }
+}
+
+.dialog-enter-from,
+.dialog-leave-to {
+  opacity: 0;
+
+  .auth-required-dialog {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+}
+
+.dialog-enter-to,
+.dialog-leave-from {
+  opacity: 1;
+
+  .auth-required-dialog {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 </style>
