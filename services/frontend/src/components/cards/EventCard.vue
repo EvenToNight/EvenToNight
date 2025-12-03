@@ -1,7 +1,8 @@
 <template>
   <div class="event-card" @click="navigateToEvent">
     <div class="card-image-container">
-      <img :src="imageUrl" :alt="title" class="card-image" />
+      <img v-if="imageObjectUrl" :src="imageObjectUrl" :alt="title" class="card-image" />
+      <div v-else-if="isLoadingImage" class="card-image-loading">Loading...</div>
 
       <!-- Heart/Favorite Icon -->
       <button
@@ -40,8 +41,9 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { api } from '@/api'
 
 interface Props {
   id: number | string
@@ -62,6 +64,46 @@ const emit = defineEmits<{
 
 const router = useRouter()
 const isFavorite = ref(props.favorite)
+const imageObjectUrl = ref<string>('')
+const isLoadingImage = ref(false)
+
+// Load image through media API
+const loadImage = async (url: string) => {
+  if (!url) return
+
+  // If already a blob/data URL, use it directly
+  if (url.startsWith('blob:') || url.startsWith('data:')) {
+    imageObjectUrl.value = url
+    return
+  }
+
+  isLoadingImage.value = true
+  try {
+    const response = await api.media.get(url)
+    const blobUrl = URL.createObjectURL(response.file)
+    imageObjectUrl.value = blobUrl
+  } catch (error) {
+    console.error('Failed to load image:', error)
+  } finally {
+    isLoadingImage.value = false
+  }
+}
+
+// Watch for imageUrl changes
+watch(
+  () => props.imageUrl,
+  (newUrl) => {
+    if (newUrl) loadImage(newUrl)
+  },
+  { immediate: true }
+)
+
+// Cleanup blob URL
+onUnmounted(() => {
+  if (imageObjectUrl.value && imageObjectUrl.value.startsWith('blob:')) {
+    URL.revokeObjectURL(imageObjectUrl.value)
+  }
+})
 
 const toggleFavorite = (event: Event) => {
   event.stopPropagation()
@@ -109,6 +151,16 @@ const month = computed(() => {
   width: 100%;
   height: 100%;
   object-fit: cover;
+}
+
+.card-image-loading {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.1);
+  color: #666;
 }
 
 .favorite-button {

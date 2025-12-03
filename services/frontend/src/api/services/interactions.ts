@@ -3,11 +3,14 @@ import type { EventID } from '../types/events'
 import type { ApiClient } from '../client'
 import type { UserID } from '../types/users'
 
-export const createInteractionsApi = (_interactionsClient: ApiClient): InteractionAPI => ({
-  async getEventInteractions(_eventId: EventID): Promise<GetEventInteractionsResponse> {
-    throw new Error('Not implemented')
+export const createInteractionsApi = (interactionsClient: ApiClient): InteractionAPI => ({
+  async getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse> {
+    return interactionsClient.get<GetEventInteractionsResponse>(`/events/${eventId}`)
   },
-  async likeEvent(_eventId: EventID, _userId: UserID): Promise<void> {
-    throw new Error('Not implemented')
+  async likeEvent(eventId: EventID, userId: UserID): Promise<void> {
+    return interactionsClient.post<void>(`/events/${eventId}/interactions/likes`, { userId })
+  },
+  async unlikeEvent(eventId: EventID, userId: UserID): Promise<void> {
+    return interactionsClient.delete<void>(`/events/${eventId}/interactions/likes/${userId}`)
   },
 })

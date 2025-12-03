@@ -1,20 +1,29 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
-import BackButton from '@/components/BackButton.vue'
+import { useRouter } from 'vue-router'
+import BackButton from '@/components/navigation/BackButton.vue'
+import { api } from '@/api'
+import type { EventData } from '@/api/types/events'
+import type { Location } from '@/api/types/common'
 
 const $q = useQuasar()
+const router = useRouter()
+
+// Mock current user ID - in real app would come from auth
+const currentUserId = 'current-user-id'
 
 const event = ref({
-  name: '',
+  title: '',
   date: '',
   time: '',
   description: '',
   price: 0,
-  tags: [],
-  collaborators: [],
-  location: null,
-  image: null as File | null,
+  tags: [] as string[],
+  collaborators: [] as string[],
+  location: null as Location | null,
+  poster: null as File | null,
+  status: 'draft' as 'draft' | 'published',
 })
 
 const imagePreview = ref<string | null>(null)
@@ -26,7 +35,7 @@ const onImageSelect = (e: Event) => {
 
   if (!file) return
 
-  event.value.image = file
+  event.value.poster = file
   const reader = new FileReader()
   reader.onload = (e) => {
     imagePreview.value = e.target?.result as string
@@ -35,7 +44,7 @@ const onImageSelect = (e: Event) => {
 }
 
 const removeImage = () => {
-  event.value.image = null
+  event.value.poster = null
   imagePreview.value = null
   if (fileInputRef.value) {
     fileInputRef.value.value = ''
@@ -134,8 +143,14 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
   }
 }
 
-const onSubmit = () => {
-  if (!event.value.name || !event.value.date || !event.value.time || !event.value.location) {
+const onSubmit = async () => {
+  if (
+    !event.value.title ||
+    !event.value.date ||
+    !event.value.time ||
+    !event.value.location ||
+    !event.value.poster
+  ) {
     $q.notify({
       color: 'negative',
       message: 'Please fill all required fields',
@@ -143,12 +158,41 @@ const onSubmit = () => {
     return
   }
 
-  console.log('Event created:', event.value)
-  $q.notify({
-    color: 'positive',
-    message: 'Event created successfully!',
-  })
-  // Here you would typically call your API to save the event
+  try {
+    // Combine date and time into a Date object
+    const dateTime = new Date(`${event.value.date}T${event.value.time}`)
+
+    // Create EventData object
+    const eventData: EventData = {
+      title: event.value.title,
+      description: event.value.description,
+      poster: event.value.poster,
+      tags: event.value.tags,
+      location: event.value.location,
+      date: dateTime,
+      price: event.value.price,
+      status: event.value.status,
+      creatorId: currentUserId,
+      collaboratorsId: event.value.collaborators,
+    }
+
+    // Call API to publish event
+    const response = await api.events.publishEvent(eventData)
+
+    $q.notify({
+      color: 'positive',
+      message: 'Event created successfully!',
+    })
+
+    // Navigate to the created event
+    router.push({ name: 'event-details', params: { id: response.eventId } })
+  } catch (error) {
+    console.error('Failed to create event:', error)
+    $q.notify({
+      color: 'negative',
+      message: 'Failed to create event. Please try again.',
+    })
+  }
 }
 </script>
 
@@ -189,10 +233,10 @@ const onSubmit = () => {
 
           <div class="form-field">
             <q-input
-              v-model="event.name"
-              label="Event Name *"
+              v-model="event.title"
+              label="Event Title *"
               outlined
-              :rules="[(val) => !!val || 'Name is required']"
+              :rules="[(val) => !!val || 'Title is required']"
             />
           </div>
 

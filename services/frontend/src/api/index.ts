@@ -19,7 +19,7 @@ import {
 const isDev = import.meta.env.DEV
 export const api = {
   events: isDev ? mockEventsApi : createEventsApi(createEventsClient()),
-  images: isDev ? mockMediaApi : createMediaApi(createMediaClient()),
+  media: isDev ? mockMediaApi : createMediaApi(createMediaClient()),
   feed: isDev ? mockFeedApi : createFeedApi(createFeedClient()),
   interactions: isDev ? mockInteractionsApi : createInteractionsApi(createInteractionsClient()),
   users: isDev ? mockUsersApi : createUsersApi(createUsersClient()),

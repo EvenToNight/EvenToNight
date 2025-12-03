@@ -2,7 +2,7 @@
 import { computed, watchEffect, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
-import BackButton from '@/components/BackButton.vue'
+import BackButton from '@/components/navigation/BackButton.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'

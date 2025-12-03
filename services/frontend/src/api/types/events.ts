@@ -5,11 +5,11 @@ export type Tag = string
 export type EventStatus = 'draft' | 'published' | 'cancelled' | 'completed'
 
 export type EventID = string
-export interface Event {
-  id: EventID
+
+export interface EventData {
   title: string
   description: string
-  posterLink: string
+  poster: File
   tags: Tag[]
   location: Location
   date: Date
@@ -17,4 +17,9 @@ export interface Event {
   status: EventStatus
   creatorId: UserID
   collaboratorsId: UserID[]
+}
+
+export interface Event extends Omit<EventData, 'poster'> {
+  id: EventID
+  posterLink: string
 }

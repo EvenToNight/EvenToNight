@@ -8,4 +8,5 @@ export interface GetEventInteractionsResponse {
 export interface InteractionAPI {
   getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse>
   likeEvent(eventId: EventID, userId: UserID): Promise<void>
+  unlikeEvent(eventId: EventID, userId: UserID): Promise<void>
 }

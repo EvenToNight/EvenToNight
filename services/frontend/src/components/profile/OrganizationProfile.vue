@@ -2,7 +2,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
-import BackButton from '@/components/BackButton.vue'
+import BackButton from '@/components/navigation/BackButton.vue'
 import { api } from '@/api'
 import type { User } from '@/api/types/users'
 

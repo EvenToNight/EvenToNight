@@ -140,20 +140,28 @@ onUnmounted(() => {
   font-size: 0.95rem;
   font-weight: 500;
   color: var(--q-primary);
-  // transition: gap 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    gap 0.3s ease;
   user-select: none;
+  transform-origin: left center;
 
   &:hover {
-    // gap: $spacing-3;
+    transform: scale(1.05);
+    gap: $spacing-3;
 
     .see-all-arrow {
-      transform: translateX(4px);
+      transform: scale(1.05);
     }
   }
 
-  // .see-all-text {
-  //   transition: transform 0.3s ease;
-  // }
+  &:active {
+    transform: scale(1.05);
+  }
+
+  .see-all-text {
+    transition: inherit;
+  }
 
   .see-all-arrow {
     font-size: 1.2rem;

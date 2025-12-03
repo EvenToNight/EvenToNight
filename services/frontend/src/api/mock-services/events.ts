@@ -1,7 +1,12 @@
-import type { GetEventByIdResponse, GetTagResponse } from '../interfaces/events'
+import type {
+  GetEventByIdResponse,
+  GetTagResponse,
+  PublishEventResponse,
+} from '../interfaces/events'
 import type { EventAPI } from '../interfaces/events'
 import type { EventID } from '../types/events'
 import { mockEvents } from './data/events'
+import type { EventData } from '../types/events'
 
 export const mockEventsApi: EventAPI = {
   async getTags(): Promise<GetTagResponse> {
@@ -32,5 +37,8 @@ export const mockEventsApi: EventAPI = {
     }
 
     return { event }
+  },
+  async publishEvent(_eventData: EventData): Promise<PublishEventResponse> {
+    return { eventId: mockEvents[0]!.id }
   },
 }

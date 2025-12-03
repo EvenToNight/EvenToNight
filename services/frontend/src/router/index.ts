@@ -1,11 +1,9 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import VueHomeView from '../views/VueHomeView.vue'
 import Home from '../views/Home.vue'
 import PlaceHolderView from '../views/PlaceHolderView.vue'
 import LocaleWrapper from '../views/LocaleWrapper.vue'
 import i18n, { SUPPORTED_LOCALES, DEFAULT_LOCALE, type Locale } from '../i18n'
 
-// Get initial locale from localStorage or browser
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')
   if (savedLocale && SUPPORTED_LOCALES.includes(savedLocale)) {
@@ -45,11 +43,6 @@ const router = createRouter({
           component: Home,
         },
         {
-          path: 'vue-home',
-          name: 'vue-home',
-          component: VueHomeView,
-        },
-        {
           path: 'location',
           name: 'location',
           component: () => import('../views/LocationTestView.vue'),
@@ -57,20 +50,17 @@ const router = createRouter({
         {
           path: 'about',
           name: 'about',
-          // route level code-splitting
-          // this generates a separate chunk (About.[hash].js) for this route
-          // which is lazy-loaded when the route is visited.
           component: () => import('../views/AboutView.vue'),
         },
         {
-          path: 'event/:id',
+          path: 'events/:id',
           name: 'event-details',
           component: () => import('../views/EventDetails.vue'),
         },
         {
-          path: 'organization/:id',
-          name: 'organization-profile',
-          component: () => import('../views/OrganizationProfile.vue'),
+          path: 'users/:id',
+          name: 'user-profile',
+          component: () => import('../views/UserProfile.vue'),
         },
         {
           path: 'create-event',
@@ -87,16 +77,13 @@ const router = createRouter({
   ],
 })
 
-// Global navigation guard to handle locale changes
 router.beforeEach((to, _from, next) => {
   const locale = to.params.locale as string
 
-  // Validate locale
   if (locale && !SUPPORTED_LOCALES.includes(locale)) {
     return next(`/${DEFAULT_LOCALE}`)
   }
 
-  // Update i18n locale
   if (locale && i18n.global.locale.value !== locale) {
     i18n.global.locale.value = locale as Locale
     localStorage.setItem('user-locale', locale)
