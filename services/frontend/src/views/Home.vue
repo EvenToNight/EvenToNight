@@ -61,7 +61,11 @@ const handleScroll = () => {
 onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
   const response = await api.feed.getUpcomingEvents()
-  upcomingEvents.value = response.items
+  if ('items' in response) {
+    upcomingEvents.value = response.items
+  } else {
+    console.error('Failed to load upcoming events:', response.message)
+  }
 })
 
 onUnmounted(() => {
@@ -255,6 +259,15 @@ onUnmounted(() => {
         color: #666 !important;
       }
 
+      // Keep placeholder and cursor color consistent in hero (always dark since background is white)
+      .q-field__native::placeholder {
+        color: rgba(0, 0, 0, 0.6) !important;
+      }
+
+      .q-field__native {
+        caret-color: black !important;
+      }
+
       // Remove all outlines and borders
       .q-field__control:before,
       .q-field__control:after {
@@ -271,12 +284,34 @@ onUnmounted(() => {
       }
     }
 
-    // Fix suggestions dropdown alignment and styling
+    // Fix suggestions dropdown alignment and styling - keep light theme even in dark mode
     :deep(.suggestions-dropdown) {
       text-align: left !important;
+      background: white !important;
 
       .suggestion-item {
         text-align: left !important;
+        color: $color-text-primary !important;
+
+        &:hover {
+          background-color: $color-gray-100 !important;
+        }
+
+        .result-primary {
+          color: $color-text-primary !important;
+        }
+
+        .result-secondary {
+          color: $color-text-secondary !important;
+        }
+
+        .suggestion-icon {
+          color: $color-gray-400 !important;
+        }
+      }
+
+      .loading-item {
+        color: $color-text-secondary !important;
       }
     }
   }

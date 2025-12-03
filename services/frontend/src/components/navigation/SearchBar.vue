@@ -346,6 +346,76 @@ const handleBlur = () => {
 
   :deep(.q-field__control) {
     border-radius: 8px;
+
+    @include light-mode {
+      background-color: white !important;
+      border: 1px solid rgba(0, 0, 0, 0.12);
+    }
+
+    @include dark-mode {
+      background-color: #2c2c2c !important;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+  }
+
+  // Override standout focused state
+  :deep(.q-field--standout.q-field--focused .q-field__control) {
+    @include light-mode {
+      background-color: white !important;
+      border-color: $color-primary;
+    }
+
+    @include dark-mode {
+      background-color: #2c2c2c !important;
+      border-color: $color-primary;
+    }
+  }
+
+  // Keep icon color consistent
+  :deep(.q-icon) {
+    @include light-mode {
+      color: rgba(0, 0, 0, 0.54) !important;
+    }
+
+    @include dark-mode {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+  }
+
+  // Keep placeholder color consistent
+  :deep(.q-field__native::placeholder) {
+    @include light-mode {
+      color: rgba(0, 0, 0, 0.6) !important;
+    }
+
+    @include dark-mode {
+      color: rgba(255, 255, 255, 0.6) !important;
+    }
+  }
+
+  // Override focused state colors
+  :deep(.q-field--focused .q-icon),
+  :deep(.q-field--focused .q-field__native::placeholder) {
+    @include light-mode {
+      color: rgba(0, 0, 0, 0.54) !important;
+    }
+
+    @include dark-mode {
+      color: rgba(255, 255, 255, 0.7) !important;
+    }
+  }
+
+  // Set cursor and text color
+  :deep(.q-field__native) {
+    @include light-mode {
+      color: black !important;
+      caret-color: black !important;
+    }
+
+    @include dark-mode {
+      color: white !important;
+      caret-color: white !important;
+    }
   }
 }
 
