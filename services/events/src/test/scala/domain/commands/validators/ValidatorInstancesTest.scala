@@ -1,8 +1,9 @@
 package domain.commands.validators
 
-import domain.commands.CreateEventDraftCommand
+import domain.commands.CreateEventCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventPosterCommand
+import domain.models.EventStatus
 import domain.models.EventTag
 import domain.models.Location
 import org.scalatest.EitherValues._
@@ -30,7 +31,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     link = "https://test.com"
   )
 
-  private val validCreateCommand = CreateEventDraftCommand(
+  private val validCreateCommand = CreateEventCommand(
     title = "Test Event",
     description = "Test Description",
     poster = "test.jpg",
@@ -38,6 +39,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     location = validLocation,
     date = LocalDateTime.now().plusDays(7),
     price = 25.0,
+    status = EventStatus.DRAFT,
     id_creator = "creator123",
     id_collaborator = Some("collaborator456")
   )
@@ -50,9 +52,9 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
   )
 
   "ValidatorsInstances" should "provide given instance for CreateEventDraftCommand" in:
-    val validator = summon[Validator[CreateEventDraftCommand]]
+    val validator = summon[Validator[CreateEventCommand]]
     validator should not be null
-    validator shouldBe CreateEventDraftValidator
+    validator shouldBe CreateEventValidator
 
   it should "provide given instance for GetEventCommand" in:
     val validator = summon[Validator[GetEventCommand]]
@@ -94,7 +96,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
       link = ""
     )
 
-    val minimalCommand = CreateEventDraftCommand(
+    val minimalCommand = CreateEventCommand(
       title = "A",
       description = "A",
       poster = "",
@@ -102,6 +104,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
       location = minimalLocation,
       date = LocalDateTime.now().plusMinutes(1),
       price = 0.0,
+      status = EventStatus.DRAFT,
       id_creator = "A",
       id_collaborator = None
     )

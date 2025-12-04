@@ -1,7 +1,8 @@
 package controller.routes
 
-import domain.commands.CreateEventDraftCommand
+import domain.commands.CreateEventCommand
 import domain.commands.UpdateEventPosterCommand
+import domain.models.EventStatus
 import domain.models.EventTag.validateTagList
 import service.EventService
 import ujson.Obj
@@ -23,13 +24,15 @@ class DomainEventRoutes(eventService: EventService) extends BaseRoutes:
       location: String,
       date: String,
       price: Double,
+      status: String,
       id_creator: String,
       id_collaborator: Option[String] = None
   ): cask.Response[ujson.Value] =
     val tagList     = validateTagList(tags)
     val localityObj = parseLocationFromJson(location)
+    val eventStatus = EventStatus.withNameOpt(status).getOrElse(EventStatus.DRAFT)
 
-    val command = CreateEventDraftCommand(
+    val command = CreateEventCommand(
       title = title,
       description = description,
       poster = "",
@@ -37,6 +40,7 @@ class DomainEventRoutes(eventService: EventService) extends BaseRoutes:
       location = localityObj,
       date = LocalDateTime.parse(date),
       price = price,
+      status = eventStatus,
       id_creator = id_creator,
       id_collaborator = id_collaborator.filter(_.nonEmpty)
     )

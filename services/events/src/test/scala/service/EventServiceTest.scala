@@ -1,9 +1,10 @@
 package service
 
-import domain.commands.CreateEventDraftCommand
+import domain.commands.CreateEventCommand
 import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventPosterCommand
+import domain.models.EventStatus
 import domain.models.EventTag
 import domain.models.Location
 import infrastructure.db.EventRepository
@@ -29,7 +30,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     publisher = new MockEventPublisher
     service = new EventService(repo, publisher)
 
-  private def validCreateEventDraftCommand(
+  private def validCreateEventCommand(
       title: String = "Test Event",
       description: String = "Test Description",
       poster: String = "test-poster.jpg",
@@ -46,10 +47,11 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       ),
       price: Double = 15.0,
       date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
+      status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "creator-123",
       id_collaborator: Option[String] = None
-  ): CreateEventDraftCommand =
-    CreateEventDraftCommand(title, description, poster, tag, location, date, price, id_creator, id_collaborator)
+  ): CreateEventCommand =
+    CreateEventCommand(title, description, poster, tag, location, date, price, status, id_creator, id_collaborator)
 
   private def validGetEventCommand(id_event: String = "event-123"): GetEventCommand =
     GetEventCommand(id_event)
@@ -66,43 +68,43 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
   "EventService" should "be instantiated correctly" in:
     service.`should`(be(a[EventService]))
 
-  "handleCommand" should "successfully process valid CreateEventDraftCommand" in:
-    val command = validCreateEventDraftCommand()
+  "handleCommand" should "successfully process valid CreateEventCommand" in:
+    val command = validCreateEventCommand()
     val result  = service.handleCommand(command)
 
     result.isRight shouldBe true
 
-  it should "return validation errors for CreateEventDraftCommand with empty title" in:
-    val command = validCreateEventDraftCommand(title = "")
+  it should "return validation errors for CreateEventCommand with empty title" in:
+    val command = validCreateEventCommand(title = "")
 
     val result = service.handleCommand(command)
 
     result shouldBe Left("Title cannot be empty")
 
-  it should "return validation errors for CreateEventDraftCommand with invalid date" in:
-    val command = validCreateEventDraftCommand(date = LocalDateTime.of(2020, 1, 1, 0, 0))
+  it should "return validation errors for CreateEventCommand with invalid date" in:
+    val command = validCreateEventCommand(date = LocalDateTime.of(2020, 1, 1, 0, 0))
 
     val result = service.handleCommand(command)
 
     result shouldBe Left("Date must be in the future")
 
-  it should "return validation errors for CreateEventDraftCommand with empty location" in:
-    val command = validCreateEventDraftCommand(location = Location.Nil())
+  it should "return validation errors for CreateEventCommand with empty location" in:
+    val command = validCreateEventCommand(location = Location.Nil())
 
     val result = service.handleCommand(command)
 
     result shouldBe Left("Location has invalid parameters")
 
-  it should "return validation errors for CreateEventDraftCommand with empty description" in:
-    val command = validCreateEventDraftCommand(description = "")
+  it should "return validation errors for CreateEventCommand with empty description" in:
+    val command = validCreateEventCommand(description = "")
 
     val result = service.handleCommand(command)
 
     result shouldBe Left("Description cannot be empty")
 
-  it should "concatenate multiple validation errors for CreateEventDraftCommand" in:
+  it should "concatenate multiple validation errors for CreateEventCommand" in:
     val command =
-      validCreateEventDraftCommand(title = "", date = LocalDateTime.of(2020, 1, 1, 0, 0), location = Location.Nil())
+      validCreateEventCommand(title = "", date = LocalDateTime.of(2020, 1, 1, 0, 0), location = Location.Nil())
 
     val result = service.handleCommand(command) match
       case Left(errors) => errors
@@ -111,7 +113,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     result should include(",")
 
   it should "successfully process valid UpdateEventPosterCommand" in:
-    val createCommand = validCreateEventDraftCommand()
+    val createCommand = validCreateEventCommand()
     val id_event = service.handleCommand(createCommand) match
       case Right(id: String) => id
       case _                 => fail("Expected event ID as String")
@@ -136,7 +138,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     result.isLeft shouldBe true
 
   it should "successfully process valid GetEventCommand" in:
-    val createCommand = validCreateEventDraftCommand()
+    val createCommand = validCreateEventCommand()
     val id_event = service.handleCommand(createCommand) match
       case Right(id: String) => id
       case _                 => fail("Expected event ID as String")
@@ -173,7 +175,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
   it should "handle all command types without throwing exceptions" in:
     val commands = List(
-      validCreateEventDraftCommand(),
+      validCreateEventCommand(),
       validUpdateEventPosterCommand(),
       validGetEventCommand(),
       validGetAllEventsCommand()

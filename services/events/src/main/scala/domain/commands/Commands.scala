@@ -1,4 +1,5 @@
 package domain.commands
+import domain.models.EventStatus
 import domain.models.EventTag
 import domain.models.Location
 
@@ -6,7 +7,7 @@ import java.time.LocalDateTime
 
 sealed trait Commands
 
-case class CreateEventDraftCommand(
+case class CreateEventCommand(
     title: String,
     description: String,
     poster: String,
@@ -14,6 +15,7 @@ case class CreateEventDraftCommand(
     location: Location,
     date: LocalDateTime,
     price: Double,
+    status: EventStatus,
     id_creator: String,
     id_collaborator: Option[String]
 ) extends Commands

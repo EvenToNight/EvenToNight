@@ -45,7 +45,7 @@ class EventQueryRoutes(eventService: EventService) extends BaseRoutes:
           statusCode = 404
         )
 
-  @cask.postForm("/poster/:id_event")
+  @cask.postForm("/:id_event/poster")
   def updateEventPoster(id_event: String, poster: cask.FormFile): cask.Response[ujson.Value] =
     eventService.handleCommand(GetEventCommand(id_event)) match
       case Left(value) =>

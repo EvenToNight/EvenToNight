@@ -36,7 +36,7 @@ object Event:
       id_collaborator = None
     )
 
-  def createDraft(
+  def create(
       title: String,
       description: String,
       poster: String,
@@ -44,6 +44,7 @@ object Event:
       location: Location,
       date: LocalDateTime,
       price: Double,
+      status: EventStatus,
       id_creator: String,
       id_collaborator: Option[String]
   ): Event =
@@ -56,7 +57,7 @@ object Event:
       location = location,
       date = date,
       price = price,
-      status = EventStatus.DRAFT,
+      status = status,
       instant = java.time.Instant.now(),
       id_creator = id_creator,
       id_collaborator = id_collaborator

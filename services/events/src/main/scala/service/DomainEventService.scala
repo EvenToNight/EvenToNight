@@ -1,10 +1,10 @@
 package service
 
-import domain.commands.CreateEventDraftCommand
-import domain.commands.UpdateEventPosterCommand
-import domain.events.EventDraftCreated
-import domain.events.EventUpdated
+import domain.commands.CreateEventCommand
+import domain.events.EventCreated
+import domain.events.EventPublished
 import domain.models.Event
+import domain.models.EventStatus
 import infrastructure.db.EventRepository
 import infrastructure.messaging.EventPublisher
 
@@ -13,9 +13,9 @@ import java.util.UUID
 
 class DomainEventService(repo: EventRepository, publisher: EventPublisher):
 
-  def execCommand(cmd: CreateEventDraftCommand): Either[String, String] =
+  def execCommand(cmd: CreateEventCommand): Either[String, String] =
     val newEvent =
-      Event.createDraft(
+      Event.create(
         title = cmd.title,
         description = cmd.description,
         poster = cmd.poster,
@@ -23,6 +23,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         location = cmd.location,
         date = cmd.date,
         price = cmd.price,
+        status = cmd.status,
         id_creator = cmd.id_creator,
         id_collaborator = cmd.id_collaborator
       )
@@ -31,25 +32,18 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         Left("Failed to save new event")
       case Right(_) =>
         publisher.publish(
-          EventDraftCreated(
+          EventCreated(
             id = UUID.randomUUID().toString(),
             timestamp = Instant.now(),
             id_event = newEvent._id
           )
         )
-        Right(newEvent._id)
-
-  def execCommand(cmd: UpdateEventPosterCommand): Either[String, Unit] =
-    repo.findById(cmd.id_event) match
-      case Some(event) =>
-        repo.update(event.copy(poster = cmd.posterUrl))
-        publisher.publish(
-          EventUpdated(
-            id = UUID.randomUUID().toString(),
-            timestamp = Instant.now(),
-            id_event = cmd.id_event
+        if cmd.status == EventStatus.PUBLISHED then
+          publisher.publish(
+            EventPublished(
+              id = UUID.randomUUID().toString(),
+              timestamp = Instant.now(),
+              id_event = newEvent._id
+            )
           )
-        )
-        Right(())
-      case None =>
-        Left(s"Event ${cmd.id_event} not found")
+        Right(newEvent._id)

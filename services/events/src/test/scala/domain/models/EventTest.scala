@@ -26,10 +26,11 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       ),
       date: LocalDateTime = LocalDateTime.of(2024, 12, 31, 22, 0),
       price: Double = 15.0,
+      status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "creator123",
       id_collaborator: Option[String] = None
   ): Event =
-    Event.createDraft(
+    Event.create(
       title = title,
       description = description,
       poster = poster,
@@ -37,6 +38,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       location = location,
       date = date,
       price = price,
+      status = status,
       id_creator = id_creator,
       id_collaborator = id_collaborator
     )

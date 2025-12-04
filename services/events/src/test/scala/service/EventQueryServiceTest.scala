@@ -1,6 +1,7 @@
 package service
 import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
+import domain.commands.UpdateEventPosterCommand
 import domain.models.Event
 import domain.models.EventStatus
 import domain.models.EventTag
@@ -24,7 +25,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
     service = new EventQueryService(repo)
 
   private def createEvent(): Event =
-    Event.createDraft(
+    Event.create(
       title = "Sample Event",
       description = "This is a sample event.",
       poster = "sample_poster.png",
@@ -41,6 +42,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       ),
       price = 15.0,
       date = LocalDateTime.now().plusDays(1),
+      status = EventStatus.PUBLISHED,
       id_creator = "creator123",
       id_collaborator = None
     )
@@ -50,6 +52,12 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
 
   private def valideGetAllEventsCommand(): GetAllEventsCommand =
     GetAllEventsCommand()
+
+  private def validUpdateEventPosterCommand(
+      id_event: String,
+      posterUrl: String
+  ): UpdateEventPosterCommand =
+    UpdateEventPosterCommand(id_event, posterUrl)
 
   "EventQueryService" should "be instantiated correctly" in:
     service.`should`(be(a[EventQueryService]))
@@ -89,3 +97,18 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
         events should contain allElementsOf List(event1, event3)
       case Left(error) =>
         fail(s"Expected to retrieve published events, but got error: $error")
+
+  "updateEventPoster" should "update event poster successfully for existing event" in:
+    val event = createEvent()
+    repo.save(event)
+    val updateCmd    = validUpdateEventPosterCommand(id_event = event._id, posterUrl = "new-poster.jpg")
+    val updateResult = service.execCommand(updateCmd)
+    updateResult.isRight shouldBe true
+
+  it should "fail to update event poster for non-existing event" in:
+    val updateCmd    = validUpdateEventPosterCommand(id_event = "nonexistent-id", posterUrl = "new-poster.jpg")
+    val updateResult = service.execCommand(updateCmd)
+    updateResult.isLeft shouldBe true
+    updateResult match
+      case Left(error) => error shouldBe "Event nonexistent-id not found"
+      case Right(_)    => fail("Update should have failed for non-existing event")

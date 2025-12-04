@@ -5,8 +5,8 @@ info:
 paths:
   /:
     post:
-      summary: Create a new event draft
-      description: Creates a new event in draft status with the provided information.
+      summary: Create a new event
+      description: Creates a new event with the provided information.
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
@@ -24,6 +24,7 @@ paths:
                 - location
                 - date
                 - price
+                - status
                 - id_creator
               properties:
                 title:
@@ -56,6 +57,11 @@ paths:
                   format: double
                   description: Event ticket price
                   example: 25.50
+                status:
+                  type: string
+                  enum: [DRAFT, PUBLISHED]
+                  description: Event status
+                  example: "DRAFT"
                 id_creator:
                   type: string
                   description: ID of the event creator
@@ -67,7 +73,7 @@ paths:
                   example: "user-456"
       responses:
         '201':
-          description: Event draft created successfully
+          description: Event created successfully
           content:
             application/json:
               schema:
@@ -188,12 +194,11 @@ paths:
                   error:
                     type: string
                     description: Error message
-                    example: "Could not retrieve events"
-          
+                    example: "Could not retrieve events"    
       tags:
         - Event Query API
   
-  /{poster/:id_event}:
+  /{:id_event/poster}:
     post:
       summary: Update event poster
       description: Updates the poster image for a specific event.
@@ -232,8 +237,10 @@ paths:
                     example: "Event poster updated successfully"
         '400':
           description: Bad request - validation error
+      tags:
+        - Event Query API
 
-  /{id_event}:
+  /{:id_event}:
     get:
       summary: Get event details by ID
       description: Retrieves detailed information about a specific event.

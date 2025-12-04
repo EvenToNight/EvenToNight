@@ -1,5 +1,6 @@
 package domain.commands
 
+import domain.models.EventStatus
 import domain.models.EventTag
 import domain.models.Location
 import org.scalatest.BeforeAndAfterEach
@@ -33,8 +34,8 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   private def createCommand(
       title: String = "Test Event",
       id_collaborator: Option[String] = Some("collaborator-456")
-  ): CreateEventDraftCommand =
-    CreateEventDraftCommand(
+  ): CreateEventCommand =
+    CreateEventCommand(
       title,
       "Test description",
       "poster.jpg",
@@ -42,6 +43,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       sampleLocation,
       baseDate,
       15.0,
+      EventStatus.DRAFT,
       "creator-123",
       id_collaborator
     )
@@ -58,7 +60,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   "CreateEventDraftCommand" should "implement Commands trait" in:
     val command = createCommand()
     command shouldBe a[Commands]
-    command shouldBe a[CreateEventDraftCommand]
+    command shouldBe a[CreateEventCommand]
 
   it should "store properties correctly" in:
     val command = createCommand("Custom Title", None)
@@ -71,10 +73,10 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   it should "support pattern matching" in:
     val command: Commands = createCommand("Pattern Test")
     val result = command match
-      case CreateEventDraftCommand(title, _, _, _, _, _, _, _, _) => s"Command: $title"
-      case GetEventCommand(id_event)                              => s"Get Command: $id_event"
-      case UpdateEventPosterCommand(id_event, posterUrl)          => s"Update Poster Command: $id_event"
-      case GetAllEventsCommand()                                  => "Get All Events Command"
+      case CreateEventCommand(title, _, _, _, _, _, _, _, _, _) => s"Command: $title"
+      case GetEventCommand(id_event)                            => s"Get Command: $id_event"
+      case UpdateEventPosterCommand(id_event, posterUrl)        => s"Update Poster Command: $id_event"
+      case GetAllEventsCommand()                                => "Get All Events Command"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:

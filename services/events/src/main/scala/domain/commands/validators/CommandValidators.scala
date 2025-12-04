@@ -1,15 +1,15 @@
 package domain.commands.validators
 
-import domain.commands.CreateEventDraftCommand
+import domain.commands.CreateEventCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventPosterCommand
 
 import ValidationRules.{futureDate, nonEmpty, correctLocality}
 import Validator.combine
 
-object CreateEventDraftValidator extends Validator[CreateEventDraftCommand]:
+object CreateEventValidator extends Validator[CreateEventCommand]:
 
-  override def validate(cmd: CreateEventDraftCommand): Either[List[String], CreateEventDraftCommand] =
+  override def validate(cmd: CreateEventCommand): Either[List[String], CreateEventCommand] =
     val validations = combine(
       nonEmpty(cmd.title, "Title"),
       nonEmpty(cmd.description, "Description"),

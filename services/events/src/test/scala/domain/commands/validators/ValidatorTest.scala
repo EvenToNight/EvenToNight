@@ -1,8 +1,9 @@
 package domain.commands.validators
 
-import domain.commands.CreateEventDraftCommand
+import domain.commands.CreateEventCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventPosterCommand
+import domain.models.EventStatus
 import domain.models.EventTag
 import domain.models.Location
 import org.scalatest.BeforeAndAfterEach
@@ -16,7 +17,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   private val pastDate: LocalDateTime = LocalDateTime.now().minusDays(1)
 
-  private def validCreateEventDraftCommand(
+  private def validCreateEventCommand(
       title: String = "Valid Title",
       description: String = "Valid Description",
       location: Location = Location.create(
@@ -32,8 +33,8 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       date: LocalDateTime = LocalDateTime.now().plusDays(10),
       price: Double = 20.0,
       id_creator: String = "valid-creator-id"
-  ): CreateEventDraftCommand =
-    CreateEventDraftCommand(
+  ): CreateEventCommand =
+    CreateEventCommand(
       title = title,
       description = description,
       poster = "valid-poster.jpg",
@@ -41,63 +42,64 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       location = location,
       date = date,
       price = price,
+      status = EventStatus.DRAFT,
       id_creator = id_creator,
       id_collaborator = None
     )
 
-  "CreateEventDraftValidator" should "extends Validator trait" in:
-    val validator = CreateEventDraftValidator
-    validator shouldBe a[Validator[CreateEventDraftCommand]]
+  "CreateEventValidator" should "extends Validator trait" in:
+    val validator = CreateEventValidator
+    validator shouldBe a[Validator[CreateEventCommand]]
 
-  it should "validate create event draft command successfully" in:
-    val command = validCreateEventDraftCommand()
-    val result  = CreateEventDraftValidator.validate(command)
+  it should "validate create event command successfully" in:
+    val command = validCreateEventCommand()
+    val result  = CreateEventValidator.validate(command)
 
     result shouldBe Right(command)
 
   it should "reject empty title" in:
-    val command = validCreateEventDraftCommand(title = "")
-    val result  = CreateEventDraftValidator.validate(command)
+    val command = validCreateEventCommand(title = "")
+    val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Title cannot be empty")
 
   it should "reject empty description" in:
-    val command = validCreateEventDraftCommand(description = "")
-    val result  = CreateEventDraftValidator.validate(command)
+    val command = validCreateEventCommand(description = "")
+    val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Description cannot be empty")
 
   it should "reject empty location" in:
-    val command = validCreateEventDraftCommand(location = Location.Nil())
-    val result  = CreateEventDraftValidator.validate(command)
+    val command = validCreateEventCommand(location = Location.Nil())
+    val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Location has invalid parameters")
 
   it should "reject empty creator id" in:
-    val command = validCreateEventDraftCommand(id_creator = "")
-    val result  = CreateEventDraftValidator.validate(command)
+    val command = validCreateEventCommand(id_creator = "")
+    val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Creator Id cannot be empty")
 
   it should "reject past date" in:
-    val command = validCreateEventDraftCommand(date = pastDate)
-    val result  = CreateEventDraftValidator.validate(command)
+    val command = validCreateEventCommand(date = pastDate)
+    val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Date must be in the future")
 
   it should "collect multiple validation errors" in:
-    val command = validCreateEventDraftCommand(
+    val command = validCreateEventCommand(
       title = "",
       description = "",
       location = Location.Nil(),
       date = pastDate
     )
-    val result = CreateEventDraftValidator.validate(command)
+    val result = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     val errors = result.left.value

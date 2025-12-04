@@ -1,7 +1,7 @@
 package service
 
 import domain.commands.Commands
-import domain.commands.CreateEventDraftCommand
+import domain.commands.CreateEventCommand
 import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventPosterCommand
@@ -19,8 +19,8 @@ class EventService(
 
   def handleCommand(cmd: Commands): Either[String, Any] =
     cmd match
-      case c: CreateEventDraftCommand  => validateAnd(c)(eventCommandService.execCommand)
-      case c: UpdateEventPosterCommand => validateAnd(c)(eventCommandService.execCommand)
+      case c: CreateEventCommand       => validateAnd(c)(eventCommandService.execCommand)
+      case c: UpdateEventPosterCommand => validateAnd(c)(eventQueryService.execCommand)
       case c: GetEventCommand          => validateAnd(c)(eventQueryService.execCommand)
       case c: GetAllEventsCommand      => eventQueryService.execCommand(c)
 

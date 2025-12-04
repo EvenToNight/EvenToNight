@@ -1,8 +1,8 @@
 package service
 
-import domain.commands.CreateEventDraftCommand
-import domain.commands.UpdateEventPosterCommand
+import domain.commands.CreateEventCommand
 import domain.models.Event
+import domain.models.EventStatus
 import domain.models.EventTag
 import domain.models.Location
 import infrastructure.db.EventRepository
@@ -34,7 +34,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     publisher = new MockEventPublisher()
     service = new DomainEventService(repo, publisher)
 
-  private def validCreateEventDraftCommand(
+  private def validCreateEventCommand(
       title: String = "Test Event",
       description: String = "Test Description",
       poster: String = "test-poster.jpg",
@@ -51,22 +51,17 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       ),
       price: Double = 15.0,
       date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
+      status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "creator-123",
       id_collaborator: Option[String] = None
-  ): CreateEventDraftCommand =
-    CreateEventDraftCommand(title, description, poster, tag, location, date, price, id_creator, id_collaborator)
-
-  private def validUpdateEventPosterCommand(
-      id_event: String,
-      posterUrl: String
-  ): UpdateEventPosterCommand =
-    UpdateEventPosterCommand(id_event, posterUrl)
+  ): CreateEventCommand =
+    CreateEventCommand(title, description, poster, tag, location, date, price, status, id_creator, id_collaborator)
 
   "DomainEventService" should "be instantiated correctly" in:
     service shouldBe a[DomainEventService]
 
   "createEventDraft" should "create an event draft successfully" in:
-    val cmd    = validCreateEventDraftCommand()
+    val cmd    = validCreateEventCommand()
     val result = service.execCommand(cmd)
     result.isRight shouldBe true
 
@@ -74,29 +69,10 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     val failingRepo    = new FailingEventRepository()
     val failingService = new DomainEventService(failingRepo, publisher)
 
-    val cmd    = validCreateEventDraftCommand()
+    val cmd    = validCreateEventCommand()
     val result = failingService.execCommand(cmd)
 
     result.isLeft shouldBe true
     result match
       case Left(error) => error shouldBe "Failed to save new event"
       case Right(_)    => fail("Expected failure when database save fails")
-
-  "updateEventPoster" should "update event poster successfully for existing event" in:
-    val createCmd    = validCreateEventDraftCommand()
-    val createResult = service.execCommand(createCmd)
-    createResult.isRight shouldBe true
-    val id_event = createResult match
-      case Right(id) => id
-      case Left(_)   => fail("Failed to create event draft for update test")
-    val updateCmd    = validUpdateEventPosterCommand(id_event = id_event, posterUrl = "new-poster.jpg")
-    val updateResult = service.execCommand(updateCmd)
-    updateResult.isRight shouldBe true
-
-  it should "fail to update event poster for non-existing event" in:
-    val updateCmd    = validUpdateEventPosterCommand(id_event = "nonexistent-id", posterUrl = "new-poster.jpg")
-    val updateResult = service.execCommand(updateCmd)
-    updateResult.isLeft shouldBe true
-    updateResult match
-      case Left(error) => error shouldBe "Event nonexistent-id not found"
-      case Right(_)    => fail("Update should have failed for non-existing event")
