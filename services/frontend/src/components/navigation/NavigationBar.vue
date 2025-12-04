@@ -213,6 +213,11 @@ const scrollToTop = () => {
       </template>
     </q-toolbar>
 
+    <!-- Extra overlay for drawer -->
+    <Transition name="overlay-fade">
+      <div v-if="mobileMenuOpen" class="drawer-body-overlay" @click="closeMobileMenu"></div>
+    </Transition>
+
     <!-- Mobile menu drawer -->
     <Transition name="drawer">
       <div v-if="mobileMenuOpen" class="mobile-drawer-overlay" @click="closeMobileMenu">
@@ -424,7 +429,7 @@ const scrollToTop = () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  //background: rgba(0, 0, 0, 0.5);
   z-index: 9999;
   display: flex;
   justify-content: flex-end;
@@ -570,5 +575,31 @@ const scrollToTop = () => {
   @include dark-mode {
     color: #aaa;
   }
+}
+
+.drawer-body-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 9998;
+  cursor: pointer;
+}
+
+.overlay-fade-enter-active,
+.overlay-fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.overlay-fade-enter-from,
+.overlay-fade-leave-to {
+  opacity: 0;
+}
+
+.overlay-fade-enter-to,
+.overlay-fade-leave-from {
+  opacity: 1;
 }
 </style>

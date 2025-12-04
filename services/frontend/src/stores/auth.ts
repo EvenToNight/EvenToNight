@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { AuthenticatedUser } from '@/api/types/users'
+import type { User } from '@/api/types/users'
 import { api } from '@/api'
 
 interface AuthTokens {
@@ -15,7 +15,7 @@ const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
 export const useAuthStore = defineStore('auth', () => {
   const tokens = ref<AuthTokens | null>(null)
   // TODO evaluate where to store user info, pinia or local storage, maybe depends on refresh token strategy
-  const user = ref<AuthenticatedUser | null>(null)
+  const user = ref<User | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
     if (!tokens.value) return false
@@ -31,7 +31,7 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem(TOKEN_EXPIRY_SESSION_KEY, String(authTokens.expiresAt))
   }
 
-  const setUser = (authUser: AuthenticatedUser) => {
+  const setUser = (authUser: User) => {
     user.value = authUser
   }
 
@@ -151,23 +151,6 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  // Auto-login for development
-  const autoLogin = async () => {
-    const autoLoginEnabled = import.meta.env.VITE_AUTO_LOGIN === 'true'
-    const devEmail = import.meta.env.VITE_DEV_EMAIL
-    const devPassword = import.meta.env.VITE_DEV_PASSWORD
-
-    if (autoLoginEnabled && devEmail && devPassword) {
-      console.log('🔐 Auto-login enabled for development')
-      const result = await login(devEmail, devPassword)
-      if (result.success) {
-        console.log('✅ Auto-login successful')
-      } else {
-        console.error('❌ Auto-login failed:', result.error)
-      }
-    }
-  }
-
   return {
     // State
     tokens,
@@ -184,7 +167,6 @@ export const useAuthStore = defineStore('auth', () => {
     refreshAccessToken,
     initializeAuth,
     setupAutoRefresh,
-    autoLogin,
     clearAuth,
   }
 })
