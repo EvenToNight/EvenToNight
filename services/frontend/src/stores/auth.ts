@@ -11,10 +11,10 @@ interface AuthTokens {
 // Access token in sessionStorage come fallback (si perde chiudendo il tab)
 const ACCESS_TOKEN_SESSION_KEY = 'access_token_session'
 const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
+const USER_SESSION_KEY = 'user_session'
 
 export const useAuthStore = defineStore('auth', () => {
   const tokens = ref<AuthTokens | null>(null)
-  // TODO evaluate where to store user info, pinia or local storage, maybe depends on refresh token strategy
   const user = ref<User | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
@@ -33,6 +33,8 @@ export const useAuthStore = defineStore('auth', () => {
 
   const setUser = (authUser: User) => {
     user.value = authUser
+    // Store user in sessionStorage
+    sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(authUser))
   }
 
   const clearAuth = () => {
@@ -40,6 +42,7 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = null
     sessionStorage.removeItem(ACCESS_TOKEN_SESSION_KEY)
     sessionStorage.removeItem(TOKEN_EXPIRY_SESSION_KEY)
+    sessionStorage.removeItem(USER_SESSION_KEY)
   }
 
   const login = async (email: string, password: string) => {
@@ -105,9 +108,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const initializeAuth = () => {
-    // Load access token from sessionStorage (if tab wasn't closed)
+    // Load access token and user from sessionStorage (if tab wasn't closed)
     const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
     const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
+    const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
 
     if (storedAccessToken && storedExpiry) {
       const expiresAt = parseInt(storedExpiry, 10)
@@ -118,7 +122,15 @@ export const useAuthStore = defineStore('auth', () => {
           accessToken: storedAccessToken,
           expiresAt,
         }
-        // Still refresh to get user info if not in memory
+        // Load user from storage if available
+        if (storedUser) {
+          try {
+            user.value = JSON.parse(storedUser)
+          } catch (error) {
+            console.error('Failed to parse stored user:', error)
+          }
+        }
+        // Still refresh to get fresh user info if not in storage
         if (!user.value) {
           refreshAccessToken()
         }
