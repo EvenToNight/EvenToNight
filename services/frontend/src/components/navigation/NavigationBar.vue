@@ -285,17 +285,9 @@ const scrollToTop = () => {
   min-width: 300px;
   width: 100%;
 
-  // Desktop: sticky per rimanere in cima durante scroll verticale
-  @media (min-width: calc($breakpoint-mobile + 1px)) {
-    position: sticky;
-    top: 0;
-    z-index: $z-index-sticky;
-  }
-
-  // Mobile: non sticky, scrolla con il contenuto sia verticalmente che orizzontalmente
-  @media (max-width: $breakpoint-mobile) {
-    position: relative;
-  }
+  position: sticky;
+  top: 0;
+  z-index: $z-index-sticky;
 }
 
 .navigation-bar {
