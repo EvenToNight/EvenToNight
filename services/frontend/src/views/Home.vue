@@ -235,86 +235,8 @@ onUnmounted(() => {
     max-width: 600px;
     margin: 0 auto;
 
-    // Force light styling for search bar on black background
-    :deep(.search-input) {
-      background: transparent !important;
-      box-shadow: none !important;
-      outline: none !important;
-
-      .q-field__control {
-        background: #fff !important;
-        color: #000 !important;
-        border-radius: 8px;
-        box-shadow: none !important;
-        outline: none !important;
-        border: none !important;
-      }
-
-      .q-field__native,
-      input {
-        color: #000 !important;
-        text-align: left !important;
-        outline: none !important;
-      }
-
-      .q-icon {
-        color: #666 !important;
-      }
-
-      // Keep placeholder and cursor color consistent in hero (always dark since background is white)
-      .q-field__native::placeholder {
-        color: rgba(0, 0, 0, 0.6) !important;
-      }
-
-      .q-field__native {
-        caret-color: black !important;
-      }
-
-      // Remove all outlines and borders
-      .q-field__control:before,
-      .q-field__control:after {
-        border: none !important;
-        outline: none !important;
-        box-shadow: none !important;
-      }
-
-      // Remove focus ring
-      &:focus,
-      &:focus-within {
-        outline: none !important;
-        box-shadow: none !important;
-      }
-    }
-
-    // Fix suggestions dropdown alignment and styling - keep light theme even in dark mode
     :deep(.suggestions-dropdown) {
       text-align: left !important;
-      background: white !important;
-
-      .suggestion-item {
-        text-align: left !important;
-        color: $color-text-primary !important;
-
-        &:hover {
-          background-color: $color-gray-100 !important;
-        }
-
-        .result-primary {
-          color: $color-text-primary !important;
-        }
-
-        .result-secondary {
-          color: $color-text-secondary !important;
-        }
-
-        .suggestion-icon {
-          color: $color-gray-400 !important;
-        }
-      }
-
-      .loading-item {
-        color: $color-text-secondary !important;
-      }
     }
   }
 }
