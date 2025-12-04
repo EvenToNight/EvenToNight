@@ -18,7 +18,6 @@ interface SearchResultUser {
   type: 'organization' | 'member'
   id: string
   name: string
-  bio?: string
   avatarUrl?: string
   relevance: number
 }
@@ -168,7 +167,6 @@ const performSearch = async () => {
           type: user.role,
           id: user.id,
           name: user.name,
-          bio: user.bio,
           avatarUrl: user.avatarUrl,
           relevance: maxRelevance,
         })
@@ -253,7 +251,7 @@ const getResultSecondaryText = (result: SearchResult): string => {
   if (result.type === 'event') {
     return `${result.location} • ${formatDate(result.date)}`
   }
-  return result.bio || ''
+  return ''
 }
 
 const formatDate = (date: Date): string => {
