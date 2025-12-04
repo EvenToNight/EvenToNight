@@ -300,6 +300,7 @@ const scrollToTop = () => {
   width: 100%;
   min-height: 64px;
   transition: background-color 0.3s ease;
+  position: relative;
 
   @include light-mode {
     background-color: white !important;
@@ -353,11 +354,15 @@ const scrollToTop = () => {
 }
 
 .search-container {
-  flex: 1 1 auto;
-  max-width: 500px;
-  min-width: 0;
-  margin: 0 $spacing-2;
-  position: relative;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(200px, 40vw, 500px);
+  pointer-events: none;
+
+  > * {
+    pointer-events: auto;
+  }
 
   @media (max-width: $breakpoint-mobile) {
     display: none;
