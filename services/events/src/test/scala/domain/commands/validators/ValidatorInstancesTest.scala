@@ -45,7 +45,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
   private val validGetCommand = GetEventCommand("event123")
 
   private val validUpdateCommand = UpdateEventPosterCommand(
-    eventId = "event123",
+    id_event = "event123",
     posterUrl = "https://example.com/poster.jpg"
   )
 

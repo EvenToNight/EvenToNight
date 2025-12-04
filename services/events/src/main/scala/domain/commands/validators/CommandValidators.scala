@@ -30,6 +30,6 @@ object UpdateEventPosterValidator extends Validator[UpdateEventPosterCommand]:
 
   override def validate(cmd: UpdateEventPosterCommand): Either[List[String], UpdateEventPosterCommand] =
     combine(
-      nonEmpty(cmd.eventId, "Event ID"),
+      nonEmpty(cmd.id_event, "Event ID"),
       nonEmpty(cmd.posterUrl, "Poster URL")
     ).map(_ => cmd)

@@ -10,37 +10,37 @@ import scala.compiletime.uninitialized
 class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   var createEvent: EventDraftCreated = uninitialized
-  val domainEventId: String          = "domainEventId"
+  val domainid_event: String         = "domainid_event"
   val timestamp: Instant             = Instant.now()
-  val eventId: String                = "eventId"
+  val id_event: String               = "id_event"
   var updateEvent: EventUpdated      = uninitialized
 
   override def beforeEach(): Unit =
     super.beforeEach()
     createEvent = EventDraftCreated(
-      id = domainEventId,
+      id = domainid_event,
       timestamp = timestamp,
-      eventId = eventId
+      id_event = id_event
     )
     updateEvent = EventUpdated(
-      id = "updateEventId",
+      id = "updateid_event",
       timestamp = Instant.now(),
-      eventId = "updateEvent"
+      id_event = "updateEvent"
     )
 
   "EventDraftCreated" should "implement DomainEvent trait correctly" in:
     createEvent shouldBe a[DomainEvent]
 
   it should "store all provided data correctly" in:
-    createEvent.id shouldBe domainEventId
+    createEvent.id shouldBe domainid_event
     createEvent.timestamp shouldBe timestamp
-    createEvent.eventId shouldBe eventId
+    createEvent.id_event shouldBe id_event
 
   it should "be comparable with itself" in:
     val event2 = EventDraftCreated(
-      id = domainEventId,
+      id = domainid_event,
       timestamp = timestamp,
-      eventId = eventId
+      id_event = id_event
     )
 
     createEvent shouldBe event2
@@ -49,7 +49,7 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val event2 = EventDraftCreated(
       id = "id-2",
       timestamp = Instant.now(),
-      eventId = "event-2"
+      id_event = "event-2"
     )
 
     createEvent should not be event2
@@ -58,12 +58,12 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val event: DomainEvent = EventDraftCreated(
       id = "pattern-test",
       timestamp = Instant.now(),
-      eventId = "event-pattern"
+      id_event = "event-pattern"
     )
 
     val result = event match
-      case EventDraftCreated(id, timestamp, eventId) => s"Draft created: $eventId"
-      case EventUpdated(id, timestamp, eventId)      => s"Event updated: $eventId"
+      case EventDraftCreated(id, timestamp, id_event) => s"Draft created: $id_event"
+      case EventUpdated(id, timestamp, id_event)      => s"Event updated: $id_event"
 
     result shouldBe "Draft created: event-pattern"
 
@@ -73,7 +73,7 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val event1 = EventDraftCreated(
       id = "timestamp-test",
       timestamp = Instant.now(),
-      eventId = "event-timestamp"
+      id_event = "event-timestamp"
     )
 
     val afterCreation = Instant.now()
@@ -89,7 +89,7 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val updatedEvent = EventUpdated(
       id = "update-id",
       timestamp = Instant.now(),
-      eventId = "update-event-id"
+      id_event = "update-event-id"
     )
     updatedEvent shouldBe a[DomainEvent]
 
@@ -97,17 +97,17 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val updatedEvent = EventUpdated(
       id = "update-id",
       timestamp = Instant.now(),
-      eventId = "update-event-id"
+      id_event = "update-event-id"
     )
     updatedEvent.id shouldBe "update-id"
-    updatedEvent.eventId shouldBe "update-event-id"
+    updatedEvent.id_event shouldBe "update-event-id"
     updatedEvent.timestamp should not be null
 
   it should "be comparable with itself" in:
     val updatedEvent2 = EventUpdated(
-      id = "updateEventId",
+      id = "updateid_event",
       timestamp = updateEvent.timestamp,
-      eventId = "updateEvent"
+      id_event = "updateEvent"
     )
     updateEvent shouldBe updatedEvent2
 
@@ -115,7 +115,7 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val updatedEvent2 = EventUpdated(
       id = "different-id",
       timestamp = Instant.now(),
-      eventId = "different-event-id"
+      id_event = "different-event-id"
     )
     updateEvent should not be updatedEvent2
 
@@ -123,9 +123,9 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val event: DomainEvent = EventUpdated(
       id = "id-update",
       timestamp = Instant.now(),
-      eventId = "event-id-update"
+      id_event = "event-id-update"
     )
     val result = event match
-      case EventDraftCreated(id, timestamp, eventId) => s"Draft created: $eventId"
-      case EventUpdated(id, timestamp, eventId)      => s"Event updated: $eventId"
+      case EventDraftCreated(id, timestamp, id_event) => s"Draft created: $id_event"
+      case EventUpdated(id, timestamp, id_event)      => s"Event updated: $id_event"
     result shouldBe "Event updated: event-id-update"

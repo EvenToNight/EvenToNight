@@ -9,11 +9,11 @@ sealed trait DomainEvent:
 case class EventDraftCreated(
     id: String,
     timestamp: Instant,
-    eventId: String
+    id_event: String
 ) extends DomainEvent
 
 case class EventUpdated(
     id: String,
     timestamp: Instant,
-    eventId: String
+    id_event: String
 ) extends DomainEvent

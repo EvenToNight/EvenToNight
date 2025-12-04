@@ -2,11 +2,16 @@ package controller.routes
 
 import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
+import domain.commands.UpdateEventPosterCommand
 import domain.models.Event
 import domain.models.EventConversions._
 import service.EventService
+import ujson.Obj
+import utils.Utils.uploadPosterToMediaService
 
 class EventQueryRoutes(eventService: EventService) extends BaseRoutes:
+
+  private val mediaServiceUrl = "http://media:9020"
 
   @cask.get("/:id_event")
   def getEvent(id_event: String): cask.Response[ujson.Value] =
@@ -39,5 +44,31 @@ class EventQueryRoutes(eventService: EventService) extends BaseRoutes:
           ujson.Obj("error" -> s"Could not retrieve events $errors"),
           statusCode = 404
         )
+
+  @cask.postForm("/poster/:id_event")
+  def updateEventPoster(id_event: String, poster: cask.FormFile): cask.Response[ujson.Value] =
+    eventService.handleCommand(GetEventCommand(id_event)) match
+      case Left(value) =>
+        cask.Response(
+          Obj("error" -> s"Event with id $id_event does not exist: $value"),
+          statusCode = 404
+        )
+      case _ =>
+        val posterUrl = uploadPosterToMediaService(id_event, poster, mediaServiceUrl)
+        val updateCommand = UpdateEventPosterCommand(
+          id_event = id_event,
+          posterUrl = posterUrl
+        )
+        eventService.handleCommand(updateCommand) match
+          case Right(_) =>
+            cask.Response(
+              Obj("message" -> "Poster updated successfully"),
+              statusCode = 200
+            )
+          case Left(value) =>
+            cask.Response(
+              Obj("error" -> value),
+              statusCode = 400
+            )
 
   initialize()

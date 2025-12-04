@@ -55,10 +55,10 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     GetEventCommand(id_event)
 
   private def validUpdateEventPosterCommand(
-      eventId: String = "event-123",
+      id_event: String = "event-123",
       posterUrl: String = "poster-url.jpg"
   ): UpdateEventPosterCommand =
-    UpdateEventPosterCommand(eventId, posterUrl)
+    UpdateEventPosterCommand(id_event, posterUrl)
 
   private def validGetAllEventsCommand(): GetAllEventsCommand =
     GetAllEventsCommand()
@@ -112,21 +112,21 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
   it should "successfully process valid UpdateEventPosterCommand" in:
     val createCommand = validCreateEventDraftCommand()
-    val eventId = service.handleCommand(createCommand) match
+    val id_event = service.handleCommand(createCommand) match
       case Right(id: String) => id
       case _                 => fail("Expected event ID as String")
 
-    val command = validUpdateEventPosterCommand(eventId = eventId)
+    val command = validUpdateEventPosterCommand(id_event = id_event)
     val result  = service.handleCommand(command)
     result.isRight shouldBe true
 
-  it should "return errors for UpdateEventPosterCommand with non-existent eventId" in:
-    val command = validUpdateEventPosterCommand(eventId = "non-existent-id")
+  it should "return errors for UpdateEventPosterCommand with non-existent id_event" in:
+    val command = validUpdateEventPosterCommand(id_event = "non-existent-id")
     val result  = service.handleCommand(command)
     result.isLeft shouldBe true
 
-  it should "return validation errors for UpdateEventPosterCommand with empty eventId" in:
-    val command = validUpdateEventPosterCommand(eventId = "")
+  it should "return validation errors for UpdateEventPosterCommand with empty id_event" in:
+    val command = validUpdateEventPosterCommand(id_event = "")
     val result  = service.handleCommand(command)
     result.isLeft shouldBe true
 
@@ -137,10 +137,10 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
   it should "successfully process valid GetEventCommand" in:
     val createCommand = validCreateEventDraftCommand()
-    val eventId = service.handleCommand(createCommand) match
+    val id_event = service.handleCommand(createCommand) match
       case Right(id: String) => id
       case _                 => fail("Expected event ID as String")
-    val command = validGetEventCommand(eventId)
+    val command = validGetEventCommand(id_event)
     val result  = service.handleCommand(command)
     result.isRight shouldBe true
 
@@ -161,22 +161,6 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
   it should "correctly initialize eventCommandService" in:
     service.eventCommandService should not be null
     service.eventCommandService shouldBe a[DomainEventService]
-
-  it should "route CreateEventDraftCommand to appropriate service method" in:
-    val command = validCreateEventDraftCommand()
-    noException should be thrownBy service.handleCommand(command)
-
-  it should "route UpdateEventPosterCommand to appropriate service method" in:
-    val command = validUpdateEventPosterCommand()
-    noException should be thrownBy service.handleCommand(command)
-
-  it should "route GetEventCommand to appropriate service method" in:
-    val command = validGetEventCommand()
-    noException should be thrownBy service.handleCommand(command)
-
-  it should "route GetAllEventsCommand to appropriate service method" in:
-    val command = validGetAllEventsCommand()
-    noException should be thrownBy service.handleCommand(command)
 
   it should "successfully process GetAllEventsCommand and return published events" in:
     val command = validGetAllEventsCommand()

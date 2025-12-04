@@ -15,7 +15,7 @@ paths:
             type: string
           description: |
             The path to the media file in the bucket. Can be:
-            - `events/{eventId}/{filename}` for event-related media
+            - `events/{id_event}/{filename}` for event-related media
             - `users/{userId}/{filename}` for user-related media
           example: "users/prova/test.png"
       servers:

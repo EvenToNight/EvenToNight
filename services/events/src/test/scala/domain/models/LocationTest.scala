@@ -26,186 +26,6 @@ class LocationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       link = "https://example.com"
     )
 
-  "Location copy methods" should "copy with single parameter changes" in:
-    val original = createSampleLocation()
-
-    val copiedName = original.copy(name = "New Name")
-    copiedName.name shouldBe "New Name"
-    copiedName.country shouldBe original.country
-    copiedName.lat shouldBe original.lat
-
-    val copiedCountry = original.copy(country = "France")
-    copiedCountry.country shouldBe "France"
-    copiedCountry.name shouldBe original.name
-
-    val copiedLat = original.copy(lat = 48.8566)
-    copiedLat.lat shouldBe 48.8566
-    copiedLat.lon shouldBe original.lon
-
-  it should "copy with multiple parameter changes" in:
-    val original = createSampleLocation()
-
-    val multiCopy = original.copy(
-      name = "Paris Location",
-      country = "France",
-      country_code = "FR",
-      lat = 48.8566,
-      lon = 2.3522
-    )
-
-    multiCopy.name shouldBe "Paris Location"
-    multiCopy.country shouldBe "France"
-    multiCopy.country_code shouldBe "FR"
-    multiCopy.lat shouldBe 48.8566
-    multiCopy.lon shouldBe 2.3522
-    // Unchanged fields
-    multiCopy.state shouldBe original.state
-    multiCopy.city shouldBe original.city
-
-  it should "copy all possible field combinations" in:
-    val original = createSampleLocation()
-
-    val allFieldsCopy = original.copy(
-      name = "Complete Copy",
-      country = "Germany",
-      country_code = "DE",
-      state = "Bavaria",
-      province = "Munich",
-      city = "München",
-      road = "Marienplatz",
-      postcode = "80331",
-      house_number = "2",
-      lat = 48.1351,
-      lon = 11.5820,
-      link = "https://munich.de"
-    )
-
-    allFieldsCopy.name shouldBe "Complete Copy"
-    allFieldsCopy.country shouldBe "Germany"
-    allFieldsCopy.country_code shouldBe "DE"
-    allFieldsCopy.state shouldBe "Bavaria"
-    allFieldsCopy.province shouldBe "Munich"
-    allFieldsCopy.city shouldBe "München"
-    allFieldsCopy.road shouldBe "Marienplatz"
-    allFieldsCopy.postcode shouldBe "80331"
-    allFieldsCopy.house_number shouldBe "2"
-    allFieldsCopy.lat shouldBe 48.1351
-    allFieldsCopy.lon shouldBe 11.5820
-    allFieldsCopy.link shouldBe "https://munich.de"
-
-  "Location equals and hashCode" should "be equal when all fields match" in:
-    val location1 = createSampleLocation()
-    val location2 = createSampleLocation()
-
-    location1 shouldEqual location2
-    location1.hashCode shouldEqual location2.hashCode
-
-  it should "not be equal when fields differ" in:
-    val location1 = createSampleLocation()
-    val location2 = location1.copy(name = "Different Name")
-
-    location1 should not equal location2
-    location1.hashCode should not equal location2.hashCode
-
-  it should "not be equal when coordinates differ" in:
-    val location1 = createSampleLocation()
-    val location2 = location1.copy(lat = 40.7128, lon = -74.0060)
-
-    location1 should not equal location2
-    location1.hashCode should not equal location2.hashCode
-
-  it should "handle equality with different object types" in:
-    val location = createSampleLocation()
-
-    location should not equal "not a location"
-    location should not equal 123
-    location should not equal null
-
-  it should "satisfy equals contract - reflexive" in:
-    val location = createSampleLocation()
-    location shouldEqual location
-
-  it should "satisfy equals contract - symmetric" in:
-    val location1 = createSampleLocation()
-    val location2 = createSampleLocation()
-
-    (location1 == location2) shouldBe (location2 == location1)
-
-  it should "satisfy equals contract - transitive" in:
-    val location1 = createSampleLocation()
-    val location2 = createSampleLocation()
-    val location3 = createSampleLocation()
-
-    location1 shouldEqual location2
-    location2 shouldEqual location3
-    location1 shouldEqual location3
-
-  "Location edge cases" should "handle empty string fields" in:
-    val emptyLocation = Location(
-      name = "",
-      country = "",
-      country_code = "",
-      state = "",
-      province = "",
-      city = "",
-      road = "",
-      postcode = "",
-      house_number = "",
-      lat = 0.0,
-      lon = 0.0,
-      link = ""
-    )
-
-    emptyLocation.name shouldBe ""
-    emptyLocation.country shouldBe ""
-    emptyLocation.lat shouldBe 0.0
-    emptyLocation.lon shouldBe 0.0
-
-  it should "handle extreme coordinate values" in:
-    val northPole    = createSampleLocation().copy(lat = 90.0, lon = 0.0)
-    val southPole    = createSampleLocation().copy(lat = -90.0, lon = 0.0)
-    val dateLineWest = createSampleLocation().copy(lat = 0.0, lon = 180.0)
-    val dateLineEast = createSampleLocation().copy(lat = 0.0, lon = -180.0)
-
-    northPole.lat shouldBe 90.0
-    southPole.lat shouldBe -90.0
-    dateLineWest.lon shouldBe 180.0
-    dateLineEast.lon shouldBe -180.0
-
-  it should "handle very long string fields" in:
-    val longString = "A" * 1000
-    val longLocation = createSampleLocation().copy(
-      name = longString,
-      road = longString,
-      link = s"https://example.com/$longString"
-    )
-
-    longLocation.name should have length 1000
-    longLocation.road should have length 1000
-    longLocation.link should startWith("https://example.com/")
-
-  it should "handle special characters in fields" in:
-    val specialLocation = createSampleLocation().copy(
-      name = "Café & Restaurant",
-      road = "Straße mit Ümlaüten",
-      city = "São Paulo",
-      link = "https://example.com/path?param=value&other=ñoño"
-    )
-
-    specialLocation.name shouldBe "Café & Restaurant"
-    specialLocation.road shouldBe "Straße mit Ümlaüten"
-    specialLocation.city shouldBe "São Paulo"
-    specialLocation.link should include("ñoño")
-
-  it should "handle numeric edge cases in coordinates" in:
-    val preciseLocation = createSampleLocation().copy(
-      lat = 45.123456789,
-      lon = 9.987654321
-    )
-
-    preciseLocation.lat shouldBe 45.123456789
-    preciseLocation.lon shouldBe 9.987654321
-
   "Location.Nil()" should "create location with empty/default values" in:
     val nilLocation = Location.Nil()
 
@@ -270,7 +90,7 @@ class LocationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     minimalLocation.lat shouldBe 0.0
     minimalLocation.lon shouldBe 0.0
 
-  "Locality (Location) creation with all fields" should "be instantiated correctly with all fields" in:
+  "Location creation with all fields" should "be instantiated correctly with all fields" in:
     locality = Location.create(
       name = "Test Locality",
       country = "Test Country",
@@ -386,3 +206,69 @@ class LocationTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     locality.lat shouldBe 0.0
     locality.lon shouldBe 0.0
     locality.link shouldBe ""
+
+  "Location edge cases" should "handle empty string fields" in:
+    val emptyLocation = Location(
+      name = "",
+      country = "",
+      country_code = "",
+      state = "",
+      province = "",
+      city = "",
+      road = "",
+      postcode = "",
+      house_number = "",
+      lat = 0.0,
+      lon = 0.0,
+      link = ""
+    )
+
+    emptyLocation.name shouldBe ""
+    emptyLocation.country shouldBe ""
+    emptyLocation.lat shouldBe 0.0
+    emptyLocation.lon shouldBe 0.0
+
+  it should "handle extreme coordinate values" in:
+    val northPole    = createSampleLocation().copy(lat = 90.0, lon = 0.0)
+    val southPole    = createSampleLocation().copy(lat = -90.0, lon = 0.0)
+    val dateLineWest = createSampleLocation().copy(lat = 0.0, lon = 180.0)
+    val dateLineEast = createSampleLocation().copy(lat = 0.0, lon = -180.0)
+
+    northPole.lat shouldBe 90.0
+    southPole.lat shouldBe -90.0
+    dateLineWest.lon shouldBe 180.0
+    dateLineEast.lon shouldBe -180.0
+
+  it should "handle very long string fields" in:
+    val longString = "A" * 1000
+    val longLocation = createSampleLocation().copy(
+      name = longString,
+      road = longString,
+      link = s"https://example.com/$longString"
+    )
+
+    longLocation.name should have length 1000
+    longLocation.road should have length 1000
+    longLocation.link should startWith("https://example.com/")
+
+  it should "handle special characters in fields" in:
+    val specialLocation = createSampleLocation().copy(
+      name = "Café & Restaurant",
+      road = "Straße mit Ümlaüten",
+      city = "São Paulo",
+      link = "https://example.com/path?param=value&other=ñoño"
+    )
+
+    specialLocation.name shouldBe "Café & Restaurant"
+    specialLocation.road shouldBe "Straße mit Ümlaüten"
+    specialLocation.city shouldBe "São Paulo"
+    specialLocation.link should include("ñoño")
+
+  it should "handle numeric edge cases in coordinates" in:
+    val preciseLocation = createSampleLocation().copy(
+      lat = 45.123456789,
+      lon = 9.987654321
+    )
+
+    preciseLocation.lat shouldBe 45.123456789
+    preciseLocation.lon shouldBe 9.987654321

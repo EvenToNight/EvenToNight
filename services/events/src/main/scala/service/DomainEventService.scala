@@ -34,22 +34,22 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
           EventDraftCreated(
             id = UUID.randomUUID().toString(),
             timestamp = Instant.now(),
-            eventId = newEvent._id
+            id_event = newEvent._id
           )
         )
         Right(newEvent._id)
 
   def execCommand(cmd: UpdateEventPosterCommand): Either[String, Unit] =
-    repo.findById(cmd.eventId) match
+    repo.findById(cmd.id_event) match
       case Some(event) =>
         repo.update(event.copy(poster = cmd.posterUrl))
         publisher.publish(
           EventUpdated(
             id = UUID.randomUUID().toString(),
             timestamp = Instant.now(),
-            eventId = cmd.eventId
+            id_event = cmd.id_event
           )
         )
         Right(())
       case None =>
-        Left(s"Event ${cmd.eventId} not found")
+        Left(s"Event ${cmd.id_event} not found")

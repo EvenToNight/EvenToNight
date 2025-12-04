@@ -66,7 +66,7 @@ paths:
                   required: false
                   example: "user-456"
       responses:
-        '200':
+        '201':
           description: Event draft created successfully
           content:
             application/json:
@@ -77,6 +77,21 @@ paths:
                     type: string
                     description: Unique identifier of the created event
                     example: "evt_789xyz"
+        '207':
+          description: Partial success - event created but poster upload failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id_event:
+                    type: string
+                    description: Unique identifier of the created event
+                    example: "evt_789xyz"
+                  warning:
+                    type: string
+                    description: Warning message about the poster upload failure
+                    example: "Event created but poster upload failed"
         '400':
           description: Bad request - validation error
           content:
@@ -178,7 +193,47 @@ paths:
       tags:
         - Event Query API
   
-  /{eventId}:
+  /{poster/:id_event}:
+    post:
+      summary: Update event poster
+      description: Updates the poster image for a specific event.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+      parameters:
+        - in: path
+          name: id_event
+          required: true
+          schema:
+            type: string
+          description: The ID of the event to update the poster for.
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                poster:
+                  type: string
+                  format: binary
+                  description: New event poster image file
+      responses:
+        '200':
+          description: Event poster updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Event poster updated successfully"
+        '400':
+          description: Bad request - validation error
+
+  /{id_event}:
     get:
       summary: Get event details by ID
       description: Retrieves detailed information about a specific event.
@@ -188,7 +243,7 @@ paths:
         - url: https://events.eventonight.site
           description: Events service (production)
       parameters:
-        - name: eventId
+        - name: id_event
           in: path
           required: true
           description: The ID of the event to retrieve

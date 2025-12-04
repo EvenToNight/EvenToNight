@@ -50,10 +50,10 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     GetEventCommand(id_event)
 
   private def updatePosterCommand(
-      eventId: String = "event-123",
+      id_event: String = "event-123",
       posterUrl: String = "https://example.com/poster.jpg"
   ): UpdateEventPosterCommand =
-    UpdateEventPosterCommand(eventId, posterUrl)
+    UpdateEventPosterCommand(id_event, posterUrl)
 
   "CreateEventDraftCommand" should "implement Commands trait" in:
     val command = createCommand()
@@ -73,7 +73,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val result = command match
       case CreateEventDraftCommand(title, _, _, _, _, _, _, _, _) => s"Command: $title"
       case GetEventCommand(id_event)                              => s"Get Command: $id_event"
-      case UpdateEventPosterCommand(eventId, posterUrl)           => s"Update Poster Command: $eventId"
+      case UpdateEventPosterCommand(id_event, posterUrl)          => s"Update Poster Command: $id_event"
       case GetAllEventsCommand()                                  => "Get All Events Command"
     result shouldBe "Command: Pattern Test"
 
@@ -93,7 +93,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store properties correctly" in:
     val command = updatePosterCommand("custom-event-456", "https://custom.com/poster.png")
-    command.eventId shouldBe "custom-event-456"
+    command.id_event shouldBe "custom-event-456"
     command.posterUrl shouldBe "https://custom.com/poster.png"
 
   "GetAllEventsCommand" should "implement Commands trait" in:

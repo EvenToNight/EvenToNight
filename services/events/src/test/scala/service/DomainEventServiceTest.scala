@@ -57,10 +57,10 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     CreateEventDraftCommand(title, description, poster, tag, location, date, price, id_creator, id_collaborator)
 
   private def validUpdateEventPosterCommand(
-      eventId: String,
+      id_event: String,
       posterUrl: String
   ): UpdateEventPosterCommand =
-    UpdateEventPosterCommand(eventId, posterUrl)
+    UpdateEventPosterCommand(id_event, posterUrl)
 
   "DomainEventService" should "be instantiated correctly" in:
     service shouldBe a[DomainEventService]
@@ -86,15 +86,15 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     val createCmd    = validCreateEventDraftCommand()
     val createResult = service.execCommand(createCmd)
     createResult.isRight shouldBe true
-    val eventId = createResult match
+    val id_event = createResult match
       case Right(id) => id
       case Left(_)   => fail("Failed to create event draft for update test")
-    val updateCmd    = validUpdateEventPosterCommand(eventId = eventId, posterUrl = "new-poster.jpg")
+    val updateCmd    = validUpdateEventPosterCommand(id_event = id_event, posterUrl = "new-poster.jpg")
     val updateResult = service.execCommand(updateCmd)
     updateResult.isRight shouldBe true
 
   it should "fail to update event poster for non-existing event" in:
-    val updateCmd    = validUpdateEventPosterCommand(eventId = "nonexistent-id", posterUrl = "new-poster.jpg")
+    val updateCmd    = validUpdateEventPosterCommand(id_event = "nonexistent-id", posterUrl = "new-poster.jpg")
     val updateResult = service.execCommand(updateCmd)
     updateResult.isLeft shouldBe true
     updateResult match

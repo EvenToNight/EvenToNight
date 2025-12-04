@@ -29,20 +29,20 @@ object Utils:
       case Success(locality) => locality
       case Failure(_)        => println("Failed to parse location JSON"); Location.Nil()
 
-  def uploadPosterToMediaService(eventId: String, poster: cask.FormFile, mediaServiceUrl: String): String =
-    def defaultUrl = s"/events/$eventId/default.jpg"
+  def uploadPosterToMediaService(id_event: String, poster: cask.FormFile, mediaServiceUrl: String): String =
+    def defaultUrl = s"/events/$id_event/default.jpg"
     val result =
       for
         path      <- poster.filePath.toRight(new Exception("Missing poster filepath"))
         fileBytes <- Try(Files.readAllBytes(path)).toEither
         response <- Try {
           requests.post(
-            s"$mediaServiceUrl/events/$eventId",
+            s"$mediaServiceUrl/events/$id_event",
             data = requests.MultiPart(
               requests.MultiItem(
                 name = "file",
                 data = fileBytes,
-                filename = s"${eventId}_poster.jpg"
+                filename = s"${id_event}_poster.jpg"
               )
             )
           )
