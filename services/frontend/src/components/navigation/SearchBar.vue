@@ -302,10 +302,11 @@ const handleBlur = () => {
         class="suggestion-item"
         @click="selectResult(result)"
       >
-        <!-- Show icon for events wrapped in same-sized container as avatar -->
-        <div v-if="result.type === 'event'" class="event-icon-container">
-          <q-icon :name="getResultIcon(result)" size="20px" class="suggestion-icon" />
-        </div>
+        <!-- Show poster for events -->
+        <q-avatar v-if="result.type === 'event'" size="32px" class="result-avatar event-avatar">
+          <img v-if="result.imageUrl" :src="result.imageUrl" />
+          <q-icon v-else :name="getResultIcon(result)" size="20px" />
+        </q-avatar>
 
         <!-- Show avatar for organizations and members -->
         <q-avatar v-if="result.type !== 'event'" size="32px" class="result-avatar">
@@ -459,21 +460,12 @@ const handleBlur = () => {
     }
   }
 
-  .event-icon-container {
-    width: 32px;
-    height: 32px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-  }
-
-  .suggestion-icon {
-    color: $color-gray-400;
-  }
-
   .result-avatar {
     flex-shrink: 0;
+  }
+
+  .event-avatar {
+    border-radius: 6px !important;
   }
 
   .result-content {
