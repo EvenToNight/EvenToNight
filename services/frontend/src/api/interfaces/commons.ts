@@ -1,6 +1,6 @@
 export interface ApiError {
   message: string
-  status?: number
+  status: number
 }
 
 export interface PaginatedRequest {

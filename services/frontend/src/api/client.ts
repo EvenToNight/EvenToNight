@@ -8,16 +8,14 @@ const getServiceUrl = (service: string): string => {
   return `http://${service}.${host}`
 }
 
-// Token provider function - will be set by the app
+// JWT Token provider function will be set by the app
 let tokenProvider: (() => string | null) | null = null
-
 export const setTokenProvider = (provider: () => string | null) => {
   tokenProvider = provider
 }
 
 // Callback when token needs refresh (401/403 response)
 let onTokenExpired: (() => Promise<boolean>) | null = null
-
 export const setTokenExpiredCallback = (callback: () => Promise<boolean>) => {
   onTokenExpired = callback
 }
@@ -82,40 +80,29 @@ export class ApiClient {
       headers,
     }
 
-    try {
-      const response = await fetch(url, config)
+    const response = await fetch(url, config)
 
-      // Handle token expiration (401 Unauthorized)
-      if (response.status === 401 && !isRetry && onTokenExpired) {
-        const refreshed = await onTokenExpired()
-        if (refreshed) {
-          // Retry the request with new token
-          return this.request<T>(endpoint, options, true)
-        }
+    // Handle token expiration (401 Unauthorized)
+    if (response.status === 401 && !isRetry && onTokenExpired) {
+      const refreshed = await onTokenExpired()
+      if (refreshed) {
+        // Retry the request with new token
+        return this.request<T>(endpoint, options, true)
       }
+    }
 
-      if (!response.ok) {
-        const error: ApiError = {
-          message: `HTTP error! status: ${response.status}`,
-          status: response.status,
-        }
-        throw error
-      }
-
-      return await response.json()
-    } catch (error) {
-      if (error instanceof Error) {
-        const apiError: ApiError = {
-          message: error.message,
-        }
-        throw apiError
+    if (!response.ok) {
+      const error: ApiError = {
+        message: `HTTP error! status: ${response.status}, message: ${response.body}`,
+        status: response.status,
       }
       throw error
     }
+
+    return (await response.json()) as T
   }
 }
 
-// Factory functions to create service-specific clients on demand
 export const createEventsClient = () => new ApiClient('events')
 export const createUsersClient = () => new ApiClient('users')
 export const createMediaClient = () => new ApiClient('media')

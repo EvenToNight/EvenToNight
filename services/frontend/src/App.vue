@@ -3,6 +3,7 @@ import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { setTokenProvider, setTokenExpiredCallback } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
+import { api } from '@/api'
 
 const authStore = useAuthStore()
 
@@ -34,6 +35,14 @@ onMounted(() => {
   if (authStore.isAuthenticated) {
     console.log('🔐 User authenticated:', authStore.user?.email)
   }
+  api.events
+    .getTags()
+    .then((tags) => {
+      console.log('🏷️ Fetched event tags:', tags)
+    })
+    .catch((err) => {
+      console.error('Failed to fetch event tags:', err)
+    })
 })
 </script>
 

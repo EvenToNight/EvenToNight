@@ -328,6 +328,23 @@ const onSubmit = async () => {
   }
 
   try {
+    // Validate required fields
+    if (!event.value.poster) {
+      $q.notify({
+        color: 'negative',
+        message: 'Please upload a poster image',
+      })
+      return
+    }
+
+    if (!event.value.location) {
+      $q.notify({
+        color: 'negative',
+        message: 'Please select a location',
+      })
+      return
+    }
+
     event.value.status = 'published'
 
     // Combine date and time into a Date object
