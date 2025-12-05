@@ -60,11 +60,12 @@ const handleScroll = () => {
 
 onMounted(async () => {
   window.addEventListener('scroll', handleScroll)
-  const response = await api.feed.getUpcomingEvents()
-  if ('items' in response) {
-    upcomingEvents.value = response.items
-  } else {
-    console.error('Failed to load upcoming events:', response.message)
+  try {
+    const feedResponse = await api.feed.getUpcomingEvents()
+    const eventsResponse = await api.events.getEventsByIds(feedResponse.items)
+    upcomingEvents.value = eventsResponse.events
+  } catch (error) {
+    console.error('Failed to load upcoming events:', error)
   }
 })
 

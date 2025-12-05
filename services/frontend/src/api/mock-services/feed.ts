@@ -1,29 +1,32 @@
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
-import { mockEvents } from './data/events'
-import type { Event } from '../types/events'
+import type { EventID } from '../types/events'
 import type { FeedAPI } from '../interfaces/feed'
 import type { UserID } from '../types/users'
 import { getPagintedItems } from '../utils'
+import { mockFeed } from './data/feed'
 
 export const mockFeedApi: FeedAPI = {
-  async getUpcomingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<Event>> {
-    return getPagintedItems(mockEvents, pagination)
+  async getUpcomingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
+    return getPagintedItems(mockFeed, pagination)
   },
-  async getTrendingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<Event>> {
-    return getPagintedItems(mockEvents, pagination)
+  async getTrendingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
+    return getPagintedItems(mockFeed, pagination)
   },
-  async getFeed(_userId: UserID, pagination?: PaginatedRequest): Promise<PaginatedResponse<Event>> {
+  async getFeed(
+    _userId: UserID,
+    pagination?: PaginatedRequest
+  ): Promise<PaginatedResponse<EventID>> {
     //TODO token for auth userId
-    return getPagintedItems(mockEvents, pagination)
+    return getPagintedItems(mockFeed, pagination)
   },
-  async getNewestEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<Event>> {
-    return getPagintedItems(mockEvents, pagination)
+  async getNewestEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
+    return getPagintedItems(mockFeed, pagination)
   },
   async getNearbyEvents(
     lat: number,
     lon: number,
     pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Event>> {
+  ): Promise<PaginatedResponse<EventID>> {
     if (lat < -90 || lat > 90) {
       throw { message: `Latitude out of range: ${lat} (must be between -90 and 90)`, status: 403 }
     }
@@ -33,13 +36,13 @@ export const mockFeedApi: FeedAPI = {
         status: 403,
       }
     }
-    return getPagintedItems(mockEvents, pagination)
+    return getPagintedItems(mockFeed, pagination)
   },
   async getFriendsEvents(
     _userId: UserID,
     pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Event>> {
+  ): Promise<PaginatedResponse<EventID>> {
     //TODO token for auth userId
-    return getPagintedItems(mockEvents, pagination)
+    return getPagintedItems(mockFeed, pagination)
   },
 }

@@ -1,5 +1,6 @@
 import type {
   GetEventByIdResponse,
+  GetEventsByIdsResponse,
   GetTagResponse,
   PublishEventResponse,
   SearchEventsByNameResponse,
@@ -26,6 +27,10 @@ export const mockEventsApi: EventAPI = {
     }
 
     return { event }
+  },
+  async getEventsByIds(ids: EventID[]): Promise<GetEventsByIdsResponse> {
+    const events = await Promise.all(ids.map((id) => this.getEventById(id)))
+    return { events: events.map((r) => r.event) }
   },
   async publishEvent(_eventData: EventData): Promise<PublishEventResponse> {
     return { eventId: mockEvents[0]!.id }

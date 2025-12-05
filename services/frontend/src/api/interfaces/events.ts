@@ -19,9 +19,14 @@ export interface SearchEventsByNameResponse {
   events: Event[]
 }
 
+export interface GetEventsByIdsResponse {
+  events: Event[]
+}
+
 export interface EventAPI {
   getTags(): Promise<GetTagResponse>
   getEventById(id: EventID): Promise<GetEventByIdResponse>
+  getEventsByIds(ids: EventID[]): Promise<GetEventsByIdsResponse>
   publishEvent(eventData: EventData): Promise<PublishEventResponse>
   searchByName(query: string): Promise<SearchEventsByNameResponse>
 }
