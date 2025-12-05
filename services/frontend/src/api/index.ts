@@ -16,11 +16,16 @@ import {
   createUsersClient,
 } from './client'
 
-const isDev = import.meta.env.DEV
+const useMockApi = import.meta.env.VITE_USE_MOCK_API
+  ? import.meta.env.VITE_USE_MOCK_API === 'true'
+  : import.meta.env.DEV
+
 export const api = {
-  events: isDev ? mockEventsApi : createEventsApi(createEventsClient()),
-  media: isDev ? mockMediaApi : createMediaApi(createMediaClient()),
-  feed: isDev ? mockFeedApi : createFeedApi(createFeedClient()),
-  interactions: isDev ? mockInteractionsApi : createInteractionsApi(createInteractionsClient()),
-  users: isDev ? mockUsersApi : createUsersApi(createUsersClient()),
+  events: useMockApi ? mockEventsApi : createEventsApi(createEventsClient()),
+  media: useMockApi ? mockMediaApi : createMediaApi(createMediaClient()),
+  feed: useMockApi ? mockFeedApi : createFeedApi(createFeedClient()),
+  interactions: useMockApi
+    ? mockInteractionsApi
+    : createInteractionsApi(createInteractionsClient()),
+  users: useMockApi ? mockUsersApi : createUsersApi(createUsersClient()),
 }
