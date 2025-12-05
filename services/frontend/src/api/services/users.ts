@@ -9,6 +9,7 @@ import type {
 } from '../interfaces/users'
 import type { UserID } from '../types/users'
 import type { ApiClient } from '../client'
+import { buildQueryParams } from '../utils'
 
 export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
   async getUserById(id: UserID): Promise<GetUserByIdResponse> {
@@ -29,7 +30,7 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
 
   async searchByName(query: string): Promise<SearchUsersByNameResponse> {
     return usersClient.get<SearchUsersByNameResponse>(
-      `/users/search?q=${encodeURIComponent(query)}`
+      `/users${buildQueryParams({ query: encodeURIComponent(query) })}`
     )
   },
 })
