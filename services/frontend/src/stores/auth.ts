@@ -3,7 +3,7 @@ import { defineStore } from 'pinia'
 import type { User } from '@/api/types/users'
 import { api } from '@/api'
 
-interface AuthTokens {
+interface AuthToken {
   accessToken: string
   expiresAt: number
 }
@@ -14,31 +14,38 @@ const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
 const USER_SESSION_KEY = 'user_session'
 
 export const useAuthStore = defineStore('auth', () => {
-  const tokens = ref<AuthTokens | null>(null)
+  const token = ref<AuthToken | null>(null)
   const user = ref<User | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
-    if (!tokens.value) return false
-    return tokens.value.expiresAt > Date.now()
+    if (!token.value) return false
+    return token.value.expiresAt > Date.now()
   })
-  const accessToken = computed(() => tokens.value?.accessToken || null)
+  const accessToken = computed(() => token.value?.accessToken || null)
 
-  const setTokens = (authTokens: AuthTokens) => {
-    tokens.value = authTokens
-    // Store in sessionStorage as fallback (NOT localStorage for security)
-    // SessionStorage is cleared when tab closes
+  const setTokens = (authTokens: any) => {
+    token.value = authTokens
     sessionStorage.setItem(ACCESS_TOKEN_SESSION_KEY, authTokens.accessToken)
-    sessionStorage.setItem(TOKEN_EXPIRY_SESSION_KEY, String(authTokens.expiresAt))
+    sessionStorage.setItem(
+      TOKEN_EXPIRY_SESSION_KEY,
+      String(Date.now() + authTokens.expiresIn * 1000)
+    )
   }
 
   const setUser = (authUser: User) => {
     user.value = authUser
-    // Store user in sessionStorage
     sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(authUser))
   }
 
+  const setAuthData = (authData: any) => {
+    setTokens(authData)
+    if (authData.user) {
+      setUser(authData.user)
+    }
+  }
+
   const clearAuth = () => {
-    tokens.value = null
+    token.value = null
     user.value = null
     sessionStorage.removeItem(ACCESS_TOKEN_SESSION_KEY)
     sessionStorage.removeItem(TOKEN_EXPIRY_SESSION_KEY)
@@ -48,22 +55,9 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (email: string, password: string) => {
     isLoading.value = true
     try {
-      const data = await api.users.login({ email, password })
-
-      // Response contains: { accessToken, expiresIn, user }
-      // refreshToken is automatically set as httpOnly cookie by the server
-      const expiresAt = Date.now() + data.expiresIn * 1000 // Convert seconds to ms
-
-      setTokens({
-        accessToken: data.accessToken,
-        expiresAt,
-      })
-
-      setUser(data.user)
-
+      setAuthData(await api.users.login({ email, password }))
       return { success: true }
     } catch (error) {
-      console.error('Login error:', error)
       return { success: false, error: error instanceof Error ? error.message : 'Login failed' }
     } finally {
       isLoading.value = false
@@ -73,10 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = async () => {
     isLoading.value = true
     try {
-      // Call logout endpoint to invalidate refresh token cookie on server
-      await api.users.logout().catch(() => {
-        // Ignore logout errors, clear local state anyway
-      })
+      await api.users.logout().catch(() => {})
     } finally {
       clearAuth()
       isLoading.value = false
@@ -86,77 +77,49 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshAccessToken = async (): Promise<boolean> => {
     try {
       // refreshToken is sent automatically via httpOnly cookie
-      const data = await api.users.refreshToken()
-      const expiresAt = Date.now() + data.expiresIn * 1000
-
-      setTokens({
-        accessToken: data.accessToken,
-        expiresAt,
-      })
-
-      // Backend should include user info in refresh response
-      if (data.user) {
-        setUser(data.user)
-      }
-
+      setAuthData(await api.users.refreshToken())
       return true
-    } catch (error) {
-      console.error('Token refresh error:', error)
+    } catch {
       clearAuth()
       return false
     }
   }
 
   const initializeAuth = () => {
-    // Load access token and user from sessionStorage (if tab wasn't closed)
     const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
     const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
     const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
+    const expiresAt = storedExpiry ? parseInt(storedExpiry, 10) : 0
 
-    if (storedAccessToken && storedExpiry) {
-      const expiresAt = parseInt(storedExpiry, 10)
-
-      // Check if token is expired
-      if (expiresAt > Date.now()) {
-        tokens.value = {
-          accessToken: storedAccessToken,
-          expiresAt,
-        }
-        // Load user from storage if available
-        if (storedUser) {
-          try {
-            user.value = JSON.parse(storedUser)
-          } catch (error) {
-            console.error('Failed to parse stored user:', error)
-          }
-        }
-        // Still refresh to get fresh user info if not in storage
-        if (!user.value) {
+    if (storedAccessToken && expiresAt > Date.now()) {
+      token.value = {
+        accessToken: storedAccessToken,
+        expiresAt,
+      }
+      if (storedUser) {
+        try {
+          user.value = JSON.parse(storedUser)
+        } catch (error) {
+          console.error('Failed to parse stored user:', error)
           refreshAccessToken()
         }
-      } else {
-        // Try to refresh using httpOnly cookie (might still be valid)
-        refreshAccessToken()
       }
     } else {
-      // No access token in session, try to refresh using cookie
-      // This will also fetch user info from backend
       refreshAccessToken()
     }
   }
 
-  // Auto-refresh token before it expires
   const setupAutoRefresh = () => {
-    if (!tokens.value) return
+    if (!token.value) return
 
-    const timeUntilExpiry = tokens.value.expiresAt - Date.now()
+    const timeUntilExpiry = token.value.expiresAt - Date.now()
     const refreshTime = timeUntilExpiry - 5 * 60 * 1000 // Refresh 5 minutes before expiry
 
     if (refreshTime > 0) {
       setTimeout(() => {
         refreshAccessToken().then((success) => {
           if (success) {
-            setupAutoRefresh() // Setup next refresh
+            setupAutoRefresh()
           }
         })
       }, refreshTime)
@@ -164,16 +127,11 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    // State
-    tokens,
+    token,
     user,
     isLoading,
-
-    // Computed
     isAuthenticated,
     accessToken,
-
-    // Actions
     login,
     logout,
     refreshAccessToken,

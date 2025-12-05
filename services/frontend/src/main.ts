@@ -19,9 +19,7 @@ app.use(Quasar, {
   },
 })
 
-// Imposta il tema light mode (false = light, true = dark)
 Dark.set(false)
-//Dark.set(true)
 app.use(createPinia())
 app.use(router)
 app.use(i18n)

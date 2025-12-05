@@ -8,23 +8,17 @@ import { api } from '@/api'
 const authStore = useAuthStore()
 
 onMounted(() => {
-  // Initialize auth from localStorage
   authStore.initializeAuth()
-
-  // Setup auto-refresh for tokens
   authStore.setupAutoRefresh()
 
   if (import.meta.env.VITE_AUTO_LOGIN === 'true') {
     authStore.login(import.meta.env.VITE_DEV_EMAIL, import.meta.env.VITE_DEV_PASSWORD)
   }
-  // Configure API client to use auth tokens
   setTokenProvider(() => authStore.accessToken)
-
-  // Handle token expiration
   setTokenExpiredCallback(async () => {
     const success = await authStore.refreshAccessToken()
     if (success) {
-      authStore.setupAutoRefresh() // Setup next refresh
+      authStore.setupAutoRefresh()
     }
     return success
   })
@@ -59,12 +53,11 @@ onMounted(() => {
   width: 100%;
 }
 
-// Body background for color bands on sides
 body {
-  background-color: #ffffff;
+  background-color: $color-white;
 }
 
 body.body--dark {
-  background-color: #1d1d1d;
+  background-color: $color-background-dark;
 }
 </style>

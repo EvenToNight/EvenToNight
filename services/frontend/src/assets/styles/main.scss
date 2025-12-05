@@ -41,20 +41,20 @@ body {
 }
 
 body.body--light {
-  background-color: white;
-  color: #000;
+  background-color: $color-white;
+  color: $color-black;
 
   h1, h2, h3, h4, h5, h6, p, span, div, a {
-    color: #000;
+    color: $color-black;
   }
 }
 
 body.body--dark {
-  background-color: #121212;
-  color: #fff;
+  background-color: $color-background-dark;
+  color: $color-white;
 
   h1, h2, h3, h4, h5, h6, p, span, div {
-    color: #fff;
+    color: $color-white;
   }
 }
 
@@ -86,15 +86,15 @@ body.body--dark {
 body.body--light .q-btn:not(.q-btn--flat),
 body.body--dark .q-btn:not(.q-btn--flat) {
   .q-btn__content {
-    color: #fff !important;
+    color: $color-white !important;
 
     span {
-      color: #fff !important;
+      color: $color-white !important;
     }
   }
 
   .q-icon {
-    color: #fff !important;
+    color: $color-white !important;
   }
 }
 
