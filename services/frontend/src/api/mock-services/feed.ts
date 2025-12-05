@@ -12,7 +12,7 @@ export const mockFeedApi: FeedAPI = {
   async getTrendingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<Event>> {
     return getPagintedItems(mockEvents, pagination)
   },
-  async getFeed(userId: UserID, pagination?: PaginatedRequest): Promise<PaginatedResponse<Event>> {
+  async getFeed(_userId: UserID, pagination?: PaginatedRequest): Promise<PaginatedResponse<Event>> {
     //TODO token for auth userId
     return getPagintedItems(mockEvents, pagination)
   },
@@ -36,7 +36,7 @@ export const mockFeedApi: FeedAPI = {
     return getPagintedItems(mockEvents, pagination)
   },
   async getFriendsEvents(
-    userId: UserID,
+    _userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<Event>> {
     //TODO token for auth userId

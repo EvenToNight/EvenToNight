@@ -27,21 +27,6 @@ export default defineConfig([
   },
   // ts
   ...tseslint.configs.recommended,
-  {
-    rules: {
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        {
-          vars: 'all',
-          args: 'after-used',
-          ignoreRestSiblings: true,
-          varsIgnorePattern: '^_',
-          argsIgnorePattern: '^_',
-        },
-      ],
-      '@typescript-eslint/no-explicit-any': 'warn',
-    },
-  },
   // vue + typescript
   ...defineConfigWithVueTs(
     pluginVue.configs['flat/recommended'],
@@ -66,6 +51,16 @@ export default defineConfig([
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          vars: 'all',
+          args: 'all',
+          ignoreRestSiblings: true,
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+        },
+      ],
     },
   },
   {
