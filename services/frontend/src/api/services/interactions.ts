@@ -13,4 +13,14 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
   async unlikeEvent(eventId: EventID, userId: UserID): Promise<void> {
     return interactionsClient.delete<void>(`/events/${eventId}/interactions/likes/${userId}`)
   },
+  async followUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
+    return interactionsClient.post<void>(`/users/${targetUserId}/interactions/followers`, {
+      userId: currentUserId,
+    })
+  },
+  async unfollowUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
+    return interactionsClient.delete<void>(
+      `/users/${targetUserId}/interactions/followers/${currentUserId}`
+    )
+  },
 })

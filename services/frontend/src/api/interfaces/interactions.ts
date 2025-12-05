@@ -9,4 +9,6 @@ export interface InteractionAPI {
   getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse>
   likeEvent(eventId: EventID, userId: UserID): Promise<void>
   unlikeEvent(eventId: EventID, userId: UserID): Promise<void>
+  followUser(targetUserId: UserID, currentUserId: UserID): Promise<void>
+  unfollowUser(targetUserId: UserID, currentUserId: UserID): Promise<void>
 }

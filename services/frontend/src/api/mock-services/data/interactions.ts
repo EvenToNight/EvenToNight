@@ -1,29 +1,74 @@
-import type { EventInteraction } from '../../types/interaction'
+import type { EventInteraction, UserInteraction } from '../../types/interaction'
 
 export const mockEventInteractions: EventInteraction[] = [
   {
     id: '1',
     eventId: '1',
-    likes: ['user_1', 'user_2', 'user_3'],
+    likes: ['member_1', 'member_2', 'member_3'],
   },
   {
     id: '2',
     eventId: '2',
-    likes: ['user_2', 'user_4'],
+    likes: ['member_2', 'member_4'],
   },
   {
     id: '3',
     eventId: '3',
-    likes: ['user_1', 'user_5', 'user_6', 'user_7'],
+    likes: ['member_1', 'member_3', 'organization_1', 'organization_2'],
   },
   {
     id: '4',
     eventId: '4',
-    likes: ['user_3', 'user_8'],
+    likes: ['member_3', 'organization_3'],
   },
   {
     id: '5',
     eventId: '5',
-    likes: ['user_4', 'user_9'],
+    likes: ['member_4', 'member_1'],
+  },
+]
+
+export const mockUserInteractions: UserInteraction[] = [
+  {
+    id: '1',
+    userId: 'member_1',
+    followers: ['member_2', 'member_3'],
+    following: ['member_2', 'member_3'],
+  },
+  {
+    id: '2',
+    userId: 'member_2',
+    followers: ['member_1'],
+    following: ['member_1'],
+  },
+  {
+    id: '3',
+    userId: 'member_3',
+    followers: ['member_1', 'member_4'],
+    following: ['member_1'],
+  },
+  {
+    id: '4',
+    userId: 'member_4',
+    followers: ['member_5', 'organization_1'],
+    following: ['member_3'],
+  },
+  {
+    id: '5',
+    userId: 'organization_1',
+    followers: ['organization_2', 'organization_3'],
+    following: ['member_4'],
+  },
+  {
+    id: '6',
+    userId: 'organization_2',
+    followers: ['organization_3'],
+    following: ['organization_1'],
+  },
+  {
+    id: '7',
+    userId: 'organization_3',
+    followers: [],
+    following: ['organization_1'],
   },
 ]
