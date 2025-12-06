@@ -30,7 +30,7 @@
       />
     </div>
 
-    <q-dialog v-model="showCropper" persistent maximized>
+    <q-dialog v-model="showCropper" persistent :maximized="$q.screen.lt.md">
       <q-card class="cropper-dialog">
         <q-card-section class="row items-center q-pb-none dialog-header">
           <div class="text-h6">Crop Image</div>
@@ -72,8 +72,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useQuasar } from 'quasar'
 import { Cropper, RectangleStencil } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
+
+const $q = useQuasar()
 
 interface Props {
   modelValue?: File | null
@@ -245,6 +248,15 @@ const closeCropper = () => {
   height: 100%;
   max-width: 100vw;
   max-height: 100vh;
+
+  // Modal style for desktop
+  @media (min-width: 769px) {
+    width: 90vw;
+    max-width: 900px;
+    height: auto;
+    max-height: 90vh;
+    border-radius: 16px;
+  }
 }
 
 .dialog-header {
@@ -261,6 +273,13 @@ const closeCropper = () => {
   align-items: center;
   justify-content: center;
   padding: $spacing-4;
+
+  // Better height for desktop modal
+  @media (min-width: 769px) {
+    height: auto;
+    min-height: 400px;
+    max-height: calc(90vh - 150px);
+  }
 }
 
 .cropper-wrapper {

@@ -28,7 +28,7 @@ const handleSwitch = () => {
 
 <template>
   <q-card class="auth-card">
-    <BackHomeButton variant="soft" class="back-button" />
+    <BackHomeButton variant="soft" />
     <q-card-section class="card-header">
       <div class="text-h5">{{ title }}</div>
     </q-card-section>
@@ -53,13 +53,6 @@ const handleSwitch = () => {
 <style scoped lang="scss">
 .auth-card {
   max-width: 450px;
-}
-
-.back-button {
-  position: absolute;
-  top: $spacing-4;
-  left: $spacing-4;
-  z-index: 1;
 }
 
 .card-header {

@@ -24,7 +24,7 @@ withDefaults(defineProps<Props>(), {
 
 <style lang="scss" scoped>
 .action-button {
-  position: fixed;
+  position: absolute;
   top: $spacing-4;
   left: $spacing-4;
   z-index: 1000;
@@ -48,7 +48,7 @@ withDefaults(defineProps<Props>(), {
 }
 
 .action-button-soft {
-  position: fixed;
+  position: absolute;
   top: $spacing-4;
   left: $spacing-4;
   z-index: 1000;

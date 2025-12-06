@@ -95,7 +95,6 @@ watch(
 }
 
 .close-button {
-  position: absolute;
   top: $spacing-2;
   right: $spacing-2;
   left: auto;
