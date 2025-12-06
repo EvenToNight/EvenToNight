@@ -63,6 +63,7 @@ $color-background: $color-white;
 $color-background-soft: #f8f8f8;
 $color-background-mute: #f2f2f2;
 $color-background-dark: #1d1d1d;//#181818;
+$color-background-overlay: rgba(0, 0, 0, 0.5);
 
 // -----------------------------------------------------------------------------
 // Colors - Text
@@ -215,6 +216,7 @@ $breakpoint-2xl: 1536px;
 // Layout
 // -----------------------------------------------------------------------------
 $app-max-width: 1920px;
+$app-min-width: 300px;
 
 // -----------------------------------------------------------------------------
 // Z-Index Scale

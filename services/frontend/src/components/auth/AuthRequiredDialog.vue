@@ -1,63 +1,45 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { watch } from 'vue'
+import { goToLogin, goToRegister } from '@/router/utils'
+import CloseButton from '@/components/buttons/actionButtons/CloseButton.vue'
+import Button from '@/components/buttons/basicButtons/Button.vue'
 
 interface Props {
-  modelValue: boolean
+  isOpen: boolean
 }
 
 const props = defineProps<Props>()
 const emit = defineEmits<{
-  'update:modelValue': [value: boolean]
+  'update:isOpen': [value: boolean]
 }>()
 
 const { t } = useI18n()
 const router = useRouter()
+const route = useRoute()
 
 const close = () => {
-  emit('update:modelValue', false)
+  emit('update:isOpen', false)
 }
 
-const goToLogin = () => {
+const openLogin = () => {
   close()
-  router.push({ name: 'login' })
+  goToLogin(router, route)
 }
 
-const goToRegister = () => {
+const openRegister = () => {
   close()
-  router.push({ name: 'register' })
+  goToRegister(router, route)
 }
 
-// Lock/unlock scroll quando il dialog si apre/chiude
 watch(
-  () => props.modelValue,
+  () => props.isOpen,
   (isOpen) => {
     if (isOpen) {
-      // Salva la posizione di scroll corrente
-      const scrollY = window.scrollY
-      const scrollX = window.scrollX
-
-      // Blocca solo scroll verticale
-      document.body.style.overflowY = 'hidden'
-      document.body.style.position = 'fixed'
-      document.body.style.top = `-${scrollY}px`
-      document.body.style.left = `-${scrollX}px`
-      document.body.style.right = '0'
-      document.body.style.width = '100%'
+      document.documentElement.style.overflow = 'hidden'
     } else {
-      // Ripristina la posizione di scroll
-      const scrollY = parseInt(document.body.style.top || '0') * -1
-      const scrollX = parseInt(document.body.style.left || '0') * -1
-
-      document.body.style.overflowY = ''
-      document.body.style.position = ''
-      document.body.style.top = ''
-      document.body.style.left = ''
-      document.body.style.right = ''
-      document.body.style.width = ''
-
-      window.scrollTo(scrollX, scrollY)
+      document.documentElement.style.overflow = ''
     }
   }
 )
@@ -65,9 +47,9 @@ watch(
 
 <template>
   <Transition name="dialog">
-    <div v-if="modelValue" class="dialog-overlay" @click="close">
+    <div v-if="props.isOpen" class="dialog-overlay" @click="close">
       <q-card class="auth-required-dialog" @click.stop>
-        <q-btn flat dense round icon="close" class="close-button" @click="close" />
+        <CloseButton class="close-button" @click="close" />
 
         <q-card-section class="dialog-header">
           <div class="dialog-icon">
@@ -78,14 +60,18 @@ watch(
         </q-card-section>
 
         <q-card-actions class="dialog-actions">
-          <q-btn
-            unelevated
-            color="primary"
+          <Button
+            variant="primary"
             :label="t('nav.login')"
             class="action-button"
-            @click="goToLogin"
+            @click="openLogin"
           />
-          <q-btn flat :label="t('nav.register')" class="action-button" @click="goToRegister" />
+          <Button
+            variant="flat"
+            :label="t('nav.register')"
+            class="action-button"
+            @click="openRegister"
+          />
         </q-card-actions>
       </q-card>
     </div>
@@ -94,67 +80,35 @@ watch(
 
 <style scoped lang="scss">
 .dialog-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  @media (max-width: 768px) {
-    // Su mobile diventa absolute per essere solidale all'app
-    position: absolute;
-    // Si estende per tutta la larghezza dell'app
-    left: 0;
-    right: 0;
-    // Ma rimane fixed verticalmente
-    top: 0;
-    height: 100vh;
-    bottom: auto;
-  }
+  @include fixed-fill;
+  @include flex-center;
+  background: $color-background-overlay;
+  z-index: $z-index-modal;
 }
 
 .auth-required-dialog {
-  min-width: 280px;
   max-width: 400px;
-  border-radius: 16px;
+  width: calc(100% - #{$spacing-4 * 2});
+  border-radius: $radius-2xl;
   padding: $spacing-4;
   position: relative;
-
-  @media (max-width: 768px) {
-    margin: $spacing-4;
-  }
 }
 
 .close-button {
   position: absolute;
   top: $spacing-2;
   right: $spacing-2;
-  z-index: 10;
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
-
-  &:hover {
-    opacity: 1;
-  }
+  left: auto;
 }
 
 .dialog-header {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  @include flex-column-center;
   text-align: center;
-  padding: $spacing-6 $spacing-4 $spacing-4;
+  padding: $spacing-6;
 }
 
 .dialog-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   width: 80px;
   height: 80px;
   border-radius: 50%;
@@ -164,19 +118,17 @@ watch(
 }
 
 .dialog-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0 0 $spacing-2 0;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
   color: $color-text-primary;
 
   @include dark-mode {
-    color: $color-text-dark;
+    color: $color-white;
   }
 }
 
 .dialog-message {
-  font-size: 1rem;
-  margin: 0;
+  font-size: $font-size-base;
   opacity: 0.7;
   color: $color-text-primary;
 
@@ -186,28 +138,23 @@ watch(
 }
 
 .dialog-actions {
-  display: flex;
-  flex-direction: column;
+  @include flex-column;
   gap: $spacing-2;
   padding: $spacing-4;
 }
 
 .action-button {
   width: 100%;
-  padding: $spacing-3;
-  font-size: 1rem;
-  font-weight: 600;
 }
 
-// Animazioni per il dialog
 .dialog-enter-active,
 .dialog-leave-active {
-  transition: opacity 0.3s ease;
+  transition: opacity $transition-base;
 
   .auth-required-dialog {
     transition:
-      transform 0.3s ease,
-      opacity 0.3s ease;
+      transform $transition-base,
+      opacity $transition-base;
   }
 }
 

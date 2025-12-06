@@ -1,41 +1,29 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
-
+export type Variant = 'default' | 'soft'
 interface Props {
-  variant?: 'default' | 'minimal'
-  action?: 'back' | 'home'
+  variant?: Variant
+  icon: string
+  onClick: () => void
 }
 
-const props = withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Props>(), {
   variant: 'default',
-  action: 'back',
 })
-
-const goBack = () => {
-  if (props.action === 'home') {
-    router.push({ name: 'home' })
-  } else {
-    router.back()
-  }
-}
 </script>
 
 <template>
   <q-btn
-    icon="arrow_back"
+    :icon="icon"
     flat
     round
     dense
-    :color="props.variant === 'default' ? 'white' : undefined"
-    :class="props.variant === 'default' ? 'back-button' : 'back-button-minimal'"
-    @click="goBack"
+    :class="variant === 'default' ? 'action-button' : 'action-button-soft'"
+    @click="onClick"
   />
 </template>
 
 <style lang="scss" scoped>
-.back-button {
+.action-button {
   position: fixed;
   top: $spacing-4;
   left: $spacing-4;
@@ -59,7 +47,7 @@ const goBack = () => {
   }
 }
 
-.back-button-minimal {
+.action-button-soft {
   position: fixed;
   top: $spacing-4;
   left: $spacing-4;

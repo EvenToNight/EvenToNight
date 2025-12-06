@@ -77,7 +77,7 @@ onUnmounted(() => {
 <template>
   <div class="navigation-view">
     <!-- Auth Required Dialog -->
-    <AuthRequiredDialog v-model="showAuthDialog" />
+    <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
 
     <div class="scroll-wrapper">
       <NavigationBar

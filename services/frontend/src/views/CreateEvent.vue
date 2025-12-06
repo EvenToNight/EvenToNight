@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useRouter } from 'vue-router'
-import BackButton from '@/components/navigation/BackButton.vue'
+import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import ImageCropUpload from '@/components/upload/ImageCropUpload.vue'
 import { api } from '@/api'
 import type { EventData } from '@/api/types/events'

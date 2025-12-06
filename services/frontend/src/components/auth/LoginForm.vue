@@ -3,7 +3,7 @@ import { ref, onMounted, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useQuasar, QForm } from 'quasar'
-import BackButton from '@/components/navigation/BackButton.vue'
+import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -141,7 +141,7 @@ const switchMode = () => {
 
 <template>
   <q-card class="login-card">
-    <BackButton variant="minimal" action="home" class="back-button-login" />
+    <BackButton variant="soft" action="home" class="back-button-login" />
     <q-card-section class="card-header">
       <div class="text-h5">{{ isLoginMode ? 'Login' : 'Register' }}</div>
     </q-card-section>

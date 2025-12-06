@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
-import BackButton from '@/components/navigation/BackButton.vue'
+import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { User } from '@/api/types/users'
@@ -120,7 +120,7 @@ const goToEvent = (eventId: number) => {
     <BackButton />
 
     <!-- Auth Required Dialog -->
-    <AuthRequiredDialog v-model="showAuthDialog" />
+    <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
 
     <!-- Profile Info -->
     <div v-if="member" class="profile-container">

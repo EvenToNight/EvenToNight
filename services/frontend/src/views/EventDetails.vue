@@ -3,7 +3,7 @@ import { computed, watchEffect, ref, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
-import BackButton from '@/components/navigation/BackButton.vue'
+import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
@@ -211,7 +211,7 @@ onUnmounted(() => {
 <template>
   <div v-if="event" class="event-details-view">
     <!-- Auth Required Dialog -->
-    <AuthRequiredDialog v-model="showAuthDialog" />
+    <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
 
     <!-- Hero Image -->
     <div class="hero-image-container">

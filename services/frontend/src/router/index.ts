@@ -5,6 +5,10 @@ import LocaleWrapper from '../views/LocaleWrapper.vue'
 import i18n, { SUPPORTED_LOCALES, DEFAULT_LOCALE, type Locale } from '../i18n'
 import { requireGuest, requireRole } from './guards'
 
+export const HOME_ROUTE_NAME = 'home'
+export const LOGIN_ROUTE_NAME = 'login'
+export const REGISTER_ROUTE_NAME = 'register'
+
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')
   if (savedLocale && SUPPORTED_LOCALES.includes(savedLocale)) {
@@ -35,18 +39,18 @@ const router = createRouter({
       children: [
         {
           path: '',
-          name: 'home',
+          name: HOME_ROUTE_NAME,
           component: Home,
         },
         {
           path: 'login',
-          name: 'login',
+          name: LOGIN_ROUTE_NAME,
           component: () => import('../views/Login.vue'),
           beforeEnter: requireGuest,
         },
         {
           path: 'register',
-          name: 'register',
+          name: REGISTER_ROUTE_NAME,
           component: () => import('../views/Login.vue'),
           beforeEnter: requireGuest,
         },

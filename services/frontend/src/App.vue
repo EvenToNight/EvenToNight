@@ -49,12 +49,15 @@ onMounted(() => {
 <style lang="scss">
 .app-container {
   max-width: $app-max-width;
+  min-width: $app-min-width;
   margin: 0 auto;
   width: 100%;
+  position: relative;
 }
 
 body {
   background-color: $color-white;
+  min-width: $app-min-width;
 }
 
 body.body--dark {
