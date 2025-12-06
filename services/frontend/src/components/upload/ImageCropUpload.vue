@@ -250,7 +250,7 @@ const closeCropper = () => {
   max-height: 100vh;
 
   // Modal style for desktop
-  @media (min-width: 769px) {
+  @media (min-width: $breakpoint-mobile) {
     width: 90vw;
     max-width: 900px;
     height: auto;
@@ -275,7 +275,7 @@ const closeCropper = () => {
   padding: $spacing-4;
 
   // Better height for desktop modal
-  @media (min-width: 769px) {
+  @media (min-width: $breakpoint-mobile) {
     height: auto;
     min-height: 400px;
     max-height: calc(90vh - 150px);

@@ -1,6 +1,75 @@
+<script setup lang="ts">
+import { ref, onMounted, computed } from 'vue'
+import { useQuasar } from 'quasar'
+import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
+
+interface Props {
+  title: string
+}
+
+defineProps<Props>()
+
+const emit = defineEmits<{
+  seeAll: []
+}>()
+
+const $q = useQuasar()
+const cardsContainer = ref<HTMLElement | null>(null)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(false)
+
+const isDesktop = computed(() => $q.screen.width > parseInt(breakpoints.breakpointMobile!))
+const shouldShowNavigation = computed(() => isDesktop.value)
+
+const handleSeeAll = () => {
+  emit('seeAll')
+}
+
+const updateScrollButtons = () => {
+  const container = cardsContainer.value!
+  canScrollLeft.value = container.scrollLeft > 5
+  canScrollRight.value = container.scrollLeft < container.scrollWidth - container.clientWidth - 5
+}
+
+const getCardWidth = () => {
+  const container = cardsContainer.value!
+  const firstCard = container.querySelector(':scope > *') as HTMLElement
+  if (!firstCard) return 0
+  const style = window.getComputedStyle(container)
+  const gap = parseInt(style.gap) || 0
+  return firstCard.offsetWidth + gap
+}
+
+const getScrollAmount = () => {
+  const container = cardsContainer.value!
+  const cardWidth = getCardWidth()
+  const containerWidth = container.clientWidth
+  const cardsPerView = Math.floor(containerWidth / cardWidth)
+  return cardWidth * Math.max(1, cardsPerView)
+}
+
+const scroll = (direction: 'left' | 'right') => {
+  const container = cardsContainer.value!
+  const scrollAmount = getScrollAmount()
+  container.scrollBy({
+    left: direction === 'left' ? -scrollAmount : scrollAmount,
+    behavior: 'smooth',
+  })
+}
+
+const scrollLeft = () => scroll('left')
+const scrollRight = () => scroll('right')
+
+onMounted(() => {
+  if (cardsContainer.value) {
+    cardsContainer.value.addEventListener('scroll', updateScrollButtons)
+    setTimeout(updateScrollButtons, 0)
+  }
+})
+</script>
+
 <template>
   <div class="card-slider">
-    <!-- Header with Title and See All Button -->
     <div class="slider-header">
       <h2 class="slider-title">{{ title }}</h2>
       <span class="see-all-link" @click="handleSeeAll">
@@ -9,14 +78,12 @@
       </span>
     </div>
 
-    <!-- Cards Container with Horizontal Scroll -->
     <div class="cards-container-wrapper">
       <div ref="cardsContainer" class="cards-container">
         <slot></slot>
       </div>
     </div>
 
-    <!-- Optional Navigation Arrows for Desktop -->
     <button
       v-if="shouldShowNavigation && canScrollLeft"
       class="nav-arrow nav-arrow-left"
@@ -36,80 +103,6 @@
   </div>
 </template>
 
-<script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
-import { useQuasar } from 'quasar'
-
-interface Props {
-  title: string
-  showNavigation?: boolean
-}
-
-const props = withDefaults(defineProps<Props>(), {
-  showNavigation: true,
-})
-
-const emit = defineEmits<{
-  seeAll: []
-}>()
-
-const $q = useQuasar()
-const cardsContainer = ref<HTMLElement | null>(null)
-const canScrollLeft = ref(false)
-const canScrollRight = ref(false)
-
-// Calcola se siamo in modalità desktop (> 800px)
-const isDesktop = computed(() => $q.screen.width > 800)
-
-// Mostra i bottoni solo se siamo in desktop E showNavigation è true
-const shouldShowNavigation = computed(() => props.showNavigation && isDesktop.value)
-
-const handleSeeAll = () => {
-  emit('seeAll')
-}
-
-const updateScrollButtons = () => {
-  if (!cardsContainer.value) return
-
-  const container = cardsContainer.value
-  // Add a small threshold to avoid rounding issues
-  canScrollLeft.value = container.scrollLeft > 5
-  canScrollRight.value = container.scrollLeft < container.scrollWidth - container.clientWidth - 5
-}
-
-const scrollLeft = () => {
-  if (!cardsContainer.value) return
-  const scrollAmount = cardsContainer.value.clientWidth * 0.8
-  cardsContainer.value.scrollBy({
-    left: -scrollAmount,
-    behavior: 'smooth',
-  })
-}
-
-const scrollRight = () => {
-  if (!cardsContainer.value) return
-  const scrollAmount = cardsContainer.value.clientWidth * 0.8
-  cardsContainer.value.scrollBy({
-    left: scrollAmount,
-    behavior: 'smooth',
-  })
-}
-
-onMounted(() => {
-  if (cardsContainer.value) {
-    cardsContainer.value.addEventListener('scroll', updateScrollButtons)
-    // Initial check
-    setTimeout(updateScrollButtons, 100)
-  }
-})
-
-onUnmounted(() => {
-  if (cardsContainer.value) {
-    cardsContainer.value.removeEventListener('scroll', updateScrollButtons)
-  }
-})
-</script>
-
 <style scoped lang="scss">
 .card-slider {
   position: relative;
@@ -119,70 +112,40 @@ onUnmounted(() => {
 }
 
 .slider-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  @include flex-between;
   margin-bottom: $spacing-4;
-  padding: 0 $spacing-2;
-
-  @media (max-width: 800px) {
-    padding: 0;
-  }
 }
 
 .slider-title {
-  margin: 0;
-  font-size: 1.75rem;
-  font-weight: 700;
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-bold;
 
-  @media (max-width: 800px) {
-    font-size: 1.5rem;
+  @media (max-width: $breakpoint-mobile) {
+    font-size: $font-size-2xl;
   }
 }
 
 .see-all-link {
-  display: flex;
-  align-items: center;
+  @include flex-center;
   gap: $spacing-2;
   cursor: pointer;
-  font-size: 0.95rem;
-  font-weight: 500;
-  color: var(--q-primary);
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
   transition:
-    transform 0.3s ease,
-    gap 0.3s ease;
-  user-select: none;
+    transform $transition-base,
+    gap $transition-base;
   transform-origin: left center;
 
   &:hover {
     transform: scale(1.05);
     gap: $spacing-3;
-
     .see-all-arrow {
       transform: scale(1.05);
     }
   }
 
   &:active {
-    transform: scale(1.05);
-  }
-
-  .see-all-text {
-    transition: inherit;
-  }
-
-  .see-all-arrow {
-    font-size: 1.2rem;
-    transition: transform 0.3s ease;
-    color: currentColor;
-
-    @include light-mode {
-      color: #000 !important;
-    }
-
-    @include dark-mode {
-      color: #fff !important;
-    }
+    transform: scale(0.95);
   }
 }
 
@@ -221,33 +184,29 @@ onUnmounted(() => {
       margin-left: 0;
     }
 
-    @media (max-width: 800px) {
-      // Shrink lineare da 800px in giù: da 320px a ~180px
+    @media (max-width: $breakpoint-mobile) {
       width: clamp(180px, 40vw, 320px);
     }
   }
 }
 
 .nav-arrow {
+  @include flex-center;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   width: 48px;
   height: 48px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.95);
+  background: color-alpha($color-white, 0.95);
   border: none;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transition: all $transition-slow;
+  box-shadow: $shadow-md;
 
   &:hover {
-    background: rgba(255, 255, 255, 1);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    background: $color-white;
+    box-shadow: $shadow-lg;
     transform: translateY(-50%) scale(1.05);
   }
 

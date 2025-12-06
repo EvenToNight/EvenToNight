@@ -1,0 +1,11 @@
+// Export SCSS breakpoints to JavaScript
+// This file uses :export to make SCSS variables available in JS/TS
+:export {
+  breakpointXs: $breakpoint-xs;
+  breakpointSm: $breakpoint-sm;
+  breakpointMd: $breakpoint-md;
+  breakpointMobile: $breakpoint-mobile;
+  breakpointLg: $breakpoint-lg;
+  breakpointXl: $breakpoint-xl;
+  breakpoint2xl: $breakpoint-2xl;
+}
