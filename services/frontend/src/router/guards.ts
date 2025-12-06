@@ -1,9 +1,10 @@
 import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-/**
- * Guard per route che richiedono autenticazione
- */
+const getLocale = (route: RouteLocationNormalized): string => {
+  return (route.params.locale as string) || 'en'
+}
+
 export const requireAuth = (
   to: RouteLocationNormalized,
   _from: RouteLocationNormalized,
@@ -12,9 +13,10 @@ export const requireAuth = (
   const authStore = useAuthStore()
 
   if (!authStore.isAuthenticated) {
-    // Salva la route di destinazione per redirect dopo login
+    const locale = getLocale(to)
     next({
       name: 'login',
+      params: { locale },
       query: { redirect: to.fullPath },
     })
   } else {
@@ -22,42 +24,36 @@ export const requireAuth = (
   }
 }
 
-/**
- * Guard per route che richiedono l'utente NON autenticato (es. login, register)
- */
 export const requireGuest = (
-  _to: RouteLocationNormalized,
+  to: RouteLocationNormalized,
   _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
   const authStore = useAuthStore()
 
   if (authStore.isAuthenticated) {
-    // Se già autenticato, vai alla home
-    next({ name: 'home' })
+    const locale = getLocale(to)
+    next({ name: 'home', params: { locale } })
   } else {
     next()
   }
 }
 
-/**
- * Guard per route che richiedono un ruolo specifico
- */
 export const requireRole = (role: string) => {
   return (
     to: RouteLocationNormalized,
-    _from: RouteLocationNormalized,
+    from: RouteLocationNormalized,
     next: NavigationGuardNext
   ) => {
     const authStore = useAuthStore()
 
     if (!authStore.isAuthenticated) {
-      next({
-        name: 'login',
-        query: { redirect: to.fullPath },
-      })
-    } else if (authStore.user?.role !== role) {
-      next({ name: 'forbidden' })
+      return requireAuth(to, from, next)
+    }
+
+    if (authStore.user?.role !== role) {
+      const locale = getLocale(to)
+      next({ name: 'forbidden', params: { locale } })
     } else {
       next()
     }

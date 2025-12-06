@@ -8,7 +8,7 @@ interface AuthToken {
   expiresAt: number
 }
 
-// Access token in sessionStorage come fallback (si perde chiudendo il tab)
+// Access token in sessionStorage as fallback (lost when the tab is closed)
 const ACCESS_TOKEN_SESSION_KEY = 'access_token_session'
 const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
 const USER_SESSION_KEY = 'user_session'
@@ -24,12 +24,12 @@ export const useAuthStore = defineStore('auth', () => {
   const accessToken = computed(() => token.value?.accessToken || null)
 
   const setTokens = (authTokens: any) => {
-    token.value = authTokens
-    sessionStorage.setItem(ACCESS_TOKEN_SESSION_KEY, authTokens.accessToken)
-    sessionStorage.setItem(
-      TOKEN_EXPIRY_SESSION_KEY,
-      String(Date.now() + authTokens.expiresIn * 1000)
-    )
+    token.value = {
+      accessToken: authTokens.accessToken,
+      expiresAt: Date.now() + authTokens.expiresIn * 1000,
+    }
+    sessionStorage.setItem(ACCESS_TOKEN_SESSION_KEY, token.value.accessToken)
+    sessionStorage.setItem(TOKEN_EXPIRY_SESSION_KEY, token.value.expiresAt.toString())
   }
 
   const setUser = (authUser: User) => {

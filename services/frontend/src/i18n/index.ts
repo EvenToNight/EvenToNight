@@ -15,7 +15,6 @@ for (const path in localeModules) {
 export const SUPPORTED_LOCALES = Object.keys(messages)
 export const DEFAULT_LOCALE = 'en'
 export type Locale = (typeof SUPPORTED_LOCALES)[number]
-console.log('Supported Locales:', SUPPORTED_LOCALES)
 const i18n = createI18n({
   legacy: false,
   locale: DEFAULT_LOCALE,

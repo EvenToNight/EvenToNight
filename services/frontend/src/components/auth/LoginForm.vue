@@ -79,7 +79,10 @@ const handleLogin = async () => {
       type: 'positive',
       message: 'Login successful!',
     })
-    router.push({ name: 'home' })
+    const redirectPath = route.query.redirect as string
+    const locale = route.params.locale || 'en'
+    const targetPath = redirectPath || { name: 'home', params: { locale } }
+    router.push(targetPath)
   } else {
     $q.notify({
       type: 'negative',

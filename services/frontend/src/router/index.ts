@@ -3,7 +3,7 @@ import Home from '../views/Home.vue'
 import PlaceHolderView from '../views/PlaceHolderView.vue'
 import LocaleWrapper from '../views/LocaleWrapper.vue'
 import i18n, { SUPPORTED_LOCALES, DEFAULT_LOCALE, type Locale } from '../i18n'
-import { requireGuest } from './guards'
+import { requireGuest, requireRole } from './guards'
 
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')
@@ -33,11 +33,6 @@ const router = createRouter({
       path: '/:locale',
       component: LocaleWrapper,
       children: [
-        {
-          path: 'placeholder',
-          name: 'placeholder',
-          component: PlaceHolderView,
-        },
         {
           path: '',
           name: 'home',
@@ -79,6 +74,12 @@ const router = createRouter({
           path: 'create-event',
           name: 'create-event',
           component: () => import('../views/CreateEvent.vue'),
+          beforeEnter: requireRole('organization'),
+        },
+        {
+          path: 'forbidden',
+          name: 'forbidden',
+          component: PlaceHolderView,
         },
         {
           path: ':pathMatch(.*)*',
@@ -94,7 +95,8 @@ router.beforeEach((to, _from, next) => {
   const locale = to.params.locale as string
 
   if (locale && !SUPPORTED_LOCALES.includes(locale)) {
-    return next(`/${DEFAULT_LOCALE}`)
+    const pathWithoutLocale = to.path.substring(locale.length + 1)
+    return next(`/${DEFAULT_LOCALE}${pathWithoutLocale}`)
   }
 
   if (locale && i18n.global.locale.value !== locale) {
