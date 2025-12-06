@@ -30,3 +30,15 @@ case class GetEventCommand(
 ) extends Commands
 
 case class GetAllEventsCommand() extends Commands
+
+case class UpdateEventCommand(
+    id_event: String,
+    title: Option[String],
+    description: Option[String],
+    tag: Option[List[EventTag]],
+    location: Option[Location],
+    date: Option[LocalDateTime],
+    price: Option[Double],
+    status: Option[EventStatus],
+    id_collaborator: Option[String]
+) extends Commands

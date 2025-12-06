@@ -77,6 +77,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       case GetEventCommand(id_event)                            => s"Get Command: $id_event"
       case UpdateEventPosterCommand(id_event, posterUrl)        => s"Update Poster Command: $id_event"
       case GetAllEventsCommand()                                => "Get All Events Command"
+      case UpdateEventCommand(id, _, _, _, _, _, _, _, _)       => s"Update $id Event Command"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:
@@ -102,3 +103,40 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val command = GetAllEventsCommand()
     command shouldBe a[Commands]
     command shouldBe a[GetAllEventsCommand]
+
+  "UpdateEventCommand" should "implement Commands trait" in:
+    val command = UpdateEventCommand(
+      id_event = "event-321",
+      title = Some("Updated Title"),
+      description = None,
+      tag = None,
+      location = None,
+      date = None,
+      price = Some(20.0),
+      status = Some(EventStatus.PUBLISHED),
+      id_collaborator = Some("collaborator-789")
+    )
+    command shouldBe a[Commands]
+    command shouldBe a[UpdateEventCommand]
+
+  it should "store properties correctly" in:
+    val command = UpdateEventCommand(
+      id_event = "event-654",
+      title = Some("New Title"),
+      description = Some("New Description"),
+      tag = Some(List(EventTag.TypeOfEvent.Concert)),
+      location = Some(sampleLocation),
+      date = Some(baseDate.plusDays(5)),
+      price = Some(30.0),
+      status = Some(EventStatus.CANCELLED),
+      id_collaborator = None
+    )
+    command.id_event shouldBe "event-654"
+    command.title shouldBe Some("New Title")
+    command.description shouldBe Some("New Description")
+    command.tag shouldBe Some(List(EventTag.TypeOfEvent.Concert))
+    command.location shouldBe Some(sampleLocation)
+    command.date shouldBe Some(baseDate.plusDays(5))
+    command.price shouldBe Some(30.0)
+    command.status shouldBe Some(EventStatus.CANCELLED)
+    command.id_collaborator shouldBe None

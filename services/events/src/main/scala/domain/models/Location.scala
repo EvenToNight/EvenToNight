@@ -25,7 +25,7 @@ object Location:
       city: String = "",
       road: String,
       postcode: String,
-      house_number: String,
+      house_number: String = "",
       lat: Double,
       lon: Double,
       link: String

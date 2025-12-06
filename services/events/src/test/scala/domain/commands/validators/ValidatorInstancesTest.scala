@@ -2,6 +2,7 @@ package domain.commands.validators
 
 import domain.commands.CreateEventCommand
 import domain.commands.GetEventCommand
+import domain.commands.UpdateEventCommand
 import domain.commands.UpdateEventPosterCommand
 import domain.models.EventStatus
 import domain.models.EventTag
@@ -51,6 +52,18 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     posterUrl = "https://example.com/poster.jpg"
   )
 
+  private val validUpdateEventCommand = UpdateEventCommand(
+    id_event = "event123",
+    title = Some("Updated Event Title"),
+    description = Some("Updated Description"),
+    tag = Some(List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Rock)),
+    location = Some(validLocation),
+    date = Some(LocalDateTime.now().plusDays(14)),
+    price = Some(30.0),
+    status = Some(EventStatus.PUBLISHED),
+    id_collaborator = Some("collaborator789")
+  )
+
   "ValidatorsInstances" should "provide given instance for CreateEventDraftCommand" in:
     val validator = summon[Validator[CreateEventCommand]]
     validator should not be null
@@ -66,10 +79,16 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     validator should not be null
     validator shouldBe UpdateEventPosterValidator
 
+  it should "provide given instance for UpdateEventCommand" in:
+    val validator = summon[Validator[UpdateEventCommand]]
+    validator should not be null
+    validator shouldBe UpdateEventValidator
+
   "Validator.validateCommand with given instances" should "validate valid commands successfully" in:
     Validator.validateCommand(validCreateCommand) shouldBe Right(validCreateCommand)
     Validator.validateCommand(validGetCommand) shouldBe Right(validGetCommand)
     Validator.validateCommand(validUpdateCommand) shouldBe Right(validUpdateCommand)
+    Validator.validateCommand(validUpdateEventCommand) shouldBe Right(validUpdateEventCommand)
 
   it should "fail validation for invalid commands" in:
     val invalidCreateCommand = validCreateCommand.copy(title = "", id_creator = "")

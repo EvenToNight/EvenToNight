@@ -1,7 +1,12 @@
 package utils
+import domain.commands.CreateEventCommand
+import domain.commands.UpdateEventCommand
+import domain.models.EventStatus
+import domain.models.EventTag.validateTagList
 import domain.models.Location
 
 import java.nio.file.Files
+import java.time.LocalDateTime
 import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
@@ -53,3 +58,85 @@ object Utils:
     result match
       case Right(url) => url
       case Left(_)    => defaultUrl
+
+  def getCreateCommandFromJson(event: String): CreateEventCommand =
+    try
+      val eventData = ujson.read(event)
+
+      val title           = eventData("title").str
+      val description     = eventData("description").str
+      val tags            = validateTagList(eventData("tags").toString())
+      val locationData    = eventData("location")
+      val location        = parseLocationFromJson(locationData.toString())
+      val date            = LocalDateTime.parse(eventData("date").str)
+      val price           = eventData("price").num
+      val status          = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
+      val id_creator      = eventData("id_creator").str
+      val id_collaborator = eventData.obj.get("id_collaborator").map(_.str).filter(_.nonEmpty)
+
+      CreateEventCommand(
+        title = title,
+        description = description,
+        poster = "",
+        tag = tags,
+        location = location,
+        date = date,
+        price = price,
+        status = status,
+        id_creator = id_creator,
+        id_collaborator = id_collaborator
+      )
+    catch
+      case e: Exception =>
+        println(s"Error parsing CreateEventCommand from JSON: ${e.getMessage}")
+        CreateEventCommand(
+          title = "",
+          description = "",
+          poster = "",
+          tag = List(),
+          location = Location.Nil(),
+          date = LocalDateTime.MIN,
+          price = 0.0,
+          status = EventStatus.DRAFT,
+          id_creator = "",
+          id_collaborator = None
+        )
+
+  def getUpdateCommandFromJson(id_event: String, newEvent: String): UpdateEventCommand =
+    try
+      val eventData = ujson.read(newEvent)
+
+      val title           = eventData.obj.get("title").map(_.str).filter(_.nonEmpty)
+      val description     = eventData.obj.get("description").map(_.str).filter(_.nonEmpty)
+      val tags            = eventData.obj.get("tags").map(t => validateTagList(t.toString()))
+      val location        = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString()))
+      val date            = eventData.obj.get("date").map(d => LocalDateTime.parse(d.str))
+      val price           = eventData.obj.get("price").map(_.num)
+      val status          = eventData.obj.get("status").flatMap(s => EventStatus.withNameOpt(s.str))
+      val id_collaborator = eventData.obj.get("id_collaborator").map(_.str).filter(_.nonEmpty)
+
+      UpdateEventCommand(
+        id_event = id_event,
+        title = title,
+        description = description,
+        tag = tags,
+        location = location,
+        date = date,
+        price = price,
+        status = status,
+        id_collaborator = id_collaborator
+      )
+    catch
+      case e: Exception =>
+        println(s"Error parsing UpdateEventCommand from JSON: ${e.getMessage}")
+        UpdateEventCommand(
+          id_event = id_event,
+          title = None,
+          description = None,
+          tag = None,
+          location = None,
+          date = None,
+          price = None,
+          status = None,
+          id_collaborator = None
+        )

@@ -9,32 +9,38 @@ import scala.compiletime.uninitialized
 
 class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
-  var createEvent: EventCreated    = uninitialized
-  var publishEvent: EventPublished = uninitialized
-  val domainid_event: String       = "domainid_event"
-  val timestamp: Instant           = Instant.now()
-  val id_event: String             = "id_event"
+  var eventCreated: EventCreated     = uninitialized
+  var eventPublished: EventPublished = uninitialized
+  var eventUpdated: EventUpdated     = uninitialized
+  val domainid_event: String         = "domainid_event"
+  val timestamp: Instant             = Instant.now()
+  val id_event: String               = "id_event"
 
   override def beforeEach(): Unit =
     super.beforeEach()
-    createEvent = EventCreated(
+    eventCreated = EventCreated(
       id = domainid_event,
       timestamp = timestamp,
       id_event = id_event
     )
-    publishEvent = EventPublished(
+    eventPublished = EventPublished(
       id = "published-1",
       timestamp = Instant.now(),
       id_event = "event-published-1"
     )
+    eventUpdated = EventUpdated(
+      id = "updated-1",
+      timestamp = Instant.now(),
+      id_event = "event-updated-1"
+    )
 
   "EventDraftCreated" should "implement DomainEvent trait correctly" in:
-    createEvent shouldBe a[DomainEvent]
+    eventCreated shouldBe a[DomainEvent]
 
   it should "store all provided data correctly" in:
-    createEvent.id shouldBe domainid_event
-    createEvent.timestamp shouldBe timestamp
-    createEvent.id_event shouldBe id_event
+    eventCreated.id shouldBe domainid_event
+    eventCreated.timestamp shouldBe timestamp
+    eventCreated.id_event shouldBe id_event
 
   it should "be comparable with itself" in:
     val event2 = EventCreated(
@@ -43,7 +49,7 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_event = id_event
     )
 
-    createEvent shouldBe event2
+    eventCreated shouldBe event2
 
   it should "not be equal with different properties" in:
     val event2 = EventCreated(
@@ -52,7 +58,7 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_event = "event-2"
     )
 
-    createEvent should not be event2
+    eventCreated should not be event2
 
   it should "support pattern matching as DomainEvent" in:
     val event: DomainEvent = EventCreated(
@@ -82,21 +88,37 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     event1.timestamp.isBefore(afterCreation.plusSeconds(1)) shouldBe true
 
   "DomainEvent trait" should "be implemented by EventCreated" in:
-    createEvent.id should not be empty
-    createEvent.timestamp should not be null
+    eventCreated.id should not be empty
+    eventCreated.timestamp should not be null
 
   "EventPublished" should "implement DomainEvent trait correctly" in:
-    publishEvent shouldBe a[DomainEvent]
+    eventPublished shouldBe a[DomainEvent]
 
   it should "store all provided data correctly" in:
-    publishEvent.id shouldBe "published-1"
-    publishEvent.id_event shouldBe "event-published-1"
-    publishEvent.timestamp shouldBe a[Instant]
+    eventPublished.id shouldBe "published-1"
+    eventPublished.id_event shouldBe "event-published-1"
+    eventPublished.timestamp shouldBe a[Instant]
 
   it should "be comparable with itself" in:
     val event2 = EventPublished(
       id = "published-1",
-      timestamp = publishEvent.timestamp,
+      timestamp = eventPublished.timestamp,
       id_event = "event-published-1"
     )
-    publishEvent shouldBe event2
+    eventPublished shouldBe event2
+
+  "EventUpdated" should "implement DomainEvent trait correctly" in:
+    eventUpdated shouldBe a[DomainEvent]
+
+  it should "store all provided data correctly" in:
+    eventUpdated.id shouldBe "updated-1"
+    eventUpdated.id_event shouldBe "event-updated-1"
+    eventUpdated.timestamp shouldBe a[Instant]
+
+  it should "be comparable with itself" in:
+    val event2 = EventUpdated(
+      id = "updated-1",
+      timestamp = eventUpdated.timestamp,
+      id_event = "event-updated-1"
+    )
+    eventUpdated shouldBe event2

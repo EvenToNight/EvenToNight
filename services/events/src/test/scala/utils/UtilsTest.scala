@@ -1,6 +1,8 @@
 package utils
 
 import cask.model.FormFile
+import domain.models.EventStatus
+import domain.models.EventTag
 import domain.models.Location
 import io.undertow.util.HeaderMap
 import org.scalatest.flatspec.AnyFlatSpec
@@ -146,3 +148,193 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val result = Utils.uploadPosterToMediaService(id_event, formFileWithoutPath, "http://media-service")
 
     result shouldBe "/events/special-event-#123/default.jpg"
+
+  "Utils.getCreateCommandFromJson" should "parse valid JSON into CreateEventCommand" in:
+    val validJson = """{
+      "title": "Sample Event",
+      "description": "This is a sample event.",
+      "tags": ["Bar", "Indie"],
+      "location": {
+        "country": "USA",
+        "country_code": "US",
+        "road": "123 Main St",
+        "postcode": "90210",
+        "house_number": "1",
+        "lat": 34.0522,
+        "lon": -118.2437,
+        "link": "http://example.com/location"
+      },
+      "date": "2025-11-15T19:30:00",
+      "price": 20.0,
+      "status": "DRAFT",
+      "id_creator": "creator-001",
+      "id_collaborator": "collab-001"
+    }"""
+
+    val command = Utils.getCreateCommandFromJson(validJson)
+
+    command.title shouldBe "Sample Event"
+    command.description shouldBe "This is a sample event."
+    command.tag should contain allElementsOf List(EventTag.VenueType.Bar, EventTag.MusicGenre.Indie)
+    command.location.country shouldBe "USA"
+    command.date shouldBe java.time.LocalDateTime.parse("2025-11-15T19:30:00")
+    command.price shouldBe 20.0
+    command.status shouldBe domain.models.EventStatus.DRAFT
+    command.id_creator shouldBe "creator-001"
+    command.id_collaborator shouldBe Some("collab-001")
+
+  it should "handle JSON with missing optional fields" in:
+    val partialJson = """{
+      "title": "Partial Event",
+      "description": "This event has missing optional fields.",
+      "tags": ["Concert"],
+      "location": {
+        "country": "UK",
+        "country_code": "GB",
+        "road": "456 High St",
+        "postcode": "SW1A 1AA",
+        "house_number": "2B",
+        "lat": 51.5074,
+        "lon": -0.1278,
+        "link": "http://example.com/location"
+      },
+      "date": "2025-12-01T10:00:00",
+      "price": 0.0,
+      "status": "PUBLISHED",
+      "id_creator": "creator-002"
+    }"""
+    val command     = Utils.getCreateCommandFromJson(partialJson)
+    command.title shouldBe "Partial Event"
+    command.description shouldBe "This event has missing optional fields."
+    command.tag should contain(EventTag.TypeOfEvent.Concert)
+    command.location.country shouldBe "UK"
+    command.date shouldBe java.time.LocalDateTime.parse("2025-12-01T" + "10:00:00")
+    command.price shouldBe 0.0
+    command.status shouldBe domain.models.EventStatus.PUBLISHED
+    command.id_creator shouldBe "creator-002"
+    command.id_collaborator shouldBe None
+
+  it should "handle invalid JSON and return default CreateEventCommand" in:
+    val invalidJson = "{ invalid json structure"
+    val command     = Utils.getCreateCommandFromJson(invalidJson)
+    command.title shouldBe ""
+    command.description shouldBe ""
+    command.tag shouldBe List()
+    command.location shouldBe Location.Nil()
+    command.date shouldBe java.time.LocalDateTime.MIN
+    command.price shouldBe 0.0
+    command.status shouldBe domain.models.EventStatus.DRAFT
+    command.id_creator shouldBe ""
+    command.id_collaborator shouldBe None
+
+  it should "handle non-JSON string and return default CreateEventCommand" in:
+    val notJson = "this is not json at all"
+    val command = Utils.getCreateCommandFromJson(notJson)
+    command.title shouldBe ""
+    command.description shouldBe ""
+    command.tag shouldBe List()
+    command.location shouldBe Location.Nil()
+    command.date shouldBe java.time.LocalDateTime.MIN
+    command.price shouldBe 0.0
+    command.status shouldBe domain.models.EventStatus.DRAFT
+    command.id_creator shouldBe ""
+    command.id_collaborator shouldBe None
+  it should "handle empty string and return default CreateEventCommand" in:
+    val command = Utils.getCreateCommandFromJson("")
+    command.title shouldBe ""
+    command.description shouldBe ""
+    command.tag shouldBe List()
+    command.location shouldBe Location.Nil()
+    command.date shouldBe java.time.LocalDateTime.MIN
+    command.price shouldBe 0.0
+    command.status shouldBe domain.models.EventStatus.DRAFT
+    command.id_creator shouldBe ""
+    command.id_collaborator shouldBe None
+
+  "Utils.getUpdateCommandFromJson" should "parse valid JSON into UpdateEventCommand" in:
+    val validJson = """{
+      "title": "Updated Event Title",
+      "description": "Updated description.",
+      "tags": ["Club", "Rock"],
+      "location": {
+        "country": "Canada",
+        "country_code": "CA",
+        "road": "789 Queen St",
+        "postcode": "M5H 2N2",
+        "house_number": "3C",
+        "lat": 43.65107,
+        "lon": -79.347015,
+        "link": "http://example.com/location"
+      },
+      "date": "2026-01-20T18:00:00",
+      "price": 30.0,
+      "status": "CANCELLED",
+      "id_collaborator": "collab-002"
+    }"""
+
+    val command = Utils.getUpdateCommandFromJson("event-123", validJson)
+
+    command.id_event shouldBe "event-123"
+    command.title shouldBe Some("Updated Event Title")
+    command.description shouldBe Some("Updated description.")
+    command.tag.getOrElse(List()) should contain allElementsOf List(EventTag.VenueType.Club, EventTag.MusicGenre.Rock)
+    command.location.map(_.country) shouldBe Some("Canada")
+    command.date shouldBe Some(java.time.LocalDateTime.parse("2026-01-20T18:00:00"))
+    command.price shouldBe Some(30.0)
+    command.status shouldBe Some(domain.models.EventStatus.CANCELLED)
+    command.id_collaborator shouldBe Some("collab-002")
+
+  it should "handle JSON with missing optional fields" in:
+    val partialJson = """{
+      "title": "Partially Updated Title",
+      "tags": ["Concert"],
+      "date": "2026-02-10T12:00:00"
+    }"""
+    val command     = Utils.getUpdateCommandFromJson("event-456", partialJson)
+    command.id_event shouldBe "event-456"
+    command.title shouldBe Some("Partially Updated Title")
+    command.description shouldBe None
+    command.tag.getOrElse(List()) should contain(EventTag.TypeOfEvent.Concert)
+    command.location shouldBe None
+    command.date shouldBe Some(java.time.LocalDateTime.parse("2026-02-10" + "T12:00:00"))
+    command.price shouldBe None
+    command.status shouldBe None
+    command.id_collaborator shouldBe None
+
+  it should "handle invalid JSON and return UpdateEventCommand with None fields" in:
+    val invalidJson = "{ invalid json structure"
+    val command     = Utils.getUpdateCommandFromJson("event-789", invalidJson)
+    command.id_event shouldBe "event-789"
+    command.title shouldBe None
+    command.description shouldBe None
+    command.tag shouldBe None
+    command.location shouldBe None
+    command.date shouldBe None
+    command.price shouldBe None
+    command.status shouldBe None
+    command.id_collaborator shouldBe None
+
+  it should "handle non-JSON string and return UpdateEventCommand with None fields" in:
+    val notJson = "this is not json at all"
+    val command = Utils.getUpdateCommandFromJson("event-101", notJson)
+    command.id_event shouldBe "event-101"
+    command.title shouldBe None
+    command.description shouldBe None
+    command.tag shouldBe None
+    command.location shouldBe None
+    command.date shouldBe None
+    command.price shouldBe None
+    command.status shouldBe None
+    command.id_collaborator shouldBe None
+
+  it should "handle empty string and return UpdateEventCommand with None fields" in:
+    val command = Utils.getUpdateCommandFromJson("event-202", "")
+    command.id_event shouldBe "event-202"
+    command.title shouldBe None
+    command.description shouldBe None
+    command.tag shouldBe None
+    command.location shouldBe None
+    command.date shouldBe None
+    command.price shouldBe None
+    command.status shouldBe None
+    command.id_collaborator shouldBe None

@@ -84,7 +84,3 @@ class ValidationRulesTest extends AnyFlatSpec with Matchers with BeforeAndAfterE
     val invalidLocation = createLocation(postcode = "")
     val result          = ValidationRules.correctLocality(invalidLocation, "Event Location")
     result shouldBe Left("Event Location has invalid parameters")
-  it should "reject locality with empty house number" in:
-    val invalidLocation = createLocation(house_number = "")
-    val result          = ValidationRules.correctLocality(invalidLocation, "Event Location")
-    result shouldBe Left("Event Location has invalid parameters")

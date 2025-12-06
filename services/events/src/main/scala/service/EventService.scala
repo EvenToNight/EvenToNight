@@ -4,6 +4,7 @@ import domain.commands.Commands
 import domain.commands.CreateEventCommand
 import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
+import domain.commands.UpdateEventCommand
 import domain.commands.UpdateEventPosterCommand
 import domain.commands.validators.Validator
 import domain.commands.validators.ValidatorsInstances.given
@@ -23,6 +24,7 @@ class EventService(
       case c: UpdateEventPosterCommand => validateAnd(c)(eventQueryService.execCommand)
       case c: GetEventCommand          => validateAnd(c)(eventQueryService.execCommand)
       case c: GetAllEventsCommand      => eventQueryService.execCommand(c)
+      case c: UpdateEventCommand       => validateAnd(c)(eventCommandService.execCommand)
 
   private def validateAnd[C <: Commands, R](cmd: C)(f: C => Either[String, R])(using
       v: Validator[C]

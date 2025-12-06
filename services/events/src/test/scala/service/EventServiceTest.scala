@@ -3,6 +3,7 @@ package service
 import domain.commands.CreateEventCommand
 import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
+import domain.commands.UpdateEventCommand
 import domain.commands.UpdateEventPosterCommand
 import domain.models.EventStatus
 import domain.models.EventTag
@@ -64,6 +65,19 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
   private def validGetAllEventsCommand(): GetAllEventsCommand =
     GetAllEventsCommand()
+
+  private def validUpdateEventCommand(
+      id_event: String,
+      title: Option[String],
+      description: Option[String] = None,
+      tag: Option[List[EventTag]] = None,
+      location: Option[Location] = None,
+      date: Option[LocalDateTime] = None,
+      price: Option[Double] = None,
+      status: Option[EventStatus] = None,
+      id_collaborator: Option[String] = None
+  ): UpdateEventCommand =
+    UpdateEventCommand(id_event, title, description, tag, location, date, price, status, id_collaborator)
 
   "EventService" should "be instantiated correctly" in:
     service.`should`(be(a[EventService]))
@@ -182,3 +196,35 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     )
     commands.foreach: cmd =>
       noException should be thrownBy service.handleCommand(cmd)
+
+  it should "successfully process valid UpdateEventCommand" in:
+    val createCommand = validCreateEventCommand()
+    val id_event = service.handleCommand(createCommand) match
+      case Right(id: String) => id
+      case _                 => fail("Expected event ID as String")
+    val command = validUpdateEventCommand(
+      id_event = id_event,
+      title = Some("Updated Event Title"),
+      price = Some(20.0)
+    )
+    val result = service.handleCommand(command)
+    result.isRight shouldBe true
+
+  it should "return validation errors for UpdateEventCommand with empty id_event" in:
+    val command = validUpdateEventCommand(
+      id_event = "",
+      title = Some("Updated Event Title")
+    )
+    val result = service.handleCommand(command)
+    result.isLeft shouldBe true
+
+  it should "return not found error for UpdateEventCommand with non-existent id_event" in:
+    val command = validUpdateEventCommand(
+      id_event = "non-existent-id",
+      title = Some("Updated Event Title")
+    )
+    val result = service.handleCommand(command)
+    result.isLeft shouldBe true
+    result match
+      case Left(error) => error shouldBe "Event with id non-existent-id not found"
+      case Right(_)    => fail("Expected failure when updating non-existent event")

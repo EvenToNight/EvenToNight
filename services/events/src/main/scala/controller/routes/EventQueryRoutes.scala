@@ -50,7 +50,7 @@ class EventQueryRoutes(eventService: EventService) extends BaseRoutes:
     eventService.handleCommand(GetEventCommand(id_event)) match
       case Left(value) =>
         cask.Response(
-          Obj("error" -> s"Event with id $id_event does not exist: $value"),
+          Obj("error" -> s"$value"),
           statusCode = 404
         )
       case _ =>

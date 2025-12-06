@@ -2,6 +2,7 @@ package domain.commands.validators
 
 import domain.commands.CreateEventCommand
 import domain.commands.GetEventCommand
+import domain.commands.UpdateEventCommand
 import domain.commands.UpdateEventPosterCommand
 import domain.models.EventStatus
 import domain.models.EventTag
@@ -159,3 +160,20 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Poster URL cannot be empty")
+
+  "UpdateEventValidator" should "extend Validator trait" in:
+    val validator = UpdateEventValidator
+    validator shouldBe a[Validator[UpdateEventCommand]]
+
+  it should "validate valid command successfully" in:
+    val command = UpdateEventCommand("valid-event-123", Some("Updated Title"), None, None, None, None, None, None, None)
+    val result  = UpdateEventValidator.validate(command)
+
+    result shouldBe Right(command)
+
+  it should "reject empty event ID" in:
+    import domain.commands.UpdateEventCommand
+    val command = UpdateEventCommand("", Some("Updated Title"), None, None, None, None, None, None, None)
+    val result  = UpdateEventValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Event ID cannot be empty")

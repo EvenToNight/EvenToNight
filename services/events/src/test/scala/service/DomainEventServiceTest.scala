@@ -1,6 +1,7 @@
 package service
 
 import domain.commands.CreateEventCommand
+import domain.commands.UpdateEventCommand
 import domain.models.Event
 import domain.models.EventStatus
 import domain.models.EventTag
@@ -57,6 +58,29 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
   ): CreateEventCommand =
     CreateEventCommand(title, description, poster, tag, location, date, price, status, id_creator, id_collaborator)
 
+  private def validUpdateEventCommand(
+      id_event: String,
+      title: Option[String],
+      description: Option[String] = None,
+      tag: Option[List[EventTag]] = None,
+      location: Option[Location] = None,
+      date: Option[LocalDateTime] = None,
+      price: Option[Double] = None,
+      status: Option[EventStatus] = None,
+      id_collaborator: Option[String] = None
+  ): UpdateEventCommand =
+    UpdateEventCommand(
+      id_event,
+      title,
+      description,
+      tag,
+      location,
+      date,
+      price,
+      status,
+      id_collaborator
+    )
+
   "DomainEventService" should "be instantiated correctly" in:
     service shouldBe a[DomainEventService]
 
@@ -76,3 +100,43 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     result match
       case Left(error) => error shouldBe "Failed to save new event"
       case Right(_)    => fail("Expected failure when database save fails")
+
+  "updateEvent" should "update an existing event successfully" in:
+    val createCmd    = validCreateEventCommand()
+    val createResult = service.execCommand(createCmd)
+    createResult.isRight shouldBe true
+    val id_event = createResult.fold(
+      _ => fail("Failed to create event"),
+      identity
+    )
+    val updateCmd = validUpdateEventCommand(
+      id_event = id_event,
+      title = Some("Updated Event Title"),
+      price = Some(25.0)
+    )
+    val updateResult = service.execCommand(updateCmd)
+    updateResult.isRight shouldBe true
+
+  it should "fail when updating a non-existent event" in:
+    val updateCmd = validUpdateEventCommand(
+      id_event = "non-existent-event-id",
+      title = Some("Updated Event Title")
+    )
+    val updateResult = service.execCommand(updateCmd)
+    updateResult.isLeft shouldBe true
+    updateResult match
+      case Left(error) => error shouldBe "Event with id non-existent-event-id not found"
+      case Right(_)    => fail("Expected failure when updating non-existent event")
+
+  it should "fail when database update operation fails" in:
+    val failingRepo    = new FailingEventRepository()
+    val failingService = new DomainEventService(failingRepo, publisher)
+    val updateCmd = validUpdateEventCommand(
+      id_event = "some-event-id",
+      title = Some("Updated Event Title")
+    )
+    val updateResult = failingService.execCommand(updateCmd)
+    updateResult.isLeft shouldBe true
+    updateResult match
+      case Left(error) => error shouldBe "Event with id some-event-id not found"
+      case Right(_)    => fail("Expected failure when database update fails")

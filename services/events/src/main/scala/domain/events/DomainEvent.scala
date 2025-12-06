@@ -17,3 +17,9 @@ case class EventPublished(
     timestamp: Instant,
     id_event: String
 ) extends DomainEvent
+
+case class EventUpdated(
+    id: String,
+    timestamp: Instant,
+    id_event: String
+) extends DomainEvent

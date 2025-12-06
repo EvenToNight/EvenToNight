@@ -22,8 +22,7 @@ object ValidationRules:
         nonEmpty(locality.country, "Country").isRight &&
         nonEmpty(locality.country_code, "Country Code").isRight &&
         nonEmpty(locality.road, "Road").isRight &&
-        nonEmpty(locality.postcode, "Postcode").isRight &&
-        nonEmpty(locality.house_number, "House Number").isRight,
+        nonEmpty(locality.postcode, "Postcode").isRight,
       locality,
       s"$field has invalid parameters"
     )
