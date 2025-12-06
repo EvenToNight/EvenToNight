@@ -67,7 +67,7 @@ watch(
             @click="openLogin"
           />
           <Button
-            variant="flat"
+            variant="secondary"
             :label="t('nav.register')"
             class="action-button"
             @click="openRegister"

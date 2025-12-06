@@ -45,13 +45,13 @@ const router = createRouter({
         {
           path: 'login',
           name: LOGIN_ROUTE_NAME,
-          component: () => import('../views/Login.vue'),
+          component: () => import('../views/AuthView.vue'),
           beforeEnter: requireGuest,
         },
         {
           path: 'register',
           name: REGISTER_ROUTE_NAME,
-          component: () => import('../views/Login.vue'),
+          component: () => import('../views/AuthView.vue'),
           beforeEnter: requireGuest,
         },
         {

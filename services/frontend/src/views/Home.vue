@@ -9,6 +9,7 @@ import EventCard from '@/components/cards/EventCard.vue'
 import CardSlider from '@/components/cards/CardSlider.vue'
 import Footer from '@/components/navigation/Footer.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
+import Button from '@/components/buttons/basicButtons/Button.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 
@@ -89,10 +90,10 @@ onUnmounted(() => {
         <div class="hero-section">
           <div class="hero-container">
             <div class="theme-selector-absolute">
-              <q-btn
+              <Button
                 :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
                 :label="$q.dark.isActive ? 'Light Mode' : 'Dark Mode'"
-                color="primary"
+                variant="primary"
                 @click="toggleDarkMode"
               />
             </div>

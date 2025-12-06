@@ -4,6 +4,19 @@ export interface GetUserByIdResponse {
   user: User
 }
 
+export interface RegisterRequest {
+  name: string
+  email: string
+  password: string
+  isOrganization: boolean
+}
+
+export interface RegisterResponse {
+  accessToken: string
+  expiresIn: number
+  user: User
+}
+
 export interface LoginRequest {
   email: string
   password: string
@@ -31,6 +44,7 @@ export interface SearchUsersByNameResponse {
 
 export interface UsersAPI {
   getUserById(id: UserID): Promise<GetUserByIdResponse>
+  register(data: RegisterRequest): Promise<RegisterResponse>
   login(credentials: LoginRequest): Promise<LoginResponse>
   logout(): Promise<LogoutResponse>
   refreshToken(): Promise<RefreshTokenResponse>

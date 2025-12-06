@@ -1,29 +1,45 @@
 <script setup lang="ts">
-export type ButtonVariant = 'primary' | 'secondary' | 'flat'
+export type ButtonVariant = 'primary' | 'secondary'
 
 interface Props {
-  label: string
+  label?: string
+  icon?: string
   variant?: ButtonVariant
+  loading?: boolean
+  fillContainer?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
   variant: 'primary',
+  label: '',
+  icon: '',
+  loading: false,
+  fillContainer: false,
 })
 </script>
 
 <template>
   <q-btn
     :label="label"
+    :icon="icon || undefined"
+    :loading="loading"
     :unelevated="variant === 'primary'"
-    :flat="variant === 'flat' || variant === 'secondary'"
+    :flat="variant === 'secondary'"
     :color="variant === 'primary' ? 'primary' : undefined"
+    :class="['base-button', `base-button--${variant}`, { 'base-button--fill': fillContainer }]"
   />
 </template>
 
-<style lang="scss">
-.q-btn {
+<style lang="scss" scoped>
+.base-button {
   padding: $spacing-3;
   font-size: $font-size-base;
   font-weight: $font-weight-semibold;
+  &--fill {
+    width: 100%;
+  }
+
+  // &--primary {}
+  // &--secondary {}
 }
 </style>

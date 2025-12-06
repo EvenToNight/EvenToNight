@@ -52,6 +52,26 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.removeItem(USER_SESSION_KEY)
   }
 
+  const register = async (
+    name: string,
+    email: string,
+    password: string,
+    isOrganization: boolean
+  ) => {
+    isLoading.value = true
+    try {
+      setAuthData(await api.users.register({ name, email, password, isOrganization }))
+      return { success: true }
+    } catch (error) {
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Registration failed',
+      }
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   const login = async (email: string, password: string) => {
     isLoading.value = true
     try {
@@ -132,6 +152,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading,
     isAuthenticated,
     accessToken,
+    register,
     login,
     logout,
     refreshAccessToken,

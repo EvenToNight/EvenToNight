@@ -6,6 +6,8 @@ import type {
   RefreshTokenResponse,
   LogoutResponse,
   SearchUsersByNameResponse,
+  RegisterResponse,
+  RegisterRequest,
 } from '../interfaces/users'
 import type { ApiError } from '../interfaces/commons'
 import { mockOrganizations } from './data/organizations'
@@ -37,6 +39,26 @@ export const mockUsersApi: UsersAPI = {
     return { user }
   },
 
+  async register(data: RegisterRequest): Promise<RegisterResponse> {
+    let user: User | undefined
+    if (data.isOrganization) {
+      user = mockOrganizations[0]
+    } else {
+      user = mockUsers[0]
+    }
+    if (user) {
+      return {
+        accessToken: 'mock_access_token_' + Date.now(),
+        expiresIn: 900,
+        user,
+      }
+    } else {
+      throw {
+        message: 'Registration failed',
+        status: 400,
+      } as ApiError
+    }
+  },
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const user = getMockUser(credentials.email)
     currentLoggedInEmail = credentials.email
