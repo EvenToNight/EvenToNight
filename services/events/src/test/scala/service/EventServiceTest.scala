@@ -1,6 +1,7 @@
 package service
 
 import domain.commands.CreateEventCommand
+import domain.commands.DeleteEventCommand
 import domain.commands.GetAllEventsCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventCommand
@@ -78,6 +79,9 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       id_collaborator: Option[String] = None
   ): UpdateEventCommand =
     UpdateEventCommand(id_event, title, description, tag, location, date, price, status, id_collaborator)
+
+  private def validDeleteEventCommand(id_event: String): DeleteEventCommand =
+    DeleteEventCommand(id_event)
 
   "EventService" should "be instantiated correctly" in:
     service.`should`(be(a[EventService]))
@@ -228,3 +232,25 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     result match
       case Left(error) => error shouldBe "Event with id non-existent-id not found"
       case Right(_)    => fail("Expected failure when updating non-existent event")
+
+  it should "successfully process valid DeleteEventCommand" in:
+    val createCommand = validCreateEventCommand()
+    val id_event = service.handleCommand(createCommand) match
+      case Right(id: String) => id
+      case _                 => fail("Expected event ID as String")
+    val command = validDeleteEventCommand(id_event)
+    val result  = service.handleCommand(command)
+    result.isRight shouldBe true
+
+  it should "return validation errors for DeleteEventCommand with empty id_event" in:
+    val command = validDeleteEventCommand("")
+    val result  = service.handleCommand(command)
+    result.isLeft shouldBe true
+
+  it should "return not found error for DeleteEventCommand with non-existent id_event" in:
+    val command = validDeleteEventCommand("non-existent-id")
+    val result  = service.handleCommand(command)
+    result.isLeft shouldBe true
+    result match
+      case Left(error) => error shouldBe "Event with id non-existent-id not found"
+      case Right(_)    => fail("Expected failure when deleting non-existent event")

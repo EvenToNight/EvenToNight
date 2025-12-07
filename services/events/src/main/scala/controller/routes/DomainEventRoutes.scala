@@ -1,5 +1,6 @@
 package controller.routes
 
+import domain.commands.DeleteEventCommand
 import domain.commands.UpdateEventPosterCommand
 import service.EventService
 import ujson.Obj
@@ -77,6 +78,20 @@ class DomainEventRoutes(eventService: EventService) extends BaseRoutes:
       case e: Exception =>
         cask.Response(
           Obj("error" -> s"Invalid request: ${e.getMessage}"),
+          statusCode = 400
+        )
+
+  @cask.delete("/:id_event/")
+  def deleteEvent(id_event: String): cask.Response[ujson.Value] =
+    eventService.handleCommand(DeleteEventCommand(id_event)) match
+      case Right(_) =>
+        cask.Response(
+          Obj("message" -> "Event deleted successfully"),
+          statusCode = 200
+        )
+      case Left(value) =>
+        cask.Response(
+          Obj("error" -> value),
           statusCode = 400
         )
 

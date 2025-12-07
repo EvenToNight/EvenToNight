@@ -23,6 +23,7 @@ trait EventRepository:
   def findById(id_event: String): Option[Event]
   def update(event: Event): Either[Throwable, Unit]
   def findAllPublished(): Either[Throwable, List[Event]]
+  def delete(id_event: String): Either[Throwable, Unit]
 
 case class MongoEventRepository(connectionString: String, databaseName: String, collectionName: String = "events")
     extends EventRepository:
@@ -70,6 +71,16 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       println(s"[MongoDB][Error] Failed to retrieve published events - ${ex.getMessage}")
       ex
     }
+
+  override def delete(id_event: String): Either[Throwable, Unit] =
+    Try {
+      collection.deleteOne(Filters.eq("_id", id_event))
+      println(s"[MongoDB] Deleted Event ID: $id_event")
+    } match
+      case Success(_) => Right(())
+      case Failure(ex) =>
+        println(s"[MongoDB][Error] Failed to delete Event ID: $id_event -" + s" ${ex.getMessage}")
+        Left(ex)
 
   def close(): Unit =
     mongoClient.close()

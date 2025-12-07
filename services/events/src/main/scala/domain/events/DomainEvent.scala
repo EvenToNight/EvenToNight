@@ -23,3 +23,9 @@ case class EventUpdated(
     timestamp: Instant,
     id_event: String
 ) extends DomainEvent
+
+case class EventDeleted(
+    id: String,
+    timestamp: Instant,
+    id_event: String
+) extends DomainEvent

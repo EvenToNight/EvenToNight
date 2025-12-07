@@ -12,6 +12,7 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   var eventCreated: EventCreated     = uninitialized
   var eventPublished: EventPublished = uninitialized
   var eventUpdated: EventUpdated     = uninitialized
+  var eventDeleted: EventDeleted     = uninitialized
   val domainid_event: String         = "domainid_event"
   val timestamp: Instant             = Instant.now()
   val id_event: String               = "id_event"
@@ -32,6 +33,11 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id = "updated-1",
       timestamp = Instant.now(),
       id_event = "event-updated-1"
+    )
+    eventDeleted = EventDeleted(
+      id = "deleted-1",
+      timestamp = Instant.now(),
+      id_event = "event-deleted-1"
     )
 
   "EventDraftCreated" should "implement DomainEvent trait correctly" in:
@@ -122,3 +128,19 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_event = "event-updated-1"
     )
     eventUpdated shouldBe event2
+
+  "EventDeleted" should "implement DomainEvent trait correctly" in:
+    eventDeleted shouldBe a[DomainEvent]
+
+  it should "store all provided data correctly" in:
+    eventDeleted.id shouldBe "deleted-1"
+    eventDeleted.id_event shouldBe "event-deleted-1"
+    eventDeleted.timestamp shouldBe a[Instant]
+
+  it should "be comparable with itself" in:
+    val event2 = EventDeleted(
+      id = "deleted-1",
+      timestamp = eventDeleted.timestamp,
+      id_event = "event-deleted-1"
+    )
+    eventDeleted shouldBe event2

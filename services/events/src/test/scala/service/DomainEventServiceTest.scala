@@ -1,6 +1,7 @@
 package service
 
 import domain.commands.CreateEventCommand
+import domain.commands.DeleteEventCommand
 import domain.commands.UpdateEventCommand
 import domain.models.Event
 import domain.models.EventStatus
@@ -22,6 +23,8 @@ class FailingEventRepository extends EventRepository:
   override def findById(id_event: String): Option[Event]     = None
   override def update(event: Event): Either[Throwable, Unit] = Left(new RuntimeException("Database connection failed"))
   override def findAllPublished(): Either[Throwable, List[Event]] =
+    Left(new RuntimeException("Database connection failed"))
+  override def delete(id_event: String): Either[Throwable, Unit] =
     Left(new RuntimeException("Database connection failed"))
 
 class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
@@ -84,7 +87,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
   "DomainEventService" should "be instantiated correctly" in:
     service shouldBe a[DomainEventService]
 
-  "createEventDraft" should "create an event draft successfully" in:
+  "execCommand" should "create an event draft successfully" in:
     val cmd    = validCreateEventCommand()
     val result = service.execCommand(cmd)
     result.isRight shouldBe true
@@ -101,7 +104,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       case Left(error) => error shouldBe "Failed to save new event"
       case Right(_)    => fail("Expected failure when database save fails")
 
-  "updateEvent" should "update an existing event successfully" in:
+  "execCommand" should "update an existing event successfully" in:
     val createCmd    = validCreateEventCommand()
     val createResult = service.execCommand(createCmd)
     createResult.isRight shouldBe true
@@ -140,3 +143,33 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     updateResult match
       case Left(error) => error shouldBe "Event with id some-event-id not found"
       case Right(_)    => fail("Expected failure when database update fails")
+
+  "execCommand" should "delete an existing event successfully" in:
+    val createCmd    = validCreateEventCommand()
+    val createResult = service.execCommand(createCmd)
+    createResult.isRight shouldBe true
+    val id_event = createResult.fold(
+      _ => fail("Failed to create event"),
+      identity
+    )
+    val deleteCmd    = DeleteEventCommand(id_event)
+    val deleteResult = service.execCommand(deleteCmd)
+    deleteResult.isRight shouldBe true
+
+  it should "fail when deleting a non-existent event" in:
+    val deleteCmd    = DeleteEventCommand("non-existent-event-id")
+    val deleteResult = service.execCommand(deleteCmd)
+    deleteResult.isLeft shouldBe true
+    deleteResult match
+      case Left(error) => error shouldBe "Event with id non-existent-event-id not found"
+      case Right(_)    => fail("Expected failure when deleting non-existent event")
+
+  it should "fail when database delete operation fails" in:
+    val failingRepo    = new FailingEventRepository()
+    val failingService = new DomainEventService(failingRepo, publisher)
+    val deleteCmd      = DeleteEventCommand("some-event-id")
+    val deleteResult   = failingService.execCommand(deleteCmd)
+    deleteResult.isLeft shouldBe true
+    deleteResult match
+      case Left(error) => error shouldBe "Event with id some-event-id not found"
+      case Right(_)    => fail("Expected failure when database delete fails")

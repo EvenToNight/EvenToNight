@@ -42,3 +42,7 @@ case class UpdateEventCommand(
     status: Option[EventStatus],
     id_collaborator: Option[String]
 ) extends Commands
+
+case class DeleteEventCommand(
+    id_event: String
+) extends Commands

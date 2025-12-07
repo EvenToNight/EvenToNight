@@ -1,6 +1,7 @@
 package domain.commands.validators
 
 import domain.commands.CreateEventCommand
+import domain.commands.DeleteEventCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventCommand
 import domain.commands.UpdateEventPosterCommand
@@ -64,6 +65,8 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     id_collaborator = Some("collaborator789")
   )
 
+  private def validDeleteEventCommand = DeleteEventCommand("event123")
+
   "ValidatorsInstances" should "provide given instance for CreateEventDraftCommand" in:
     val validator = summon[Validator[CreateEventCommand]]
     validator should not be null
@@ -84,11 +87,17 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     validator should not be null
     validator shouldBe UpdateEventValidator
 
+  it should "provide given instance for DeleteEventCommand" in:
+    val validator = summon[Validator[DeleteEventCommand]]
+    validator should not be null
+    validator shouldBe DeleteEventValidator
+
   "Validator.validateCommand with given instances" should "validate valid commands successfully" in:
     Validator.validateCommand(validCreateCommand) shouldBe Right(validCreateCommand)
     Validator.validateCommand(validGetCommand) shouldBe Right(validGetCommand)
     Validator.validateCommand(validUpdateCommand) shouldBe Right(validUpdateCommand)
     Validator.validateCommand(validUpdateEventCommand) shouldBe Right(validUpdateEventCommand)
+    Validator.validateCommand(validDeleteEventCommand) shouldBe Right(validDeleteEventCommand)
 
   it should "fail validation for invalid commands" in:
     val invalidCreateCommand = validCreateCommand.copy(title = "", id_creator = "")

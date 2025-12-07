@@ -493,7 +493,48 @@ paths:
                       - "Event validation failed: Invalid status value"
       tags:
         - Event Command API
+    delete:
+      summary: Delete an event by ID
+      description: Deletes the specified event from the system.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+      parameters:
+        - name: id_event
+          in: path
+          required: true
+          description: The ID of the event to delete
+          schema:
+            type: string
+            example: "event-uuid-123"
+      responses:
+        '200':
+          description: Event deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Event deleted successfully"
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Event not found"
+      tags:
+        - Event Command API
   
+
+
   /tags:
     get:
       summary: Get available event tags grouped by category

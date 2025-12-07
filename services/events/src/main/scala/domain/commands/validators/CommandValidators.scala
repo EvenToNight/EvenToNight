@@ -1,6 +1,7 @@
 package domain.commands.validators
 
 import domain.commands.CreateEventCommand
+import domain.commands.DeleteEventCommand
 import domain.commands.GetEventCommand
 import domain.commands.UpdateEventCommand
 import domain.commands.UpdateEventPosterCommand
@@ -37,6 +38,12 @@ object UpdateEventPosterValidator extends Validator[UpdateEventPosterCommand]:
 
 object UpdateEventValidator extends Validator[UpdateEventCommand]:
   override def validate(cmd: UpdateEventCommand): Either[List[String], UpdateEventCommand] =
+    combine(
+      nonEmpty(cmd.id_event, "Event ID")
+    ).map(_ => cmd)
+
+object DeleteEventValidator extends Validator[DeleteEventCommand]:
+  override def validate(cmd: DeleteEventCommand): Either[List[String], DeleteEventCommand] =
     combine(
       nonEmpty(cmd.id_event, "Event ID")
     ).map(_ => cmd)

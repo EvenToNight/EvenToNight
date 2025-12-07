@@ -78,6 +78,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       case UpdateEventPosterCommand(id_event, posterUrl)        => s"Update Poster Command: $id_event"
       case GetAllEventsCommand()                                => "Get All Events Command"
       case UpdateEventCommand(id, _, _, _, _, _, _, _, _)       => s"Update $id Event Command"
+      case DeleteEventCommand(id_event)                         => s"Delete Command: $id_event"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:
@@ -140,3 +141,12 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.price shouldBe Some(30.0)
     command.status shouldBe Some(EventStatus.CANCELLED)
     command.id_collaborator shouldBe None
+
+  "DeleteEventCommand" should "implement Commands trait" in:
+    val command = DeleteEventCommand("event-to-delete")
+    command shouldBe a[Commands]
+    command shouldBe a[DeleteEventCommand]
+
+  it should "store properties correctly" in:
+    val command = DeleteEventCommand("event-999")
+    command.id_event shouldBe "event-999"

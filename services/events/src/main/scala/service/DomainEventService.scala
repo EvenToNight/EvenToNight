@@ -1,8 +1,10 @@
 package service
 
 import domain.commands.CreateEventCommand
+import domain.commands.DeleteEventCommand
 import domain.commands.UpdateEventCommand
 import domain.events.EventCreated
+import domain.events.EventDeleted
 import domain.events.EventPublished
 import domain.events.EventUpdated
 import domain.models.Event
@@ -86,3 +88,21 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
             Right(())
       case None =>
         Left(s"Event with id ${cmd.id_event} not found")
+
+  def execCommand(cmd: DeleteEventCommand): Either[String, Unit] =
+    repo.findById(cmd.id_event) match
+      case None =>
+        Left(s"Event with id ${cmd.id_event} not found")
+      case Some(_) =>
+        repo.delete(cmd.id_event) match
+          case Left(_) =>
+            Left(s"Failed to delete event with id ${cmd.id_event}")
+          case Right(_) =>
+            publisher.publish(
+              EventDeleted(
+                id = UUID.randomUUID().toString(),
+                timestamp = Instant.now(),
+                id_event = cmd.id_event
+              )
+            )
+            Right(())
