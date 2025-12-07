@@ -386,7 +386,7 @@ const onSubmit = async () => {
 
 <template>
   <div class="create-event-page">
-    <BackButton class="back-button" />
+    <BackButton />
 
     <div class="page-content">
       <div class="container">
@@ -605,11 +605,6 @@ const onSubmit = async () => {
 </template>
 
 <style lang="scss" scoped>
-.back-button {
-  position: fixed;
-  left: max($spacing-4, calc((100vw - $app-max-width) / 2 + $spacing-4));
-}
-
 .create-event-page {
   min-height: 100vh;
   display: flex;

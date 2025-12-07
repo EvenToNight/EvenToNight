@@ -211,7 +211,7 @@ onUnmounted(() => {
       <div ref="heroImageRef" class="hero-image-wrapper">
         <img :src="event.posterLink" :alt="event.title" class="hero-image" />
       </div>
-      <BackButton class="back-button" />
+      <BackButton />
       <div class="hero-overlay"></div>
     </div>
 
@@ -335,10 +335,6 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss" scoped>
-.back-button {
-  position: fixed;
-  left: max($spacing-4, calc((100vw - $app-max-width) / 2 + $spacing-4));
-}
 .event-details-view {
   min-height: 100vh;
   display: flex;

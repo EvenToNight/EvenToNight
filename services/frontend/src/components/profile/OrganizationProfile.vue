@@ -110,7 +110,7 @@ const goToEditProfile = () => {
 
 <template>
   <div class="organization-profile">
-    <BackButton class="back-button" />
+    <BackButton />
 
     <!-- Auth Required Dialog -->
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
@@ -291,10 +291,7 @@ const goToEditProfile = () => {
 
 <style lang="scss" scoped>
 @use 'sass:color';
-.back-button {
-  position: fixed;
-  left: max($spacing-4, calc((100vw - $app-max-width) / 2 + $spacing-4));
-}
+
 .organization-profile {
   min-height: 100vh;
   background: var(--q-background);
