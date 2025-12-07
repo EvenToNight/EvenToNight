@@ -1,5 +1,6 @@
 package infrastructure
 
+import codec.ForeignKeysCodec
 import codec.member.MemberAccountCodec
 import codec.member.MemberProfileCodec
 import codec.organization.OrganizationAccountCodec
@@ -13,12 +14,13 @@ import org.bson.codecs.configuration.CodecRegistries.fromRegistries
 
 object MongoConnection:
   private val pojoCodecRegistry = fromRegistries(
-    MongoClientSettings.getDefaultCodecRegistry,
+    MongoClientSettings.getDefaultCodecRegistry(),
     fromCodecs(
       new MemberAccountCodec,
       new MemberProfileCodec,
       new OrganizationAccountCodec,
-      new OrganizationProfileCodec
+      new OrganizationProfileCodec,
+      new ForeignKeysCodec
     )
   )
   private val settings = MongoClientSettings.builder().codecRegistry(pojoCodecRegistry).applyConnectionString(
