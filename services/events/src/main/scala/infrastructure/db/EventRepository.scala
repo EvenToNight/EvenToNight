@@ -11,6 +11,7 @@ import domain.models.EventConversions.fromDocument
 import domain.models.EventConversions.toDocument
 import domain.models.EventStatus
 import org.bson.Document
+import utils.Utils
 
 import scala.jdk.CollectionConverters._
 import scala.util.Failure
@@ -46,7 +47,14 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
 
   override def findById(id_event: String): Option[Event] =
     val doc = collection.find(Filters.eq("_id", id_event)).first()
-    if doc != null then Some(fromDocument(doc))
+    if doc != null then
+      val event        = fromDocument(doc)
+      val updatedEvent = Utils.updateEventIfPastDate(event)
+      if updatedEvent.status != event.status then
+        update(updatedEvent).left.foreach(ex =>
+          println(s"[MongoDB] Could not auto-update past event to COMPLETED: ${ex.getMessage}")
+        )
+      Some(updatedEvent)
     else None
 
   override def update(event: Event): Either[Throwable, Unit] =
@@ -66,6 +74,14 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
         .into(new java.util.ArrayList[Document]())
         .asScala
         .map(fromDocument)
+        .map { event =>
+          val updatedEvent = Utils.updateEventIfPastDate(event)
+          if updatedEvent.status != event.status then
+            update(updatedEvent).left.foreach(ex =>
+              println(s"[MongoDB] Could not auto-update past event to COMPLETED: ${ex.getMessage}")
+            )
+          updatedEvent
+        }
         .toList
     }.toEither.left.map { ex =>
       println(s"[MongoDB][Error] Failed to retrieve published events - ${ex.getMessage}")

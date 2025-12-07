@@ -1,6 +1,7 @@
 package utils
 import domain.commands.CreateEventCommand
 import domain.commands.UpdateEventCommand
+import domain.models.Event
 import domain.models.EventStatus
 import domain.models.EventTag.validateTagList
 import domain.models.Location
@@ -140,3 +141,12 @@ object Utils:
           status = None,
           id_collaborator = None
         )
+
+  private def pastDate(eventDate: LocalDateTime): Boolean =
+    eventDate.isBefore(LocalDateTime.now())
+
+  def updateEventIfPastDate(event: Event): Event =
+    if pastDate(event.date) && event.status != EventStatus.COMPLETED then
+      event.copy(status = EventStatus.COMPLETED)
+    else
+      event

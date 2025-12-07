@@ -1,6 +1,7 @@
 package utils
 
 import cask.model.FormFile
+import domain.models.Event
 import domain.models.EventStatus
 import domain.models.EventTag
 import domain.models.Location
@@ -338,3 +339,59 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.price shouldBe None
     command.status shouldBe None
     command.id_collaborator shouldBe None
+
+  "Utils.updateEventIfPastDate" should "update event status to COMPLETED if date is in the past" in:
+    val pastEvent = Event(
+      _id = "event-past",
+      title = "Past Event",
+      description = "This event is in the past.",
+      poster = "past.jpg",
+      tag = List(EventTag.TypeOfEvent.Concert),
+      location = Location.Nil(),
+      date = java.time.LocalDateTime.now().minusDays(5),
+      price = 10.0,
+      status = EventStatus.PUBLISHED,
+      instant = java.time.Instant.now(),
+      id_creator = "creator-past",
+      id_collaborator = None
+    )
+
+    val updatedEvent = Utils.updateEventIfPastDate(pastEvent)
+
+    updatedEvent.status shouldBe EventStatus.COMPLETED
+
+  it should "not change event status if date is in the future" in:
+    val futureEvent = Event(
+      _id = "event-future",
+      title = "Future Event",
+      description = "This event is in the future.",
+      poster = "future.jpg",
+      tag = List(EventTag.TypeOfEvent.Concert),
+      location = Location.Nil(),
+      date = java.time.LocalDateTime.now().plusDays(10),
+      price = 15.0,
+      status = EventStatus.PUBLISHED,
+      instant = java.time.Instant.now(),
+      id_creator = "creator-future",
+      id_collaborator = None
+    )
+    val updatedEvent = Utils.updateEventIfPastDate(futureEvent)
+    updatedEvent.status shouldBe EventStatus.PUBLISHED
+
+  it should "not change event status if already COMPLETED" in:
+    val completedEvent = Event(
+      _id = "event-completed",
+      title = "Completed Event",
+      description = "This event is already completed.",
+      poster = "completed.jpg",
+      tag = List(EventTag.TypeOfEvent.Party),
+      location = Location.Nil(),
+      date = java.time.LocalDateTime.now().minusDays(15),
+      price = 20.0,
+      status = EventStatus.COMPLETED,
+      instant = java.time.Instant.now(),
+      id_creator = "creator-completed",
+      id_collaborator = None
+    )
+    val updatedEvent = Utils.updateEventIfPastDate(completedEvent)
+    updatedEvent.status shouldBe EventStatus.COMPLETED
