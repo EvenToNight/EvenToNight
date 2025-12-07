@@ -1,3 +1,3 @@
 package model.organization
 
-case class OrganizationProfile(accountId: String, nickname: String)
+case class OrganizationProfile(nickname: String)

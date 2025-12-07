@@ -1,3 +1,3 @@
 package model.member
 
-case class MemberProfile(accountId: String, nickname: String)
+case class MemberProfile(nickname: String)

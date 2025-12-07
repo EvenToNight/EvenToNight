@@ -1,3 +1,3 @@
 package model.member
 
-case class MemberAccount(id: String, email: String)
+case class MemberAccount(keycloakId: String, email: String)

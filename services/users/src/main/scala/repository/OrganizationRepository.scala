@@ -5,7 +5,7 @@ import model.organization.OrganizationAccount
 import model.organization.OrganizationProfile
 
 trait OrganizationRepository:
-  def insert(org: Organization): Unit
+  def insert(org: Organization): String
 
 class MongoOrganizationRepository(
     orgAccountProfileRepo: AccountProfileRepository[OrganizationAccount, OrganizationProfile]

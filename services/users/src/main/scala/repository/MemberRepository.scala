@@ -5,7 +5,7 @@ import model.member.MemberAccount
 import model.member.MemberProfile
 
 trait MemberRepository:
-  def insert(member: Member): Unit
+  def insert(member: Member): String
 
 class MongoMemberRepository(
     memberAccountProfileRepo: AccountProfileRepository[MemberAccount, MemberProfile]
