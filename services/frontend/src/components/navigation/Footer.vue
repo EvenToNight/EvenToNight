@@ -2,20 +2,8 @@
 import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
 
-const { t, locale, availableLocales } = useI18n()
+const { t, availableLocales } = useI18n()
 const { changeLocale } = useNavigation()
-// const changeLanguage = (lang: string) => {
-//   // Get the current path without the locale prefix
-//   const currentPath = route.path
-//   const currentLocale = route.params.locale as string
-
-//   // Replace the locale in the path
-//   const newPath = currentPath.replace(`/${currentLocale}`, `/${lang}`)
-
-//   // Navigate to the new path
-//   router.push(newPath)
-// }
-console.log(availableLocales)
 </script>
 
 <template>
@@ -39,7 +27,6 @@ console.log(availableLocales)
             v-for="lang in availableLocales"
             :key="lang"
             class="language-option"
-            :class="{ active: locale === lang }"
             @click="changeLocale(lang)"
           >
             {{ lang.toUpperCase() }}
@@ -60,37 +47,33 @@ console.log(availableLocales)
   margin-top: auto;
 
   @include light-mode {
-    background-color: #f8f8f8;
+    background-color: $color-background; // $color-background-soft
     border-top: 1px solid $color-border;
   }
 
   @include dark-mode {
-    background-color: #1a1a1a;
+    background-color: $color-background-dark; // $color-background-dark-soft
     border-top: 1px solid $color-border-dark;
   }
 }
 
 .footer-container {
-  max-width: 1280px;
   margin: 0 auto;
-  padding: $spacing-8 $spacing-4;
+  padding: $spacing-8;
 
-  @media (max-width: 768px) {
-    padding: $spacing-6 $spacing-4;
+  @media (max-width: $breakpoint-mobile) {
+    padding: $spacing-4;
   }
 }
 
 .footer-content {
-  display: flex;
-  flex-direction: column;
+  @include flex-column-center;
   gap: $spacing-6;
-  align-items: center;
   text-align: center;
 }
 
 .footer-brand {
-  display: flex;
-  align-items: center;
+  @include flex-center;
   gap: $spacing-2;
 }
 
@@ -101,33 +84,28 @@ console.log(availableLocales)
 }
 
 .footer-brand-text {
-  font-size: 1.25rem;
-  font-weight: 600;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
   color: $color-primary;
 }
 
 .footer-links {
-  display: flex;
-  flex-wrap: wrap;
+  @include flex-wrap-center;
   gap: $spacing-4;
-  justify-content: center;
-
-  @media (max-width: 480px) {
+  @media (max-width: $breakpoint-mobile) {
     gap: $spacing-3;
   }
 }
 
 .footer-language {
-  display: flex;
+  @include flex-center;
   gap: $spacing-3;
-  justify-content: center;
-  align-items: center;
 }
 
 .language-option {
   cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
   padding: $spacing-1 $spacing-2;
   border-radius: $radius-base;
   transition: all $transition-base;
@@ -135,7 +113,6 @@ console.log(availableLocales)
 
   @include light-mode {
     color: $color-text-muted;
-
     &:hover {
       color: $color-primary;
       background-color: rgba($color-primary, 0.1);
@@ -149,7 +126,6 @@ console.log(availableLocales)
 
   @include dark-mode {
     color: rgba($color-text-dark, 0.7);
-
     &:hover {
       color: $color-primary;
       background-color: rgba($color-primary, 0.1);
@@ -164,12 +140,11 @@ console.log(availableLocales)
 
 .footer-link {
   text-decoration: none;
-  font-size: 0.95rem;
+  font-size: $font-size-base;
   transition: color $transition-base;
 
   @include light-mode {
     color: $color-text-secondary;
-
     &:hover {
       color: $color-primary;
     }
@@ -177,7 +152,6 @@ console.log(availableLocales)
 
   @include dark-mode {
     color: $color-text-dark;
-
     &:hover {
       color: $color-primary;
     }
@@ -199,7 +173,7 @@ console.log(availableLocales)
 
 .footer-copyright {
   margin: 0;
-  font-size: 0.875rem;
+  font-size: $font-size-sm;
 
   @include light-mode {
     color: $color-text-muted;
