@@ -12,6 +12,7 @@ import AppBrand from '@/components/common/AppBrand.vue'
 import { useNavigation } from '@/router/utils'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import AuthButtons from '../auth/AuthButtons.vue'
+import DrawerMenu from './DrawerMenu.vue'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 interface Props {
@@ -69,12 +70,14 @@ const toggleMobileMenu = () => {
 
 const handleLogout = async () => {
   await authStore.logout()
+  toggleMobileMenu()
   goToHome()
 }
 
 const goToProfile = () => {
   if (authStore.user) {
     goToUserProfile(authStore.user.id)
+    toggleMobileMenu()
   }
 }
 </script>
@@ -156,62 +159,48 @@ const goToProfile = () => {
       </template>
     </q-toolbar>
 
-    <!-- Extra overlay for drawer -->
-    <Transition name="overlay-fade">
-      <div v-if="mobileMenuOpen" class="drawer-body-overlay" @click="toggleMobileMenu"></div>
-    </Transition>
-
     <!-- Mobile menu drawer -->
-    <Transition name="drawer">
-      <div v-if="mobileMenuOpen" class="mobile-drawer-overlay" @click="toggleMobileMenu">
-        <div class="mobile-drawer" @click.stop>
-          <div class="mobile-drawer-header">
-            <q-btn flat dense icon="close" @click="toggleMobileMenu" />
-          </div>
-          <div class="mobile-drawer-content">
-            <!-- Authenticated user -->
-            <div v-if="authStore.isAuthenticated" class="mobile-user-section">
-              <div class="mobile-user-info">
-                <q-avatar size="60px">
-                  <img
-                    :src="authStore.user?.avatarUrl || '/default-avatar.png'"
-                    :alt="authStore.user?.name"
-                  />
-                </q-avatar>
-                <div class="mobile-user-details">
-                  <div class="mobile-user-name">{{ authStore.user?.name }}</div>
-                  <div class="mobile-user-email">{{ authStore.user?.email }}</div>
-                </div>
-              </div>
-              <q-separator class="q-my-md" />
-              <div class="mobile-drawer-buttons">
-                <q-btn
-                  flat
-                  icon="person"
-                  :label="t('nav.profile')"
-                  color="primary"
-                  class="full-width mobile-menu-btn"
-                  @click="goToProfile"
-                />
-                <q-btn
-                  flat
-                  icon="logout"
-                  :label="t('nav.logout')"
-                  color="negative"
-                  class="full-width mobile-menu-btn"
-                  @click="handleLogout()"
-                />
-              </div>
-            </div>
-
-            <!-- Guest buttons -->
-            <div v-else class="mobile-drawer-buttons">
-              <AuthButtons :variant="'vertical'" />
-            </div>
+    <DrawerMenu v-model:is-open="mobileMenuOpen">
+      <!-- Authenticated user -->
+      <div v-if="authStore.isAuthenticated" class="mobile-user-section">
+        <div class="mobile-user-info">
+          <q-avatar size="60px">
+            <img
+              :src="authStore.user?.avatarUrl || '/default-avatar.png'"
+              :alt="authStore.user?.name"
+            />
+          </q-avatar>
+          <div class="mobile-user-details">
+            <div class="mobile-user-name">{{ authStore.user?.name }}</div>
+            <div class="mobile-user-email">{{ authStore.user?.email }}</div>
           </div>
         </div>
+        <q-separator class="q-my-md" />
+        <div class="mobile-drawer-buttons">
+          <q-btn
+            flat
+            icon="person"
+            :label="t('nav.profile')"
+            color="primary"
+            class="full-width mobile-menu-btn"
+            @click="goToProfile"
+          />
+          <q-btn
+            flat
+            icon="logout"
+            :label="t('nav.logout')"
+            color="negative"
+            class="full-width mobile-menu-btn"
+            @click="handleLogout"
+          />
+        </div>
       </div>
-    </Transition>
+
+      <!-- Guest buttons -->
+      <div v-else class="mobile-drawer-buttons">
+        <AuthButtons variant="vertical" />
+      </div>
+    </DrawerMenu>
   </div>
 </template>
 
@@ -322,102 +311,6 @@ const goToProfile = () => {
   }
 }
 
-.mobile-drawer-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  //background: rgba(0, 0, 0, 0.5);
-  z-index: 9999;
-  display: flex;
-  justify-content: flex-end;
-
-  @media (max-width: $breakpoint-mobile) {
-    // Su mobile usa absolute per essere solidale con l'app, non con la viewport
-    position: absolute;
-  }
-}
-
-.mobile-drawer {
-  width: 300px;
-  max-width: 80vw;
-  min-width: 240px;
-  height: 100%;
-  background: white;
-  box-shadow: -2px 0 8px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  flex-shrink: 0;
-
-  @include dark-mode {
-    background: #1d1d1d;
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    // Assicura che l'altezza sia relativa al contenitore
-    height: 100vh;
-    position: sticky;
-    top: 0;
-  }
-}
-
-.mobile-drawer-header {
-  display: flex;
-  justify-content: flex-end;
-  padding: $spacing-4;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-
-  @include dark-mode {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
-.mobile-drawer-content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  padding: $spacing-10;
-}
-
-.mobile-drawer-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-3;
-}
-
-.mobile-menu-btn {
-  height: 48px;
-  font-size: 16px;
-}
-
-.drawer-enter-active,
-.drawer-leave-active {
-  transition: opacity 0.3s ease;
-
-  .mobile-drawer {
-    transition: transform 0.3s ease;
-  }
-}
-
-.drawer-enter-from,
-.drawer-leave-to {
-  opacity: 0;
-
-  .mobile-drawer {
-    transform: translateX(100%);
-  }
-}
-
-.drawer-enter-to,
-.drawer-leave-from {
-  opacity: 1;
-
-  .mobile-drawer {
-    transform: translateX(0);
-  }
-}
-
 .user-menu {
   display: flex;
   align-items: center;
@@ -427,6 +320,7 @@ const goToProfile = () => {
   }
 }
 
+// Drawer content styles
 .mobile-user-section {
   display: flex;
   flex-direction: column;
@@ -476,29 +370,14 @@ const goToProfile = () => {
   }
 }
 
-.drawer-body-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.6);
-  z-index: 9998;
-  cursor: pointer;
+.mobile-drawer-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
 }
 
-.overlay-fade-enter-active,
-.overlay-fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.overlay-fade-enter-from,
-.overlay-fade-leave-to {
-  opacity: 0;
-}
-
-.overlay-fade-enter-to,
-.overlay-fade-leave-from {
-  opacity: 1;
+.mobile-menu-btn {
+  height: 48px;
+  font-size: 16px;
 }
 </style>
