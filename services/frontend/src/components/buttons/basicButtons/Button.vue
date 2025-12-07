@@ -6,7 +6,6 @@ interface Props {
   icon?: string
   variant?: ButtonVariant
   loading?: boolean
-  fillContainer?: boolean
   type?: 'button' | 'submit'
 }
 
@@ -15,7 +14,6 @@ withDefaults(defineProps<Props>(), {
   label: '',
   icon: '',
   loading: false,
-  fillContainer: false,
   type: 'button',
 })
 </script>
@@ -29,7 +27,7 @@ withDefaults(defineProps<Props>(), {
     :unelevated="variant === 'primary'"
     :flat="variant === 'secondary'"
     :color="variant === 'primary' ? 'primary' : undefined"
-    :class="['base-button', `base-button--${variant}`, { 'base-button--fill': fillContainer }]"
+    :class="['base-button', `base-button--${variant}`]"
   />
 </template>
 
@@ -38,9 +36,6 @@ withDefaults(defineProps<Props>(), {
   padding: $spacing-3;
   font-size: $font-size-base;
   font-weight: $font-weight-semibold;
-  &--fill {
-    width: 100%;
-  }
 
   // &--primary {}
   // &--secondary {}

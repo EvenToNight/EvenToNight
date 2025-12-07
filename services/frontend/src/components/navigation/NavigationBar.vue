@@ -1,16 +1,18 @@
 <script lang="ts">
 export const NAVBAR_HEIGHT = 64
-export const MOBILE_BREAKPOINT = 800
 </script>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import SearchBar from './SearchBar.vue'
 import AppBrand from '@/components/common/AppBrand.vue'
 import { useNavigation } from '@/router/utils'
+import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
+import AuthButtons from '../auth/AuthButtons.vue'
+const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 interface Props {
   showSearch?: boolean
@@ -22,82 +24,47 @@ const props = defineProps<Props>()
 const $q = useQuasar()
 const { t } = useI18n()
 const authStore = useAuthStore()
-const { goToLogin, goToRegister, goToHome, goToUserProfile } = useNavigation()
+const { goToHome, goToUserProfile } = useNavigation()
 
 const emit = defineEmits<{
   'update:searchQuery': [value: string]
   'update:hasFocus': [value: boolean]
 }>()
 
-const mobileSearchOpen = ref(false)
+const mobileSearchOpen = ref(false) //TODO evaluate usage
 const mobileMenuOpen = ref(false)
-const searchQuery = ref(props.searchQuery)
-const searchBarHasFocus = ref(props.hasFocus)
 
-watch(
-  () => props.searchQuery,
-  (value) => {
-    searchQuery.value = value
-  }
-)
+const searchQuery = computed({
+  get: () => props.searchQuery ?? '',
+  set: (value) => emit('update:searchQuery', value),
+})
 
-watch(
-  () => props.hasFocus,
-  (value) => {
-    searchBarHasFocus.value = value
+const searchBarHasFocus = computed({
+  get: () => props.hasFocus ?? false,
+  set: (value) => {
+    emit('update:hasFocus', value)
     mobileSearchOpen.value = value
-  }
-)
-
-watch(searchBarHasFocus, (value) => {
-  emit('update:hasFocus', value)
+  },
 })
 
 const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
-
 const showMobileSearch = computed(() => {
   return searchBarHasFocus.value && props.showSearch && isMobile.value
 })
 
-const updateSearchQuery = (value: string) => {
-  emit('update:searchQuery', value)
-}
-
-const handleSignIn = () => {
-  goToLogin()
-}
-
-const handleSignUp = () => {
-  goToRegister()
-}
-
 const toggleMobileSearch = () => {
   if (mobileSearchOpen.value) {
     mobileSearchOpen.value = false
-    emit('update:searchQuery', '')
-    emit('update:hasFocus', false)
+    searchQuery.value = ''
+    searchBarHasFocus.value = false
   } else {
     mobileSearchOpen.value = true
-    emit('update:hasFocus', true)
+    searchBarHasFocus.value = true
   }
 }
 
 const toggleMobileMenu = () => {
   mobileMenuOpen.value = !mobileMenuOpen.value
-}
-
-const closeMobileMenu = () => {
-  mobileMenuOpen.value = false
-}
-
-const handleSignInAndClose = () => {
-  handleSignIn()
-  closeMobileMenu()
-}
-
-const handleSignUpAndClose = () => {
-  handleSignUp()
-  closeMobileMenu()
 }
 
 const handleLogout = async () => {
@@ -122,7 +89,6 @@ const goToProfile = () => {
             v-model:search-query="searchQuery"
             v-model:has-focus="searchBarHasFocus"
             :autofocus="hasFocus"
-            @update:search-query="updateSearchQuery"
           />
         </div>
         <q-btn flat dense icon="close" @mousedown.prevent="toggleMobileSearch" />
@@ -138,7 +104,6 @@ const goToProfile = () => {
             v-model:search-query="searchQuery"
             v-model:has-focus="searchBarHasFocus"
             :autofocus="hasFocus"
-            @update:search-query="updateSearchQuery"
           />
         </div>
 
@@ -182,21 +147,8 @@ const goToProfile = () => {
         </div>
 
         <!-- Login/Register buttons for guests -->
-        <div v-else class="auth-buttons">
-          <q-btn
-            flat
-            :label="t('nav.login')"
-            class="q-mr-sm sign-in-btn"
-            color="primary"
-            @click="handleSignIn"
-          />
-          <q-btn
-            unelevated
-            :label="t('nav.register')"
-            color="primary"
-            class="sign-up-btn"
-            @click="handleSignUp"
-          />
+        <div v-else class="desktop-auth-buttons">
+          <AuthButtons />
         </div>
 
         <!-- Hamburger menu icon (mobile only) -->
@@ -206,15 +158,15 @@ const goToProfile = () => {
 
     <!-- Extra overlay for drawer -->
     <Transition name="overlay-fade">
-      <div v-if="mobileMenuOpen" class="drawer-body-overlay" @click="closeMobileMenu"></div>
+      <div v-if="mobileMenuOpen" class="drawer-body-overlay" @click="toggleMobileMenu"></div>
     </Transition>
 
     <!-- Mobile menu drawer -->
     <Transition name="drawer">
-      <div v-if="mobileMenuOpen" class="mobile-drawer-overlay" @click="closeMobileMenu">
+      <div v-if="mobileMenuOpen" class="mobile-drawer-overlay" @click="toggleMobileMenu">
         <div class="mobile-drawer" @click.stop>
           <div class="mobile-drawer-header">
-            <q-btn flat dense icon="close" @click="closeMobileMenu" />
+            <q-btn flat dense icon="close" @click="toggleMobileMenu" />
           </div>
           <div class="mobile-drawer-content">
             <!-- Authenticated user -->
@@ -239,7 +191,7 @@ const goToProfile = () => {
                   :label="t('nav.profile')"
                   color="primary"
                   class="full-width mobile-menu-btn"
-                  @click="(goToProfile(), closeMobileMenu())"
+                  @click="goToProfile"
                 />
                 <q-btn
                   flat
@@ -247,27 +199,14 @@ const goToProfile = () => {
                   :label="t('nav.logout')"
                   color="negative"
                   class="full-width mobile-menu-btn"
-                  @click="(handleLogout(), closeMobileMenu())"
+                  @click="handleLogout()"
                 />
               </div>
             </div>
 
             <!-- Guest buttons -->
             <div v-else class="mobile-drawer-buttons">
-              <q-btn
-                flat
-                :label="t('nav.login')"
-                color="primary"
-                class="full-width mobile-menu-btn"
-                @click="handleSignInAndClose"
-              />
-              <q-btn
-                unelevated
-                :label="t('nav.register')"
-                color="primary"
-                class="full-width mobile-menu-btn"
-                @click="handleSignUpAndClose"
-              />
+              <AuthButtons :variant="'vertical'" />
             </div>
           </div>
         </div>
@@ -276,7 +215,7 @@ const goToProfile = () => {
   </div>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .navbar-wrapper {
   min-width: 300px;
   width: 100%;
@@ -351,19 +290,7 @@ const goToProfile = () => {
   }
 }
 
-.auth-buttons {
-  flex: 0 1 auto;
-  display: flex;
-  align-items: center;
-  gap: $spacing-1;
-  white-space: nowrap;
-  min-width: 0;
-
-  .q-btn {
-    min-width: 60px;
-    padding: 0 8px;
-  }
-
+.desktop-auth-buttons {
   @media (max-width: $breakpoint-mobile) {
     display: none;
   }

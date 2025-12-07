@@ -38,7 +38,12 @@ const handleSwitch = () => {
         <slot name="fields" />
         <slot name="submit-button" :is-loading="isLoading" />
         <div class="text-center">
-          <Button variant="secondary" :label="switchButtonLabel" @click="handleSwitch" />
+          <Button
+            variant="secondary"
+            :label="switchButtonLabel"
+            :class="['full-width']"
+            @click="handleSwitch"
+          />
         </div>
       </q-form>
     </q-card-section>

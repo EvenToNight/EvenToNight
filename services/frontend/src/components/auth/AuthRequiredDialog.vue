@@ -58,16 +58,11 @@ watch(
         </q-card-section>
 
         <q-card-actions class="dialog-actions">
-          <Button
-            variant="primary"
-            :label="t('nav.login')"
-            class="action-button"
-            @click="openLogin"
-          />
+          <Button variant="primary" :label="t('nav.login')" class="full-width" @click="openLogin" />
           <Button
             variant="secondary"
             :label="t('nav.register')"
-            class="action-button"
+            class="full-width"
             @click="openRegister"
           />
         </q-card-actions>
@@ -138,10 +133,6 @@ watch(
   @include flex-column;
   gap: $spacing-2;
   padding: $spacing-4;
-}
-
-.action-button {
-  width: 100%;
 }
 
 .dialog-enter-active,
