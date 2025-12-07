@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { User } from '@/api/types/users'
+import { useNavigation } from '@/router/utils'
 
 const { t } = useI18n()
-const router = useRouter()
-const route = useRoute()
+const { goToEventDetails, params } = useNavigation()
 const authStore = useAuthStore()
 
 const member = ref<User | null>(null)
@@ -24,7 +23,7 @@ const isOwnProfile = computed(() => {
 
 const loadMember = async () => {
   try {
-    const memberId = route.params.id as string
+    const memberId = params.id as string
     const response = await api.users.getUserById(memberId)
     member.value = response.user
     // TODO: Load following status from API
@@ -110,14 +109,14 @@ const goToEditProfile = () => {
   console.log('Edit profile')
 }
 
-const goToEvent = (eventId: number) => {
-  router.push({ name: 'event', params: { id: eventId } })
+const goToEvent = (eventId: string) => {
+  goToEventDetails(eventId)
 }
 </script>
 
 <template>
   <div class="member-profile">
-    <BackButton />
+    <BackButton class="back-button" />
 
     <!-- Auth Required Dialog -->
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
@@ -236,7 +235,7 @@ const goToEvent = (eventId: number) => {
             v-for="item in displayedItems"
             :key="item.id"
             class="event-card"
-            @click="goToEvent(item.id)"
+            @click="goToEvent(String(item.id))"
           >
             <div class="event-image-container">
               <img :src="item.imageUrl" :alt="item.title" class="event-image" />
@@ -275,6 +274,11 @@ const goToEvent = (eventId: number) => {
 
 <style lang="scss" scoped>
 @use 'sass:color';
+
+.back-button {
+  position: fixed;
+  left: max($spacing-4, calc((100vw - $app-max-width) / 2 + $spacing-4));
+}
 
 .member-profile {
   min-height: 100vh;

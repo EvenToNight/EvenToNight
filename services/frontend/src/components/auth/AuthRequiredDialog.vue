@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useRouter, useRoute } from 'vue-router'
 import { watch } from 'vue'
-import { goToLogin, goToRegister } from '@/router/utils'
+import { useNavigation } from '@/router/utils'
 import CloseButton from '@/components/buttons/actionButtons/CloseButton.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 
@@ -16,8 +15,7 @@ const emit = defineEmits<{
 }>()
 
 const { t } = useI18n()
-const router = useRouter()
-const route = useRoute()
+const { goToLogin, goToRegister } = useNavigation()
 
 const close = () => {
   emit('update:isOpen', false)
@@ -25,12 +23,12 @@ const close = () => {
 
 const openLogin = () => {
   close()
-  goToLogin(router, route)
+  goToLogin()
 }
 
 const openRegister = () => {
   close()
-  goToRegister(router, route)
+  goToRegister()
 }
 
 watch(

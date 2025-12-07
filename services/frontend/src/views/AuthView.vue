@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useRoute } from 'vue-router'
 import LoginForm from '@/components/auth/LoginForm.vue'
 import RegisterForm from '@/components/auth/RegisterForm.vue'
+import { useNavigation } from '@/router/utils'
+import { LOGIN_ROUTE_NAME } from '@/router'
 
-const route = useRoute()
-const isLoginMode = computed(() => route.name === 'login')
+const { routeName } = useNavigation()
+const isLoginMode = computed(() => routeName === LOGIN_ROUTE_NAME)
 </script>
 
 <template>

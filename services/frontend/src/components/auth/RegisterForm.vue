@@ -1,17 +1,15 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
 import BaseAuthForm from './BaseAuthForm.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import FormField from '@/components/forms/FormField.vue'
-import { goHome, goToLogin } from '@/router/utils'
+import { useNavigation } from '@/router/utils'
 
-const router = useRouter()
-const route = useRoute()
 const $q = useQuasar()
 const authStore = useAuthStore()
+const { goToHome, goToLogin } = useNavigation()
 
 const name = ref('')
 const email = ref('')
@@ -62,7 +60,7 @@ const onSuccessfulRegistration = () => {
     type: 'positive',
     message: 'Registration successful!',
   })
-  goHome(router, route)
+  goToHome()
 }
 
 const onFailedRegistration = (errorMsg?: string) => {
@@ -94,7 +92,7 @@ const handleRegister = async () => {
     switch-button-label="Already have an account? Login"
     :is-loading="authStore.isLoading"
     @submit="handleRegister"
-    @switch-mode="() => goToLogin(router, route)"
+    @switch-mode="goToLogin"
   >
     <template #fields>
       <FormField v-model="name" type="text" label="Name *" icon="person" :error="nameError" />

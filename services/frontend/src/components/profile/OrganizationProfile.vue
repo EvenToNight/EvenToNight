@@ -1,16 +1,15 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { User } from '@/api/types/users'
+import { useNavigation } from '@/router/utils'
 
 const { t } = useI18n()
-const router = useRouter()
-const route = useRoute()
+const { goToEventDetails, goToCreateEvent, params } = useNavigation()
 const authStore = useAuthStore()
 
 const organization = ref<User | null>(null)
@@ -24,7 +23,7 @@ const isOwnProfile = computed(() => {
 
 const loadOrganization = async () => {
   try {
-    const organizationId = route.params.id as string
+    const organizationId = params.id as string
     const response = await api.users.getUserById(organizationId)
     organization.value = response.user
     // TODO: Load following status from API
@@ -107,19 +106,11 @@ const goToEditProfile = () => {
   // TODO: Navigate to edit profile page
   console.log('Edit profile')
 }
-
-const goToCreateEvent = () => {
-  router.push({ name: 'create-event' })
-}
-
-const goToEvent = (eventId: number) => {
-  router.push({ name: 'event', params: { id: eventId } })
-}
 </script>
 
 <template>
   <div class="organization-profile">
-    <BackButton />
+    <BackButton class="back-button" />
 
     <!-- Auth Required Dialog -->
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
@@ -259,7 +250,7 @@ const goToEvent = (eventId: number) => {
             v-for="event in displayedEvents"
             :key="event.id"
             class="event-card"
-            @click="activeTab === 'posted' ? goToEvent(event.id) : null"
+            @click="activeTab === 'posted' ? goToEventDetails(String(event.id)) : null"
           >
             <div class="event-image-container">
               <img :src="event.imageUrl" :alt="event.title" class="event-image" />
@@ -300,7 +291,10 @@ const goToEvent = (eventId: number) => {
 
 <style lang="scss" scoped>
 @use 'sass:color';
-
+.back-button {
+  position: fixed;
+  left: max($spacing-4, calc((100vw - $app-max-width) / 2 + $spacing-4));
+}
 .organization-profile {
   min-height: 100vh;
   background: var(--q-background);

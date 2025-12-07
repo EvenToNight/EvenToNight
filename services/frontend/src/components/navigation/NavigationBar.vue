@@ -7,9 +7,9 @@ export const MOBILE_BREAKPOINT = 800
 import { computed, ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import SearchBar from './SearchBar.vue'
+import { useNavigation } from '@/router/utils'
 
 interface Props {
   showSearch?: boolean
@@ -20,8 +20,8 @@ interface Props {
 const props = defineProps<Props>()
 const $q = useQuasar()
 const { t } = useI18n()
-const router = useRouter()
 const authStore = useAuthStore()
+const { goToLogin, goToRegister, goToHome, goToUserProfile } = useNavigation()
 
 const emit = defineEmits<{
   'update:searchQuery': [value: string]
@@ -63,11 +63,11 @@ const updateSearchQuery = (value: string) => {
 }
 
 const handleSignIn = () => {
-  router.push({ name: 'login' })
+  goToLogin()
 }
 
 const handleSignUp = () => {
-  router.push({ name: 'register' })
+  goToRegister()
 }
 
 const toggleMobileSearch = () => {
@@ -101,12 +101,12 @@ const handleSignUpAndClose = () => {
 
 const handleLogout = async () => {
   await authStore.logout()
-  router.push({ name: 'home' })
+  goToHome()
 }
 
 const goToProfile = () => {
   if (authStore.user) {
-    router.push({ name: 'user-profile', params: { id: authStore.user.id } })
+    goToUserProfile(authStore.user.id)
   }
 }
 

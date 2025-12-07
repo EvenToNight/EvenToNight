@@ -1,22 +1,20 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useRouter, useRoute } from 'vue-router'
+import { useNavigation } from '@/router/utils'
 
 const { t, locale, availableLocales } = useI18n()
-const router = useRouter()
-const route = useRoute()
+const { changeLocale } = useNavigation()
+// const changeLanguage = (lang: string) => {
+//   // Get the current path without the locale prefix
+//   const currentPath = route.path
+//   const currentLocale = route.params.locale as string
 
-const changeLanguage = (lang: string) => {
-  // Get the current path without the locale prefix
-  const currentPath = route.path
-  const currentLocale = route.params.locale as string
+//   // Replace the locale in the path
+//   const newPath = currentPath.replace(`/${currentLocale}`, `/${lang}`)
 
-  // Replace the locale in the path
-  const newPath = currentPath.replace(`/${currentLocale}`, `/${lang}`)
-
-  // Navigate to the new path
-  router.push(newPath)
-}
+//   // Navigate to the new path
+//   router.push(newPath)
+// }
 console.log(availableLocales)
 </script>
 
@@ -42,7 +40,7 @@ console.log(availableLocales)
             :key="lang"
             class="language-option"
             :class="{ active: locale === lang }"
-            @click="changeLanguage(lang)"
+            @click="changeLocale(lang)"
           >
             {{ lang.toUpperCase() }}
           </span>

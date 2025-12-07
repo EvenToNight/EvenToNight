@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useQuasar } from 'quasar'
-import { useRouter } from 'vue-router'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import ImageCropUpload from '@/components/upload/ImageCropUpload.vue'
 import { api } from '@/api'
 import type { EventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
 import { parseLocation } from '@/api/types/common'
+import { useNavigation } from '@/router/utils'
 const $q = useQuasar()
-const router = useRouter()
+
+const { goToHome, goToEventDetails } = useNavigation()
 
 // Mock current user ID - in real app would come from auth
 const currentUserId = 'current-user-id'
@@ -270,8 +271,7 @@ const saveDraft = async () => {
       color: 'positive',
       message: 'Draft saved successfully!',
     })
-
-    router.push({ name: 'home' })
+    goToHome()
   } catch (error) {
     console.error('Failed to save draft:', error)
     $q.notify({
@@ -373,7 +373,7 @@ const onSubmit = async () => {
     })
 
     // Navigate to the created event
-    router.push({ name: 'event-details', params: { id: response.eventId } })
+    goToEventDetails(response.eventId)
   } catch (error) {
     console.error('Failed to create event:', error)
     $q.notify({
@@ -386,7 +386,7 @@ const onSubmit = async () => {
 
 <template>
   <div class="create-event-page">
-    <BackButton />
+    <BackButton class="back-button" />
 
     <div class="page-content">
       <div class="container">
@@ -586,13 +586,7 @@ const onSubmit = async () => {
             </div>
           </div>
           <div class="form-actions">
-            <q-btn
-              label="Cancel"
-              flat
-              color="grey-7"
-              size="md"
-              @click="router.push({ name: 'home' })"
-            />
+            <q-btn label="Cancel" flat color="grey-7" size="md" @click="goToHome()" />
             <div class="action-buttons">
               <q-btn
                 label="Save Draft"
@@ -611,6 +605,11 @@ const onSubmit = async () => {
 </template>
 
 <style lang="scss" scoped>
+.back-button {
+  position: fixed;
+  left: max($spacing-4, calc((100vw - $app-max-width) / 2 + $spacing-4));
+}
+
 .create-event-page {
   min-height: 100vh;
   display: flex;

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed, watchEffect, ref, onMounted, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
@@ -8,14 +7,14 @@ import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'
+import { useNavigation } from '@/router/utils'
 
-const route = useRoute()
-const router = useRouter()
+const { params, goToHome, goToUserProfile } = useNavigation()
 const { t, locale } = useI18n()
 const authStore = useAuthStore()
 
 // Get event ID from route params
-const eventId = computed(() => route.params.id as string)
+const eventId = computed(() => params.id as string)
 const showAuthDialog = ref(false)
 
 // Get event data based on ID
@@ -64,7 +63,7 @@ const loadEvent = async () => {
   } catch (error) {
     console.error('Failed to load event:', error)
     event.value = null
-    router.push({ name: 'home' })
+    goToHome()
   }
 }
 
@@ -144,13 +143,7 @@ const toggleLike = async () => {
 }
 
 const goToOrganizationProfile = (organizationId: string) => {
-  router.push({
-    name: 'user-profile',
-    params: {
-      locale: route.params.locale,
-      id: organizationId,
-    },
-  })
+  goToUserProfile(organizationId)
 }
 
 // Helper to get location details
@@ -218,7 +211,7 @@ onUnmounted(() => {
       <div ref="heroImageRef" class="hero-image-wrapper">
         <img :src="event.posterLink" :alt="event.title" class="hero-image" />
       </div>
-      <BackButton />
+      <BackButton class="back-button" />
       <div class="hero-overlay"></div>
     </div>
 
@@ -342,6 +335,10 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss" scoped>
+.back-button {
+  position: fixed;
+  left: max($spacing-4, calc((100vw - $app-max-width) / 2 + $spacing-4));
+}
 .event-details-view {
   min-height: 100vh;
   display: flex;

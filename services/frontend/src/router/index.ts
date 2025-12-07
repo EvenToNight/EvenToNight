@@ -9,6 +9,8 @@ export const HOME_ROUTE_NAME = 'home'
 export const LOGIN_ROUTE_NAME = 'login'
 export const REGISTER_ROUTE_NAME = 'register'
 export const EVENT_DETAILS_ROUTE_NAME = 'event-details'
+export const USER_PROFILE_ROUTE_NAME = 'user-profile'
+export const CREATE_EVENT_ROUTE_NAME = 'create-event'
 
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')

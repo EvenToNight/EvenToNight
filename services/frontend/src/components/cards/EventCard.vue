@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
-import { getLocaleParam, goToEventDetails } from '@/router/utils'
+import { useNavigation } from '@/router/utils'
 
 interface Props {
   id: string
@@ -23,9 +22,8 @@ const emit = defineEmits<{
   authRequired: []
 }>()
 
-const router = useRouter()
-const route = useRoute()
 const authStore = useAuthStore()
+const { locale, goToEventDetails } = useNavigation()
 const isFavorite = ref(props.favorite)
 const imageObjectUrl = ref<string>('')
 const isLoadingImage = ref(true)
@@ -66,12 +64,12 @@ const day = computed(() => {
 })
 
 const month = computed(() => {
-  return props.date.toLocaleString(getLocaleParam(route), { month: 'short' }).toUpperCase()
+  return props.date.toLocaleString(locale.value, { month: 'short' }).toUpperCase()
 })
 </script>
 
 <template>
-  <div class="event-card" @click="goToEventDetails(router, route, id)">
+  <div class="event-card" @click="goToEventDetails(id)">
     <div class="card-image-container">
       <img v-if="imageObjectUrl" :src="imageObjectUrl" :alt="title" class="card-image" />
       <div v-else-if="isLoadingImage" class="card-image-loading">Loading...</div>

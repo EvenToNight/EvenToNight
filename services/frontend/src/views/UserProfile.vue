@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
-import { useRoute } from 'vue-router'
 import { api } from '@/api'
 import OrganizationProfile from '@/components/profile/OrganizationProfile.vue'
 import MemberProfile from '@/components/profile/MemberProfile.vue'
+import { useNavigation } from '@/router/utils'
 
-const route = useRoute()
+const { params } = useNavigation()
 const userRole = ref<'member' | 'organization' | null>(null)
 
 const loadUserRole = async () => {
   try {
-    const userId = route.params.id as string
+    const userId = params.id as string
     const response = await api.users.getUserById(userId)
     userRole.value = response.user.role
   } catch (error) {
@@ -25,7 +25,7 @@ onMounted(() => {
 
 // Reload when route changes (e.g., navigating between different user profiles)
 watch(
-  () => route.params.id,
+  () => params.id,
   () => {
     loadUserRole()
   }

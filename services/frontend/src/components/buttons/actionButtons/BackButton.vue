@@ -1,9 +1,8 @@
 <script setup lang="ts">
-import { useRouter } from 'vue-router'
-import { goBack } from '@/router/utils'
+import { useNavigation } from '@/router/utils'
 import ActionButton, { type Variant } from './ActionButton.vue'
 
-const router = useRouter()
+const { goBack } = useNavigation()
 
 interface Props {
   variant?: Variant
@@ -15,5 +14,5 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <ActionButton icon="arrow_back" :variant="variant" :onClick="() => goBack(router)" />
+  <ActionButton icon="arrow_back" :variant="variant" :onClick="goBack" />
 </template>

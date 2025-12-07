@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import type { QInput } from 'quasar'
 import { api } from '@/api'
+import { useNavigation } from '@/router/utils'
 
 interface SearchResultEvent {
   type: 'event'
@@ -43,7 +43,7 @@ const emit = defineEmits<{
   'update:hasFocus': [value: boolean]
 }>()
 
-const router = useRouter()
+const { goToEventDetails, goToUserProfile } = useNavigation()
 const showSuggestions = ref(false)
 const searchQuery = ref(props.searchQuery)
 const inputRef = ref<QInput | null>(null)
@@ -201,10 +201,9 @@ const selectResult = (result: SearchResult) => {
   showSuggestions.value = false
 
   if (result.type === 'event') {
-    router.push({ name: 'event-details', params: { id: result.id } })
+    goToEventDetails(result.id)
   } else {
-    // Navigate to user profile (organization or member)
-    router.push({ name: 'user-profile', params: { id: result.id } })
+    goToUserProfile(result.id)
   }
 }
 
