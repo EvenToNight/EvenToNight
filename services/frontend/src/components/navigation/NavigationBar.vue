@@ -9,6 +9,7 @@ import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import SearchBar from './SearchBar.vue'
+import AppBrand from '@/components/common/AppBrand.vue'
 import { useNavigation } from '@/router/utils'
 
 interface Props {
@@ -109,13 +110,6 @@ const goToProfile = () => {
     goToUserProfile(authStore.user.id)
   }
 }
-
-const scrollToTop = () => {
-  window.scrollTo({
-    top: 0,
-    behavior: 'auto', //'smooth',
-  })
-}
 </script>
 
 <template>
@@ -136,10 +130,7 @@ const scrollToTop = () => {
 
       <template v-else>
         <q-toolbar-title class="brand-title">
-          <router-link to="/" class="brand-link" @click="scrollToTop">
-            <img src="/logo.png" alt="EvenToNight Logo" class="brand-icon" />
-            <span class="brand-text">EvenToNight</span>
-          </router-link>
+          <AppBrand />
         </q-toolbar-title>
         <q-space />
         <div v-if="showSearch" class="search-container">
@@ -321,32 +312,8 @@ const scrollToTop = () => {
   flex: 0 1 auto;
   margin-right: $spacing-2;
   min-width: 0;
-}
 
-.brand-link {
-  text-decoration: none;
-  color: $color-primary !important;
-  font-weight: 600;
-  transition: opacity $transition-base;
-  white-space: nowrap;
-  display: flex;
-  align-items: center;
-  gap: $spacing-2;
-
-  &:hover {
-    opacity: 0.8;
-  }
-
-  .brand-icon {
-    flex-shrink: 0;
-    height: 32px;
-    width: auto;
-    object-fit: contain;
-  }
-
-  .brand-text {
-    color: $color-primary;
-
+  :deep(.brand-text) {
     @media (max-width: $breakpoint-mobile) {
       display: none;
     }

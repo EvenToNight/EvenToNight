@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
+import AppBrand from '@/components/common/AppBrand.vue'
 
 const { t, availableLocales } = useI18n()
 const { changeLocale } = useNavigation()
@@ -10,10 +11,7 @@ const { changeLocale } = useNavigation()
   <footer class="footer">
     <div class="footer-container">
       <div class="footer-content">
-        <div class="footer-brand">
-          <img src="/logo.png" alt="EvenToNight Logo" class="footer-logo" />
-          <span class="footer-brand-text">EvenToNight</span>
-        </div>
+        <AppBrand />
 
         <div class="footer-links">
           <a href="#" class="footer-link">{{ t('footer.about') }}</a>
@@ -47,12 +45,12 @@ const { changeLocale } = useNavigation()
   margin-top: auto;
 
   @include light-mode {
-    background-color: $color-background; // $color-background-soft
+    background-color: $color-background;
     border-top: 1px solid $color-border;
   }
 
   @include dark-mode {
-    background-color: $color-background-dark; // $color-background-dark-soft
+    background-color: $color-background-dark;
     border-top: 1px solid $color-border-dark;
   }
 }
@@ -72,26 +70,10 @@ const { changeLocale } = useNavigation()
   text-align: center;
 }
 
-.footer-brand {
-  @include flex-center;
-  gap: $spacing-2;
-}
-
-.footer-logo {
-  height: 32px;
-  width: auto;
-  object-fit: contain;
-}
-
-.footer-brand-text {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-semibold;
-  color: $color-primary;
-}
-
 .footer-links {
   @include flex-wrap-center;
   gap: $spacing-4;
+
   @media (max-width: $breakpoint-mobile) {
     gap: $spacing-3;
   }
@@ -113,6 +95,7 @@ const { changeLocale } = useNavigation()
 
   @include light-mode {
     color: $color-text-muted;
+
     &:hover {
       color: $color-primary;
       background-color: rgba($color-primary, 0.1);
@@ -126,6 +109,7 @@ const { changeLocale } = useNavigation()
 
   @include dark-mode {
     color: rgba($color-text-dark, 0.7);
+
     &:hover {
       color: $color-primary;
       background-color: rgba($color-primary, 0.1);
@@ -145,6 +129,7 @@ const { changeLocale } = useNavigation()
 
   @include light-mode {
     color: $color-text-secondary;
+
     &:hover {
       color: $color-primary;
     }
@@ -152,6 +137,7 @@ const { changeLocale } = useNavigation()
 
   @include dark-mode {
     color: $color-text-dark;
+
     &:hover {
       color: $color-primary;
     }
