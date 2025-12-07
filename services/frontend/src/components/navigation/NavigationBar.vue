@@ -13,6 +13,7 @@ import { useNavigation } from '@/router/utils'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import AuthButtons from '../auth/AuthButtons.vue'
 import DrawerMenu from './DrawerMenu.vue'
+import Button from '@/components/buttons/basicButtons/Button.vue'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 interface Props {
@@ -85,7 +86,6 @@ const goToProfile = () => {
 <template>
   <div class="navbar-wrapper">
     <q-toolbar class="navigation-bar">
-      <!-- Mobile search bar (full width) -->
       <div v-if="showMobileSearch" class="mobile-search-bar">
         <div class="mobile-search-container">
           <SearchBar
@@ -102,102 +102,85 @@ const goToProfile = () => {
           <AppBrand />
         </q-toolbar-title>
         <q-space />
-        <div v-if="showSearch" class="search-container">
-          <SearchBar
-            v-model:search-query="searchQuery"
-            v-model:has-focus="searchBarHasFocus"
-            :autofocus="hasFocus"
-          />
-        </div>
-
-        <q-space v-if="showSearch" class="desktop-space" />
-        <q-btn
-          v-if="showSearch"
-          flat
-          dense
-          icon="search"
-          class="search-icon-mobile"
-          @click="toggleMobileSearch"
-        />
-
-        <!-- Authenticated user avatar -->
-        <div v-if="authStore.isAuthenticated" class="user-menu">
-          <q-btn flat round>
-            <q-avatar size="40px">
-              <img
-                :src="authStore.user?.avatarUrl || '/default-avatar.png'"
-                :alt="authStore.user?.name"
-              />
-            </q-avatar>
-            <q-menu>
-              <q-list style="min-width: 200px">
-                <q-item clickable @click="goToProfile">
-                  <q-item-section avatar>
-                    <q-icon name="person" />
-                  </q-item-section>
-                  <q-item-section>{{ t('nav.profile') }}</q-item-section>
-                </q-item>
-                <q-separator />
-                <q-item clickable @click="handleLogout">
-                  <q-item-section avatar>
-                    <q-icon name="logout" />
-                  </q-item-section>
-                  <q-item-section>{{ t('nav.logout') }}</q-item-section>
-                </q-item>
-              </q-list>
-            </q-menu>
-          </q-btn>
-        </div>
-
-        <!-- Login/Register buttons for guests -->
-        <div v-else class="desktop-auth-buttons">
-          <AuthButtons />
-        </div>
-
-        <!-- Hamburger menu icon (mobile only) -->
-        <q-btn flat dense icon="menu" class="hamburger-menu-mobile" @click="toggleMobileMenu" />
+        <template v-if="isMobile">
+          <template v-if="showSearch">
+            <q-btn flat dense icon="search" @click="toggleMobileSearch" />
+          </template>
+          <q-btn flat dense icon="menu" @click="toggleMobileMenu" />
+        </template>
+        <template v-else>
+          <div v-if="showSearch" class="search-container">
+            <SearchBar
+              v-model:search-query="searchQuery"
+              v-model:has-focus="searchBarHasFocus"
+              :autofocus="hasFocus"
+            />
+          </div>
+          <div v-if="authStore.isAuthenticated">
+            <q-btn flat round>
+              <q-avatar size="40px">
+                <img
+                  :src="authStore.user?.avatarUrl || '/default-avatar.png'"
+                  :alt="authStore.user?.name"
+                />
+              </q-avatar>
+              <q-menu>
+                <q-list style="min-width: 200px">
+                  <q-item clickable @click="goToProfile">
+                    <q-item-section avatar>
+                      <q-icon name="person" />
+                    </q-item-section>
+                    <q-item-section>{{ t('nav.profile') }}</q-item-section>
+                  </q-item>
+                  <q-separator />
+                  <q-item clickable @click="handleLogout">
+                    <q-item-section avatar>
+                      <q-icon name="logout" />
+                    </q-item-section>
+                    <q-item-section>{{ t('nav.logout') }}</q-item-section>
+                  </q-item>
+                </q-list>
+              </q-menu>
+            </q-btn>
+          </div>
+          <div v-else>
+            <AuthButtons />
+          </div>
+        </template>
       </template>
     </q-toolbar>
 
-    <!-- Mobile menu drawer -->
     <DrawerMenu v-model:is-open="mobileMenuOpen">
-      <!-- Authenticated user -->
-      <div v-if="authStore.isAuthenticated" class="mobile-user-section">
-        <div class="mobile-user-info">
+      <div v-if="authStore.isAuthenticated">
+        <div class="drawer-user-info">
           <q-avatar size="60px">
             <img
               :src="authStore.user?.avatarUrl || '/default-avatar.png'"
               :alt="authStore.user?.name"
             />
           </q-avatar>
-          <div class="mobile-user-details">
-            <div class="mobile-user-name">{{ authStore.user?.name }}</div>
-            <div class="mobile-user-email">{{ authStore.user?.email }}</div>
+          <div class="drawer-user-details">
+            <div class="drawer-user-name">{{ authStore.user?.name }}</div>
+            <div class="drawer-user-email">{{ authStore.user?.email }}</div>
           </div>
         </div>
         <q-separator class="q-my-md" />
-        <div class="mobile-drawer-buttons">
-          <q-btn
-            flat
+        <div class="drawer-user-buttons">
+          <Button
             icon="person"
             :label="t('nav.profile')"
-            color="primary"
-            class="full-width mobile-menu-btn"
+            variant="secondary"
             @click="goToProfile"
           />
-          <q-btn
-            flat
+          <Button
             icon="logout"
             :label="t('nav.logout')"
-            color="negative"
-            class="full-width mobile-menu-btn"
+            variant="secondary"
             @click="handleLogout"
           />
         </div>
       </div>
-
-      <!-- Guest buttons -->
-      <div v-else class="mobile-drawer-buttons">
+      <div v-else>
         <AuthButtons variant="vertical" />
       </div>
     </DrawerMenu>
@@ -206,7 +189,7 @@ const goToProfile = () => {
 
 <style scoped lang="scss">
 .navbar-wrapper {
-  min-width: 300px;
+  min-width: $app-min-width;
   width: 100%;
 
   position: sticky;
@@ -215,82 +198,15 @@ const goToProfile = () => {
 }
 
 .navigation-bar {
-  min-width: 300px;
+  min-width: $app-min-width;
   width: 100%;
   min-height: 64px;
-  transition: background-color 0.3s ease;
+  transition: background-color $transition-base;
   position: relative;
-
-  @include light-mode {
-    background-color: white !important;
-  }
+  background-color: $color-white;
 
   @include dark-mode {
-    background-color: #1d1d1d !important;
-  }
-
-  // Force min-width on internal q-toolbar
-  .q-toolbar {
-    min-width: 300px;
-    width: 100%;
-  }
-}
-
-.brand-title {
-  flex: 0 1 auto;
-  margin-right: $spacing-2;
-  min-width: 0;
-
-  :deep(.brand-text) {
-    @media (max-width: $breakpoint-mobile) {
-      display: none;
-    }
-  }
-}
-
-.search-container {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: clamp(200px, 40vw, 500px);
-  pointer-events: none;
-
-  > * {
-    pointer-events: auto;
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    display: none;
-  }
-}
-
-.search-icon-mobile {
-  display: none;
-  flex-shrink: 0;
-
-  @media (max-width: $breakpoint-mobile) {
-    display: inline-flex;
-  }
-}
-
-.desktop-space {
-  @media (max-width: $breakpoint-mobile) {
-    display: none;
-  }
-}
-
-.desktop-auth-buttons {
-  @media (max-width: $breakpoint-mobile) {
-    display: none;
-  }
-}
-
-.hamburger-menu-mobile {
-  display: none;
-  flex-shrink: 0;
-
-  @media (max-width: $breakpoint-mobile) {
-    display: inline-flex;
+    background-color: $color-background-dark;
   }
 }
 
@@ -311,73 +227,57 @@ const goToProfile = () => {
   }
 }
 
-.user-menu {
-  display: flex;
-  align-items: center;
+.brand-title {
+  flex: 0 1 auto;
+  margin-right: $spacing-2;
+  min-width: 0;
 
-  @media (max-width: $breakpoint-mobile) {
-    display: none;
+  :deep(.brand-text) {
+    @media (max-width: $breakpoint-mobile) {
+      display: none;
+    }
   }
 }
 
-// Drawer content styles
-.mobile-user-section {
-  display: flex;
-  flex-direction: column;
+.search-container {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  width: clamp(200px, 40vw, 500px);
 }
 
-.mobile-user-info {
-  display: flex;
-  align-items: center;
+.drawer-user-info {
+  @include flex-center;
   gap: $spacing-3;
-  padding: $spacing-2 0;
 }
 
-.mobile-user-details {
+.drawer-user-details {
   flex: 1;
   min-width: 0;
 }
 
-.mobile-user-name {
-  font-weight: 600;
-  font-size: 16px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-
-  @include light-mode {
-    color: #1d1d1d;
-  }
-
+.drawer-user-name {
+  @include text-truncate;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-base;
+  color: $color-text-primary;
   @include dark-mode {
-    color: #ffffff;
+    color: $color-white;
   }
 }
 
-.mobile-user-email {
-  font-size: 14px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-top: 2px;
-
-  @include light-mode {
-    color: #666;
-  }
-
+.drawer-user-email {
+  @include text-truncate;
+  font-size: $font-size-sm;
+  margin-top: $spacing-1;
+  color: $color-gray-500;
   @include dark-mode {
-    color: #aaa;
+    color: $color-gray-200;
   }
 }
 
-.mobile-drawer-buttons {
-  display: flex;
-  flex-direction: column;
+.drawer-user-buttons {
+  @include flex-column;
   gap: $spacing-3;
-}
-
-.mobile-menu-btn {
-  height: 48px;
-  font-size: 16px;
 }
 </style>
