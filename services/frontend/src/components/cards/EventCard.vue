@@ -1,57 +1,16 @@
-<template>
-  <div class="event-card" @click="navigateToEvent">
-    <div class="card-image-container">
-      <img v-if="imageObjectUrl" :src="imageObjectUrl" :alt="title" class="card-image" />
-      <div v-else-if="isLoadingImage" class="card-image-loading">Loading...</div>
-
-      <!-- Heart/Favorite Icon -->
-      <button
-        class="favorite-button"
-        :class="{ 'is-favorite': isFavorite }"
-        aria-label="Toggle favorite"
-        @click="toggleFavorite"
-      >
-        <svg
-          width="28"
-          height="28"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-        >
-          <path
-            d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"
-          />
-        </svg>
-      </button>
-
-      <!-- Date Badge -->
-      <div class="date-badge">
-        <div class="date-day">{{ day }}</div>
-        <div class="date-month">{{ month }}</div>
-      </div>
-    </div>
-
-    <!-- Card Content -->
-    <div class="card-content">
-      <h3 class="card-title">{{ title }}</h3>
-      <p class="card-subtitle">{{ subtitle }}</p>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-import { ref, computed, watch, onUnmounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
+import { getLocaleParam, goToEventDetails } from '@/router/utils'
 
 interface Props {
-  id: number | string
+  id: string
   imageUrl: string
   title: string
   subtitle: string
-  date: Date | string
+  date: Date
   favorite?: boolean
 }
 
@@ -65,26 +24,16 @@ const emit = defineEmits<{
 }>()
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 const isFavorite = ref(props.favorite)
 const imageObjectUrl = ref<string>('')
-const isLoadingImage = ref(false)
+const isLoadingImage = ref(true)
 
-// Load image through media API
 const loadImage = async (url: string) => {
-  if (!url) return
-
-  // If already a blob/data URL, use it directly
-  if (url.startsWith('blob:') || url.startsWith('data:')) {
-    imageObjectUrl.value = url
-    return
-  }
-
-  isLoadingImage.value = true
   try {
     const response = await api.media.get(url)
-    const blobUrl = URL.createObjectURL(response.file)
-    imageObjectUrl.value = blobUrl
+    imageObjectUrl.value = URL.createObjectURL(response.file)
   } catch (error) {
     console.error('Failed to load image:', error)
   } finally {
@@ -92,16 +41,10 @@ const loadImage = async (url: string) => {
   }
 }
 
-// Watch for imageUrl changes
-watch(
-  () => props.imageUrl,
-  (newUrl) => {
-    if (newUrl) loadImage(newUrl)
-  },
-  { immediate: true }
-)
+onMounted(() => {
+  loadImage(props.imageUrl)
+})
 
-// Cleanup blob URL
 onUnmounted(() => {
   if (imageObjectUrl.value && imageObjectUrl.value.startsWith('blob:')) {
     URL.revokeObjectURL(imageObjectUrl.value)
@@ -110,38 +53,58 @@ onUnmounted(() => {
 
 const toggleFavorite = (event: Event) => {
   event.stopPropagation()
-
   if (!authStore.isAuthenticated) {
     emit('authRequired')
     return
   }
-
   isFavorite.value = !isFavorite.value
   emit('favoriteToggle', isFavorite.value)
 }
 
-const navigateToEvent = () => {
-  router.push({ name: 'event-details', params: { id: props.id } })
-}
-
 const day = computed(() => {
-  const dateObj = typeof props.date === 'string' ? new Date(props.date) : props.date
-  return dateObj.getDate()
+  return props.date.getDate()
 })
 
 const month = computed(() => {
-  const dateObj = typeof props.date === 'string' ? new Date(props.date) : props.date
-  return dateObj.toLocaleString('en-US', { month: 'short' }).toUpperCase()
+  return props.date.toLocaleString(getLocaleParam(route), { month: 'short' }).toUpperCase()
 })
 </script>
 
-<style scoped>
+<template>
+  <div class="event-card" @click="goToEventDetails(router, route, id)">
+    <div class="card-image-container">
+      <img v-if="imageObjectUrl" :src="imageObjectUrl" :alt="title" class="card-image" />
+      <div v-else-if="isLoadingImage" class="card-image-loading">Loading...</div>
+
+      <button
+        class="favorite-button"
+        :class="{ 'is-favorite': isFavorite }"
+        aria-label="Toggle favorite"
+        @click="toggleFavorite"
+      >
+        <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="28px" />
+      </button>
+
+      <div class="date-badge">
+        <div class="date-day">{{ day }}</div>
+        <div class="date-month">{{ month }}</div>
+      </div>
+    </div>
+
+    <div class="card-content">
+      <h3 class="card-title">{{ title }}</h3>
+      <p class="card-subtitle">{{ subtitle }}</p>
+    </div>
+  </div>
+</template>
+
+<style scoped lang="scss">
 .event-card {
   width: 100%;
-  border-radius: 24px;
+  border-radius: $radius-3xl;
   overflow: hidden;
-  background: #000;
-  transition: transform 0.3s ease;
+  background: $color-black;
+  transition: transform $transition-base;
   cursor: pointer;
 }
 
@@ -163,95 +126,85 @@ const month = computed(() => {
 }
 
 .card-image-loading {
+  @include flex-center;
   width: 100%;
   height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(0, 0, 0, 0.1);
-  color: #666;
+  background: color-alpha($color-black, 0.1);
+  color: $color-gray-600;
 }
 
 .favorite-button {
+  @include flex-center;
   position: absolute;
   top: 16px;
   left: 16px;
   width: 48px;
   height: 48px;
-  background: rgba(255, 255, 255, 0.9);
+  background: color-alpha($color-white, 0.9);
   border: none;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   cursor: pointer;
-  transition: all 0.3s ease;
-  color: #333;
+  transition: all $transition-base;
+  color: $color-gray-800;
   backdrop-filter: blur(10px);
 }
 
 .favorite-button:hover {
-  background: rgba(255, 255, 255, 1);
+  background: $color-white;
   transform: scale(1.1);
 }
 
 .favorite-button.is-favorite {
-  color: var(--q-primary);
-}
-
-.favorite-button.is-favorite svg {
-  fill: currentColor;
+  color: $color-primary;
 }
 
 .date-badge {
   position: absolute;
   top: 16px;
   right: 16px;
-  background: rgba(255, 255, 255, 0.95);
-  border-radius: 12px;
-  padding: 8px 12px;
+  background: color-alpha($color-white, 0.95);
+  border-radius: $radius-xl;
+  padding: $spacing-2;
   text-align: center;
   backdrop-filter: blur(10px);
   min-width: 56px;
 }
 
 .date-day {
-  font-size: 24px;
-  font-weight: 700;
-  color: #000;
-  line-height: 1;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-black;
+  line-height: $line-height-none;
 }
 
 .date-month {
-  font-size: 12px;
-  font-weight: 600;
-  color: #000;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
+  color: $color-black;
   letter-spacing: 0.5px;
-  margin-top: 2px;
+  margin-top: $spacing-1;
 }
 
 .card-content {
-  padding: 20px 24px 24px;
-  background: #000;
+  padding: $spacing-6;
+  background: $color-black;
 }
 
 .card-title {
-  font-size: 24px;
-  font-weight: 700;
-  color: #fff;
-  margin: 0 0 8px 0;
-  line-height: 1.2;
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  color: $color-white;
+  margin: 0 0 $spacing-2 0;
+  line-height: $line-height-snug;
 }
 
 .card-subtitle {
-  font-size: 16px;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0;
-  line-height: 1.4;
+  font-size: $font-size-base;
+  color: $color-gray-300;
+  line-height: $line-height-relaxed;
 }
 
-/* Mobile Styles */
-@media (max-width: 768px) {
+@media (max-width: $breakpoint-mobile) {
   .favorite-button {
     width: 40px;
     height: 40px;
@@ -259,37 +212,36 @@ const month = computed(() => {
     left: 12px;
   }
 
-  .favorite-button svg {
-    width: 20px;
-    height: 20px;
+  .favorite-button :deep(.q-icon) {
+    font-size: 20px;
   }
 
   .date-badge {
     top: 12px;
     right: 12px;
-    padding: 6px 10px;
+    padding: $spacing-2;
     min-width: 48px;
   }
 
   .date-day {
-    font-size: 20px;
+    font-size: $font-size-xl;
   }
 
   .date-month {
-    font-size: 11px;
+    font-size: $font-size-xs;
   }
 
   .card-content {
-    padding: 16px 20px 20px;
+    padding: $spacing-5;
   }
 
   .card-title {
-    font-size: 20px;
-    margin: 0 0 6px 0;
+    font-size: $font-size-xl;
+    margin: 0 0 $spacing-1 0;
   }
 
   .card-subtitle {
-    font-size: 14px;
+    font-size: $font-size-sm;
   }
 }
 </style>

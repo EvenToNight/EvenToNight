@@ -7,6 +7,7 @@ interface Props {
   variant?: ButtonVariant
   loading?: boolean
   fillContainer?: boolean
+  type?: 'button' | 'submit'
 }
 
 withDefaults(defineProps<Props>(), {
@@ -15,6 +16,7 @@ withDefaults(defineProps<Props>(), {
   icon: '',
   loading: false,
   fillContainer: false,
+  type: 'button',
 })
 </script>
 
@@ -23,6 +25,7 @@ withDefaults(defineProps<Props>(), {
     :label="label"
     :icon="icon || undefined"
     :loading="loading"
+    :type="type"
     :unelevated="variant === 'primary'"
     :flat="variant === 'secondary'"
     :color="variant === 'primary' ? 'primary' : undefined"

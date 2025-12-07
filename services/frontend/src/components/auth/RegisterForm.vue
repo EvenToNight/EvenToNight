@@ -126,12 +126,12 @@ const handleRegister = async () => {
 
     <template #submit-button="{ isLoading }">
       <Button
+        type="submit"
         variant="primary"
         label="Register"
         :loading="isLoading"
         fillContainer
         class="q-mb-md"
-        @click="handleRegister"
       />
     </template>
   </BaseAuthForm>

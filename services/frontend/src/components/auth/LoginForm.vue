@@ -90,12 +90,12 @@ const handleLogin = async () => {
 
     <template #submit-button="{ isLoading }">
       <Button
+        type="submit"
         variant="primary"
         label="Login"
         :loading="isLoading"
         fillContainer
         class="q-mb-md"
-        @click="handleLogin"
       />
     </template>
   </BaseAuthForm>

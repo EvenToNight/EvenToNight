@@ -8,6 +8,7 @@ import { requireGuest, requireRole } from './guards'
 export const HOME_ROUTE_NAME = 'home'
 export const LOGIN_ROUTE_NAME = 'login'
 export const REGISTER_ROUTE_NAME = 'register'
+export const EVENT_DETAILS_ROUTE_NAME = 'event-details'
 
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')

@@ -35,13 +35,8 @@ const handleSwitch = () => {
 
     <q-card-section>
       <q-form @submit.prevent="handleSubmit">
-        <!-- Form fields slot -->
         <slot name="fields" />
-
-        <!-- Submit button slot -->
         <slot name="submit-button" :is-loading="isLoading" />
-
-        <!-- Switch mode button -->
         <div class="text-center">
           <Button variant="secondary" :label="switchButtonLabel" @click="handleSwitch" />
         </div>
