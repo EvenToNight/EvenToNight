@@ -40,3 +40,6 @@ export const buildQueryParams = <T extends Record<string, any>>(params: T): stri
   const queryString = searchParams.toString()
   return queryString ? `?${queryString}` : ''
 }
+
+export { getSearchResult } from './searchUtils'
+export type { SearchResult, SearchResultEvent, SearchResultUser } from './searchUtils'

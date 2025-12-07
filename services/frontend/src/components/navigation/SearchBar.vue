@@ -1,28 +1,9 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import type { QInput } from 'quasar'
-import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
-
-interface SearchResultEvent {
-  type: 'event'
-  id: string
-  title: string
-  location: string
-  date: Date
-  imageUrl?: string
-  relevance: number
-}
-
-interface SearchResultUser {
-  type: 'organization' | 'member'
-  id: string
-  name: string
-  avatarUrl?: string
-  relevance: number
-}
-
-type SearchResult = SearchResultEvent | SearchResultUser
+import type { SearchResult } from '@/api/utils'
+import { getSearchResult } from '@/api/utils'
 
 interface Props {
   searchQuery?: string
@@ -82,38 +63,6 @@ onMounted(() => {
   }
 })
 
-// Calculate relevance score for a text match (0-100)
-const calculateRelevance = (query: string, text: string): number => {
-  const lowerQuery = query.toLowerCase().trim()
-  const lowerText = text.toLowerCase()
-
-  if (!lowerQuery || !lowerText) return 0
-
-  // Exact match = 100
-  if (lowerText === lowerQuery) return 100
-
-  // Starts with query = 80
-  if (lowerText.startsWith(lowerQuery)) return 80
-
-  // Contains query at word boundary = 60
-  const words = lowerText.split(/\s+/)
-  if (words.some((word) => word.startsWith(lowerQuery))) return 60
-
-  // Contains query anywhere = 40
-  if (lowerText.includes(lowerQuery)) return 40
-
-  // Partial word matches = 20
-  if (lowerQuery.length >= 3) {
-    for (let i = 0; i <= lowerQuery.length - 3; i++) {
-      const substr = lowerQuery.substring(i, i + 3)
-      if (lowerText.includes(substr)) return 20
-    }
-  }
-
-  return 0
-}
-
-// Perform debounced search
 const performSearch = async () => {
   const query = searchQuery.value.trim()
 
@@ -122,66 +71,9 @@ const performSearch = async () => {
     return
   }
 
-  isSearching.value = true
-
   try {
-    // Call both APIs in parallel
-    const [eventsResponse, usersResponse] = await Promise.all([
-      api.events.searchByName(query),
-      api.users.searchByName(query),
-    ])
-
-    const results: SearchResult[] = []
-
-    // Process events
-    for (const event of eventsResponse.events) {
-      const titleRelevance = calculateRelevance(query, event.title)
-      const locationRelevance = calculateRelevance(
-        query,
-        event.location.name || event.location.city
-      )
-      const tagsRelevance = Math.max(...event.tags.map((tag) => calculateRelevance(query, tag)), 0)
-      const maxRelevance = Math.max(titleRelevance, locationRelevance, tagsRelevance)
-
-      if (maxRelevance > 0) {
-        results.push({
-          type: 'event',
-          id: event.id,
-          title: event.title,
-          location: event.location.name || event.location.city,
-          date: new Date(event.date),
-          imageUrl: event.posterLink,
-          relevance: maxRelevance,
-        })
-      }
-    }
-
-    // Process users (organizations and members)
-    for (const user of usersResponse.users) {
-      const nameRelevance = calculateRelevance(query, user.name)
-      const bioRelevance = calculateRelevance(query, user.bio || '')
-      const maxRelevance = Math.max(nameRelevance, bioRelevance)
-
-      if (maxRelevance > 0) {
-        results.push({
-          type: user.role,
-          id: user.id,
-          name: user.name,
-          avatarUrl: user.avatarUrl,
-          relevance: maxRelevance,
-        })
-      }
-    }
-
-    // Sort by relevance DESC, then by type priority (event > organization > member)
-    const typePriority = { event: 3, organization: 2, member: 1 }
-    results.sort((a, b) => {
-      if (b.relevance !== a.relevance) return b.relevance - a.relevance
-      return typePriority[b.type] - typePriority[a.type]
-    })
-
-    // Limit to 5 results
-    searchResults.value = results.slice(0, 5)
+    isSearching.value = true
+    searchResults.value = await getSearchResult(query, 5)
   } catch (error) {
     console.error('Search failed:', error)
     searchResults.value = []
