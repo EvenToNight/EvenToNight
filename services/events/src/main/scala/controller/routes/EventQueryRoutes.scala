@@ -1,10 +1,8 @@
 package controller.routes
 
-import domain.commands.GetAllEventsCommand
-import domain.commands.GetEventCommand
-import domain.commands.UpdateEventPosterCommand
+import domain.commands.{GetAllEventsCommand, GetEventCommand, UpdateEventPosterCommand}
 import domain.models.Event
-import domain.models.EventConversions._
+import domain.models.EventConversions.*
 import service.EventService
 import ujson.Obj
 import utils.Utils.uploadPosterToMediaService

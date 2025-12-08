@@ -1,13 +1,7 @@
 package service
-import domain.commands.GetAllEventsCommand
-import domain.commands.GetEventCommand
-import domain.commands.UpdateEventPosterCommand
-import domain.models.Event
-import domain.models.EventStatus
-import domain.models.EventTag
-import domain.models.Location
-import infrastructure.db.EventRepository
-import infrastructure.db.MongoEventRepository
+import domain.commands.{GetAllEventsCommand, GetEventCommand, UpdateEventPosterCommand}
+import domain.models.{Event, EventStatus, EventTag, Location}
+import infrastructure.db.{EventRepository, MongoEventRepository}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

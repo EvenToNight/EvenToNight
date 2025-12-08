@@ -1,22 +1,14 @@
 package infrastructure.db
 
-import com.mongodb.client.MongoClient
-import com.mongodb.client.MongoClients
-import com.mongodb.client.MongoCollection
-import com.mongodb.client.MongoDatabase
-import com.mongodb.client.model.Filters
-import com.mongodb.client.model.ReplaceOptions
-import domain.models.Event
-import domain.models.EventConversions.fromDocument
-import domain.models.EventConversions.toDocument
-import domain.models.EventStatus
+import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
+import com.mongodb.client.model.{Filters, ReplaceOptions}
+import domain.models.{Event, EventStatus}
+import domain.models.EventConversions.{fromDocument, toDocument}
 import org.bson.Document
 import utils.Utils
 
-import scala.jdk.CollectionConverters._
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
+import scala.jdk.CollectionConverters.*
+import scala.util.{Failure, Success, Try}
 
 trait EventRepository:
 

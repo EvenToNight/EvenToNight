@@ -1,7 +1,6 @@
 package controller.routes
 
-import domain.commands.DeleteEventCommand
-import domain.commands.UpdateEventPosterCommand
+import domain.commands.{DeleteEventCommand, UpdateEventPosterCommand}
 import service.EventService
 import ujson.Obj
 import utils.Utils

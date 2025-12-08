@@ -1,14 +1,8 @@
 package service
 
-import domain.commands.CreateEventCommand
-import domain.commands.DeleteEventCommand
-import domain.commands.UpdateEventCommand
-import domain.events.EventCreated
-import domain.events.EventDeleted
-import domain.events.EventPublished
-import domain.events.EventUpdated
-import domain.models.Event
-import domain.models.EventStatus
+import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventCommand}
+import domain.events.{EventCreated, EventDeleted, EventPublished, EventUpdated}
+import domain.models.{Event, EventStatus}
 import infrastructure.db.EventRepository
 import infrastructure.messaging.EventPublisher
 

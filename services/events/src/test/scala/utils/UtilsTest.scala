@@ -1,16 +1,12 @@
 package utils
 
 import cask.model.FormFile
-import domain.models.Event
-import domain.models.EventStatus
-import domain.models.EventTag
-import domain.models.Location
+import domain.models.{Event, EventStatus, EventTag, Location}
 import io.undertow.util.HeaderMap
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.nio.file.Files
-import java.nio.file.Paths
+import java.nio.file.{Files, Paths}
 
 class UtilsTest extends AnyFlatSpec with Matchers:
 

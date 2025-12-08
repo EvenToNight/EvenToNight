@@ -1,14 +1,14 @@
 package domain.commands.validators
 
-import domain.commands.CreateEventCommand
-import domain.commands.DeleteEventCommand
-import domain.commands.GetEventCommand
-import domain.commands.UpdateEventCommand
-import domain.commands.UpdateEventPosterCommand
-import domain.models.EventStatus
-import domain.models.EventTag
-import domain.models.Location
-import org.scalatest.EitherValues._
+import domain.commands.{
+  CreateEventCommand,
+  DeleteEventCommand,
+  GetEventCommand,
+  UpdateEventCommand,
+  UpdateEventPosterCommand
+}
+import domain.models.{EventStatus, EventTag, Location}
+import org.scalatest.EitherValues.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

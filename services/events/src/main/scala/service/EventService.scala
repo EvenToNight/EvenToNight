@@ -1,12 +1,14 @@
 package service
 
-import domain.commands.Commands
-import domain.commands.CreateEventCommand
-import domain.commands.DeleteEventCommand
-import domain.commands.GetAllEventsCommand
-import domain.commands.GetEventCommand
-import domain.commands.UpdateEventCommand
-import domain.commands.UpdateEventPosterCommand
+import domain.commands.{
+  Commands,
+  CreateEventCommand,
+  DeleteEventCommand,
+  GetAllEventsCommand,
+  GetEventCommand,
+  UpdateEventCommand,
+  UpdateEventPosterCommand
+}
 import domain.commands.validators.Validator
 import domain.commands.validators.ValidatorsInstances.given
 import infrastructure.db.EventRepository

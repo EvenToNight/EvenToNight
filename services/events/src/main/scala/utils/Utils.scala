@@ -1,16 +1,11 @@
 package utils
-import domain.commands.CreateEventCommand
-import domain.commands.UpdateEventCommand
-import domain.models.Event
-import domain.models.EventStatus
+import domain.commands.{CreateEventCommand, UpdateEventCommand}
+import domain.models.{Event, EventStatus, Location}
 import domain.models.EventTag.validateTagList
-import domain.models.Location
 
 import java.nio.file.Files
 import java.time.LocalDateTime
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 object Utils:
 

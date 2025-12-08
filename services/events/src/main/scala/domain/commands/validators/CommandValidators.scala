@@ -1,10 +1,12 @@
 package domain.commands.validators
 
-import domain.commands.CreateEventCommand
-import domain.commands.DeleteEventCommand
-import domain.commands.GetEventCommand
-import domain.commands.UpdateEventCommand
-import domain.commands.UpdateEventPosterCommand
+import domain.commands.{
+  CreateEventCommand,
+  DeleteEventCommand,
+  GetEventCommand,
+  UpdateEventCommand,
+  UpdateEventPosterCommand
+}
 
 import ValidationRules.{futureDate, nonEmpty, correctLocality}
 import Validator.combine

@@ -1,7 +1,5 @@
 package service
-import domain.commands.GetAllEventsCommand
-import domain.commands.GetEventCommand
-import domain.commands.UpdateEventPosterCommand
+import domain.commands.{GetAllEventsCommand, GetEventCommand, UpdateEventPosterCommand}
 import domain.models.Event
 import infrastructure.db.EventRepository
 

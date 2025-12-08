@@ -5,9 +5,8 @@ import org.bson.Document
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.time.Instant
-import java.time.LocalDateTime
-import scala.jdk.CollectionConverters._
+import java.time.{Instant, LocalDateTime}
+import scala.jdk.CollectionConverters.*
 
 class EventConversionsSpec extends AnyFlatSpec with Matchers:
   import EventConversions.*

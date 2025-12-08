@@ -1,8 +1,6 @@
 package domain.commands
 
-import domain.models.EventStatus
-import domain.models.EventTag
-import domain.models.Location
+import domain.models.{EventStatus, EventTag, Location}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

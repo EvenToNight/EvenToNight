@@ -1,10 +1,12 @@
 package domain.commands.validators
 
-import domain.commands.CreateEventCommand
-import domain.commands.DeleteEventCommand
-import domain.commands.GetEventCommand
-import domain.commands.UpdateEventCommand
-import domain.commands.UpdateEventPosterCommand
+import domain.commands.{
+  CreateEventCommand,
+  DeleteEventCommand,
+  GetEventCommand,
+  UpdateEventCommand,
+  UpdateEventPosterCommand
+}
 
 object ValidatorsInstances:
   given Validator[CreateEventCommand]       = CreateEventValidator
