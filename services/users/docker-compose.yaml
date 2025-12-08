@@ -9,6 +9,7 @@ services:
       - RABBITMQ_HOST=rabbitmq
       - MONGO_HOST=mongo-users
       - USERS_SERVICE_SECRET=${USERS_SERVICE_SECRET}
+      - KEYCLOAK_URL="http://auth.${HOST}"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.users.rule=Host(`users.${HOST}`)"

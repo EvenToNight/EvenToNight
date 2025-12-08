@@ -4,7 +4,7 @@ import io.circe.parser.parse
 import sttp.client3._
 
 class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: String):
-  val keycloakUrl = "http://localhost:8080"
+  val keycloakUrl = sys.env.getOrElse("KEYCLOAK_URL", "http://localhost:8082")
   val realm       = "eventonight"
   val clientId    = "users-service"
 
