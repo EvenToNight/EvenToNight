@@ -1,9 +1,12 @@
-package domain
+package domain.models
 
 sealed trait EventTag:
   val displayName: String
 
 object EventTag:
+  class InvalidTag() extends EventTag:
+    val displayName: String = "Invalid Tag"
+
   enum TypeOfEvent(val displayName: String) extends EventTag:
     case Party      extends TypeOfEvent("Party")
     case LiveMusic  extends TypeOfEvent("Live Music")
@@ -70,3 +73,21 @@ object EventTag:
   val Themes: List[String]       = Theme.values.map(_.displayName).toList
   val Targets: List[String]      = Target.values.map(_.displayName).toList
   val Extras: List[String]       = Extra.values.map(_.displayName).toList
+
+  private def fromString(value: String): EventTag =
+    TypeOfEvent.values.find(_.displayName == value)
+      .orElse(VenueType.values.find(_.displayName == value))
+      .orElse(MusicGenre.values.find(_.displayName == value))
+      .orElse(Theme.values.find(_.displayName == value))
+      .orElse(Target.values.find(_.displayName == value))
+      .orElse(Extra.values.find(_.displayName == value))
+      .getOrElse(new InvalidTag)
+
+  def validateTagList(tags: String): List[EventTag] =
+    val tagList =
+      if tags.trim.startsWith("[") && tags.trim.endsWith("]") then
+        ujson.read(tags).arr.map(_.str).toList
+      else
+        tags.split(",").map(_.trim).toList
+    val eventTags = tagList.map(t => EventTag.fromString(t))
+    eventTags.filterNot(t => t.isInstanceOf[InvalidTag])

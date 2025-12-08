@@ -14,7 +14,7 @@ services:
     ports:
       - '${MONGO_EXPRESS_USERS_PORT}:8081'
     environment:
-      - ME_CONFIG_MONGODB_SERVER='mongo-users'
+      ME_CONFIG_MONGODB_SERVER: 'mongo-users'
     depends_on:
       mongo-users:
         condition: service_healthy
