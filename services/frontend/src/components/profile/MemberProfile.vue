@@ -7,6 +7,7 @@ import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { User } from '@/api/types/users'
 import { useNavigation } from '@/router/utils'
+import ProfileHeader from './ProfileHeader.vue'
 
 const { t } = useI18n()
 const { goToEventDetails, params } = useNavigation()
@@ -16,7 +17,6 @@ const member = ref<User | null>(null)
 const isFollowing = ref(false)
 const showAuthDialog = ref(false)
 
-// Check if the current user is viewing their own profile
 const isOwnProfile = computed(() => {
   return authStore.isAuthenticated && authStore.user?.id === member.value?.id
 })
@@ -120,6 +120,14 @@ const goToEvent = (eventId: string) => {
 
     <!-- Auth Required Dialog -->
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
+
+    <ProfileHeader
+      v-if="member"
+      v-model:is-following="isFollowing"
+      :user="member"
+      @edit-profile="goToEditProfile"
+      @auth-required="showAuthDialog = true"
+    />
 
     <!-- Profile Info -->
     <div v-if="member" class="profile-container">

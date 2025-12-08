@@ -52,6 +52,8 @@ const handleSeeAllEvents = () => {
 
 const toggleDarkMode = () => {
   $q.dark.toggle()
+  // Save preference to localStorage
+  localStorage.setItem('darkMode', $q.dark.isActive ? 'true' : 'false')
 }
 
 const handleScroll = () => {

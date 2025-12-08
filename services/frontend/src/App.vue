@@ -1,13 +1,25 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
+import { useQuasar } from 'quasar'
 import { setTokenProvider, setTokenExpiredCallback } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 
 const authStore = useAuthStore()
+const $q = useQuasar()
 
 onMounted(() => {
+  // Load dark mode preference from localStorage
+  const savedDarkMode = localStorage.getItem('darkMode')
+  console.log('Saved dark mode preference:', savedDarkMode)
+  if (savedDarkMode === 'true') {
+    $q.dark.set(true)
+  } else if (savedDarkMode === 'false') {
+    $q.dark.set(false)
+  }
+  // If null, use system preference (Quasar default)
+
   authStore.initializeAuth()
   authStore.setupAutoRefresh()
 
