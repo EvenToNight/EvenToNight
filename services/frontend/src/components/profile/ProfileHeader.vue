@@ -5,6 +5,7 @@ import { computed } from 'vue'
 import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import UserInfo from './UserInfo.vue'
+import ProfileActions from './ProfileActions.vue'
 
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
@@ -18,6 +19,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:isFollowing': [value: boolean]
   editProfile: []
+  createEvent: []
   authRequired: []
 }>()
 
@@ -47,6 +49,10 @@ const handleFollowToggle = () => {
 const handleEditProfile = () => {
   emit('editProfile')
 }
+
+const handleCreateEvent = () => {
+  emit('createEvent')
+}
 </script>
 <template>
   <div class="profile-header-card">
@@ -56,47 +62,34 @@ const handleEditProfile = () => {
         <q-icon v-else :name="defaultIcon" size="100px" class="profile-avatar" />
       </div>
 
-      <!-- Mobile Layout -->
       <template v-if="isMobile">
-        <q-btn
-          v-if="isOwnProfile"
-          label="Edit Profile"
-          color="primary"
-          class="edit-profile-button"
-          @click="handleEditProfile"
-        />
-        <q-btn
-          v-else
-          :label="isFollowing ? 'Following' : 'Follow'"
-          :color="isFollowing ? 'grey' : 'primary'"
-          :outline="isFollowing"
-          class="follow-button"
-          @click="handleFollowToggle"
-        />
+        <div class="user-info">
+          <h1 class="user-name">{{ user.name }}</h1>
+          <UserInfo :user="user" />
+          <ProfileActions
+            :is-own-profile="isOwnProfile"
+            :is-organization="isOrganization"
+            :is-following="isFollowing"
+            @edit-profile="handleEditProfile"
+            @create-event="handleCreateEvent"
+            @follow-toggle="handleFollowToggle"
+          />
+        </div>
       </template>
 
-      <!-- Desktop Layout -->
       <template v-else>
         <div class="user-info">
           <div class="name-action-row">
             <h1 class="user-name">{{ user.name }}</h1>
-            <q-btn
-              v-if="isOwnProfile"
-              label="Edit Profile"
-              color="primary"
-              class="edit-profile-button"
-              @click="handleEditProfile"
-            />
-            <q-btn
-              v-else
-              :label="isFollowing ? 'Following' : 'Follow'"
-              :color="isFollowing ? 'grey' : 'primary'"
-              :outline="isFollowing"
-              class="follow-button"
-              @click="handleFollowToggle"
+            <ProfileActions
+              :is-own-profile="isOwnProfile"
+              :is-organization="isOrganization"
+              :is-following="isFollowing"
+              @edit-profile="handleEditProfile"
+              @create-event="handleCreateEvent"
+              @follow-toggle="handleFollowToggle"
             />
           </div>
-
           <UserInfo :user="user" />
         </div>
       </template>
@@ -154,6 +147,10 @@ const handleEditProfile = () => {
   @include flex-column;
   flex: 1;
   gap: $spacing-2;
+
+  @media (max-width: $breakpoint-mobile) {
+    @include flex-center;
+  }
 }
 
 .name-action-row {

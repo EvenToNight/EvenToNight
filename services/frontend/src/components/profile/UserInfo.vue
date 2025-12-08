@@ -76,6 +76,10 @@ defineProps<Props>()
   opacity: 0.8;
   color: $color-text-primary;
 
+  @media (max-width: $breakpoint-mobile) {
+    text-align: center;
+  }
+
   @include dark-mode {
     color: $color-text-dark;
   }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch } from 'vue'
 import { api } from '@/api'
-import OrganizationProfile from '@/components/profile/OrganizationProfile.vue'
+// import OrganizationProfile from '@/components/profile/OrganizationProfile.vue'
 import MemberProfile from '@/components/profile/MemberProfile.vue'
 import { useNavigation } from '@/router/utils'
 
@@ -34,7 +34,8 @@ watch(
 
 <template>
   <div v-if="userRole">
-    <MemberProfile v-if="userRole === 'member'" />
-    <OrganizationProfile v-else />
+    <MemberProfile />
+    <!-- <MemberProfile v-if="userRole === 'member'" />
+    <OrganizationProfile v-else /> -->
   </div>
 </template>
