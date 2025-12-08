@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import NavigationBar, { NAVBAR_HEIGHT } from '../components/navigation/NavigationBar.vue'
 import SearchBar from '../components/navigation/SearchBar.vue'
+import type { SearchResult } from '@/api/utils'
 import EventCard from '@/components/cards/EventCard.vue'
 import CardSlider from '@/components/cards/CardSlider.vue'
 import Footer from '@/components/navigation/Footer.vue'
@@ -18,6 +19,7 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 const showSearchInNavbar = ref(false)
 const searchQuery = ref('')
+const searchResults = ref<SearchResult[]>([])
 const searchBarHasFocus = ref(false)
 const heroSearchPlaceholderRef = ref<HTMLElement | null>(null)
 const upcomingEvents = ref<Event[]>([])
@@ -83,6 +85,7 @@ onUnmounted(() => {
     <div class="scroll-wrapper">
       <NavigationBar
         v-model:search-query="searchQuery"
+        v-model:search-results="searchResults"
         v-model:has-focus="searchBarHasFocus"
         :show-search="showSearchInNavbar"
       />
@@ -105,6 +108,7 @@ onUnmounted(() => {
                   <SearchBar
                     ref="searchBarRef"
                     v-model:search-query="searchQuery"
+                    v-model:search-results="searchResults"
                     v-model:has-focus="searchBarHasFocus"
                     :autofocus="searchBarHasFocus"
                   />

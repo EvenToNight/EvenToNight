@@ -8,6 +8,7 @@ import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import SearchBar from './SearchBar.vue'
+import type { SearchResult } from '@/api/utils'
 import AppBrand from '@/components/common/AppBrand.vue'
 import { useNavigation } from '@/router/utils'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
@@ -19,6 +20,7 @@ const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 interface Props {
   showSearch?: boolean
   searchQuery?: string
+  searchResults?: SearchResult[]
   hasFocus?: boolean
 }
 
@@ -30,6 +32,7 @@ const { goToHome, goToUserProfile } = useNavigation()
 
 const emit = defineEmits<{
   'update:searchQuery': [value: string]
+  'update:searchResults': [value: SearchResult[]]
   'update:hasFocus': [value: boolean]
 }>()
 
@@ -39,6 +42,11 @@ const mobileMenuOpen = ref(false)
 const searchQuery = computed({
   get: () => props.searchQuery ?? '',
   set: (value) => emit('update:searchQuery', value),
+})
+
+const searchResults = computed({
+  get: () => props.searchResults ?? [],
+  set: (value) => emit('update:searchResults', value),
 })
 
 const searchBarHasFocus = computed({
@@ -90,6 +98,7 @@ const goToProfile = () => {
         <div class="mobile-search-container">
           <SearchBar
             v-model:search-query="searchQuery"
+            v-model:search-results="searchResults"
             v-model:has-focus="searchBarHasFocus"
             :autofocus="hasFocus"
           />
@@ -112,6 +121,7 @@ const goToProfile = () => {
           <div v-if="showSearch" class="search-container">
             <SearchBar
               v-model:search-query="searchQuery"
+              v-model:search-results="searchResults"
               v-model:has-focus="searchBarHasFocus"
               :autofocus="hasFocus"
             />

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, onMounted } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import type { QInput } from 'quasar'
 import { useNavigation } from '@/router/utils'
 import type { SearchResult } from '@/api/utils'
@@ -7,6 +7,7 @@ import { getSearchResult } from '@/api/utils'
 
 interface Props {
   searchQuery?: string
+  searchResults?: SearchResult[]
   searchHint?: string
   autofocus?: boolean
   hasFocus?: boolean
@@ -14,6 +15,7 @@ interface Props {
 
 const props = withDefaults(defineProps<Props>(), {
   searchQuery: '',
+  searchResults: () => [],
   searchHint: 'Search...',
   autofocus: false,
   hasFocus: false,
@@ -21,42 +23,58 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   'update:searchQuery': [value: string]
+  'update:searchResults': [value: SearchResult[]]
   'update:hasFocus': [value: boolean]
 }>()
 
-const { goToEventDetails, goToUserProfile } = useNavigation()
+const { goToEventDetails, goToUserProfile, locale } = useNavigation()
 const showSuggestions = ref(false)
-const searchQuery = ref(props.searchQuery)
 const inputRef = ref<QInput | null>(null)
-const searchResults = ref<SearchResult[]>([])
 const isSearching = ref(false)
+const maxResults = 5
 
-let searchTimeout: number | null = null
+const searchQuery = computed({
+  get: () => props.searchQuery,
+  set: (value) => emit('update:searchQuery', value),
+})
 
-watch(
-  () => props.searchQuery,
-  (value) => {
-    searchQuery.value = value
+const searchResults = computed({
+  get: () => props.searchResults,
+  set: (value) => emit('update:searchResults', value),
+})
+
+let searchDebounceTimer: number | null = null
+
+watch(searchQuery, (value) => {
+  showSuggestions.value = value.length > 0
+
+  if (searchDebounceTimer) {
+    clearTimeout(searchDebounceTimer)
   }
-)
 
-watch(searchQuery, (value) => emit('update:searchQuery', value))
+  if (value.trim()) {
+    searchDebounceTimer = setTimeout(() => {
+      performSearch()
+    }, 300)
+  } else {
+    searchResults.value = []
+  }
+})
 
 watch(
   () => props.hasFocus,
   (shouldFocus) => {
-    if (shouldFocus && inputRef.value) {
-      inputRef.value?.focus()
-    } else if (!shouldFocus && inputRef.value) {
-      inputRef.value?.blur()
-      // Hide suggestions when focus is lost
+    if (!inputRef.value) return
+    if (shouldFocus) {
+      inputRef.value.focus()
+    } else {
+      inputRef.value.blur()
       showSuggestions.value = false
     }
   }
 )
 
 onMounted(() => {
-  // Only show suggestions if there's text AND the input has focus
   if (searchQuery.value.length > 0 && props.hasFocus) {
     showSuggestions.value = true
     performSearch()
@@ -73,7 +91,7 @@ const performSearch = async () => {
 
   try {
     isSearching.value = true
-    searchResults.value = await getSearchResult(query, 5)
+    searchResults.value = await getSearchResult(query, maxResults)
   } catch (error) {
     console.error('Search failed:', error)
     searchResults.value = []
@@ -83,6 +101,7 @@ const performSearch = async () => {
 }
 
 const handleSearch = () => {
+  // TODO improve on Enter key press during search behavior
   const firstResult = searchResults.value[0]
   if (firstResult) {
     selectResult(firstResult)
@@ -90,8 +109,7 @@ const handleSearch = () => {
 }
 
 const selectResult = (result: SearchResult) => {
-  showSuggestions.value = false
-
+  hideSuggestions()
   if (result.type === 'event') {
     goToEventDetails(result.id)
   } else {
@@ -103,25 +121,16 @@ const hideSuggestions = () => {
   showSuggestions.value = false
 }
 
-const updateQuery = (value: string | number | null) => {
-  searchQuery.value = String(value || '')
+const handleFocus = () => {
   showSuggestions.value = searchQuery.value.length > 0
-
-  // Debounce search
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-
-  if (searchQuery.value.trim()) {
-    searchTimeout = setTimeout(() => {
-      performSearch()
-    }, 300)
-  } else {
-    searchResults.value = []
-  }
+  emit('update:hasFocus', true)
 }
 
-// Helper functions
+const handleBlur = () => {
+  hideSuggestions()
+  emit('update:hasFocus', false)
+}
+
 const getResultIcon = (result: SearchResult): string => {
   if (result.type === 'event') return 'event'
   if (result.type === 'organization') return 'business'
@@ -146,21 +155,7 @@ const getResultSecondaryText = (result: SearchResult): string => {
 }
 
 const formatDate = (date: Date): string => {
-  const dateObj = typeof date === 'string' ? new Date(date) : date
-  return dateObj.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
-}
-
-const handleFocus = () => {
-  showSuggestions.value = searchQuery.value.length > 0
-  emit('update:hasFocus', true)
-}
-
-const handleBlur = () => {
-  // Add delay to allow click events on results to fire first
-  setTimeout(() => {
-    hideSuggestions()
-    emit('update:hasFocus', false)
-  }, 200)
+  return date.toLocaleDateString(locale.value, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 </script>
 
@@ -168,13 +163,12 @@ const handleBlur = () => {
   <div class="search-bar-wrapper">
     <q-input
       ref="inputRef"
-      :model-value="searchQuery"
+      v-model="searchQuery"
       dense
       standout
       :placeholder="searchHint"
       :autofocus="autofocus"
       class="search-input"
-      @update:model-value="updateQuery"
       @keyup.enter="handleSearch"
       @focus="handleFocus"
       @blur="handleBlur"
@@ -184,47 +178,51 @@ const handleBlur = () => {
       </template>
     </q-input>
 
-    <div v-if="showSuggestions && searchResults.length > 0" class="suggestions-dropdown">
-      <div
-        v-for="result in searchResults"
-        :key="`${result.type}-${result.id}`"
-        class="suggestion-item"
-        @click="selectResult(result)"
-      >
-        <!-- Show poster for events -->
-        <q-avatar v-if="result.type === 'event'" size="32px" class="result-avatar event-avatar">
-          <img v-if="result.imageUrl" :src="result.imageUrl" />
-          <q-icon v-else :name="getResultIcon(result)" size="20px" />
-        </q-avatar>
+    <Transition name="fade">
+      <div v-if="showSuggestions && searchResults.length > 0" class="suggestions-dropdown">
+        <div
+          v-for="result in searchResults"
+          :key="`${result.type}-${result.id}`"
+          class="suggestion-item"
+          @mousedown="selectResult(result)"
+        >
+          <q-avatar
+            size="32px"
+            class="result-avatar"
+            :class="{ 'event-avatar': result.type === 'event' }"
+          >
+            <img
+              v-if="result.type === 'event' ? result.imageUrl : result.avatarUrl"
+              :src="result.type === 'event' ? result.imageUrl : result.avatarUrl"
+            />
+            <q-icon v-else :name="getResultIcon(result)" size="20px" />
+          </q-avatar>
 
-        <!-- Show avatar for organizations and members -->
-        <q-avatar v-if="result.type !== 'event'" size="32px" class="result-avatar">
-          <img v-if="result.avatarUrl" :src="result.avatarUrl" />
-          <q-icon v-else :name="getResultIcon(result)" size="20px" />
-        </q-avatar>
-
-        <div class="result-content">
-          <div class="result-primary">{{ getResultPrimaryText(result) }}</div>
-          <div class="result-secondary">
-            <span class="result-type">{{ getResultTypeLabel(result) }}</span>
-            <span v-if="getResultSecondaryText(result)" class="result-detail">
-              • {{ getResultSecondaryText(result) }}
-            </span>
+          <div class="result-content">
+            <div class="result-primary">{{ getResultPrimaryText(result) }}</div>
+            <div class="result-secondary">
+              <span class="result-type">{{ getResultTypeLabel(result) }}</span>
+              <span v-if="getResultSecondaryText(result)" class="result-detail">
+                • {{ getResultSecondaryText(result) }}
+              </span>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </Transition>
 
-    <div v-else-if="showSuggestions && isSearching" class="suggestions-dropdown loading">
-      <div class="loading-item">
-        <q-spinner size="20px" color="primary" />
-        <span>Searching...</span>
+    <Transition name="fade">
+      <div v-if="showSuggestions && isSearching" class="suggestions-dropdown loading">
+        <div class="loading-item">
+          <q-spinner size="20px" color="primary" />
+          <span>Searching...</span>
+        </div>
       </div>
-    </div>
+    </Transition>
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped lang="scss">
 .search-bar-wrapper {
   position: relative;
   width: 100%;
@@ -236,75 +234,23 @@ const handleBlur = () => {
 
   :deep(.q-field__control) {
     border-radius: 8px;
-
-    @include light-mode {
-      background-color: white !important;
-      border: 1px solid rgba(0, 0, 0, 0.12);
-    }
+    background-color: $color-white;
+    border: 1px solid $color-border;
 
     @include dark-mode {
-      background-color: #2c2c2c !important;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background-color: $color-background-dark;
+      border: 1px solid $color-border-dark;
     }
   }
 
-  // Override standout focused state
-  :deep(.q-field--standout.q-field--focused .q-field__control) {
-    @include light-mode {
-      background-color: white !important;
-      border-color: $color-primary;
-    }
-
-    @include dark-mode {
-      background-color: #2c2c2c !important;
-      border-color: $color-primary;
-    }
-  }
-
-  // Keep icon color consistent
+  :deep(.q-field__native),
   :deep(.q-icon) {
-    @include light-mode {
-      color: rgba(0, 0, 0, 0.54) !important;
-    }
+    color: $color-black;
+    caret-color: $color-black;
 
     @include dark-mode {
-      color: rgba(255, 255, 255, 0.7) !important;
-    }
-  }
-
-  // Keep placeholder color consistent
-  :deep(.q-field__native::placeholder) {
-    @include light-mode {
-      color: rgba(0, 0, 0, 0.6) !important;
-    }
-
-    @include dark-mode {
-      color: rgba(255, 255, 255, 0.6) !important;
-    }
-  }
-
-  // Override focused state colors
-  :deep(.q-field--focused .q-icon),
-  :deep(.q-field--focused .q-field__native::placeholder) {
-    @include light-mode {
-      color: rgba(0, 0, 0, 0.54) !important;
-    }
-
-    @include dark-mode {
-      color: rgba(255, 255, 255, 0.7) !important;
-    }
-  }
-
-  // Set cursor and text color
-  :deep(.q-field__native) {
-    @include light-mode {
-      color: black !important;
-      caret-color: black !important;
-    }
-
-    @include dark-mode {
-      color: white !important;
-      caret-color: white !important;
+      color: $color-white;
+      caret-color: $color-white;
     }
   }
 }
@@ -314,38 +260,35 @@ const handleBlur = () => {
   top: calc(100% + 4px);
   left: 0;
   right: 0;
-  background: white;
-  border-radius: 8px;
+  background: $color-white;
+  border: 1px solid $color-border;
+  border-radius: $radius-lg;
   box-shadow: $shadow-lg;
   overflow: hidden;
-  z-index: 1000;
+  z-index: $z-index-dropdown;
 
   @include dark-mode {
-    background: #2c2c2c;
+    background: $color-background-dark;
+    border: 1px solid $color-border-dark;
   }
 }
 
 .suggestion-item {
-  display: flex;
-  align-items: center;
+  @include flex-center;
   gap: $spacing-3;
-  padding: $spacing-3 $spacing-4;
+  padding: $spacing-3;
   cursor: pointer;
-  transition: background-color 0.15s ease;
-
-  @include light-mode {
-    color: $color-text-primary;
-
-    &:hover {
-      background-color: $color-gray-100;
-    }
+  transition: background-color $transition-fast;
+  color: $color-text-primary;
+  &:hover {
+    background-color: $color-gray-100;
   }
 
   @include dark-mode {
     color: $color-text-white;
 
     &:hover {
-      background-color: #3a3a3a;
+      background-color: $color-gray-hover;
     }
   }
 
@@ -354,27 +297,21 @@ const handleBlur = () => {
   }
 
   .event-avatar {
-    border-radius: 6px !important;
+    border-radius: $radius-md;
   }
 
   .result-content {
+    @include flex-column;
     flex: 1;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
+    gap: $spacing-1;
   }
 
   .result-primary {
+    @include text-truncate;
     font-size: $font-size-base;
-    font-weight: 600;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    @include light-mode {
-      color: $color-text-primary;
-    }
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
 
     @include dark-mode {
       color: $color-text-white;
@@ -382,56 +319,51 @@ const handleBlur = () => {
   }
 
   .result-secondary {
+    @include text-truncate;
     font-size: $font-size-xs;
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-
-    @include light-mode {
-      color: $color-text-secondary;
-    }
+    gap: $spacing-1;
+    color: $color-text-secondary;
 
     @include dark-mode {
-      color: rgba(255, 255, 255, 0.6);
+      color: $color-text-dark;
     }
   }
 
   .result-type {
-    font-weight: 600;
+    font-weight: $font-weight-semibold;
     text-transform: uppercase;
-    font-size: 10px;
+    font-size: $font-size-xs;
     letter-spacing: 0.5px;
     color: $color-primary;
-    flex-shrink: 0;
   }
 
   .result-detail {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    @include text-truncate;
   }
 }
 
 .loading-item {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @include flex-center;
   gap: $spacing-2;
   padding: $spacing-4;
-
-  @include light-mode {
-    color: $color-text-secondary;
-  }
+  color: $color-text-secondary;
 
   @include dark-mode {
-    color: rgba(255, 255, 255, 0.6);
+    color: $color-text-dark;
   }
 
   span {
     font-size: $font-size-sm;
   }
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity $transition-fast;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
