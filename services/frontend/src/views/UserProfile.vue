@@ -70,7 +70,6 @@ const loadUser = async () => {
 }
 
 .profile-container {
-  max-width: 1200px;
   margin: 0 auto;
   padding: 0 $spacing-6 $spacing-8;
   position: relative;
