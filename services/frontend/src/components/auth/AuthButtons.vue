@@ -18,22 +18,23 @@ const { goToLogin, goToRegister } = useNavigation()
 <template>
   <div :class="['auth-buttons', `auth-buttons--${variant}`]">
     <Button
-      variant="secondary"
+      variant="tertiary"
       :label="t('nav.login')"
-      :class="['auth-button', 'auth-button--login', { 'full-width': variant === 'vertical' }]"
+      :class="[{ 'full-width': variant === 'vertical' }]"
       @click="goToLogin"
     />
 
     <Button
       variant="primary"
       :label="t('nav.register')"
-      :class="['auth-button', 'auth-button--register', { 'full-width': variant === 'vertical' }]"
+      :class="[{ 'full-width': variant === 'vertical' }]"
       @click="goToRegister"
     />
   </div>
 </template>
 
 <style scoped lang="scss">
+@use 'sass:color';
 .auth-buttons {
   display: flex;
 
@@ -47,13 +48,6 @@ const { goToLogin, goToRegister } = useNavigation()
   &--vertical {
     flex-direction: column;
     gap: $spacing-3;
-  }
-}
-
-.auth-button {
-  .auth-buttons--vertical & {
-    min-height: 48px;
-    font-size: 16px;
   }
 }
 </style>

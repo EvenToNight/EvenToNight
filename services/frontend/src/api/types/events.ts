@@ -9,7 +9,7 @@ export type EventID = string
 export interface EventData {
   title: string
   description: string
-  poster: File
+  poster?: File
   tags: Tag[]
   location: Location
   date: Date

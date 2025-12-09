@@ -3,6 +3,7 @@ import { defineProps } from 'vue'
 
 interface Props {
   modelValue: any
+  error?: string
 }
 
 defineProps<Props>()
@@ -12,6 +13,8 @@ defineProps<Props>()
   <q-select
     :model-value="modelValue"
     v-bind="$attrs"
+    :error="!!error"
+    :error-message="error"
     outlined
     hide-bottom-space
     popup-content-class="tags-dropdown-popup"

@@ -35,19 +35,12 @@ const handleFollowToggle = () => {
 <template>
   <div class="profile-actions">
     <template v-if="isOwnProfile">
-      <Button
-        label="Edit Profile"
-        icon="edit"
-        variant="secondary"
-        class="action-btn secondary-btn"
-        @click="handleEditProfile"
-      />
+      <Button label="Edit Profile" icon="edit" variant="secondary" @click="handleEditProfile" />
       <Button
         v-if="isOrganization"
         label="Create Event"
         icon="add"
         variant="primary"
-        class="action-btn primary-btn"
         @click="handleCreateEvent"
       />
     </template>
@@ -55,7 +48,6 @@ const handleFollowToggle = () => {
       <Button
         :label="isFollowing ? 'Following' : 'Follow'"
         :variant="isFollowing ? 'secondary' : 'primary'"
-        :class="['action-btn', isFollowing ? 'secondary-btn' : 'primary-btn']"
         @click="handleFollowToggle"
       />
     </template>
@@ -63,40 +55,9 @@ const handleFollowToggle = () => {
 </template>
 
 <style lang="scss" scoped>
-@use 'sass:color';
 .profile-actions {
   display: flex;
   gap: $spacing-2;
   align-items: center;
-}
-
-.action-btn {
-  font-size: $font-size-sm;
-  padding: $spacing-2;
-}
-
-.primary-btn {
-  background: $color-primary;
-  color: $color-white;
-
-  &:hover {
-    background: color.adjust($color-primary, $lightness: -8%);
-  }
-}
-
-.secondary-btn {
-  border: 1px solid color-alpha($color-black, 0.12);
-  color: $color-text-primary;
-  &:hover {
-    background: color-alpha($color-black, 0.04);
-  }
-  @include dark-mode {
-    color: $color-text-dark;
-    border-color: color-alpha($color-white, 0.12);
-
-    &:hover {
-      background: color-alpha($color-white, 0.04);
-    }
-  }
 }
 </style>

@@ -6,7 +6,7 @@ import { useNavigation } from '@/router/utils'
 import { LOGIN_ROUTE_NAME } from '@/router'
 
 const { routeName } = useNavigation()
-const isLoginMode = computed(() => routeName === LOGIN_ROUTE_NAME)
+const isLoginMode = computed(() => routeName.value === LOGIN_ROUTE_NAME)
 </script>
 
 <template>
