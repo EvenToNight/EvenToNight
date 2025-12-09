@@ -1,28 +1,25 @@
 <script setup lang="ts">
-import { computed, watchEffect, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
-import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
+import EventDetailsHeader from '@/components/eventDetails/EventDetailsHeader.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'
 import { useNavigation } from '@/router/utils'
 
-const { params, goToHome, goToUserProfile } = useNavigation()
-const { t, locale } = useI18n()
+const { params, goToHome, goToUserProfile, locale } = useNavigation()
+const { t } = useI18n()
 const authStore = useAuthStore()
 
-// Get event ID from route params
 const eventId = computed(() => params.id as string)
 const showAuthDialog = ref(false)
 
-// Get event data based on ID
 const event = ref<Event | null>(null)
 const organizer = ref<User | null>(null)
 const collaborators = ref<User[]>([])
 
-// Load organizer data
 const loadOrganizer = async (userId: string) => {
   try {
     const response = await api.users.getUserById(userId)
@@ -33,7 +30,6 @@ const loadOrganizer = async (userId: string) => {
   }
 }
 
-// Load collaborators data
 const loadCollaborators = async (userIds: string[]) => {
   try {
     const promises = userIds.map((userId) => api.users.getUserById(userId))
@@ -45,34 +41,24 @@ const loadCollaborators = async (userIds: string[]) => {
   }
 }
 
-// Load event data
 const loadEvent = async () => {
   try {
     const response = await api.events.getEventById(eventId.value)
     event.value = response.event
-
-    // Load organizer data
+    const promises = []
     if (event.value.creatorId) {
-      await loadOrganizer(event.value.creatorId)
+      promises.push(loadOrganizer(event.value.creatorId))
     }
-
-    // Load collaborators data
-    if (event.value.collaboratorsId && event.value.collaboratorsId.length > 0) {
-      await loadCollaborators(event.value.collaboratorsId)
+    if (event.value.collaboratorsId?.length) {
+      promises.push(loadCollaborators(event.value.collaboratorsId))
     }
+    await Promise.all(promises)
   } catch (error) {
     console.error('Failed to load event:', error)
     event.value = null
     goToHome()
   }
 }
-
-// Redirect to home if event not found
-watchEffect(() => {
-  if (eventId.value && !event.value) {
-    loadEvent()
-  }
-})
 
 const formatDate = (date: Date) => {
   return new Intl.DateTimeFormat(locale.value, {
@@ -90,18 +76,13 @@ const formatTime = (date: Date) => {
   }).format(date)
 }
 
-// Like functionality - use refs to make it reactive
 const isFavorite = ref(false)
 const likesCount = ref(0)
 
-// Load event interactions
 const loadInteractions = async () => {
-  if (!eventId.value) return
-
   try {
-    const interaction = await api.interactions.getEventInteractions(eventId.value)
+    const interaction = await api.interactions.getEventInteractions(eventId.value!)
     likesCount.value = interaction.likes.length
-    // Check if current user has liked the event
     if (authStore.user?.id) {
       isFavorite.value = interaction.likes.includes(authStore.user.id)
     }
@@ -113,13 +94,10 @@ const loadInteractions = async () => {
 }
 
 const toggleLike = async () => {
-  if (!eventId.value) return
-
   if (!authStore.isAuthenticated) {
     showAuthDialog.value = true
     return
   }
-
   const wasLiked = isFavorite.value
 
   // Optimistic update
@@ -128,94 +106,35 @@ const toggleLike = async () => {
 
   try {
     if (!wasLiked) {
-      // Like the event
       await api.interactions.likeEvent(eventId.value, authStore.user!.id)
     } else {
-      // Unlike functionality not yet implemented in API
-      console.warn('Unlike functionality not yet implemented')
+      await api.interactions.unlikeEvent(eventId.value, authStore.user!.id)
     }
   } catch (error) {
     console.error('Failed to toggle like:', error)
-    // Revert optimistic update on error
     isFavorite.value = wasLiked
     likesCount.value += wasLiked ? 1 : -1
   }
 }
 
-const goToOrganizationProfile = (organizationId: string) => {
-  goToUserProfile(organizationId)
-}
-
-// Helper to get location details
 const locationAddress = computed(() => {
-  if (!event.value) return ''
-  const loc = event.value.location
-  // Build address from location parts
+  const loc = event.value!.location
   return [loc.name, loc.road, loc.house_number, loc.city, loc.province, loc.country]
     .filter(Boolean)
     .join(', ')
 })
 
-const mapsUrl = computed(() => {
-  if (!event.value) return null
-  // Use the link from location object
-  return event.value.location.link
-})
-
-// Parallax effect
-const heroImageRef = ref<HTMLDivElement | null>(null)
-let ticking = false
-
-const updateParallax = () => {
-  if (!heroImageRef.value) return
-
-  const scrolled = window.scrollY
-  const parallaxSpeed = 0.5
-  const opacity = Math.max(1 - scrolled / 500, 0)
-
-  heroImageRef.value.style.transform = `translateY(${scrolled * parallaxSpeed}px)`
-  heroImageRef.value.style.opacity = opacity.toString()
-
-  ticking = false
-}
-
-const handleScroll = () => {
-  if (!ticking) {
-    requestAnimationFrame(updateParallax)
-    ticking = true
-  }
-}
-
 onMounted(async () => {
-  // Scroll to top when component mounts
-  window.scrollTo(0, 0)
-  window.addEventListener('scroll', handleScroll, { passive: true })
-
-  // Load event and interactions
   await loadEvent()
   await loadInteractions()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll)
 })
 </script>
 
 <template>
   <div v-if="event" class="event-details-view">
-    <!-- Auth Required Dialog -->
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
+    <EventDetailsHeader :posterLink="event.posterLink" :title="event.title" />
 
-    <!-- Hero Image -->
-    <div class="hero-image-container">
-      <div ref="heroImageRef" class="hero-image-wrapper">
-        <img :src="event.posterLink" :alt="event.title" class="hero-image" />
-      </div>
-      <BackButton />
-      <div class="hero-overlay"></div>
-    </div>
-
-    <!-- Event Info Box -->
     <div class="content-wrapper">
       <div class="info-box">
         <div class="title-row">
@@ -257,8 +176,7 @@ onUnmounted(() => {
               <span class="info-value">{{ locationAddress }}</span>
             </div>
             <a
-              v-if="mapsUrl"
-              :href="mapsUrl"
+              :href="event.location.link"
               target="_blank"
               rel="noopener noreferrer"
               class="maps-link"
@@ -282,10 +200,9 @@ onUnmounted(() => {
           <p class="event-description">{{ event.description }}</p>
         </div>
 
-        <!-- Organizer section -->
         <div v-if="organizer" class="organizer-section">
           <h3 class="section-subtitle">{{ t('eventDetails.organizer') }}</h3>
-          <div class="organizer-card" @click="goToOrganizationProfile(event.creatorId)">
+          <div class="organizer-card" @click="goToUserProfile(event.creatorId)">
             <img
               v-if="organizer.avatarUrl"
               :src="organizer.avatarUrl"
@@ -301,7 +218,6 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <!-- Collaborators section -->
         <div v-if="collaborators.length > 0" class="collaborators-section">
           <h3 class="section-subtitle">{{ t('eventDetails.collaborators') }}</h3>
           <div class="collaborators-list">
@@ -309,7 +225,7 @@ onUnmounted(() => {
               v-for="collab in collaborators"
               :key="collab.id"
               class="collaborator-card"
-              @click="goToOrganizationProfile(collab.id)"
+              @click="goToUserProfile(collab.id)"
             >
               <img
                 v-if="collab.avatarUrl"
@@ -348,51 +264,6 @@ onUnmounted(() => {
   @include dark-mode {
     background: #121212;
   }
-}
-
-.hero-image-container {
-  position: relative;
-  width: 100%;
-  height: 60vh;
-  max-height: 600px;
-  overflow: hidden;
-
-  @media (max-width: 768px) {
-    height: 50vh;
-    max-height: 600px;
-  }
-}
-
-.hero-image-wrapper {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  will-change: transform, opacity;
-}
-
-.hero-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transform: scale(1.1);
-}
-
-.hero-overlay {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(0, 0, 0, 0.4) 0%,
-    rgba(0, 0, 0, 0.2) 50%,
-    rgba(0, 0, 0, 0.6) 100%
-  );
-  pointer-events: none;
-  z-index: 1;
 }
 
 .content-wrapper {
@@ -546,11 +417,7 @@ onUnmounted(() => {
   font-weight: 600;
   background: $color-primary;
   color: white;
-  transition: transform 0.2s ease;
-
-  &:hover {
-    transform: translateY(-2px);
-  }
+  cursor: default;
 
   @media (max-width: 768px) {
     font-size: 0.813rem;
