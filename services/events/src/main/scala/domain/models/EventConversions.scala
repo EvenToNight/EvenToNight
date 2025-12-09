@@ -36,7 +36,7 @@ object EventConversions:
         "title"           -> event.title,
         "description"     -> event.description,
         "poster"          -> event.poster,
-        "tag"             -> ujson.Arr(event.tag.map(t => ujson.Str(t.toString))*),
+        "tag"             -> ujson.Arr(event.tag.map(t => ujson.Str(t.displayName))*),
         "location"        -> localityToJson(event.location),
         "date"            -> event.date.toString,
         "price"           -> event.price,

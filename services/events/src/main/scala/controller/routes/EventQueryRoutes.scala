@@ -1,5 +1,6 @@
 package controller.routes
 
+import cask.Routes
 import domain.commands.{GetAllEventsCommand, GetEventCommand, UpdateEventPosterCommand}
 import domain.models.Event
 import domain.models.EventConversions.*
@@ -7,7 +8,7 @@ import service.EventService
 import ujson.Obj
 import utils.Utils.uploadPosterToMediaService
 
-class EventQueryRoutes(eventService: EventService) extends BaseRoutes:
+class EventQueryRoutes(eventService: EventService) extends Routes:
 
   private val mediaServiceUrl = "http://media:9020"
 
