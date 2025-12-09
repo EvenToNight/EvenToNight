@@ -5,14 +5,15 @@ import type {
   LoginResponse,
   RefreshTokenResponse,
   LogoutResponse,
-  SearchUsersByNameResponse,
+  SearchUsersResponse,
   RegisterResponse,
   RegisterRequest,
 } from '../interfaces/users'
-import type { ApiError } from '../interfaces/commons'
+import type { ApiError, PaginatedRequest } from '../interfaces/commons'
 import { mockOrganizations } from './data/organizations'
 import { mockUsers } from './data/members'
 import type { UserID, User } from '../types/users'
+import { getPagintedItems } from '../utils'
 
 let currentLoggedInEmail: string | null = null
 
@@ -91,7 +92,7 @@ export const mockUsersApi: UsersAPI = {
     }
   },
 
-  async searchByName(query: string): Promise<SearchUsersByNameResponse> {
+  async searchByName(query: string): Promise<SearchUsersResponse> {
     if (!query || query.trim().length === 0) {
       return { users: [] }
     }
@@ -106,5 +107,17 @@ export const mockUsersApi: UsersAPI = {
     })
 
     return { users: matchedUsers }
+  },
+
+  async getOrganizations(
+    query: string,
+    pagination?: PaginatedRequest
+  ): Promise<SearchUsersResponse> {
+    return {
+      users: getPagintedItems(
+        mockOrganizations.filter((org) => org.name.toLowerCase().includes(query.toLowerCase())),
+        pagination
+      ).items,
+    }
   },
 }

@@ -1,4 +1,5 @@
 import type { User, UserID } from '../types/users'
+import type { PaginatedRequest } from './commons'
 
 export interface GetUserByIdResponse {
   user: User
@@ -38,7 +39,7 @@ export interface LogoutResponse {
   success: boolean
 }
 
-export interface SearchUsersByNameResponse {
+export interface SearchUsersResponse {
   users: User[]
 }
 
@@ -48,5 +49,6 @@ export interface UsersAPI {
   login(credentials: LoginRequest): Promise<LoginResponse>
   logout(): Promise<LogoutResponse>
   refreshToken(): Promise<RefreshTokenResponse>
-  searchByName(query: string): Promise<SearchUsersByNameResponse>
+  searchByName(query: string): Promise<SearchUsersResponse>
+  getOrganizations(query: string, pagination?: PaginatedRequest): Promise<SearchUsersResponse>
 }

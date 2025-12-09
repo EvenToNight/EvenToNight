@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useSlots } from 'vue'
 
-export type FormFieldType = 'text' | 'email' | 'password'
+export type FormFieldType = 'text' | 'email' | 'password' | 'date' | 'time' | 'textarea' | 'number'
 
 interface Props {
   modelValue: string
@@ -20,6 +21,9 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
+
+const slots = useSlots()
+const hasPrependSlot = computed(() => !!slots.prepend)
 
 const showPassword = ref(false)
 
@@ -55,7 +59,6 @@ const handleInput = (value: string | number | null) => {
 <template>
   <q-input
     :model-value="modelValue"
-    filled
     :type="inputType"
     :label="label"
     :error="!!error"
@@ -63,11 +66,13 @@ const handleInput = (value: string | number | null) => {
     :rules="rules"
     lazy-rules
     hide-bottom-space
+    outlined
     class="form-field q-mb-md"
     @update:model-value="handleInput"
   >
-    <template v-if="icon" #prepend>
-      <q-icon :name="icon" />
+    <template v-if="icon || hasPrependSlot" #prepend>
+      <q-icon v-if="icon" :name="icon" />
+      <slot v-else name="prepend" />
     </template>
     <template v-if="type === 'password'" #append>
       <q-icon

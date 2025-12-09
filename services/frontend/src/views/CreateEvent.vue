@@ -1,41 +1,45 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
-import ImageCropUpload from '@/components/upload/ImageCropUploadTest.vue'
+import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
 import { api } from '@/api'
-import type { EventData } from '@/api/types/events'
+// import type { EventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
 import { parseLocation } from '@/api/types/common'
 import { useNavigation } from '@/router/utils'
+// import { useAuthStore } from '@/stores/auth'
+import FormField from '@/components/forms/FormField.vue'
+import FormSelectorField from '@/components/forms/FormSelectorField.vue'
+import type { Tag } from '@/api/types/events'
 const $q = useQuasar()
 
-const { goToHome, goToEventDetails } = useNavigation()
+const { goToHome } = useNavigation()
+// const authStore = useAuthStore()
+// const currentUserId = authStore.user?.id
 
-// Mock current user ID - in real app would come from auth
-const currentUserId = 'current-user-id'
+const title = ref('')
+const date = ref('')
+const time = ref('')
+const description = ref('')
+const price = ref('0')
+const tags = ref<string[]>([])
+const collaborators = ref<string[]>([])
+const location = ref<Location | null>(null)
+const poster = ref<File | null>(null)
+// const status = ref<'draft' | 'published'>('draft')
 
-const event = ref({
-  title: '',
-  date: '',
-  time: '',
-  description: '',
-  price: 0,
-  tags: [] as string[],
-  collaborators: [] as string[],
-  location: null as Location | null,
-  poster: null as File | null,
-  status: 'draft' as 'draft' | 'published',
-})
+const titleError = ref('')
+const dateError = ref('')
+const timeError = ref('')
+// const descriptionError = ref('')
+const priceError = ref('')
+// const tagsError = ref('')
 
-// Error states for validation
-const errors = ref({
-  title: '',
-  date: '',
-  time: '',
-  location: '',
-  poster: '',
-})
+// const collaboratorsError = ref('')
+// const locationError = ref('')
+const posterError = ref('')
+// const statusError = ref('')
 
 const handleImageError = (message: string) => {
   $q.notify({
@@ -44,127 +48,90 @@ const handleImageError = (message: string) => {
   })
 }
 
+const tagCategories = ref<any[]>([])
 const tagOptions = ref<any[]>([])
 const allTags = ref<string[]>([])
-const tagCategories = ref<any[]>([])
 const collaboratorOptions = ref<any[]>([])
-const locationOptions = ref<any[]>([])
+const locationOptions = ref<any[]>()
 
-// Load tags from API
+const buildOptionsFromCategories = (category: string, tags: Tag[]) => {
+  const options: any[] = []
+
+  options.push({
+    label: category,
+    value: category,
+    disable: true,
+    header: true,
+  })
+  tags.forEach((tag: string) => {
+    options.push({
+      label: tag,
+      value: tag,
+    })
+  })
+
+  return options
+}
+
 const loadTags = async () => {
   try {
-    const categories = await api.events.getTags()
-    tagCategories.value = categories
-
-    // Create options with category headers
+    const tagResponse = await api.events.getTags()
     const options: any[] = []
-    categories.forEach((category) => {
-      // Add category header (non-selectable)
-      options.push({
-        label: category.category,
-        value: category.category,
-        disable: true,
-        header: true,
-      })
-      // Add tags from this category
-      category.tags.forEach((tag: string) => {
-        options.push({
-          label: tag,
-          value: tag,
-        })
-      })
+    tagResponse.forEach((tagCategory) => {
+      options.push(...buildOptionsFromCategories(tagCategory.category, tagCategory.tags))
     })
-
-    // Also keep flat array for filtering
-    const tags = categories.flatMap((category) => category.tags)
-    allTags.value = tags
+    allTags.value = tagResponse.flatMap((tagCategory) => tagCategory.tags)
     tagOptions.value = options
+    tagCategories.value = tagResponse
   } catch (error) {
     console.error('Failed to load tags:', error)
-    $q.notify({
-      color: 'negative',
-      message: 'Failed to load tags',
-    })
   }
 }
 
-// Load tags on component mount
-loadTags()
-
-// Mock organizations for search
-const allOrganizations = [
-  { label: 'Cocoricò', value: 1 },
-  { label: 'Baia Imperiale', value: 2 },
-  { label: 'Altromondo Studios', value: 3 },
-  { label: 'Peter Pan', value: 4 },
-  { label: 'Villa delle Rose', value: 5 },
-]
+onMounted(async () => {
+  await loadTags()
+})
 
 const filterTags = (val: string, update: (fn: () => void) => void) => {
   update(() => {
     if (val === '') {
-      // Show all tags with category headers
-      const options: any[] = []
-      tagCategories.value.forEach((category) => {
-        options.push({
-          label: category.category,
-          value: category.category,
-          disable: true,
-          header: true,
-        })
-        category.tags.forEach((tag: string) => {
-          options.push({
-            label: tag,
-            value: tag,
-          })
-        })
-      })
-      tagOptions.value = options
+      tagOptions.value = tagCategories.value.flatMap((cat) =>
+        buildOptionsFromCategories(cat.category, cat.tags)
+      )
     } else {
-      // Filter tags but keep category headers for matching tags
-      const needle = val.toLowerCase()
+      const query = val.toLowerCase()
       const options: any[] = []
 
-      tagCategories.value.forEach((category) => {
-        const matchingTags = category.tags.filter(
-          (tag: string) => tag.toLowerCase().indexOf(needle) > -1
+      tagCategories.value.forEach((tagCategory) => {
+        const matchingTags = tagCategory.tags.filter(
+          (tag: string) => tag.toLowerCase().indexOf(query) > -1
         )
 
         if (matchingTags.length > 0) {
-          // Add category header only if there are matching tags
-          options.push({
-            label: category.category,
-            value: category.category,
-            disable: true,
-            header: true,
-          })
-          matchingTags.forEach((tag: string) => {
-            options.push({
-              label: tag,
-              value: tag,
-            })
-          })
+          options.push(...buildOptionsFromCategories(tagCategory.category, matchingTags))
         }
       })
-
       tagOptions.value = options
     }
   })
 }
 
 const filterCollaborators = (val: string, update: (fn: () => void) => void) => {
-  if (val === '') {
+  const mapCollaborator = (org: any) => ({
+    label: org.name,
+    value: org.id,
+    avatar: org.avatarUrl || undefined,
+  })
+  if (!val) {
     update(() => {
-      collaboratorOptions.value = allOrganizations
+      collaboratorOptions.value = []
     })
     return
   }
-
-  update(() => {
-    const needle = val.toLowerCase()
-    collaboratorOptions.value = allOrganizations.filter(
-      (v) => v.label.toLowerCase().indexOf(needle) > -1
-    )
+  api.users.getOrganizations(val, { limit: 10 }).then((response) => {
+    update(() => {
+      collaboratorOptions.value = response.users.map(mapCollaborator)
+    })
   })
 }
 
@@ -186,24 +153,21 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
       }
     )
     const data = await response.json()
-    console.log(data)
-
     update(() => {
-      locationOptions.value = data
-        .map((item: any) => {
-          try {
-            const [displayName, locationData] = parseLocation(item)
-            return {
+      locationOptions.value = data.flatMap((item: any) => {
+        try {
+          const [displayName, locationData] = parseLocation(item)
+          return [
+            {
               label: displayName,
               value: locationData,
               description: item.type,
-            }
-          } catch (error) {
-            console.warn('Skipping invalid location:', error)
-            return null
-          }
-        })
-        .filter((option: any) => option !== null)
+            },
+          ]
+        } catch {
+          return []
+        }
+      })
     })
   } catch (err) {
     console.error('Error fetching locations:', err)
@@ -213,174 +177,152 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
   }
 }
 
-const handleLocationSelect = (location: any) => {
-  event.value.location = location
-  if (location) {
+const handleLocationSelect = (selectedLocation: any) => {
+  location.value = selectedLocation
+  if (location.value) {
     console.log('Location selected:', location.value.link)
-    // Clear any previous location error
-    errors.value.location = ''
   }
 }
 
 const saveDraft = async () => {
-  if (!event.value.title) {
-    $q.notify({
-      color: 'negative',
-      message: 'Please provide at least a title for the draft',
-    })
-    return
-  }
-
-  try {
-    event.value.status = 'draft'
-
-    // For draft, we only need title and basic info
-    const dateTime =
-      event.value.date && event.value.time
-        ? new Date(`${event.value.date}T${event.value.time}`)
-        : new Date()
-
-    const eventData: EventData = {
-      title: event.value.title,
-      description: event.value.description,
-      poster: event.value.poster || new File([], 'placeholder.jpg'),
-      tags: event.value.tags,
-      location: event.value.location || {
-        country: '',
-        countryCode: '',
-        state: '',
-        province: '',
-        city: '',
-        road: '',
-        postcode: 0,
-        house_number: 0,
-        lat: 0,
-        lon: 0,
-        link: '',
-      },
-      date: dateTime,
-      price: event.value.price,
-      status: 'draft',
-      creatorId: currentUserId,
-      collaboratorsId: event.value.collaborators,
-    }
-
-    await api.events.publishEvent(eventData)
-
-    $q.notify({
-      color: 'positive',
-      message: 'Draft saved successfully!',
-    })
-    goToHome()
-  } catch (error) {
-    console.error('Failed to save draft:', error)
-    $q.notify({
-      color: 'negative',
-      message: 'Failed to save draft. Please try again.',
-    })
-  }
+  // if (!event.value.title) {
+  //   $q.notify({
+  //     color: 'negative',
+  //     message: 'Please provide at least a title for the draft',
+  //   })
+  //   return
+  // }
+  // try {
+  //   event.value.status = 'draft'
+  //   // For draft, we only need title and basic info
+  //   const dateTime =
+  //     event.value.date && event.value.time
+  //       ? new Date(`${event.value.date}T${event.value.time}`)
+  //       : new Date()
+  //   const eventData: EventData = {
+  //     title: event.value.title,
+  //     description: event.value.description,
+  //     poster: event.value.poster || new File([], 'placeholder.jpg'),
+  //     tags: event.value.tags,
+  //     location: event.value.location || {
+  //       country: '',
+  //       countryCode: '',
+  //       state: '',
+  //       province: '',
+  //       city: '',
+  //       road: '',
+  //       postcode: 0,
+  //       house_number: 0,
+  //       lat: 0,
+  //       lon: 0,
+  //       link: '',
+  //     },
+  //     date: dateTime,
+  //     price: event.value.price,
+  //     status: 'draft',
+  //     creatorId: currentUserId,
+  //     collaboratorsId: event.value.collaborators,
+  //   }
+  //   await api.events.publishEvent(eventData)
+  //   $q.notify({
+  //     color: 'positive',
+  //     message: 'Draft saved successfully!',
+  //   })
+  //   goToHome()
+  // } catch (error) {
+  //   console.error('Failed to save draft:', error)
+  //   $q.notify({
+  //     color: 'negative',
+  //     message: 'Failed to save draft. Please try again.',
+  //   })
+  // }
 }
 
 const onSubmit = async () => {
-  // Reset errors
-  errors.value = {
-    title: '',
-    date: '',
-    time: '',
-    location: '',
-    poster: '',
-  }
-
-  // Validate required fields
-  let hasErrors = false
-
-  if (!event.value.title) {
-    errors.value.title = 'Event Title is required'
-    hasErrors = true
-  }
-
-  if (!event.value.date) {
-    errors.value.date = 'Date is required'
-    hasErrors = true
-  }
-
-  if (!event.value.time) {
-    errors.value.time = 'Time is required'
-    hasErrors = true
-  }
-
-  if (!event.value.location) {
-    errors.value.location = 'Location is required'
-    hasErrors = true
-  }
-
-  if (!event.value.poster) {
-    errors.value.poster = 'Event Poster is required'
-    hasErrors = true
-  }
-
-  if (hasErrors) {
-    $q.notify({
-      color: 'negative',
-      message: 'Please fill all required fields',
-    })
-    return
-  }
-
-  try {
-    // Validate required fields
-    if (!event.value.poster) {
-      $q.notify({
-        color: 'negative',
-        message: 'Please upload a poster image',
-      })
-      return
-    }
-
-    if (!event.value.location) {
-      $q.notify({
-        color: 'negative',
-        message: 'Please select a location',
-      })
-      return
-    }
-
-    event.value.status = 'published'
-
-    // Combine date and time into a Date object
-    const dateTime = new Date(`${event.value.date}T${event.value.time}`)
-
-    // Create EventData object
-    const eventData: EventData = {
-      title: event.value.title,
-      description: event.value.description,
-      poster: event.value.poster,
-      tags: event.value.tags,
-      location: event.value.location,
-      date: dateTime,
-      price: event.value.price,
-      status: 'published',
-      creatorId: currentUserId,
-      collaboratorsId: event.value.collaborators,
-    }
-
-    // Call API to publish event
-    const response = await api.events.publishEvent(eventData)
-
-    $q.notify({
-      color: 'positive',
-      message: 'Event published successfully!',
-    })
-
-    // Navigate to the created event
-    goToEventDetails(response.eventId)
-  } catch (error) {
-    console.error('Failed to create event:', error)
-    $q.notify({
-      color: 'negative',
-      message: 'Failed to create event. Please try again.',
-    })
-  }
+  // // Reset errors
+  // errors.value = {
+  //   title: '',
+  //   date: '',
+  //   time: '',
+  //   location: '',
+  //   poster: '',
+  // }
+  // // Validate required fields
+  // let hasErrors = false
+  // if (!event.value.title) {
+  //   errors.value.title = 'Event Title is required'
+  //   hasErrors = true
+  // }
+  // if (!event.value.date) {
+  //   errors.value.date = 'Date is required'
+  //   hasErrors = true
+  // }
+  // if (!event.value.time) {
+  //   errors.value.time = 'Time is required'
+  //   hasErrors = true
+  // }
+  // if (!event.value.location) {
+  //   errors.value.location = 'Location is required'
+  //   hasErrors = true
+  // }
+  // if (!event.value.poster) {
+  //   errors.value.poster = 'Event Poster is required'
+  //   hasErrors = true
+  // }
+  // if (hasErrors) {
+  //   $q.notify({
+  //     color: 'negative',
+  //     message: 'Please fill all required fields',
+  //   })
+  //   return
+  // }
+  // try {
+  //   // Validate required fields
+  //   if (!event.value.poster) {
+  //     $q.notify({
+  //       color: 'negative',
+  //       message: 'Please upload a poster image',
+  //     })
+  //     return
+  //   }
+  //   if (!event.value.location) {
+  //     $q.notify({
+  //       color: 'negative',
+  //       message: 'Please select a location',
+  //     })
+  //     return
+  //   }
+  //   event.value.status = 'published'
+  //   // Combine date and time into a Date object
+  //   const dateTime = new Date(`${event.value.date}T${event.value.time}`)
+  //   // Create EventData object
+  //   const eventData: EventData = {
+  //     title: event.value.title,
+  //     description: event.value.description,
+  //     poster: event.value.poster,
+  //     tags: event.value.tags,
+  //     location: event.value.location,
+  //     date: dateTime,
+  //     price: event.value.price,
+  //     status: 'published',
+  //     creatorId: currentUserId,
+  //     collaboratorsId: event.value.collaborators,
+  //   }
+  //   // Call API to publish event
+  //   const response = await api.events.publishEvent(eventData)
+  //   $q.notify({
+  //     color: 'positive',
+  //     message: 'Event published successfully!',
+  //   })
+  //   // Navigate to the created event
+  //   goToEventDetails(response.eventId)
+  // } catch (error) {
+  //   console.error('Failed to create event:', error)
+  //   $q.notify({
+  //     color: 'negative',
+  //     message: 'Failed to create event. Please try again.',
+  //   })
+  // }
 }
 </script>
 
@@ -393,196 +335,140 @@ const onSubmit = async () => {
         <h1 class="text-h3 q-mb-lg">Create New Event</h1>
 
         <q-form class="form-container" @submit="onSubmit">
-          <div class="form-field">
-            <q-input
-              v-model="event.title"
-              label="Event Title *"
-              outlined
-              hide-bottom-space
-              :error="!!errors.title"
-              :error-message="errors.title"
-            />
-          </div>
+          <FormField v-model="title" type="text" label="Event Title *" :error="titleError" />
+          <FormField ref="dateInput" v-model="date" type="date" label="Date *" :error="dateError">
+            <template #prepend>
+              <q-icon
+                name="event"
+                class="cursor-pointer"
+                @click="($refs.dateInput as any).$el.querySelector('input').showPicker()"
+              />
+            </template>
+          </FormField>
+
+          <FormField ref="timeInput" v-model="time" type="time" label="Time *" :error="timeError">
+            <template #prepend>
+              <q-icon
+                name="access_time"
+                class="cursor-pointer"
+                @click="($refs.timeInput as any).$el.querySelector('input').showPicker()"
+              />
+            </template>
+          </FormField>
+
+          <FormField v-model="description" type="textarea" label="Description" rows="4" />
+
+          <FormField
+            v-model="price"
+            type="number"
+            label="Price (€)"
+            :error="priceError"
+            prefix="€"
+          />
+
+          <FormSelectorField
+            v-model="tags"
+            :options="tagOptions"
+            label="Tags"
+            multiple
+            use-chips
+            use-input
+            input-debounce="300"
+            emit-value
+            map-options
+            option-value="value"
+            option-label="label"
+            @filter="filterTags"
+            ><template #option="scope">
+              <q-item v-if="scope.opt.header" class="category-header" :disable="scope.opt.disable">
+                <q-item-section>
+                  <q-item-label class="text-weight-bold">{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item v-else v-bind="scope.itemProps" :class="{ 'selected-tag': scope.selected }">
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+                <q-item-section v-if="scope.selected" side>
+                  <q-icon name="check" color="primary" />
+                </q-item-section>
+              </q-item>
+            </template>
+          </FormSelectorField>
+
+          <FormSelectorField
+            v-model="collaborators"
+            :options="collaboratorOptions"
+            label="Collaborators"
+            multiple
+            use-chips
+            use-input
+            input-debounce="300"
+            emit-value
+            map-options
+            option-value="value"
+            option-label="label"
+            @filter="filterCollaborators"
+          >
+            <template #option="scope">
+              <q-item v-bind="scope.itemProps" :class="{ 'selected-tag': scope.selected }">
+                <q-item-section v-if="scope.opt.avatar" avatar>
+                  <q-avatar size="32px" class="collaborator-avatar" rounded>
+                    <img
+                      :src="scope.opt.avatar"
+                      alt="avatar"
+                      style="object-fit: cover; width: 100%; height: 100%; border-radius: 50%"
+                    />
+                  </q-avatar>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+                <q-item-section v-if="scope.selected" side>
+                  <q-icon name="check" color="primary" />
+                </q-item-section>
+              </q-item>
+            </template>
+          </FormSelectorField>
+
+          <FormSelectorField
+            v-model="location"
+            :options="locationOptions"
+            label="Location *"
+            use-input
+            fill-input
+            hide-selected
+            input-debounce="500"
+            @filter="filterLocations"
+            @update:model-value="handleLocationSelect"
+          >
+            <template #no-option>
+              <q-item>
+                <q-item-section class="text-grey">
+                  Type at least 3 characters to search
+                </q-item-section>
+              </q-item>
+            </template>
+            <template #option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                  <q-item-label caption>{{ scope.opt.description }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
+          </FormSelectorField>
 
           <div class="form-field">
-            <q-input
-              ref="dateInput"
-              v-model="event.date"
-              type="date"
-              label="Date *"
-              outlined
-              hide-bottom-space
-              :error="!!errors.date"
-              :error-message="errors.date"
-            >
-              <template #prepend>
-                <q-icon
-                  name="event"
-                  class="cursor-pointer"
-                  @click="($refs.dateInput as any).$el.querySelector('input').showPicker()"
-                />
-              </template>
-            </q-input>
-          </div>
-
-          <div class="form-field">
-            <q-input
-              ref="timeInput"
-              v-model="event.time"
-              type="time"
-              label="Time *"
-              outlined
-              hide-bottom-space
-              :error="!!errors.time"
-              :error-message="errors.time"
-            >
-              <template #prepend>
-                <q-icon
-                  name="access_time"
-                  class="cursor-pointer"
-                  @click="($refs.timeInput as any).$el.querySelector('input').showPicker()"
-                />
-              </template>
-            </q-input>
-          </div>
-
-          <div class="form-field">
-            <q-input
-              v-model="event.description"
-              type="textarea"
-              label="Description"
-              outlined
-              hide-bottom-space
-              rows="4"
-            />
-          </div>
-
-          <div class="form-field">
-            <q-input
-              v-model.number="event.price"
-              type="number"
-              label="Price (€)"
-              outlined
-              hide-bottom-space
-              prefix="€"
-            />
-          </div>
-
-          <div class="form-field">
-            <q-select
-              v-model="event.tags"
-              :options="tagOptions"
-              label="Tags"
-              outlined
-              hide-bottom-space
-              multiple
-              use-chips
-              use-input
-              input-debounce="300"
-              stack-label
-              options-dense
-              max-values="3"
-              virtual-scroll-slice-size="5"
-              popup-content-class="tags-dropdown-popup"
-              emit-value
-              map-options
-              option-value="value"
-              option-label="label"
-              @filter="filterTags"
-            >
-              <template #option="scope">
-                <q-item
-                  v-if="scope.opt.header"
-                  class="category-header"
-                  :disable="scope.opt.disable"
-                >
-                  <q-item-section>
-                    <q-item-label class="text-weight-bold">{{ scope.opt.label }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-                <q-item v-else v-bind="scope.itemProps" :class="{ 'selected-tag': scope.selected }">
-                  <q-item-section>
-                    <q-item-label>{{ scope.opt.label }}</q-item-label>
-                  </q-item-section>
-                  <q-item-section v-if="scope.selected" side>
-                    <q-icon name="check" color="primary" />
-                  </q-item-section>
-                </q-item>
-              </template>
-              <template #no-option>
-                <q-item>
-                  <q-item-section class="text-grey"> No results </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div>
-
-          <div class="form-field">
-            <q-select
-              v-model="event.collaborators"
-              :options="collaboratorOptions"
-              label="Collaborators"
-              outlined
-              hide-bottom-space
-              multiple
-              use-chips
-              use-input
-              input-debounce="300"
-              options-dense
-              :menu-props="{ maxHeight: '200px' }"
-              @filter="filterCollaborators"
-            >
-              <template #no-option>
-                <q-item>
-                  <q-item-section class="text-grey"> No results </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div>
-
-          <div class="form-field">
-            <q-select
-              v-model="event.location"
-              :options="locationOptions"
-              label="Location *"
-              outlined
-              hide-bottom-space
-              use-input
-              fill-input
-              hide-selected
-              input-debounce="500"
-              :error="!!errors.location"
-              :error-message="errors.location"
-              @filter="filterLocations"
-              @update:model-value="handleLocationSelect"
-            >
-              <template #no-option>
-                <q-item>
-                  <q-item-section class="text-grey">
-                    Type at least 3 characters to search
-                  </q-item-section>
-                </q-item>
-              </template>
-              <template #option="scope">
-                <q-item v-bind="scope.itemProps">
-                  <q-item-section>
-                    <q-item-label>{{ scope.opt.label }}</q-item-label>
-                    <q-item-label caption>{{ scope.opt.description }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </template>
-            </q-select>
-          </div>
-          <div class="form-field">
-            <ImageCropUpload
-              v-model="event.poster"
+            <ImageCropUploadTest
+              v-model="poster"
               label="Event Poster *"
               button-label="Upload Poster"
               :max-size="5000000"
               @error="handleImageError"
             />
-            <div v-if="errors.poster" class="error-message">
-              {{ errors.poster }}
+            <div v-if="posterError" class="error-message">
+              {{ posterError }}
             </div>
           </div>
           <div class="form-actions">
@@ -611,6 +497,14 @@ const onSubmit = async () => {
   flex-direction: column;
   position: relative;
   padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
+}
+
+.collaborator-avatar {
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
 }
 
 .page-content {
