@@ -1,4 +1,5 @@
-import type { Tag, Event, EventID, EventData } from '../types/events'
+import type { Tag, Event, EventID, EventData, EventStatus } from '../types/events'
+import type { UserID } from '../types/users'
 
 export interface TagCategory {
   category: string
@@ -15,18 +16,15 @@ export interface PublishEventResponse {
   eventId: EventID
 }
 
-export interface SearchEventsByNameResponse {
-  events: Event[]
-}
-
-export interface GetEventsByIdsResponse {
+export interface EventsDataResponse {
   events: Event[]
 }
 
 export interface EventAPI {
   getTags(): Promise<GetTagResponse>
   getEventById(id: EventID): Promise<GetEventByIdResponse>
-  getEventsByIds(ids: EventID[]): Promise<GetEventsByIdsResponse>
+  getEventsByIds(ids: EventID[]): Promise<EventsDataResponse>
   publishEvent(eventData: EventData): Promise<PublishEventResponse>
-  searchByName(query: string): Promise<SearchEventsByNameResponse>
+  searchByName(query: string): Promise<EventsDataResponse>
+  getEventsByUserIdAndStatus(userId: UserID, status: EventStatus): Promise<EventsDataResponse>
 }
