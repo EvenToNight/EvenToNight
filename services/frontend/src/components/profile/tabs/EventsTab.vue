@@ -1,34 +1,33 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import type { Event } from '@/api/types/events'
 import EventCardVariant from '@/components/cards/EventCardVariant.vue'
 
 interface Props {
   events: Event[]
+  emptyText: string
+  emptyIconName: string
 }
 
 defineProps<Props>()
-
-const { t } = useI18n()
 </script>
 
 <template>
-  <div class="drafted-tab">
+  <div class="event-tab">
     <div v-if="events.length > 0" class="events-grid">
       <EventCardVariant v-for="event in events" :key="event.id" :event="event" />
     </div>
 
     <div v-else class="empty-state">
-      <q-icon name="edit_note" size="64px" />
+      <q-icon :name="emptyIconName" size="64px" />
       <p class="empty-text">
-        {{ t('profile.noDraftedEvents') }}
+        {{ emptyText }}
       </p>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.drafted-tab {
+.event-tab {
   @include flex-column;
 }
 

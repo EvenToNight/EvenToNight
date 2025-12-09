@@ -23,8 +23,9 @@ const isOrganization = computed(() => {
   return props.user.role === 'organization'
 })
 
-const userEvents = ref<Event[]>([])
-const userDraftedEvents = ref<Event[]>([])
+const organizationEvents = ref<Event[]>([])
+const organizationDraftedEvents = ref<Event[]>([])
+const memberAttendedEvents = ref<Event[]>([])
 
 onMounted(async () => {
   try {
@@ -32,8 +33,10 @@ onMounted(async () => {
       api.events.getEventsByUserIdAndStatus(props.user.id, 'published'),
       api.events.getEventsByUserIdAndStatus(props.user.id, 'draft'),
     ])
-    userEvents.value = publishedResponse.events
-    userDraftedEvents.value = draftResponse.events
+    organizationEvents.value = publishedResponse.events
+    organizationDraftedEvents.value = draftResponse.events
+    //TODO fetch attended events for members
+    memberAttendedEvents.value = []
   } catch (error) {
     console.error('Failed to fetch events for user:', error)
   }
@@ -56,7 +59,17 @@ const tabs = computed<Tab[]>(() => {
     label: isOwnProfile.value ? 'My Events' : 'Events',
     icon: 'event',
     component: EventsTab,
-    props: { events: userEvents.value },
+    props: {
+      events: isOrganization.value ? organizationEvents.value : memberAttendedEvents.value,
+      emptyText: isOwnProfile.value
+        ? isOrganization.value
+          ? 'You have not created any events yet.'
+          : 'You have not attended any events yet.'
+        : isOrganization.value
+          ? 'This organization has not created any events yet.'
+          : 'This user has not attended any events yet.',
+      emptyIconName: 'event_busy',
+    },
   })
 
   if (isOrganization.value && isOwnProfile.value) {
@@ -65,7 +78,11 @@ const tabs = computed<Tab[]>(() => {
       label: 'Drafted Events',
       icon: 'edit_note',
       component: EventsTab,
-      props: { events: userDraftedEvents.value },
+      props: {
+        events: organizationDraftedEvents.value,
+        emptyText: 'You have no drafted events.',
+        emptyIconName: 'edit_note',
+      },
     })
   }
 
