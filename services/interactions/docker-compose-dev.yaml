@@ -1,0 +1,7 @@
+services:
+  interactions:
+    build:
+      context: .
+      dockerfile: ./services/interactions/Dockerfile
+    ports:
+      - "${INTERACTIONS_SERVICE_PORT}:${INTERACTIONS_SERVICE_PORT}" 
