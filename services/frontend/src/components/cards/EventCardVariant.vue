@@ -50,31 +50,24 @@ const formatDate = (date: Date) => {
 
 <template>
   <div class="event-card" @click="isDraft ? goToCreateEvent() : goToEventDetails(event.id)">
-    <div class="card-image-container">
-      <img v-if="imageObjectUrl" :src="imageObjectUrl" :alt="event.title" class="card-image" />
-      <div v-else-if="isLoadingImage" class="card-image-loading">Loading...</div>
-
-      <template v-if="isDraft">
-        <div class="draft-badge">
-          <q-icon name="edit_note" size="16px" />
-          {{ t('profile.draft') }}
-        </div>
-        <div class="card-content-overlay">
-          <h3 class="card-title">{{ event.title }}</h3>
-        </div>
-      </template>
-      <!-- <div v-if="isDraft" class="draft-badge">
+    <div class="event-image-container">
+      <img :src="event.posterLink" :alt="event.title" class="event-image" />
+      <div v-if="isDraft" class="draft-badge">
         <q-icon name="edit_note" size="16px" />
         {{ t('profile.draft') }}
-      </div> -->
-
-      <div v-else class="card-content-overlay">
-        <h3 class="card-title">{{ event.title }}</h3>
-        <p class="card-subtitle">{{ event.location.name || event.location.city }}</p>
-        <div class="card-date">
+      </div>
+    </div>
+    <div class="event-info">
+      <h3 class="event-title">{{ event.title }}</h3>
+      <div v-if="!isDraft" class="event-details">
+        <span class="event-date">
           <q-icon name="event" size="16px" />
           {{ formatDate(event.date) }}
-        </div>
+        </span>
+        <span class="event-location">
+          <q-icon name="location_on" size="16px" />
+          {{ event.location.name || event.location.city }}
+        </span>
       </div>
     </div>
   </div>
@@ -82,32 +75,30 @@ const formatDate = (date: Date) => {
 
 <style scoped lang="scss">
 .event-card {
-  width: 100%;
-  max-width: 340px;
-  border-radius: $radius-3xl;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 12px;
   overflow: hidden;
-  background: color-alpha($color-black, 0.02);
-  transition: all 0.3s ease;
   cursor: pointer;
+  transition: all 0.3s ease;
 
   @include dark-mode {
-    background: color-alpha($color-white, 0.05);
+    background: rgba(255, 255, 255, 0.05);
+  }
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-lg;
   }
 }
 
-.event-card:hover {
-  transform: translateY(-4px);
-  box-shadow: $shadow-lg;
-}
-
-.card-image-container {
+.event-image-container {
   position: relative;
   width: 100%;
-  aspect-ratio: 1;
+  height: 180px;
   overflow: hidden;
 }
 
-.card-image {
+.event-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -118,14 +109,6 @@ const formatDate = (date: Date) => {
   }
 }
 
-.card-image-loading {
-  @include flex-center;
-  width: 100%;
-  height: 100%;
-  background: color-alpha($color-black, 0.1);
-  color: $color-gray-600;
-}
-
 .draft-badge {
   position: absolute;
   top: $spacing-3;
@@ -134,80 +117,37 @@ const formatDate = (date: Date) => {
   align-items: center;
   gap: $spacing-1;
   padding: $spacing-1 $spacing-2;
-  background: color-alpha($color-black, 0.8);
+  background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(8px);
-  color: $color-white;
-  border-radius: $radius-md;
-  font-size: $font-size-xs;
-  font-weight: $font-weight-semibold;
+  color: white;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 
-.card-content-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  padding: $spacing-6;
-  background: $color-gray-200;
-
-  @include dark-mode {
-    background: $color-background-dark-soft;
-  }
+.event-info {
+  padding: $spacing-4;
 }
 
-.card-title {
-  font-size: $font-size-2xl;
-  font-weight: $font-weight-bold;
-  color: $color-text-primary;
-  margin: 0 0 $spacing-2 0;
-  line-height: $line-height-snug;
-
-  @include dark-mode {
-    color: $color-white;
-  }
+.event-title {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.3;
 }
 
-.card-subtitle {
-  font-size: $font-size-base;
-  color: $color-text-secondary;
-  line-height: $line-height-relaxed;
-  margin: 0 0 $spacing-2 0;
-
-  @include dark-mode {
-    color: $color-gray-300;
-  }
+.event-details {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+  margin-top: $spacing-3;
 }
 
-.card-date {
+.event-date,
+.event-location {
   display: flex;
   align-items: center;
   gap: $spacing-1;
-  font-size: $font-size-sm;
-  color: $color-text-secondary;
-  font-weight: $font-weight-medium;
-
-  @include dark-mode {
-    color: $color-gray-400;
-  }
-}
-
-@media (max-width: $breakpoint-mobile) {
-  .card-content-overlay {
-    padding: $spacing-4;
-  }
-
-  .card-title {
-    font-size: $font-size-xl;
-    margin: 0 0 $spacing-1 0;
-  }
-
-  .card-subtitle {
-    font-size: $font-size-sm;
-    margin: 0 0 $spacing-1 0;
-  }
-
-  .card-date {
-    font-size: $font-size-xs;
-  }
+  font-size: 0.875rem;
+  opacity: 0.7;
 }
 </style>
