@@ -28,29 +28,32 @@ paths:
                     **Required fields:**
                     - `title` (string): Event title
                     - `description` (string): Event description
-                    - `tags` (array of strings): List of event tags
-                    - `location` (object): Event location with required fields:
-                      - `address` (string)
-                      - `city` (string)
-                      - `province` (string)
-                      - `country` (string)
-                      - `latitude` (number)
-                      - `longitude` (number)
-                    - `date` (string, ISO 8601 format): Event date and time (e.g., "2025-07-15T20:00:00")
+                    - `tags` (array of strings): List of event tags. In case of wrong tag, that tag is ignored
+                    - `location` (object): Event location (required). Required fields:
+                      - name (string): Location or venue name. Optional
+                      - country (string)
+                      - country_code (string)
+                      - state (string). Optional
+                      - province (string). Optional
+                      - city (string). Optional
+                      - road (string)
+                      - postcode (string)
+                      - house_number (string). Optional
+                      - lat (number): Decimal degrees (latitude), e.g. 40.785091
+                      - lon (number): Decimal degrees (longitude), e.g. -73.968285
+                      - link (string): Optional URL or external reference
+                    - `date` (string, ISO 8601 format): Event date and time (e.g., "2026-07-15T20:00:00")
                     - `price` (number): Event ticket price
                     - `status` (string): Event status, must be "DRAFT" or "PUBLISHED"
                     - `id_creator` (string): ID of the event creator
                     
                     **Optional fields:**
                     - `id_collaborator` (string): ID of a collaborator
-                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"address":"Central Park","city":"New York","province":"NY","country":"USA","latitude":40.785091,"longitude":-73.968285},"date":"2025-07-15T20:00:00","price":25.50,"status":"DRAFT","id_creator":"user-123","id_collaborator":"user-456"}'
+                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","id_creator":"user-123","id_collaborator":"user-456"}'
                 poster:
                   type: string
                   format: binary
                   description: Event poster image file (required)
-            encoding:
-              event:
-                contentType: application/json
       responses:
         '201':
           description: Event created successfully
@@ -128,20 +131,40 @@ paths:
                       description: List of event tags
                     location:
                       type: object
-                      description: Event location
+                      description: Event location object
                       properties:
-                        address:
+                        name:
                           type: string
-                        city:
-                          type: string
-                        province:
-                          type: string
+                          description: Location or venue name. May be empty string ("") if unknown.
                         country:
                           type: string
-                        latitude:
+                        country_code:
+                          type: string
+                        state:
+                          type: string
+                          description: May be empty string ("") if not provided.
+                        province:
+                          type: string
+                          description: May be empty string ("") if not provided.
+                        city:
+                          type: string
+                          description: May be empty string ("") if not provided.
+                        road:
+                          type: string
+                        postcode:
+                          type: string
+                        house_number:
+                          type: string
+                          description: May be empty string ("") if not provided.
+                        lat:
                           type: number
-                        longitude:
+                          description: Latitude in decimal degrees
+                        lon:
                           type: number
+                          description: Longitude in decimal degrees
+                        link:
+                          type: string
+                          description: Optional URL or reference; may be empty string ("") if not provided.
                     date:
                       type: string
                       format: date-time
@@ -179,7 +202,7 @@ paths:
       tags:
         - Event Query API
   
-  /{:id_event/poster}:
+  /{id_event}/poster:
     post:
       summary: Update event poster
       description: Updates the poster image for a specific event. The event must exist before updating its poster.
@@ -244,7 +267,7 @@ paths:
       tags:
         - Event Query API
 
-  /{:id_event}:
+  /{id_event}:
     get:
       summary: Get event details by ID
       description: Retrieves detailed information about a specific event.
@@ -287,8 +310,33 @@ paths:
                       type: string
                     description: List of event tags
                   location:
-                    type: string
-                    description: Event location
+                    type: object
+                    description: Event location object
+                    properties:
+                      name:
+                        type: string
+                      country:
+                        type: string
+                      country_code:
+                        type: string
+                      state:
+                        type: string
+                      province:
+                        type: string
+                      city:
+                        type: string
+                      road:
+                        type: string
+                      postcode:
+                        type: string
+                      house_number:
+                        type: string
+                      lat:
+                        type: number
+                      lon:
+                        type: number
+                      link:
+                        type: string
                   date:
                     type: string
                     format: date-time
@@ -318,10 +366,22 @@ paths:
                 description: "An amazing summer music festival"
                 poster: "poster-123.jpg"
                 tag: ["Concert", "Festival", "Live Music"]
-                location: "Central Park, New York"
-                date: "2025-07-15T20:00:00"
+                location:
+                  name: "Central Park"
+                  country: "United States"
+                  country_code: "US"
+                  state: "New York"
+                  province: "NY"
+                  city: "New York"
+                  road: "5th Ave"
+                  postcode: "10022"
+                  house_number: "1"
+                  lat: 40.785091
+                  lon: -73.968285
+                  link: "https://maps.example.com/?q=central+park"
+                date: "2026-07-15T20:00:00"
                 status: "DRAFT"
-                instant: "2025-11-22T10:00:00Z"
+                instant: "2026-11-22T10:00:00Z"
                 id_creator: "user-123"
                 id_collaborator: ""
         '404':
@@ -367,13 +427,19 @@ paths:
                 - `title` (string): Event title
                 - `description` (string): Event description
                 - `tags` (array of strings): Complete list of event tags (replaces existing tags)
-                - `location` (object): Event location with fields:
-                  - `address` (string)
-                  - `city` (string)
-                  - `province` (string)
+                - `location` (object): Event location with fields matching the `Location` model:
+                  - `name` (string)
                   - `country` (string)
-                  - `latitude` (number)
-                  - `longitude` (number)
+                  - `country_code` (string)
+                  - `state` (string)
+                  - `province` (string)
+                  - `city` (string)
+                  - `road` (string)
+                  - `postcode` (string)
+                  - `house_number` (string)
+                  - `lat` (number)
+                  - `lon` (number)
+                  - `link` (string)
                 - `date` (string, ISO 8601 format): Event date and time
                 - `price` (number): Event ticket price
                 - `status` (string): Event status ("DRAFT", "PUBLISHED", or "CANCELLED")
@@ -421,7 +487,7 @@ paths:
                   type: string
                   format: date-time
                   description: Event date and time (optional)
-                  example: "2025-07-20T20:00:00"
+                  example: "2026-07-20T20:00:00"
                 price:
                   type: number
                   format: double
@@ -455,13 +521,19 @@ paths:
                   description: "An amazing updated summer music festival"
                   tags: ["Concert", "Festival", "Live Music", "Outdoor"]
                   location:
-                    address: "Central Park"
-                    city: "New York"
+                    name: "Central Park"
+                    country: "United States"
+                    country_code: "US"
+                    state: "New York"
                     province: "NY"
-                    country: "USA"
-                    latitude: 40.785091
-                    longitude: -73.968285
-                  date: "2025-07-20T20:00:00"
+                    city: "New York"
+                    road: "5th Ave"
+                    postcode: "10022"
+                    house_number: "1"
+                    lat: 40.785091
+                    lon: -73.968285
+                    link: "https://maps.example.com/?q=central+park"
+                  date: "2026-07-20T20:00:00"
                   price: 30.00
                   status: "PUBLISHED"
       responses:
