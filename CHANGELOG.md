@@ -1,3 +1,9 @@
+## [1.4.1](https://github.com/EvenToNight/EvenToNight/compare/v1.4.0...v1.4.1) (2025-12-09)
+
+### Bug Fixes
+
+* **CORS:** fix bug with CORS ([224a29b](https://github.com/EvenToNight/EvenToNight/commit/224a29b82feb772ef0be729690f5d49f82a14932))
+
 ## [1.4.0](https://github.com/EvenToNight/EvenToNight/compare/v1.3.0...v1.4.0) (2025-12-08)
 
 ### Features
