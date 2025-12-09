@@ -129,7 +129,7 @@ const handleRegister = async () => {
         label="Register"
         :loading="isLoading"
         fillContainer
-        class="q-mb-md"
+        :class="['full-width', 'q-mb-md']"
       />
     </template>
   </BaseAuthForm>

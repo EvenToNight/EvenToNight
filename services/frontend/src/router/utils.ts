@@ -16,7 +16,7 @@ export const useNavigation = () => {
 
   const locale = computed(() => (route.params.locale as string) || DEFAULT_LOCALE)
   const params = route.params
-  const routeName = route.name as string
+  const routeName = computed(() => route.name as string)
   const redirect = computed(() => {
     return route.query.redirect as string | undefined
   })

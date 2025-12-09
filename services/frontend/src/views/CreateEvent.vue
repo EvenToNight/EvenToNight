@@ -4,19 +4,20 @@ import { useQuasar } from 'quasar'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
 import { api } from '@/api'
-// import type { EventData } from '@/api/types/events'
+import type { EventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
 import { parseLocation } from '@/api/types/common'
 import { useNavigation } from '@/router/utils'
-// import { useAuthStore } from '@/stores/auth'
+import { useAuthStore } from '@/stores/auth'
 import FormField from '@/components/forms/FormField.vue'
 import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import type { Tag } from '@/api/types/events'
+import Button from '@/components/buttons/basicButtons/Button.vue'
 const $q = useQuasar()
 
-const { goToHome } = useNavigation()
-// const authStore = useAuthStore()
-// const currentUserId = authStore.user?.id
+const { goToHome, goToEventDetails } = useNavigation()
+const authStore = useAuthStore()
+const currentUserId = authStore.user?.id
 
 const title = ref('')
 const date = ref('')
@@ -27,19 +28,13 @@ const tags = ref<string[]>([])
 const collaborators = ref<string[]>([])
 const location = ref<Location | null>(null)
 const poster = ref<File | null>(null)
-// const status = ref<'draft' | 'published'>('draft')
 
 const titleError = ref('')
 const dateError = ref('')
 const timeError = ref('')
-// const descriptionError = ref('')
 const priceError = ref('')
-// const tagsError = ref('')
-
-// const collaboratorsError = ref('')
-// const locationError = ref('')
+const locationError = ref('')
 const posterError = ref('')
-// const statusError = ref('')
 
 const handleImageError = (message: string) => {
   $q.notify({
@@ -184,145 +179,91 @@ const handleLocationSelect = (selectedLocation: any) => {
   }
 }
 
+const validateInput = (): boolean => {
+  let isValid = true
+  titleError.value = ''
+  dateError.value = ''
+  timeError.value = ''
+  priceError.value = ''
+  locationError.value = ''
+
+  if (!title.value) {
+    titleError.value = 'Title is required'
+    isValid = false
+  }
+
+  if (!date.value) {
+    dateError.value = 'Date is required'
+    isValid = false
+  }
+
+  if (!time.value) {
+    timeError.value = 'Time is required'
+    isValid = false
+  }
+
+  if (!price.value) {
+    priceError.value = 'Price is required'
+    isValid = false
+  }
+
+  if (!location.value) {
+    locationError.value = 'Location is required'
+    isValid = false
+  }
+
+  return isValid
+}
+
 const saveDraft = async () => {
-  // if (!event.value.title) {
-  //   $q.notify({
-  //     color: 'negative',
-  //     message: 'Please provide at least a title for the draft',
-  //   })
-  //   return
-  // }
-  // try {
-  //   event.value.status = 'draft'
-  //   // For draft, we only need title and basic info
-  //   const dateTime =
-  //     event.value.date && event.value.time
-  //       ? new Date(`${event.value.date}T${event.value.time}`)
-  //       : new Date()
-  //   const eventData: EventData = {
-  //     title: event.value.title,
-  //     description: event.value.description,
-  //     poster: event.value.poster || new File([], 'placeholder.jpg'),
-  //     tags: event.value.tags,
-  //     location: event.value.location || {
-  //       country: '',
-  //       countryCode: '',
-  //       state: '',
-  //       province: '',
-  //       city: '',
-  //       road: '',
-  //       postcode: 0,
-  //       house_number: 0,
-  //       lat: 0,
-  //       lon: 0,
-  //       link: '',
-  //     },
-  //     date: dateTime,
-  //     price: event.value.price,
-  //     status: 'draft',
-  //     creatorId: currentUserId,
-  //     collaboratorsId: event.value.collaborators,
-  //   }
-  //   await api.events.publishEvent(eventData)
-  //   $q.notify({
-  //     color: 'positive',
-  //     message: 'Draft saved successfully!',
-  //   })
-  //   goToHome()
-  // } catch (error) {
-  //   console.error('Failed to save draft:', error)
-  //   $q.notify({
-  //     color: 'negative',
-  //     message: 'Failed to save draft. Please try again.',
-  //   })
-  // }
+  titleError.value = ''
+  if (!title.value) {
+    titleError.value = 'Title is required'
+    $q.notify({
+      color: 'negative',
+      message: 'Please provide at least a title for the draft',
+    })
+    return
+  }
+  // TODO implement draft saving
 }
 
 const onSubmit = async () => {
-  // // Reset errors
-  // errors.value = {
-  //   title: '',
-  //   date: '',
-  //   time: '',
-  //   location: '',
-  //   poster: '',
-  // }
-  // // Validate required fields
-  // let hasErrors = false
-  // if (!event.value.title) {
-  //   errors.value.title = 'Event Title is required'
-  //   hasErrors = true
-  // }
-  // if (!event.value.date) {
-  //   errors.value.date = 'Date is required'
-  //   hasErrors = true
-  // }
-  // if (!event.value.time) {
-  //   errors.value.time = 'Time is required'
-  //   hasErrors = true
-  // }
-  // if (!event.value.location) {
-  //   errors.value.location = 'Location is required'
-  //   hasErrors = true
-  // }
-  // if (!event.value.poster) {
-  //   errors.value.poster = 'Event Poster is required'
-  //   hasErrors = true
-  // }
-  // if (hasErrors) {
-  //   $q.notify({
-  //     color: 'negative',
-  //     message: 'Please fill all required fields',
-  //   })
-  //   return
-  // }
-  // try {
-  //   // Validate required fields
-  //   if (!event.value.poster) {
-  //     $q.notify({
-  //       color: 'negative',
-  //       message: 'Please upload a poster image',
-  //     })
-  //     return
-  //   }
-  //   if (!event.value.location) {
-  //     $q.notify({
-  //       color: 'negative',
-  //       message: 'Please select a location',
-  //     })
-  //     return
-  //   }
-  //   event.value.status = 'published'
-  //   // Combine date and time into a Date object
-  //   const dateTime = new Date(`${event.value.date}T${event.value.time}`)
-  //   // Create EventData object
-  //   const eventData: EventData = {
-  //     title: event.value.title,
-  //     description: event.value.description,
-  //     poster: event.value.poster,
-  //     tags: event.value.tags,
-  //     location: event.value.location,
-  //     date: dateTime,
-  //     price: event.value.price,
-  //     status: 'published',
-  //     creatorId: currentUserId,
-  //     collaboratorsId: event.value.collaborators,
-  //   }
-  //   // Call API to publish event
-  //   const response = await api.events.publishEvent(eventData)
-  //   $q.notify({
-  //     color: 'positive',
-  //     message: 'Event published successfully!',
-  //   })
-  //   // Navigate to the created event
-  //   goToEventDetails(response.eventId)
-  // } catch (error) {
-  //   console.error('Failed to create event:', error)
-  //   $q.notify({
-  //     color: 'negative',
-  //     message: 'Failed to create event. Please try again.',
-  //   })
-  // }
+  const hasErrors = validateInput()
+  if (hasErrors) {
+    $q.notify({
+      color: 'negative',
+      message: 'Please fill all required fields',
+    })
+    return
+  }
+  try {
+    const dateTime = new Date(`${date.value}T${time.value}`)
+    const eventData: EventData = {
+      title: title.value,
+      description: description.value,
+      ...(poster.value ? { poster: poster.value } : {}),
+      tags: tags.value,
+      location: location.value!,
+      date: dateTime,
+      price: Number(price.value),
+      status: 'published',
+      creatorId: currentUserId!,
+      collaboratorsId: collaborators.value,
+    }
+    const response = await api.events.publishEvent(eventData)
+    $q.notify({
+      color: 'positive',
+      message: 'Event published successfully!',
+    })
+    goToEventDetails(response.eventId)
+  } catch (error) {
+    console.error('Failed to create event:', error)
+    $q.notify({
+      color: 'negative',
+      message: 'Failed to create event. Please try again.',
+    })
+  }
 }
 </script>
 
@@ -439,6 +380,7 @@ const onSubmit = async () => {
             fill-input
             hide-selected
             input-debounce="500"
+            :error="locationError"
             @filter="filterLocations"
             @update:model-value="handleLocationSelect"
           >
@@ -459,7 +401,7 @@ const onSubmit = async () => {
             </template>
           </FormSelectorField>
 
-          <div class="form-field">
+          <div>
             <ImageCropUploadTest
               v-model="poster"
               label="Event Poster *"
@@ -472,16 +414,17 @@ const onSubmit = async () => {
             </div>
           </div>
           <div class="form-actions">
-            <q-btn label="Cancel" flat color="grey-7" size="md" @click="goToHome()" />
+            <Button variant="tertiary" :label="'Cancel'" @click="goToHome" />
             <div class="action-buttons">
-              <q-btn
+              <Button
                 label="Save Draft"
                 outline
+                variant="primary"
                 size="md"
                 class="outline-btn-fix"
                 @click="saveDraft"
               />
-              <q-btn label="Publish Event" unelevated color="primary" size="lg" type="submit" />
+              <Button label="Publish Event" variant="primary" type="submit" />
             </div>
           </div>
         </q-form>
@@ -528,38 +471,10 @@ const onSubmit = async () => {
     background: #1e1e1e;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   }
-}
 
-.form-field {
-  margin-bottom: $spacing-4;
-
-  :deep(.q-field) {
-    margin-bottom: 0;
-  }
-
-  // Hide error area when there's no error
-  :deep(.q-field:not(.q-field--error) .q-field__bottom) {
-    display: none !important;
-    min-height: 0 !important;
-    padding: 0 !important;
-  }
-
-  // Hide native date/time icons completely
   :deep(input[type='date']::-webkit-calendar-picker-indicator),
   :deep(input[type='time']::-webkit-calendar-picker-indicator) {
     display: none;
-  }
-
-  :deep(input[type='date']::-webkit-inner-spin-button),
-  :deep(input[type='time']::-webkit-inner-spin-button) {
-    display: none;
-  }
-
-  // Fix white text in chips
-  :deep(.q-chip) {
-    .q-chip__content {
-      color: white !important;
-    }
   }
 }
 
@@ -600,170 +515,6 @@ const onSubmit = async () => {
   @media (max-width: 768px) {
     flex-direction: column;
     width: 100%;
-  }
-}
-</style>
-
-<style lang="scss">
-.outline-btn-fix.q-btn.q-btn--outline {
-  color: #6f00ff !important;
-  border-color: #6f00ff !important;
-  background: transparent !important;
-
-  &.text-primary {
-    color: #6f00ff !important;
-  }
-
-  // All text elements
-  .q-btn__content,
-  .q-btn__content span,
-  .q-btn__content .block,
-  span,
-  span.block,
-  .q-icon,
-  i,
-  i.q-icon,
-  i.material-icons {
-    color: #6f00ff !important;
-  }
-
-  // Deep selectors for scoped components
-  :deep(.q-icon),
-  :deep(i),
-  :deep(i.material-icons) {
-    color: #6f00ff !important;
-  }
-
-  // Fix all interactive states
-  &.q-btn--active,
-  &:active,
-  &:hover,
-  &:focus,
-  &.q-hoverable:hover,
-  &.q-focusable:focus {
-    color: #6f00ff !important;
-    background: rgba(111, 0, 255, 0.1) !important;
-
-    .q-btn__content,
-    .q-btn__content span,
-    .q-btn__content .block,
-    span,
-    span.block,
-    .q-icon,
-    i,
-    i.q-icon,
-    i.material-icons {
-      color: #6f00ff !important;
-    }
-
-    :deep(.q-icon),
-    :deep(i),
-    :deep(i.material-icons) {
-      color: #6f00ff !important;
-    }
-  }
-}
-
-body.body--dark .outline-btn-fix.q-btn.q-btn--outline {
-  color: #bb86fc !important;
-  border-color: #bb86fc !important;
-  background: transparent !important;
-
-  &.text-primary {
-    color: #bb86fc !important;
-  }
-
-  // All text elements
-  .q-btn__content,
-  .q-btn__content span,
-  .q-btn__content .block,
-  span,
-  span.block,
-  .q-icon,
-  i,
-  i.q-icon,
-  i.material-icons {
-    color: #bb86fc !important;
-  }
-
-  :deep(.q-icon),
-  :deep(i),
-  :deep(i.material-icons) {
-    color: #bb86fc !important;
-  }
-
-  // Fix all interactive states in dark mode
-  &.q-btn--active,
-  &:active,
-  &:hover,
-  &:focus,
-  &.q-hoverable:hover,
-  &.q-focusable:focus {
-    color: #bb86fc !important;
-    background: rgba(187, 134, 252, 0.1) !important;
-
-    .q-btn__content,
-    .q-btn__content span,
-    .q-btn__content .block,
-    span,
-    span.block,
-    .q-icon,
-    i,
-    i.q-icon,
-    i.material-icons {
-      color: #bb86fc !important;
-    }
-
-    :deep(.q-icon),
-    :deep(i),
-    :deep(i.material-icons) {
-      color: #bb86fc !important;
-    }
-  }
-}
-
-.tags-dropdown-popup {
-  max-height: 250px !important;
-  overflow-y: auto !important;
-
-  .q-virtual-scroll__content {
-    max-height: none !important;
-  }
-
-  .q-menu {
-    max-height: 250px !important;
-    overflow-y: auto !important;
-  }
-
-  .category-header {
-    background: rgba(0, 0, 0, 0.05);
-    cursor: default;
-    padding: 8px 16px;
-
-    @include dark-mode {
-      background: rgba(255, 255, 255, 0.05);
-    }
-
-    .q-item-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-      opacity: 0.7;
-    }
-  }
-
-  .selected-tag {
-    @include light-mode {
-      background: rgba(25, 118, 210, 0.08);
-    }
-
-    @include dark-mode {
-      background: rgba(144, 202, 249, 0.08);
-    }
-
-    .q-item__label {
-      font-weight: 500;
-    }
   }
 }
 </style>
