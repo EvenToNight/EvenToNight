@@ -8,6 +8,7 @@ import { api } from '@/api'
 import type { User } from '@/api/types/users'
 import { useNavigation } from '@/router/utils'
 import ProfileHeader from './ProfileHeader.vue'
+import ProfileBody from './ProfileBody.vue'
 
 const { t } = useI18n()
 const { goToEventDetails, params } = useNavigation()
@@ -214,7 +215,7 @@ const goToEvent = (eventId: string) => {
           </div>
         </div>
       </div>
-
+      <ProfileBody :user="member" />
       <!-- Tabs -->
       <div class="tabs-section">
         <div class="tabs-header">

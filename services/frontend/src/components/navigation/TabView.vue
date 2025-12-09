@@ -7,6 +7,7 @@ export interface Tab {
   label: string
   icon?: string
   component: Component
+  props?: Record<string, any>
 }
 
 interface Props {
@@ -43,7 +44,10 @@ const getCurrentTabComponent = (): Tab => {
     </div>
 
     <div class="tab-content">
-      <component :is="getCurrentTabComponent().component" />
+      <component
+        :is="getCurrentTabComponent().component"
+        v-bind="getCurrentTabComponent().props || {}"
+      />
     </div>
   </div>
 </template>
