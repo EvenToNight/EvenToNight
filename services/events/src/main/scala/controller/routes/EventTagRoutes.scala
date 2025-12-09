@@ -1,8 +1,9 @@
 package controller.routes
+import cask.Routes
 import domain.models.EventTag
 import ujson.*
 
-class EventTagRoutes extends BaseRoutes:
+class EventTagRoutes extends Routes:
 
   @cask.get("/tags")
   def getTags(): cask.Response[ujson.Value] =
@@ -20,7 +21,7 @@ class EventTagRoutes extends BaseRoutes:
         tags.map { case (category, list) =>
           Obj(
             "category" -> category,
-            "tags"     -> Arr.from(list.map(_.toString))
+            "tags"     -> Arr.from(list)
           )
         }
       ),
@@ -38,7 +39,7 @@ class EventTagRoutes extends BaseRoutes:
       case "Extra"       => EventTag.Extras
       case _             => List.empty
     cask.Response(
-      Arr.from(tagList.map(_.toString)),
+      Arr.from(tagList),
       statusCode = 200
     )
 

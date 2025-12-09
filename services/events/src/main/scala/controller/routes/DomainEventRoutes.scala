@@ -1,11 +1,12 @@
 package controller.routes
 
+import cask.Routes
 import domain.commands.{DeleteEventCommand, UpdateEventPosterCommand}
 import service.EventService
 import ujson.Obj
 import utils.Utils
 
-class DomainEventRoutes(eventService: EventService) extends BaseRoutes:
+class DomainEventRoutes(eventService: EventService) extends Routes:
 
   private val mediaServiceUrl = "http://media:9020"
 
