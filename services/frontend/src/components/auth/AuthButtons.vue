@@ -19,14 +19,14 @@ const { goToLogin, goToRegister } = useNavigation()
   <div :class="['auth-buttons', `auth-buttons--${variant}`]">
     <Button
       variant="tertiary"
-      :label="t('nav.login')"
+      :label="t('auth.login')"
       :class="[{ 'full-width': variant === 'vertical' }]"
       @click="goToLogin"
     />
 
     <Button
       variant="primary"
-      :label="t('nav.register')"
+      :label="t('auth.register')"
       :class="[{ 'full-width': variant === 'vertical' }]"
       @click="goToRegister"
     />

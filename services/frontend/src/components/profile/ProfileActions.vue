@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useNavigation } from '@/router/utils'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const { goToCreateEvent } = useNavigation()
 
 interface Props {
@@ -35,10 +37,15 @@ const handleFollowToggle = () => {
 <template>
   <div class="profile-actions">
     <template v-if="isOwnProfile">
-      <Button label="Edit Profile" icon="edit" variant="secondary" @click="handleEditProfile" />
+      <Button
+        :label="t('userProfile.editProfile')"
+        icon="edit"
+        variant="secondary"
+        @click="handleEditProfile"
+      />
       <Button
         v-if="isOrganization"
-        label="Create Event"
+        :label="t('userProfile.createEvent')"
         icon="add"
         variant="primary"
         @click="handleCreateEvent"
@@ -46,7 +53,7 @@ const handleFollowToggle = () => {
     </template>
     <template v-else>
       <Button
-        :label="isFollowing ? 'Following' : 'Follow'"
+        :label="isFollowing ? t('userProfile.following') : t('userProfile.follow')"
         :variant="isFollowing ? 'secondary' : 'primary'"
         @click="handleFollowToggle"
       />

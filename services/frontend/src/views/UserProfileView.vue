@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted } from 'vue'
 import { api } from '@/api'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
@@ -12,14 +12,6 @@ const { params } = useNavigation()
 const isFollowing = ref(false)
 const showAuthDialog = ref(false)
 const user = ref<User | null>(null)
-
-// Reload when route changes (e.g., navigating between different user profiles)
-watch(
-  () => params.id,
-  () => {
-    loadUser()
-  }
-)
 
 onMounted(async () => {
   await loadUser()

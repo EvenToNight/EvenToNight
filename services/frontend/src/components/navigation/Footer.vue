@@ -32,7 +32,7 @@ const { changeLocale } = useNavigation()
         </div>
 
         <div class="footer-bottom">
-          <p class="footer-copyright">{{ t('footer.copyright') }}</p>
+          <p class="footer-copyright">{{ '© 2025 EvenToNight. ' + t('footer.copyright') }}</p>
         </div>
       </div>
     </div>

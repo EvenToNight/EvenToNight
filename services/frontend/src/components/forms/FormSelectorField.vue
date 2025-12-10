@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { defineProps } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   modelValue: any
@@ -7,6 +8,7 @@ interface Props {
 }
 
 defineProps<Props>()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -27,7 +29,7 @@ defineProps<Props>()
     <template #no-option>
       <slot name="no-option">
         <q-item>
-          <q-item-section class="text-grey"> No results </q-item-section>
+          <q-item-section class="text-grey"> {{ t('search.noResultsText') }} </q-item-section>
         </q-item>
       </slot>
     </template>

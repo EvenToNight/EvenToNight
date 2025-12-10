@@ -2,6 +2,7 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { User } from '@/api/types/users'
 import { api } from '@/api'
+import { useI18n } from 'vue-i18n'
 
 interface AuthToken {
   accessToken: string
@@ -14,6 +15,7 @@ const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
 const USER_SESSION_KEY = 'user_session'
 
 export const useAuthStore = defineStore('auth', () => {
+  const { t } = useI18n()
   const token = ref<AuthToken | null>(null)
   const user = ref<User | null>(null)
   const isLoading = ref(false)
@@ -65,7 +67,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : 'Registration failed',
+        error: error instanceof Error ? error.message : t('auth.registerForm.failedRegistration'),
       }
     } finally {
       isLoading.value = false
@@ -78,7 +80,10 @@ export const useAuthStore = defineStore('auth', () => {
       setAuthData(await api.users.login({ email, password }))
       return { success: true }
     } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Login failed' }
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : t('auth.loginForm.failedLogin'),
+      }
     } finally {
       isLoading.value = false
     }

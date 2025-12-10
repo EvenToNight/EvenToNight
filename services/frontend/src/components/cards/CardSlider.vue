@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 
 interface Props {
@@ -14,6 +15,7 @@ const emit = defineEmits<{
 }>()
 
 const $q = useQuasar()
+const { t } = useI18n()
 const cardsContainer = ref<HTMLElement | null>(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
@@ -73,7 +75,7 @@ onMounted(() => {
     <div class="slider-header">
       <h2 class="slider-title">{{ title }}</h2>
       <span class="see-all-link" @click="handleSeeAll">
-        <span class="see-all-text">See All</span>
+        <span class="see-all-text">{{ t('cards.slider.seeAll') }}</span>
         <q-icon name="arrow_forward" size="18px" class="see-all-arrow" />
       </span>
     </div>
@@ -87,7 +89,7 @@ onMounted(() => {
     <button
       v-if="shouldShowNavigation && canScrollLeft"
       class="nav-arrow nav-arrow-left"
-      aria-label="Scroll left"
+      :aria-label="t('cards.slider.scrollLeftAriaLabel')"
       @click="scrollLeft"
     >
       <q-icon name="chevron_left" size="32px" />
@@ -95,7 +97,7 @@ onMounted(() => {
     <button
       v-if="shouldShowNavigation && canScrollRight"
       class="nav-arrow nav-arrow-right"
-      aria-label="Scroll right"
+      :aria-label="t('cards.slider.scrollRightAriaLabel')"
       @click="scrollRight"
     >
       <q-icon name="chevron_right" size="32px" />

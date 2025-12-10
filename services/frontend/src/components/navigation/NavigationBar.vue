@@ -140,14 +140,14 @@ const goToProfile = () => {
                     <q-item-section avatar>
                       <q-icon name="person" />
                     </q-item-section>
-                    <q-item-section>{{ t('nav.profile') }}</q-item-section>
+                    <q-item-section>{{ t('profile') }}</q-item-section>
                   </q-item>
                   <q-separator />
                   <q-item clickable @click="handleLogout">
                     <q-item-section avatar>
                       <q-icon name="logout" />
                     </q-item-section>
-                    <q-item-section>{{ t('nav.logout') }}</q-item-section>
+                    <q-item-section>{{ t('auth.logout') }}</q-item-section>
                   </q-item>
                 </q-list>
               </q-menu>
@@ -176,15 +176,10 @@ const goToProfile = () => {
         </div>
         <q-separator class="q-my-md" />
         <div class="drawer-user-buttons">
-          <Button
-            icon="person"
-            :label="t('nav.profile')"
-            variant="secondary"
-            @click="goToProfile"
-          />
+          <Button icon="person" :label="t('profile')" variant="secondary" @click="goToProfile" />
           <Button
             icon="logout"
-            :label="t('nav.logout')"
+            :label="t('auth.logout')"
             variant="secondary"
             @click="handleLogout"
           />

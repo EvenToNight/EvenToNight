@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { User } from '@/api/types/users'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   user: User
 }
 
 defineProps<Props>()
+const { t } = useI18n()
 </script>
 
 <template>
@@ -13,12 +15,12 @@ defineProps<Props>()
     <div class="network-info-row">
       <div class="stat-item">
         <span class="stat-value">{{ user.followers.toString() }}</span>
-        <span class="stat-label">Followers</span>
+        <span class="stat-label">{{ t('userProfile.followers') }}</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
         <span class="stat-value">{{ user.following.toString() }}</span>
-        <span class="stat-label">Following</span>
+        <span class="stat-label">{{ t('userProfile.following') }}</span>
       </div>
     </div>
     <p v-if="user.bio" class="user-bio">{{ user.bio }}</p>

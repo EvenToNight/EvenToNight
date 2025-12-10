@@ -7,13 +7,14 @@ import { useAuthStore } from '@/stores/auth'
 import { computed, onMounted, ref } from 'vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   user: User
 }
 
 const props = defineProps<Props>()
-
+const { t } = useI18n()
 const authStore = useAuthStore()
 
 const isOwnProfile = computed(() => {
@@ -48,7 +49,7 @@ const tabs = computed<Tab[]>(() => {
   if (!isOrganization.value && isOwnProfile.value) {
     baseTabs.push({
       id: 'tickets',
-      label: 'My Tickets',
+      label: t('userProfile.myTickets'),
       icon: 'confirmation_number',
       component: TicketsTab,
     })
@@ -56,18 +57,18 @@ const tabs = computed<Tab[]>(() => {
 
   baseTabs.push({
     id: 'events',
-    label: isOwnProfile.value ? 'My Events' : 'Events',
+    label: isOwnProfile.value ? t('userProfile.myEvents') : t('userProfile.events'),
     icon: 'event',
     component: EventsTab,
     props: {
       events: isOrganization.value ? organizationEvents.value : memberAttendedEvents.value,
       emptyText: isOwnProfile.value
         ? isOrganization.value
-          ? 'You have not created any events yet.'
-          : 'You have not attended any events yet.'
+          ? t('userProfile.noEventCreated')
+          : t('userProfile.noEventJoined')
         : isOrganization.value
-          ? 'This organization has not created any events yet.'
-          : 'This user has not attended any events yet.',
+          ? t('userProfile.noEventCreatedExternal')
+          : t('userProfile.noEventJoinedExternal'),
       emptyIconName: 'event_busy',
     },
   })
@@ -75,12 +76,12 @@ const tabs = computed<Tab[]>(() => {
   if (isOrganization.value && isOwnProfile.value) {
     baseTabs.push({
       id: 'drafted',
-      label: 'Drafted Events',
+      label: t('userProfile.draftedEvents'),
       icon: 'edit_note',
       component: EventsTab,
       props: {
         events: organizationDraftedEvents.value,
-        emptyText: 'You have no drafted events.',
+        emptyText: t('userProfile.noDraftedEvents'),
         emptyIconName: 'edit_note',
       },
     })

@@ -38,7 +38,7 @@ const handleDownload = (ticketId: string) => {
     </div>
 
     <template v-else>
-      <EmptyTab :emptyText="t('profile.noTickets')" emptyIconName="confirmation_number" />
+      <EmptyTab :emptyText="t('userProfile.noTickets')" emptyIconName="confirmation_number" />
     </template>
   </div>
 </template>

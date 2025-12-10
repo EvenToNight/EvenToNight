@@ -2,6 +2,7 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import type { QInput } from 'quasar'
 import { useNavigation } from '@/router/utils'
+import { useI18n } from 'vue-i18n'
 import type { SearchResult } from '@/api/utils'
 import { getSearchResult } from '@/api/utils'
 import SearchResultCard from '../cards/SearchResultCard.vue'
@@ -14,10 +15,12 @@ interface Props {
   hasFocus?: boolean
 }
 
+const { t } = useI18n()
+
 const props = withDefaults(defineProps<Props>(), {
   searchQuery: '',
   searchResults: () => [],
-  searchHint: 'Search...',
+  searchHint: '',
   autofocus: false,
   hasFocus: false,
 })
@@ -32,6 +35,7 @@ const { goToEventDetails, goToUserProfile } = useNavigation()
 const showSuggestions = ref(false)
 const inputRef = ref<QInput | null>(null)
 const isSearching = ref(false)
+const searchHint = computed(() => props.searchHint || t('search.baseHint'))
 const maxResults = 5
 
 const searchQuery = computed({
@@ -167,7 +171,7 @@ const handleBlur = () => {
       <div v-if="showSuggestions && isSearching" class="suggestions-dropdown loading">
         <div class="loading-item">
           <q-spinner size="20px" color="primary" />
-          <span>Searching...</span>
+          <span>{{ t('search.searchingText') }}</span>
         </div>
       </div>
     </Transition>

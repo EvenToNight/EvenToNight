@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useSlots } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type FormFieldType = 'text' | 'email' | 'password' | 'date' | 'time' | 'textarea' | 'number'
 
@@ -22,6 +23,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
+const { t } = useI18n()
 const slots = useSlots()
 const hasPrependSlot = computed(() => !!slots.prepend)
 
@@ -40,7 +42,7 @@ const rules = computed(() => {
       (val: string) => {
         if (!val) return true // Empty validation is handled by required check
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return emailPattern.test(val) || 'Please enter a valid email address'
+        return emailPattern.test(val) || t('auth.form.emailFormatError')
       },
     ]
   }

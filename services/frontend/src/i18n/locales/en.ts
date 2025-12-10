@@ -1,15 +1,139 @@
 export default {
-  locale: 'en-US',
-  nav: {
-    login: 'Login',
-    register: 'Sign Up',
-    profile: 'Profile',
-    logout: 'Logout',
+  date: 'Date',
+  time: 'Time',
+  location: 'Location',
+  price: 'Price',
+  download: 'Download',
+  profile: 'Profile',
+
+  brand: {
+    appName: 'EvenToNight', //[ignorei18n]
+    logo: 'Logo',
   },
+
   auth: {
+    login: 'Sign In',
+    register: 'Sign Up',
+    logout: 'Logout',
     notLoggedIn: 'Oops! Not logged in',
     loginRequired: 'You need to be logged in to perform this action',
+    form: {
+      emailLabel: 'Email',
+      emailError: 'Email is required',
+      emailFormatError: 'Please enter a valid email address',
+      passwordLabel: 'Password',
+      passwordError: 'Password is required',
+    },
+    loginForm: {
+      successfulLogin: 'Login successful!',
+      failedLogin: 'Login failed',
+      switchToRegister: 'Need an account? Register',
+    },
+    registerForm: {
+      nameLabel: 'Name',
+      nameError: 'Name is required',
+      confirmPasswordLabel: 'Confirm Password',
+      emptyConfirmPasswordError: 'Please confirm your password',
+      passwordMismatchError: 'Passwords do not match',
+      isOrganizationLabel: "I'm registering as an organization",
+      successfulRegistration: 'Registration successful!',
+      failedRegistration: 'Registration failed',
+      switchToLogin: 'Already have an account? Login',
+    },
   },
+
+  cards: {
+    slider: {
+      seeAll: 'See All',
+      scrollLeftAriaLabel: 'Scroll Left',
+      scrollRightAriaLabel: 'Scroll Right',
+    },
+    eventCard: {
+      loadingPoster: 'Loading...',
+      favoriteButtonAriaLabel: 'Toggle Favorite',
+    },
+    ticketCard: {
+      ticket: 'Ticket',
+    },
+  },
+
+  event: {
+    draft: 'Draft',
+  },
+
+  eventDetails: {
+    buyTickets: 'Buy Tickets',
+    about: 'About this event',
+    organizer: 'Organized by',
+    collaborators: 'In collaboration with',
+  },
+
+  footer: {
+    about: 'About',
+    events: 'Events',
+    contact: 'Contact',
+    privacy: 'Privacy Policy',
+    copyright: 'All rights reserved.',
+  },
+
+  search: {
+    baseHint: 'Search...',
+    searchingText: 'Searching...',
+    noResultsText: 'No results found',
+  },
+
+  userProfile: {
+    editProfile: 'Edit Profile',
+    createEvent: 'Create Event',
+    followers: 'Followers',
+    following: 'Following',
+    follow: 'Follow',
+    myTickets: 'My Tickets',
+    myEvents: 'My Events',
+    events: 'Events',
+    noEventCreated: 'You have not created any events yet.',
+    noEventCreatedExternal: 'This organization has not created any events yet.',
+    noEventJoined: 'You have not attended any events yet.',
+    noEventJoinedExternal: 'This user has not attended any events yet.',
+    noTickets: 'No tickets yet',
+    draftedEvents: 'Drafted Events',
+    noDraftedEvents: 'You have no drafted events.',
+    userAvatarAlt: 'User Avatar',
+  },
+
+  eventCreationForm: {
+    createNewEvent: 'Create New Event',
+    eventTitle: 'Event Title',
+    titleError: 'Title is required',
+    date: 'Date',
+    dateError: 'Date is required',
+    time: 'Time',
+    timeError: 'Time is required',
+    description: 'Description',
+    price: 'Price',
+    priceError: 'Price is required',
+    tags: 'Tags',
+    collaborators: 'Collaborators',
+    collaboratorAvatarAlt: 'Collaborator Avatar',
+    location: 'Location',
+    locationError: 'Location is required',
+    eventPoster: 'Event Poster',
+    uploadPoster: 'Upload Poster',
+    cancel: 'Cancel',
+    saveDraft: 'Save Draft',
+    publishEvent: 'Publish Event',
+    locationNoOptionHint: 'Type at least 3 characters to search',
+    errorForDraftCreation: 'Please provide at least a title for the draft',
+    successForEventPublication: 'Event published successfully!',
+    errorForEventCreation: 'Please fill all required fields',
+    errorForEventPublication: 'Failed to create event. Please try again.',
+  },
+
+  theme: {
+    light_mode: 'Light Mode',
+    dark_mode: 'Dark Mode',
+  },
+
   home: {
     hero: {
       title: 'Find the event for you',
@@ -17,39 +141,5 @@ export default {
     sections: {
       upcomingEvents: 'Upcoming Events',
     },
-  },
-  eventDetails: {
-    date: 'Date',
-    time: 'Time',
-    location: 'Location',
-    price: 'Price',
-    about: 'About this event',
-    organizer: 'Organized by',
-    collaborators: 'In collaboration with',
-    buyTickets: 'Buy Tickets',
-  },
-  footer: {
-    about: 'About',
-    events: 'Events',
-    contact: 'Contact',
-    privacy: 'Privacy Policy',
-    copyright: '© 2025 EvenToNight. All rights reserved.',
-  },
-  profile: {
-    editProfile: 'Edit Profile',
-    createEvent: 'Create Event',
-    followers: 'Followers',
-    following: 'Following',
-    follow: 'Follow',
-    followingAlready: 'Following',
-    postedEvents: 'Posted Events',
-    draftedEvents: 'Drafted Events',
-    draft: 'Draft',
-    noPostedEvents: 'No posted events yet',
-    noDraftedEvents: 'No drafted events yet',
-    myTickets: 'My Tickets',
-    myEvents: 'My Events',
-    noTickets: 'No tickets yet',
-    noEvents: 'No events yet',
   },
 }

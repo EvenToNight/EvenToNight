@@ -54,7 +54,7 @@ const formatDate = (date: Date) => {
       <img :src="event.posterLink" :alt="event.title" class="event-image" />
       <div v-if="isDraft" class="draft-badge">
         <q-icon name="edit_note" size="16px" />
-        {{ t('profile.draft') }}
+        {{ t('event.draft') }}
       </div>
     </div>
     <div class="event-info">

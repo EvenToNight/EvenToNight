@@ -13,6 +13,9 @@ import FormField from '@/components/forms/FormField.vue'
 import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import type { Tag } from '@/api/types/events'
 import Button from '@/components/buttons/basicButtons/Button.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 const $q = useQuasar()
 
 const { goToHome, goToEventDetails } = useNavigation()
@@ -188,27 +191,27 @@ const validateInput = (): boolean => {
   locationError.value = ''
 
   if (!title.value) {
-    titleError.value = 'Title is required'
+    titleError.value = t('eventCreationForm.titleError')
     isValid = false
   }
 
   if (!date.value) {
-    dateError.value = 'Date is required'
+    dateError.value = t('eventCreationForm.dateError')
     isValid = false
   }
 
   if (!time.value) {
-    timeError.value = 'Time is required'
+    timeError.value = t('eventCreationForm.timeError')
     isValid = false
   }
 
   if (!price.value) {
-    priceError.value = 'Price is required'
+    priceError.value = t('eventCreationForm.priceError')
     isValid = false
   }
 
   if (!location.value) {
-    locationError.value = 'Location is required'
+    locationError.value = t('eventCreationForm.locationError')
     isValid = false
   }
 
@@ -218,10 +221,10 @@ const validateInput = (): boolean => {
 const saveDraft = async () => {
   titleError.value = ''
   if (!title.value) {
-    titleError.value = 'Title is required'
+    titleError.value = t('eventCreationForm.titleError')
     $q.notify({
       color: 'negative',
-      message: 'Please provide at least a title for the draft',
+      message: t('eventCreationForm.errorForDraftCreation'),
     })
     return
   }
@@ -233,7 +236,7 @@ const onSubmit = async () => {
   if (hasErrors) {
     $q.notify({
       color: 'negative',
-      message: 'Please fill all required fields',
+      message: t('eventCreationForm.errorForEventCreation'),
     })
     return
   }
@@ -254,14 +257,14 @@ const onSubmit = async () => {
     const response = await api.events.publishEvent(eventData)
     $q.notify({
       color: 'positive',
-      message: 'Event published successfully!',
+      message: t('eventCreationForm.successForEventPublication'),
     })
     goToEventDetails(response.eventId)
   } catch (error) {
     console.error('Failed to create event:', error)
     $q.notify({
       color: 'negative',
-      message: 'Failed to create event. Please try again.',
+      message: t('eventCreationForm.errorForEventPublication'),
     })
   }
 }
@@ -273,11 +276,22 @@ const onSubmit = async () => {
 
     <div class="page-content">
       <div class="container">
-        <h1 class="text-h3 q-mb-lg">Create New Event</h1>
+        <h1 class="text-h3 q-mb-lg">{{ t('eventCreationForm.createNewEvent') }}</h1>
 
         <q-form class="form-container" @submit="onSubmit">
-          <FormField v-model="title" type="text" label="Event Title *" :error="titleError" />
-          <FormField ref="dateInput" v-model="date" type="date" label="Date *" :error="dateError">
+          <FormField
+            v-model="title"
+            type="text"
+            :label="t('eventCreationForm.eventTitle') + ' *'"
+            :error="titleError"
+          />
+          <FormField
+            ref="dateInput"
+            v-model="date"
+            type="date"
+            :label="t('eventCreationForm.date') + ' *'"
+            :error="dateError"
+          >
             <template #prepend>
               <q-icon
                 name="event"
@@ -287,7 +301,13 @@ const onSubmit = async () => {
             </template>
           </FormField>
 
-          <FormField ref="timeInput" v-model="time" type="time" label="Time *" :error="timeError">
+          <FormField
+            ref="timeInput"
+            v-model="time"
+            type="time"
+            :label="t('eventCreationForm.time') + ' *'"
+            :error="timeError"
+          >
             <template #prepend>
               <q-icon
                 name="access_time"
@@ -297,12 +317,17 @@ const onSubmit = async () => {
             </template>
           </FormField>
 
-          <FormField v-model="description" type="textarea" label="Description" rows="4" />
+          <FormField
+            v-model="description"
+            type="textarea"
+            :label="t('eventCreationForm.description')"
+            rows="4"
+          />
 
           <FormField
             v-model="price"
             type="number"
-            label="Price (€)"
+            :label="t('eventCreationForm.price') + ' (€)'"
             :error="priceError"
             prefix="€"
           />
@@ -310,7 +335,7 @@ const onSubmit = async () => {
           <FormSelectorField
             v-model="tags"
             :options="tagOptions"
-            label="Tags"
+            :label="t('eventCreationForm.tags')"
             multiple
             use-chips
             use-input
@@ -340,7 +365,7 @@ const onSubmit = async () => {
           <FormSelectorField
             v-model="collaborators"
             :options="collaboratorOptions"
-            label="Collaborators"
+            :label="t('eventCreationForm.collaborators')"
             multiple
             use-chips
             use-input
@@ -357,7 +382,7 @@ const onSubmit = async () => {
                   <q-avatar size="32px" class="collaborator-avatar" rounded>
                     <img
                       :src="scope.opt.avatar"
-                      alt="avatar"
+                      :alt="t('eventCreationForm.collaboratorAvatarAlt')"
                       style="object-fit: cover; width: 100%; height: 100%; border-radius: 50%"
                     />
                   </q-avatar>
@@ -375,7 +400,7 @@ const onSubmit = async () => {
           <FormSelectorField
             v-model="location"
             :options="locationOptions"
-            label="Location *"
+            :label="t('eventCreationForm.location') + ' *'"
             use-input
             fill-input
             hide-selected
@@ -387,7 +412,7 @@ const onSubmit = async () => {
             <template #no-option>
               <q-item>
                 <q-item-section class="text-grey">
-                  Type at least 3 characters to search
+                  {{ t('eventCreationForm.locationNoOptionHint') }}
                 </q-item-section>
               </q-item>
             </template>
@@ -404,8 +429,8 @@ const onSubmit = async () => {
           <div>
             <ImageCropUploadTest
               v-model="poster"
-              label="Event Poster *"
-              button-label="Upload Poster"
+              :label="t('eventCreationForm.eventPoster') + ' *'"
+              :button-label="t('eventCreationForm.uploadPoster')"
               :max-size="5000000"
               @error="handleImageError"
             />
@@ -414,17 +439,21 @@ const onSubmit = async () => {
             </div>
           </div>
           <div class="form-actions">
-            <Button variant="tertiary" :label="'Cancel'" @click="goToHome" />
+            <Button variant="tertiary" :label="t('eventCreationForm.cancel')" @click="goToHome" />
             <div class="action-buttons">
               <Button
-                label="Save Draft"
+                :label="t('eventCreationForm.saveDraft')"
                 outline
                 variant="primary"
                 size="md"
                 class="outline-btn-fix"
                 @click="saveDraft"
               />
-              <Button label="Publish Event" variant="primary" type="submit" />
+              <Button
+                :label="t('eventCreationForm.publishEvent')"
+                variant="primary"
+                type="submit"
+              />
             </div>
           </div>
         </q-form>

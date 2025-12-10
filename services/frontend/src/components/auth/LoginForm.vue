@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import BaseAuthForm from './BaseAuthForm.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import FormField from '@/components/forms/FormField.vue'
@@ -9,6 +10,7 @@ import { useNavigation } from '@/router/utils'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
+const { t } = useI18n()
 const { goToHome, goToRegister, goToRedirect } = useNavigation()
 
 const email = ref('')
@@ -23,12 +25,12 @@ const validateInput = (): boolean => {
   passwordError.value = ''
 
   if (!email.value) {
-    emailError.value = 'Email is required'
+    emailError.value = t('auth.form.emailError')
     isValid = false
   }
 
   if (!password.value) {
-    passwordError.value = 'Password is required'
+    passwordError.value = t('auth.form.passwordError')
     isValid = false
   }
 
@@ -38,7 +40,7 @@ const validateInput = (): boolean => {
 const onSuccessfulLogin = () => {
   $q.notify({
     type: 'positive',
-    message: 'Login successful!',
+    message: t('auth.loginForm.successfulLogin'),
   })
   if (!goToRedirect()) {
     goToHome()
@@ -48,7 +50,7 @@ const onSuccessfulLogin = () => {
 const onFailedLogin = (errorMsg?: string) => {
   $q.notify({
     type: 'negative',
-    message: errorMsg || 'Login failed',
+    message: errorMsg || t('auth.loginForm.failedLogin'),
   })
 }
 
@@ -65,19 +67,25 @@ const handleLogin = async () => {
 
 <template>
   <BaseAuthForm
-    title="Login"
-    switch-button-label="Need an account? Register"
+    :title="t('auth.login')"
+    :switch-button-label="t('auth.loginForm.switchToRegister')"
     :is-loading="authStore.isLoading"
     @submit="handleLogin"
     @switch-mode="goToRegister"
   >
     <template #fields>
-      <FormField v-model="email" type="email" label="Email *" icon="mail" :error="emailError" />
+      <FormField
+        v-model="email"
+        type="email"
+        :label="t('auth.form.emailLabel') + ' *'"
+        icon="mail"
+        :error="emailError"
+      />
 
       <FormField
         v-model="password"
         type="password"
-        label="Password *"
+        :label="t('auth.form.passwordLabel') + ' *'"
         icon="lock"
         :error="passwordError"
       />
@@ -87,7 +95,7 @@ const handleLogin = async () => {
       <Button
         type="submit"
         variant="primary"
-        label="Login"
+        :label="t('auth.login')"
         :loading="isLoading"
         :class="['full-width', 'q-mb-md']"
       />

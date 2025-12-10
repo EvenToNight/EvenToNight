@@ -58,10 +58,15 @@ watch(
         </q-card-section>
 
         <q-card-actions class="dialog-actions">
-          <Button variant="primary" :label="t('nav.login')" class="full-width" @click="openLogin" />
+          <Button
+            variant="primary"
+            :label="t('auth.login')"
+            class="full-width"
+            @click="openLogin"
+          />
           <Button
             variant="secondary"
-            :label="t('nav.register')"
+            :label="t('auth.register')"
             class="full-width"
             @click="openRegister"
           />

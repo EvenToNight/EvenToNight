@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import Button from '@/components/buttons/basicButtons/Button.vue'
+import { useI18n } from 'vue-i18n'
 
 interface Ticket {
   id: string
@@ -14,6 +15,7 @@ interface Props {
 
 defineProps<Props>()
 
+const { t } = useI18n()
 const emit = defineEmits<{
   download: [ticketId: string]
 }>()
@@ -32,14 +34,14 @@ const handleDownload = (ticketId: string) => {
 
       <div class="event-info">
         <h3 class="event-name">{{ ticket.eventName }}</h3>
-        <p class="ticket-number">Ticket #{{ ticket.ticketNumber }}</p>
+        <p class="ticket-number">{{ t('cards.ticketCard.ticket') }} #{{ ticket.ticketNumber }}</p>
       </div>
 
       <Button
         icon="download"
         variant="primary"
         class="download-button download-button-desktop"
-        label="Download"
+        :label="t('download')"
         @click="handleDownload(ticket.id)"
       />
       <Button

@@ -3,6 +3,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   id: string
@@ -24,6 +25,7 @@ const emit = defineEmits<{
 
 const authStore = useAuthStore()
 const { locale, goToEventDetails } = useNavigation()
+const { t } = useI18n()
 const isFavorite = ref(props.favorite)
 const imageObjectUrl = ref<string>('')
 const isLoadingImage = ref(true)
@@ -72,12 +74,14 @@ const month = computed(() => {
   <div class="event-card" @click="goToEventDetails(id)">
     <div class="card-image-container">
       <img v-if="imageObjectUrl" :src="imageObjectUrl" :alt="title" class="card-image" />
-      <div v-else-if="isLoadingImage" class="card-image-loading">Loading...</div>
+      <div v-else-if="isLoadingImage" class="card-image-loading">
+        {{ t('cards.eventCard.loadingPoster') }}
+      </div>
 
       <button
         class="favorite-button"
         :class="{ 'is-favorite': isFavorite }"
-        aria-label="Toggle favorite"
+        :aria-label="t('cards.eventCard.favoriteButtonAriaLabel')"
         @click="toggleFavorite"
       >
         <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="28px" />

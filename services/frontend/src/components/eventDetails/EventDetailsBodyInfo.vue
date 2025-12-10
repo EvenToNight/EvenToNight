@@ -39,7 +39,7 @@ const locationAddress = computed(() => {
     <div class="info-item">
       <q-icon name="event" class="info-icon" />
       <div class="info-text">
-        <span class="info-label">{{ t('eventDetails.date') }}</span>
+        <span class="info-label">{{ t('date') }}</span>
         <span class="info-value">{{ formatDate(event.date) }}</span>
       </div>
     </div>
@@ -47,7 +47,7 @@ const locationAddress = computed(() => {
     <div class="info-item">
       <q-icon name="schedule" class="info-icon" />
       <div class="info-text">
-        <span class="info-label">{{ t('eventDetails.time') }}</span>
+        <span class="info-label">{{ t('time') }}</span>
         <span class="info-value">{{ formatTime(event.date) }}</span>
       </div>
     </div>
@@ -55,7 +55,7 @@ const locationAddress = computed(() => {
     <div class="info-item">
       <q-icon name="location_on" class="info-icon" />
       <div class="info-text">
-        <span class="info-label">{{ t('eventDetails.location') }}</span>
+        <span class="info-label">{{ t('location') }}</span>
         <span class="info-value">{{ locationAddress }}</span>
       </div>
       <a
@@ -72,7 +72,7 @@ const locationAddress = computed(() => {
     <div class="info-item">
       <q-icon name="confirmation_number" class="info-icon" />
       <div class="info-text">
-        <span class="info-label">{{ t('eventDetails.price') }}</span>
+        <span class="info-label">{{ t('price') }}</span>
         <span class="info-value">€{{ event.price }}</span>
       </div>
     </div>

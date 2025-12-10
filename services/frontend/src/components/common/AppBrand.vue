@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useNavigation } from '@/router/utils'
+import { useI18n } from 'vue-i18n'
 
+const { t } = useI18n()
 const { goToHome } = useNavigation()
 
 const goToHomeTop = () => {
@@ -11,8 +13,8 @@ const goToHomeTop = () => {
 
 <template>
   <div class="app-brand" @click="goToHomeTop">
-    <img src="/logo.png" alt="EvenToNight Logo" class="brand-logo" />
-    <span class="brand-text">EvenToNight</span>
+    <img src="/logo.png" :alt="t('brand.appName') + ' ' + t('brand.logo')" class="brand-logo" />
+    <span class="brand-text">{{ t('brand.appName') }}</span>
   </div>
 </template>
 

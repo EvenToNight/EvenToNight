@@ -6,6 +6,7 @@ import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import UserInfo from './UserInfo.vue'
 import ProfileActions from './ProfileActions.vue'
+import { useI18n } from 'vue-i18n'
 
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
@@ -24,6 +25,7 @@ const emit = defineEmits<{
 }>()
 
 const $q = useQuasar()
+const { t } = useI18n()
 const authStore = useAuthStore()
 
 const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
@@ -58,7 +60,12 @@ const handleCreateEvent = () => {
   <div class="profile-header-card">
     <div class="profile-header">
       <div class="avatar-container">
-        <img v-if="user.avatarUrl" :src="user.avatarUrl" alt="User Avatar" class="profile-avatar" />
+        <img
+          v-if="user.avatarUrl"
+          :src="user.avatarUrl"
+          :alt="t('userProfile.userAvatarAlt')"
+          class="profile-avatar"
+        />
         <q-icon v-else :name="defaultIcon" size="100px" class="profile-avatar" />
       </div>
 

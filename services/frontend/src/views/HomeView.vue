@@ -92,7 +92,7 @@ onUnmounted(() => {
             <div class="theme-selector-absolute">
               <Button
                 :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
-                :label="$q.dark.isActive ? 'Light Mode' : 'Dark Mode'"
+                :label="$q.dark.isActive ? t('theme.light_mode') : t('theme.dark_mode')"
                 variant="primary"
                 @click="toggleDarkMode"
               />

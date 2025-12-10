@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
+import { useI18n } from 'vue-i18n'
 import BaseAuthForm from './BaseAuthForm.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import FormField from '@/components/forms/FormField.vue'
@@ -9,6 +10,7 @@ import { useNavigation } from '@/router/utils'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
+const { t } = useI18n()
 const { goToHome, goToLogin } = useNavigation()
 
 const name = ref('')
@@ -30,25 +32,25 @@ const validateInput = (): boolean => {
   confirmPasswordError.value = ''
 
   if (!name.value) {
-    nameError.value = 'Name is required'
+    nameError.value = t('auth.registerForm.nameError')
     isValid = false
   }
 
   if (!email.value) {
-    emailError.value = 'Email is required'
+    emailError.value = t('auth.form.emailError')
     isValid = false
   }
 
   if (!password.value) {
-    passwordError.value = 'Password is required'
+    passwordError.value = t('auth.form.passwordError')
     isValid = false
   }
 
   if (!confirmPassword.value) {
-    confirmPasswordError.value = 'Please confirm password'
+    confirmPasswordError.value = t('auth.registerForm.emptyConfirmPasswordError')
     isValid = false
   } else if (password.value !== confirmPassword.value) {
-    confirmPasswordError.value = 'Passwords do not match'
+    confirmPasswordError.value = t('auth.registerForm.passwordMismatchError')
     isValid = false
   }
 
@@ -58,7 +60,7 @@ const validateInput = (): boolean => {
 const onSuccessfulRegistration = () => {
   $q.notify({
     type: 'positive',
-    message: 'Registration successful!',
+    message: t('auth.registerForm.successfulRegistration'),
   })
   goToHome()
 }
@@ -66,7 +68,7 @@ const onSuccessfulRegistration = () => {
 const onFailedRegistration = (errorMsg?: string) => {
   $q.notify({
     type: 'negative',
-    message: errorMsg || 'Registration failed',
+    message: errorMsg || t('auth.registerForm.failedRegistration'),
   })
 }
 
@@ -88,21 +90,33 @@ const handleRegister = async () => {
 
 <template>
   <BaseAuthForm
-    title="Register"
-    switch-button-label="Already have an account? Login"
+    :title="t('auth.register')"
+    :switch-button-label="t('auth.registerForm.switchToLogin')"
     :is-loading="authStore.isLoading"
     @submit="handleRegister"
     @switch-mode="goToLogin"
   >
     <template #fields>
-      <FormField v-model="name" type="text" label="Name *" icon="person" :error="nameError" />
+      <FormField
+        v-model="name"
+        type="text"
+        :label="t('auth.registerForm.nameLabel') + ' *'"
+        icon="person"
+        :error="nameError"
+      />
 
-      <FormField v-model="email" type="email" label="Email *" icon="mail" :error="emailError" />
+      <FormField
+        v-model="email"
+        type="email"
+        :label="t('auth.form.emailLabel') + ' *'"
+        icon="mail"
+        :error="emailError"
+      />
 
       <FormField
         v-model="password"
         type="password"
-        label="Password *"
+        :label="t('auth.form.passwordLabel') + ' *'"
         icon="lock"
         :error="passwordError"
       />
@@ -110,14 +124,14 @@ const handleRegister = async () => {
       <FormField
         v-model="confirmPassword"
         type="password"
-        label="Confirm Password *"
+        :label="t('auth.registerForm.confirmPasswordLabel') + ' *'"
         icon="lock"
         :error="confirmPasswordError"
       />
 
       <q-checkbox
         v-model="isOrganization"
-        label="I'm registering as an organization"
+        :label="t('auth.registerForm.isOrganizationLabel')"
         class="q-mb-md"
       />
     </template>
@@ -126,7 +140,7 @@ const handleRegister = async () => {
       <Button
         type="submit"
         variant="primary"
-        label="Register"
+        :label="t('auth.register')"
         :loading="isLoading"
         fillContainer
         :class="['full-width', 'q-mb-md']"
