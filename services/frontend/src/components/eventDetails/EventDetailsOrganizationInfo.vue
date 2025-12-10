@@ -4,7 +4,7 @@ import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
 import type { User, UserID } from '@/api/types/users'
 import type { Event } from '@/api/types/events'
-import { ref, defineProps, onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 interface Props {
   event: Event
 }
