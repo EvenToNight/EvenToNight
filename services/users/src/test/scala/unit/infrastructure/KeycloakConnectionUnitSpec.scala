@@ -1,13 +1,19 @@
 package unit.infrastructure
 
+import fixtures.UserFixtures._
 import infrastructure.KeycloakConnection
+import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import sttp.client3.Response
 import sttp.client3.testing._
+import sttp.model.Header
+import sttp.model.StatusCode
 
 class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
-  val tokenPath  = List("realms", "eventonight", "protocol", "openid-connect", "token")
-  val testSecret = "test-secret"
+  val tokenPath              = List("realms", "eventonight", "protocol", "openid-connect", "token")
+  val testSecret             = "test-secret"
+  private val createUserPath = List("admin", "realms", "eventonight", "users")
 
   def connectionWithResponse(responseBody: String) =
     val backendStub = SttpBackendStub.synchronous
@@ -19,6 +25,14 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     val backendStub = SttpBackendStub.synchronous
       .whenRequestMatches(_.uri.path == tokenPath)
       .thenRespond(Left(errMsg))
+    new KeycloakConnection(backendStub, testSecret)
+
+  private def stubbedKeycloakConnection(keycloakResponse: Response[String]) =
+    val backendStub = SttpBackendStub.synchronous
+      .whenRequestMatches(_.uri.path == tokenPath)
+      .thenRespond("""{"access_token": "test_token"}""")
+      .whenRequestMatches(_.uri.path == createUserPath)
+      .thenRespond(keycloakResponse)
     new KeycloakConnection(backendStub, testSecret)
 
   "getAccessToken" should "extract the token from a valid Keycloak JSON response" in:
@@ -47,3 +61,41 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     token match
       case Right(value) => fail("Expected Left, got Right")
       case Left(err)    => err should include("Missing access_token")
+
+  "createUser" should "return Right(keycloakId) when Keycloak returns 201 with Location header" in:
+    val successResponse = Response(
+      body = "",
+      code = StatusCode.Created,
+      statusText = "Created",
+      headers = List(Header("Location", "/admin/realms/eventonight/users/12345"))
+    )
+    val connectionStub = stubbedKeycloakConnection(successResponse)
+    val result         = connectionStub.createUser(username, email, password)
+    result shouldEqual Right("12345")
+
+  it should "return Left when getAccessToken fails" in:
+    val connectionStub = connectionWithError("Internal Server Error")
+    val result         = connectionStub.createUser(username, email, password)
+    result.isLeft shouldBe true
+    result.left.value should include("Keycloak error")
+
+  it should "return Left when Location header is missing" in:
+    val responseWithoutLocation = Response(
+      body = "",
+      code = StatusCode.Created,
+      statusText = "Created"
+    )
+    val connectionStub = stubbedKeycloakConnection(responseWithoutLocation)
+    val result         = connectionStub.createUser(username, email, password)
+    result shouldEqual Left("User created but could not retrieve ID from Keycloak")
+
+  it should "return Left when Keycloak returns non-201 status" in:
+    val errorResponse = Response(
+      body = "Error creating user",
+      code = StatusCode.BadRequest,
+      statusText = "Bad Request"
+    )
+    val connectionStub = stubbedKeycloakConnection(errorResponse)
+    val result         = connectionStub.createUser(username, email, password)
+    result.isLeft shouldBe true
+    result.left.value should include("Failed to create user on Keycloak")
