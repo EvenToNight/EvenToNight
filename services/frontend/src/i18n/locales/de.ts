@@ -126,7 +126,8 @@ export default {
     errorForDraftCreation: 'Bitte geben Sie mindestens einen Titel für den Entwurf an',
     successForEventPublication: 'Veranstaltung erfolgreich veröffentlicht!',
     errorForEventCreation: 'Bitte füllen Sie alle erforderlichen Felder aus',
-    errorForEventPublication: 'Failed to create event. Please try again.',
+    errorForEventPublication:
+      'Ereignis konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
   },
 
   theme: {
