@@ -5,3 +5,16 @@ services:
       dockerfile: ./services/interactions/Dockerfile
     ports:
       - "${INTERACTIONS_SERVICE_PORT}:${INTERACTIONS_SERVICE_PORT}" 
+
+  mongo-interactions-express:
+    image: mongo-express:1.0.2-20-alpine3.19
+    restart: unless-stopped
+    networks:
+      - interactions-network
+    ports:
+      - '${MONGO_EXPRESS_INTERACTIONS_PORT}:8081'
+    environment:
+      ME_CONFIG_MONGODB_SERVER: 'mongo-interactions'
+    depends_on:
+      mongo-interactions:
+        condition: service_healthy
