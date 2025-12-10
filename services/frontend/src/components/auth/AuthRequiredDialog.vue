@@ -90,6 +90,7 @@ watch(
   border-radius: $radius-2xl;
   padding: $spacing-4;
   position: relative;
+  // background: $color-background-dark;
 }
 
 .close-button {

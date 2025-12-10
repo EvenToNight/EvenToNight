@@ -135,7 +135,7 @@ const goToProfile = () => {
                 />
               </q-avatar>
               <q-menu>
-                <q-list style="min-width: 200px">
+                <q-list style="min-width: 200px" class="profile-menu-list">
                   <q-item clickable @click="goToProfile">
                     <q-item-section avatar>
                       <q-icon name="person" />
@@ -212,6 +212,17 @@ const goToProfile = () => {
 
   @include dark-mode {
     background-color: $color-background-dark;
+  }
+}
+
+.profile-menu-list {
+  :deep(.q-item) {
+    @include dark-mode {
+      background: $color-background-dark;
+      &:hover {
+        background: color-alpha($color-background-dark, 0.5);
+      }
+    }
   }
 }
 
