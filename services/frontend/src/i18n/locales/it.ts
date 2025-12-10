@@ -15,11 +15,11 @@ export default {
     login: 'Registrazione',
     register: 'Iscrizione',
     logout: 'Esci',
-    notLoggedIn: 'Ops! Non effettuato l\'accesso',
-    loginRequired: 'È necessario effettuare l\'accesso per eseguire questa azione',
+    notLoggedIn: "Ops! Non effettuato l'accesso",
+    loginRequired: "È necessario effettuare l'accesso per eseguire questa azione",
     form: {
       emailLabel: 'E-mail',
-      emailError: 'L\'e-mail è obbligatoria',
+      emailError: "L'e-mail è obbligatoria",
       emailFormatError: 'Si prega di inserire un indirizzo email valido',
       passwordLabel: 'Password',
       passwordError: 'È richiesta la password',
@@ -35,7 +35,7 @@ export default {
       confirmPasswordLabel: 'Conferma password',
       emptyConfirmPasswordError: 'Per favore conferma la tua password',
       passwordMismatchError: 'Le password non corrispondono',
-      isOrganizationLabel: "Mi sto registrando come organizzazione",
+      isOrganizationLabel: 'Mi sto registrando come organizzazione',
       successfulRegistration: 'Registrazione riuscita!',
       failedRegistration: 'La registrazione non è riuscita',
       switchToLogin: 'Hai già un account? Login',
@@ -98,12 +98,12 @@ export default {
     noTickets: 'Nessun biglietto ancora',
     draftedEvents: 'Eventi redatti',
     noDraftedEvents: 'Non hai eventi in bozza.',
-    userAvatarAlt: 'Avatar dell\'utente',
+    userAvatarAlt: "Avatar dell'utente",
   },
 
   eventCreationForm: {
     createNewEvent: 'Crea nuovo evento',
-    eventTitle: 'Titolo dell\'evento',
+    eventTitle: "Titolo dell'evento",
     titleError: 'Il titolo è obbligatorio',
     date: 'Data',
     dateError: 'La data è obbligatoria',
@@ -117,7 +117,7 @@ export default {
     collaboratorAvatarAlt: 'Avatar collaboratore',
     location: 'Posizione',
     locationError: 'La posizione è obbligatoria',
-    eventPoster: 'Locandina dell\'evento',
+    eventPoster: "Locandina dell'evento",
     uploadPoster: 'Carica poster',
     cancel: 'Cancellare',
     saveDraft: 'Salva bozza',
@@ -126,7 +126,7 @@ export default {
     errorForDraftCreation: 'Si prega di fornire almeno un titolo per la bozza',
     successForEventPublication: 'Evento pubblicato con successo!',
     errorForEventCreation: 'Si prega di compilare tutti i campi obbligatori',
-    errorForEventPublication: 'Impossibile creare l\'evento. Per favore riprova.',
+    errorForEventPublication: "Impossibile creare l'evento. Per favore riprova.",
   },
 
   theme: {
@@ -136,7 +136,7 @@ export default {
 
   home: {
     hero: {
-      title: 'Trova l\'evento che fa per te',
+      title: "Trova l'evento che fa per te",
     },
     sections: {
       upcomingEvents: 'Prossimi eventi',

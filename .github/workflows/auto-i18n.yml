@@ -18,8 +18,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Translate i18n files
-        uses: eventonight/auto-i18n@v1.4.0
+        uses: eventonight/auto-i18n@v1.5.0
         with:
           source: 'en'
           targets: 'it,fr,de,es'
           input_file: 'services/frontend/src/i18n/locales/en.ts'
+          npm_working_directory: 'services/frontend'
+          pre-commit-npm-command: 'lint:fix'

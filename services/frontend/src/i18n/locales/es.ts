@@ -35,7 +35,7 @@ export default {
       confirmPasswordLabel: 'confirmar Contraseña',
       emptyConfirmPasswordError: 'Por favor confirma tu contraseña',
       passwordMismatchError: 'Las contraseñas no coinciden',
-      isOrganizationLabel: "Me estoy registrando como organización",
+      isOrganizationLabel: 'Me estoy registrando como organización',
       successfulRegistration: '¡Registro exitoso!',
       failedRegistration: 'Registro fallido',
       switchToLogin: '¿Ya tienes una cuenta? Acceso',

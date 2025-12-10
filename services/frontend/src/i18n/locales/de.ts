@@ -35,7 +35,7 @@ export default {
       confirmPasswordLabel: 'Passwort bestätigen',
       emptyConfirmPasswordError: 'Bitte bestätigen Sie Ihr Passwort',
       passwordMismatchError: 'Passwörter stimmen nicht überein',
-      isOrganizationLabel: "Ich registriere mich als Organisation",
+      isOrganizationLabel: 'Ich registriere mich als Organisation',
       successfulRegistration: 'Registrierung erfolgreich!',
       failedRegistration: 'Die Registrierung ist fehlgeschlagen',
       switchToLogin: 'Sie haben bereits ein Konto? Login',
@@ -126,7 +126,8 @@ export default {
     errorForDraftCreation: 'Bitte geben Sie mindestens einen Titel für den Entwurf an',
     successForEventPublication: 'Veranstaltung erfolgreich veröffentlicht!',
     errorForEventCreation: 'Bitte füllen Sie alle erforderlichen Felder aus',
-    errorForEventPublication: 'Ereignis konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
+    errorForEventPublication:
+      'Ereignis konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
   },
 
   theme: {

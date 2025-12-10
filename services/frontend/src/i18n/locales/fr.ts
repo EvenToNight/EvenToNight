@@ -13,21 +13,21 @@ export default {
 
   auth: {
     login: 'Se connecter',
-    register: 'S\'inscrire',
+    register: "S'inscrire",
     logout: 'Déconnexion',
     notLoggedIn: 'Oups ! Non connecté',
     loginRequired: 'Vous devez être connecté pour effectuer cette action',
     form: {
       emailLabel: 'E-mail',
-      emailError: 'L\'e-mail est requis',
-      emailFormatError: 'S\'il vous plaît, mettez une adresse email valide',
+      emailError: "L'e-mail est requis",
+      emailFormatError: "S'il vous plaît, mettez une adresse email valide",
       passwordLabel: 'Mot de passe',
       passwordError: 'Le mot de passe est requis',
     },
     loginForm: {
       successfulLogin: 'Connexion réussie !',
       failedLogin: 'La connexion a échoué',
-      switchToRegister: 'Besoin d\'un compte ? Registre',
+      switchToRegister: "Besoin d'un compte ? Registre",
     },
     registerForm: {
       nameLabel: 'Nom',
@@ -37,7 +37,7 @@ export default {
       passwordMismatchError: 'Les mots de passe ne correspondent pas',
       isOrganizationLabel: "Je m'inscris en tant qu'organisation",
       successfulRegistration: 'Inscription réussie !',
-      failedRegistration: 'L\'inscription a échoué',
+      failedRegistration: "L'inscription a échoué",
       switchToLogin: 'Vous avez déjà un compte ? Se connecter',
     },
   },
@@ -91,19 +91,19 @@ export default {
     myTickets: 'Mes billets',
     myEvents: 'Mes événements',
     events: 'Événements',
-    noEventCreated: 'Vous n\'avez encore créé aucun événement.',
-    noEventCreatedExternal: 'Cette organisation n\'a pas encore créé d\'événements.',
-    noEventJoined: 'Vous n\'avez encore assisté à aucun événement.',
-    noEventJoinedExternal: 'Cet utilisateur n\'a encore assisté à aucun événement.',
+    noEventCreated: "Vous n'avez encore créé aucun événement.",
+    noEventCreatedExternal: "Cette organisation n'a pas encore créé d'événements.",
+    noEventJoined: "Vous n'avez encore assisté à aucun événement.",
+    noEventJoinedExternal: "Cet utilisateur n'a encore assisté à aucun événement.",
     noTickets: 'Pas encore de billets',
     draftedEvents: 'Événements rédigés',
     noDraftedEvents: 'Vous n’avez aucun événement rédigé.',
-    userAvatarAlt: 'Avatar de l\'utilisateur',
+    userAvatarAlt: "Avatar de l'utilisateur",
   },
 
   eventCreationForm: {
     createNewEvent: 'Créer un nouvel événement',
-    eventTitle: 'Titre de l\'événement',
+    eventTitle: "Titre de l'événement",
     titleError: 'Le titre est requis',
     date: 'Date',
     dateError: 'La date est requise',
@@ -116,9 +116,9 @@ export default {
     collaborators: 'Collaborateurs',
     collaboratorAvatarAlt: 'Avatar du collaborateur',
     location: 'Emplacement',
-    locationError: 'L\'emplacement est requis',
-    eventPoster: 'Affiche d\'événement',
-    uploadPoster: 'Télécharger l\'affiche',
+    locationError: "L'emplacement est requis",
+    eventPoster: "Affiche d'événement",
+    uploadPoster: "Télécharger l'affiche",
     cancel: 'Annuler',
     saveDraft: 'Enregistrer le brouillon',
     publishEvent: 'Publier un événement',
@@ -126,7 +126,7 @@ export default {
     errorForDraftCreation: 'Veuillez fournir au moins un titre pour le projet',
     successForEventPublication: 'Événement publié avec succès !',
     errorForEventCreation: 'Veuillez remplir tous les champs obligatoires',
-    errorForEventPublication: 'Échec de la création de l\'événement. Veuillez réessayer.',
+    errorForEventPublication: "Échec de la création de l'événement. Veuillez réessayer.",
   },
 
   theme: {
@@ -136,7 +136,7 @@ export default {
 
   home: {
     hero: {
-      title: 'Trouvez l\'événement pour vous',
+      title: "Trouvez l'événement pour vous",
     },
     sections: {
       upcomingEvents: 'Événements à venir',
