@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
-import { ref, defineProps, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 
 const props = defineProps<{
   posterLink: string

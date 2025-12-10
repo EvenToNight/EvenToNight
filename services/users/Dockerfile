@@ -5,8 +5,10 @@ RUN mkdir -p .git/hooks
 
 COPY ./build.gradle.kts .
 COPY ./settings.gradle.kts .
+
 COPY ./buildSrc/src ./buildSrc/src
 COPY ./buildSrc/build.gradle.kts ./buildSrc/build.gradle.kts
+
 COPY ./gradle ./gradle
 COPY ./gradlew .
 

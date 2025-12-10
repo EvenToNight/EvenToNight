@@ -9,6 +9,9 @@ services:
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=${FRONTEND_SERVICE_PORT}"
     restart: unless-stopped
+    environment:
+        - VITE_HOST=${HOST}
+        - PORT=${FRONTEND_SERVICE_PORT}
 
 networks:
   eventonight-network:

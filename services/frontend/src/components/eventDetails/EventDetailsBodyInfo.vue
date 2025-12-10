@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, defineProps } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
 import type { Event } from '@/api/types/events'

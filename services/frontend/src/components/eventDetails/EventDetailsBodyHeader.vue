@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { defineProps, onMounted, ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import type { Event } from '@/api/types/events'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
