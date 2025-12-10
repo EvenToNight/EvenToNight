@@ -79,7 +79,7 @@ const toggleMobileMenu = () => {
 
 const handleLogout = async () => {
   await authStore.logout()
-  toggleMobileMenu()
+  mobileMenuOpen.value = false
   goToHome()
 }
 
