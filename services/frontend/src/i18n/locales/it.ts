@@ -12,8 +12,8 @@ export default {
   },
 
   auth: {
-    login: 'Registrazione',
-    register: 'Iscrizione',
+    login: 'Iscrizione',
+    register: 'Registrazione',
     logout: 'Esci',
     notLoggedIn: "Ops! Non effettuato l'accesso",
     loginRequired: "È necessario effettuare l'accesso per eseguire questa azione",
@@ -63,9 +63,9 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acquista i biglietti',
-    about: 'A proposito di questo evento',
+    about: 'Di',
     organizer: 'Organizzato da',
-    collaborators: 'In collaborazione con',
+    collaborators: 'Collaboratori',
   },
 
   footer: {

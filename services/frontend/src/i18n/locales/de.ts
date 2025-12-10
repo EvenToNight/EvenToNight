@@ -12,8 +12,8 @@ export default {
   },
 
   auth: {
-    login: 'Anmelden',
-    register: 'Melden Sie sich an',
+    login: 'Melden Sie sich an',
+    register: 'Anmelden',
     logout: 'Abmelden',
     notLoggedIn: 'Hoppla! Nicht angemeldet',
     loginRequired: 'Sie müssen angemeldet sein, um diese Aktion auszuführen',
@@ -63,9 +63,9 @@ export default {
 
   eventDetails: {
     buyTickets: 'Kaufen Sie Tickets',
-    about: 'Über diese Veranstaltung',
+    about: 'Um',
     organizer: 'Organisiert von',
-    collaborators: 'In Zusammenarbeit mit',
+    collaborators: 'Mitarbeiter',
   },
 
   footer: {
@@ -126,8 +126,7 @@ export default {
     errorForDraftCreation: 'Bitte geben Sie mindestens einen Titel für den Entwurf an',
     successForEventPublication: 'Veranstaltung erfolgreich veröffentlicht!',
     errorForEventCreation: 'Bitte füllen Sie alle erforderlichen Felder aus',
-    errorForEventPublication:
-      'Ereignis konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
+    errorForEventPublication: 'Failed to create event. Please try again.',
   },
 
   theme: {

@@ -12,8 +12,8 @@ export default {
   },
 
   auth: {
-    login: 'Se connecter',
-    register: "S'inscrire",
+    login: "S'inscrire",
+    register: 'Se connecter',
     logout: 'Déconnexion',
     notLoggedIn: 'Oups ! Non connecté',
     loginRequired: 'Vous devez être connecté pour effectuer cette action',
@@ -63,9 +63,9 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acheter des billets',
-    about: 'À propos de cet événement',
+    about: 'À propos',
     organizer: 'Organisé par',
-    collaborators: 'En collaboration avec',
+    collaborators: 'Collaborateurs',
   },
 
   footer: {

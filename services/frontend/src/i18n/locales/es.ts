@@ -12,8 +12,8 @@ export default {
   },
 
   auth: {
-    login: 'Iniciar sesión',
-    register: 'Inscribirse',
+    login: 'Inscribirse',
+    register: 'Iniciar sesión',
     logout: 'Cerrar sesión',
     notLoggedIn: '¡Ups! No iniciado sesión',
     loginRequired: 'Debes iniciar sesión para realizar esta acción',
@@ -63,9 +63,9 @@ export default {
 
   eventDetails: {
     buyTickets: 'Comprar Entradas',
-    about: 'Acerca de este evento',
+    about: 'Acerca de',
     organizer: 'Organizado por',
-    collaborators: 'En colaboración con',
+    collaborators: 'Colaboradores',
   },
 
   footer: {
