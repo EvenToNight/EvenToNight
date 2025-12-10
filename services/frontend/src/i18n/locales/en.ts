@@ -12,8 +12,8 @@ export default {
   },
 
   auth: {
-    login: 'Sign In',
-    register: 'Sign Up',
+    login: 'Sign Up',
+    register: 'Sign In',
     logout: 'Logout',
     notLoggedIn: 'Oops! Not logged in',
     loginRequired: 'You need to be logged in to perform this action',
