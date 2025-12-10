@@ -94,21 +94,18 @@ const handleDownload = (ticketId: string) => {
 }
 
 .event-info {
+  @include flex-column;
   flex: 1;
   min-width: 0;
-  display: flex;
-  flex-direction: column;
   gap: $spacing-1;
 }
 
 .event-name {
+  @include text-truncate;
   font-size: $font-size-lg;
   font-weight: $font-weight-semibold;
   margin: 0;
   color: $color-text-primary;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 
   @include dark-mode {
     color: $color-text-white;

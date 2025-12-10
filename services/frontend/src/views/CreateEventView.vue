@@ -435,18 +435,15 @@ const onSubmit = async () => {
 
 <style lang="scss" scoped>
 .create-event-page {
+  @include flex-column;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   position: relative;
   padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
 }
 
 .collaborator-avatar {
+  @include flex-center;
   overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   background: transparent;
 }
 
@@ -462,9 +459,9 @@ const onSubmit = async () => {
 }
 
 .form-container {
-  background: white;
+  background: $color-background;
   padding: $spacing-6;
-  border-radius: 12px;
+  border-radius: $radius-xl;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 
   @include dark-mode {
@@ -479,20 +476,18 @@ const onSubmit = async () => {
 }
 
 .error-message {
-  color: #c10015;
-  font-size: 12px;
+  color: $color-error;
+  font-size: $font-size-xs;
   padding: 8px 12px 0;
   line-height: 1;
 
   @include dark-mode {
-    color: #f5b0b0;
+    color: $color-error-dark;
   }
 }
 
 .form-actions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+  @include flex-between;
   margin-top: $spacing-8;
   padding-top: $spacing-6;
   border-top: 1px solid rgba(0, 0, 0, 0.1);
@@ -501,7 +496,7 @@ const onSubmit = async () => {
     border-top-color: rgba(255, 255, 255, 0.1);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-mobile) {
     flex-direction: column;
     gap: $spacing-4;
     align-items: stretch;
@@ -512,7 +507,7 @@ const onSubmit = async () => {
   display: flex;
   gap: $spacing-3;
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-mobile) {
     flex-direction: column;
     width: 100%;
   }

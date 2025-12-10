@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { Event } from '@/api/types/events'
 import EventCardVariant from '@/components/cards/EventCardVariant.vue'
+import EmptyTab from '@/components/profile/tabs/EmptyTab.vue'
 
 interface Props {
   events: Event[]
@@ -17,12 +18,9 @@ defineProps<Props>()
       <EventCardVariant v-for="event in events" :key="event.id" :event="event" />
     </div>
 
-    <div v-else class="empty-state">
-      <q-icon :name="emptyIconName" size="64px" />
-      <p class="empty-text">
-        {{ emptyText }}
-      </p>
-    </div>
+    <template v-else>
+      <EmptyTab :emptyText="emptyText" :emptyIconName="emptyIconName" />
+    </template>
   </div>
 </template>
 
@@ -36,21 +34,9 @@ defineProps<Props>()
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: $spacing-6;
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-mobile) {
     grid-template-columns: 1fr;
     gap: $spacing-4;
   }
-}
-
-.empty-state {
-  @include flex-column-center;
-  padding: $spacing-12 $spacing-6;
-  gap: $spacing-4;
-}
-
-.empty-text {
-  font-size: $font-size-base;
-  opacity: 0.6;
-  margin: 0;
 }
 </style>

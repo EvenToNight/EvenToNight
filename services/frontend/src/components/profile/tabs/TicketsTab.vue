@@ -2,10 +2,10 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TicketCard from '@/components/cards/TicketCard.vue'
+import EmptyTab from '@/components/profile/tabs/EmptyTab.vue'
 
 const { t } = useI18n()
 
-// Mock data for tickets
 const myTickets = ref([
   {
     id: '1',
@@ -28,7 +28,6 @@ const handleDownload = (ticketId: string) => {
 
 <template>
   <div class="tickets-tab">
-    <!-- Tickets List -->
     <div v-if="myTickets.length > 0" class="tickets-list">
       <TicketCard
         v-for="ticket in myTickets"
@@ -38,13 +37,9 @@ const handleDownload = (ticketId: string) => {
       />
     </div>
 
-    <!-- Empty State -->
-    <div v-else class="empty-state">
-      <q-icon name="confirmation_number" size="64px" />
-      <p class="empty-text">
-        {{ t('profile.noTickets') }}
-      </p>
-    </div>
+    <template v-else>
+      <EmptyTab :emptyText="t('profile.noTickets')" emptyIconName="confirmation_number" />
+    </template>
   </div>
 </template>
 
@@ -54,20 +49,7 @@ const handleDownload = (ticketId: string) => {
 }
 
 .tickets-list {
-  display: flex;
-  flex-direction: column;
+  @include flex-column;
   gap: $spacing-4;
-}
-
-.empty-state {
-  @include flex-column-center;
-  padding: $spacing-12 $spacing-6;
-  gap: $spacing-4;
-}
-
-.empty-text {
-  font-size: $font-size-base;
-  opacity: 0.6;
-  margin: 0;
 }
 </style>

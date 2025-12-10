@@ -74,7 +74,7 @@ const loadUser = async () => {
   padding: 0 $spacing-6 $spacing-8;
   position: relative;
   margin-top: $spacing-6;
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-mobile) {
     padding: 0 $spacing-4 $spacing-6;
   }
 }

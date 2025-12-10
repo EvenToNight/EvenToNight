@@ -224,7 +224,7 @@ const closeCropper = () => {
     background: rgba(255, 255, 255, 0.05);
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-mobile) {
     width: 150px;
     height: 150px;
   }
@@ -289,7 +289,7 @@ const closeCropper = () => {
   max-height: 600px;
   aspect-ratio: 4 / 3;
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-mobile) {
     max-width: 95vw;
     max-height: 70vh;
   }

@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import Home from '../views/Home.vue'
+import Home from '../views/HomeView.vue'
 import PlaceHolderView from '../views/PlaceHolderView.vue'
 import LocaleWrapper from '../views/LocaleWrapper.vue'
 import i18n, { SUPPORTED_LOCALES, DEFAULT_LOCALE, type Locale } from '../i18n'
@@ -70,17 +70,17 @@ const router = createRouter({
         {
           path: 'events/:id',
           name: 'event-details',
-          component: () => import('../views/EventDetails.vue'),
+          component: () => import('../views/EventDetailsView.vue'),
         },
         {
           path: 'users/:id',
           name: 'user-profile',
-          component: () => import('../views/UserProfile.vue'),
+          component: () => import('../views/UserProfileView.vue'),
         },
         {
           path: 'create-event',
           name: 'create-event',
-          component: () => import('../views/CreateEvent.vue'),
+          component: () => import('../views/CreateEventView.vue'),
           beforeEnter: requireRole('organization'),
         },
         {

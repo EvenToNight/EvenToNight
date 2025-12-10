@@ -121,7 +121,7 @@ onMounted(async () => {
     }
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-mobile) {
     padding: $spacing-3;
     gap: $spacing-3;
   }

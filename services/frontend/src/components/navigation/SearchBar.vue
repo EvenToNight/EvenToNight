@@ -185,7 +185,7 @@ const handleBlur = () => {
   min-width: 50px;
 
   :deep(.q-field__control) {
-    border-radius: 8px;
+    border-radius: $radius-lg;
     background-color: $color-white;
     border: 1px solid $color-border;
 

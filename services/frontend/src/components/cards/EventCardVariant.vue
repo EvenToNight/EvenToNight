@@ -76,10 +76,10 @@ const formatDate = (date: Date) => {
 <style scoped lang="scss">
 .event-card {
   background: rgba(0, 0, 0, 0.02);
-  border-radius: 12px;
+  border-radius: $radius-xl;
   overflow: hidden;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all $transition-slow;
 
   @include dark-mode {
     background: rgba(255, 255, 255, 0.05);
@@ -102,7 +102,7 @@ const formatDate = (date: Date) => {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  transition: transform $transition-slow;
 
   .event-card:hover & {
     transform: scale(1.05);
@@ -119,10 +119,10 @@ const formatDate = (date: Date) => {
   padding: $spacing-1 $spacing-2;
   background: rgba(0, 0, 0, 0.8);
   backdrop-filter: blur(8px);
-  color: white;
-  border-radius: 8px;
-  font-size: 0.75rem;
-  font-weight: 600;
+  color: $color-white;
+  border-radius: $radius-md;
+  font-size: $font-size-xs;
+  font-weight: $font-weight-semibold;
 }
 
 .event-info {
@@ -130,14 +130,13 @@ const formatDate = (date: Date) => {
 }
 
 .event-title {
-  font-size: 1.125rem;
-  font-weight: 700;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-bold;
   line-height: 1.3;
 }
 
 .event-details {
-  display: flex;
-  flex-direction: column;
+  @include flex-column;
   gap: $spacing-2;
   margin-top: $spacing-3;
 }
@@ -147,7 +146,7 @@ const formatDate = (date: Date) => {
   display: flex;
   align-items: center;
   gap: $spacing-1;
-  font-size: 0.875rem;
+  font-size: $font-size-sm;
   opacity: 0.7;
 }
 </style>

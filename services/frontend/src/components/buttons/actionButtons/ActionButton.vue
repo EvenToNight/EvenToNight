@@ -17,24 +17,27 @@ withDefaults(defineProps<Props>(), {
     flat
     round
     dense
-    :class="variant === 'default' ? 'action-button' : 'action-button-soft'"
+    :class="['action-button-base', variant === 'default' ? 'action-button' : 'action-button-soft']"
     @click="onClick"
   />
 </template>
 
 <style lang="scss" scoped>
-.action-button {
+.action-button-base {
   position: absolute;
   top: $spacing-4;
   left: $spacing-4;
-  z-index: 1000;
+  z-index: $z-index-dropdown;
+}
+
+.action-button {
   background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(8px);
-  color: white !important;
-  transition: all 0.3s ease;
+  color: $color-white;
+  transition: all $transition-slow;
 
   :deep(.q-icon) {
-    color: white !important;
+    color: $color-white;
   }
 
   &:hover {
@@ -42,25 +45,19 @@ withDefaults(defineProps<Props>(), {
     transform: scale(1.05);
   }
 
-  @media (max-width: 330px) {
+  @media (max-width: $app-min-width) {
     left: $spacing-2;
   }
 }
 
 .action-button-soft {
-  position: absolute;
-  top: $spacing-4;
-  left: $spacing-4;
-  z-index: 1000;
   opacity: 0.6;
-  transition: opacity 0.2s ease;
+  transition: opacity $transition-slow;
 
   :deep(.q-icon) {
-    @include light-mode {
-      color: black !important;
-    }
+    color: $color-black;
     @include dark-mode {
-      color: white !important;
+      color: $color-white;
     }
   }
 
@@ -68,7 +65,7 @@ withDefaults(defineProps<Props>(), {
     opacity: 1;
   }
 
-  @media (max-width: 330px) {
+  @media (max-width: $app-min-width) {
     left: $spacing-2;
   }
 }

@@ -154,9 +154,7 @@ const handleCreateEvent = () => {
 }
 
 .name-action-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+  @include flex-between;
 }
 
 .user-name {

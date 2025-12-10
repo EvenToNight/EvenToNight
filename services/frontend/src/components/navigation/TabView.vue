@@ -54,21 +54,17 @@ const getCurrentTabComponent = (): Tab => {
 
 <style lang="scss" scoped>
 .tab-view {
-  background: var(--q-background);
-  border-radius: 16px;
+  background: $color-background;
+  border-radius: $radius-2xl;
   box-shadow: $shadow-base;
   padding: $spacing-6;
   margin-bottom: $spacing-6;
 
-  @include light-mode {
-    background: white;
-  }
-
   @include dark-mode {
-    background: #1d1d1d;
+    background: $color-background-dark;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-mobile) {
     padding: $spacing-4;
   }
 }
@@ -93,11 +89,11 @@ const getCurrentTabComponent = (): Tab => {
   border: none;
   border-bottom: 3px solid transparent;
   cursor: pointer;
-  font-size: 1rem;
-  font-weight: 600;
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
   color: inherit;
   opacity: 0.6;
-  transition: all 0.3s ease;
+  transition: all $transition-slow;
   margin-bottom: -2px;
 
   &.active {
@@ -116,10 +112,10 @@ const getCurrentTabComponent = (): Tab => {
     opacity: 0.8;
   }
 
-  @media (max-width: 768px) {
+  @media (max-width: $breakpoint-mobile) {
     flex: 1;
     justify-content: center;
-    font-size: 0.875rem;
+    font-size: $font-size-sm;
     padding: $spacing-2 $spacing-3;
   }
 }

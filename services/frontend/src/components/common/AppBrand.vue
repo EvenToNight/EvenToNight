@@ -21,11 +21,6 @@ const goToHomeTop = () => {
   @include flex-center;
   gap: $spacing-2;
   cursor: pointer;
-  // transition: opacity $transition-base;
-
-  // &:hover {
-  //   opacity: 0.8;
-  // }
 }
 
 .brand-logo {

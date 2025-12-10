@@ -42,7 +42,7 @@ const { t } = useI18n()
 <style scoped lang="scss">
 .content-wrapper {
   flex: 1;
-  max-width: 1280px;
+  max-width: $breakpoint-xl;
   margin: 0 auto;
   width: 100%;
   padding: 0 $spacing-4 $spacing-8;

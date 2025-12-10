@@ -192,7 +192,7 @@ const month = computed(() => {
   font-size: $font-size-2xl;
   font-weight: $font-weight-bold;
   color: $color-white;
-  margin: 0 0 $spacing-2 0;
+  margin-bottom: $spacing-2;
   line-height: $line-height-snug;
 }
 

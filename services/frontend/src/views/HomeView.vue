@@ -33,12 +33,10 @@ const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
 
   try {
     if (isFavorite) {
-      // Like the event
       await api.interactions.likeEvent(eventId, authStore.user.id)
       console.log(`Event ${eventId} liked`)
     } else {
-      // Unlike functionality not yet implemented in API
-      console.warn('Unlike functionality not yet implemented')
+      await api.interactions.unlikeEvent(eventId, authStore.user.id)
     }
   } catch (error) {
     console.error('Failed to toggle favorite:', error)
@@ -47,12 +45,10 @@ const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
 
 const handleSeeAllEvents = () => {
   console.log('See all events clicked')
-  // Navigate to events page or show all events
 }
 
 const toggleDarkMode = () => {
   $q.dark.toggle()
-  // Save preference to localStorage
   localStorage.setItem('darkMode', $q.dark.isActive ? 'true' : 'false')
 }
 
@@ -81,7 +77,6 @@ onUnmounted(() => {
 
 <template>
   <div class="navigation-view">
-    <!-- Auth Required Dialog -->
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
 
     <div class="scroll-wrapper">
@@ -149,16 +144,14 @@ onUnmounted(() => {
 
 <style lang="scss" scoped>
 .navigation-view {
+  @include flex-column;
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
   position: relative;
   min-width: 300px;
 }
 
 .scroll-wrapper {
-  display: flex;
-  flex-direction: column;
+  @include flex-column;
   width: 100%;
 }
 
@@ -167,13 +160,13 @@ onUnmounted(() => {
   flex: 1;
 
   .container {
-    max-width: 1280px;
+    max-width: $breakpoint-xl;
     margin: 0 auto;
     width: 100%;
     padding: 0 $spacing-4;
     box-sizing: border-box;
 
-    @media (max-width: 330px) {
+    @media (max-width: $app-min-width) {
       padding: 0 $spacing-2;
     }
   }
@@ -184,6 +177,7 @@ onUnmounted(() => {
   margin-bottom: $spacing-8;
 
   .hero-container {
+    @include flex-center;
     position: relative;
     background:
       linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)),
@@ -191,14 +185,11 @@ onUnmounted(() => {
     background-size: cover;
     background-position: center;
     min-height: 400px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
     padding: $spacing-12 $spacing-4;
     border-radius: 0;
-    transition: border-radius 0.3s ease;
+    transition: border-radius $transition-slow;
 
-    @media (max-width: 768px) {
+    @media (max-width: $breakpoint-mobile) {
       min-height: 350px;
       padding: $spacing-10 $spacing-4;
     }
@@ -223,19 +214,19 @@ onUnmounted(() => {
   }
 
   .hero-title {
-    color: #fff;
-    font-size: 3rem;
-    font-weight: 700;
-    margin: 0 0 $spacing-8 0;
+    color: $color-white;
+    font-size: $font-size-5xl;
+    font-weight: $font-weight-bold;
+    margin-bottom: $spacing-8;
     line-height: 1.2;
 
-    @media (max-width: 768px) {
-      font-size: 2rem;
-      margin: 0 0 $spacing-6 0;
+    @media (max-width: $breakpoint-mobile) {
+      font-size: $font-size-3xl;
+      margin-bottom: $spacing-6;
     }
 
-    @media (max-width: 480px) {
-      font-size: 1.75rem;
+    @media (max-width: $breakpoint-xs) {
+      font-size: $font-size-2xl;
     }
   }
 
@@ -244,7 +235,7 @@ onUnmounted(() => {
     margin: 0 auto;
 
     :deep(.suggestions-dropdown) {
-      text-align: left !important;
+      text-align: left;
     }
   }
 }
@@ -255,8 +246,8 @@ onUnmounted(() => {
   h2 {
     margin-top: $spacing-8;
     margin-bottom: $spacing-6;
-    font-size: 2rem;
-    font-weight: 700;
+    font-size: $font-size-4xl;
+    font-weight: $font-weight-bold;
   }
 
   h3 {
@@ -270,7 +261,7 @@ onUnmounted(() => {
     gap: $spacing-6;
     margin-bottom: $spacing-8;
 
-    @media (max-width: 768px) {
+    @media (max-width: $breakpoint-mobile) {
       grid-template-columns: 1fr;
       gap: $spacing-4;
     }
@@ -280,7 +271,7 @@ onUnmounted(() => {
     width: 100%;
     height: 800px;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: 12px;
+    border-radius: $radius-xl;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   }
 
