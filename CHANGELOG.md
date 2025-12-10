@@ -1,3 +1,19 @@
+## [1.4.1](https://github.com/EvenToNight/EvenToNight/compare/v1.4.0...v1.4.1) (2025-12-09)
+
+### Bug Fixes
+
+* **CORS:** fix bug with CORS ([224a29b](https://github.com/EvenToNight/EvenToNight/commit/224a29b82feb772ef0be729690f5d49f82a14932))
+
+## [1.4.0](https://github.com/EvenToNight/EvenToNight/compare/v1.3.0...v1.4.0) (2025-12-08)
+
+### Features
+
+* **create-events:** complete api with connection with media service ([0994ffa](https://github.com/EvenToNight/EvenToNight/commit/0994ffa78ef98061aff4e95b3021f78544bbd213))
+* **event:** provide new api for event service ([d21fc56](https://github.com/EvenToNight/EvenToNight/commit/d21fc56ea1bbb7bae15e6a711a6e23ab8c445d38))
+* **updateEvent:** implement API for update event ([c2fdfd0](https://github.com/EvenToNight/EvenToNight/commit/c2fdfd07b3d9d3614c7ce6ef8497b775bb66e078))
+* **updateEvent:** implement domainEvent for update ([2981227](https://github.com/EvenToNight/EvenToNight/commit/29812272aa8b5cd2783cab41e58916c3e40c4045))
+* **validateCommands:** refactor of validate process for commands ([386e168](https://github.com/EvenToNight/EvenToNight/commit/386e1681c9985aee8f56a7f0994a25376a20f726))
+
 ## [1.3.0](https://github.com/EvenToNight/EvenToNight/compare/v1.2.0...v1.3.0) (2025-11-15)
 
 ### Features

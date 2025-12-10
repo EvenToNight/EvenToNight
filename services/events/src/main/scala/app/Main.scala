@@ -1,23 +1,20 @@
 package app
 
-import controller.EventController
+import controller.Controller
 import infrastructure.db.MongoEventRepository
 import infrastructure.messaging.MockEventPublisher
 import service.EventService
 
-object Main extends App {
+object Main extends App:
 
-  val mongoHost = Option(System.getenv("MONGO_HOST")).getOrElse("localhost")
-  val mongoPort = "27017"
-  val mongoUri  = s"mongodb://$mongoHost:$mongoPort"
+  val mongoHost: String = sys.env.getOrElse("MONGO_HOST", "localhost")
+  val mongoPort: String = "27017"
+  val mongoUri: String  = s"mongodb://$mongoHost:$mongoPort"
 
-  val database      = MongoEventRepository(mongoUri, "eventonight")
-  val messageBroker = new MockEventPublisher()
+  val database: MongoEventRepository    = MongoEventRepository(mongoUri, "eventonight")
+  val messageBroker: MockEventPublisher = new MockEventPublisher()
 
-  val eventService = new EventService(database, messageBroker)
+  val eventService: EventService = new EventService(database, messageBroker)
 
-  val controller = new EventController(eventService)
-
-  controller.main(Array())
-
-}
+  val routes: Controller = new Controller(eventService)
+  routes.main(Array())

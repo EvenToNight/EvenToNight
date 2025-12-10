@@ -1,13 +1,10 @@
 package infrastructure.messaging
-import domain.DomainEvent
+import domain.events.DomainEvent
 
-trait EventPublisher {
+trait EventPublisher:
   def publish(event: DomainEvent): Unit
-}
 
-class MockEventPublisher extends EventPublisher {
-  override def publish(event: DomainEvent): Unit = {
+class MockEventPublisher extends EventPublisher:
+  override def publish(event: DomainEvent): Unit =
     val eventType = event.getClass.getSimpleName
     println(s"[RABBITMQ MOCK] Published domain event: $eventType (ID: ${event.id})")
-  }
-}
