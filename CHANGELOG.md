@@ -1,3 +1,32 @@
+## [1.5.0](https://github.com/EvenToNight/EvenToNight/compare/v1.4.1...v1.5.0) (2025-12-10)
+
+### Features
+
+* **eventCard:** add likes, collaborator and tags ([3712134](https://github.com/EvenToNight/EvenToNight/commit/37121342ace004a7edd87dd4e88233c49575c8d9))
+* **eventCard:** design eventCard ([6955e7f](https://github.com/EvenToNight/EvenToNight/commit/6955e7fbc8feff8565aad7762ecbeeab6ba4a796))
+* **eventCard:** design eventCard ([4d32de7](https://github.com/EvenToNight/EvenToNight/commit/4d32de7ff52e0bcd6b353ca27d2f6831d508073b))
+* **footer:** add simple footer ([9dbe2c7](https://github.com/EvenToNight/EvenToNight/commit/9dbe2c783e31c2d36510707e01061c7bc800d1b6))
+* **frontend-api-layer:** setup api layer to make easier to setup mocked api ([445ac32](https://github.com/EvenToNight/EvenToNight/commit/445ac32541623f4bf64028f0ac573861d25d3c08))
+* **frontend-api-layer:** use api in views ([220ea17](https://github.com/EvenToNight/EvenToNight/commit/220ea17541eb2f4cc1b4a0d15d93183db3e32a83))
+* **frontend-layout:** use max-width to limit horizontal strecth on big screens ([5acd145](https://github.com/EvenToNight/EvenToNight/commit/5acd14543244b2097ba055e41e6d3d5294789957))
+* **i18n:** setup i18n and automatic translation ([8d79889](https://github.com/EvenToNight/EvenToNight/commit/8d7988971f433b8098613edb419f689bd1df9074))
+* **location:** get location from open streetmap and generate maps link ([f8b5f3d](https://github.com/EvenToNight/EvenToNight/commit/f8b5f3d4d63c947f7adf9cc6312360fac7ecc411))
+* **mobileNavigationBar:** add hamburger menu to the left to show buttons ([7305dfe](https://github.com/EvenToNight/EvenToNight/commit/7305dfe4e199e9db5a118440f943b8b7ecd3e4d5))
+* **navigation-bar:** adapt guest navbar for mobile ([ba9e212](https://github.com/EvenToNight/EvenToNight/commit/ba9e2121d9ca131e8ab73f159d52b31fda23ccac))
+* **navigation-bar:** guest navbar with theme ([4853808](https://github.com/EvenToNight/EvenToNight/commit/4853808e57e8527eec36e16d4b411f9f66d16200))
+* **navigation-bar:** setup navigation bar ([743b4b4](https://github.com/EvenToNight/EvenToNight/commit/743b4b4d7caa33d963f7dd3674108906069dbbac))
+* **organizationProfile:** design organization profile ([fa6d64e](https://github.com/EvenToNight/EvenToNight/commit/fa6d64e1fff92e2b8eef5ef86fbffa26a465a2f1))
+
+### Bug Fixes
+
+* **AuthForm:** make register button full-width and fix navigation between register and login ([1580125](https://github.com/EvenToNight/EvenToNight/commit/15801256e6502b93bdc430b90162344e47d06887))
+* **deploy:** restart traefik after deploy new images to dev server ([3a67c54](https://github.com/EvenToNight/EvenToNight/commit/3a67c54f78ce53e9313018021eec4dd515fd993f))
+* **guards:** fix redirection and put guard on create-event ([88bea63](https://github.com/EvenToNight/EvenToNight/commit/88bea6314d79fa5eadd2cf55cbbc33f55c374be3))
+* **i18n:** update page url when swicth to another language ([c738326](https://github.com/EvenToNight/EvenToNight/commit/c738326a89d42d74021035e2b8bedb61aaef33f3))
+* **mobileSearchBar:** show mobileSearchBar in navigationBar only for when isMobile ([e75000d](https://github.com/EvenToNight/EvenToNight/commit/e75000d2de842f3ea8c3d75c00cb6ec09a0175a0))
+* **release-workflow:** avoid duplicates when check for modified services directories ([5124586](https://github.com/EvenToNight/EvenToNight/commit/5124586517de7f31cce13ac6202e2a6e72e9b977))
+* **searchBar:** fix searchBar integration between navbar and hero for both desktop and mobile ([5ef2d50](https://github.com/EvenToNight/EvenToNight/commit/5ef2d500a6458beeef7a528bf10f72db48fa84f4))
+
 ## [1.4.1](https://github.com/EvenToNight/EvenToNight/compare/v1.4.0...v1.4.1) (2025-12-09)
 
 ### Bug Fixes
