@@ -1,3 +1,9 @@
+## [1.5.1](https://github.com/EvenToNight/EvenToNight/compare/v1.5.0...v1.5.1) (2025-12-10)
+
+### Bug Fixes
+
+* **ci:** run ci ([6bacdef](https://github.com/EvenToNight/EvenToNight/commit/6bacdefd08936d8f9c706a88e02659981dcb7026))
+
 ## [1.5.0](https://github.com/EvenToNight/EvenToNight/compare/v1.4.1...v1.5.0) (2025-12-10)
 
 ### Features
