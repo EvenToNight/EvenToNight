@@ -63,9 +63,9 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acheter des billets',
-    about: 'À propos',
+    about: 'À propos de cet événement',
     organizer: 'Organisé par',
-    collaborators: 'Collaborateurs',
+    collaborators: 'En collaboration avec',
   },
 
   footer: {
@@ -93,8 +93,8 @@ export default {
     events: 'Événements',
     noEventCreated: "Vous n'avez encore créé aucun événement.",
     noEventCreatedExternal: "Cette organisation n'a pas encore créé d'événements.",
-    noEventJoined: "Vous n'avez encore assisté à aucun événement.",
-    noEventJoinedExternal: "Cet utilisateur n'a encore assisté à aucun événement.",
+    noEventJoined: "Vous n'avez encore participé à aucun événement.",
+    noEventJoinedExternal: "Cet utilisateur n'a encore participé à aucun événement.",
     noTickets: 'Pas encore de billets',
     draftedEvents: 'Événements rédigés',
     noDraftedEvents: 'Vous n’avez aucun événement rédigé.',
@@ -136,7 +136,7 @@ export default {
 
   home: {
     hero: {
-      title: "Trouvez l'événement pour vous",
+      title: "Trouvez l'événement qui vous convient",
     },
     sections: {
       upcomingEvents: 'Événements à venir',
