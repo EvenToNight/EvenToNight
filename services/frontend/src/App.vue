@@ -1,71 +1,78 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { setTokenProvider, setTokenExpiredCallback } from '@/api/client'
+import { useAuthStore } from '@/stores/auth'
+import { api } from '@/api'
+
+const authStore = useAuthStore()
+const $q = useQuasar()
+
+onMounted(() => {
+  // Load dark mode preference from localStorage
+  const savedDarkMode = localStorage.getItem('darkMode')
+  console.log('Saved dark mode preference:', savedDarkMode)
+  if (savedDarkMode === 'true') {
+    $q.dark.set(true)
+  } else if (savedDarkMode === 'false') {
+    $q.dark.set(false)
+  }
+  // If null, use system preference (Quasar default)
+
+  authStore.initializeAuth()
+  authStore.setupAutoRefresh()
+
+  if (import.meta.env.VITE_AUTO_LOGIN === 'true') {
+    authStore.login(import.meta.env.VITE_DEV_EMAIL, import.meta.env.VITE_DEV_PASSWORD)
+  }
+  setTokenProvider(() => authStore.accessToken)
+  setTokenExpiredCallback(async () => {
+    const success = await authStore.refreshAccessToken()
+    if (success) {
+      authStore.setupAutoRefresh()
+    }
+    return success
+  })
+
+  // Dev logging
+  const isDev = import.meta.env.DEV
+  console.log(`🔌 API Mode: ${isDev ? 'MOCK (Development)' : 'REAL (Production)'}`)
+  if (authStore.isAuthenticated) {
+    console.log('🔐 User authenticated:', authStore.user?.email)
+  }
+  api.events
+    .getTags()
+    .then((tags) => {
+      console.log('🏷️ Fetched event tags:', tags)
+    })
+    .catch((err) => {
+      console.error('Failed to fetch event tags:', err)
+    })
+})
 </script>
 
 <template>
-  <RouterView />
+  <div class="app-container">
+    <RouterView />
+  </div>
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
-nav {
+<style lang="scss">
+.app-container {
+  max-width: $app-max-width;
+  min-width: $app-min-width;
+  margin: 0 auto;
   width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+  position: relative;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+body {
+  background-color: $color-white;
+  min-width: $app-min-width;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
-}
-
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
-}
-
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
+body.body--dark {
+  background-color: $color-background-dark;
 }
 </style>

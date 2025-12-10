@@ -1,0 +1,232 @@
+// =============================================================================
+// Design Tokens - Variables
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Colors - Primary & Brand
+// -----------------------------------------------------------------------------
+$color-primary: #6F00FF;
+$color-primary-dark: #6F00FF;
+$color-primary-light: #6F00FF;
+
+$color-secondary: #8b5cf6;
+$color-secondary-dark: #7c3aed;
+$color-secondary-light: #a78bfa;
+
+// -----------------------------------------------------------------------------
+// Colors - Accent
+// -----------------------------------------------------------------------------
+$color-accent: #f59e0b;
+$color-accent-dark: #d97706;
+$color-accent-light: #fbbf24;
+
+// -----------------------------------------------------------------------------
+// Colors - Semantic
+// -----------------------------------------------------------------------------
+$color-success: #10b981;
+$color-success-dark: #059669;
+$color-success-light: #34d399;
+
+$color-warning: #f59e0b;
+$color-warning-dark: #d97706;
+$color-warning-light: #fbbf24;
+
+$color-error: #ef4444;
+$color-error-dark: #dc2626;
+$color-error-light: #f87171;
+
+$color-info: #3b82f6;
+$color-info-dark: #2563eb;
+$color-info-light: #60a5fa;
+
+// -----------------------------------------------------------------------------
+// Colors - Neutrals
+// -----------------------------------------------------------------------------
+$color-white: #ffffff;
+$color-black: #000000;
+
+$color-gray-50: #f9fafb;
+$color-gray-100: #f3f4f6;
+$color-gray-200: #e5e7eb;
+$color-gray-300: #d1d5db;
+$color-gray-400: #9ca3af;
+$color-gray-500: #6b7280;
+$color-gray-600: #4b5563;
+$color-gray-700: #374151;
+$color-gray-800: #1f2937;
+$color-gray-900: #111827;
+$color-gray-hover: #3a3a3a;
+
+// -----------------------------------------------------------------------------
+// Colors - Backgrounds
+// -----------------------------------------------------------------------------
+$color-background: $color-white;
+$color-background-soft: #f8f8f8;
+$color-background-mute: #f2f2f2;
+$color-background-dark: #1d1d1d;//#181818;
+$color-background-dark-soft: #1a1a1a;
+$color-background-overlay: rgba(0, 0, 0, 0.5);
+
+// -----------------------------------------------------------------------------
+// Colors - Text
+// -----------------------------------------------------------------------------
+$color-text-primary: #2c3e50;
+$color-text-secondary: rgba(60, 60, 60, 0.66);
+$color-text-muted: rgba(60, 60, 60, 0.5);
+$color-text-white: $color-white;
+$color-text-dark: rgba(235, 235, 235, 0.64);
+
+$color-heading: #2c3e50;
+$color-heading-dark: $color-white;
+
+// -----------------------------------------------------------------------------
+// Colors - Borders
+// -----------------------------------------------------------------------------
+$color-border: rgba(60, 60, 60, 0.12);
+$color-border-hover: rgba(60, 60, 60, 0.29);
+$color-border-dark: rgba(84, 84, 84, 0.48);
+$color-border-dark-hover: rgba(84, 84, 84, 0.65);
+
+// -----------------------------------------------------------------------------
+// Typography - Font Families
+// -----------------------------------------------------------------------------
+$font-family-base: Inter, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+                   Oxygen, Ubuntu, Cantarell, 'Fira Sans', 'Droid Sans',
+                   'Helvetica Neue', sans-serif;
+$font-family-heading: $font-family-base;
+$font-family-mono: 'Fira Code', Consolas, Monaco, 'Courier New', monospace;
+
+// -----------------------------------------------------------------------------
+// Typography - Font Sizes
+// -----------------------------------------------------------------------------
+$font-size-xs: 0.75rem;     // 12px
+$font-size-sm: 0.875rem;    // 14px
+$font-size-base: 1rem;      // 16px
+$font-size-lg: 1.125rem;    // 18px
+$font-size-xl: 1.25rem;     // 20px
+$font-size-2xl: 1.5rem;     // 24px
+$font-size-3xl: 1.875rem;   // 30px
+$font-size-4xl: 2.25rem;    // 36px
+$font-size-5xl: 3rem;       // 48px
+$font-size-6xl: 3.75rem;    // 60px
+
+// -----------------------------------------------------------------------------
+// Typography - Font Weights
+// -----------------------------------------------------------------------------
+$font-weight-light: 300;
+$font-weight-normal: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-bold: 700;
+$font-weight-extrabold: 800;
+
+// -----------------------------------------------------------------------------
+// Typography - Line Heights
+// -----------------------------------------------------------------------------
+$line-height-none: 1;
+$line-height-tight: 1.25;
+$line-height-snug: 1.375;
+$line-height-normal: 1.5;
+$line-height-relaxed: 1.625;
+$line-height-loose: 2;
+
+// -----------------------------------------------------------------------------
+// Spacing Scale (based on 4px/8px grid)
+// -----------------------------------------------------------------------------
+$spacing-0: 0;
+$spacing-1: 0.25rem;    // 4px
+$spacing-2: 0.5rem;     // 8px
+$spacing-3: 0.75rem;    // 12px
+$spacing-4: 1rem;       // 16px
+$spacing-5: 1.25rem;    // 20px
+$spacing-6: 1.5rem;     // 24px
+$spacing-7: 1.75rem;    // 28px
+$spacing-8: 2rem;       // 32px
+$spacing-9: 2.25rem;    // 36px
+$spacing-10: 2.5rem;    // 40px
+$spacing-11: 2.75rem;   // 44px
+$spacing-12: 3rem;      // 48px
+$spacing-14: 3.5rem;    // 56px
+$spacing-16: 4rem;      // 64px
+$spacing-20: 5rem;      // 80px
+$spacing-24: 6rem;      // 96px
+$spacing-28: 7rem;      // 112px
+$spacing-32: 8rem;      // 128px
+$spacing-36: 9rem;      // 144px
+$spacing-40: 10rem;     // 160px
+
+// -----------------------------------------------------------------------------
+// Spacing - Semantic
+// -----------------------------------------------------------------------------
+$spacing-section: 10rem;        // 160px
+$spacing-container: 2rem;       // 32px
+$spacing-card: 1.5rem;          // 24px
+$spacing-button: 0.75rem;       // 12px
+$spacing-input: 0.75rem;        // 12px
+
+// -----------------------------------------------------------------------------
+// Border Radius
+// -----------------------------------------------------------------------------
+$radius-none: 0;
+$radius-sm: 0.125rem;   // 2px
+$radius-base: 0.25rem;  // 4px
+$radius-md: 0.375rem;   // 6px
+$radius-lg: 0.5rem;     // 8px
+$radius-xl: 0.75rem;    // 12px
+$radius-2xl: 1rem;      // 16px
+$radius-3xl: 1.5rem;    // 24px
+$radius-full: 9999px;
+
+// -----------------------------------------------------------------------------
+// Box Shadows
+// -----------------------------------------------------------------------------
+$shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+$shadow-base: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+$shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+$shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+$shadow-inner: inset 0 2px 4px 0 rgba(0, 0, 0, 0.06);
+$shadow-none: none;
+
+// -----------------------------------------------------------------------------
+// Transitions
+// -----------------------------------------------------------------------------
+$transition-fast: 150ms ease-in-out;
+$transition-base: 250ms ease-in-out;
+$transition-slow: 350ms ease-in-out;
+$transition-slower: 500ms ease-in-out;
+
+$transition-timing-ease: ease;
+$transition-timing-ease-in: ease-in;
+$transition-timing-ease-out: ease-out;
+$transition-timing-ease-in-out: ease-in-out;
+$transition-timing-linear: linear;
+
+// -----------------------------------------------------------------------------
+// Breakpoints (for responsive design)
+// -----------------------------------------------------------------------------
+$breakpoint-xs: 475px;
+$breakpoint-sm: 640px;
+$breakpoint-md: 768px;
+$breakpoint-mobile: 800px;
+$breakpoint-lg: 1024px;
+$breakpoint-xl: 1280px;
+$breakpoint-2xl: 1536px;
+
+// -----------------------------------------------------------------------------
+// Layout
+// -----------------------------------------------------------------------------
+$app-max-width: 1920px;
+$app-min-width: 300px;
+
+// -----------------------------------------------------------------------------
+// Z-Index Scale
+// -----------------------------------------------------------------------------
+$z-index-dropdown: 1000;
+$z-index-sticky: 1020;
+$z-index-fixed: 1030;
+$z-index-modal-backdrop: 1040;
+$z-index-modal: 1050;
+$z-index-popover: 1060;
+$z-index-tooltip: 1070;

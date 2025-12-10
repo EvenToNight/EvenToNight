@@ -21,18 +21,12 @@ export default defineConfig([
   pluginJs.configs.recommended,
   {
     rules: {
-      'no-unused-vars': 'warn',
+      'no-unused-vars': 'off',
       'no-undef': 'warn',
     },
   },
   // ts
   ...tseslint.configs.recommended,
-  {
-    rules: {
-      '@typescript-eslint/no-unused-vars': 'warn',
-      '@typescript-eslint/no-explicit-any': 'warn',
-    },
-  },
   // vue + typescript
   ...defineConfigWithVueTs(
     pluginVue.configs['flat/recommended'],
@@ -53,10 +47,20 @@ export default defineConfig([
       'vue/attribute-hyphenation': 'off',
       'vue/no-v-html': 'off',
       'vue/v-on-event-hyphenation': 'off',
-      'no-unused-vars': 'warn',
+      'no-unused-vars': 'off',
       '@typescript-eslint/ban-ts-comment': 'off',
       '@typescript-eslint/no-require-imports': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        {
+          vars: 'all',
+          args: 'all',
+          ignoreRestSiblings: true,
+          varsIgnorePattern: '^_',
+          argsIgnorePattern: '^_',
+        },
+      ],
     },
   },
   {

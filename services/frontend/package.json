@@ -4,10 +4,12 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": "^20.19.0 || >=22.12.0"
+    "node": ">=22.20.0"
   },
   "scripts": {
     "dev": "vite",
+    "dev:memberView": "VITE_AUTO_LOGIN=true VITE_DEV_EMAIL=member_1@example.com VITE_DEV_PASSWORD=password123 vite",
+    "dev:organizationView": "VITE_AUTO_LOGIN=true VITE_DEV_EMAIL=organization_1@example.com VITE_DEV_PASSWORD=password123 vite",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
@@ -16,13 +18,17 @@
     "lint:fix": "eslint . --fix"
   },
   "dependencies": {
+    "@quasar/extras": "^1.17.0",
     "pinia": "^3.0.3",
+    "quasar": "^2.18.6",
     "vue": "^3.5.22",
+    "vue-advanced-cropper": "^2.8.9",
+    "vue-i18n": "^9.14.5",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
-    "esbuild": "0.25.11",
     "@eslint/js": "^9.37.0",
+    "@quasar/vite-plugin": "^1.10.0",
     "@tsconfig/node22": "^22.0.2",
     "@types/node": "^22.18.6",
     "@typescript-eslint/parser": "^8.46.0",
@@ -31,6 +37,7 @@
     "@vue/eslint-config-prettier": "^10.2.0",
     "@vue/eslint-config-typescript": "^14.6.0",
     "@vue/tsconfig": "^0.8.1",
+    "esbuild": "0.25.11",
     "eslint": "^9.37.0",
     "eslint-plugin-vue": "^10.5.0",
     "globals": "^16.4.0",
@@ -38,10 +45,12 @@
     "npm-run-all2": "^8.0.4",
     "prettier": "^3.6.2",
     "prettier-eslint": "^16.4.2",
+    "sass": "^1.94.0",
+    "sass-embedded": "^1.93.3",
     "typescript": "~5.9.0",
     "typescript-eslint": "^8.46.0",
     "vite": "^7.1.7",
-    "vite-plugin-vue-devtools": "^8.0.2",
+    "vite-plugin-vue-devtools": "^8.0.3",
     "vue-eslint-parser": "^10.2.0",
     "vue-tsc": "^3.1.0"
   }
