@@ -65,6 +65,13 @@ tasks.register<ExecTask>("teardownKeycloak") {
     bashCommands(DockerCommands.TEARDOWN_KEYCLOAK)
 }
 
+tasks.register<ExecTask>("teardownUsersEnvironment") {
+    description = "Tear down the users environment."
+    group = "docker"
+    dependsOn("teardownDevEnvironment")
+    dependsOn("teardownKeycloak")
+}
+
 tasks.register<ExecTask>("setupTestEnvironment") {
     description = "Set up the Docker test environment."
     group = "docker"
@@ -103,6 +110,13 @@ tasks.register<ExecTask>("setupKeycloak") {
     }
     println("Setting up Keycloak...")
     bashCommands(DockerCommands.SETUP_KEYCLOAK)
+}
+
+tasks.register<ExecTask>("setupUsersEnvironment") {
+    description = "Set up the users environment."
+    group = "docker"
+    dependsOn("setupDevEnvironment")
+    dependsOn("setupKeycloak")
 }
 
 tasks.register("saveStagedFiles") {
