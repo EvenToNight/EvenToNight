@@ -28,7 +28,6 @@ tasks.register<NpmTask>("formatAndLint") {
     group = "verification"
     description = "Formats and lints the project."
     dependsOn("npmInstall")
-    // run the formatting script; package.json defines `format` and `lint`
     args.set(listOf("run", "format"))
 }
 
