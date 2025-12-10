@@ -69,6 +69,12 @@ tasks.register<ExecTask>("teardownApplicationEnvironment") {
     bashCommands(DockerCommands.TEARDOWN_APPLICATION_ENVIRONMENT)
 }
 
+tasks.register<ExecTask>("teardownFrontendEnvironment") {
+    description = "Tear down the Docker frontend environment."
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_FRONTEND_ENVIRONMENT)
+}
+
 tasks.register<ExecTask>("setupTestEnvironment") {
     description = "Set up the Docker test environment."
     group = "docker"
@@ -97,6 +103,16 @@ tasks.register<ExecTask>("setupApplicationEnvironment") {
     }
     println("💬 Setting up the application environment...")
     bashCommands(DockerCommands.SETUP_APPLICATION_ENVIRONMENT)
+}
+
+tasks.register<ExecTask>("setupFrontendEnvironment") {
+    description = "Set up the Docker frontend environment."
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_FRONTEND_ENVIRONMENT).onFailure { code ->
+        println("${RED}Teardown failed with exit code ${code}.${RESET}")
+    }
+    println("💬 Setting up the frontend environment...")
+    bashCommands(DockerCommands.SETUP_FRONTEND_ENVIRONMENT)
 }
 
 tasks.register("saveStagedFiles") {
