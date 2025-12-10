@@ -4,7 +4,9 @@ import { InteractionsModule } from './interactions/interactions.module';
 
 @Module({
   imports: [
-    MongooseModule.forRoot(`mongodb://${process.env.MONGO_HOST}:27017/interactions`),
+    MongooseModule.forRoot(
+      `mongodb://${process.env.MONGO_HOST}:27017/interactions`,
+    ),
     InteractionsModule,
   ],
 })
