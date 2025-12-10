@@ -29,6 +29,12 @@ tasks.register<NpmTask>("formatAndLint"){
     npmCommand.set(listOf("run","lint:fix"))
 }
 
+tasks.register<NpmTask>("typeCheck"){
+    dependsOn("npmInstall")
+    npmCommand.set(listOf("run","type-check"))
+}
+
 tasks.register("formatAndLintPreCommit"){
     dependsOn("formatAndLint")
+    dependsOn("typeCheck")
 }
