@@ -1,5 +1,5 @@
 package service
-import domain.commands.{GetAllEventsCommand, GetEventCommand, UpdateEventPosterCommand}
+import domain.commands.{GetAllEventsCommand, GetEventCommand, GetFilteredEventsCommand, UpdateEventPosterCommand}
 import domain.models.{Event, EventStatus, EventTag, Location}
 import infrastructure.db.{EventRepository, MongoEventRepository}
 import org.scalatest.BeforeAndAfterEach
@@ -44,7 +44,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
   private def validGetEventCommand(id_event: String): GetEventCommand =
     GetEventCommand(id_event)
 
-  private def valideGetAllEventsCommand(): GetAllEventsCommand =
+  private def validGetAllEventsCommand(): GetAllEventsCommand =
     GetAllEventsCommand()
 
   private def validUpdateEventPosterCommand(
@@ -56,7 +56,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
   "EventQueryService" should "be instantiated correctly" in:
     service.`should`(be(a[EventQueryService]))
 
-  "Get Event" should "retrieve an existing event by ID" in:
+  "execCommand(getEventCommand)" should "retrieve an existing event by ID" in:
     val event = createEvent()
     repo.save(event)
 
@@ -75,7 +75,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
     val result = service.execCommand(cmd)
     result shouldBe Left("Event with id nonexistent_id not found")
 
-  "Get All Published Events" should "retrieve all published events" in:
+  "execCommand(getAllEventsCommand)" should "retrieve all published events" in:
     val event1 = createEvent().copy(status = EventStatus.PUBLISHED)
     val event2 = createEvent()
     val event3 = createEvent().copy(status = EventStatus.PUBLISHED)
@@ -84,7 +84,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
     repo.save(event2)
     repo.save(event3)
 
-    val cmd    = valideGetAllEventsCommand()
+    val cmd    = validGetAllEventsCommand()
     val result = service.execCommand(cmd)
     result match
       case Right(events) =>
@@ -92,7 +92,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       case Left(error) =>
         fail(s"Expected to retrieve published events, but got error: $error")
 
-  "updateEventPoster" should "update event poster successfully for existing event" in:
+  "execCommand(updateEventPosterCommand)" should "update event poster successfully for existing event" in:
     val event = createEvent()
     repo.save(event)
     val updateCmd    = validUpdateEventPosterCommand(id_event = event._id, posterUrl = "new-poster.jpg")
@@ -106,3 +106,33 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
     updateResult match
       case Left(error) => error shouldBe "Event nonexistent-id not found"
       case Right(_)    => fail("Update should have failed for non-existing event")
+
+  "execCommand(getFilteredEventsCommand)" should "retrieve events based on filters" in:
+    val event1 = createEvent().copy(title = "Rock Concert", tag = List(EventTag.TypeOfEvent.Concert))
+    val event2 = createEvent().copy(title = "Disco", tag = List(EventTag.TypeOfEvent.Party))
+    val event3 = createEvent().copy(title = "Jazz Night", tag = List(EventTag.TypeOfEvent.Concert))
+
+    repo.save(event1)
+    repo.save(event2)
+    repo.save(event3)
+
+    val cmd = GetFilteredEventsCommand(
+      limit = Some(10),
+      offset = Some(0),
+      status = Some(EventStatus.PUBLISHED),
+      title = None,
+      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      startDate = None,
+      endDate = None,
+      id_organization = None,
+      city = None,
+      location_name = None
+    )
+
+    val result = service.execCommand(cmd)
+    result match
+      case Right(events) =>
+        events should contain allElementsOf List(event1, event3)
+        events should not contain event2
+      case Left(error) =>
+        fail(s"Expected to retrieve filtered events, but got error: $error")

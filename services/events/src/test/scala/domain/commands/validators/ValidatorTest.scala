@@ -4,6 +4,7 @@ import domain.commands.{
   CreateEventCommand,
   DeleteEventCommand,
   GetEventCommand,
+  GetFilteredEventsCommand,
   UpdateEventCommand,
   UpdateEventPosterCommand
 }
@@ -47,6 +48,31 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       status = EventStatus.DRAFT,
       id_creator = id_creator,
       id_collaborator = None
+    )
+
+  private def validGetFilteredEventsCommand(
+      limit: Option[Int] = Some(10),
+      offset: Option[Int] = Some(0),
+      status: Option[EventStatus] = Some(EventStatus.PUBLISHED),
+      title: Option[String] = Some("Sample Event"),
+      tags: Option[List[EventTag]] = Some(List(EventTag.TypeOfEvent.Concert)),
+      startDate: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(1)),
+      endDate: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(30)),
+      id_organization: Option[String] = Some("org-123"),
+      city: Option[String] = Some("Sample City"),
+      location_name: Option[String] = Some("Sample Venue")
+  ): GetFilteredEventsCommand =
+    GetFilteredEventsCommand(
+      limit = limit,
+      offset = offset,
+      status = status,
+      title = title,
+      tags = tags,
+      startDate = startDate,
+      endDate = endDate,
+      id_organization = id_organization,
+      city = city,
+      location_name = location_name
     )
 
   "CreateEventValidator" should "extends Validator trait" in:
@@ -194,3 +220,35 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val result  = DeleteEventValidator.validate(command)
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Event ID cannot be empty")
+
+  "GetFilteredEventsValidator" should "extend Validator trait" in:
+    val validator = GetFilteredEventsValidator
+    validator shouldBe a[Validator[GetFilteredEventsCommand]]
+
+  it should "validate valid command successfully" in:
+    val command = validGetFilteredEventsCommand()
+    val result  = GetFilteredEventsValidator.validate(command)
+    result shouldBe Right(command)
+
+  it should "reject negative limit" in:
+    val command = validGetFilteredEventsCommand(limit = Some(-5))
+    val result  = GetFilteredEventsValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Limit must be positive")
+
+  it should "reject negative offset" in:
+    val command = validGetFilteredEventsCommand(offset = Some(-1))
+    val result  = GetFilteredEventsValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Offset cannot be negative")
+
+  it should "reject end date before start date" in:
+    val start = LocalDateTime.now().plusDays(10)
+    val end   = LocalDateTime.now().plusDays(5)
+    val command = validGetFilteredEventsCommand(
+      startDate = Some(start),
+      endDate = Some(end)
+    )
+    val result = GetFilteredEventsValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Date range: start date must be before end date")

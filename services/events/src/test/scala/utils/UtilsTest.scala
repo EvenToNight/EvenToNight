@@ -391,3 +391,79 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     )
     val updatedEvent = Utils.updateEventIfPastDate(completedEvent)
     updatedEvent.status shouldBe EventStatus.COMPLETED
+
+  "Utils.parseEventFilters" should "correctly parse valid filter parameters" in:
+    val commands = Utils.parseEventFilters(
+      limit = Some(2),
+      offset = Some(5),
+      status = Some("PUBLISHED"),
+      title = Some("Music Fest"),
+      tags = Some("Concert,Rock"),
+      startDate = Some("2025-10-01T00:00:00"),
+      endDate = Some("2025-12-31T23:59:59"),
+      id_organization = Some("123"),
+      city = Some("New York"),
+      location_name = Some("Madison Square Garden")
+    )
+    commands.title shouldBe Some("Music Fest")
+    commands.tags.getOrElse(List()) should contain allElementsOf List(
+      EventTag.TypeOfEvent.Concert,
+      EventTag.MusicGenre.Rock
+    )
+    commands.status shouldBe Some(EventStatus.PUBLISHED)
+    commands.startDate shouldBe Some(java.time.LocalDateTime.parse("2025-10-01T00:00:00"))
+    commands.endDate shouldBe Some(java.time.LocalDateTime.parse("2025-12-31T23:59:59"))
+    commands.id_organization shouldBe Some("123")
+    commands.city shouldBe Some("New York")
+    commands.location_name shouldBe Some("Madison Square Garden")
+
+  it should "handle missing filter parameters" in:
+    val commands = Utils.parseEventFilters(
+      limit = Some(2),
+      offset = Some(5),
+      status = None,
+      title = Some("Music Fest"),
+      tags = Some("Concert,Rock"),
+      startDate = None,
+      endDate = None,
+      id_organization = Some("123"),
+      city = None,
+      location_name = Some("Madison Square Garden")
+    )
+    commands.limit shouldBe Some(2)
+    commands.offset shouldBe Some(5)
+    commands.title shouldBe Some("Music Fest")
+    commands.tags.getOrElse(List()) should contain allElementsOf List(
+      EventTag.TypeOfEvent.Concert,
+      EventTag.MusicGenre.Rock
+    )
+    commands.status shouldBe None
+    commands.startDate shouldBe None
+    commands.endDate shouldBe None
+    commands.id_organization shouldBe Some("123")
+    commands.city shouldBe None
+    commands.location_name shouldBe Some("Madison Square Garden")
+
+  it should "handle all filter parameters missing" in:
+    val commands = Utils.parseEventFilters(
+      limit = None,
+      offset = None,
+      status = None,
+      title = None,
+      tags = None,
+      startDate = None,
+      endDate = None,
+      id_organization = None,
+      city = None,
+      location_name = None
+    )
+    commands.limit shouldBe None
+    commands.offset shouldBe None
+    commands.title shouldBe None
+    commands.tags shouldBe None
+    commands.status shouldBe None
+    commands.startDate shouldBe None
+    commands.endDate shouldBe None
+    commands.id_organization shouldBe None
+    commands.city shouldBe None
+    commands.location_name shouldBe None
