@@ -63,9 +63,9 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acquista i biglietti',
-    about: 'Di',
+    about: 'A proposito di questo evento',
     organizer: 'Organizzato da',
-    collaborators: 'Collaboratori',
+    collaborators: 'In collaborazione con',
   },
 
   footer: {

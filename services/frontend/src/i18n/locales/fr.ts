@@ -44,7 +44,7 @@ export default {
 
   cards: {
     slider: {
-      seeAll: 'Tout afficher',
+      seeAll: 'Tout voir',
       scrollLeftAriaLabel: 'Faire défiler vers la gauche',
       scrollRightAriaLabel: 'Faites défiler vers la droite',
     },
@@ -63,9 +63,9 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acheter des billets',
-    about: 'À propos',
+    about: 'À propos de cet événement',
     organizer: 'Organisé par',
-    collaborators: 'Collaborateurs',
+    collaborators: 'En collaboration avec',
   },
 
   footer: {
@@ -94,7 +94,7 @@ export default {
     noEventCreated: "Vous n'avez encore créé aucun événement.",
     noEventCreatedExternal: "Cette organisation n'a pas encore créé d'événements.",
     noEventJoined: "Vous n'avez encore assisté à aucun événement.",
-    noEventJoinedExternal: "Cet utilisateur n'a encore assisté à aucun événement.",
+    noEventJoinedExternal: "Cet utilisateur n'a encore participé à aucun événement.",
     noTickets: 'Pas encore de billets',
     draftedEvents: 'Événements rédigés',
     noDraftedEvents: 'Vous n’avez aucun événement rédigé.',
@@ -111,7 +111,7 @@ export default {
     timeError: 'Il faut du temps',
     description: 'Description',
     price: 'Prix',
-    priceError: 'Le prix est requis',
+    priceError: 'Le prix est obligatoire',
     tags: 'Balises',
     collaborators: 'Collaborateurs',
     collaboratorAvatarAlt: 'Avatar du collaborateur',
@@ -136,7 +136,7 @@ export default {
 
   home: {
     hero: {
-      title: "Trouvez l'événement pour vous",
+      title: "Trouvez l'événement qui vous convient",
     },
     sections: {
       upcomingEvents: 'Événements à venir',
