@@ -48,8 +48,8 @@ paths:
                     - `id_creator` (string): ID of the event creator
                     
                     **Optional fields:**
-                    - `id_collaborator` (string): ID of a collaborator
-                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","id_creator":"user-123","id_collaborator":"user-456"}'
+                    - `id_collaborators` (List of strings): IDs of collaborators
+                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","id_creator":"user-123","id_collaborators":["user-456"]}'
                 poster:
                   type: string
                   format: binary
@@ -184,9 +184,11 @@ paths:
                     id_creator:
                       type: string
                       description: ID of the event creator
-                    id_collaborator:
-                      type: string
-                      description: ID of the collaborator (if any)
+                    id_collaborators:
+                      type: array
+                      items:
+                        type: string
+                      description: IDs of the collaborators (if any)
                       nullable: true
         '404':
           description: Could not retrieve events
@@ -356,9 +358,11 @@ paths:
                   id_creator:
                     type: string
                     description: ID of the event creator
-                  id_collaborator:
-                    type: string
-                    description: ID of the collaborator (if any)
+                  id_collaborators:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs of the collaborators (if any)
                     nullable: true
               example:
                 id_event: "event-uuid-123"
@@ -383,7 +387,7 @@ paths:
                 status: "DRAFT"
                 instant: "2026-11-22T10:00:00Z"
                 id_creator: "user-123"
-                id_collaborator: ""
+                id_collaborators: []
         '404':
           description: Event not found
           content:
@@ -443,7 +447,7 @@ paths:
                 - `date` (string, ISO 8601 format): Event date and time
                 - `price` (number): Event ticket price
                 - `status` (string): Event status ("DRAFT", "PUBLISHED", or "CANCELLED")
-                - `id_collaborator` (string): ID of a collaborator
+                - `id_collaborators` (array of strings): IDs of collaborators
               properties:
                 title:
                   type: string
@@ -498,10 +502,12 @@ paths:
                   enum: [DRAFT, PUBLISHED, CANCELLED]
                   description: Event status (optional)
                   example: "PUBLISHED"
-                id_collaborator:
-                  type: string
-                  description: ID of a collaborator (optional)
-                  example: "user-789"
+                id_collaborators:
+                  type: array
+                  items:
+                    type: string
+                  description: IDs of collaborators (optional)
+                  example: ["user-789"]
             examples:
               updateTitle:
                 summary: Update only title

@@ -15,7 +15,7 @@ case class Event(
     status: EventStatus,
     instant: java.time.Instant,
     id_creator: String,
-    id_collaborator: Option[String]
+    id_collaborators: Option[List[String]]
 )
 
 object Event:
@@ -33,7 +33,7 @@ object Event:
       status = EventStatus.DRAFT,
       instant = java.time.Instant.MAX,
       id_creator = "",
-      id_collaborator = None
+      id_collaborators = None
     )
 
   def create(
@@ -46,7 +46,7 @@ object Event:
       price: Double,
       status: EventStatus,
       id_creator: String,
-      id_collaborator: Option[String]
+      id_collaborators: Option[List[String]]
   ): Event =
     Event(
       _id = UUID.randomUUID().toString,
@@ -60,5 +60,5 @@ object Event:
       status = status,
       instant = java.time.Instant.now(),
       id_creator = id_creator,
-      id_collaborator = id_collaborator
+      id_collaborators = id_collaborators
     )

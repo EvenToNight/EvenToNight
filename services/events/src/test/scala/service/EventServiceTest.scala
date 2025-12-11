@@ -50,9 +50,9 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
       status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "creator-123",
-      id_collaborator: Option[String] = None
+      id_collaborators: Option[List[String]] = None
   ): CreateEventCommand =
-    CreateEventCommand(title, description, poster, tags, location, date, price, status, id_creator, id_collaborator)
+    CreateEventCommand(title, description, poster, tags, location, date, price, status, id_creator, id_collaborators)
 
   private def validGetEventCommand(id_event: String = "event-123"): GetEventCommand =
     GetEventCommand(id_event)
@@ -75,9 +75,9 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
       status: Option[EventStatus] = None,
-      id_collaborator: Option[String] = None
+      id_collaborators: Option[List[String]] = None
   ): UpdateEventCommand =
-    UpdateEventCommand(id_event, title, description, tags, location, date, price, status, id_collaborator)
+    UpdateEventCommand(id_event, title, description, tags, location, date, price, status, id_collaborators)
 
   private def validDeleteEventCommand(id_event: String): DeleteEventCommand =
     DeleteEventCommand(id_event)

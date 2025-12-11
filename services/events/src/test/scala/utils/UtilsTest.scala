@@ -165,7 +165,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "price": 20.0,
       "status": "DRAFT",
       "id_creator": "creator-001",
-      "id_collaborator": "collab-001"
+      "id_collaborators": ["collab-001"]
     }"""
 
     val command = Utils.getCreateCommandFromJson(validJson)
@@ -178,7 +178,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.price shouldBe 20.0
     command.status shouldBe domain.models.EventStatus.DRAFT
     command.id_creator shouldBe "creator-001"
-    command.id_collaborator shouldBe Some("collab-001")
+    command.id_collaborators shouldBe Some(List("collab-001"))
 
   it should "handle JSON with missing optional fields" in:
     val partialJson = """{
@@ -209,44 +209,24 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.price shouldBe 0.0
     command.status shouldBe domain.models.EventStatus.PUBLISHED
     command.id_creator shouldBe "creator-002"
-    command.id_collaborator shouldBe None
+    command.id_collaborators shouldBe None
 
-  it should "handle invalid JSON and return default CreateEventCommand" in:
+  it should "throw on invalid JSON for CreateEventCommand" in:
     val invalidJson = "{ invalid json structure"
-    val command     = Utils.getCreateCommandFromJson(invalidJson)
-    command.title shouldBe ""
-    command.description shouldBe ""
-    command.tags shouldBe List()
-    command.location shouldBe Location.Nil()
-    command.date shouldBe java.time.LocalDateTime.MIN
-    command.price shouldBe 0.0
-    command.status shouldBe domain.models.EventStatus.DRAFT
-    command.id_creator shouldBe ""
-    command.id_collaborator shouldBe None
+    intercept[Exception] {
+      Utils.getCreateCommandFromJson(invalidJson)
+    }
 
-  it should "handle non-JSON string and return default CreateEventCommand" in:
+  it should "throw on non-JSON string for CreateEventCommand" in:
     val notJson = "this is not json at all"
-    val command = Utils.getCreateCommandFromJson(notJson)
-    command.title shouldBe ""
-    command.description shouldBe ""
-    command.tags shouldBe List()
-    command.location shouldBe Location.Nil()
-    command.date shouldBe java.time.LocalDateTime.MIN
-    command.price shouldBe 0.0
-    command.status shouldBe domain.models.EventStatus.DRAFT
-    command.id_creator shouldBe ""
-    command.id_collaborator shouldBe None
-  it should "handle empty string and return default CreateEventCommand" in:
-    val command = Utils.getCreateCommandFromJson("")
-    command.title shouldBe ""
-    command.description shouldBe ""
-    command.tags shouldBe List()
-    command.location shouldBe Location.Nil()
-    command.date shouldBe java.time.LocalDateTime.MIN
-    command.price shouldBe 0.0
-    command.status shouldBe domain.models.EventStatus.DRAFT
-    command.id_creator shouldBe ""
-    command.id_collaborator shouldBe None
+    intercept[Exception] {
+      Utils.getCreateCommandFromJson(notJson)
+    }
+
+  it should "throw on empty string for CreateEventCommand" in:
+    intercept[Exception] {
+      Utils.getCreateCommandFromJson("")
+    }
 
   "Utils.getUpdateCommandFromJson" should "parse valid JSON into UpdateEventCommand" in:
     val validJson = """{
@@ -266,7 +246,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "date": "2026-01-20T18:00:00",
       "price": 30.0,
       "status": "CANCELLED",
-      "id_collaborator": "collab-002"
+      "id_collaborators": ["collab-002"]
     }"""
 
     val command = Utils.getUpdateCommandFromJson("event-123", validJson)
@@ -279,7 +259,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-01-20T18:00:00"))
     command.price shouldBe Some(30.0)
     command.status shouldBe Some(domain.models.EventStatus.CANCELLED)
-    command.id_collaborator shouldBe Some("collab-002")
+    command.id_collaborators shouldBe Some(List("collab-002"))
 
   it should "handle JSON with missing optional fields" in:
     val partialJson = """{
@@ -296,45 +276,24 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-02-10" + "T12:00:00"))
     command.price shouldBe None
     command.status shouldBe None
-    command.id_collaborator shouldBe None
+    command.id_collaborators shouldBe None
 
-  it should "handle invalid JSON and return UpdateEventCommand with None fields" in:
+  it should "throw on invalid JSON for UpdateEventCommand" in:
     val invalidJson = "{ invalid json structure"
-    val command     = Utils.getUpdateCommandFromJson("event-789", invalidJson)
-    command.id_event shouldBe "event-789"
-    command.title shouldBe None
-    command.description shouldBe None
-    command.tags shouldBe None
-    command.location shouldBe None
-    command.date shouldBe None
-    command.price shouldBe None
-    command.status shouldBe None
-    command.id_collaborator shouldBe None
+    intercept[Exception] {
+      Utils.getUpdateCommandFromJson("event-789", invalidJson)
+    }
 
-  it should "handle non-JSON string and return UpdateEventCommand with None fields" in:
+  it should "throw on non-JSON string for UpdateEventCommand" in:
     val notJson = "this is not json at all"
-    val command = Utils.getUpdateCommandFromJson("event-101", notJson)
-    command.id_event shouldBe "event-101"
-    command.title shouldBe None
-    command.description shouldBe None
-    command.tags shouldBe None
-    command.location shouldBe None
-    command.date shouldBe None
-    command.price shouldBe None
-    command.status shouldBe None
-    command.id_collaborator shouldBe None
+    intercept[Exception] {
+      Utils.getUpdateCommandFromJson("event-101", notJson)
+    }
 
-  it should "handle empty string and return UpdateEventCommand with None fields" in:
-    val command = Utils.getUpdateCommandFromJson("event-202", "")
-    command.id_event shouldBe "event-202"
-    command.title shouldBe None
-    command.description shouldBe None
-    command.tags shouldBe None
-    command.location shouldBe None
-    command.date shouldBe None
-    command.price shouldBe None
-    command.status shouldBe None
-    command.id_collaborator shouldBe None
+  it should "throw on empty string for UpdateEventCommand" in:
+    intercept[Exception] {
+      Utils.getUpdateCommandFromJson("event-202", "")
+    }
 
   "Utils.updateEventIfPastDate" should "update event status to COMPLETED if date is in the past" in:
     val pastEvent = Event(
@@ -349,7 +308,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
       id_creator = "creator-past",
-      id_collaborator = None
+      id_collaborators = None
     )
 
     val updatedEvent = Utils.updateEventIfPastDate(pastEvent)
@@ -369,7 +328,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
       id_creator = "creator-future",
-      id_collaborator = None
+      id_collaborators = None
     )
     val updatedEvent = Utils.updateEventIfPastDate(futureEvent)
     updatedEvent.status shouldBe EventStatus.PUBLISHED
@@ -387,7 +346,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       status = EventStatus.COMPLETED,
       instant = java.time.Instant.now(),
       id_creator = "creator-completed",
-      id_collaborator = None
+      id_collaborators = None
     )
     val updatedEvent = Utils.updateEventIfPastDate(completedEvent)
     updatedEvent.status shouldBe EventStatus.COMPLETED

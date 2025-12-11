@@ -47,7 +47,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       price = price,
       status = EventStatus.DRAFT,
       id_creator = id_creator,
-      id_collaborator = None
+      id_collaborators = None
     )
 
   private def validGetFilteredEventsCommand(

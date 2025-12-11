@@ -31,7 +31,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   private def createCommand(
       title: String = "Test Event",
-      id_collaborator: Option[String] = Some("collaborator-456")
+      id_collaborators: Option[List[String]] = Some(List("collaborator-456"))
   ): CreateEventCommand =
     CreateEventCommand(
       title,
@@ -43,7 +43,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       15.0,
       EventStatus.DRAFT,
       "creator-123",
-      id_collaborator
+      id_collaborators
     )
 
   private def getCommand(id_event: String): GetEventCommand =
@@ -77,7 +77,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   it should "store properties correctly" in:
     val command = createCommand("Custom Title", None)
     command.title shouldBe "Custom Title"
-    command.id_collaborator shouldBe None
+    command.id_collaborators shouldBe None
     command.tags shouldBe sampleTags
     command.location shouldBe sampleLocation
     command.date shouldBe baseDate
@@ -128,7 +128,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       date = None,
       price = Some(20.0),
       status = Some(EventStatus.PUBLISHED),
-      id_collaborator = Some("collaborator-789")
+      id_collaborators = Some(List("collaborator-789"))
     )
     command shouldBe a[Commands]
     command shouldBe a[UpdateEventCommand]
@@ -143,7 +143,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       date = Some(baseDate.plusDays(5)),
       price = Some(30.0),
       status = Some(EventStatus.CANCELLED),
-      id_collaborator = None
+      id_collaborators = None
     )
     command.id_event shouldBe "event-654"
     command.title shouldBe Some("New Title")
@@ -153,7 +153,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.date shouldBe Some(baseDate.plusDays(5))
     command.price shouldBe Some(30.0)
     command.status shouldBe Some(EventStatus.CANCELLED)
-    command.id_collaborator shouldBe None
+    command.id_collaborators shouldBe None
 
   "DeleteEventCommand" should "implement Commands trait" in:
     val command = DeleteEventCommand("event-to-delete")

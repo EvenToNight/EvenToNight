@@ -15,7 +15,7 @@ case class CreateEventCommand(
     price: Double,
     status: EventStatus,
     id_creator: String,
-    id_collaborator: Option[String]
+    id_collaborators: Option[List[String]]
 ) extends Commands
 
 case class UpdateEventPosterCommand(
@@ -38,7 +38,7 @@ case class UpdateEventCommand(
     date: Option[LocalDateTime],
     price: Option[Double],
     status: Option[EventStatus],
-    id_collaborator: Option[String]
+    id_collaborators: Option[List[String]]
 ) extends Commands
 
 case class DeleteEventCommand(

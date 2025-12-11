@@ -18,7 +18,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       id: String = "event123",
       title: String = "Test Event",
       tags: List[EventTag] = List(EventTag.TypeOfEvent.Party),
-      id_collaborator: Option[String] = Some("collab789")
+      id_collaborators: Option[List[String]] = Some(List("collab789"))
   ): Event = Event(
     _id = id,
     title = title,
@@ -40,7 +40,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     status = EventStatus.DRAFT,
     instant = sampleInstant,
     id_creator = "creator123",
-    id_collaborator = id_collaborator
+    id_collaborators = id_collaborators
   )
 
   "Event.toDocument" should "convert Event to Document with all fields" in:
@@ -54,7 +54,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     document.getString("title") shouldBe "Christmas Party"
     document.getList("tags", classOf[String]).asScala.toList shouldBe List("Party", "Christmas")
     document.getDouble("price") shouldBe 15.0
-    document.getString("id_collaborator") shouldBe "collab789"
+    document.getList("id_collaborators", classOf[String]).asScala.toList shouldBe List("collab789")
 
     val locationDoc = document.get("location", classOf[Document])
     locationDoc.getString("country") shouldBe "Test Country"
@@ -104,7 +104,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     json("status").str shouldBe "DRAFT"
     json("instant").str shouldBe sampleInstant.toString
     json("id_creator").str shouldBe "creator123"
-    json("id_collaborator").str shouldBe "collab789"
+    json("id_collaborators").arr.map(_.str).toList shouldBe List("collab789")
 
   "EventConversions.fromDocument" should "convert Document to Event with all fields" in:
     val document = new Document()
@@ -130,7 +130,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("status", "PUBLISHED")
       .append("instant", sampleInstant.toString)
       .append("id_creator", "doc-creator")
-      .append("id_collaborator", "doc-collaborator")
+      .append("id_collaborators", List("doc-collaborator").asJava)
 
     val event = EventConversions.fromDocument(document)
 
@@ -154,7 +154,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     event.status shouldBe EventStatus.PUBLISHED
     event.instant shouldBe sampleInstant
     event.id_creator shouldBe "doc-creator"
-    event.id_collaborator shouldBe Some("doc-collaborator")
+    event.id_collaborators shouldBe Some(List("doc-collaborator"))
 
   "EventConversions.getDoubleValue" should "handle different numeric types" in:
     val testDoc = new Document()

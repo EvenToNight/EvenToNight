@@ -28,22 +28,22 @@ object EventConversions:
         .append("status", event.status.toString)
         .append("instant", event.instant.toString)
         .append("id_creator", event.id_creator)
-        .append("id_collaborator", event.id_collaborator.orNull)
+        .append("id_collaborators", event.id_collaborators.map(_.asJava).orNull)
 
     def toJson: ujson.Value =
       ujson.Obj(
-        "id_event"        -> event._id,
-        "title"           -> event.title,
-        "description"     -> event.description,
-        "poster"          -> event.poster,
-        "tags"            -> ujson.Arr(event.tags.map(t => ujson.Str(t.displayName))*),
-        "location"        -> localityToJson(event.location),
-        "date"            -> event.date.toString,
-        "price"           -> event.price,
-        "status"          -> event.status.toString,
-        "instant"         -> event.instant.toString,
-        "id_creator"      -> event.id_creator,
-        "id_collaborator" -> event.id_collaborator.getOrElse("")
+        "id_event"         -> event._id,
+        "title"            -> event.title,
+        "description"      -> event.description,
+        "poster"           -> event.poster,
+        "tags"             -> ujson.Arr(event.tags.map(t => ujson.Str(t.displayName))*),
+        "location"         -> localityToJson(event.location),
+        "date"             -> event.date.toString,
+        "price"            -> event.price,
+        "status"           -> event.status.toString,
+        "instant"          -> event.instant.toString,
+        "id_creator"       -> event.id_creator,
+        "id_collaborators" -> ujson.Arr(event.id_collaborators.getOrElse(Nil).map(s => ujson.Str(s))*)
       )
 
   def fromDocument(doc: Document): Event =
@@ -61,7 +61,7 @@ object EventConversions:
       status = EventStatus.valueOf(doc.getString("status")),
       instant = java.time.Instant.parse(doc.getString("instant")),
       id_creator = doc.getString("id_creator"),
-      id_collaborator = Option(doc.getString("id_collaborator"))
+      id_collaborators = Option(doc.get("id_collaborators", classOf[java.util.List[String]])).map(_.asScala.toList)
     )
 
   private def localityToDocument(locality: Location): Document =

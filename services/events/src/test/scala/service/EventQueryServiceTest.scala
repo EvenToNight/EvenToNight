@@ -38,7 +38,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       date = LocalDateTime.now().plusDays(1),
       status = EventStatus.PUBLISHED,
       id_creator = "creator123",
-      id_collaborator = None
+      id_collaborators = None
     )
 
   private def validGetEventCommand(id_event: String): GetEventCommand =
