@@ -7,4 +7,6 @@ services:
     keycloak-provision:
       build:
         context: .
-        dockerfile: ./infrastructure/authentication/Dockerfile-keycloak-provision    
+        dockerfile: ./infrastructure/authentication/Dockerfile-keycloak-provision
+      environment:
+        USERS_SERVICE_SECRET: "supersecret"
