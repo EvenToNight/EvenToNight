@@ -1,6 +1,6 @@
 package utils
-import domain.commands.{CreateEventCommand, UpdateEventCommand}
-import domain.models.{Event, EventStatus, Location}
+import domain.commands.{CreateEventCommand, GetFilteredEventsCommand, UpdateEventCommand}
+import domain.models.{Event, EventStatus, EventTag, Location}
 import domain.models.EventTag.validateTagList
 
 import java.nio.file.Files
@@ -145,3 +145,36 @@ object Utils:
       event.copy(status = EventStatus.COMPLETED)
     else
       event
+
+  def parseEventFilters(
+      limit: Option[Int],
+      offset: Option[Int],
+      status: Option[String],
+      title: Option[String],
+      tags: Option[String],
+      startDate: Option[String],
+      endDate: Option[String],
+      id_organization: Option[String],
+      city: Option[String],
+      location_name: Option[String]
+  ): GetFilteredEventsCommand =
+    val parsedStatus: Option[EventStatus]  = status.flatMap(s => EventStatus.withNameOpt(s))
+    val parsedTags: Option[List[EventTag]] = tags.map(t => validateTagList(t))
+    val parsedStartDate: Option[LocalDateTime] = startDate.flatMap { sd =>
+      Try(LocalDateTime.parse(sd)).toOption
+    }
+    val parsedEndDate: Option[LocalDateTime] = endDate.flatMap { ed =>
+      Try(LocalDateTime.parse(ed)).toOption
+    }
+    GetFilteredEventsCommand(
+      limit = limit,
+      offset = offset,
+      status = parsedStatus,
+      title = title,
+      tags = parsedTags,
+      startDate = parsedStartDate,
+      endDate = parsedEndDate,
+      id_organization = id_organization,
+      city = city,
+      location_name = location_name
+    )

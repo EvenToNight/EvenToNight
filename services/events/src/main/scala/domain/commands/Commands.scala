@@ -44,3 +44,16 @@ case class UpdateEventCommand(
 case class DeleteEventCommand(
     id_event: String
 ) extends Commands
+
+case class GetFilteredEventsCommand(
+    limit: Option[Int],
+    offset: Option[Int],
+    status: Option[EventStatus],
+    title: Option[String],
+    tags: Option[List[EventTag]],
+    startDate: Option[LocalDateTime],
+    endDate: Option[LocalDateTime],
+    id_organization: Option[String],
+    city: Option[String],
+    location_name: Option[String]
+) extends Commands

@@ -1,12 +1,12 @@
 package controller.routes
 
 import cask.Routes
-import domain.commands.{GetAllEventsCommand, GetEventCommand, UpdateEventPosterCommand}
+import domain.commands.{GetAllEventsCommand, GetEventCommand, GetFilteredEventsCommand, UpdateEventPosterCommand}
 import domain.models.Event
 import domain.models.EventConversions.*
 import service.EventService
 import ujson.Obj
-import utils.Utils.uploadPosterToMediaService
+import utils.Utils
 
 class EventQueryRoutes(eventService: EventService) extends Routes:
 
@@ -44,6 +44,43 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
           statusCode = 404
         )
 
+  @cask.get("/search")
+  def getEvents(
+      limit: Option[Int] = None,
+      offset: Option[Int] = None,
+      status: Option[String] = None,
+      title: Option[String] = None,
+      tags: Option[String] = None,
+      startDate: Option[String] = None,
+      endDate: Option[String] = None,
+      id_organization: Option[String] = None,
+      city: Option[String] = None,
+      location_name: Option[String] = None
+  ): cask.Response[ujson.Value] =
+    val command: GetFilteredEventsCommand = Utils.parseEventFilters(
+      limit,
+      offset,
+      status,
+      title,
+      tags,
+      startDate,
+      endDate,
+      id_organization,
+      city,
+      location_name
+    )
+    eventService.handleCommand(command) match
+      case Right(list) =>
+        list match
+          case events: List[?] =>
+            cask.Response(ujson.Arr(events.collect { case e: Event => e.toJson }), statusCode = 200)
+          case _ => cask.Response(ujson.Arr(), statusCode = 200)
+      case Left(errors) =>
+        cask.Response(
+          ujson.Obj("error" -> s"Could not retrieve events $errors"),
+          statusCode = 404
+        )
+
   @cask.postForm("/:id_event/poster")
   def updateEventPoster(id_event: String, poster: cask.FormFile): cask.Response[ujson.Value] =
     eventService.handleCommand(GetEventCommand(id_event)) match
@@ -53,7 +90,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
           statusCode = 404
         )
       case _ =>
-        val posterUrl = uploadPosterToMediaService(id_event, poster, mediaServiceUrl)
+        val posterUrl = Utils.uploadPosterToMediaService(id_event, poster, mediaServiceUrl)
         val updateCommand = UpdateEventPosterCommand(
           id_event = id_event,
           posterUrl = posterUrl

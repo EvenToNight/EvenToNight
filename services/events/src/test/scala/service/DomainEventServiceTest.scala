@@ -20,6 +20,20 @@ class FailingEventRepository extends EventRepository:
   override def delete(id_event: String): Either[Throwable, Unit] =
     Left(new RuntimeException("Database connection failed"))
 
+  override def findByFilters(
+      limit: Option[Int],
+      offset: Option[Int],
+      status: Option[EventStatus],
+      title: Option[String],
+      tags: Option[List[String]],
+      startDate: Option[String],
+      endDate: Option[String],
+      id_organization: Option[String],
+      city: Option[String],
+      location_name: Option[String]
+  ): Either[Throwable, List[Event]] =
+    Left(new RuntimeException("Database connection failed"))
+
 class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   var repo: EventRepository       = uninitialized
   var publisher: EventPublisher   = uninitialized

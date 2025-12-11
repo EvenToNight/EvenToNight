@@ -26,3 +26,23 @@ object ValidationRules:
       locality,
       s"$field has invalid parameters"
     )
+
+  def positiveInt(value: Option[Int], fieldName: String): Either[String, Unit] =
+    value match
+      case Some(v) if v <= 0 => Left(s"$fieldName must be positive")
+      case _                 => Right(())
+
+  def nonNegativeInt(value: Option[Int], fieldName: String): Either[String, Unit] =
+    value match
+      case Some(v) if v < 0 => Left(s"$fieldName cannot be negative")
+      case _                => Right(())
+
+  def dateRange(
+      startDate: Option[LocalDateTime],
+      endDate: Option[LocalDateTime],
+      fieldName: String
+  ): Either[String, Unit] =
+    (startDate, endDate) match
+      case (Some(start), Some(end)) if start.isAfter(end) =>
+        Left(s"$fieldName: start date must be before end date")
+      case _ => Right(())

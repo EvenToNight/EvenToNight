@@ -4,11 +4,12 @@ import domain.commands.{
   CreateEventCommand,
   DeleteEventCommand,
   GetEventCommand,
+  GetFilteredEventsCommand,
   UpdateEventCommand,
   UpdateEventPosterCommand
 }
 
-import ValidationRules.{futureDate, nonEmpty, correctLocality}
+import ValidationRules.{futureDate, nonEmpty, correctLocality, positiveInt, nonNegativeInt, dateRange}
 import Validator.combine
 
 object CreateEventValidator extends Validator[CreateEventCommand]:
@@ -48,4 +49,12 @@ object DeleteEventValidator extends Validator[DeleteEventCommand]:
   override def validate(cmd: DeleteEventCommand): Either[List[String], DeleteEventCommand] =
     combine(
       nonEmpty(cmd.id_event, "Event ID")
+    ).map(_ => cmd)
+
+object GetFilteredEventsValidator extends Validator[GetFilteredEventsCommand]:
+  override def validate(cmd: GetFilteredEventsCommand): Either[List[String], GetFilteredEventsCommand] =
+    combine(
+      positiveInt(cmd.limit, "Limit"),
+      nonNegativeInt(cmd.offset, "Offset"),
+      dateRange(cmd.startDate, cmd.endDate, "Date range")
     ).map(_ => cmd)

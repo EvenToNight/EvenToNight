@@ -17,6 +17,18 @@ trait EventRepository:
   def update(event: Event): Either[Throwable, Unit]
   def findAllPublished(): Either[Throwable, List[Event]]
   def delete(id_event: String): Either[Throwable, Unit]
+  def findByFilters(
+      limit: Option[Int] = None,
+      offset: Option[Int] = None,
+      status: Option[EventStatus] = None,
+      title: Option[String] = None,
+      tags: Option[List[String]] = None,
+      startDate: Option[String] = None,
+      endDate: Option[String] = None,
+      id_organization: Option[String] = None,
+      city: Option[String] = None,
+      location_name: Option[String] = None
+  ): Either[Throwable, List[Event]]
 
 case class MongoEventRepository(connectionString: String, databaseName: String, collectionName: String = "events")
     extends EventRepository:
@@ -89,6 +101,65 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       case Failure(ex) =>
         println(s"[MongoDB][Error] Failed to delete Event ID: $id_event -" + s" ${ex.getMessage}")
         Left(ex)
+
+  override def findByFilters(
+      limit: Option[Int] = None,
+      offset: Option[Int] = None,
+      status: Option[EventStatus] = None,
+      title: Option[String] = None,
+      tags: Option[List[String]] = None,
+      startDate: Option[String] = None,
+      endDate: Option[String] = None,
+      id_organization: Option[String] = None,
+      city: Option[String] = None,
+      location_name: Option[String] = None
+  ): Either[Throwable, List[Event]] =
+    Try {
+      val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
+
+      status.foreach(s => filters += Filters.eq("status", s.toString))
+      title.foreach(n => filters += Filters.regex("title", n, "i"))
+      id_organization.foreach(org => filters += Filters.eq("id_organization", org))
+      city.foreach(c => filters += Filters.regex("location.city", c, "i"))
+      location_name.foreach(loc => filters += Filters.regex("location.name", loc, "i"))
+
+      tags.foreach { tagList =>
+        if tagList.nonEmpty then
+          filters += Filters.in("tags", tagList.asJava)
+      }
+
+      startDate.foreach(start => filters += Filters.gte("date", start))
+      endDate.foreach(end => filters += Filters.lte("date", end))
+
+      val combinedFilter = if filters.isEmpty then
+        new Document()
+      else if filters.size == 1 then
+        filters.head
+      else
+        Filters.and(filters.asJava)
+
+      var query = collection.find(combinedFilter)
+
+      offset.foreach(o => query = query.skip(o))
+      limit.foreach(l => query = query.limit(l))
+
+      query
+        .into(new java.util.ArrayList[Document]())
+        .asScala
+        .map(fromDocument)
+        .map { event =>
+          val updatedEvent = Utils.updateEventIfPastDate(event)
+          if updatedEvent.status != event.status then
+            update(updatedEvent).left.foreach(ex =>
+              println(s"[MongoDB] Could not auto-update past event to COMPLETED: ${ex.getMessage}")
+            )
+          updatedEvent
+        }
+        .toList
+    }.toEither.left.map { ex =>
+      println(s"[MongoDB][Error] Failed to retrieve filtered events - ${ex.getMessage}")
+      ex
+    }
 
   def close(): Unit =
     mongoClient.close()
