@@ -78,7 +78,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val command = createCommand("Custom Title", None)
     command.title shouldBe "Custom Title"
     command.id_collaborator shouldBe None
-    command.tag shouldBe sampleTags
+    command.tags shouldBe sampleTags
     command.location shouldBe sampleLocation
     command.date shouldBe baseDate
 
@@ -123,7 +123,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_event = "event-321",
       title = Some("Updated Title"),
       description = None,
-      tag = None,
+      tags = None,
       location = None,
       date = None,
       price = Some(20.0),
@@ -138,7 +138,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_event = "event-654",
       title = Some("New Title"),
       description = Some("New Description"),
-      tag = Some(List(EventTag.TypeOfEvent.Concert)),
+      tags = Some(List(EventTag.TypeOfEvent.Concert)),
       location = Some(sampleLocation),
       date = Some(baseDate.plusDays(5)),
       price = Some(30.0),
@@ -148,7 +148,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.id_event shouldBe "event-654"
     command.title shouldBe Some("New Title")
     command.description shouldBe Some("New Description")
-    command.tag shouldBe Some(List(EventTag.TypeOfEvent.Concert))
+    command.tags shouldBe Some(List(EventTag.TypeOfEvent.Concert))
     command.location shouldBe Some(sampleLocation)
     command.date shouldBe Some(baseDate.plusDays(5))
     command.price shouldBe Some(30.0)

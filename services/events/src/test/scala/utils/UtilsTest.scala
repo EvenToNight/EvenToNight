@@ -172,7 +172,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
 
     command.title shouldBe "Sample Event"
     command.description shouldBe "This is a sample event."
-    command.tag should contain allElementsOf List(EventTag.VenueType.Bar, EventTag.MusicGenre.Indie)
+    command.tags should contain allElementsOf List(EventTag.VenueType.Bar, EventTag.MusicGenre.Indie)
     command.location.country shouldBe "USA"
     command.date shouldBe java.time.LocalDateTime.parse("2025-11-15T19:30:00")
     command.price shouldBe 20.0
@@ -203,7 +203,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val command     = Utils.getCreateCommandFromJson(partialJson)
     command.title shouldBe "Partial Event"
     command.description shouldBe "This event has missing optional fields."
-    command.tag should contain(EventTag.TypeOfEvent.Concert)
+    command.tags should contain(EventTag.TypeOfEvent.Concert)
     command.location.country shouldBe "UK"
     command.date shouldBe java.time.LocalDateTime.parse("2025-12-01T" + "10:00:00")
     command.price shouldBe 0.0
@@ -216,7 +216,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val command     = Utils.getCreateCommandFromJson(invalidJson)
     command.title shouldBe ""
     command.description shouldBe ""
-    command.tag shouldBe List()
+    command.tags shouldBe List()
     command.location shouldBe Location.Nil()
     command.date shouldBe java.time.LocalDateTime.MIN
     command.price shouldBe 0.0
@@ -229,7 +229,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val command = Utils.getCreateCommandFromJson(notJson)
     command.title shouldBe ""
     command.description shouldBe ""
-    command.tag shouldBe List()
+    command.tags shouldBe List()
     command.location shouldBe Location.Nil()
     command.date shouldBe java.time.LocalDateTime.MIN
     command.price shouldBe 0.0
@@ -240,7 +240,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val command = Utils.getCreateCommandFromJson("")
     command.title shouldBe ""
     command.description shouldBe ""
-    command.tag shouldBe List()
+    command.tags shouldBe List()
     command.location shouldBe Location.Nil()
     command.date shouldBe java.time.LocalDateTime.MIN
     command.price shouldBe 0.0
@@ -274,7 +274,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.id_event shouldBe "event-123"
     command.title shouldBe Some("Updated Event Title")
     command.description shouldBe Some("Updated description.")
-    command.tag.getOrElse(List()) should contain allElementsOf List(EventTag.VenueType.Club, EventTag.MusicGenre.Rock)
+    command.tags.getOrElse(List()) should contain allElementsOf List(EventTag.VenueType.Club, EventTag.MusicGenre.Rock)
     command.location.map(_.country) shouldBe Some("Canada")
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-01-20T18:00:00"))
     command.price shouldBe Some(30.0)
@@ -291,7 +291,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.id_event shouldBe "event-456"
     command.title shouldBe Some("Partially Updated Title")
     command.description shouldBe None
-    command.tag.getOrElse(List()) should contain(EventTag.TypeOfEvent.Concert)
+    command.tags.getOrElse(List()) should contain(EventTag.TypeOfEvent.Concert)
     command.location shouldBe None
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-02-10" + "T12:00:00"))
     command.price shouldBe None
@@ -304,7 +304,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.id_event shouldBe "event-789"
     command.title shouldBe None
     command.description shouldBe None
-    command.tag shouldBe None
+    command.tags shouldBe None
     command.location shouldBe None
     command.date shouldBe None
     command.price shouldBe None
@@ -317,7 +317,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.id_event shouldBe "event-101"
     command.title shouldBe None
     command.description shouldBe None
-    command.tag shouldBe None
+    command.tags shouldBe None
     command.location shouldBe None
     command.date shouldBe None
     command.price shouldBe None
@@ -329,7 +329,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.id_event shouldBe "event-202"
     command.title shouldBe None
     command.description shouldBe None
-    command.tag shouldBe None
+    command.tags shouldBe None
     command.location shouldBe None
     command.date shouldBe None
     command.price shouldBe None
@@ -342,7 +342,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       title = "Past Event",
       description = "This event is in the past.",
       poster = "past.jpg",
-      tag = List(EventTag.TypeOfEvent.Concert),
+      tags = List(EventTag.TypeOfEvent.Concert),
       location = Location.Nil(),
       date = java.time.LocalDateTime.now().minusDays(5),
       price = 10.0,
@@ -362,7 +362,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       title = "Future Event",
       description = "This event is in the future.",
       poster = "future.jpg",
-      tag = List(EventTag.TypeOfEvent.Concert),
+      tags = List(EventTag.TypeOfEvent.Concert),
       location = Location.Nil(),
       date = java.time.LocalDateTime.now().plusDays(10),
       price = 15.0,
@@ -380,7 +380,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       title = "Completed Event",
       description = "This event is already completed.",
       poster = "completed.jpg",
-      tag = List(EventTag.TypeOfEvent.Party),
+      tags = List(EventTag.TypeOfEvent.Party),
       location = Location.Nil(),
       date = java.time.LocalDateTime.now().minusDays(15),
       price = 20.0,

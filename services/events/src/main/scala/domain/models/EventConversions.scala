@@ -21,7 +21,7 @@ object EventConversions:
         .append("title", event.title)
         .append("description", event.description)
         .append("poster", event.poster)
-        .append("tag", event.tag.map(_.displayName).asJava)
+        .append("tags", event.tags.map(_.displayName).asJava)
         .append("location", localityToDocument(event.location))
         .append("date", event.date.toString)
         .append("price", event.price)
@@ -36,7 +36,7 @@ object EventConversions:
         "title"           -> event.title,
         "description"     -> event.description,
         "poster"          -> event.poster,
-        "tag"             -> ujson.Arr(event.tag.map(t => ujson.Str(t.displayName))*),
+        "tags"            -> ujson.Arr(event.tags.map(t => ujson.Str(t.displayName))*),
         "location"        -> localityToJson(event.location),
         "date"            -> event.date.toString,
         "price"           -> event.price,
@@ -47,14 +47,14 @@ object EventConversions:
       )
 
   def fromDocument(doc: Document): Event =
-    val tagsString = doc.getList("tag", classOf[String]).asScala.mkString(",")
+    val tagsString = doc.getList("tags", classOf[String]).asScala.mkString(",")
     val tagList    = validateTagList(tagsString)
     Event(
       _id = doc.getString("_id"),
       title = doc.getString("title"),
       description = doc.getString("description"),
       poster = doc.getString("poster"),
-      tag = tagList,
+      tags = tagList,
       location = localityFromDocument(doc.get("location", classOf[Document])),
       date = java.time.LocalDateTime.parse(doc.getString("date")),
       price = getDoubleValue(doc, "price"),

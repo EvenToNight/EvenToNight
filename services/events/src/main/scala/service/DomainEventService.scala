@@ -17,7 +17,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         title = cmd.title,
         description = cmd.description,
         poster = cmd.poster,
-        tag = cmd.tag,
+        tags = cmd.tags,
         location = cmd.location,
         date = cmd.date,
         price = cmd.price,
@@ -52,7 +52,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         val updatedEvent = event.copy(
           title = cmd.title.getOrElse(event.title),
           description = cmd.description.getOrElse(event.description),
-          tag = cmd.tag.getOrElse(event.tag),
+          tags = cmd.tags.getOrElse(event.tags),
           location = cmd.location.getOrElse(event.location),
           date = cmd.date.getOrElse(event.date),
           price = cmd.price.getOrElse(event.price),

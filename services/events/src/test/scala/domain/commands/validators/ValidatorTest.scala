@@ -41,7 +41,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       title = title,
       description = description,
       poster = "valid-poster.jpg",
-      tag = List(EventTag.VenueType.Bar),
+      tags = List(EventTag.VenueType.Bar),
       location = location,
       date = date,
       price = price,

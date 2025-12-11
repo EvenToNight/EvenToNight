@@ -35,7 +35,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       title: String = "Test Event",
       description: String = "Test Description",
       poster: String = "test-poster.jpg",
-      tag: List[EventTag] = List(EventTag.VenueType.Bar),
+      tags: List[EventTag] = List(EventTag.VenueType.Bar),
       location: Location = Location.create(
         country = "Test Country",
         country_code = "TC",
@@ -52,7 +52,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       id_creator: String = "creator-123",
       id_collaborator: Option[String] = None
   ): CreateEventCommand =
-    CreateEventCommand(title, description, poster, tag, location, date, price, status, id_creator, id_collaborator)
+    CreateEventCommand(title, description, poster, tags, location, date, price, status, id_creator, id_collaborator)
 
   private def validGetEventCommand(id_event: String = "event-123"): GetEventCommand =
     GetEventCommand(id_event)
@@ -70,14 +70,14 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       id_event: String,
       title: Option[String],
       description: Option[String] = None,
-      tag: Option[List[EventTag]] = None,
+      tags: Option[List[EventTag]] = None,
       location: Option[Location] = None,
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
       status: Option[EventStatus] = None,
       id_collaborator: Option[String] = None
   ): UpdateEventCommand =
-    UpdateEventCommand(id_event, title, description, tag, location, date, price, status, id_collaborator)
+    UpdateEventCommand(id_event, title, description, tags, location, date, price, status, id_collaborator)
 
   private def validDeleteEventCommand(id_event: String): DeleteEventCommand =
     DeleteEventCommand(id_event)

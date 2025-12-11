@@ -17,14 +17,14 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
   private def createEvent(
       id: String = "event123",
       title: String = "Test Event",
-      tag: List[EventTag] = List(EventTag.TypeOfEvent.Party),
+      tags: List[EventTag] = List(EventTag.TypeOfEvent.Party),
       id_collaborator: Option[String] = Some("collab789")
   ): Event = Event(
     _id = id,
     title = title,
     description = "Test description",
     poster = "poster.jpg",
-    tag = tag,
+    tags = tags,
     location = Location.create(
       country = "Test Country",
       country_code = "TC",
@@ -46,13 +46,13 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
   "Event.toDocument" should "convert Event to Document with all fields" in:
     val event = createEvent(
       title = "Christmas Party",
-      tag = List(EventTag.TypeOfEvent.Party, EventTag.Theme.Christmas)
+      tags = List(EventTag.TypeOfEvent.Party, EventTag.Theme.Christmas)
     )
     val document = event.toDocument
 
     document.getString("_id") shouldBe "event123"
     document.getString("title") shouldBe "Christmas Party"
-    document.getList("tag", classOf[String]).asScala.toList shouldBe List("Party", "Christmas")
+    document.getList("tags", classOf[String]).asScala.toList shouldBe List("Party", "Christmas")
     document.getDouble("price") shouldBe 15.0
     document.getString("id_collaborator") shouldBe "collab789"
 
@@ -71,12 +71,12 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     val document = event.toDocument
 
     document shouldBe a[Document]
-    document.keySet() should contain allOf ("_id", "title", "tag", "id_creator")
+    document.keySet() should contain allOf ("_id", "title", "tags", "id_creator")
 
   "Event.toJson" should "convert Event to JSON with all fields" in:
     val event = createEvent(
       title = "Jazz Concert",
-      tag = List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz)
+      tags = List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz)
     )
     val json = event.toJson
 
@@ -84,7 +84,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     json("title").str shouldBe "Jazz Concert"
     json("description").str shouldBe "Test description"
     json("poster").str shouldBe "poster.jpg"
-    json("tag").arr.map(_.str).toList shouldBe List("Concert", "Jazz")
+    json("tags").arr.map(_.str).toList shouldBe List("Concert", "Jazz")
     json("location") shouldBe ujson.Obj(
       "name"         -> "",
       "country"      -> "Test Country",
@@ -112,7 +112,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("title", "Test Event From Doc")
       .append("description", "Document description")
       .append("poster", "doc-poster.jpg")
-      .append("tag", List("Concert", "Jazz").asJava)
+      .append("tags", List("Concert", "Jazz").asJava)
       .append(
         "location",
         new Document()
@@ -138,7 +138,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     event.title shouldBe "Test Event From Doc"
     event.description shouldBe "Document description"
     event.poster shouldBe "doc-poster.jpg"
-    event.tag shouldBe List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz)
+    event.tags shouldBe List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz)
     event.location shouldBe Location.create(
       country = "Test Country",
       country_code = "TC",
@@ -162,7 +162,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("title", "Test")
       .append("description", "Test")
       .append("poster", "test.jpg")
-      .append("tag", List("Concert").asJava)
+      .append("tags", List("Concert").asJava)
       .append(
         "location",
         new Document().append("lat", 42).append("lon", 42.5).append("country", "Test").append("country_code", "TC")
@@ -184,7 +184,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("title", "Test")
       .append("description", "Test")
       .append("poster", "test.jpg")
-      .append("tag", List("Concert").asJava)
+      .append("tags", List("Concert").asJava)
       .append("location", null)
       .append("date", sampleDate.toString)
       .append("price", 0.0)
@@ -205,7 +205,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("title", "Test")
       .append("description", "Test")
       .append("poster", "test.jpg")
-      .append("tag", List("Concert").asJava)
+      .append("tags", List("Concert").asJava)
       .append("location", incompleteLocationDoc)
       .append("date", sampleDate.toString)
       .append("price", 0.0)

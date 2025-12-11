@@ -13,7 +13,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       title: String = "Test Event",
       description: String = "Test description",
       poster: String = "poster.jpg",
-      tag: List[EventTag] = List(EventTag.TypeOfEvent.Concert),
+      tags: List[EventTag] = List(EventTag.TypeOfEvent.Concert),
       location: Location = Location.create(
         country = "Test Country",
         country_code = "TC",
@@ -34,7 +34,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       title = title,
       description = description,
       poster = poster,
-      tag = tag,
+      tags = tags,
       location = location,
       date = date,
       price = price,
@@ -48,7 +48,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     event.title shouldBe "Test Event"
     event.description shouldBe "Test description"
     event.poster shouldBe "poster.jpg"
-    event.tag shouldBe List(EventTag.TypeOfEvent.Concert)
+    event.tags shouldBe List(EventTag.TypeOfEvent.Concert)
     event.price shouldBe 15.0
     event.location.country shouldBe "Test Country"
     event.location.country_code shouldBe "TC"
@@ -84,7 +84,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     nilEvent.title shouldBe ""
     nilEvent.description shouldBe ""
     nilEvent.poster shouldBe ""
-    nilEvent.tag shouldBe empty
+    nilEvent.tags shouldBe empty
     nilEvent.price shouldBe 0.0
     nilEvent.location shouldBe Location.Nil()
     nilEvent.date shouldBe LocalDateTime.MAX
@@ -93,7 +93,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     nilEvent.id_collaborator shouldBe None
 
   "Event with multiple tags" should "handle them" in:
-    val event = createEvent(tag =
+    val event = createEvent(tags =
       List(
         EventTag.TypeOfEvent.Concert,
         EventTag.VenueType.Theatre,
@@ -103,12 +103,12 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       )
     )
 
-    event.tag should have size 5
-    event.tag should contain(EventTag.TypeOfEvent.Concert)
-    event.tag should contain(EventTag.VenueType.Theatre)
-    event.tag should contain(EventTag.MusicGenre.Rock)
-    event.tag should contain(EventTag.Target.Vip)
-    event.tag should contain(EventTag.Extra.ReservationRequired)
+    event.tags should have size 5
+    event.tags should contain(EventTag.TypeOfEvent.Concert)
+    event.tags should contain(EventTag.VenueType.Theatre)
+    event.tags should contain(EventTag.MusicGenre.Rock)
+    event.tags should contain(EventTag.Target.Vip)
+    event.tags should contain(EventTag.Extra.ReservationRequired)
 
   "Event with different EventStatus" should "handle PUBLISHED status" in:
     val event = createEvent().copy(status = EventStatus.PUBLISHED)
@@ -157,10 +157,10 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   "Event" should "handle empty tag list" in:
     val event = createEvent(
-      tag = List()
+      tags = List()
     )
 
-    event.tag shouldBe empty
+    event.tags shouldBe empty
 
   it should "handle very long strings" in:
     val longTitle       = "A" * 1000

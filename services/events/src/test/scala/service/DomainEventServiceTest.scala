@@ -49,7 +49,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       title: String = "Test Event",
       description: String = "Test Description",
       poster: String = "test-poster.jpg",
-      tag: List[EventTag] = List(EventTag.VenueType.Bar),
+      tags: List[EventTag] = List(EventTag.VenueType.Bar),
       location: Location = Location.create(
         country = "Test Country",
         country_code = "TC",
@@ -66,13 +66,13 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       id_creator: String = "creator-123",
       id_collaborator: Option[String] = None
   ): CreateEventCommand =
-    CreateEventCommand(title, description, poster, tag, location, date, price, status, id_creator, id_collaborator)
+    CreateEventCommand(title, description, poster, tags, location, date, price, status, id_creator, id_collaborator)
 
   private def validUpdateEventCommand(
       id_event: String,
       title: Option[String],
       description: Option[String] = None,
-      tag: Option[List[EventTag]] = None,
+      tags: Option[List[EventTag]] = None,
       location: Option[Location] = None,
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
@@ -83,7 +83,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       id_event,
       title,
       description,
-      tag,
+      tags,
       location,
       date,
       price,

@@ -124,7 +124,7 @@ paths:
                     poster:
                       type: string
                       description: Event poster URL
-                    tag:
+                    tags:
                       type: array
                       items:
                         type: string
@@ -304,7 +304,7 @@ paths:
                   poster:
                     type: string
                     description: Event poster filename
-                  tag:
+                  tags:
                     type: array
                     items:
                       type: string
@@ -365,7 +365,7 @@ paths:
                 title: "Summer Music Festival"
                 description: "An amazing summer music festival"
                 poster: "poster-123.jpg"
-                tag: ["Concert", "Festival", "Live Music"]
+                tags: ["Concert", "Festival", "Live Music"]
                 location:
                   name: "Central Park"
                   country: "United States"

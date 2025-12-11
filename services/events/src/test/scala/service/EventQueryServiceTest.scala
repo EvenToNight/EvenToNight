@@ -23,7 +23,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       title = "Sample Event",
       description = "This is a sample event.",
       poster = "sample_poster.png",
-      tag = List(EventTag.TypeOfEvent.Concert),
+      tags = List(EventTag.TypeOfEvent.Concert),
       location = Location.create(
         country = "Test Country",
         country_code = "TC",
@@ -108,9 +108,9 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       case Right(_)    => fail("Update should have failed for non-existing event")
 
   "execCommand(getFilteredEventsCommand)" should "retrieve events based on filters" in:
-    val event1 = createEvent().copy(title = "Rock Concert", tag = List(EventTag.TypeOfEvent.Concert))
-    val event2 = createEvent().copy(title = "Disco", tag = List(EventTag.TypeOfEvent.Party))
-    val event3 = createEvent().copy(title = "Jazz Night", tag = List(EventTag.TypeOfEvent.Concert))
+    val event1 = createEvent().copy(title = "Rock Concert", tags = List(EventTag.TypeOfEvent.Concert))
+    val event2 = createEvent().copy(title = "Disco", tags = List(EventTag.TypeOfEvent.Party))
+    val event3 = createEvent().copy(title = "Jazz Night", tags = List(EventTag.TypeOfEvent.Concert))
 
     repo.save(event1)
     repo.save(event2)
