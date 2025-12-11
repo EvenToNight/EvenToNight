@@ -35,9 +35,10 @@ export class ApiClient {
   }
 
   async post<T>(endpoint: string, data?: unknown, options?: { credentials?: boolean }): Promise<T> {
+    const isFormData = data instanceof FormData
     return this.request<T>(endpoint, {
       method: 'POST',
-      body: JSON.stringify(data),
+      body: isFormData ? (data as BodyInit) : JSON.stringify(data),
       ...(options?.credentials && { credentials: 'include' }),
     })
   }
@@ -59,7 +60,6 @@ export class ApiClient {
 
   private async request<T>(endpoint: string, options: RequestInit, isRetry = false): Promise<T> {
     const url = `${this.baseUrl}${endpoint}`
-
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string>),
     }
@@ -71,7 +71,11 @@ export class ApiClient {
     }
 
     // Only add Content-Type for requests with a body
-    if (options.method !== 'GET' && options.method !== 'DELETE') {
+    if (
+      options.method !== 'GET' &&
+      options.method !== 'DELETE' &&
+      !(options.body instanceof FormData)
+    ) {
       headers['Content-Type'] = 'application/json'
     }
 
@@ -80,7 +84,9 @@ export class ApiClient {
       headers,
     }
 
+    console.log(`API Request: ${options.method} ${url}`)
     const response = await fetch(url, config)
+    console.log(`API Response: ${options.method} ${url} - Status: ${response.status}`)
 
     // Handle token expiration (401 Unauthorized)
     if (response.status === 401 && !isRetry && onTokenExpired) {
