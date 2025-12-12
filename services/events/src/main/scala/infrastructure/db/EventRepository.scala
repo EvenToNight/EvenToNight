@@ -28,7 +28,7 @@ trait EventRepository:
       id_organization: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None
-  ): Either[Throwable, List[Event]]
+  ): Either[Throwable, (List[Event], Boolean)]
 
 case class MongoEventRepository(connectionString: String, databaseName: String, collectionName: String = "events")
     extends EventRepository:
@@ -113,10 +113,9 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       id_organization: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None
-  ): Either[Throwable, List[Event]] =
+  ): Either[Throwable, (List[Event], Boolean)] =
     Try {
       val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
-
       status.foreach(s => filters += Filters.eq("status", s.toString))
       title.foreach(n => filters += Filters.regex("title", n, "i"))
       id_organization.foreach(org => filters += Filters.eq("id_organization", org))
@@ -141,9 +140,11 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       var query = collection.find(combinedFilter)
 
       offset.foreach(o => query = query.skip(o))
-      limit.foreach(l => query = query.limit(l))
 
-      query
+      val fetchLimit = limit.map(_ + 1)
+      fetchLimit.foreach(l => query = query.limit(l))
+
+      val results = query
         .into(new java.util.ArrayList[Document]())
         .asScala
         .map(fromDocument)
@@ -156,6 +157,11 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
           updatedEvent
         }
         .toList
+
+      val (events, hasMore) = limit match
+        case Some(lim) if results.size > lim => (results.take(lim), true)
+        case _                               => (results, false)
+      (events, hasMore)
     }.toEither.left.map { ex =>
       println(s"[MongoDB][Error] Failed to retrieve filtered events - ${ex.getMessage}")
       ex

@@ -284,8 +284,8 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     val result  = service.handleCommand(command)
     result shouldBe a[Right[?, ?]]
     result match
-      case Right(events) => events shouldBe a[List[?]]
-      case Left(error)   => fail(s"Expected Right with events list, but got Left: $error")
+      case Right((events, _)) => events shouldBe a[List[?]]
+      case _                  => fail("Expected Right with events list, but got Left")
 
   it should "return validation errors for GetFilteredEventsCommand with invalid parameters" in:
     val command = validGetFilteredEventsCommand(limit = Some(-10))

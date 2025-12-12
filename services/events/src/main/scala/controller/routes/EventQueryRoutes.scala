@@ -36,6 +36,13 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       case Right(list) =>
         list match
           case events: List[?] =>
+            val eventList = events.collect { case e: Event => e }
+            val response = Utils.createPaginatedResponse(
+              eventList,
+              None,
+              None,
+              hasMore = false
+            )
             cask.Response(ujson.Arr(events.collect { case e: Event => e.toJson }), statusCode = 200)
           case _ => cask.Response(ujson.Arr(), statusCode = 200)
       case Left(errors) =>
@@ -50,34 +57,46 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       offset: Option[Int] = None,
       status: Option[String] = None,
       title: Option[String] = None,
-      tags: Option[String] = None,
+      tags: Option[Seq[String]] = None,
       startDate: Option[String] = None,
       endDate: Option[String] = None,
       id_organization: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None
   ): cask.Response[ujson.Value] =
+    println("EventQueryRoutes tags param: " + tags)
+    val tagsList: Option[List[String]] = tags.map(_.toList)
     val command: GetFilteredEventsCommand = Utils.parseEventFilters(
       limit,
       offset,
       status,
       title,
-      tags,
+      tagsList,
       startDate,
       endDate,
       id_organization,
       city,
       location_name
     )
+    println("EventQueryRoutes" + command.tags.getOrElse(List()))
     eventService.handleCommand(command) match
-      case Right(list) =>
-        list match
-          case events: List[?] =>
-            cask.Response(ujson.Arr(events.collect { case e: Event => e.toJson }), statusCode = 200)
-          case _ => cask.Response(ujson.Arr(), statusCode = 200)
+      case Right((events: List[?], hasMore: Boolean)) =>
+        val eventList = events.collect { case e: Event => e }
+        val response = Utils.createPaginatedResponse(
+          eventList,
+          limit,
+          offset,
+          hasMore
+        )
+        cask.Response(response, statusCode = 200)
       case Left(errors) =>
         cask.Response(
           ujson.Obj("error" -> s"Could not retrieve events $errors"),
+          statusCode = 400
+        )
+      case _ =>
+        cask.Response(
+          ujson.Obj("error" -> "Error"),
           statusCode = 404
         )
 

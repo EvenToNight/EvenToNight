@@ -1,6 +1,7 @@
 package utils
 import domain.commands.{CreateEventCommand, GetFilteredEventsCommand, UpdateEventCommand}
 import domain.models.{Event, EventStatus, EventTag, Location}
+import domain.models.EventConversions.*
 import domain.models.EventTag.validateTagList
 
 import java.nio.file.Files
@@ -8,6 +9,8 @@ import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 object Utils:
+
+  private val DEFAULT_LIMIT: Int = 20
 
   def parseLocationFromJson(locationJson: String): Location =
     Try {
@@ -120,7 +123,7 @@ object Utils:
       offset: Option[Int],
       status: Option[String],
       title: Option[String],
-      tags: Option[String],
+      tags: Option[List[String]],
       startDate: Option[String],
       endDate: Option[String],
       id_organization: Option[String],
@@ -128,7 +131,7 @@ object Utils:
       location_name: Option[String]
   ): GetFilteredEventsCommand =
     val parsedStatus: Option[EventStatus]  = status.flatMap(s => EventStatus.withNameOpt(s))
-    val parsedTags: Option[List[EventTag]] = tags.map(t => validateTagList(t))
+    val parsedTags: Option[List[EventTag]] = tags.map(_.map(t => EventTag.fromString(t)))
     val parsedStartDate: Option[LocalDateTime] = startDate.flatMap { sd =>
       Try(LocalDateTime.parse(sd)).toOption
     }
@@ -146,4 +149,18 @@ object Utils:
       id_organization = id_organization,
       city = city,
       location_name = location_name
+    )
+
+  def createPaginatedResponse(
+      events: List[Event],
+      limit: Option[Int] = None,
+      offset: Option[Int] = None,
+      hasMore: Boolean
+  ): ujson.Obj =
+    val actualLimit = limit.getOrElse(DEFAULT_LIMIT)
+    ujson.Obj(
+      "events"  -> ujson.Arr(events.map(_.toJson)*),
+      "limit"   -> actualLimit,
+      "offset"  -> offset.getOrElse(0),
+      "hasMore" -> hasMore
     )

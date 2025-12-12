@@ -131,7 +131,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
 
     val result = service.execCommand(cmd)
     result match
-      case Right(events) =>
+      case Right((events, _)) =>
         events should contain allElementsOf List(event1, event3)
         events should not contain event2
       case Left(error) =>
