@@ -35,6 +35,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       ),
       date: LocalDateTime = LocalDateTime.now().plusDays(10),
       price: Double = 20.0,
+      status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "valid-creator-id"
   ): CreateEventCommand =
     CreateEventCommand(
@@ -45,7 +46,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       location = location,
       date = date,
       price = price,
-      status = EventStatus.DRAFT,
+      status = status,
       id_creator = id_creator,
       id_collaborators = None
     )
@@ -85,36 +86,66 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
     result shouldBe Right(command)
 
-  it should "reject empty title" in:
+  "CreateEventValidator with Draft status" should "accept empty title" in:
     val command = validCreateEventCommand(title = "")
+    val result  = CreateEventValidator.validate(command)
+
+    result shouldBe a[Right[?, ?]]
+
+  it should "accept empty description" in:
+    val command = validCreateEventCommand(description = "")
+    val result  = CreateEventValidator.validate(command)
+
+    result shouldBe a[Right[?, ?]]
+
+  it should "accept empty location" in:
+    val command = validCreateEventCommand(location = Location.Nil())
+    val result  = CreateEventValidator.validate(command)
+
+    result shouldBe a[Right[?, ?]]
+
+  it should "accept empty creator id" in:
+    val command = validCreateEventCommand(id_creator = "")
+    val result  = CreateEventValidator.validate(command)
+
+    result shouldBe a[Right[?, ?]]
+
+  it should "accept past date" in:
+    val command = validCreateEventCommand(date = pastDate)
+    val result  = CreateEventValidator.validate(command)
+
+    result shouldBe a[Right[?, ?]]
+
+  "CreateEventValidator with Published status" should "reject empty title" in:
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, title = "")
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Title cannot be empty")
 
   it should "reject empty description" in:
-    val command = validCreateEventCommand(description = "")
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, description = "")
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Description cannot be empty")
 
   it should "reject empty location" in:
-    val command = validCreateEventCommand(location = Location.Nil())
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, location = Location.Nil())
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Location has invalid parameters")
 
   it should "reject empty creator id" in:
-    val command = validCreateEventCommand(id_creator = "")
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, id_creator = "")
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Creator Id cannot be empty")
 
   it should "reject past date" in:
-    val command = validCreateEventCommand(date = pastDate)
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, date = pastDate)
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
@@ -125,7 +156,8 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       title = "",
       description = "",
       location = Location.Nil(),
-      date = pastDate
+      date = pastDate,
+      status = EventStatus.PUBLISHED
     )
     val result = CreateEventValidator.validate(command)
 

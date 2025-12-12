@@ -48,7 +48,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       ),
       price: Double = 15.0,
       date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
-      status: EventStatus = EventStatus.DRAFT,
+      status: EventStatus = EventStatus.PUBLISHED,
       id_creator: String = "creator-123",
       id_collaborators: Option[List[String]] = None
   ): CreateEventCommand =

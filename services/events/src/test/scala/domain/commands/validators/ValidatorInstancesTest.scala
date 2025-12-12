@@ -41,7 +41,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     location = validLocation,
     date = LocalDateTime.now().plusDays(7),
     price = 25.0,
-    status = EventStatus.DRAFT,
+    status = EventStatus.PUBLISHED,
     id_creator = "creator123",
     id_collaborators = Some(List("collaborator456"))
   )

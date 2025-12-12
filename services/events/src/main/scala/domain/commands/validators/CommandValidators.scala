@@ -8,6 +8,7 @@ import domain.commands.{
   UpdateEventCommand,
   UpdateEventPosterCommand
 }
+import domain.models.EventStatus
 
 import ValidationRules.{futureDate, nonEmpty, correctLocality, positiveInt, nonNegativeInt, dateRange}
 import Validator.combine
@@ -15,14 +16,18 @@ import Validator.combine
 object CreateEventValidator extends Validator[CreateEventCommand]:
 
   override def validate(cmd: CreateEventCommand): Either[List[String], CreateEventCommand] =
-    val validations = combine(
-      nonEmpty(cmd.title, "Title"),
-      nonEmpty(cmd.description, "Description"),
-      nonEmpty(cmd.id_creator, "Creator Id"),
-      correctLocality(cmd.location, "Location"),
-      futureDate(cmd.date, "Date")
-    )
-    validations.map(_ => cmd)
+    cmd.status match
+      case EventStatus.DRAFT =>
+        Right(cmd)
+      case _ =>
+        val validations = combine(
+          nonEmpty(cmd.title, "Title"),
+          nonEmpty(cmd.description, "Description"),
+          nonEmpty(cmd.id_creator, "Creator Id"),
+          correctLocality(cmd.location, "Location"),
+          futureDate(cmd.date, "Date")
+        )
+        validations.map(_ => cmd)
 
 object GetEventValidator extends Validator[GetEventCommand]:
 

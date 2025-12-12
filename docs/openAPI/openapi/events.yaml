@@ -6,7 +6,11 @@ paths:
   /:
     post:
       summary: Create a new event
-      description: Creates a new event with the provided information. Event data is sent as JSON in the 'event' field, and the poster as a file.
+      description: >
+        Creates a new event with the provided information.  
+        The payload must be multipart/form-data, containing a JSON string in the `event` field  
+        and optionally a `poster` file if the event is in DRAFT status.  
+        If the event status is not DRAFT, both the event data and the poster file are required.
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
@@ -23,6 +27,7 @@ paths:
                 event:
                   type: string
                   description: |
+                    If the event status is DRAFT, all the field can be empty ("" for string, default values for others).
                     JSON string containing event data with the following structure:
                     
                     **Required fields:**
@@ -53,7 +58,10 @@ paths:
                 poster:
                   type: string
                   format: binary
-                  description: Event poster image file (required)
+                  description: |
+                    Event poster image file
+                    If the event status is DRAFT, the poster is optional.
+
       responses:
         '201':
           description: Event created successfully
