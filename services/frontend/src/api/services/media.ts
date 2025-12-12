@@ -5,4 +5,7 @@ export const createMediaApi = (mediaClient: ApiClient): MediaAPI => ({
   async get(url: string): Promise<MediaGetResponse> {
     return mediaClient.get<MediaGetResponse>(url)
   },
+  buildLink(url: string): string {
+    return mediaClient.baseUrl + '/' + url
+  },
 })

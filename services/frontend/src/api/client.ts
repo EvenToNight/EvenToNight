@@ -21,7 +21,7 @@ export const setTokenExpiredCallback = (callback: () => Promise<boolean>) => {
 }
 
 export class ApiClient {
-  private baseUrl: string
+  baseUrl: string
 
   constructor(service: string) {
     this.baseUrl = getServiceUrl(service)
@@ -104,7 +104,6 @@ export class ApiClient {
       }
       throw error
     }
-
     return (await response.json()) as T
   }
 }

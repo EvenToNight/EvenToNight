@@ -8,4 +8,7 @@ export const mockMediaApi: MediaAPI = {
     const blob = await response.blob()
     return { file: new File([blob], 'downloaded_file', { type: blob.type }) }
   },
+  buildLink(url: string): string {
+    return url
+  },
 }
