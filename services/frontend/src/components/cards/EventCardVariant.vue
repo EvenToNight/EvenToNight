@@ -16,7 +16,7 @@ const { locale, goToEventDetails, goToCreateEvent } = useNavigation()
 const imageObjectUrl = ref<string>('')
 const isLoadingImage = ref(true)
 
-const isDraft = computed(() => props.event.status === 'draft')
+const isDraft = computed(() => props.event.status === 'DRAFT')
 
 const loadImage = async (url: string) => {
   try {
@@ -30,7 +30,7 @@ const loadImage = async (url: string) => {
 }
 
 onMounted(() => {
-  loadImage(props.event.posterLink)
+  loadImage(props.event.poster)
 })
 
 onUnmounted(() => {
@@ -49,9 +49,9 @@ const formatDate = (date: Date) => {
 </script>
 
 <template>
-  <div class="event-card" @click="isDraft ? goToCreateEvent() : goToEventDetails(event.id)">
+  <div class="event-card" @click="isDraft ? goToCreateEvent() : goToEventDetails(event.id_event)">
     <div class="event-image-container">
-      <img :src="event.posterLink" :alt="event.title" class="event-image" />
+      <img :src="event.poster" :alt="event.title" class="event-image" />
       <div v-if="isDraft" class="draft-badge">
         <q-icon name="edit_note" size="16px" />
         {{ t('event.draft') }}
@@ -62,7 +62,7 @@ const formatDate = (date: Date) => {
       <div v-if="!isDraft" class="event-details">
         <span class="event-date">
           <q-icon name="event" size="16px" />
-          {{ formatDate(event.date) }}
+          {{ formatDate(new Date(event.date)) }}
         </span>
         <span class="event-location">
           <q-icon name="location_on" size="16px" />

@@ -15,7 +15,7 @@ defineProps<Props>()
 <template>
   <div class="event-tab">
     <div v-if="events.length > 0" class="events-grid">
-      <EventCardVariant v-for="event in events" :key="event.id" :event="event" />
+      <EventCardVariant v-for="event in events" :key="event.id_event" :event="event" />
     </div>
 
     <template v-else>

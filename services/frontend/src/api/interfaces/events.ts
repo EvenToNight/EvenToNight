@@ -8,12 +8,10 @@ export interface TagCategory {
 
 export type GetTagResponse = TagCategory[]
 
-export interface GetEventByIdResponse {
-  event: Event
-}
+export type GetEventByIdResponse = Event
 
 export interface PublishEventResponse {
-  eventId: EventID
+  id_event: EventID
 }
 
 export interface EventsDataResponse {

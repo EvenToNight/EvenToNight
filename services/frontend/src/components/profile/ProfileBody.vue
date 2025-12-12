@@ -31,8 +31,8 @@ const memberAttendedEvents = ref<Event[]>([])
 onMounted(async () => {
   try {
     const [publishedResponse, draftResponse] = await Promise.all([
-      api.events.getEventsByUserIdAndStatus(props.user.id, 'published'),
-      api.events.getEventsByUserIdAndStatus(props.user.id, 'draft'),
+      api.events.getEventsByUserIdAndStatus(props.user.id, 'PUBLISHED'),
+      api.events.getEventsByUserIdAndStatus(props.user.id, 'DRAFT'),
     ])
     organizationEvents.value = publishedResponse.events
     organizationDraftedEvents.value = draftResponse.events

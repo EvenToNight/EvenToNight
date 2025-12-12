@@ -1,13 +1,13 @@
 export interface LocationData {
   name?: string
   country: string
-  countryCode: string
+  country_code: string
   state: string
   province: string
   city: string
   road: string
-  postcode: number
-  house_number?: number
+  postcode: string
+  house_number?: string
   lat: number
   lon: number
 }
@@ -17,7 +17,6 @@ export interface Location extends LocationData {
 }
 
 export const extractLocationMapsLink = (location: LocationData): string => {
-  console.log(location)
   const query = `${location.name ? `${location.name},` : ''}${location.house_number ? `${location.house_number},` : ''}${location.road},${location.city},${location.province},${location.state},${location.postcode},${location.country}`
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
 }
@@ -46,13 +45,13 @@ export const parseLocation = (locationResponseData: any): [string, Location] => 
   const locationData: LocationData = {
     name: locationResponseData.name || '',
     country: address.country,
-    countryCode: address.country_code,
+    country_code: address.country_code,
     state: address.state,
     province: address.province || address.county,
     city: address.city || address.town || address.village,
     road: address.road,
-    postcode: parseInt(address.postcode),
-    house_number: parseInt(address.house_number),
+    postcode: address.postcode,
+    house_number: address.house_number,
     lat: parseFloat(locationResponseData.lat),
     lon: parseFloat(locationResponseData.lon),
   }

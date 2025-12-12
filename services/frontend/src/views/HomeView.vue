@@ -120,14 +120,14 @@ onUnmounted(() => {
             <CardSlider :title="t('home.sections.upcomingEvents')" @see-all="handleSeeAllEvents">
               <EventCard
                 v-for="event in upcomingEvents"
-                :id="event.id"
-                :key="event.id"
-                :image-url="event.posterLink"
+                :id="event.id_event"
+                :key="event.id_event"
+                :image-url="event.poster"
                 :title="event.title"
                 :subtitle="event.location.name || event.location.city"
-                :date="event.date"
+                :date="new Date(event.date)"
                 :favorite="false"
-                @favorite-toggle="handleFavoriteToggle(event.id, $event)"
+                @favorite-toggle="handleFavoriteToggle(event.id_event, $event)"
                 @auth-required="showAuthDialog = true"
               />
             </CardSlider>

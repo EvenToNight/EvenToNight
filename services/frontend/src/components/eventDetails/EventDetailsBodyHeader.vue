@@ -19,7 +19,7 @@ const likesCount = ref(0)
 
 const loadInteractions = async () => {
   try {
-    const interaction = await api.interactions.getEventInteractions(props.event.id)
+    const interaction = await api.interactions.getEventInteractions(props.event.id_event)
     likesCount.value = interaction.likes.length
     if (authStore.user?.id) {
       isFavorite.value = interaction.likes.includes(authStore.user.id)
@@ -44,9 +44,9 @@ const toggleLike = async () => {
 
   try {
     if (!wasLiked) {
-      await api.interactions.likeEvent(props.event.id, authStore.user!.id)
+      await api.interactions.likeEvent(props.event.id_event, authStore.user!.id)
     } else {
-      await api.interactions.unlikeEvent(props.event.id, authStore.user!.id)
+      await api.interactions.unlikeEvent(props.event.id_event, authStore.user!.id)
     }
   } catch (error) {
     console.error('Failed to toggle like:', error)

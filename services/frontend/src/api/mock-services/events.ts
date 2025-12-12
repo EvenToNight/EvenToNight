@@ -16,7 +16,7 @@ export const mockEventsApi: EventAPI = {
     return mockTags
   },
   async getEventById(id: EventID): Promise<GetEventByIdResponse> {
-    const event = mockEvents.find((event) => event.id === id)
+    const event = mockEvents.find((event) => event.id_event === id)
 
     if (!event) {
       throw {
@@ -26,14 +26,14 @@ export const mockEventsApi: EventAPI = {
       }
     }
 
-    return { event }
+    return event
   },
   async getEventsByIds(ids: EventID[]): Promise<EventsDataResponse> {
     const events = await Promise.all(ids.map((id) => this.getEventById(id)))
-    return { events: events.map((r) => r.event) }
+    return { events }
   },
   async publishEvent(_eventData: EventData): Promise<PublishEventResponse> {
-    return { eventId: mockEvents[0]!.id }
+    return { id_event: mockEvents[0]!.id_event }
   },
   async searchByName(query: string): Promise<EventsDataResponse> {
     if (!query || query.trim().length === 0) {
@@ -41,7 +41,7 @@ export const mockEventsApi: EventAPI = {
     }
 
     const lowerQuery = query.toLowerCase().trim()
-    const publishedEvents = mockEvents.filter((e) => e.status === 'published')
+    const publishedEvents = mockEvents.filter((e) => e.status === 'PUBLISHED')
 
     const matchedEvents = publishedEvents.filter((event) => {
       return event.title.toLowerCase().includes(lowerQuery)
@@ -54,7 +54,7 @@ export const mockEventsApi: EventAPI = {
     status: EventStatus
   ): Promise<EventsDataResponse> {
     const userEvents = mockEvents.filter(
-      (event) => event.creatorId === userId && event.status === status
+      (event) => event.id_creator === userId && event.status === status
     )
     return { events: userEvents }
   },

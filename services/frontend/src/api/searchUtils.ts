@@ -59,11 +59,11 @@ const processEventSearchResults = async (
     if (relevance > 0) {
       return {
         type: 'event',
-        id: event.id,
+        id: event.id_event,
         title: event.title,
         location: event.location.name || event.location.city,
-        date: event.date,
-        imageUrl: event.posterLink,
+        date: new Date(event.date),
+        imageUrl: event.poster,
         relevance: relevance,
       }
     }

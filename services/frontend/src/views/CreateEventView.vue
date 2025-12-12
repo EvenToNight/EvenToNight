@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
@@ -22,6 +22,12 @@ const { goToHome, goToEventDetails } = useNavigation()
 const authStore = useAuthStore()
 const currentUserId = authStore.user?.id
 
+interface LocationOption {
+  label: string
+  value: Location
+  description: string
+}
+
 const title = ref('')
 const date = ref('')
 const time = ref('')
@@ -29,7 +35,7 @@ const description = ref('')
 const price = ref('0')
 const tags = ref<string[]>([])
 const collaborators = ref<string[]>([])
-const location = ref<Location | null>(null)
+const location = ref<LocationOption | null>(null)
 const poster = ref<File | null>(null)
 
 const titleError = ref('')
@@ -88,6 +94,12 @@ const loadTags = async () => {
 
 onMounted(async () => {
   await loadTags()
+})
+
+watch(location, (newLocation) => {
+  if (newLocation) {
+    console.log('Location link:', newLocation.value.link)
+  }
 })
 
 const filterTags = (val: string, update: (fn: () => void) => void) => {
@@ -175,13 +187,6 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
   }
 }
 
-const handleLocationSelect = (selectedLocation: any) => {
-  location.value = selectedLocation
-  if (location.value) {
-    console.log('Location selected:', location.value.link)
-  }
-}
-
 const validateInput = (): boolean => {
   let isValid = true
   titleError.value = ''
@@ -214,7 +219,6 @@ const validateInput = (): boolean => {
     locationError.value = t('eventCreationForm.locationError')
     isValid = false
   }
-
   return isValid
 }
 
@@ -232,8 +236,8 @@ const saveDraft = async () => {
 }
 
 const onSubmit = async () => {
-  const hasErrors = validateInput()
-  if (hasErrors) {
+  const isValid = validateInput()
+  if (!isValid) {
     $q.notify({
       color: 'negative',
       message: t('eventCreationForm.errorForEventCreation'),
@@ -242,24 +246,25 @@ const onSubmit = async () => {
   }
   try {
     const dateTime = new Date(`${date.value}T${time.value}`)
+
     const eventData: EventData = {
       title: title.value,
       description: description.value,
-      ...(poster.value ? { poster: poster.value } : {}),
+      poster: poster.value!,
       tags: tags.value,
-      location: location.value!,
+      location: location.value!.value,
       date: dateTime,
       price: Number(price.value),
-      status: 'published',
-      creatorId: currentUserId!,
-      collaboratorsId: collaborators.value,
+      status: 'PUBLISHED',
+      id_creator: currentUserId!,
+      id_collaborators: collaborators.value,
     }
     const response = await api.events.publishEvent(eventData)
     $q.notify({
       color: 'positive',
       message: t('eventCreationForm.successForEventPublication'),
     })
-    goToEventDetails(response.eventId)
+    goToEventDetails(response.id_event)
   } catch (error) {
     console.error('Failed to create event:', error)
     $q.notify({
@@ -407,7 +412,6 @@ const onSubmit = async () => {
             input-debounce="500"
             :error="locationError"
             @filter="filterLocations"
-            @update:model-value="handleLocationSelect"
           >
             <template #no-option>
               <q-item>
