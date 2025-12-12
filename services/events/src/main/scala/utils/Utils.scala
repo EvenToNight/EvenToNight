@@ -10,7 +10,8 @@ import scala.util.{Failure, Success, Try}
 
 object Utils:
 
-  private val DEFAULT_LIMIT: Int = 20
+  val DEFAULT_LIMIT: Int = 10
+  val MAX_LIMIT: Int     = 20
 
   def parseLocationFromJson(locationJson: String): Location =
     Try {
@@ -138,8 +139,9 @@ object Utils:
     val parsedEndDate: Option[LocalDateTime] = endDate.flatMap { ed =>
       Try(LocalDateTime.parse(ed)).toOption
     }
+    val limitValue = math.min(limit.getOrElse(DEFAULT_LIMIT), MAX_LIMIT)
     GetFilteredEventsCommand(
-      limit = limit,
+      limit = Some(limitValue),
       offset = offset,
       status = parsedStatus,
       title = title,
@@ -157,10 +159,9 @@ object Utils:
       offset: Option[Int] = None,
       hasMore: Boolean
   ): ujson.Obj =
-    val actualLimit = limit.getOrElse(DEFAULT_LIMIT)
     ujson.Obj(
       "events"  -> ujson.Arr(events.map(_.toJson)*),
-      "limit"   -> actualLimit,
+      "limit"   -> limit,
       "offset"  -> offset.getOrElse(0),
       "hasMore" -> hasMore
     )

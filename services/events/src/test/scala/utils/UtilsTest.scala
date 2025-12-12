@@ -416,7 +416,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       city = None,
       location_name = None
     )
-    commands.limit shouldBe None
+    commands.limit shouldBe Some(Utils.DEFAULT_LIMIT)
     commands.offset shouldBe None
     commands.title shouldBe None
     commands.tags shouldBe None

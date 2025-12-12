@@ -5,11 +5,6 @@ coverage:
         target: 70%
         threshold: null
         base: auto
-    patch:
-      default:
-        target: 70%
-        threshold: null
-        base: auto
 
 comment:
   layout: "reach, diff, flags, files, footer"

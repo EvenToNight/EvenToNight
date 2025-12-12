@@ -43,7 +43,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
               None,
               hasMore = false
             )
-            cask.Response(ujson.Arr(events.collect { case e: Event => e.toJson }), statusCode = 200)
+            cask.Response(response, statusCode = 200)
           case _ => cask.Response(ujson.Arr(), statusCode = 200)
       case Left(errors) =>
         cask.Response(
@@ -78,7 +78,6 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       city,
       location_name
     )
-    println("EventQueryRoutes" + command.tags.getOrElse(List()))
     eventService.handleCommand(command) match
       case Right((events: List[?], hasMore: Boolean)) =>
         val eventList = events.collect { case e: Event => e }
