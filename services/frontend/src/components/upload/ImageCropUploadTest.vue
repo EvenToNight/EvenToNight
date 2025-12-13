@@ -71,7 +71,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { Cropper, RectangleStencil } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
@@ -102,6 +102,22 @@ const croppedImage = ref<string | null>(null)
 const selectedImage = ref<string>('')
 const fileInput = ref<HTMLInputElement | null>(null)
 const cropperRef = ref<InstanceType<typeof Cropper> | null>(null)
+
+// Watch for external changes to modelValue (e.g., when loading an existing event)
+watch(
+  () => props.modelValue,
+  (newFile) => {
+    if (newFile && !croppedImage.value) {
+      // Create preview URL for the file
+      croppedImage.value = URL.createObjectURL(newFile)
+    } else if (!newFile && croppedImage.value) {
+      // Clean up when file is removed
+      URL.revokeObjectURL(croppedImage.value)
+      croppedImage.value = null
+    }
+  },
+  { immediate: true }
+)
 
 const triggerFileInput = () => {
   fileInput.value?.click()

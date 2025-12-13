@@ -23,6 +23,8 @@ export interface EventAPI {
   getEventById(id: EventID): Promise<GetEventByIdResponse>
   getEventsByIds(ids: EventID[]): Promise<EventsDataResponse>
   publishEvent(eventData: EventData): Promise<PublishEventResponse>
+  updateEventData(eventId: EventID, eventData: EventData): Promise<void>
+  updateEventPoster(eventId: EventID, poster: File): Promise<void>
   searchByName(query: string): Promise<EventsDataResponse>
   getEventsByUserIdAndStatus(userId: UserID, status: EventStatus): Promise<EventsDataResponse>
 }

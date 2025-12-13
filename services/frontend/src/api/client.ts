@@ -22,13 +22,15 @@ export const setTokenExpiredCallback = (callback: () => Promise<boolean>) => {
 
 export class ApiClient {
   baseUrl: string
+  private service: string
 
   constructor(service: string) {
     this.baseUrl = getServiceUrl(service)
+    this.service = service
   }
 
   async get<T>(endpoint: string, options?: { credentials?: boolean }): Promise<T> {
-    return this.request<T>(endpoint, {
+    return this.requestJson<T>(endpoint, {
       method: 'GET',
       ...(options?.credentials && { credentials: 'include' }),
     })
@@ -36,7 +38,7 @@ export class ApiClient {
 
   async post<T>(endpoint: string, data?: unknown, options?: { credentials?: boolean }): Promise<T> {
     const isFormData = data instanceof FormData
-    return this.request<T>(endpoint, {
+    return this.requestJson<T>(endpoint, {
       method: 'POST',
       body: isFormData ? (data as BodyInit) : JSON.stringify(data),
       ...(options?.credentials && { credentials: 'include' }),
@@ -44,7 +46,7 @@ export class ApiClient {
   }
 
   async put<T>(endpoint: string, data?: unknown, options?: { credentials?: boolean }): Promise<T> {
-    return this.request<T>(endpoint, {
+    return this.requestJson<T>(endpoint, {
       method: 'PUT',
       body: JSON.stringify(data),
       ...(options?.credentials && { credentials: 'include' }),
@@ -52,13 +54,32 @@ export class ApiClient {
   }
 
   async delete<T>(endpoint: string, options?: { credentials?: boolean }): Promise<T> {
-    return this.request<T>(endpoint, {
+    return this.requestJson<T>(endpoint, {
       method: 'DELETE',
       ...(options?.credentials && { credentials: 'include' }),
     })
   }
 
-  private async request<T>(endpoint: string, options: RequestInit, isRetry = false): Promise<T> {
+  async getFile(endpoint: string, options?: { credentials?: boolean }): Promise<File> {
+    const blob = await this.requestBlob(endpoint, {
+      method: 'GET',
+      ...(options?.credentials && { credentials: 'include' }),
+    })
+    const filename = endpoint.split('/').pop() || `${this.service}-file`
+    return new File([blob], filename, { type: blob.type })
+  }
+
+  private async requestBlob(endpoint: string, options: RequestInit): Promise<Blob> {
+    return (await this.request(endpoint, options)).blob()
+  }
+  private async requestJson<T>(endpoint: string, options: RequestInit): Promise<T> {
+    return (await this.request(endpoint, options)).json() as T
+  }
+  private async request(
+    endpoint: string,
+    options: RequestInit,
+    isRetry = false
+  ): Promise<Response> {
     const url = `${this.baseUrl}${endpoint}`
     const headers: Record<string, string> = {
       ...(options.headers as Record<string, string>),
@@ -93,7 +114,7 @@ export class ApiClient {
       const refreshed = await onTokenExpired()
       if (refreshed) {
         // Retry the request with new token
-        return this.request<T>(endpoint, options, true)
+        return this.request(endpoint, options, true)
       }
     }
 
@@ -104,7 +125,7 @@ export class ApiClient {
       }
       throw error
     }
-    return (await response.json()) as T
+    return response
   }
 }
 

@@ -12,7 +12,7 @@ interface Props {
 const props = defineProps<Props>()
 
 const { t } = useI18n()
-const { locale, goToEventDetails, goToCreateEvent } = useNavigation()
+const { locale, goToEventDetails, goToEditEvent } = useNavigation()
 const imageObjectUrl = ref<string>('')
 const isLoadingImage = ref(true)
 
@@ -49,7 +49,10 @@ const formatDate = (date: Date) => {
 </script>
 
 <template>
-  <div class="event-card" @click="isDraft ? goToCreateEvent() : goToEventDetails(event.id_event)">
+  <div
+    class="event-card"
+    @click="isDraft ? goToEditEvent(event.id_event) : goToEventDetails(event.id_event)"
+  >
     <div class="event-image-container">
       <img :src="event.poster" :alt="event.title" class="event-image" />
       <div v-if="isDraft" class="draft-badge">

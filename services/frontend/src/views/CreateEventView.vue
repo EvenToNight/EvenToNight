@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
@@ -18,9 +18,11 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 const $q = useQuasar()
 
-const { goToHome, goToEventDetails } = useNavigation()
+const { goToHome, goToEventDetails, params } = useNavigation()
 const authStore = useAuthStore()
 const currentUserId = authStore.user?.id
+const eventId = computed(() => params.id as string)
+const isEditMode = computed(() => !!eventId.value)
 
 interface LocationOption {
   label: string
@@ -92,8 +94,47 @@ const loadTags = async () => {
   }
 }
 
+const loadEvent = async () => {
+  if (!eventId.value) return
+
+  try {
+    const event = await api.events.getEventById(eventId.value)
+
+    // Pre-fill form fields with existing event data
+    title.value = event.title
+    description.value = event.description
+    price.value = String(event.price)
+    tags.value = event.tags
+
+    // Parse date back to separate date and time
+    const eventDate = new Date(event.date)
+    const isoDate = eventDate.toISOString().split('T')[0] // YYYY-MM-DD
+    date.value = isoDate || ''
+    time.value = eventDate.toTimeString().slice(0, 5) // HH:mm
+
+    // Set location (need to wrap it for the selector)
+    location.value = {
+      label: `${event.location.name || ''} ${event.location.city}`.trim(),
+      value: event.location,
+      description: event.location.road,
+    }
+    poster.value = (await api.media.get(`/${event.poster}`)).file as File
+    console.log(poster.value)
+    console.log('Loaded event for editing:', event)
+  } catch (error) {
+    console.error('Failed to load event:', error)
+    $q.notify({
+      color: 'negative',
+      message: t('eventCreationForm.errorForEventLoad'),
+    })
+  }
+}
+
 onMounted(async () => {
   await loadTags()
+  if (isEditMode.value) {
+    await loadEvent()
+  }
 })
 
 watch(location, (newLocation) => {
@@ -247,29 +288,69 @@ const onSubmit = async () => {
   try {
     const dateTime = new Date(`${date.value}T${time.value}`)
 
-    const eventData: EventData = {
-      title: title.value,
-      description: description.value,
-      poster: poster.value!,
-      tags: tags.value,
-      location: location.value!.value,
-      date: dateTime,
-      price: Number(price.value),
-      status: 'PUBLISHED',
-      id_creator: currentUserId!,
-      id_collaborators: collaborators.value,
+    if (isEditMode.value && eventId.value) {
+      // Edit mode: update existing event (only changed fields)
+      // const updates: EventData = {
+      //   title: title.value,
+      //   description: description.value,
+      //   tags: tags.value,
+      //   location: location.value!.value,
+      //   date: dateTime,
+      //   price: Number(price.value),
+      //   status: 'PUBLISHED',
+      // }
+
+      // // Add poster if changed
+      // if (poster.value) {
+      //   updates.poster = poster.value
+      // }
+      const eventData: EventData = {
+        title: title.value,
+        description: description.value,
+        poster: poster.value!,
+        tags: tags.value,
+        location: location.value!.value,
+        date: dateTime,
+        price: Number(price.value),
+        status: 'PUBLISHED',
+        id_creator: currentUserId!,
+        id_collaborators: collaborators.value,
+      }
+      await api.events.updateEventData(eventId.value, eventData)
+      await api.events.updateEventPoster(eventId.value, poster.value!)
+      $q.notify({
+        color: 'positive',
+        message: t('eventCreationForm.successForEventUpdate'),
+      })
+      goToEventDetails(eventId.value)
+    } else {
+      // Create mode: publish new event
+      const eventData: EventData = {
+        title: title.value,
+        description: description.value,
+        poster: poster.value!,
+        tags: tags.value,
+        location: location.value!.value,
+        date: dateTime,
+        price: Number(price.value),
+        status: 'PUBLISHED',
+        id_creator: currentUserId!,
+        id_collaborators: collaborators.value,
+      }
+      const response = await api.events.publishEvent(eventData)
+      $q.notify({
+        color: 'positive',
+        message: t('eventCreationForm.successForEventPublication'),
+      })
+      goToEventDetails(response.id_event)
     }
-    const response = await api.events.publishEvent(eventData)
-    $q.notify({
-      color: 'positive',
-      message: t('eventCreationForm.successForEventPublication'),
-    })
-    goToEventDetails(response.id_event)
   } catch (error) {
-    console.error('Failed to create event:', error)
+    console.error('Failed to save event:', error)
     $q.notify({
       color: 'negative',
-      message: t('eventCreationForm.errorForEventPublication'),
+      message: isEditMode.value
+        ? t('eventCreationForm.errorForEventUpdate')
+        : t('eventCreationForm.errorForEventPublication'),
     })
   }
 }
@@ -281,7 +362,11 @@ const onSubmit = async () => {
 
     <div class="page-content">
       <div class="container">
-        <h1 class="text-h3 q-mb-lg">{{ t('eventCreationForm.createNewEvent') }}</h1>
+        <h1 class="text-h3 q-mb-lg">
+          {{
+            isEditMode ? t('eventCreationForm.editEvent') : t('eventCreationForm.createNewEvent')
+          }}
+        </h1>
 
         <q-form class="form-container" @submit="onSubmit">
           <FormField
@@ -454,7 +539,11 @@ const onSubmit = async () => {
                 @click="saveDraft"
               />
               <Button
-                :label="t('eventCreationForm.publishEvent')"
+                :label="
+                  isEditMode
+                    ? t('eventCreationForm.updateEvent')
+                    : t('eventCreationForm.publishEvent')
+                "
                 variant="primary"
                 type="submit"
               />

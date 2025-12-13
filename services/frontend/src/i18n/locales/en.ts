@@ -66,6 +66,7 @@ export default {
     about: 'About this event',
     organizer: 'Organized by',
     collaborators: 'In collaboration with',
+    editEvent: 'Edit',
   },
 
   footer: {
@@ -103,6 +104,7 @@ export default {
 
   eventCreationForm: {
     createNewEvent: 'Create New Event',
+    editEvent: 'Edit Event',
     eventTitle: 'Event Title',
     titleError: 'Title is required',
     date: 'Date',
@@ -122,11 +124,15 @@ export default {
     cancel: 'Cancel',
     saveDraft: 'Save Draft',
     publishEvent: 'Publish Event',
+    updateEvent: 'Update Event',
     locationNoOptionHint: 'Type at least 3 characters to search',
     errorForDraftCreation: 'Please provide at least a title for the draft',
     successForEventPublication: 'Event published successfully!',
+    successForEventUpdate: 'Event updated successfully!',
     errorForEventCreation: 'Please fill all required fields',
     errorForEventPublication: 'Failed to create event. Please try again.',
+    errorForEventUpdate: 'Failed to update event. Please try again.',
+    errorForEventLoad: 'Failed to load event. Please try again.',
   },
 
   theme: {

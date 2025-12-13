@@ -1,8 +1,11 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import type { Event } from '@/api/types/events'
 import { useAuthStore } from '@/stores/auth'
+import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
+import { useI18n } from 'vue-i18n'
+import Button from '@/components/buttons/basicButtons/Button.vue'
 
 interface Props {
   event: Event
@@ -13,6 +16,13 @@ const emit = defineEmits(['update:isAuthRequired'])
 
 const props = defineProps<Props>()
 const authStore = useAuthStore()
+const { goToEditEvent } = useNavigation()
+const { t } = useI18n()
+
+// Check if current user is the event organizer
+const isOrganizer = computed(() => {
+  return authStore.user?.id === props.event.id_creator
+})
 
 const isFavorite = ref(false)
 const likesCount = ref(0)
@@ -65,10 +75,19 @@ onMounted(async () => {
       <h1 class="event-title">{{ props.event.title }}</h1>
       <p class="event-subtitle">{{ props.event.location.name || props.event.location.city }}</p>
     </div>
-    <button class="like-button" :class="{ liked: isFavorite }" @click="toggleLike">
-      <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="24px" />
-      <span class="like-count">{{ likesCount }}</span>
-    </button>
+    <div class="action-buttons">
+      <Button
+        v-if="isOrganizer"
+        :label="t('eventDetails.editEvent')"
+        icon="edit"
+        variant="secondary"
+        @click="goToEditEvent(props.event.id_event)"
+      />
+      <button class="like-button" :class="{ liked: isFavorite }" @click="toggleLike">
+        <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="24px" />
+        <span class="like-count">{{ likesCount }}</span>
+      </button>
+    </div>
   </div>
 
   <div v-if="props.event.tags && props.event.tags.length" class="tags-container">
@@ -92,6 +111,18 @@ onMounted(async () => {
 .title-content {
   flex: 1;
   min-width: 0;
+}
+
+.action-buttons {
+  display: flex;
+  gap: $spacing-2;
+  align-items: center;
+  flex-shrink: 0;
+
+  @media (max-width: $breakpoint-mobile) {
+    width: 100%;
+    justify-content: space-between;
+  }
 }
 
 .event-title {

@@ -31,6 +31,19 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     formData.append('event', JSON.stringify(backendEventData))
     return eventsClient.post<{ id_event: string }>('/', formData)
   },
+  async updateEventData(eventId: EventID, eventData: EventData): Promise<void> {
+    const { poster, date, ...rest } = eventData
+    const backendEventData = {
+      ...rest,
+      date: date.toISOString().replace(/\.\d{3}Z$/, ''),
+    }
+    await eventsClient.put(`/${eventId}`, backendEventData)
+  },
+  async updateEventPoster(eventId: EventID, poster: File): Promise<void> {
+    const formData = new FormData()
+    formData.append('poster', poster)
+    await eventsClient.post(`/${eventId}/poster`, formData)
+  },
   async searchByName(query: string): Promise<EventsDataResponse> {
     return eventsClient.get<EventsDataResponse>(`/${buildQueryParams({ query })}`)
   },

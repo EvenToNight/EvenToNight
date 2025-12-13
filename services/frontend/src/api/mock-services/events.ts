@@ -35,6 +35,12 @@ export const mockEventsApi: EventAPI = {
   async publishEvent(_eventData: EventData): Promise<PublishEventResponse> {
     return { id_event: mockEvents[0]!.id_event }
   },
+  async updateEventData(_id_event: EventID, _eventData: EventData): Promise<void> {
+    return
+  },
+  async updateEventPoster(_id_event: EventID, _poster: File): Promise<void> {
+    return
+  },
   async searchByName(query: string): Promise<EventsDataResponse> {
     if (!query || query.trim().length === 0) {
       return { events: [] }

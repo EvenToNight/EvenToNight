@@ -11,6 +11,7 @@ export const REGISTER_ROUTE_NAME = 'register'
 export const EVENT_DETAILS_ROUTE_NAME = 'event-details'
 export const USER_PROFILE_ROUTE_NAME = 'user-profile'
 export const CREATE_EVENT_ROUTE_NAME = 'create-event'
+export const EDIT_EVENT_ROUTE_NAME = 'edit-event'
 
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')
@@ -80,6 +81,12 @@ const router = createRouter({
         {
           path: 'create-event',
           name: 'create-event',
+          component: () => import('../views/CreateEventView.vue'),
+          beforeEnter: requireRole('organization'),
+        },
+        {
+          path: 'edit-event/:id',
+          name: 'edit-event',
           component: () => import('../views/CreateEventView.vue'),
           beforeEnter: requireRole('organization'),
         },
