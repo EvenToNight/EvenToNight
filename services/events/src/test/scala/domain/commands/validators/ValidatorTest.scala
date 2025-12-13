@@ -4,6 +4,7 @@ import domain.commands.{
   CreateEventCommand,
   DeleteEventCommand,
   GetEventCommand,
+  GetFilteredEventsCommand,
   UpdateEventCommand,
   UpdateEventPosterCommand
 }
@@ -34,19 +35,45 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       ),
       date: LocalDateTime = LocalDateTime.now().plusDays(10),
       price: Double = 20.0,
+      status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "valid-creator-id"
   ): CreateEventCommand =
     CreateEventCommand(
       title = title,
       description = description,
       poster = "valid-poster.jpg",
-      tag = List(EventTag.VenueType.Bar),
+      tags = List(EventTag.VenueType.Bar),
       location = location,
       date = date,
       price = price,
-      status = EventStatus.DRAFT,
+      status = status,
       id_creator = id_creator,
-      id_collaborator = None
+      id_collaborators = None
+    )
+
+  private def validGetFilteredEventsCommand(
+      limit: Option[Int] = Some(10),
+      offset: Option[Int] = Some(0),
+      status: Option[EventStatus] = Some(EventStatus.PUBLISHED),
+      title: Option[String] = Some("Sample Event"),
+      tags: Option[List[EventTag]] = Some(List(EventTag.TypeOfEvent.Concert)),
+      startDate: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(1)),
+      endDate: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(30)),
+      id_organization: Option[String] = Some("org-123"),
+      city: Option[String] = Some("Sample City"),
+      location_name: Option[String] = Some("Sample Venue")
+  ): GetFilteredEventsCommand =
+    GetFilteredEventsCommand(
+      limit = limit,
+      offset = offset,
+      status = status,
+      title = title,
+      tags = tags,
+      startDate = startDate,
+      endDate = endDate,
+      id_organization = id_organization,
+      city = city,
+      location_name = location_name
     )
 
   "CreateEventValidator" should "extends Validator trait" in:
@@ -59,26 +86,23 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
     result shouldBe Right(command)
 
-  it should "reject empty title" in:
+  "CreateEventValidator with Draft status" should "accept empty title" in:
     val command = validCreateEventCommand(title = "")
     val result  = CreateEventValidator.validate(command)
 
-    result shouldBe a[Left[?, ?]]
-    result.left.value should contain("Title cannot be empty")
+    result shouldBe a[Right[?, ?]]
 
-  it should "reject empty description" in:
+  it should "accept empty description" in:
     val command = validCreateEventCommand(description = "")
     val result  = CreateEventValidator.validate(command)
 
-    result shouldBe a[Left[?, ?]]
-    result.left.value should contain("Description cannot be empty")
+    result shouldBe a[Right[?, ?]]
 
-  it should "reject empty location" in:
+  it should "accept empty location" in:
     val command = validCreateEventCommand(location = Location.Nil())
     val result  = CreateEventValidator.validate(command)
 
-    result shouldBe a[Left[?, ?]]
-    result.left.value should contain("Location has invalid parameters")
+    result shouldBe a[Right[?, ?]]
 
   it should "reject empty creator id" in:
     val command = validCreateEventCommand(id_creator = "")
@@ -87,8 +111,42 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Creator Id cannot be empty")
 
-  it should "reject past date" in:
+  it should "accept past date" in:
     val command = validCreateEventCommand(date = pastDate)
+    val result  = CreateEventValidator.validate(command)
+
+    result shouldBe a[Right[?, ?]]
+
+  "CreateEventValidator with Published status" should "reject empty title" in:
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, title = "")
+    val result  = CreateEventValidator.validate(command)
+
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Title cannot be empty")
+
+  it should "reject empty description" in:
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, description = "")
+    val result  = CreateEventValidator.validate(command)
+
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Description cannot be empty")
+
+  it should "reject empty location" in:
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, location = Location.Nil())
+    val result  = CreateEventValidator.validate(command)
+
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Location has invalid parameters")
+
+  it should "reject empty creator id" in:
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, id_creator = "")
+    val result  = CreateEventValidator.validate(command)
+
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Creator Id cannot be empty")
+
+  it should "reject past date" in:
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, date = pastDate)
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
@@ -99,7 +157,8 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       title = "",
       description = "",
       location = Location.Nil(),
-      date = pastDate
+      date = pastDate,
+      status = EventStatus.PUBLISHED
     )
     val result = CreateEventValidator.validate(command)
 
@@ -194,3 +253,35 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val result  = DeleteEventValidator.validate(command)
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Event ID cannot be empty")
+
+  "GetFilteredEventsValidator" should "extend Validator trait" in:
+    val validator = GetFilteredEventsValidator
+    validator shouldBe a[Validator[GetFilteredEventsCommand]]
+
+  it should "validate valid command successfully" in:
+    val command = validGetFilteredEventsCommand()
+    val result  = GetFilteredEventsValidator.validate(command)
+    result shouldBe Right(command)
+
+  it should "reject negative limit" in:
+    val command = validGetFilteredEventsCommand(limit = Some(-5))
+    val result  = GetFilteredEventsValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Limit must be positive")
+
+  it should "reject negative offset" in:
+    val command = validGetFilteredEventsCommand(offset = Some(-1))
+    val result  = GetFilteredEventsValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Offset cannot be negative")
+
+  it should "reject end date before start date" in:
+    val start = LocalDateTime.now().plusDays(10)
+    val end   = LocalDateTime.now().plusDays(5)
+    val command = validGetFilteredEventsCommand(
+      startDate = Some(start),
+      endDate = Some(end)
+    )
+    val result = GetFilteredEventsValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Date range: start date must be before end date")

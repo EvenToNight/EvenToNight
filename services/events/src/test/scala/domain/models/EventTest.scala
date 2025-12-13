@@ -13,7 +13,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       title: String = "Test Event",
       description: String = "Test description",
       poster: String = "poster.jpg",
-      tag: List[EventTag] = List(EventTag.TypeOfEvent.Concert),
+      tags: List[EventTag] = List(EventTag.TypeOfEvent.Concert),
       location: Location = Location.create(
         country = "Test Country",
         country_code = "TC",
@@ -28,19 +28,19 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       price: Double = 15.0,
       status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "creator123",
-      id_collaborator: Option[String] = None
+      id_collaborators: Option[List[String]] = None
   ): Event =
     Event.create(
       title = title,
       description = description,
       poster = poster,
-      tag = tag,
+      tags = tags,
       location = location,
       date = date,
       price = price,
       status = status,
       id_creator = id_creator,
-      id_collaborator = id_collaborator
+      id_collaborators = id_collaborators
     )
 
   "Event case class" should "store properties correctly" in:
@@ -48,7 +48,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     event.title shouldBe "Test Event"
     event.description shouldBe "Test description"
     event.poster shouldBe "poster.jpg"
-    event.tag shouldBe List(EventTag.TypeOfEvent.Concert)
+    event.tags shouldBe List(EventTag.TypeOfEvent.Concert)
     event.price shouldBe 15.0
     event.location.country shouldBe "Test Country"
     event.location.country_code shouldBe "TC"
@@ -58,7 +58,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     event.location.lat shouldBe 45.0
     event.location.lon shouldBe 90.0
     event.location.link shouldBe "http://example.com/location"
-    event.id_collaborator shouldBe None
+    event.id_collaborators shouldBe None
     event.status shouldBe EventStatus.DRAFT
 
   "Event.createDraft" should "create draft with generated ID and current time" in:
@@ -84,16 +84,16 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     nilEvent.title shouldBe ""
     nilEvent.description shouldBe ""
     nilEvent.poster shouldBe ""
-    nilEvent.tag shouldBe empty
+    nilEvent.tags shouldBe empty
     nilEvent.price shouldBe 0.0
     nilEvent.location shouldBe Location.Nil()
     nilEvent.date shouldBe LocalDateTime.MAX
     nilEvent.status shouldBe EventStatus.DRAFT
     nilEvent.id_creator shouldBe ""
-    nilEvent.id_collaborator shouldBe None
+    nilEvent.id_collaborators shouldBe None
 
   "Event with multiple tags" should "handle them" in:
-    val event = createEvent(tag =
+    val event = createEvent(tags =
       List(
         EventTag.TypeOfEvent.Concert,
         EventTag.VenueType.Theatre,
@@ -103,12 +103,12 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       )
     )
 
-    event.tag should have size 5
-    event.tag should contain(EventTag.TypeOfEvent.Concert)
-    event.tag should contain(EventTag.VenueType.Theatre)
-    event.tag should contain(EventTag.MusicGenre.Rock)
-    event.tag should contain(EventTag.Target.Vip)
-    event.tag should contain(EventTag.Extra.ReservationRequired)
+    event.tags should have size 5
+    event.tags should contain(EventTag.TypeOfEvent.Concert)
+    event.tags should contain(EventTag.VenueType.Theatre)
+    event.tags should contain(EventTag.MusicGenre.Rock)
+    event.tags should contain(EventTag.Target.Vip)
+    event.tags should contain(EventTag.Extra.ReservationRequired)
 
   "Event with different EventStatus" should "handle PUBLISHED status" in:
     val event = createEvent().copy(status = EventStatus.PUBLISHED)
@@ -122,19 +122,19 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val event = createEvent().copy(status = EventStatus.COMPLETED)
     event.status shouldBe EventStatus.COMPLETED
 
-  "Event with collaborator" should "store collaborator ID correctly" in:
+  "Event with collaborators" should "store collaborator IDs correctly" in:
     val event = createEvent(
       id_creator = "creator-main",
-      id_collaborator = Some("collaborator-123")
+      id_collaborators = Some(List("collaborator-123"))
     )
-    event.id_collaborator shouldBe Some("collaborator-123")
+    event.id_collaborators shouldBe Some(List("collaborator-123"))
     event.id_creator shouldBe "creator-main"
 
   it should "handle None collaborator" in:
     val event = createEvent(
-      id_collaborator = None
+      id_collaborators = None
     )
-    event.id_collaborator shouldBe None
+    event.id_collaborators shouldBe None
 
   "Event equality" should "be equal when all fields are the same" in:
     val event1 = createEvent()
@@ -157,10 +157,10 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   "Event" should "handle empty tag list" in:
     val event = createEvent(
-      tag = List()
+      tags = List()
     )
 
-    event.tag shouldBe empty
+    event.tags shouldBe empty
 
   it should "handle very long strings" in:
     val longTitle       = "A" * 1000
@@ -275,13 +275,13 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       title = "Updated Event",
       price = 25.0,
       status = EventStatus.PUBLISHED,
-      id_collaborator = Some("new-collaborator")
+      id_collaborators = Some(List("new-collaborator"))
     )
 
     multiCopy.title shouldBe "Updated Event"
     multiCopy.price shouldBe 25.0
     multiCopy.status shouldBe EventStatus.PUBLISHED
-    multiCopy.id_collaborator shouldBe Some("new-collaborator")
+    multiCopy.id_collaborators shouldBe Some(List("new-collaborator"))
     multiCopy._id shouldBe original._id
     multiCopy.description shouldBe original.description
     multiCopy.location shouldBe original.location

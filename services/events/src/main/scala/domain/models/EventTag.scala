@@ -74,13 +74,13 @@ object EventTag:
   val Targets: List[String]      = Target.values.map(_.displayName).toList
   val Extras: List[String]       = Extra.values.map(_.displayName).toList
 
-  private def fromString(value: String): EventTag =
-    TypeOfEvent.values.find(_.displayName == value)
-      .orElse(VenueType.values.find(_.displayName == value))
-      .orElse(MusicGenre.values.find(_.displayName == value))
-      .orElse(Theme.values.find(_.displayName == value))
-      .orElse(Target.values.find(_.displayName == value))
-      .orElse(Extra.values.find(_.displayName == value))
+  def fromString(value: String): EventTag =
+    TypeOfEvent.values.find(_.displayName.toLowerCase == value.toLowerCase)
+      .orElse(VenueType.values.find(_.displayName.toLowerCase == value.toLowerCase))
+      .orElse(MusicGenre.values.find(_.displayName.toLowerCase == value.toLowerCase))
+      .orElse(Theme.values.find(_.displayName.toLowerCase == value.toLowerCase))
+      .orElse(Target.values.find(_.displayName.toLowerCase == value.toLowerCase))
+      .orElse(Extra.values.find(_.displayName.toLowerCase == value.toLowerCase))
       .getOrElse(new InvalidTag)
 
   def validateTagList(tags: String): List[EventTag] =

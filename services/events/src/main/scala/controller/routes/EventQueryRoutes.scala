@@ -1,12 +1,12 @@
 package controller.routes
 
 import cask.Routes
-import domain.commands.{GetAllEventsCommand, GetEventCommand, UpdateEventPosterCommand}
+import domain.commands.{GetAllEventsCommand, GetEventCommand, GetFilteredEventsCommand, UpdateEventPosterCommand}
 import domain.models.Event
 import domain.models.EventConversions.*
 import service.EventService
 import ujson.Obj
-import utils.Utils.uploadPosterToMediaService
+import utils.Utils
 
 class EventQueryRoutes(eventService: EventService) extends Routes:
 
@@ -36,11 +36,66 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       case Right(list) =>
         list match
           case events: List[?] =>
-            cask.Response(ujson.Arr(events.collect { case e: Event => e.toJson }), statusCode = 200)
+            val eventList = events.collect { case e: Event => e }
+            val response = Utils.createPaginatedResponse(
+              eventList,
+              None,
+              None,
+              hasMore = false
+            )
+            cask.Response(response, statusCode = 200)
           case _ => cask.Response(ujson.Arr(), statusCode = 200)
       case Left(errors) =>
         cask.Response(
           ujson.Obj("error" -> s"Could not retrieve events $errors"),
+          statusCode = 404
+        )
+
+  @cask.get("/search")
+  def getEvents(
+      limit: Option[Int] = None,
+      offset: Option[Int] = None,
+      status: Option[String] = None,
+      title: Option[String] = None,
+      tags: Option[Seq[String]] = None,
+      startDate: Option[String] = None,
+      endDate: Option[String] = None,
+      id_organization: Option[String] = None,
+      city: Option[String] = None,
+      location_name: Option[String] = None
+  ): cask.Response[ujson.Value] =
+    println("EventQueryRoutes tags param: " + tags)
+    val tagsList: Option[List[String]] = tags.map(_.toList)
+    val command: GetFilteredEventsCommand = Utils.parseEventFilters(
+      limit,
+      offset,
+      status,
+      title,
+      tagsList,
+      startDate,
+      endDate,
+      id_organization,
+      city,
+      location_name
+    )
+    eventService.handleCommand(command) match
+      case Right((events: List[?], hasMore: Boolean)) =>
+        val eventList = events.collect { case e: Event => e }
+        val response = Utils.createPaginatedResponse(
+          eventList,
+          limit,
+          offset,
+          hasMore
+        )
+        cask.Response(response, statusCode = 200)
+      case Left(errors) =>
+        cask.Response(
+          ujson.Obj("error" -> s"Could not retrieve events $errors"),
+          statusCode = 400
+        )
+      case _ =>
+        cask.Response(
+          ujson.Obj("error" -> "Error"),
           statusCode = 404
         )
 
@@ -53,7 +108,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
           statusCode = 404
         )
       case _ =>
-        val posterUrl = uploadPosterToMediaService(id_event, poster, mediaServiceUrl)
+        val posterUrl = Utils.uploadPosterToMediaService(id_event, Some(poster), mediaServiceUrl)
         val updateCommand = UpdateEventPosterCommand(
           id_event = id_event,
           posterUrl = posterUrl

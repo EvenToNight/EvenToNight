@@ -37,13 +37,13 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     title = "Test Event",
     description = "Test Description",
     poster = "test.jpg",
-    tag = List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz),
+    tags = List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz),
     location = validLocation,
     date = LocalDateTime.now().plusDays(7),
     price = 25.0,
-    status = EventStatus.DRAFT,
+    status = EventStatus.PUBLISHED,
     id_creator = "creator123",
-    id_collaborator = Some("collaborator456")
+    id_collaborators = Some(List("collaborator456"))
   )
 
   private val validGetCommand = GetEventCommand("event123")
@@ -57,12 +57,12 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     id_event = "event123",
     title = Some("Updated Event Title"),
     description = Some("Updated Description"),
-    tag = Some(List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Rock)),
+    tags = Some(List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Rock)),
     location = Some(validLocation),
     date = Some(LocalDateTime.now().plusDays(14)),
     price = Some(30.0),
     status = Some(EventStatus.PUBLISHED),
-    id_collaborator = Some("collaborator789")
+    id_collaborators = Some(List("collaborator789"))
   )
 
   private def validDeleteEventCommand = DeleteEventCommand("event123")
@@ -128,13 +128,13 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
       title = "A",
       description = "A",
       poster = "",
-      tag = List(),
+      tags = List(),
       location = minimalLocation,
       date = LocalDateTime.now().plusMinutes(1),
       price = 0.0,
       status = EventStatus.DRAFT,
       id_creator = "A",
-      id_collaborator = None
+      id_collaborators = None
     )
 
     Validator.validateCommand(minimalCommand) shouldBe Right(minimalCommand)

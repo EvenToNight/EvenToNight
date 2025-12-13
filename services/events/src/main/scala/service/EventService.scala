@@ -6,6 +6,7 @@ import domain.commands.{
   DeleteEventCommand,
   GetAllEventsCommand,
   GetEventCommand,
+  GetFilteredEventsCommand,
   UpdateEventCommand,
   UpdateEventPosterCommand
 }
@@ -29,6 +30,7 @@ class EventService(
       case c: GetAllEventsCommand      => eventQueryService.execCommand(c)
       case c: UpdateEventCommand       => validateAnd(c)(eventCommandService.execCommand)
       case c: DeleteEventCommand       => validateAnd(c)(eventCommandService.execCommand)
+      case c: GetFilteredEventsCommand => validateAnd(c)(eventQueryService.execCommand)
 
   private def validateAnd[C <: Commands, R](cmd: C)(f: C => Either[String, R])(using
       v: Validator[C]
