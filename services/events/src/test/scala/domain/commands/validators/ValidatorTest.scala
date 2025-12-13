@@ -104,11 +104,12 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
     result shouldBe a[Right[?, ?]]
 
-  it should "accept empty creator id" in:
+  it should "reject empty creator id" in:
     val command = validCreateEventCommand(id_creator = "")
     val result  = CreateEventValidator.validate(command)
 
-    result shouldBe a[Right[?, ?]]
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Creator Id cannot be empty")
 
   it should "accept past date" in:
     val command = validCreateEventCommand(date = pastDate)

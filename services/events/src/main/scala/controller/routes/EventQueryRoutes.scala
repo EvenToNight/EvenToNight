@@ -108,7 +108,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
           statusCode = 404
         )
       case _ =>
-        val posterUrl = Utils.uploadPosterToMediaService(id_event, poster, mediaServiceUrl)
+        val posterUrl = Utils.uploadPosterToMediaService(id_event, Some(poster), mediaServiceUrl)
         val updateCommand = UpdateEventPosterCommand(
           id_event = id_event,
           posterUrl = posterUrl

@@ -90,18 +90,18 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val id_event            = "test-event-123"
     val formFileWithoutPath = FormFile("test.jpg", None, new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, formFileWithoutPath, "http://media-service")
+    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithoutPath), "http://media-service")
 
-    result shouldBe "/events/test-event-123/default.jpg"
+    result shouldBe "events/default.jpg"
 
   it should "return default URL when file cannot be read" in:
     val id_event            = "test-event-456"
     val nonExistentPath     = Paths.get("/non/existent/file.jpg")
     val formFileWithBadPath = FormFile("test.jpg", Some(nonExistentPath), new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, formFileWithBadPath, "http://media-service")
+    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithBadPath), "http://media-service")
 
-    result shouldBe "/events/test-event-456/default.jpg"
+    result shouldBe "events/default.jpg"
 
   it should "return default URL when media service request fails" in:
     val tempFile = Files.createTempFile("test-poster", ".jpg")
@@ -112,9 +112,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
 
     val invalidMediaServiceUrl = "http://non-existent-service:9999"
 
-    val result = Utils.uploadPosterToMediaService(id_event, formFileWithValidPath, invalidMediaServiceUrl)
+    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithValidPath), invalidMediaServiceUrl)
 
-    result shouldBe "/events/test-event-789/default.jpg"
+    result shouldBe "events/default.jpg"
 
   it should "handle successful upload simulation" in:
     val tempFile = Files.createTempFile("test-poster", ".jpg")
@@ -123,9 +123,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val id_event              = "test-event-success"
     val formFileWithValidPath = FormFile("test.jpg", Some(tempFile), new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, formFileWithValidPath, "http://localhost:8080")
+    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithValidPath), "http://localhost:8080")
 
-    result shouldBe "/events/test-event-success/default.jpg"
+    result shouldBe "events/default.jpg"
 
   it should "handle malformed media service response" in:
     val tempFile = Files.createTempFile("test-poster", ".jpg")
@@ -134,17 +134,18 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val id_event              = "test-event-malformed"
     val formFileWithValidPath = FormFile("test.jpg", Some(tempFile), new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, formFileWithValidPath, "http://httpbin.org/status/500")
+    val result =
+      Utils.uploadPosterToMediaService(id_event, Some(formFileWithValidPath), "http://httpbin.org/status/500")
 
-    result shouldBe "/events/test-event-malformed/default.jpg"
+    result shouldBe "events/default.jpg"
 
   it should "generate correct default URL format" in:
     val id_event            = "special-event-#123"
     val formFileWithoutPath = FormFile("test.jpg", None, new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, formFileWithoutPath, "http://media-service")
+    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithoutPath), "http://media-service")
 
-    result shouldBe "/events/special-event-#123/default.jpg"
+    result shouldBe "events/default.jpg"
 
   "Utils.getCreateCommandFromJson" should "parse valid JSON into CreateEventCommand" in:
     val validJson = """{

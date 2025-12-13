@@ -10,8 +10,9 @@ import scala.util.{Failure, Success, Try}
 
 object Utils:
 
-  val DEFAULT_LIMIT: Int = 10
-  val MAX_LIMIT: Int     = 20
+  val DEFAULT_LIMIT: Int   = 10
+  val MAX_LIMIT: Int       = 20
+  val DEFAULT_DATE: String = "2027-01-01T00:00:00"
 
   def parseLocationFromJson(locationJson: String): Location =
     Try {
@@ -34,41 +35,44 @@ object Utils:
       case Success(locality) => locality
       case Failure(_)        => println("Failed to parse location JSON"); Location.Nil()
 
-  def uploadPosterToMediaService(id_event: String, poster: cask.FormFile, mediaServiceUrl: String): String =
-    def defaultUrl = s"/events/$id_event/default.jpg"
-    val result =
-      for
-        path      <- poster.filePath.toRight(new Exception("Missing poster filepath"))
-        fileBytes <- Try(Files.readAllBytes(path)).toEither
-        response <- Try {
-          requests.post(
-            s"$mediaServiceUrl/events/$id_event",
-            data = requests.MultiPart(
-              requests.MultiItem(
-                name = "file",
-                data = fileBytes,
-                filename = "poster.jpg"
+  def uploadPosterToMediaService(id_event: String, posterOpt: Option[cask.FormFile], mediaServiceUrl: String): String =
+    def defaultUrl = "events/default.jpg"
+    posterOpt match
+      case None => defaultUrl
+      case Some(poster) =>
+        val result =
+          for
+            path      <- poster.filePath.toRight(new Exception("Missing poster filepath"))
+            fileBytes <- Try(Files.readAllBytes(path)).toEither
+            response <- Try {
+              requests.post(
+                s"$mediaServiceUrl/events/$id_event",
+                data = requests.MultiPart(
+                  requests.MultiItem(
+                    name = "file",
+                    data = fileBytes,
+                    filename = "poster.jpg"
+                  )
+                )
               )
-            )
-          )
-        }.toEither
-        url <- Try(ujson.read(response.text())("url").str).toEither
-      yield url
+            }.toEither
+            url <- Try(ujson.read(response.text())("url").str).toEither
+          yield url
 
-    result match
-      case Right(url) => url
-      case Left(_)    => defaultUrl
+        result match
+          case Right(url) => url
+          case Left(_)    => defaultUrl
 
   def getCreateCommandFromJson(event: String): CreateEventCommand =
     val eventData = ujson.read(event)
 
-    val title            = eventData("title").str
-    val description      = eventData("description").str
-    val tags             = validateTagList(eventData("tags").toString())
-    val locationData     = eventData("location")
+    val title            = eventData.obj.get("title").map(_.str).getOrElse("")
+    val description      = eventData.obj.get("description").map(_.str).getOrElse("")
+    val tags             = validateTagList(eventData.obj.get("tags").map(_.toString()).getOrElse("[]"))
+    val locationData     = eventData.obj.get("location").getOrElse(ujson.Obj())
     val location         = parseLocationFromJson(locationData.toString())
-    val date             = LocalDateTime.parse(eventData("date").str)
-    val price            = eventData("price").num
+    val date             = LocalDateTime.parse(eventData.obj.get("date").map(_.str).getOrElse(DEFAULT_DATE))
+    val price            = eventData.obj.get("price").map(_.num).getOrElse(0.0)
     val status           = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
     val id_creator       = eventData("id_creator").str
     val id_collaborators = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)

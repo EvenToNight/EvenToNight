@@ -31,26 +31,19 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
         case Right(_) =>
           eventService.handleCommand(command) match
             case Right(id_event: String) =>
-              posterOpt match
-                case Some(poster) =>
-                  val posterUrl = Utils.uploadPosterToMediaService(id_event, poster, mediaServiceUrl)
-                  val updateCommand =
-                    UpdateEventPosterCommand(id_event = id_event, posterUrl = mediaServiceUrl + "/" + posterUrl)
-                  eventService.handleCommand(updateCommand) match
-                    case Right(_) =>
-                      cask.Response(
-                        Obj("id_event" -> id_event),
-                        statusCode = 201
-                      )
-                    case Left(error) =>
-                      cask.Response(
-                        Obj("error" -> s"Event created but poster upload failed: $error"),
-                        statusCode = 207
-                      )
-                case None =>
+              val posterUrl = Utils.uploadPosterToMediaService(id_event, posterOpt, mediaServiceUrl)
+              val updateCommand =
+                UpdateEventPosterCommand(id_event = id_event, posterUrl = mediaServiceUrl + "/" + posterUrl)
+              eventService.handleCommand(updateCommand) match
+                case Right(_) =>
                   cask.Response(
                     Obj("id_event" -> id_event),
                     statusCode = 201
+                  )
+                case Left(error) =>
+                  cask.Response(
+                    Obj("error" -> s"Event created but poster upload failed: $error"),
+                    statusCode = 207
                   )
             case Left(value) =>
               cask.Response(
