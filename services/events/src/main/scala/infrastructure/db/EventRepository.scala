@@ -115,53 +115,15 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       location_name: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)] =
     Try {
-      val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
-      status.foreach(s => filters += Filters.eq("status", s.toString))
-      title.foreach(n => filters += Filters.regex("title", n, "i"))
-      id_organization.foreach(org => filters += Filters.eq("id_organization", org))
-      city.foreach(c => filters += Filters.regex("location.city", c, "i"))
-      location_name.foreach(loc => filters += Filters.regex("location.name", loc, "i"))
 
-      tags.foreach { tagList =>
-        if tagList.nonEmpty then
-          filters += Filters.in("tags", tagList.asJava)
-      }
+      val combinedFilter =
+        buildFilterQuery(status, title, tags, startDate, endDate, id_organization, city, location_name)
 
-      startDate.foreach(start => filters += Filters.gte("date", start))
-      endDate.foreach(end => filters += Filters.lte("date", end))
+      val query = applyPagination(collection.find(combinedFilter), offset, limit)
 
-      val combinedFilter = if filters.isEmpty then
-        new Document()
-      else if filters.size == 1 then
-        filters.head
-      else
-        Filters.and(filters.asJava)
+      val results = executeQueryAndUpdateEvents(query)
 
-      var query = collection.find(combinedFilter)
-
-      offset.foreach(o => query = query.skip(o))
-
-      val fetchLimit = limit.map(_ + 1)
-      fetchLimit.foreach(l => query = query.limit(l))
-
-      val results = query
-        .into(new java.util.ArrayList[Document]())
-        .asScala
-        .map(fromDocument)
-        .map { event =>
-          val updatedEvent = Utils.updateEventIfPastDate(event)
-          if updatedEvent.status != event.status then
-            update(updatedEvent).left.foreach(ex =>
-              println(s"[MongoDB] Could not auto-update past event to COMPLETED: ${ex.getMessage}")
-            )
-          updatedEvent
-        }
-        .toList
-
-      val (events, hasMore) = limit match
-        case Some(lim) if results.size > lim => (results.take(lim), true)
-        case _                               => (results, false)
-      (events, hasMore)
+      calculateHasMore(results, limit)
     }.toEither.left.map { ex =>
       println(s"[MongoDB][Error] Failed to retrieve filtered events - ${ex.getMessage}")
       ex
@@ -169,3 +131,72 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
 
   def close(): Unit =
     mongoClient.close()
+
+  private def buildFilterQuery(
+      status: Option[EventStatus],
+      title: Option[String],
+      tags: Option[List[String]],
+      startDate: Option[String],
+      endDate: Option[String],
+      id_organization: Option[String],
+      city: Option[String],
+      location_name: Option[String]
+  ): org.bson.conversions.Bson =
+    val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
+
+    status.foreach(s => filters += Filters.eq("status", s.toString))
+    title.foreach(t => filters += Filters.regex("title", escapeRegex(t), "i"))
+    id_organization.foreach(org => filters += Filters.regex("id_organization", escapeRegex(org), "i"))
+    city.foreach(c => filters += Filters.regex("location.city", escapeRegex(c), "i"))
+    location_name.foreach(loc => filters += Filters.regex("location.name", escapeRegex(loc), "i"))
+
+    tags.foreach { tagList =>
+      if tagList.nonEmpty then
+        filters += Filters.in("tags", tagList.asJava)
+    }
+
+    startDate.foreach(start => filters += Filters.gte("date", start))
+    endDate.foreach(end => filters += Filters.lte("date", end))
+
+    if filters.isEmpty then
+      new Document()
+    else if filters.size == 1 then
+      filters.head
+    else
+      Filters.and(filters.asJava)
+
+  private def escapeRegex(str: String): String =
+    str.replaceAll("([\\[\\]\\(\\)\\{\\}\\*\\+\\?\\|\\^\\$\\.\\\\/])", "\\\\$1")
+
+  private def applyPagination(
+      query: com.mongodb.client.FindIterable[Document],
+      offset: Option[Int],
+      limit: Option[Int]
+  ): com.mongodb.client.FindIterable[Document] =
+    var paginatedQuery = query
+    offset.foreach(o => paginatedQuery = paginatedQuery.skip(o))
+    limit.map(_ + 1).foreach(l => paginatedQuery = paginatedQuery.limit(l))
+    paginatedQuery
+
+  private def executeQueryAndUpdateEvents(
+      query: com.mongodb.client.FindIterable[Document]
+  ): List[Event] =
+    query
+      .into(new java.util.ArrayList[Document]())
+      .asScala
+      .map(fromDocument)
+      .map(updateEventIfPast)
+      .toList
+
+  private def updateEventIfPast(event: Event): Event =
+    val updatedEvent = Utils.updateEventIfPastDate(event)
+    if updatedEvent.status != event.status then
+      update(updatedEvent).left.foreach(ex =>
+        println(s"[MongoDB] Could not auto-update past event to COMPLETED: ${ex.getMessage}")
+      )
+    updatedEvent
+
+  private def calculateHasMore(results: List[Event], limit: Option[Int]): (List[Event], Boolean) =
+    limit match
+      case Some(lim) if results.size > lim => (results.take(lim), true)
+      case _                               => (results, false)
