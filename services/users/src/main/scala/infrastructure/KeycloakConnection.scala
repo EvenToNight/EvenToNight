@@ -63,3 +63,16 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
       else
         Left(s"Failed to create user on Keycloak: ${response.code} ${response.body}")
     )
+
+  def deleteUser(userId: String): Either[String, Unit] =
+    getAccessToken().flatMap(token =>
+      val request = basicRequest
+        .delete(uri"$keycloakUrl/admin/realms/$realm/users/$userId")
+        .header("Authorization", s"Bearer $token")
+
+      val response = request.send(backend)
+      if response.code == StatusCode.NoContent then
+        Right(())
+      else
+        Left(s"Failed to delete user $userId: ${response.code} ${response.body}")
+    )

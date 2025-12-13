@@ -8,12 +8,14 @@ import org.scalatest.matchers.should.Matchers
 import sttp.client3.Response
 import sttp.client3.testing._
 import sttp.model.Header
+import sttp.model.Method
 import sttp.model.StatusCode
 
 class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
   val tokenPath              = List("realms", "eventonight", "protocol", "openid-connect", "token")
   val testSecret             = "test-secret"
   private val createUserPath = List("admin", "realms", "eventonight", "users")
+  private val testUserId     = "12345"
 
   def connectionWithResponse(responseBody: String) =
     val backendStub = SttpBackendStub.synchronous
@@ -33,6 +35,16 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
       .thenRespond("""{"access_token": "test_token"}""")
       .whenRequestMatches(_.uri.path == createUserPath)
       .thenRespond(keycloakResponse)
+    new KeycloakConnection(backendStub, testSecret)
+
+  private def stubbedDeleteUserConnectionWithResponse(userId: String, response: Response[String]) =
+    val backendStub = SttpBackendStub.synchronous
+      .whenRequestMatches(_.uri.path == tokenPath)
+      .thenRespond("""{"access_token": "test_token"}""")
+      .whenRequestMatches(req =>
+        req.uri.path == List("admin", "realms", "eventonight", "users", userId) && req.method == Method.DELETE
+      )
+      .thenRespond(response)
     new KeycloakConnection(backendStub, testSecret)
 
   "getAccessToken" should "extract the token from a valid Keycloak JSON response" in:
@@ -99,3 +111,30 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     val result         = connectionStub.createUser(username, email, password)
     result.isLeft shouldBe true
     result.left.value should include("Failed to create user on Keycloak")
+
+  "deleteUser" should "return Right(()) when Keycloak successfully deletes the user" in:
+    val deleteResponse = Response(
+      body = "",
+      code = StatusCode.NoContent,
+      statusText = "No Content"
+    )
+    val connectionStub = stubbedDeleteUserConnectionWithResponse(testUserId, deleteResponse)
+    val result         = connectionStub.deleteUser(testUserId)
+    result shouldEqual Right(())
+
+  it should "return Left when Keycloak returns non-204 status" in:
+    val unauthorizedResponse = Response(
+      body = "Unauthorized",
+      code = StatusCode.Unauthorized,
+      statusText = "Unauthorized"
+    )
+    val connectionStub = stubbedDeleteUserConnectionWithResponse(testUserId, unauthorizedResponse)
+    val result         = connectionStub.deleteUser(testUserId)
+    result.isLeft shouldBe true
+    result.left.value should include("Failed to delete user")
+
+  it should "return Left when getAccessToken fails" in:
+    val connectionStub = connectionWithError("Internal Server Error")
+    val result         = connectionStub.deleteUser(testUserId)
+    result.isLeft shouldBe true
+    result.left.value should include("Keycloak error")
