@@ -63,9 +63,10 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acquista i biglietti',
-    about: 'A proposito di questo evento',
+    about: 'Di',
     organizer: 'Organizzato da',
-    collaborators: 'In collaborazione con',
+    collaborators: 'Collaboratori',
+    editEvent: 'Modificare',
   },
 
   footer: {
@@ -103,6 +104,7 @@ export default {
 
   eventCreationForm: {
     createNewEvent: 'Crea nuovo evento',
+    editEvent: 'Modifica evento',
     eventTitle: "Titolo dell'evento",
     titleError: 'Il titolo è obbligatorio',
     date: 'Data',
@@ -122,11 +124,15 @@ export default {
     cancel: 'Cancellare',
     saveDraft: 'Salva bozza',
     publishEvent: 'Pubblica evento',
+    updateEvent: 'Aggiorna evento',
     locationNoOptionHint: 'Digita almeno 3 caratteri per la ricerca',
     errorForDraftCreation: 'Si prega di fornire almeno un titolo per la bozza',
     successForEventPublication: 'Evento pubblicato con successo!',
+    successForEventUpdate: 'Evento aggiornato con successo!',
     errorForEventCreation: 'Si prega di compilare tutti i campi obbligatori',
     errorForEventPublication: "Impossibile creare l'evento. Per favore riprova.",
+    errorForEventUpdate: "Impossibile aggiornare l'evento. Per favore riprova.",
+    errorForEventLoad: "Impossibile caricare l'evento. Per favore riprova.",
   },
 
   theme: {

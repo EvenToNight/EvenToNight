@@ -63,9 +63,10 @@ export default {
 
   eventDetails: {
     buyTickets: 'Kaufen Sie Tickets',
-    about: 'Über diese Veranstaltung',
+    about: 'Um',
     organizer: 'Organisiert von',
-    collaborators: 'In Zusammenarbeit mit',
+    collaborators: 'Mitarbeiter',
+    editEvent: 'Bearbeiten',
   },
 
   footer: {
@@ -103,6 +104,7 @@ export default {
 
   eventCreationForm: {
     createNewEvent: 'Neues Ereignis erstellen',
+    editEvent: 'Ereignis bearbeiten',
     eventTitle: 'Veranstaltungstitel',
     titleError: 'Titel ist erforderlich',
     date: 'Datum',
@@ -122,12 +124,16 @@ export default {
     cancel: 'Stornieren',
     saveDraft: 'Entwurf speichern',
     publishEvent: 'Veranstaltung veröffentlichen',
+    updateEvent: 'Ereignis aktualisieren',
     locationNoOptionHint: 'Geben Sie für die Suche mindestens 3 Zeichen ein',
     errorForDraftCreation: 'Bitte geben Sie mindestens einen Titel für den Entwurf an',
     successForEventPublication: 'Veranstaltung erfolgreich veröffentlicht!',
+    successForEventUpdate: 'Veranstaltung erfolgreich aktualisiert!',
     errorForEventCreation: 'Bitte füllen Sie alle erforderlichen Felder aus',
-    errorForEventPublication:
-      'Ereignis konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
+    errorForEventPublication: 'Failed to create event. Please try again.',
+    errorForEventUpdate:
+      'Das Ereignis konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.',
+    errorForEventLoad: 'Ereignis konnte nicht geladen werden. Bitte versuchen Sie es erneut.',
   },
 
   theme: {

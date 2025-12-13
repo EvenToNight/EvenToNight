@@ -63,9 +63,10 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acheter des billets',
-    about: 'À propos de cet événement',
+    about: 'À propos',
     organizer: 'Organisé par',
-    collaborators: 'En collaboration avec',
+    collaborators: 'Collaborateurs',
+    editEvent: 'Modifier',
   },
 
   footer: {
@@ -103,6 +104,7 @@ export default {
 
   eventCreationForm: {
     createNewEvent: 'Créer un nouvel événement',
+    editEvent: "Modifier l'événement",
     eventTitle: "Titre de l'événement",
     titleError: 'Le titre est requis',
     date: 'Date',
@@ -122,11 +124,15 @@ export default {
     cancel: 'Annuler',
     saveDraft: 'Enregistrer le brouillon',
     publishEvent: 'Publier un événement',
+    updateEvent: 'Événement de mise à jour',
     locationNoOptionHint: 'Tapez au moins 3 caractères pour rechercher',
     errorForDraftCreation: 'Veuillez fournir au moins un titre pour le projet',
     successForEventPublication: 'Événement publié avec succès !',
+    successForEventUpdate: 'Événement mis à jour avec succès !',
     errorForEventCreation: 'Veuillez remplir tous les champs obligatoires',
     errorForEventPublication: "Échec de la création de l'événement. Veuillez réessayer.",
+    errorForEventUpdate: "Échec de la mise à jour de l'événement. Veuillez réessayer.",
+    errorForEventLoad: "Échec du chargement de l'événement. Veuillez réessayer.",
   },
 
   theme: {
