@@ -18,7 +18,10 @@ object CreateEventValidator extends Validator[CreateEventCommand]:
   override def validate(cmd: CreateEventCommand): Either[List[String], CreateEventCommand] =
     cmd.status match
       case EventStatus.DRAFT =>
-        Right(cmd)
+        val validations = combine(
+          nonEmpty(cmd.id_creator, "Creator Id")
+        )
+        validations.map(_ => cmd)
       case _ =>
         val validations = combine(
           nonEmpty(cmd.title, "Title"),

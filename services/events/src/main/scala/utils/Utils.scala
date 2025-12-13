@@ -47,7 +47,7 @@ object Utils:
               requests.MultiItem(
                 name = "file",
                 data = fileBytes,
-                filename = s"${id_event}_poster.jpg"
+                filename = "poster.jpg"
               )
             )
           )

@@ -33,8 +33,9 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
             case Right(id_event: String) =>
               posterOpt match
                 case Some(poster) =>
-                  val posterUrl     = Utils.uploadPosterToMediaService(id_event, poster, mediaServiceUrl)
-                  val updateCommand = UpdateEventPosterCommand(id_event = id_event, posterUrl = posterUrl)
+                  val posterUrl = Utils.uploadPosterToMediaService(id_event, poster, mediaServiceUrl)
+                  val updateCommand =
+                    UpdateEventPosterCommand(id_event = id_event, posterUrl = mediaServiceUrl + "/" + posterUrl)
                   eventService.handleCommand(updateCommand) match
                     case Right(_) =>
                       cask.Response(
