@@ -215,7 +215,7 @@ paths:
                     tags: ["MUSIC"]
                     posterUrl: "http://media:9020/posters/evt123.jpg"
                     id_creator: "user456"
-                    id_organization: "org789"
+                    id_collaborators: ["org789"]
                 limit: null
                 offset: 0
                 hasMore: false        
@@ -237,6 +237,11 @@ paths:
     get:
       summary: Search and filter events
       description: Search events with various filters and pagination support
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
       parameters:
         - name: limit
           in: query
@@ -337,7 +342,50 @@ paths:
                   events:
                     type: array
                     items:
-                      $ref: '#/components/schemas/Event'
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          description: Event ID
+                        title:
+                          type: string
+                          description: Event title
+                        description:
+                          type: string
+                          description: Event description
+                        status:
+                          type: string
+                          enum: [DRAFT, PUBLISHED, CANCELLED, COMPLETED]
+                          description: Event status
+                        date:
+                          type: string
+                          format: date-time
+                          description: Event date and time
+                        location:
+                          type: object
+                          description: Event location object
+                          properties:
+                            name:
+                              type: string
+                            city:
+                              type: string
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          description: List of event tags
+                        posterUrl:
+                          type: string
+                          description: Event poster URL
+                        id_creator:
+                          type: string
+                          description: ID of the event creator
+                        id_collaborators:
+                          type: array
+                          items:
+                            type: string
+                          description: IDs of the collaborators (if any)
+                          nullable: true
                   limit:
                     type: integer
                     description: Applied limit for this query

@@ -146,7 +146,12 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
 
     status.foreach(s => filters += Filters.eq("status", s.toString))
     title.foreach(t => filters += Filters.regex("title", escapeRegex(t), "i"))
-    id_organization.foreach(org => filters += Filters.regex("id_organization", escapeRegex(org), "i"))
+    id_organization.foreach { org =>
+      filters += Filters.or(
+        Filters.regex("id_creator", escapeRegex(org), "i"),
+        Filters.regex("id_collaborators", escapeRegex(org), "i")
+      )
+    }
     city.foreach(c => filters += Filters.regex("location.city", escapeRegex(c), "i"))
     location_name.foreach(loc => filters += Filters.regex("location.name", escapeRegex(loc), "i"))
 

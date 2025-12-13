@@ -10,6 +10,7 @@ import utils.Utils
 class DomainEventRoutes(eventService: EventService) extends Routes:
 
   private val mediaServiceUrl = "http://media:9020"
+  private val host            = sys.env.getOrElse("HOST", "localhost")
 
   @cask.postForm("/")
   def createEvent(poster: cask.FormFile = null, event: String): cask.Response[ujson.Value] =
@@ -33,7 +34,7 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
             case Right(id_event: String) =>
               val posterUrl = Utils.uploadPosterToMediaService(id_event, posterOpt, mediaServiceUrl)
               val updateCommand =
-                UpdateEventPosterCommand(id_event = id_event, posterUrl = mediaServiceUrl + "/" + posterUrl)
+                UpdateEventPosterCommand(id_event = id_event, posterUrl = s"media.$host/$posterUrl")
               eventService.handleCommand(updateCommand) match
                 case Right(_) =>
                   cask.Response(
