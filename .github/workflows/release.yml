@@ -247,5 +247,5 @@ jobs:
 
             # deploy
             ./scripts/composeApplication.sh pull
-            ./scripts/composeApplication.sh up -d --remove-orphans
+            ./scripts/composeApplication.sh up -d --remove-orphans --wait
             docker restart eventonight-traefik-1
