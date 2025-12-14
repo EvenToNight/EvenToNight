@@ -315,6 +315,39 @@ const buildEventData = (status: CreationEventStatus): PartialEventData => {
   }
 }
 
+const handleDelete = async () => {
+  $q.dialog({
+    title: t('eventCreationForm.deleteEvent'),
+    message: t('eventCreationForm.deleteEventConfirm'),
+    cancel: {
+      flat: true,
+      textColor: 'black',
+      label: t('eventCreationForm.cancel'),
+    },
+    ok: {
+      color: 'negative',
+      textColor: 'black',
+      label: t('eventCreationForm.deleteEvent'),
+    },
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      await api.events.deleteEvent(eventId.value)
+      $q.notify({
+        color: 'positive',
+        message: t('eventCreationForm.successForEventDeletion'),
+      })
+      goToUserProfile(currentUserId!)
+    } catch (error) {
+      console.error('Failed to delete event:', error)
+      $q.notify({
+        color: 'negative',
+        message: t('eventCreationForm.errorForEventDeletion'),
+      })
+    }
+  })
+}
+
 const onSubmit = async () => {
   const isValid = validateInput()
   if (!isValid) {
@@ -526,7 +559,17 @@ const onSubmit = async () => {
             </div>
           </div>
           <div class="form-actions">
-            <Button variant="tertiary" :label="t('eventCreationForm.cancel')" @click="goToHome" />
+            <div class="action-buttons">
+              <Button variant="tertiary" :label="t('eventCreationForm.cancel')" @click="goToHome" />
+              <Button
+                v-if="isEditMode"
+                :label="t('eventCreationForm.deleteEvent')"
+                color="negative"
+                variant="tertiary"
+                flat
+                @click="handleDelete"
+              />
+            </div>
             <div class="action-buttons">
               <Button
                 :label="t('eventCreationForm.saveDraft')"

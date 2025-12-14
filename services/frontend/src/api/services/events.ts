@@ -48,6 +48,9 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     formData.append('poster', poster)
     await eventsClient.post(`/${eventId}/poster`, formData)
   },
+  async deleteEvent(eventId: EventID): Promise<void> {
+    await eventsClient.delete(`/${eventId}`)
+  },
   async searchByName(id_organization: string): Promise<EventsDataResponse> {
     return eventsClient.get<EventsDataResponse>(
       `/search${buildQueryParams({ id_organization, limit: 10 })}`

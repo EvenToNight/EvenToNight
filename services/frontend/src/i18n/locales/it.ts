@@ -125,7 +125,7 @@ export default {
     eventPoster: "Locandina dell'evento",
     posterError: 'Il manifesto è obbligatorio',
     uploadPoster: 'Carica poster',
-    cancel: 'Cancellare',
+    cancel: 'Annulla',
     saveDraft: 'Salva bozza',
     publishEvent: 'Pubblica evento',
     updateEvent: 'Aggiorna evento',

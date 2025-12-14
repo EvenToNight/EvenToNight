@@ -40,6 +40,9 @@ export const mockEventsApi: EventAPI = {
   async updateEventPoster(_id_event: EventID, _poster: File): Promise<void> {
     return
   },
+  async deleteEvent(_id_event: EventID): Promise<void> {
+    return
+  },
   async searchByName(query: string): Promise<EventsDataResponse> {
     if (!query || query.trim().length === 0) {
       return { events: [] }
