@@ -2,25 +2,25 @@ import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { EventID } from '../types/events'
 import type { FeedAPI } from '../interfaces/feed'
 import type { UserID } from '../types/users'
-import { getPagintedItems } from '../utils'
+import { getPaginatedItems } from '../utils'
 import { mockFeed } from './data/feed'
 
 export const mockFeedApi: FeedAPI = {
   async getUpcomingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
-    return getPagintedItems(mockFeed, pagination)
+    return getPaginatedItems(mockFeed, pagination)
   },
   async getTrendingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
-    return getPagintedItems(mockFeed, pagination)
+    return getPaginatedItems(mockFeed, pagination)
   },
   async getFeed(
     _userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<EventID>> {
     //TODO token for auth userId
-    return getPagintedItems(mockFeed, pagination)
+    return getPaginatedItems(mockFeed, pagination)
   },
   async getNewestEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
-    return getPagintedItems(mockFeed, pagination)
+    return getPaginatedItems(mockFeed, pagination)
   },
   async getNearbyEvents(
     lat: number,
@@ -36,13 +36,13 @@ export const mockFeedApi: FeedAPI = {
         status: 403,
       }
     }
-    return getPagintedItems(mockFeed, pagination)
+    return getPaginatedItems(mockFeed, pagination)
   },
   async getFriendsEvents(
     _userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<EventID>> {
     //TODO token for auth userId
-    return getPagintedItems(mockFeed, pagination)
+    return getPaginatedItems(mockFeed, pagination)
   },
 }

@@ -13,7 +13,7 @@ export const evaluatePagination = (
   return { limit, offset }
 }
 
-export const getPagintedItems = <T>(
+export const getPaginatedItems = <T>(
   collection: T[],
   pagination?: PaginatedRequest
 ): PaginatedResponse<T> => {

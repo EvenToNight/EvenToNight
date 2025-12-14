@@ -4,20 +4,24 @@ import type {
   GetEventByIdResponse,
   PublishEventResponse,
   EventsDataResponse,
+  EventPaginatedResponse,
 } from '../interfaces/events'
 import type { GetTagResponse } from '../interfaces/events'
 import type { EventID, PartialEventData } from '../types/events'
-import { buildQueryParams } from '../utils'
+import { buildQueryParams, evaluatePagination } from '../utils'
+import type { PaginatedRequest } from '../interfaces/commons'
 
 export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async getTags(): Promise<GetTagResponse> {
     return eventsClient.get<GetTagResponse>('/tags')
   },
-  async getEventById(id: EventID): Promise<GetEventByIdResponse> {
-    return eventsClient.get<GetEventByIdResponse>(`/${id}`)
+  async getEventById(id_event: EventID): Promise<GetEventByIdResponse> {
+    return eventsClient.get<GetEventByIdResponse>(`/${id_event}`)
   },
-  async getEventsByIds(ids: EventID[]): Promise<EventsDataResponse> {
-    const eventsResponses = await Promise.all(ids.map((id) => this.getEventById(id)))
+  async getEventsByIds(id_events: EventID[]): Promise<EventsDataResponse> {
+    const eventsResponses = await Promise.all(
+      id_events.map((id_event) => this.getEventById(id_event))
+    )
     return { events: eventsResponses }
   },
   async publishEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
@@ -34,34 +38,38 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     formData.append('event', JSON.stringify(backendEventData))
     return eventsClient.post<{ id_event: string }>('/', formData)
   },
-  async updateEventData(eventId: EventID, eventData: PartialEventData): Promise<void> {
+  async updateEventData(id_event: EventID, eventData: PartialEventData): Promise<void> {
     const { poster, date, ...rest } = eventData
     const backendEventData = {
       ...rest,
       date: date?.toISOString().replace(/\.\d{3}Z$/, ''),
     }
     console.log('updateEventData backendEventData', backendEventData)
-    await eventsClient.put(`/${eventId}`, backendEventData)
+    await eventsClient.put(`/${id_event}`, backendEventData)
   },
-  async updateEventPoster(eventId: EventID, poster: File): Promise<void> {
+  async updateEventPoster(id_event: EventID, poster: File): Promise<void> {
     const formData = new FormData()
     formData.append('poster', poster)
-    await eventsClient.post(`/${eventId}/poster`, formData)
+    await eventsClient.post(`/${id_event}/poster`, formData)
   },
-  async deleteEvent(eventId: EventID): Promise<void> {
-    await eventsClient.delete(`/${eventId}`)
+  async deleteEvent(id_event: EventID): Promise<void> {
+    await eventsClient.delete(`/${id_event}`)
   },
-  async searchByName(id_organization: string): Promise<EventsDataResponse> {
-    return eventsClient.get<EventsDataResponse>(
-      `/search${buildQueryParams({ id_organization, limit: 10 })}`
+  async searchByName(
+    id_organization: string,
+    pagination?: PaginatedRequest
+  ): Promise<EventPaginatedResponse> {
+    return eventsClient.get<EventPaginatedResponse>(
+      `/search${buildQueryParams({ id_organization, ...evaluatePagination(pagination) })}`
     )
   },
   async getEventsByUserIdAndStatus(
     id_organization: string,
-    status: string
-  ): Promise<EventsDataResponse> {
-    return eventsClient.get<EventsDataResponse>(
-      `/search${buildQueryParams({ id_organization, status, limit: 10 })}`
+    status: string,
+    pagination?: PaginatedRequest
+  ): Promise<EventPaginatedResponse> {
+    return eventsClient.get<EventPaginatedResponse>(
+      `/search${buildQueryParams({ id_organization, status, ...evaluatePagination(pagination) })}`
     )
   },
 })

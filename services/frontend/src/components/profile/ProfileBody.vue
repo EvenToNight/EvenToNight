@@ -6,7 +6,7 @@ import type { User } from '@/api/types/users'
 import { useAuthStore } from '@/stores/auth'
 import { computed, onMounted, ref } from 'vue'
 import { api } from '@/api'
-import type { Event } from '@/api/types/events'
+import type { Event, EventStatus } from '@/api/types/events'
 import { useI18n } from 'vue-i18n'
 
 interface Props {
@@ -28,20 +28,47 @@ const organizationEvents = ref<Event[]>([])
 const organizationDraftedEvents = ref<Event[]>([])
 const memberAttendedEvents = ref<Event[]>([])
 
+const hasMorePublished = ref(true)
+const hasMoreDraft = ref(true)
+
+const EVENTS_PER_PAGE = 5
+
 onMounted(async () => {
   try {
     const [publishedResponse, draftResponse] = await Promise.all([
-      api.events.getEventsByUserIdAndStatus(props.user.id, 'PUBLISHED'),
-      api.events.getEventsByUserIdAndStatus(props.user.id, 'DRAFT'),
+      api.events.getEventsByUserIdAndStatus(props.user.id, 'PUBLISHED', { limit: EVENTS_PER_PAGE }),
+      api.events.getEventsByUserIdAndStatus(props.user.id, 'DRAFT', { limit: EVENTS_PER_PAGE }),
     ])
     organizationEvents.value = publishedResponse.events
     organizationDraftedEvents.value = draftResponse.events
-    //TODO fetch attended events for members
-    memberAttendedEvents.value = []
+    hasMorePublished.value = publishedResponse.hasMore
+    hasMoreDraft.value = draftResponse.hasMore
   } catch (error) {
     console.error('Failed to fetch events for user:', error)
   }
 })
+
+const createLoadMoreFunction = (
+  eventsRef: typeof organizationEvents,
+  hasMoreRef: typeof hasMorePublished,
+  status: EventStatus
+) => {
+  return async () => {
+    try {
+      const response = await api.events.getEventsByUserIdAndStatus(props.user.id, status, {
+        limit: EVENTS_PER_PAGE,
+        offset: eventsRef.value.length,
+      })
+      eventsRef.value.push(...response.events)
+      hasMoreRef.value = response.hasMore
+    } catch (error) {
+      console.error(`Failed to load more ${status.toLowerCase()} events:`, error)
+    }
+  }
+}
+
+const loadMorePublished = createLoadMoreFunction(organizationEvents, hasMorePublished, 'PUBLISHED')
+const loadMoreDraft = createLoadMoreFunction(organizationDraftedEvents, hasMoreDraft, 'DRAFT')
 
 const tabs = computed<Tab[]>(() => {
   const baseTabs: Tab[] = []
@@ -62,6 +89,8 @@ const tabs = computed<Tab[]>(() => {
     component: EventsTab,
     props: {
       events: isOrganization.value ? organizationEvents.value : memberAttendedEvents.value,
+      hasMore: isOrganization.value ? hasMorePublished.value : false,
+      onLoadMore: isOrganization.value ? loadMorePublished : undefined,
       emptyText: isOwnProfile.value
         ? isOrganization.value
           ? t('userProfile.noEventCreated')
@@ -81,6 +110,8 @@ const tabs = computed<Tab[]>(() => {
       component: EventsTab,
       props: {
         events: organizationDraftedEvents.value,
+        hasMore: hasMoreDraft.value,
+        onLoadMore: loadMoreDraft,
         emptyText: t('userProfile.noDraftedEvents'),
         emptyIconName: 'edit_note',
       },

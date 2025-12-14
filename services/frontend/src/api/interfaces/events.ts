@@ -1,5 +1,6 @@
 import type { Tag, Event, EventID, PartialEventData, EventStatus } from '../types/events'
 import type { UserID } from '../types/users'
+import type { PaginatedRequest } from './commons'
 
 export interface TagCategory {
   category: string
@@ -27,12 +28,16 @@ export interface EventPaginatedResponse {
 
 export interface EventAPI {
   getTags(): Promise<GetTagResponse>
-  getEventById(id: EventID): Promise<GetEventByIdResponse>
-  getEventsByIds(ids: EventID[]): Promise<EventsDataResponse>
+  getEventById(id_event: EventID): Promise<GetEventByIdResponse>
+  getEventsByIds(id_events: EventID[]): Promise<EventsDataResponse>
   publishEvent(eventData: PartialEventData): Promise<PublishEventResponse>
-  updateEventData(eventId: EventID, eventData: PartialEventData): Promise<void>
-  updateEventPoster(eventId: EventID, poster: File): Promise<void>
-  deleteEvent(eventId: EventID): Promise<void>
-  searchByName(query: string): Promise<EventsDataResponse>
-  getEventsByUserIdAndStatus(userId: UserID, status: EventStatus): Promise<EventsDataResponse>
+  updateEventData(id_event: EventID, eventData: PartialEventData): Promise<void>
+  updateEventPoster(id_event: EventID, poster: File): Promise<void>
+  deleteEvent(id_event: EventID): Promise<void>
+  searchByName(title: string, pagination?: PaginatedRequest): Promise<EventPaginatedResponse>
+  getEventsByUserIdAndStatus(
+    id_organization: UserID,
+    status: EventStatus,
+    pagination?: PaginatedRequest
+  ): Promise<EventPaginatedResponse>
 }
