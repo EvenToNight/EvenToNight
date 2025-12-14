@@ -118,7 +118,7 @@ const loadEvent = async () => {
       value: event.location,
       description: event.location.road,
     }
-    poster.value = (await api.media.get(`/${event.poster}`)).file as File
+    poster.value = (await api.media.get(event.poster)).file as File
     console.log(poster.value)
     console.log('Loaded event for editing:', event)
   } catch (error) {

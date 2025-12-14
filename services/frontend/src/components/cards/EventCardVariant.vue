@@ -21,6 +21,7 @@ const isDraft = computed(() => props.event.status === 'DRAFT')
 const loadImage = async (url: string) => {
   try {
     const response = await api.media.get(url)
+    console.log('Loaded media for URL:', url)
     imageObjectUrl.value = URL.createObjectURL(response.file)
   } catch (error) {
     console.error('Failed to load image:', error)
@@ -29,8 +30,8 @@ const loadImage = async (url: string) => {
   }
 }
 
-onMounted(() => {
-  loadImage(props.event.poster)
+onMounted(async () => {
+  await loadImage(props.event.poster)
 })
 
 onUnmounted(() => {
@@ -54,7 +55,15 @@ const formatDate = (date: Date) => {
     @click="isDraft ? goToEditEvent(event.id_event) : goToEventDetails(event.id_event)"
   >
     <div class="event-image-container">
-      <img :src="event.poster" :alt="event.title" class="event-image" />
+      <img
+        v-if="!isLoadingImage && imageObjectUrl"
+        :src="imageObjectUrl"
+        :alt="event.title"
+        class="event-image"
+      />
+      <div v-else class="image-loading">
+        <q-spinner color="primary" size="40px" />
+      </div>
       <div v-if="isDraft" class="draft-badge">
         <q-icon name="edit_note" size="16px" />
         {{ t('event.draft') }}
@@ -109,6 +118,17 @@ const formatDate = (date: Date) => {
 
   .event-card:hover & {
     transform: scale(1.05);
+  }
+}
+
+.image-loading {
+  @include flex-center;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.05);
+
+  @include dark-mode {
+    background: rgba(255, 255, 255, 0.05);
   }
 }
 
