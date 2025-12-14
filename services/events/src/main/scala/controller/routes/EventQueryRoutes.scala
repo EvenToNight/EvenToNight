@@ -111,7 +111,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
         val posterUrl = Utils.uploadPosterToMediaService(id_event, Some(poster), mediaServiceUrl)
         val updateCommand = UpdateEventPosterCommand(
           id_event = id_event,
-          posterUrl = s"media.$host/$posterUrl"
+          posterUrl = s"http://media.$host/$posterUrl"
         )
         eventService.handleCommand(updateCommand) match
           case Right(_) =>

@@ -117,7 +117,11 @@ onUnmounted(() => {
 
         <div class="container">
           <div class="content-section">
-            <CardSlider :title="t('home.sections.upcomingEvents')" @see-all="handleSeeAllEvents">
+            <CardSlider
+              v-if="upcomingEvents.length > 0"
+              :title="t('home.sections.upcomingEvents')"
+              @see-all="handleSeeAllEvents"
+            >
               <EventCard
                 v-for="event in upcomingEvents"
                 :id="event.id_event"

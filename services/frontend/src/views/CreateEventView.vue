@@ -14,6 +14,7 @@ import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import type { Tag } from '@/api/types/events'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useI18n } from 'vue-i18n'
+import { validateLocation } from '@/api/utils'
 
 const { t } = useI18n()
 const $q = useQuasar()
@@ -113,7 +114,8 @@ const loadEvent = async () => {
     tags.value = event.tags ?? []
     collaborators.value = event.id_collaborators ?? []
     console.log(event.location)
-    if (event.location) {
+    if (validateLocation(event.location)) {
+      console.log('Valid location:', event.location)
       location.value = {
         label: buildLocationDisplayName(event.location),
         value: event.location,
@@ -263,7 +265,7 @@ const validateInput = (): boolean => {
     isValid = false
   }
 
-  if (!location.value) {
+  if (!location.value?.value) {
     locationError.value = t('eventCreationForm.locationError')
     isValid = false
   }

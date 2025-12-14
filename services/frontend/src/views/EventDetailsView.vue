@@ -6,7 +6,6 @@ import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useNavigation } from '@/router/utils'
-import { ensureHttp } from '@/api/services/media'
 
 const { params, goToHome } = useNavigation()
 const eventId = computed(() => params.id as string)
@@ -31,7 +30,7 @@ onMounted(async () => {
 <template>
   <div v-if="event" class="event-details-view">
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
-    <EventDetailsHeader :posterLink="ensureHttp(event.poster)" :title="event.title" />
+    <EventDetailsHeader :posterLink="event.poster" :title="event.title" />
     <EventDetailsBody v-model:isAuthRequired="showAuthDialog" :event="event" />
   </div>
 </template>
