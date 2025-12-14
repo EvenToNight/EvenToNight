@@ -2,8 +2,8 @@ import type { UserID } from './users'
 import type { Location } from './common'
 
 export type Tag = string
-export type CreationEventStatus = 'DRAFT' | 'PUBLISHED' | 'CANCELLED'
-export type EventStatus = CreationEventStatus | 'COMPLETED'
+export type CreationEventStatus = 'DRAFT' | 'PUBLISHED'
+export type EventStatus = CreationEventStatus | 'COMPLETED' | 'CANCELLED'
 
 export type EventID = string
 
