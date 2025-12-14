@@ -462,7 +462,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
 
     val responseJson = Utils.createPaginatedResponse(events, Some(2), Some(0), hasMore = true)
 
-    responseJson("events").arr.length shouldBe 2
+    responseJson("items").arr.length shouldBe 2
     responseJson("limit").num shouldBe 2
     responseJson("offset").num shouldBe 0
     responseJson("hasMore").bool shouldBe true
@@ -470,7 +470,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
   it should "handle empty events list in paginated response" in:
     val events       = List.empty[Event]
     val responseJson = Utils.createPaginatedResponse(events, Some(10), Some(0), hasMore = false)
-    responseJson("events").arr.length shouldBe 0
+    responseJson("items").arr.length shouldBe 0
     responseJson("limit").num shouldBe 10
     responseJson("offset").num shouldBe 0
     responseJson("hasMore").bool shouldBe false

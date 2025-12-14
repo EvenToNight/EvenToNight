@@ -164,7 +164,7 @@ object Utils:
       hasMore: Boolean
   ): ujson.Obj =
     ujson.Obj(
-      "events"  -> ujson.Arr(events.map(_.toJson)*),
+      "items"   -> ujson.Arr(events.map(_.toJson)*),
       "limit"   -> limit.getOrElse(DEFAULT_LIMIT),
       "offset"  -> offset.getOrElse(0),
       "hasMore" -> hasMore
