@@ -163,6 +163,38 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     val deleteResult = service.execCommand(deleteCmd)
     deleteResult.isRight shouldBe true
 
+  it should "change status when deleting a published event" in:
+    val createCmd    = validCreateEventCommand(status = EventStatus.PUBLISHED)
+    val createResult = service.execCommand(createCmd)
+    createResult.isRight shouldBe true
+    val id_event = createResult.fold(
+      _ => fail("Failed to create event"),
+      identity
+    )
+    val deleteCmd    = DeleteEventCommand(id_event)
+    val deleteResult = service.execCommand(deleteCmd)
+    deleteResult.isRight shouldBe true
+    val fetchedEvent = repo.findById(id_event)
+    fetchedEvent match
+      case Some(event) => event.status shouldBe EventStatus.CANCELLED
+      case None        => fail("Event should exist after deletion")
+
+  it should "delete draft or cancelled events from the database" in:
+    val createCmd    = validCreateEventCommand(status = EventStatus.DRAFT)
+    val createResult = service.execCommand(createCmd)
+    createResult.isRight shouldBe true
+    val id_event = createResult.fold(
+      _ => fail("Failed to create event"),
+      identity
+    )
+    val deleteCmd    = DeleteEventCommand(id_event)
+    val deleteResult = service.execCommand(deleteCmd)
+    deleteResult.isRight shouldBe true
+    val fetchedEvent = repo.findById(id_event)
+    fetchedEvent match
+      case Some(_) => fail("Event should be deleted from the database")
+      case None    => succeed
+
   it should "fail when deleting a non-existent event" in:
     val deleteCmd    = DeleteEventCommand("non-existent-event-id")
     val deleteResult = service.execCommand(deleteCmd)

@@ -87,16 +87,31 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
     repo.findById(cmd.id_event) match
       case None =>
         Left(s"Event with id ${cmd.id_event} not found")
-      case Some(_) =>
-        repo.delete(cmd.id_event) match
-          case Left(_) =>
-            Left(s"Failed to delete event with id ${cmd.id_event}")
-          case Right(_) =>
-            publisher.publish(
-              EventDeleted(
-                id = UUID.randomUUID().toString(),
-                timestamp = Instant.now(),
-                id_event = cmd.id_event
-              )
-            )
-            Right(())
+      case Some(event) =>
+        event.status match
+          case EventStatus.PUBLISHED =>
+            repo.update(event.copy(status = EventStatus.CANCELLED)) match
+              case Left(_) =>
+                Left(s"Failed to cancel event with id ${cmd.id_event}")
+              case Right(_) =>
+                publisher.publish(
+                  EventDeleted(
+                    id = UUID.randomUUID().toString(),
+                    timestamp = Instant.now(),
+                    id_event = cmd.id_event
+                  )
+                )
+                Right(())
+          case _ =>
+            repo.delete(cmd.id_event) match
+              case Left(_) =>
+                Left(s"Failed to delete event with id ${cmd.id_event}")
+              case Right(_) =>
+                publisher.publish(
+                  EventDeleted(
+                    id = UUID.randomUUID().toString(),
+                    timestamp = Instant.now(),
+                    id_event = cmd.id_event
+                  )
+                )
+                Right(())

@@ -830,7 +830,9 @@ paths:
         - Event Command API
     delete:
       summary: Delete an event by ID
-      description: Deletes the specified event from the system.
+      description: |
+        Deletes the specified event. If the event status is "DRAFT", it will be removed permanently. 
+        For other statuses, the event will be marked as "CANCELLED".
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
