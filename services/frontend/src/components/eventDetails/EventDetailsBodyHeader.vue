@@ -199,5 +199,6 @@ onMounted(async () => {
   font-weight: $font-weight-semibold;
   background: $color-primary;
   cursor: default;
+  color: $color-text-white;
 }
 </style>
