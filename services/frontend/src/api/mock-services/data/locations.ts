@@ -1,5 +1,5 @@
 import type { Location } from '@/api/types/common'
-import { extractLocationMapsLink } from '@/api/types/common'
+import { extractLocationMapsLink } from '@/api/utils'
 
 const event1Location: Location = {
   name: 'Cocoricò',

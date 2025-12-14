@@ -6,7 +6,7 @@ import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
 import { api } from '@/api'
 import type { EventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
-import { parseLocation } from '@/api/types/common'
+import { parseLocation, buildLocationDisplayName } from '@/api/utils'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import FormField from '@/components/forms/FormField.vue'
@@ -114,9 +114,9 @@ const loadEvent = async () => {
 
     // Set location (need to wrap it for the selector)
     location.value = {
-      label: `${event.location.name || ''} ${event.location.city}`.trim(),
+      label: buildLocationDisplayName(event.location),
       value: event.location,
-      description: event.location.road,
+      description: '',
     }
     poster.value = (await api.media.get(event.poster)).file as File
     console.log(poster.value)
