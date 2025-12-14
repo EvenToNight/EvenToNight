@@ -8,6 +8,7 @@ services:
       - PORT=${EVENTS_SERVICE_PORT}
       - RABBITMQ_HOST=rabbitmq
       - MONGO_HOST=mongo-events
+      - HOST=${HOST}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.events.rule=Host(`events.${HOST}`)"

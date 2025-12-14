@@ -31,7 +31,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   private def createCommand(
       title: String = "Test Event",
-      id_collaborator: Option[String] = Some("collaborator-456")
+      id_collaborators: Option[List[String]] = Some(List("collaborator-456"))
   ): CreateEventCommand =
     CreateEventCommand(
       title,
@@ -43,7 +43,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       15.0,
       EventStatus.DRAFT,
       "creator-123",
-      id_collaborator
+      id_collaborators
     )
 
   private def getCommand(id_event: String): GetEventCommand =
@@ -55,6 +55,20 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   ): UpdateEventPosterCommand =
     UpdateEventPosterCommand(id_event, posterUrl)
 
+  private def getFilteredEventsCommand(): GetFilteredEventsCommand =
+    GetFilteredEventsCommand(
+      limit = Some(5),
+      offset = Some(0),
+      status = Some(EventStatus.PUBLISHED),
+      title = Some("Sample"),
+      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      startDate = Some(baseDate),
+      endDate = Some(baseDate.plusDays(10)),
+      id_organization = Some("org-456"),
+      city = Some("Sample City"),
+      location_name = Some("Sample Venue")
+    )
+
   "CreateEventDraftCommand" should "implement Commands trait" in:
     val command = createCommand()
     command shouldBe a[Commands]
@@ -63,20 +77,21 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   it should "store properties correctly" in:
     val command = createCommand("Custom Title", None)
     command.title shouldBe "Custom Title"
-    command.id_collaborator shouldBe None
-    command.tag shouldBe sampleTags
+    command.id_collaborators shouldBe None
+    command.tags shouldBe sampleTags
     command.location shouldBe sampleLocation
     command.date shouldBe baseDate
 
   it should "support pattern matching" in:
     val command: Commands = createCommand("Pattern Test")
     val result = command match
-      case CreateEventCommand(title, _, _, _, _, _, _, _, _, _) => s"Command: $title"
-      case GetEventCommand(id_event)                            => s"Get Command: $id_event"
-      case UpdateEventPosterCommand(id_event, posterUrl)        => s"Update Poster Command: $id_event"
-      case GetAllEventsCommand()                                => "Get All Events Command"
-      case UpdateEventCommand(id, _, _, _, _, _, _, _, _)       => s"Update $id Event Command"
-      case DeleteEventCommand(id_event)                         => s"Delete Command: $id_event"
+      case CreateEventCommand(title, _, _, _, _, _, _, _, _, _)   => s"Command: $title"
+      case GetEventCommand(id_event)                              => s"Get Command: $id_event"
+      case UpdateEventPosterCommand(id_event, posterUrl)          => s"Update Poster Command: $id_event"
+      case GetAllEventsCommand()                                  => "Get All Events Command"
+      case UpdateEventCommand(id, _, _, _, _, _, _, _, _)         => s"Update $id Event Command"
+      case DeleteEventCommand(id_event)                           => s"Delete Command: $id_event"
+      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:
@@ -108,12 +123,12 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_event = "event-321",
       title = Some("Updated Title"),
       description = None,
-      tag = None,
+      tags = None,
       location = None,
       date = None,
       price = Some(20.0),
       status = Some(EventStatus.PUBLISHED),
-      id_collaborator = Some("collaborator-789")
+      id_collaborators = Some(List("collaborator-789"))
     )
     command shouldBe a[Commands]
     command shouldBe a[UpdateEventCommand]
@@ -123,22 +138,22 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_event = "event-654",
       title = Some("New Title"),
       description = Some("New Description"),
-      tag = Some(List(EventTag.TypeOfEvent.Concert)),
+      tags = Some(List(EventTag.TypeOfEvent.Concert)),
       location = Some(sampleLocation),
       date = Some(baseDate.plusDays(5)),
       price = Some(30.0),
       status = Some(EventStatus.CANCELLED),
-      id_collaborator = None
+      id_collaborators = None
     )
     command.id_event shouldBe "event-654"
     command.title shouldBe Some("New Title")
     command.description shouldBe Some("New Description")
-    command.tag shouldBe Some(List(EventTag.TypeOfEvent.Concert))
+    command.tags shouldBe Some(List(EventTag.TypeOfEvent.Concert))
     command.location shouldBe Some(sampleLocation)
     command.date shouldBe Some(baseDate.plusDays(5))
     command.price shouldBe Some(30.0)
     command.status shouldBe Some(EventStatus.CANCELLED)
-    command.id_collaborator shouldBe None
+    command.id_collaborators shouldBe None
 
   "DeleteEventCommand" should "implement Commands trait" in:
     val command = DeleteEventCommand("event-to-delete")
@@ -148,3 +163,21 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   it should "store properties correctly" in:
     val command = DeleteEventCommand("event-999")
     command.id_event shouldBe "event-999"
+
+  "GetFilteredEventsCommand" should "implement Commands trait" in:
+    val command = getFilteredEventsCommand()
+    command shouldBe a[Commands]
+    command shouldBe a[GetFilteredEventsCommand]
+
+  it should "store properties correctly" in:
+    val command = getFilteredEventsCommand()
+    command.limit shouldBe Some(5)
+    command.offset shouldBe Some(0)
+    command.status shouldBe Some(EventStatus.PUBLISHED)
+    command.title shouldBe Some("Sample")
+    command.tags shouldBe Some(List(EventTag.TypeOfEvent.Concert))
+    command.startDate shouldBe Some(baseDate)
+    command.endDate shouldBe Some(baseDate.plusDays(10))
+    command.id_organization shouldBe Some("org-456")
+    command.city shouldBe Some("Sample City")
+    command.location_name shouldBe Some("Sample Venue")

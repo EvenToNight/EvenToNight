@@ -84,3 +84,57 @@ class ValidationRulesTest extends AnyFlatSpec with Matchers with BeforeAndAfterE
     val invalidLocation = createLocation(postcode = "")
     val result          = ValidationRules.correctLocality(invalidLocation, "Event Location")
     result shouldBe Left("Event Location has invalid parameters")
+
+  "PositiveInt rule" should "validate positive integers successfully" in:
+    val result = ValidationRules.positiveInt(Some(5), "Attendees")
+    result shouldBe Right(())
+
+  it should "reject zero as non-positive" in:
+    val result = ValidationRules.positiveInt(Some(0), "Attendees")
+    result shouldBe Left("Attendees must be positive")
+
+  it should "reject negative integers" in:
+    val result = ValidationRules.positiveInt(Some(-3), "Attendees")
+    result shouldBe Left("Attendees must be positive")
+
+  it should "accept None as valid" in:
+    val result = ValidationRules.positiveInt(None, "Attendees")
+    result shouldBe Right(())
+
+  "NonNegativeInt rule" should "validate non-negative integers successfully" in:
+    val result = ValidationRules.nonNegativeInt(Some(0), "Seats")
+    result shouldBe Right(())
+
+  it should "reject negative integers" in:
+    val result = ValidationRules.nonNegativeInt(Some(-1), "Seats")
+    result shouldBe Left("Seats cannot be negative")
+
+  it should "accept None as valid" in:
+    val result = ValidationRules.nonNegativeInt(None, "Seats")
+    result shouldBe Right(())
+
+  "DateRange rule" should "validate correct date ranges successfully" in:
+    val startDate = Some(LocalDateTime.now().minusDays(1))
+    val endDate   = Some(LocalDateTime.now().plusDays(1))
+    val result    = ValidationRules.dateRange(startDate, endDate, "Event Dates")
+    result shouldBe Right(())
+
+  it should "reject start date after end date" in:
+    val startDate = Some(LocalDateTime.now().plusDays(2))
+    val endDate   = Some(LocalDateTime.now().plusDays(1))
+    val result    = ValidationRules.dateRange(startDate, endDate, "Event Dates")
+    result shouldBe Left("Event Dates: start date must be before end date")
+
+  it should "accept when start date is None" in:
+    val endDate = Some(LocalDateTime.now().plusDays(1))
+    val result  = ValidationRules.dateRange(None, endDate, "Event Dates")
+    result shouldBe Right(())
+
+  it should "accept when end date is None" in:
+    val startDate = Some(LocalDateTime.now().minusDays(1))
+    val result    = ValidationRules.dateRange(startDate, None, "Event Dates")
+    result shouldBe Right(())
+
+  it should "accept when both dates are None" in:
+    val result = ValidationRules.dateRange(None, None, "Event Dates")
+    result shouldBe Right(())

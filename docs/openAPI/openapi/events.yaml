@@ -6,7 +6,11 @@ paths:
   /:
     post:
       summary: Create a new event
-      description: Creates a new event with the provided information. Event data is sent as JSON in the 'event' field, and the poster as a file.
+      description: >
+        Creates a new event with the provided information.  
+        The payload must be multipart/form-data, containing a JSON string in the `event` field  
+        and optionally a `poster` file if the event is in DRAFT status.  
+        If the event status is not DRAFT, both the event data and the poster file are required.
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
@@ -23,6 +27,7 @@ paths:
                 event:
                   type: string
                   description: |
+                    If the event status is DRAFT, all the field can be empty ("" for string, default values for others).
                     JSON string containing event data with the following structure:
                     
                     **Required fields:**
@@ -48,12 +53,15 @@ paths:
                     - `id_creator` (string): ID of the event creator
                     
                     **Optional fields:**
-                    - `id_collaborator` (string): ID of a collaborator
-                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","id_creator":"user-123","id_collaborator":"user-456"}'
+                    - `id_collaborators` (List of strings): IDs of collaborators
+                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","id_creator":"user-123","id_collaborators":["user-456"]}'
                 poster:
                   type: string
                   format: binary
-                  description: Event poster image file (required)
+                  description: |
+                    Event poster image file
+                    If the event status is DRAFT, the poster is optional.
+
       responses:
         '201':
           description: Event created successfully
@@ -104,90 +112,113 @@ paths:
           description: Events service (production)
       responses:
         '200':
-          description: A JSON array of events (can be empty if no events exist)
+          description: Successfully retrieved all events
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id_event:
-                      type: string
-                      description: Event ID
-                    title:
-                      type: string
-                      description: Event title
-                    description:
-                      type: string
-                      description: Event description
-                    poster:
-                      type: string
-                      description: Event poster URL
-                    tag:
-                      type: array
-                      items:
-                        type: string
-                      description: List of event tags
-                    location:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
                       type: object
-                      description: Event location object
                       properties:
-                        name:
+                        id_event:
                           type: string
-                          description: Location or venue name. May be empty string ("") if unknown.
-                        country:
+                          description: Event ID
+                        title:
                           type: string
-                        country_code:
+                          description: Event title
+                        description:
                           type: string
-                        state:
+                          description: Event description
+                        poster:
                           type: string
-                          description: May be empty string ("") if not provided.
-                        province:
+                          description: Event poster URL
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          description: List of event tags
+                        location:
+                          type: object
+                          description: Event location object
+                          properties:
+                            name:
+                              type: string
+                              description: Location or venue name. May be empty string ("") if unknown.
+                            country:
+                              type: string
+                            country_code:
+                              type: string
+                            state:
+                              type: string
+                              description: May be empty string ("") if not provided.
+                            province:
+                              type: string
+                              description: May be empty string ("") if not provided.
+                            city:
+                              type: string
+                              description: May be empty string ("") if not provided.
+                            road:
+                              type: string
+                            postcode:
+                              type: string
+                            house_number:
+                              type: string
+                              description: May be empty string ("") if not provided.
+                            lat:
+                              type: number
+                              description: Latitude in decimal degrees
+                            lon:
+                              type: number
+                              description: Longitude in decimal degrees
+                            link:
+                              type: string
+                              description: Optional URL or reference; may be empty string ("") if not provided.
+                        date:
                           type: string
-                          description: May be empty string ("") if not provided.
-                        city:
-                          type: string
-                          description: May be empty string ("") if not provided.
-                        road:
-                          type: string
-                        postcode:
-                          type: string
-                        house_number:
-                          type: string
-                          description: May be empty string ("") if not provided.
-                        lat:
+                          format: date-time
+                          description: Event date and time
+                        price:
                           type: number
-                          description: Latitude in decimal degrees
-                        lon:
-                          type: number
-                          description: Longitude in decimal degrees
-                        link:
+                          format: double
+                          description: Event ticket price  
+                        status:
                           type: string
-                          description: Optional URL or reference; may be empty string ("") if not provided.
-                    date:
-                      type: string
-                      format: date-time
-                      description: Event date and time
-                    price:
-                      type: number
-                      format: double
-                      description: Event ticket price  
-                    status:
-                      type: string
-                      enum: [PUBLISHED]
-                      description: Event status
-                    instant:
-                      type: string
-                      format: date-time
-                      description: Event creation timestamp
-                    id_creator:
-                      type: string
-                      description: ID of the event creator
-                    id_collaborator:
-                      type: string
-                      description: ID of the collaborator (if any)
-                      nullable: true
+                          enum: [PUBLISHED]
+                          description: Event status
+                        instant:
+                          type: string
+                          format: date-time
+                          description: Event creation timestamp
+                        id_creator:
+                          type: string
+                          description: ID of the event creator
+                        id_collaborators:
+                          type: array
+                          items:
+                            type: string
+                          description: IDs of the collaborators (if any)
+                          nullable: true
+              example:
+                events:
+                  - _id: "evt123"
+                    title: "Summer Concert"
+                    description: "Amazing outdoor concert"
+                    status: "PUBLISHED"
+                    date: "2025-07-15T20:00:00"
+                    location:
+                      name: "Arena"
+                      city: "Bologna"
+                      address: "Via Arena 1"
+                    tags: ["MUSIC"]
+                    posterUrl: "http://media:9020/posters/evt123.jpg"
+                    id_creator: "user456"
+                    id_collaborators: ["org789"]
+                limit: null
+                offset: 0
+                hasMore: false        
         '404':
           description: Could not retrieve events
           content:
@@ -199,6 +230,234 @@ paths:
                     type: string
                     description: Error message
                     example: "Could not retrieve events: Database connection failed"    
+      tags:
+        - Event Query API
+
+  /search:
+    get:
+      summary: Search and filter events
+      description: Search events with various filters and pagination support
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of events to return (max 20, default 10)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+          example: 10
+        - name: offset
+          in: query
+          description: Number of events to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+        - name: status
+          in: query
+          description: Filter by event status
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, PUBLISHED, CANCELLED, COMPLETED]
+          example: PUBLISHED
+        - name: title
+          in: query
+          description: Filter by event title (case-insensitive partial match)
+          required: false
+          schema:
+            type: string
+          example: concert
+        - name: tags
+          in: query
+          description: Filter by tags (can be repeated for multiple tags)
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          examples:
+            single:
+              summary: Single tag
+              value: MUSIC
+            multiple:
+              summary: Multiple tags
+              value: [MUSIC, SPORT]
+        - name: startDate
+          in: query
+          description: Filter events starting from this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2025-01-01T00:00:00"
+        - name: endDate
+          in: query
+          description: Filter events up to this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date-time
+          example: "2025-12-31T23:59:59"
+        - name: id_organization
+          in: query
+          description: Filter by organization ID
+          required: false
+          schema:
+            type: string
+          example: org789
+        - name: city
+          in: query
+          description: Filter by city name (case-insensitive partial match)
+          required: false
+          schema:
+            type: string
+          example: Bologna
+        - name: location_name
+          in: query
+          description: Filter by location name (case-insensitive partial match)
+          required: false
+          schema:
+            type: string
+          example: Arena
+      responses:
+        '200':
+          description: Successfully retrieved filtered events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          description: Event ID
+                        title:
+                          type: string
+                          description: Event title
+                        description:
+                          type: string
+                          description: Event description
+                        status:
+                          type: string
+                          enum: [DRAFT, PUBLISHED, CANCELLED, COMPLETED]
+                          description: Event status
+                        date:
+                          type: string
+                          format: date-time
+                          description: Event date and time
+                        location:
+                          type: object
+                          description: Event location object
+                          properties:
+                            name:
+                              type: string
+                            city:
+                              type: string
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          description: List of event tags
+                        posterUrl:
+                          type: string
+                          description: Event poster URL
+                        id_creator:
+                          type: string
+                          description: ID of the event creator
+                        id_collaborators:
+                          type: array
+                          items:
+                            type: string
+                          description: IDs of the collaborators (if any)
+                          nullable: true
+                  limit:
+                    type: integer
+                    description: Applied limit for this query
+                    nullable: true
+                  offset:
+                    type: integer
+                    description: Applied offset for this query
+                  hasMore:
+                    type: boolean
+                    description: Indicates if more events are available beyond the current result set
+              examples:
+                with_results:
+                  summary: Successful search with results
+                  value:
+                    events:
+                      - _id: "evt123"
+                        title: "Summer Concert"
+                        status: "PUBLISHED"
+                        date: "2025-07-15T20:00:00"
+                        location:
+                          name: "Arena"
+                          city: "Bologna"
+                        tags: ["MUSIC"]
+                    limit: 10
+                    offset: 0
+                    hasMore: true
+                no_results:
+                  summary: No events found
+                  value:
+                    events: []
+                    limit: 10
+                    offset: 0
+                    hasMore: false
+                paginated:
+                  summary: Second page of results
+                  value:
+                    events:
+                      - _id: "evt456"
+                        title: "Art Exhibition"
+                        status: "PUBLISHED"
+                    limit: 10
+                    offset: 10
+                    hasMore: false
+        '400':
+          description: Invalid request parameters or validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                validation_error:
+                  summary: Validation error
+                  value:
+                    error: "Could not retrieve events: Limit must be positive"
+                invalid_status:
+                  summary: Invalid status value
+                  value:
+                    error: "Could not retrieve events: Invalid status value"
+        '404':
+          description: Error retrieving events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Error"
       tags:
         - Event Query API
   
@@ -304,7 +563,7 @@ paths:
                   poster:
                     type: string
                     description: Event poster filename
-                  tag:
+                  tags:
                     type: array
                     items:
                       type: string
@@ -356,16 +615,18 @@ paths:
                   id_creator:
                     type: string
                     description: ID of the event creator
-                  id_collaborator:
-                    type: string
-                    description: ID of the collaborator (if any)
+                  id_collaborators:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs of the collaborators (if any)
                     nullable: true
               example:
                 id_event: "event-uuid-123"
                 title: "Summer Music Festival"
                 description: "An amazing summer music festival"
                 poster: "poster-123.jpg"
-                tag: ["Concert", "Festival", "Live Music"]
+                tags: ["Concert", "Festival", "Live Music"]
                 location:
                   name: "Central Park"
                   country: "United States"
@@ -383,7 +644,7 @@ paths:
                 status: "DRAFT"
                 instant: "2026-11-22T10:00:00Z"
                 id_creator: "user-123"
-                id_collaborator: ""
+                id_collaborators: []
         '404':
           description: Event not found
           content:
@@ -443,7 +704,7 @@ paths:
                 - `date` (string, ISO 8601 format): Event date and time
                 - `price` (number): Event ticket price
                 - `status` (string): Event status ("DRAFT", "PUBLISHED", or "CANCELLED")
-                - `id_collaborator` (string): ID of a collaborator
+                - `id_collaborators` (array of strings): IDs of collaborators
               properties:
                 title:
                   type: string
@@ -498,10 +759,12 @@ paths:
                   enum: [DRAFT, PUBLISHED, CANCELLED]
                   description: Event status (optional)
                   example: "PUBLISHED"
-                id_collaborator:
-                  type: string
-                  description: ID of a collaborator (optional)
-                  example: "user-789"
+                id_collaborators:
+                  type: array
+                  items:
+                    type: string
+                  description: IDs of collaborators (optional)
+                  example: ["user-789"]
             examples:
               updateTitle:
                 summary: Update only title

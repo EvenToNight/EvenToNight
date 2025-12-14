@@ -5,6 +5,7 @@ import domain.commands.{
   DeleteEventCommand,
   GetAllEventsCommand,
   GetEventCommand,
+  GetFilteredEventsCommand,
   UpdateEventCommand,
   UpdateEventPosterCommand
 }
@@ -34,7 +35,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       title: String = "Test Event",
       description: String = "Test Description",
       poster: String = "test-poster.jpg",
-      tag: List[EventTag] = List(EventTag.VenueType.Bar),
+      tags: List[EventTag] = List(EventTag.VenueType.Bar),
       location: Location = Location.create(
         country = "Test Country",
         country_code = "TC",
@@ -47,11 +48,11 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       ),
       price: Double = 15.0,
       date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
-      status: EventStatus = EventStatus.DRAFT,
+      status: EventStatus = EventStatus.PUBLISHED,
       id_creator: String = "creator-123",
-      id_collaborator: Option[String] = None
+      id_collaborators: Option[List[String]] = None
   ): CreateEventCommand =
-    CreateEventCommand(title, description, poster, tag, location, date, price, status, id_creator, id_collaborator)
+    CreateEventCommand(title, description, poster, tags, location, date, price, status, id_creator, id_collaborators)
 
   private def validGetEventCommand(id_event: String = "event-123"): GetEventCommand =
     GetEventCommand(id_event)
@@ -69,17 +70,42 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       id_event: String,
       title: Option[String],
       description: Option[String] = None,
-      tag: Option[List[EventTag]] = None,
+      tags: Option[List[EventTag]] = None,
       location: Option[Location] = None,
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
       status: Option[EventStatus] = None,
-      id_collaborator: Option[String] = None
+      id_collaborators: Option[List[String]] = None
   ): UpdateEventCommand =
-    UpdateEventCommand(id_event, title, description, tag, location, date, price, status, id_collaborator)
+    UpdateEventCommand(id_event, title, description, tags, location, date, price, status, id_collaborators)
 
   private def validDeleteEventCommand(id_event: String): DeleteEventCommand =
     DeleteEventCommand(id_event)
+
+  private def validGetFilteredEventsCommand(
+      limit: Option[Int] = None,
+      offset: Option[Int] = None,
+      status: Option[EventStatus] = None,
+      title: Option[String] = None,
+      tags: Option[List[EventTag]] = None,
+      startDate: Option[LocalDateTime] = None,
+      endDate: Option[LocalDateTime] = None,
+      id_organization: Option[String] = None,
+      city: Option[String] = None,
+      location_name: Option[String] = None
+  ): GetFilteredEventsCommand =
+    GetFilteredEventsCommand(
+      limit,
+      offset,
+      status,
+      title,
+      tags,
+      startDate,
+      endDate,
+      id_organization,
+      city,
+      location_name
+    )
 
   "EventService" should "be instantiated correctly" in:
     service.`should`(be(a[EventService]))
@@ -252,3 +278,19 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     result match
       case Left(error) => error shouldBe "Event with id non-existent-id not found"
       case Right(_)    => fail("Expected failure when deleting non-existent event")
+
+  it should "successfully process valid GetFilteredEventsCommand" in:
+    val command = validGetFilteredEventsCommand()
+    val result  = service.handleCommand(command)
+    result shouldBe a[Right[?, ?]]
+    result match
+      case Right((events, _)) => events shouldBe a[List[?]]
+      case _                  => fail("Expected Right with events list, but got Left")
+
+  it should "return validation errors for GetFilteredEventsCommand with invalid parameters" in:
+    val command = validGetFilteredEventsCommand(limit = Some(-10))
+    val result  = service.handleCommand(command)
+    result.isLeft shouldBe true
+    result match
+      case Left(error) => error should include("Limit must be positive")
+      case Right(_)    => fail("Expected validation error for invalid limit")

@@ -1,3 +1,16 @@
+## [1.6.1](https://github.com/EvenToNight/EvenToNight/compare/v1.6.0...v1.6.1) (2025-12-14)
+
+### Bug Fixes
+
+* **search-event:** fix bug in search event by id_organization ([92f4780](https://github.com/EvenToNight/EvenToNight/commit/92f47800ffbfc3ed7bf0b0f6fa2afd1df3c60553))
+
+## [1.6.0](https://github.com/EvenToNight/EvenToNight/compare/v1.5.1...v1.6.0) (2025-12-13)
+
+### Features
+
+* **filteredEvent:** add routes for filter event get ([2eabe03](https://github.com/EvenToNight/EvenToNight/commit/2eabe03f17b173fcd8f8513ad50326f12436baf1))
+* **test:** add test for filter event ([13b9e87](https://github.com/EvenToNight/EvenToNight/commit/13b9e87b09fb9b38be004eaff4203e5e14f9042f))
+
 ## [1.5.1](https://github.com/EvenToNight/EvenToNight/compare/v1.5.0...v1.5.1) (2025-12-10)
 
 ### Bug Fixes

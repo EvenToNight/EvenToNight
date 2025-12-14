@@ -1,6 +1,7 @@
 package utils
-import domain.commands.{CreateEventCommand, UpdateEventCommand}
-import domain.models.{Event, EventStatus, Location}
+import domain.commands.{CreateEventCommand, GetFilteredEventsCommand, UpdateEventCommand}
+import domain.models.{Event, EventStatus, EventTag, Location}
+import domain.models.EventConversions.*
 import domain.models.EventTag.validateTagList
 
 import java.nio.file.Files
@@ -8,6 +9,10 @@ import java.time.LocalDateTime
 import scala.util.{Failure, Success, Try}
 
 object Utils:
+
+  val DEFAULT_LIMIT: Int   = 10
+  val MAX_LIMIT: Int       = 20
+  val DEFAULT_DATE: String = "2027-01-01T00:00:00"
 
   def parseLocationFromJson(locationJson: String): Location =
     Try {
@@ -30,112 +35,84 @@ object Utils:
       case Success(locality) => locality
       case Failure(_)        => println("Failed to parse location JSON"); Location.Nil()
 
-  def uploadPosterToMediaService(id_event: String, poster: cask.FormFile, mediaServiceUrl: String): String =
-    def defaultUrl = s"/events/$id_event/default.jpg"
-    val result =
-      for
-        path      <- poster.filePath.toRight(new Exception("Missing poster filepath"))
-        fileBytes <- Try(Files.readAllBytes(path)).toEither
-        response <- Try {
-          requests.post(
-            s"$mediaServiceUrl/events/$id_event",
-            data = requests.MultiPart(
-              requests.MultiItem(
-                name = "file",
-                data = fileBytes,
-                filename = s"${id_event}_poster.jpg"
+  def uploadPosterToMediaService(id_event: String, posterOpt: Option[cask.FormFile], mediaServiceUrl: String): String =
+    def defaultUrl = "events/default.jpg"
+    posterOpt match
+      case None => defaultUrl
+      case Some(poster) =>
+        val result =
+          for
+            path      <- poster.filePath.toRight(new Exception("Missing poster filepath"))
+            fileBytes <- Try(Files.readAllBytes(path)).toEither
+            response <- Try {
+              requests.post(
+                s"$mediaServiceUrl/events/$id_event",
+                data = requests.MultiPart(
+                  requests.MultiItem(
+                    name = "file",
+                    data = fileBytes,
+                    filename = "poster.jpg"
+                  )
+                )
               )
-            )
-          )
-        }.toEither
-        url <- Try(ujson.read(response.text())("url").str).toEither
-      yield url
+            }.toEither
+            url <- Try(ujson.read(response.text())("url").str).toEither
+          yield url
 
-    result match
-      case Right(url) => url
-      case Left(_)    => defaultUrl
+        result match
+          case Right(url) => url
+          case Left(_)    => defaultUrl
 
   def getCreateCommandFromJson(event: String): CreateEventCommand =
-    try
-      val eventData = ujson.read(event)
+    val eventData = ujson.read(event)
 
-      val title           = eventData("title").str
-      val description     = eventData("description").str
-      val tags            = validateTagList(eventData("tags").toString())
-      val locationData    = eventData("location")
-      val location        = parseLocationFromJson(locationData.toString())
-      val date            = LocalDateTime.parse(eventData("date").str)
-      val price           = eventData("price").num
-      val status          = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
-      val id_creator      = eventData("id_creator").str
-      val id_collaborator = eventData.obj.get("id_collaborator").map(_.str).filter(_.nonEmpty)
+    val title            = eventData.obj.get("title").map(_.str).getOrElse("")
+    val description      = eventData.obj.get("description").map(_.str).getOrElse("")
+    val tags             = validateTagList(eventData.obj.get("tags").map(_.toString()).getOrElse("[]"))
+    val locationData     = eventData.obj.get("location").getOrElse(ujson.Obj())
+    val location         = parseLocationFromJson(locationData.toString())
+    val date             = LocalDateTime.parse(eventData.obj.get("date").map(_.str).getOrElse(DEFAULT_DATE))
+    val price            = eventData.obj.get("price").map(_.num).getOrElse(0.0)
+    val status           = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
+    val id_creator       = eventData("id_creator").str
+    val id_collaborators = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
-      CreateEventCommand(
-        title = title,
-        description = description,
-        poster = "",
-        tag = tags,
-        location = location,
-        date = date,
-        price = price,
-        status = status,
-        id_creator = id_creator,
-        id_collaborator = id_collaborator
-      )
-    catch
-      case e: Exception =>
-        println(s"Error parsing CreateEventCommand from JSON: ${e.getMessage}")
-        CreateEventCommand(
-          title = "",
-          description = "",
-          poster = "",
-          tag = List(),
-          location = Location.Nil(),
-          date = LocalDateTime.MIN,
-          price = 0.0,
-          status = EventStatus.DRAFT,
-          id_creator = "",
-          id_collaborator = None
-        )
+    CreateEventCommand(
+      title = title,
+      description = description,
+      poster = "",
+      tags = tags,
+      location = location,
+      date = date,
+      price = price,
+      status = status,
+      id_creator = id_creator,
+      id_collaborators = id_collaborators
+    )
 
   def getUpdateCommandFromJson(id_event: String, newEvent: String): UpdateEventCommand =
-    try
-      val eventData = ujson.read(newEvent)
+    val eventData = ujson.read(newEvent)
 
-      val title           = eventData.obj.get("title").map(_.str).filter(_.nonEmpty)
-      val description     = eventData.obj.get("description").map(_.str).filter(_.nonEmpty)
-      val tags            = eventData.obj.get("tags").map(t => validateTagList(t.toString()))
-      val location        = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString()))
-      val date            = eventData.obj.get("date").map(d => LocalDateTime.parse(d.str))
-      val price           = eventData.obj.get("price").map(_.num)
-      val status          = eventData.obj.get("status").flatMap(s => EventStatus.withNameOpt(s.str))
-      val id_collaborator = eventData.obj.get("id_collaborator").map(_.str).filter(_.nonEmpty)
+    val title            = eventData.obj.get("title").map(_.str).filter(_.nonEmpty)
+    val description      = eventData.obj.get("description").map(_.str).filter(_.nonEmpty)
+    val tags             = eventData.obj.get("tags").map(t => validateTagList(t.toString()))
+    val location         = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString()))
+    val date             = eventData.obj.get("date").map(d => LocalDateTime.parse(d.str))
+    val price            = eventData.obj.get("price").map(_.num)
+    val status           = eventData.obj.get("status").flatMap(s => EventStatus.withNameOpt(s.str))
+    val id_collaborators = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
-      UpdateEventCommand(
-        id_event = id_event,
-        title = title,
-        description = description,
-        tag = tags,
-        location = location,
-        date = date,
-        price = price,
-        status = status,
-        id_collaborator = id_collaborator
-      )
-    catch
-      case e: Exception =>
-        println(s"Error parsing UpdateEventCommand from JSON: ${e.getMessage}")
-        UpdateEventCommand(
-          id_event = id_event,
-          title = None,
-          description = None,
-          tag = None,
-          location = None,
-          date = None,
-          price = None,
-          status = None,
-          id_collaborator = None
-        )
+    UpdateEventCommand(
+      id_event = id_event,
+      title = title,
+      description = description,
+      tags = tags,
+      location = location,
+      date = date,
+      price = price,
+      status = status,
+      id_collaborators = id_collaborators
+    )
 
   private def pastDate(eventDate: LocalDateTime): Boolean =
     eventDate.isBefore(LocalDateTime.now())
@@ -145,3 +122,50 @@ object Utils:
       event.copy(status = EventStatus.COMPLETED)
     else
       event
+
+  def parseEventFilters(
+      limit: Option[Int],
+      offset: Option[Int],
+      status: Option[String],
+      title: Option[String],
+      tags: Option[List[String]],
+      startDate: Option[String],
+      endDate: Option[String],
+      id_organization: Option[String],
+      city: Option[String],
+      location_name: Option[String]
+  ): GetFilteredEventsCommand =
+    val parsedStatus: Option[EventStatus]  = status.flatMap(s => EventStatus.withNameOpt(s))
+    val parsedTags: Option[List[EventTag]] = tags.map(_.map(t => EventTag.fromString(t)))
+    val parsedStartDate: Option[LocalDateTime] = startDate.flatMap { sd =>
+      Try(LocalDateTime.parse(sd)).toOption
+    }
+    val parsedEndDate: Option[LocalDateTime] = endDate.flatMap { ed =>
+      Try(LocalDateTime.parse(ed)).toOption
+    }
+    val limitValue = math.min(limit.getOrElse(DEFAULT_LIMIT), MAX_LIMIT)
+    GetFilteredEventsCommand(
+      limit = Some(limitValue),
+      offset = offset,
+      status = parsedStatus,
+      title = title,
+      tags = parsedTags,
+      startDate = parsedStartDate,
+      endDate = parsedEndDate,
+      id_organization = id_organization,
+      city = city,
+      location_name = location_name
+    )
+
+  def createPaginatedResponse(
+      events: List[Event],
+      limit: Option[Int] = None,
+      offset: Option[Int] = None,
+      hasMore: Boolean
+  ): ujson.Obj =
+    ujson.Obj(
+      "events"  -> ujson.Arr(events.map(_.toJson)*),
+      "limit"   -> limit.getOrElse(DEFAULT_LIMIT),
+      "offset"  -> offset.getOrElse(0),
+      "hasMore" -> hasMore
+    )

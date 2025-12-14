@@ -20,6 +20,20 @@ class FailingEventRepository extends EventRepository:
   override def delete(id_event: String): Either[Throwable, Unit] =
     Left(new RuntimeException("Database connection failed"))
 
+  override def findByFilters(
+      limit: Option[Int],
+      offset: Option[Int],
+      status: Option[EventStatus],
+      title: Option[String],
+      tags: Option[List[String]],
+      startDate: Option[String],
+      endDate: Option[String],
+      id_organization: Option[String],
+      city: Option[String],
+      location_name: Option[String]
+  ): Either[Throwable, (List[Event], Boolean)] =
+    Left(new RuntimeException("Database connection failed"))
+
 class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   var repo: EventRepository       = uninitialized
   var publisher: EventPublisher   = uninitialized
@@ -35,7 +49,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       title: String = "Test Event",
       description: String = "Test Description",
       poster: String = "test-poster.jpg",
-      tag: List[EventTag] = List(EventTag.VenueType.Bar),
+      tags: List[EventTag] = List(EventTag.VenueType.Bar),
       location: Location = Location.create(
         country = "Test Country",
         country_code = "TC",
@@ -50,31 +64,31 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
       status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "creator-123",
-      id_collaborator: Option[String] = None
+      id_collaborators: Option[List[String]] = None
   ): CreateEventCommand =
-    CreateEventCommand(title, description, poster, tag, location, date, price, status, id_creator, id_collaborator)
+    CreateEventCommand(title, description, poster, tags, location, date, price, status, id_creator, id_collaborators)
 
   private def validUpdateEventCommand(
       id_event: String,
       title: Option[String],
       description: Option[String] = None,
-      tag: Option[List[EventTag]] = None,
+      tags: Option[List[EventTag]] = None,
       location: Option[Location] = None,
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
       status: Option[EventStatus] = None,
-      id_collaborator: Option[String] = None
+      id_collaborators: Option[List[String]] = None
   ): UpdateEventCommand =
     UpdateEventCommand(
       id_event,
       title,
       description,
-      tag,
+      tags,
       location,
       date,
       price,
       status,
-      id_collaborator
+      id_collaborators
     )
 
   "DomainEventService" should "be instantiated correctly" in:

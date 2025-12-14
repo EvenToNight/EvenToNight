@@ -8,14 +8,14 @@ case class Event(
     title: String,
     description: String,
     poster: String,
-    tag: List[EventTag],
+    tags: List[EventTag],
     location: Location,
     date: LocalDateTime,
     price: Double,
     status: EventStatus,
     instant: java.time.Instant,
     id_creator: String,
-    id_collaborator: Option[String]
+    id_collaborators: Option[List[String]]
 )
 
 object Event:
@@ -26,39 +26,39 @@ object Event:
       title = "",
       description = "",
       poster = "",
-      tag = List(),
+      tags = List(),
       location = Location.Nil(),
       date = LocalDateTime.MAX,
       price = 0.0,
       status = EventStatus.DRAFT,
       instant = java.time.Instant.MAX,
       id_creator = "",
-      id_collaborator = None
+      id_collaborators = None
     )
 
   def create(
       title: String,
       description: String,
       poster: String,
-      tag: List[EventTag],
+      tags: List[EventTag],
       location: Location,
       date: LocalDateTime,
       price: Double,
       status: EventStatus,
       id_creator: String,
-      id_collaborator: Option[String]
+      id_collaborators: Option[List[String]]
   ): Event =
     Event(
       _id = UUID.randomUUID().toString,
       title = title,
       description = description,
       poster = poster,
-      tag = tag,
+      tags = tags,
       location = location,
       date = date,
       price = price,
       status = status,
       instant = java.time.Instant.now(),
       id_creator = id_creator,
-      id_collaborator = id_collaborator
+      id_collaborators = id_collaborators
     )

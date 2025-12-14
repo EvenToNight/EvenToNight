@@ -4,24 +4,33 @@ import domain.commands.{
   CreateEventCommand,
   DeleteEventCommand,
   GetEventCommand,
+  GetFilteredEventsCommand,
   UpdateEventCommand,
   UpdateEventPosterCommand
 }
+import domain.models.EventStatus
 
-import ValidationRules.{futureDate, nonEmpty, correctLocality}
+import ValidationRules.{futureDate, nonEmpty, correctLocality, positiveInt, nonNegativeInt, dateRange}
 import Validator.combine
 
 object CreateEventValidator extends Validator[CreateEventCommand]:
 
   override def validate(cmd: CreateEventCommand): Either[List[String], CreateEventCommand] =
-    val validations = combine(
-      nonEmpty(cmd.title, "Title"),
-      nonEmpty(cmd.description, "Description"),
-      nonEmpty(cmd.id_creator, "Creator Id"),
-      correctLocality(cmd.location, "Location"),
-      futureDate(cmd.date, "Date")
-    )
-    validations.map(_ => cmd)
+    cmd.status match
+      case EventStatus.DRAFT =>
+        val validations = combine(
+          nonEmpty(cmd.id_creator, "Creator Id")
+        )
+        validations.map(_ => cmd)
+      case _ =>
+        val validations = combine(
+          nonEmpty(cmd.title, "Title"),
+          nonEmpty(cmd.description, "Description"),
+          nonEmpty(cmd.id_creator, "Creator Id"),
+          correctLocality(cmd.location, "Location"),
+          futureDate(cmd.date, "Date")
+        )
+        validations.map(_ => cmd)
 
 object GetEventValidator extends Validator[GetEventCommand]:
 
@@ -48,4 +57,12 @@ object DeleteEventValidator extends Validator[DeleteEventCommand]:
   override def validate(cmd: DeleteEventCommand): Either[List[String], DeleteEventCommand] =
     combine(
       nonEmpty(cmd.id_event, "Event ID")
+    ).map(_ => cmd)
+
+object GetFilteredEventsValidator extends Validator[GetFilteredEventsCommand]:
+  override def validate(cmd: GetFilteredEventsCommand): Either[List[String], GetFilteredEventsCommand] =
+    combine(
+      positiveInt(cmd.limit, "Limit"),
+      nonNegativeInt(cmd.offset, "Offset"),
+      dateRange(cmd.startDate, cmd.endDate, "Date range")
     ).map(_ => cmd)
