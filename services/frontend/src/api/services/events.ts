@@ -44,10 +44,17 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     formData.append('poster', poster)
     await eventsClient.post(`/${eventId}/poster`, formData)
   },
-  async searchByName(query: string): Promise<EventsDataResponse> {
-    return eventsClient.get<EventsDataResponse>(`/${buildQueryParams({ query })}`)
+  async searchByName(id_organization: string): Promise<EventsDataResponse> {
+    return eventsClient.get<EventsDataResponse>(
+      `/search${buildQueryParams({ id_organization, limit: 10 })}`
+    )
   },
-  async getEventsByUserIdAndStatus(userId: string, status: string): Promise<EventsDataResponse> {
-    return eventsClient.get<EventsDataResponse>(`/${buildQueryParams({ userId, status })}`)
+  async getEventsByUserIdAndStatus(
+    id_organization: string,
+    status: string
+  ): Promise<EventsDataResponse> {
+    return eventsClient.get<EventsDataResponse>(
+      `/search${buildQueryParams({ id_organization, status, limit: 10 })}`
+    )
   },
 })
