@@ -126,6 +126,9 @@ export default {
     posterError: 'Il manifesto è obbligatorio',
     uploadPoster: 'Carica poster',
     cancel: 'Annulla',
+    deleteEvent: 'Eliminare',
+    deleteEventConfirm:
+      'Sei sicuro di voler eliminare questo evento? Questa azione non può essere annullata.',
     saveDraft: 'Salva bozza',
     publishEvent: 'Pubblica evento',
     updateEvent: 'Aggiorna evento',
@@ -133,9 +136,11 @@ export default {
     errorForDraftCreation: 'Si prega di fornire almeno un titolo per la bozza',
     successForEventPublication: 'Evento pubblicato con successo!',
     successForEventUpdate: 'Evento aggiornato con successo!',
+    successForEventDeletion: 'Evento eliminato con successo!',
     errorForEventCreation: 'Si prega di compilare tutti i campi obbligatori',
     errorForEventPublication: "Impossibile creare l'evento. Per favore riprova.",
     errorForEventUpdate: "Impossibile aggiornare l'evento. Per favore riprova.",
+    errorForEventDeletion: "Impossibile eliminare l'evento. Per favore riprova.",
     errorForEventLoad: "Impossibile caricare l'evento. Per favore riprova.",
   },
 

@@ -126,6 +126,9 @@ export default {
     posterError: 'Une affiche est obligatoire',
     uploadPoster: "Télécharger l'affiche",
     cancel: 'Annuler',
+    deleteEvent: 'Supprimer',
+    deleteEventConfirm:
+      'Êtes-vous sûr de vouloir supprimer cet événement ? Cette action ne peut pas être annulée.',
     saveDraft: 'Enregistrer le brouillon',
     publishEvent: 'Publier un événement',
     updateEvent: 'Événement de mise à jour',
@@ -133,9 +136,11 @@ export default {
     errorForDraftCreation: 'Veuillez fournir au moins un titre pour le projet',
     successForEventPublication: 'Événement publié avec succès !',
     successForEventUpdate: 'Événement mis à jour avec succès !',
+    successForEventDeletion: 'Événement supprimé avec succès !',
     errorForEventCreation: 'Veuillez remplir tous les champs obligatoires',
     errorForEventPublication: "Échec de la création de l'événement. Veuillez réessayer.",
     errorForEventUpdate: "Échec de la mise à jour de l'événement. Veuillez réessayer.",
+    errorForEventDeletion: "Échec de la suppression de l'événement. Veuillez réessayer.",
     errorForEventLoad: "Échec du chargement de l'événement. Veuillez réessayer.",
   },
 

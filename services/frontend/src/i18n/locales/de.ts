@@ -126,6 +126,9 @@ export default {
     posterError: 'Poster ist erforderlich',
     uploadPoster: 'Poster hochladen',
     cancel: 'Stornieren',
+    deleteEvent: 'Löschen',
+    deleteEventConfirm:
+      'Sind Sie sicher, dass Sie dieses Ereignis löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
     saveDraft: 'Entwurf speichern',
     publishEvent: 'Veranstaltung veröffentlichen',
     updateEvent: 'Ereignis aktualisieren',
@@ -133,9 +136,11 @@ export default {
     errorForDraftCreation: 'Bitte geben Sie mindestens einen Titel für den Entwurf an',
     successForEventPublication: 'Veranstaltung erfolgreich veröffentlicht!',
     successForEventUpdate: 'Veranstaltung erfolgreich aktualisiert!',
+    successForEventDeletion: 'Veranstaltung erfolgreich gelöscht!',
     errorForEventCreation: 'Bitte füllen Sie alle erforderlichen Felder aus',
     errorForEventPublication: 'Failed to create event. Please try again.',
     errorForEventUpdate: 'Failed to update event. Please try again.',
+    errorForEventDeletion: 'Ereignis konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
     errorForEventLoad: 'Ereignis konnte nicht geladen werden. Bitte versuchen Sie es erneut.',
   },
 

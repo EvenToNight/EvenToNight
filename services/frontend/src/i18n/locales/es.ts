@@ -126,6 +126,9 @@ export default {
     posterError: 'Se requiere cartel',
     uploadPoster: 'Subir cartel',
     cancel: 'Cancelar',
+    deleteEvent: 'Borrar',
+    deleteEventConfirm:
+      '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.',
     saveDraft: 'Guardar borrador',
     publishEvent: 'Publicar evento',
     updateEvent: 'Evento de actualización',
@@ -133,9 +136,11 @@ export default {
     errorForDraftCreation: 'Proporcione al menos un título para el borrador.',
     successForEventPublication: '¡Evento publicado exitosamente!',
     successForEventUpdate: '¡Evento actualizado exitosamente!',
+    successForEventDeletion: '¡Evento eliminado exitosamente!',
     errorForEventCreation: 'Por favor complete todos los campos requeridos',
     errorForEventPublication: 'No se pudo crear el evento. Por favor inténtalo de nuevo.',
     errorForEventUpdate: 'No se pudo actualizar el evento. Por favor inténtalo de nuevo.',
+    errorForEventDeletion: 'No se pudo eliminar el evento. Por favor inténtalo de nuevo.',
     errorForEventLoad: 'No se pudo cargar el evento. Por favor inténtalo de nuevo.',
   },
 
