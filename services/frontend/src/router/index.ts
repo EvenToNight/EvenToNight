@@ -3,7 +3,7 @@ import Home from '../views/HomeView.vue'
 import PlaceHolderView from '../views/PlaceHolderView.vue'
 import LocaleWrapper from '../views/LocaleWrapper.vue'
 import i18n, { SUPPORTED_LOCALES, DEFAULT_LOCALE, type Locale } from '../i18n'
-import { requireGuest, requireRole } from './guards'
+import { requireGuest, requireRole, requireEventCreator, requireNotDraft } from './guards'
 
 export const HOME_ROUTE_NAME = 'home'
 export const LOGIN_ROUTE_NAME = 'login'
@@ -12,6 +12,7 @@ export const EVENT_DETAILS_ROUTE_NAME = 'event-details'
 export const USER_PROFILE_ROUTE_NAME = 'user-profile'
 export const CREATE_EVENT_ROUTE_NAME = 'create-event'
 export const EDIT_EVENT_ROUTE_NAME = 'edit-event'
+export const FORBIDDEN_ROUTE_NAME = 'forbidden'
 
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')
@@ -70,29 +71,30 @@ const router = createRouter({
         },
         {
           path: 'events/:id',
-          name: 'event-details',
+          name: EVENT_DETAILS_ROUTE_NAME,
           component: () => import('../views/EventDetailsView.vue'),
+          beforeEnter: requireNotDraft,
         },
         {
           path: 'users/:id',
-          name: 'user-profile',
+          name: USER_PROFILE_ROUTE_NAME,
           component: () => import('../views/UserProfileView.vue'),
         },
         {
           path: 'create-event',
-          name: 'create-event',
+          name: CREATE_EVENT_ROUTE_NAME,
           component: () => import('../views/CreateEventView.vue'),
           beforeEnter: requireRole('organization'),
         },
         {
           path: 'edit-event/:id',
-          name: 'edit-event',
+          name: EDIT_EVENT_ROUTE_NAME,
           component: () => import('../views/CreateEventView.vue'),
-          beforeEnter: requireRole('organization'),
+          beforeEnter: requireEventCreator,
         },
         {
           path: 'forbidden',
-          name: 'forbidden',
+          name: FORBIDDEN_ROUTE_NAME,
           component: PlaceHolderView,
         },
         {
