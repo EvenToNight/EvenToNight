@@ -51,6 +51,8 @@ export default {
     eventCard: {
       loadingPoster: 'Chargement...',
       favoriteButtonAriaLabel: 'Basculer vers les favoris',
+      posterAlt: "Affiche d'événement",
+      draftMissingTitle: 'Événement sans titre',
     },
     ticketCard: {
       ticket: 'Billet',
@@ -66,7 +68,7 @@ export default {
     about: 'À propos',
     organizer: 'Organisé par',
     collaborators: 'Collaborateurs',
-    editEvent: 'Modifier',
+    editEvent: "Modifier l'événement",
   },
 
   footer: {
@@ -112,6 +114,7 @@ export default {
     time: 'Temps',
     timeError: 'Il faut du temps',
     description: 'Description',
+    descriptionError: 'Une description est requise',
     price: 'Prix',
     priceError: 'Le prix est obligatoire',
     tags: 'Balises',
@@ -120,6 +123,7 @@ export default {
     location: 'Emplacement',
     locationError: "L'emplacement est requis",
     eventPoster: "Affiche d'événement",
+    posterError: 'Une affiche est obligatoire',
     uploadPoster: "Télécharger l'affiche",
     cancel: 'Annuler',
     saveDraft: 'Enregistrer le brouillon',

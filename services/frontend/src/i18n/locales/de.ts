@@ -51,6 +51,8 @@ export default {
     eventCard: {
       loadingPoster: 'Laden...',
       favoriteButtonAriaLabel: 'Favoriten umschalten',
+      posterAlt: 'Veranstaltungsplakat',
+      draftMissingTitle: 'Veranstaltung ohne Titel',
     },
     ticketCard: {
       ticket: 'Ticket',
@@ -66,7 +68,7 @@ export default {
     about: 'Um',
     organizer: 'Organisiert von',
     collaborators: 'Mitarbeiter',
-    editEvent: 'Bearbeiten',
+    editEvent: 'Ereignis bearbeiten',
   },
 
   footer: {
@@ -112,6 +114,7 @@ export default {
     time: 'Zeit',
     timeError: 'Zeit ist erforderlich',
     description: 'Beschreibung',
+    descriptionError: 'Beschreibung ist erforderlich',
     price: 'Preis',
     priceError: 'Preis ist erforderlich',
     tags: 'Schlagworte',
@@ -120,6 +123,7 @@ export default {
     location: 'Standort',
     locationError: 'Der Standort ist erforderlich',
     eventPoster: 'Veranstaltungsplakat',
+    posterError: 'Poster ist erforderlich',
     uploadPoster: 'Poster hochladen',
     cancel: 'Stornieren',
     saveDraft: 'Entwurf speichern',
@@ -131,8 +135,7 @@ export default {
     successForEventUpdate: 'Veranstaltung erfolgreich aktualisiert!',
     errorForEventCreation: 'Bitte füllen Sie alle erforderlichen Felder aus',
     errorForEventPublication: 'Failed to create event. Please try again.',
-    errorForEventUpdate:
-      'Das Ereignis konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.',
+    errorForEventUpdate: 'Failed to update event. Please try again.',
     errorForEventLoad: 'Ereignis konnte nicht geladen werden. Bitte versuchen Sie es erneut.',
   },
 

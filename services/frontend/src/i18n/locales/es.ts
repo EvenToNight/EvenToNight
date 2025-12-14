@@ -51,6 +51,8 @@ export default {
     eventCard: {
       loadingPoster: 'Cargando...',
       favoriteButtonAriaLabel: 'Alternar favorito',
+      posterAlt: 'Cartel del evento',
+      draftMissingTitle: 'Evento sin título',
     },
     ticketCard: {
       ticket: 'Boleto',
@@ -66,7 +68,7 @@ export default {
     about: 'Acerca de',
     organizer: 'Organizado por',
     collaborators: 'Colaboradores',
-    editEvent: 'Editar',
+    editEvent: 'Editar evento',
   },
 
   footer: {
@@ -112,6 +114,7 @@ export default {
     time: 'Tiempo',
     timeError: 'Se requiere tiempo',
     description: 'Descripción',
+    descriptionError: 'Se requiere descripción',
     price: 'Precio',
     priceError: 'Se requiere precio',
     tags: 'Etiquetas',
@@ -120,6 +123,7 @@ export default {
     location: 'Ubicación',
     locationError: 'Se requiere ubicación',
     eventPoster: 'Cartel del evento',
+    posterError: 'Se requiere cartel',
     uploadPoster: 'Subir cartel',
     cancel: 'Cancelar',
     saveDraft: 'Guardar borrador',
