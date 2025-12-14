@@ -51,6 +51,8 @@ export default {
     eventCard: {
       loadingPoster: 'Loading...',
       favoriteButtonAriaLabel: 'Toggle Favorite',
+      posterAlt: 'Event Poster',
+      draftMissingTitle: 'Untitled Event',
     },
     ticketCard: {
       ticket: 'Ticket',
@@ -112,6 +114,7 @@ export default {
     time: 'Time',
     timeError: 'Time is required',
     description: 'Description',
+    descriptionError: 'Description is required',
     price: 'Price',
     priceError: 'Price is required',
     tags: 'Tags',
@@ -120,6 +123,7 @@ export default {
     location: 'Location',
     locationError: 'Location is required',
     eventPoster: 'Event Poster',
+    posterError: 'Poster is required',
     uploadPoster: 'Upload Poster',
     cancel: 'Cancel',
     saveDraft: 'Save Draft',

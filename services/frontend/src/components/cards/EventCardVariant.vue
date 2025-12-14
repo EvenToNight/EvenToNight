@@ -21,7 +21,6 @@ const isDraft = computed(() => props.event.status === 'DRAFT')
 const loadImage = async (url: string) => {
   try {
     const response = await api.media.get(url)
-    console.log('Loaded media for URL:', url)
     imageObjectUrl.value = URL.createObjectURL(response.file)
   } catch (error) {
     console.error('Failed to load image:', error)
@@ -31,7 +30,7 @@ const loadImage = async (url: string) => {
 }
 
 onMounted(async () => {
-  await loadImage(props.event.poster)
+  await loadImage(props.event.poster!)
 })
 
 onUnmounted(() => {
@@ -58,7 +57,7 @@ const formatDate = (date: Date) => {
       <img
         v-if="!isLoadingImage && imageObjectUrl"
         :src="imageObjectUrl"
-        :alt="event.title"
+        :alt="event.title ?? t('cards.eventCard.posterAlt')"
         class="event-image"
       />
       <div v-else class="image-loading">
@@ -70,7 +69,9 @@ const formatDate = (date: Date) => {
       </div>
     </div>
     <div class="event-info">
-      <h3 class="event-title">{{ event.title }}</h3>
+      <h3 class="event-title">
+        {{ event.title?.trim() ? event.title : t('cards.eventCard.draftMissingTitle') }}
+      </h3>
       <div v-if="!isDraft" class="event-details">
         <span class="event-date">
           <q-icon name="event" size="16px" />

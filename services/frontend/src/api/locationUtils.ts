@@ -9,12 +9,12 @@ export const buildLocationDisplayName = (location: LocationData): string => {
   const parts = []
   if (location.name) parts.push(location.name)
   if (location.house_number) parts.push(location.house_number)
-  parts.push(location.road)
-  parts.push(location.city)
-  parts.push(location.province)
-  parts.push(location.state)
-  parts.push(location.postcode)
-  parts.push(location.country)
+  if (location.road) parts.push(location.road)
+  if (location.city) parts.push(location.city)
+  if (location.province) parts.push(location.province)
+  if (location.state) parts.push(location.state)
+  if (location.postcode) parts.push(location.postcode)
+  if (location.country) parts.push(location.country)
   return parts.join(', ')
 }
 

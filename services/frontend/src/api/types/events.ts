@@ -2,7 +2,8 @@ import type { UserID } from './users'
 import type { Location } from './common'
 
 export type Tag = string
-export type EventStatus = 'DRAFT' | 'PUBLISHED' | 'CANCELLED' | 'COMPLETED'
+export type CreationEventStatus = 'DRAFT' | 'PUBLISHED' | 'CANCELLED'
+export type EventStatus = CreationEventStatus | 'COMPLETED'
 
 export type EventID = string
 
@@ -23,3 +24,5 @@ export interface Event extends Omit<EventData, 'poster'> {
   id_event: EventID
   poster: string
 }
+
+export type PartialEventData = Partial<EventData> & Pick<EventData, 'id_creator' | 'status'>

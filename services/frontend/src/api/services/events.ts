@@ -6,7 +6,7 @@ import type {
   EventsDataResponse,
 } from '../interfaces/events'
 import type { GetTagResponse } from '../interfaces/events'
-import type { EventID, EventData } from '../types/events'
+import type { EventID, PartialEventData } from '../types/events'
 import { buildQueryParams } from '../utils'
 
 export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
@@ -20,23 +20,27 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     const eventsResponses = await Promise.all(ids.map((id) => this.getEventById(id)))
     return { events: eventsResponses }
   },
-  async publishEvent(eventData: EventData): Promise<PublishEventResponse> {
+  async publishEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
     const { poster, date, ...rest } = eventData
     const formData = new FormData()
-    formData.append('poster', poster)
+    if (poster) {
+      formData.append('poster', poster)
+    }
     const backendEventData = {
       ...rest,
-      date: date.toISOString().replace(/\.\d{3}Z$/, ''),
+      date: date?.toISOString().replace(/\.\d{3}Z$/, ''),
     }
+    console.log('publishEvent backendEventData', backendEventData)
     formData.append('event', JSON.stringify(backendEventData))
     return eventsClient.post<{ id_event: string }>('/', formData)
   },
-  async updateEventData(eventId: EventID, eventData: EventData): Promise<void> {
+  async updateEventData(eventId: EventID, eventData: PartialEventData): Promise<void> {
     const { poster, date, ...rest } = eventData
     const backendEventData = {
       ...rest,
-      date: date.toISOString().replace(/\.\d{3}Z$/, ''),
+      date: date?.toISOString().replace(/\.\d{3}Z$/, ''),
     }
+    console.log('updateEventData backendEventData', backendEventData)
     await eventsClient.put(`/${eventId}`, backendEventData)
   },
   async updateEventPoster(eventId: EventID, poster: File): Promise<void> {

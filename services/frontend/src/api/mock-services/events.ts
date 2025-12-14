@@ -5,9 +5,8 @@ import type {
   EventsDataResponse,
 } from '../interfaces/events'
 import type { EventAPI } from '../interfaces/events'
-import type { EventID, EventStatus } from '../types/events'
+import type { EventID, EventStatus, PartialEventData } from '../types/events'
 import { mockEvents } from './data/events'
-import type { EventData } from '../types/events'
 import { mockTags } from './data/tags'
 import type { UserID } from '../types/users'
 
@@ -32,10 +31,10 @@ export const mockEventsApi: EventAPI = {
     const events = await Promise.all(ids.map((id) => this.getEventById(id)))
     return { events }
   },
-  async publishEvent(_eventData: EventData): Promise<PublishEventResponse> {
+  async publishEvent(_eventData: PartialEventData): Promise<PublishEventResponse> {
     return { id_event: mockEvents[0]!.id_event }
   },
-  async updateEventData(_id_event: EventID, _eventData: EventData): Promise<void> {
+  async updateEventData(_id_event: EventID, _eventData: PartialEventData): Promise<void> {
     return
   },
   async updateEventPoster(_id_event: EventID, _poster: File): Promise<void> {
