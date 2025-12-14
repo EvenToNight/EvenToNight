@@ -54,7 +54,7 @@ const loadUser = async () => {
   min-height: 100vh;
   background: var(--q-background);
   position: relative;
-  padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
+  //padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
   background: #f5f5f5;
 
   @include dark-mode {

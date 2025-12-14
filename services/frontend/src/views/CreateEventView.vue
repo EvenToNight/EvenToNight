@@ -606,7 +606,7 @@ const onSubmit = async () => {
   @include flex-column;
   min-height: 100vh;
   position: relative;
-  padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
+  //padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
 }
 
 .collaborator-avatar {
