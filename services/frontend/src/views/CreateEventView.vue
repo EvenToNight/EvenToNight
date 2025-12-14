@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
 import { api } from '@/api'
 import type { CreationEventStatus, PartialEventData } from '@/api/types/events'
@@ -15,6 +14,7 @@ import type { Tag } from '@/api/types/events'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useI18n } from 'vue-i18n'
 import { validateLocation } from '@/api/utils'
+import NavigationButtons from '@/components/common/NavigationButtons.vue'
 
 const { t } = useI18n()
 const $q = useQuasar()
@@ -356,8 +356,7 @@ const onSubmit = async () => {
 
 <template>
   <div class="create-event-page">
-    <BackButton />
-
+    <NavigationButtons />
     <div class="page-content">
       <div class="container">
         <h1 class="text-h3 q-mb-lg">

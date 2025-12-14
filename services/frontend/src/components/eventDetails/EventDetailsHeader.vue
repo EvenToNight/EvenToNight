@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import { ref, onMounted, onUnmounted } from 'vue'
+import NavigationButtons from '../common/NavigationButtons.vue'
 
 const props = defineProps<{
   posterLink: string
@@ -43,7 +43,7 @@ onUnmounted(() => {
     <div ref="heroImageRef" class="hero-image-wrapper">
       <img :src="props.posterLink" :alt="props.title" class="hero-image" />
     </div>
-    <BackButton />
+    <NavigationButtons />
     <div class="hero-overlay"></div>
   </div>
 </template>
