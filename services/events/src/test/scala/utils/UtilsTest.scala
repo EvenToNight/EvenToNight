@@ -427,3 +427,50 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.id_organization shouldBe None
     commands.city shouldBe None
     commands.location_name shouldBe None
+
+  "Utils.createPaginatedResponse" should "create correct paginated response JSON" in:
+    val events = List(
+      Event(
+        _id = "event-1",
+        title = "Event One",
+        description = "First event",
+        poster = "event1.jpg",
+        tags = List(EventTag.TypeOfEvent.Concert),
+        location = Location.Nil(),
+        date = java.time.LocalDateTime.now().plusDays(1),
+        price = 10.0,
+        status = EventStatus.PUBLISHED,
+        instant = java.time.Instant.now(),
+        id_creator = "creator-1",
+        id_collaborators = None
+      ),
+      Event(
+        _id = "event-2",
+        title = "Event Two",
+        description = "Second event",
+        poster = "event2.jpg",
+        tags = List(EventTag.TypeOfEvent.Party),
+        location = Location.Nil(),
+        date = java.time.LocalDateTime.now().plusDays(2),
+        price = 15.0,
+        status = EventStatus.PUBLISHED,
+        instant = java.time.Instant.now(),
+        id_creator = "creator-2",
+        id_collaborators = None
+      )
+    )
+
+    val responseJson = Utils.createPaginatedResponse(events, Some(2), Some(0), hasMore = true)
+
+    responseJson("events").arr.length shouldBe 2
+    responseJson("limit").num shouldBe 2
+    responseJson("offset").num shouldBe 0
+    responseJson("hasMore").bool shouldBe true
+
+  it should "handle empty events list in paginated response" in:
+    val events       = List.empty[Event]
+    val responseJson = Utils.createPaginatedResponse(events, Some(10), Some(0), hasMore = false)
+    responseJson("events").arr.length shouldBe 0
+    responseJson("limit").num shouldBe 10
+    responseJson("offset").num shouldBe 0
+    responseJson("hasMore").bool shouldBe false

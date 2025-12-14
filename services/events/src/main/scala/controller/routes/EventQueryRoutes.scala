@@ -11,6 +11,7 @@ import utils.Utils
 class EventQueryRoutes(eventService: EventService) extends Routes:
 
   private val mediaServiceUrl = "http://media:9020"
+  private val host            = sys.env.getOrElse("HOST", "localhost")
 
   @cask.get("/:id_event")
   def getEvent(id_event: String): cask.Response[ujson.Value] =
@@ -64,7 +65,6 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       city: Option[String] = None,
       location_name: Option[String] = None
   ): cask.Response[ujson.Value] =
-    println("EventQueryRoutes tags param: " + tags)
     val tagsList: Option[List[String]] = tags.map(_.toList)
     val command: GetFilteredEventsCommand = Utils.parseEventFilters(
       limit,
@@ -111,7 +111,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
         val posterUrl = Utils.uploadPosterToMediaService(id_event, Some(poster), mediaServiceUrl)
         val updateCommand = UpdateEventPosterCommand(
           id_event = id_event,
-          posterUrl = posterUrl
+          posterUrl = s"media.$host/$posterUrl"
         )
         eventService.handleCommand(updateCommand) match
           case Right(_) =>

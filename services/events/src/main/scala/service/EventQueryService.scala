@@ -22,7 +22,6 @@ class EventQueryService(repo: EventRepository):
         Left(s"Event ${cmd.id_event} not found")
 
   def execCommand(cmd: GetFilteredEventsCommand): Either[String, (List[Event], Boolean)] =
-    println("Service tags: " + cmd.tags.map(_.map(_.displayName)))
     repo.findByFilters(
       limit = cmd.limit,
       offset = cmd.offset,
