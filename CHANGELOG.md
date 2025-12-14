@@ -1,3 +1,9 @@
+## [1.6.1](https://github.com/EvenToNight/EvenToNight/compare/v1.6.0...v1.6.1) (2025-12-14)
+
+### Bug Fixes
+
+* **search-event:** fix bug in search event by id_organization ([92f4780](https://github.com/EvenToNight/EvenToNight/commit/92f47800ffbfc3ed7bf0b0f6fa2afd1df3c60553))
+
 ## [1.6.0](https://github.com/EvenToNight/EvenToNight/compare/v1.5.1...v1.6.0) (2025-12-13)
 
 ### Features
