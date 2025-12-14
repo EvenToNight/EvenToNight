@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
-import NavigationButtons from '../common/NavigationButtons.vue'
+import NavigationButtons from '../navigation/NavigationButtons.vue'
 
 const props = defineProps<{
   posterLink: string
@@ -39,11 +39,11 @@ onUnmounted(() => {
 </script>
 
 <template>
+  <NavigationButtons />
   <div class="hero-image-container">
     <div ref="heroImageRef" class="hero-image-wrapper">
       <img :src="props.posterLink" :alt="props.title" class="hero-image" />
     </div>
-    <NavigationButtons />
     <div class="hero-overlay"></div>
   </div>
 </template>

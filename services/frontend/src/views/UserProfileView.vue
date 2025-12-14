@@ -6,7 +6,7 @@ import type { User } from '@/api/types/users'
 import { useNavigation } from '@/router/utils'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileBody from '@/components/profile/ProfileBody.vue'
-import NavigationButtons from '@/components/common/NavigationButtons.vue'
+import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 
 const { params } = useNavigation()
 const isFollowing = ref(false)
@@ -32,8 +32,9 @@ const loadUser = async () => {
 </script>
 
 <template>
+  <NavigationButtons />
+
   <div class="user-profile">
-    <NavigationButtons />
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
     <template v-if="user">
       <ProfileHeader

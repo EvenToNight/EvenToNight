@@ -14,12 +14,12 @@ import type { Tag } from '@/api/types/events'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useI18n } from 'vue-i18n'
 import { validateLocation } from '@/api/utils'
-import NavigationButtons from '@/components/common/NavigationButtons.vue'
+import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 
 const { t } = useI18n()
 const $q = useQuasar()
 
-const { goToHome, goToEventDetails, goToUserProfile, params } = useNavigation()
+const { goToEventDetails, goToUserProfile, params } = useNavigation()
 const authStore = useAuthStore()
 const currentUserId = authStore.user?.id
 const eventId = computed(() => params.id as string)
@@ -388,8 +388,9 @@ const onSubmit = async () => {
 </script>
 
 <template>
+  <NavigationButtons />
+
   <div class="create-event-page">
-    <NavigationButtons />
     <div class="page-content">
       <div class="container">
         <h1 class="text-h3 q-mb-lg">
@@ -560,7 +561,11 @@ const onSubmit = async () => {
           </div>
           <div class="form-actions">
             <div class="action-buttons">
-              <Button variant="tertiary" :label="t('eventCreationForm.cancel')" @click="goToHome" />
+              <Button
+                variant="tertiary"
+                :label="t('eventCreationForm.cancel')"
+                @click="goToUserProfile(currentUserId!)"
+              />
               <Button
                 v-if="isEditMode"
                 :label="t('eventCreationForm.deleteEvent')"
