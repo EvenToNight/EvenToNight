@@ -4,5 +4,4 @@ export interface MediaGetResponse {
 
 export interface MediaAPI {
   get(url: string): Promise<MediaGetResponse>
-  buildLink(url: string): string
 }

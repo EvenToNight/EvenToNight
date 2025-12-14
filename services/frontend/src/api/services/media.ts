@@ -1,12 +1,10 @@
-import type { ApiClient } from '../client'
 import type { MediaAPI, MediaGetResponse } from '../interfaces/media'
 
-export const createMediaApi = (mediaClient: ApiClient): MediaAPI => ({
+export const mediaApi: MediaAPI = {
   async get(url: string): Promise<MediaGetResponse> {
-    const file = await mediaClient.getFile(url)
-    return { file }
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const filename = url.split('/').pop() || `media-file`
+    return { file: new File([blob], filename, { type: blob.type }) }
   },
-  buildLink(url: string): string {
-    return mediaClient.baseUrl + '/' + url
-  },
-})
+}

@@ -1,7 +1,6 @@
 import { mockEventsApi } from './mock-services/events'
 import { createEventsApi } from './services/events'
-import { mockMediaApi } from './mock-services/media'
-import { createMediaApi } from './services/media'
+import { mediaApi } from './services/media'
 import { mockFeedApi } from './mock-services/feed'
 // import { createFeedApi } from './services/feed'
 import { mockInteractionsApi } from './mock-services/interactions'
@@ -12,7 +11,6 @@ import {
   createEventsClient,
   // createFeedClient,
   // createInteractionsClient,
-  createMediaClient,
   // createUsersClient,
 } from './client'
 
@@ -21,7 +19,7 @@ console.log('Using real API:', useRealApi)
 
 export const api = {
   events: useRealApi ? createEventsApi(createEventsClient()) : mockEventsApi,
-  media: useRealApi ? createMediaApi(createMediaClient()) : mockMediaApi,
+  media: mediaApi,
   feed: mockFeedApi,
   interactions: mockInteractionsApi,
   users: mockUsersApi,
