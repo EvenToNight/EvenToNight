@@ -50,13 +50,13 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
     repo.findById(cmd.id_event) match
       case Some(event) =>
         val updatedEvent = event.copy(
-          title = cmd.title.getOrElse(event.title),
-          description = cmd.description.getOrElse(event.description),
-          tags = cmd.tags.getOrElse(event.tags),
-          location = cmd.location.getOrElse(event.location),
-          date = cmd.date.getOrElse(event.date),
-          price = cmd.price.getOrElse(event.price),
-          status = cmd.status.getOrElse(event.status),
+          title = cmd.title,
+          description = cmd.description,
+          tags = cmd.tags,
+          location = cmd.location,
+          date = cmd.date,
+          price = cmd.price,
+          status = cmd.status,
           id_collaborators = cmd.id_collaborators.orElse(event.id_collaborators)
         )
         repo.update(updatedEvent) match
@@ -87,16 +87,31 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
     repo.findById(cmd.id_event) match
       case None =>
         Left(s"Event with id ${cmd.id_event} not found")
-      case Some(_) =>
-        repo.delete(cmd.id_event) match
-          case Left(_) =>
-            Left(s"Failed to delete event with id ${cmd.id_event}")
-          case Right(_) =>
-            publisher.publish(
-              EventDeleted(
-                id = UUID.randomUUID().toString(),
-                timestamp = Instant.now(),
-                id_event = cmd.id_event
-              )
-            )
-            Right(())
+      case Some(event) =>
+        event.status match
+          case EventStatus.PUBLISHED =>
+            repo.update(event.copy(status = EventStatus.CANCELLED)) match
+              case Left(_) =>
+                Left(s"Failed to cancel event with id ${cmd.id_event}")
+              case Right(_) =>
+                publisher.publish(
+                  EventDeleted(
+                    id = UUID.randomUUID().toString(),
+                    timestamp = Instant.now(),
+                    id_event = cmd.id_event
+                  )
+                )
+                Right(())
+          case _ =>
+            repo.delete(cmd.id_event) match
+              case Left(_) =>
+                Left(s"Failed to delete event with id ${cmd.id_event}")
+              case Right(_) =>
+                publisher.publish(
+                  EventDeleted(
+                    id = UUID.randomUUID().toString(),
+                    timestamp = Instant.now(),
+                    id_event = cmd.id_event
+                  )
+                )
+                Right(())

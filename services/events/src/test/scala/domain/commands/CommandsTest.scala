@@ -19,14 +19,14 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     baseDate = LocalDateTime.of(2025, 12, 31, 20, 0)
     sampleTags = List(EventTag.TypeOfEvent.Party, EventTag.VenueType.Club)
     sampleLocation = Location.create(
-      country = "Test Country",
-      country_code = "TC",
-      road = "Test Road",
-      postcode = "12345",
-      house_number = "10A",
-      lat = 45.0,
-      lon = 90.0,
-      link = "http://example.com/location"
+      country = Some("Test Country"),
+      country_code = Some("TC"),
+      road = Some("Test Road"),
+      postcode = Some("12345"),
+      house_number = Some("10A"),
+      lat = Some(45.0),
+      lon = Some(90.0),
+      link = Some("http://example.com/location")
     )
 
   private def createCommand(
@@ -34,13 +34,13 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_collaborators: Option[List[String]] = Some(List("collaborator-456"))
   ): CreateEventCommand =
     CreateEventCommand(
-      title,
-      "Test description",
-      "poster.jpg",
-      sampleTags,
-      sampleLocation,
-      baseDate,
-      15.0,
+      Some(title),
+      Some("Test description"),
+      Some("poster.jpg"),
+      Some(sampleTags),
+      Some(sampleLocation),
+      Some(baseDate),
+      Some(15.0),
       EventStatus.DRAFT,
       "creator-123",
       id_collaborators
@@ -66,7 +66,10 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       endDate = Some(baseDate.plusDays(10)),
       id_organization = Some("org-456"),
       city = Some("Sample City"),
-      location_name = Some("Sample Venue")
+      location_name = Some("Sample Venue"),
+      priceRange = Some((10.0, 50.0)),
+      sortBy = Some("date"),
+      sortOrder = Some("asc")
     )
 
   "CreateEventDraftCommand" should "implement Commands trait" in:
@@ -76,22 +79,35 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store properties correctly" in:
     val command = createCommand("Custom Title", None)
-    command.title shouldBe "Custom Title"
+    command.title shouldBe Some("Custom Title")
     command.id_collaborators shouldBe None
-    command.tags shouldBe sampleTags
-    command.location shouldBe sampleLocation
-    command.date shouldBe baseDate
+    command.tags shouldBe Some(sampleTags)
+    command.location shouldBe Some(sampleLocation)
+    command.date shouldBe Some(baseDate)
+
+  it should "handle optional fields correctly" in:
+    val command = CreateEventCommand(status = EventStatus.DRAFT, id_creator = "creator-999")
+    command.title shouldBe None
+    command.description shouldBe None
+    command.poster shouldBe None
+    command.tags shouldBe None
+    command.location shouldBe None
+    command.date shouldBe None
+    command.price shouldBe None
+    command.status shouldBe EventStatus.DRAFT
+    command.id_creator shouldBe "creator-999"
+    command.id_collaborators shouldBe None
 
   it should "support pattern matching" in:
     val command: Commands = createCommand("Pattern Test")
     val result = command match
-      case CreateEventCommand(title, _, _, _, _, _, _, _, _, _)   => s"Command: $title"
-      case GetEventCommand(id_event)                              => s"Get Command: $id_event"
-      case UpdateEventPosterCommand(id_event, posterUrl)          => s"Update Poster Command: $id_event"
-      case GetAllEventsCommand()                                  => "Get All Events Command"
-      case UpdateEventCommand(id, _, _, _, _, _, _, _, _)         => s"Update $id Event Command"
-      case DeleteEventCommand(id_event)                           => s"Delete Command: $id_event"
-      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
+      case CreateEventCommand(title, _, _, _, _, _, _, _, _, _)            => "Command: " + title.getOrElse("No Title")
+      case GetEventCommand(id_event)                                       => s"Get Command: $id_event"
+      case UpdateEventPosterCommand(id_event, posterUrl)                   => s"Update Poster Command: $id_event"
+      case GetAllEventsCommand()                                           => "Get All Events Command"
+      case UpdateEventCommand(id, _, _, _, _, _, _, _, _)                  => s"Update $id Event Command"
+      case DeleteEventCommand(id_event)                                    => s"Delete Command: $id_event"
+      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:
@@ -127,7 +143,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       location = None,
       date = None,
       price = Some(20.0),
-      status = Some(EventStatus.PUBLISHED),
+      status = EventStatus.PUBLISHED,
       id_collaborators = Some(List("collaborator-789"))
     )
     command shouldBe a[Commands]
@@ -142,7 +158,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       location = Some(sampleLocation),
       date = Some(baseDate.plusDays(5)),
       price = Some(30.0),
-      status = Some(EventStatus.CANCELLED),
+      status = EventStatus.CANCELLED,
       id_collaborators = None
     )
     command.id_event shouldBe "event-654"
@@ -152,7 +168,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.location shouldBe Some(sampleLocation)
     command.date shouldBe Some(baseDate.plusDays(5))
     command.price shouldBe Some(30.0)
-    command.status shouldBe Some(EventStatus.CANCELLED)
+    command.status shouldBe EventStatus.CANCELLED
     command.id_collaborators shouldBe None
 
   "DeleteEventCommand" should "implement Commands trait" in:

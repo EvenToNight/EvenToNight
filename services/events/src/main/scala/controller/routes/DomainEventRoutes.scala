@@ -1,7 +1,7 @@
 package controller.routes
 
 import cask.Routes
-import domain.commands.{DeleteEventCommand, UpdateEventPosterCommand}
+import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventPosterCommand}
 import domain.models.EventStatus
 import service.EventService
 import ujson.Obj
@@ -15,8 +15,8 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
   @cask.postForm("/")
   def createEvent(poster: cask.FormFile = null, event: String): cask.Response[ujson.Value] =
     try
-      val command   = Utils.getCreateCommandFromJson(event)
-      val posterOpt = Option(poster)
+      val command: CreateEventCommand = Utils.getCreateCommandFromJson(event)
+      val posterOpt                   = Option(poster)
       val posterValidation = (command.status, posterOpt) match
         case (status, None) if status != EventStatus.DRAFT =>
           Left("Poster is required for events with status other than DRAFT")

@@ -114,7 +114,7 @@ const loadEvent = async () => {
     tags.value = event.tags ?? []
     collaborators.value = event.id_collaborators ?? []
     console.log(event.location)
-    if (validateLocation(event.location)) {
+    if (event.location && validateLocation(event.location)) {
       console.log('Valid location:', event.location)
       location.value = {
         label: buildLocationDisplayName(event.location),

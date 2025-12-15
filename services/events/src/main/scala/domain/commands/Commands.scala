@@ -6,16 +6,16 @@ import java.time.LocalDateTime
 sealed trait Commands
 
 case class CreateEventCommand(
-    title: String,
-    description: String,
-    poster: String,
-    tags: List[EventTag],
-    location: Location,
-    date: LocalDateTime,
-    price: Double,
+    title: Option[String] = None,
+    description: Option[String] = None,
+    poster: Option[String] = None,
+    tags: Option[List[EventTag]] = None,
+    location: Option[Location] = None,
+    date: Option[LocalDateTime] = None,
+    price: Option[Double] = None,
     status: EventStatus,
     id_creator: String,
-    id_collaborators: Option[List[String]]
+    id_collaborators: Option[List[String]] = None
 ) extends Commands
 
 case class UpdateEventPosterCommand(
@@ -37,7 +37,7 @@ case class UpdateEventCommand(
     location: Option[Location],
     date: Option[LocalDateTime],
     price: Option[Double],
-    status: Option[EventStatus],
+    status: EventStatus,
     id_collaborators: Option[List[String]]
 ) extends Commands
 
@@ -55,5 +55,8 @@ case class GetFilteredEventsCommand(
     endDate: Option[LocalDateTime],
     id_organization: Option[String],
     city: Option[String],
-    location_name: Option[String]
+    location_name: Option[String],
+    priceRange: Option[(Double, Double)],
+    sortBy: Option[String],
+    sortOrder: Option[String]
 ) extends Commands

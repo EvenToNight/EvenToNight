@@ -14,26 +14,26 @@ object Utils:
   val MAX_LIMIT: Int       = 20
   val DEFAULT_DATE: String = "2027-01-01T00:00:00"
 
-  def parseLocationFromJson(locationJson: String): Location =
+  def parseLocationFromJson(locationJson: String): Option[Location] =
     Try {
       val json = ujson.read(locationJson)
       Location(
-        name = json.obj.get("name").map(_.str).getOrElse(""),
-        country = json.obj.get("country").map(_.str).getOrElse(""),
-        country_code = json.obj.get("country_code").map(_.str).getOrElse(""),
-        state = json.obj.get("state").map(_.str).getOrElse(""),
-        province = json.obj.get("province").map(_.str).getOrElse(""),
-        city = json.obj.get("city").map(_.str).getOrElse(""),
-        road = json.obj.get("road").map(_.str).getOrElse(""),
-        postcode = json.obj.get("postcode").map(_.str).getOrElse(""),
-        house_number = json.obj.get("house_number").map(_.str).getOrElse(""),
-        lat = json.obj.get("lat").map(_.num).getOrElse(0.0),
-        lon = json.obj.get("lon").map(_.num).getOrElse(0.0),
-        link = json.obj.get("link").map(_.str).getOrElse("")
+        name = json.obj.get("name").map(_.str),
+        country = json.obj.get("country").map(_.str),
+        country_code = json.obj.get("country_code").map(_.str),
+        state = json.obj.get("state").map(_.str),
+        province = json.obj.get("province").map(_.str),
+        city = json.obj.get("city").map(_.str),
+        road = json.obj.get("road").map(_.str),
+        postcode = json.obj.get("postcode").map(_.str),
+        house_number = json.obj.get("house_number").map(_.str),
+        lat = json.obj.get("lat").map(_.num),
+        lon = json.obj.get("lon").map(_.num),
+        link = json.obj.get("link").map(_.str)
       )
     } match
-      case Success(locality) => locality
-      case Failure(_)        => println("Failed to parse location JSON"); Location.Nil()
+      case Success(location) => Some(location)
+      case Failure(_)        => println("Failed to parse location JSON"); None
 
   def uploadPosterToMediaService(id_event: String, posterOpt: Option[cask.FormFile], mediaServiceUrl: String): String =
     def defaultUrl = "events/default.jpg"
@@ -66,21 +66,21 @@ object Utils:
   def getCreateCommandFromJson(event: String): CreateEventCommand =
     val eventData = ujson.read(event)
 
-    val title            = eventData.obj.get("title").map(_.str).getOrElse("")
-    val description      = eventData.obj.get("description").map(_.str).getOrElse("")
-    val tags             = validateTagList(eventData.obj.get("tags").map(_.toString()).getOrElse("[]"))
-    val locationData     = eventData.obj.get("location").getOrElse(ujson.Obj())
-    val location         = parseLocationFromJson(locationData.toString())
-    val date             = LocalDateTime.parse(eventData.obj.get("date").map(_.str).getOrElse(DEFAULT_DATE))
-    val price            = eventData.obj.get("price").map(_.num).getOrElse(0.0)
-    val status           = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
-    val id_creator       = eventData("id_creator").str
-    val id_collaborators = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
+    val title: Option[String]        = eventData.obj.get("title").map(_.str)
+    val description: Option[String]  = eventData.obj.get("description").map(_.str)
+    val tags: Option[List[EventTag]] = validateTagList(eventData.obj.get("tags").map(_.toString()).getOrElse(""))
+    val location: Option[Location] = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString())).flatten
+    val date: Option[LocalDateTime] = eventData.obj.get("date") match
+      case Some(d) => Some(LocalDateTime.parse(d.str))
+      case None    => None
+    val price: Option[Double] = eventData.obj.get("price").map(_.num)
+    val status                = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
+    val id_creator            = eventData("id_creator").str
+    val id_collaborators      = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
     CreateEventCommand(
       title = title,
       description = description,
-      poster = "",
       tags = tags,
       location = location,
       date = date,
@@ -95,11 +95,11 @@ object Utils:
 
     val title            = eventData.obj.get("title").map(_.str).filter(_.nonEmpty)
     val description      = eventData.obj.get("description").map(_.str).filter(_.nonEmpty)
-    val tags             = eventData.obj.get("tags").map(t => validateTagList(t.toString()))
-    val location         = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString()))
+    val tags             = eventData.obj.get("tags").map(t => validateTagList(t.toString())).flatten
+    val location         = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString())).flatten
     val date             = eventData.obj.get("date").map(d => LocalDateTime.parse(d.str))
     val price            = eventData.obj.get("price").map(_.num)
-    val status           = eventData.obj.get("status").flatMap(s => EventStatus.withNameOpt(s.str))
+    val status           = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
     val id_collaborators = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
     UpdateEventCommand(
@@ -118,7 +118,7 @@ object Utils:
     eventDate.isBefore(LocalDateTime.now())
 
   def updateEventIfPastDate(event: Event): Event =
-    if pastDate(event.date) && event.status != EventStatus.COMPLETED then
+    if event.date.exists(pastDate) && event.status != EventStatus.COMPLETED then
       event.copy(status = EventStatus.COMPLETED)
     else
       event
@@ -133,9 +133,14 @@ object Utils:
       endDate: Option[String],
       id_organization: Option[String],
       city: Option[String],
-      location_name: Option[String]
+      location_name: Option[String],
+      priceMin: Option[Double],
+      priceMax: Option[Double],
+      sortBy: Option[String],
+      sortOrder: Option[String]
   ): GetFilteredEventsCommand =
-    val parsedStatus: Option[EventStatus]  = status.flatMap(s => EventStatus.withNameOpt(s))
+    val parsedStatus: Option[EventStatus] =
+      status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
     val parsedTags: Option[List[EventTag]] = tags.map(_.map(t => EventTag.fromString(t)))
     val parsedStartDate: Option[LocalDateTime] = startDate.flatMap { sd =>
       Try(LocalDateTime.parse(sd)).toOption
@@ -144,6 +149,17 @@ object Utils:
       Try(LocalDateTime.parse(ed)).toOption
     }
     val limitValue = math.min(limit.getOrElse(DEFAULT_LIMIT), MAX_LIMIT)
+    val priceRange = (priceMin, priceMax) match
+      case (Some(min), Some(max)) => Some((min, max))
+      case (Some(min), None)      => Some((min, Double.MaxValue))
+      case (None, Some(max))      => Some((0.0, max))
+      case _                      => None
+    val validSortBy = sortBy.filter(s =>
+      Set("date", "price", "instant").contains(s.toLowerCase)
+    ).orElse(Some("date"))
+    val validSortOrder = sortOrder.filter(o =>
+      Set("asc", "desc").contains(o.toLowerCase)
+    ).map(_.toLowerCase).orElse(Some("asc"))
     GetFilteredEventsCommand(
       limit = Some(limitValue),
       offset = offset,
@@ -154,7 +170,10 @@ object Utils:
       endDate = parsedEndDate,
       id_organization = id_organization,
       city = city,
-      location_name = location_name
+      location_name = location_name,
+      priceRange = priceRange,
+      sortBy = validSortBy,
+      sortOrder = validSortOrder
     )
 
   def createPaginatedResponse(
@@ -163,9 +182,10 @@ object Utils:
       offset: Option[Int] = None,
       hasMore: Boolean
   ): ujson.Obj =
+    val limitValue = math.min(limit.getOrElse(DEFAULT_LIMIT), MAX_LIMIT)
     ujson.Obj(
-      "events"  -> ujson.Arr(events.map(_.toJson)*),
-      "limit"   -> limit.getOrElse(DEFAULT_LIMIT),
+      "items"   -> ujson.Arr(events.map(_.toJson)*),
+      "limit"   -> limitValue,
       "offset"  -> offset.getOrElse(0),
       "hasMore" -> hasMore
     )

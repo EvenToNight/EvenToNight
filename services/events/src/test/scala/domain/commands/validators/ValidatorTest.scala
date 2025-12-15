@@ -21,17 +21,17 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   private val pastDate: LocalDateTime = LocalDateTime.now().minusDays(1)
 
   private def validCreateEventCommand(
-      title: String = "Valid Title",
+      title: Option[String] = Some("Valid Title"),
       description: String = "Valid Description",
       location: Location = Location.create(
-        country = "Valid Country",
-        country_code = "VC",
-        road = "Valid Road",
-        postcode = "12345",
-        house_number = "1A",
-        lat = 10.0,
-        lon = 20.0,
-        link = "http://valid-link.com"
+        country = Some("Valid Country"),
+        country_code = Some("VC"),
+        road = Some("Valid Road"),
+        postcode = Some("12345"),
+        house_number = Some("1A"),
+        lat = Some(10.0),
+        lon = Some(20.0),
+        link = Some("http://valid-link.com")
       ),
       date: LocalDateTime = LocalDateTime.now().plusDays(10),
       price: Double = 20.0,
@@ -40,12 +40,12 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   ): CreateEventCommand =
     CreateEventCommand(
       title = title,
-      description = description,
-      poster = "valid-poster.jpg",
-      tags = List(EventTag.VenueType.Bar),
-      location = location,
-      date = date,
-      price = price,
+      description = Some(description),
+      poster = Some("valid-poster.jpg"),
+      tags = Some(List(EventTag.VenueType.Bar)),
+      location = Some(location),
+      date = Some(date),
+      price = Some(price),
       status = status,
       id_creator = id_creator,
       id_collaborators = None
@@ -61,7 +61,10 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       endDate: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(30)),
       id_organization: Option[String] = Some("org-123"),
       city: Option[String] = Some("Sample City"),
-      location_name: Option[String] = Some("Sample Venue")
+      location_name: Option[String] = Some("Sample Venue"),
+      priceRange: Option[(Double, Double)] = Some((10.0, 100.0)),
+      sortBy: Option[String] = Some("date"),
+      sortOrder: Option[String] = Some("asc")
   ): GetFilteredEventsCommand =
     GetFilteredEventsCommand(
       limit = limit,
@@ -73,7 +76,10 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       endDate = endDate,
       id_organization = id_organization,
       city = city,
-      location_name = location_name
+      location_name = location_name,
+      priceRange = priceRange,
+      sortBy = sortBy,
+      sortOrder = sortOrder
     )
 
   "CreateEventValidator" should "extends Validator trait" in:
@@ -87,7 +93,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     result shouldBe Right(command)
 
   "CreateEventValidator with Draft status" should "accept empty title" in:
-    val command = validCreateEventCommand(title = "")
+    val command = validCreateEventCommand(title = None)
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Right[?, ?]]
@@ -118,7 +124,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     result shouldBe a[Right[?, ?]]
 
   "CreateEventValidator with Published status" should "reject empty title" in:
-    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, title = "")
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, title = None)
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
@@ -154,7 +160,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "collect multiple validation errors" in:
     val command = validCreateEventCommand(
-      title = "",
+      title = None,
       description = "",
       location = Location.Nil(),
       date = pastDate,
@@ -226,17 +232,63 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     validator shouldBe a[Validator[UpdateEventCommand]]
 
   it should "validate valid command successfully" in:
-    val command = UpdateEventCommand("valid-event-123", Some("Updated Title"), None, None, None, None, None, None, None)
-    val result  = UpdateEventValidator.validate(command)
+    val command = UpdateEventCommand(
+      "valid-event-123",
+      Some("Updated Title"),
+      None,
+      None,
+      None,
+      None,
+      None,
+      EventStatus.DRAFT,
+      None
+    )
+    val result = UpdateEventValidator.validate(command)
 
     result shouldBe Right(command)
 
   it should "reject empty event ID" in:
     import domain.commands.UpdateEventCommand
-    val command = UpdateEventCommand("", Some("Updated Title"), None, None, None, None, None, None, None)
+    val command = UpdateEventCommand("", Some("Updated Title"), None, None, None, None, None, EventStatus.DRAFT, None)
     val result  = UpdateEventValidator.validate(command)
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Event ID cannot be empty")
+
+  it should "reject empty title when status is Published" in:
+    val command = UpdateEventCommand("valid-event-123", None, None, None, None, None, None, EventStatus.PUBLISHED, None)
+    val result  = UpdateEventValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Title cannot be empty")
+
+  it should "reject empty description when status is Published" in:
+    val command = UpdateEventCommand(
+      "valid-event-123",
+      Some("Updated Title"),
+      None,
+      None,
+      None,
+      None,
+      None,
+      EventStatus.PUBLISHED,
+      None
+    )
+    val result = UpdateEventValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Description cannot be empty")
+
+  it should "collect multiple validation errors when status is Published" in:
+    val command = UpdateEventCommand("valid-event-123", None, None, None, None, None, None, EventStatus.PUBLISHED, None)
+    val result  = UpdateEventValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    val errors = result.left.value
+    errors should have length 5
+    errors should contain allOf (
+      "Title cannot be empty",
+      "Description cannot be empty",
+      "Price cannot be empty",
+      "Location has invalid parameters",
+      "Date must be in the future"
+    )
 
   "DeleteEventValidator" should "extend Validator trait" in:
     val validator = DeleteEventValidator
@@ -285,3 +337,15 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val result = GetFilteredEventsValidator.validate(command)
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Date range: start date must be before end date")
+
+  it should "reject negative prices in price range" in:
+    val command = validGetFilteredEventsCommand(priceRange = Some((-10.0, 50.0)))
+    val result  = GetFilteredEventsValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Price range: prices cannot be negative")
+
+  it should "reject min greater than max in price range" in:
+    val command = validGetFilteredEventsCommand(priceRange = Some((100.0, 50.0)))
+    val result  = GetFilteredEventsValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Price range: minimum price must be less than or equal to maximum price")

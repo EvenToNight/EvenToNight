@@ -19,13 +19,6 @@ export interface EventsDataResponse {
   events: Event[]
 }
 
-export interface EventPaginatedResponse {
-  events: Event[]
-  limit: number
-  offset: number
-  hasMore: boolean
-}
-
 export interface EventAPI {
   getTags(): Promise<GetTagResponse>
   getEventById(id_event: EventID): Promise<GetEventByIdResponse>

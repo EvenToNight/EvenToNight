@@ -28,20 +28,20 @@ class UtilsTest extends AnyFlatSpec with Matchers:
 
     val location = Utils.parseLocationFromJson(validJson)
 
-    location.name shouldBe "La Scala"
-    location.country shouldBe "Italy"
-    location.country_code shouldBe "IT"
-    location.state shouldBe "Lombardy"
-    location.province shouldBe "Milan"
-    location.city shouldBe "Milano"
-    location.road shouldBe "Via della Scala"
-    location.postcode shouldBe "20121"
-    location.house_number shouldBe "3"
-    location.lat shouldBe 45.4654
-    location.lon shouldBe 9.1859
-    location.link shouldBe "https://www.teatroallascala.org"
+    location.get.name.get shouldBe "La Scala"
+    location.get.country.get shouldBe "Italy"
+    location.get.country_code.get shouldBe "IT"
+    location.get.state.get shouldBe "Lombardy"
+    location.get.province.get shouldBe "Milan"
+    location.get.city.get shouldBe "Milano"
+    location.get.road.get shouldBe "Via della Scala"
+    location.get.postcode.get shouldBe "20121"
+    location.get.house_number.get shouldBe "3"
+    location.get.lat.get shouldBe 45.4654
+    location.get.lon.get shouldBe 9.1859
+    location.get.link.get shouldBe "https://www.teatroallascala.org"
 
-  it should "parse JSON with missing fields using defaults" in:
+  it should "parse JSON with missing fields" in:
     val partialJson = """{
       "country": "Spain",
       "lat": 40.4168,
@@ -50,41 +50,38 @@ class UtilsTest extends AnyFlatSpec with Matchers:
 
     val location = Utils.parseLocationFromJson(partialJson)
 
-    location.country shouldBe "Spain"
-    location.lat shouldBe 40.4168
-    location.lon shouldBe -3.7038
-    location.name shouldBe ""
-    location.city shouldBe ""
-    location.postcode shouldBe ""
+    location.get.country shouldBe Some("Spain")
+    location.get.lat shouldBe Some(40.4168)
+    location.get.lon shouldBe Some(-3.7038)
+    location.get.name shouldBe None
+    location.get.city shouldBe None
+    location.get.postcode shouldBe None
 
   it should "handle empty JSON object" in:
     val emptyJson = "{}"
 
     val location = Utils.parseLocationFromJson(emptyJson)
 
-    location.name shouldBe ""
-    location.country shouldBe ""
-    location.lat shouldBe 0.0
-    location.lon shouldBe 0.0
+    location shouldBe Some(Location.Nil())
 
-  it should "handle invalid JSON and return Location.Nil()" in:
+  it should "handle invalid JSON and return None" in:
     val invalidJson = "{ invalid json structure"
 
     val location = Utils.parseLocationFromJson(invalidJson)
 
-    location shouldBe Location.Nil()
+    location shouldBe None
 
-  it should "handle non-JSON string and return Location.Nil()" in:
+  it should "handle non-JSON string and return None" in:
     val notJson = "this is not json at all"
 
     val location = Utils.parseLocationFromJson(notJson)
 
-    location shouldBe Location.Nil()
+    location shouldBe None
 
-  it should "handle empty string and return Location.Nil()" in:
+  it should "handle empty string and return None" in:
     val location = Utils.parseLocationFromJson("")
 
-    location shouldBe Location.Nil()
+    location shouldBe None
 
   "Utils.uploadPosterToMediaService" should "return default URL when FormFile has no filePath" in:
     val id_event            = "test-event-123"
@@ -171,13 +168,13 @@ class UtilsTest extends AnyFlatSpec with Matchers:
 
     val command = Utils.getCreateCommandFromJson(validJson)
 
-    command.title shouldBe "Sample Event"
-    command.description shouldBe "This is a sample event."
-    command.tags should contain allElementsOf List(EventTag.VenueType.Bar, EventTag.MusicGenre.Indie)
-    command.location.country shouldBe "USA"
-    command.date shouldBe java.time.LocalDateTime.parse("2025-11-15T19:30:00")
-    command.price shouldBe 20.0
-    command.status shouldBe domain.models.EventStatus.DRAFT
+    command.title shouldBe Some("Sample Event")
+    command.description shouldBe Some("This is a sample event.")
+    command.tags.get should contain allElementsOf List(EventTag.VenueType.Bar, EventTag.MusicGenre.Indie)
+    command.location.get.country shouldBe Some("USA")
+    command.date shouldBe Some(java.time.LocalDateTime.parse("2025-11-15T19:30:00"))
+    command.price shouldBe Some(20.0)
+    command.status shouldBe EventStatus.DRAFT
     command.id_creator shouldBe "creator-001"
     command.id_collaborators shouldBe Some(List("collab-001"))
 
@@ -202,13 +199,13 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "id_creator": "creator-002"
     }"""
     val command     = Utils.getCreateCommandFromJson(partialJson)
-    command.title shouldBe "Partial Event"
-    command.description shouldBe "This event has missing optional fields."
-    command.tags should contain(EventTag.TypeOfEvent.Concert)
-    command.location.country shouldBe "UK"
-    command.date shouldBe java.time.LocalDateTime.parse("2025-12-01T" + "10:00:00")
-    command.price shouldBe 0.0
-    command.status shouldBe domain.models.EventStatus.PUBLISHED
+    command.title shouldBe Some("Partial Event")
+    command.description shouldBe Some("This event has missing optional fields.")
+    command.tags.get should contain(EventTag.TypeOfEvent.Concert)
+    command.location.get.country shouldBe Some("UK")
+    command.date shouldBe Some(java.time.LocalDateTime.parse("2025-12-01T" + "10:00:00"))
+    command.price shouldBe Some(0.0)
+    command.status shouldBe EventStatus.PUBLISHED
     command.id_creator shouldBe "creator-002"
     command.id_collaborators shouldBe None
 
@@ -256,27 +253,28 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.title shouldBe Some("Updated Event Title")
     command.description shouldBe Some("Updated description.")
     command.tags.getOrElse(List()) should contain allElementsOf List(EventTag.VenueType.Club, EventTag.MusicGenre.Rock)
-    command.location.map(_.country) shouldBe Some("Canada")
+    command.location.map(_.country).flatten shouldBe Some("Canada")
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-01-20T18:00:00"))
     command.price shouldBe Some(30.0)
-    command.status shouldBe Some(domain.models.EventStatus.CANCELLED)
+    command.status shouldBe EventStatus.CANCELLED
     command.id_collaborators shouldBe Some(List("collab-002"))
 
   it should "handle JSON with missing optional fields" in:
     val partialJson = """{
       "title": "Partially Updated Title",
       "tags": ["Concert"],
-      "date": "2026-02-10T12:00:00"
+      "date": "2026-02-10T12:00:00",
+      "status": "DRAFT"
     }"""
     val command     = Utils.getUpdateCommandFromJson("event-456", partialJson)
     command.id_event shouldBe "event-456"
     command.title shouldBe Some("Partially Updated Title")
     command.description shouldBe None
-    command.tags.getOrElse(List()) should contain(EventTag.TypeOfEvent.Concert)
+    command.tags.get should contain(EventTag.TypeOfEvent.Concert)
     command.location shouldBe None
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-02-10" + "T12:00:00"))
     command.price shouldBe None
-    command.status shouldBe None
+    command.status shouldBe EventStatus.DRAFT
     command.id_collaborators shouldBe None
 
   it should "throw on invalid JSON for UpdateEventCommand" in:
@@ -299,13 +297,13 @@ class UtilsTest extends AnyFlatSpec with Matchers:
   "Utils.updateEventIfPastDate" should "update event status to COMPLETED if date is in the past" in:
     val pastEvent = Event(
       _id = "event-past",
-      title = "Past Event",
-      description = "This event is in the past.",
-      poster = "past.jpg",
-      tags = List(EventTag.TypeOfEvent.Concert),
-      location = Location.Nil(),
-      date = java.time.LocalDateTime.now().minusDays(5),
-      price = 10.0,
+      title = Some("Past Event"),
+      description = Some("This event is in the past."),
+      poster = Some("past.jpg"),
+      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      location = None,
+      date = Some(java.time.LocalDateTime.now().minusDays(5)),
+      price = Some(10.0),
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
       id_creator = "creator-past",
@@ -319,13 +317,13 @@ class UtilsTest extends AnyFlatSpec with Matchers:
   it should "not change event status if date is in the future" in:
     val futureEvent = Event(
       _id = "event-future",
-      title = "Future Event",
-      description = "This event is in the future.",
-      poster = "future.jpg",
-      tags = List(EventTag.TypeOfEvent.Concert),
-      location = Location.Nil(),
-      date = java.time.LocalDateTime.now().plusDays(10),
-      price = 15.0,
+      title = Some("Future Event"),
+      description = Some("This event is in the future."),
+      poster = Some("future.jpg"),
+      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      location = None,
+      date = Some(java.time.LocalDateTime.now().plusDays(10)),
+      price = Some(15.0),
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
       id_creator = "creator-future",
@@ -337,13 +335,13 @@ class UtilsTest extends AnyFlatSpec with Matchers:
   it should "not change event status if already COMPLETED" in:
     val completedEvent = Event(
       _id = "event-completed",
-      title = "Completed Event",
-      description = "This event is already completed.",
-      poster = "completed.jpg",
-      tags = List(EventTag.TypeOfEvent.Party),
-      location = Location.Nil(),
-      date = java.time.LocalDateTime.now().minusDays(15),
-      price = 20.0,
+      title = Some("Completed Event"),
+      description = Some("This event is already completed."),
+      poster = Some("completed.jpg"),
+      tags = Some(List(EventTag.TypeOfEvent.Party)),
+      location = None,
+      date = Some(java.time.LocalDateTime.now().minusDays(15)),
+      price = Some(20.0),
       status = EventStatus.COMPLETED,
       instant = java.time.Instant.now(),
       id_creator = "creator-completed",
@@ -363,7 +361,11 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       endDate = Some("2025-12-31T23:59:59"),
       id_organization = Some("123"),
       city = Some("New York"),
-      location_name = Some("Madison Square Garden")
+      location_name = Some("Madison Square Garden"),
+      priceMin = Some(10.0),
+      priceMax = Some(50.0),
+      sortBy = Some("date"),
+      sortOrder = Some("asc")
     )
     commands.title shouldBe Some("Music Fest")
     commands.tags.getOrElse(List()) should contain allElementsOf List(
@@ -376,6 +378,11 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.id_organization shouldBe Some("123")
     commands.city shouldBe Some("New York")
     commands.location_name shouldBe Some("Madison Square Garden")
+    commands.limit shouldBe Some(2)
+    commands.offset shouldBe Some(5)
+    commands.priceRange shouldBe Some((10.0, 50.0))
+    commands.sortBy shouldBe Some("date")
+    commands.sortOrder shouldBe Some("asc")
 
   it should "handle missing filter parameters" in:
     val commands = Utils.parseEventFilters(
@@ -388,7 +395,11 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       endDate = None,
       id_organization = Some("123"),
       city = None,
-      location_name = Some("Madison Square Garden")
+      location_name = Some("Madison Square Garden"),
+      priceMin = None,
+      priceMax = None,
+      sortBy = None,
+      sortOrder = None
     )
     commands.limit shouldBe Some(2)
     commands.offset shouldBe Some(5)
@@ -397,12 +408,15 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       EventTag.TypeOfEvent.Concert,
       EventTag.MusicGenre.Rock
     )
-    commands.status shouldBe None
+    commands.status shouldBe Some(EventStatus.PUBLISHED)
     commands.startDate shouldBe None
     commands.endDate shouldBe None
     commands.id_organization shouldBe Some("123")
     commands.city shouldBe None
     commands.location_name shouldBe Some("Madison Square Garden")
+    commands.priceRange shouldBe None
+    commands.sortBy shouldBe Some("date")
+    commands.sortOrder shouldBe Some("asc")
 
   it should "handle all filter parameters missing" in:
     val commands = Utils.parseEventFilters(
@@ -415,30 +429,75 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       endDate = None,
       id_organization = None,
       city = None,
-      location_name = None
+      location_name = None,
+      priceMin = None,
+      priceMax = None,
+      sortBy = None,
+      sortOrder = None
     )
     commands.limit shouldBe Some(Utils.DEFAULT_LIMIT)
     commands.offset shouldBe None
     commands.title shouldBe None
     commands.tags shouldBe None
-    commands.status shouldBe None
+    commands.status shouldBe Some(EventStatus.PUBLISHED)
     commands.startDate shouldBe None
     commands.endDate shouldBe None
     commands.id_organization shouldBe None
     commands.city shouldBe None
     commands.location_name shouldBe None
+    commands.priceRange shouldBe None
+    commands.sortBy shouldBe Some("date")
+    commands.sortOrder shouldBe Some("asc")
+
+  it should "handle null max price with min price provided" in:
+    val commands = Utils.parseEventFilters(
+      limit = None,
+      offset = None,
+      status = None,
+      title = None,
+      tags = None,
+      startDate = None,
+      endDate = None,
+      id_organization = None,
+      city = None,
+      location_name = None,
+      priceMin = Some(20.0),
+      priceMax = None,
+      sortBy = None,
+      sortOrder = None
+    )
+    commands.priceRange shouldBe Some((20.0, Double.MaxValue))
+
+  it should "handle null min price with max price provided" in:
+    val commands = Utils.parseEventFilters(
+      limit = None,
+      offset = None,
+      status = None,
+      title = None,
+      tags = None,
+      startDate = None,
+      endDate = None,
+      id_organization = None,
+      city = None,
+      location_name = None,
+      priceMin = None,
+      priceMax = Some(50.0),
+      sortBy = None,
+      sortOrder = None
+    )
+    commands.priceRange shouldBe Some((0.0, 50.0))
 
   "Utils.createPaginatedResponse" should "create correct paginated response JSON" in:
     val events = List(
       Event(
         _id = "event-1",
-        title = "Event One",
-        description = "First event",
-        poster = "event1.jpg",
-        tags = List(EventTag.TypeOfEvent.Concert),
-        location = Location.Nil(),
-        date = java.time.LocalDateTime.now().plusDays(1),
-        price = 10.0,
+        title = Some("Event One"),
+        description = Some("First event"),
+        poster = Some("event1.jpg"),
+        tags = Some(List(EventTag.TypeOfEvent.Concert)),
+        location = None,
+        date = Some(java.time.LocalDateTime.now().plusDays(1)),
+        price = Some(10.0),
         status = EventStatus.PUBLISHED,
         instant = java.time.Instant.now(),
         id_creator = "creator-1",
@@ -446,13 +505,13 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       ),
       Event(
         _id = "event-2",
-        title = "Event Two",
-        description = "Second event",
-        poster = "event2.jpg",
-        tags = List(EventTag.TypeOfEvent.Party),
-        location = Location.Nil(),
-        date = java.time.LocalDateTime.now().plusDays(2),
-        price = 15.0,
+        title = Some("Event Two"),
+        description = Some("Second event"),
+        poster = Some("event2.jpg"),
+        tags = Some(List(EventTag.TypeOfEvent.Party)),
+        location = None,
+        date = Some(java.time.LocalDateTime.now().plusDays(2)),
+        price = Some(15.0),
         status = EventStatus.PUBLISHED,
         instant = java.time.Instant.now(),
         id_creator = "creator-2",
@@ -462,7 +521,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
 
     val responseJson = Utils.createPaginatedResponse(events, Some(2), Some(0), hasMore = true)
 
-    responseJson("events").arr.length shouldBe 2
+    responseJson("items").arr.length shouldBe 2
     responseJson("limit").num shouldBe 2
     responseJson("offset").num shouldBe 0
     responseJson("hasMore").bool shouldBe true
@@ -470,7 +529,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
   it should "handle empty events list in paginated response" in:
     val events       = List.empty[Event]
     val responseJson = Utils.createPaginatedResponse(events, Some(10), Some(0), hasMore = false)
-    responseJson("events").arr.length shouldBe 0
+    responseJson("items").arr.length shouldBe 0
     responseJson("limit").num shouldBe 10
     responseJson("offset").num shouldBe 0
     responseJson("hasMore").bool shouldBe false

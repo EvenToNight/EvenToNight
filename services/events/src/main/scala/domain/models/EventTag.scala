@@ -83,11 +83,12 @@ object EventTag:
       .orElse(Extra.values.find(_.displayName.toLowerCase == value.toLowerCase))
       .getOrElse(new InvalidTag)
 
-  def validateTagList(tags: String): List[EventTag] =
+  def validateTagList(tags: String): Option[List[EventTag]] =
     val tagList =
       if tags.trim.startsWith("[") && tags.trim.endsWith("]") then
         ujson.read(tags).arr.map(_.str).toList
       else
         tags.split(",").map(_.trim).toList
     val eventTags = tagList.map(t => EventTag.fromString(t))
-    eventTags.filterNot(t => t.isInstanceOf[InvalidTag])
+    val validTags = eventTags.filterNot(t => t.isInstanceOf[InvalidTag])
+    if validTags.nonEmpty then Some(validTags) else None

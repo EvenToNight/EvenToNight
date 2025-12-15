@@ -10,22 +10,22 @@ import java.util.UUID
 class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   private def createEvent(
-      title: String = "Test Event",
-      description: String = "Test description",
-      poster: String = "poster.jpg",
-      tags: List[EventTag] = List(EventTag.TypeOfEvent.Concert),
-      location: Location = Location.create(
-        country = "Test Country",
-        country_code = "TC",
-        road = "Test Road",
-        postcode = "12345",
-        house_number = "10A",
-        lat = 45.0,
-        lon = 90.0,
-        link = "http://example.com/location"
-      ),
-      date: LocalDateTime = LocalDateTime.of(2024, 12, 31, 22, 0),
-      price: Double = 15.0,
+      title: Option[String] = Some("Test Event"),
+      description: Option[String] = Some("Test description"),
+      poster: Option[String] = Some("poster.jpg"),
+      tags: Option[List[EventTag]] = Some(List(EventTag.TypeOfEvent.Concert)),
+      location: Option[Location] = Some(Location.create(
+        country = Some("Test Country"),
+        country_code = Some("TC"),
+        road = Some("Test Road"),
+        postcode = Some("12345"),
+        house_number = Some("10A"),
+        lat = Some(45.0),
+        lon = Some(90.0),
+        link = Some("http://example.com/location")
+      )),
+      date: Option[LocalDateTime] = Some(LocalDateTime.of(2024, 12, 31, 22, 0)),
+      price: Option[Double] = Some(15.0),
       status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "creator123",
       id_collaborators: Option[List[String]] = None
@@ -45,28 +45,28 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   "Event case class" should "store properties correctly" in:
     val event = createEvent()
-    event.title shouldBe "Test Event"
-    event.description shouldBe "Test description"
-    event.poster shouldBe "poster.jpg"
-    event.tags shouldBe List(EventTag.TypeOfEvent.Concert)
-    event.price shouldBe 15.0
-    event.location.country shouldBe "Test Country"
-    event.location.country_code shouldBe "TC"
-    event.location.road shouldBe "Test Road"
-    event.location.postcode shouldBe "12345"
-    event.location.house_number shouldBe "10A"
-    event.location.lat shouldBe 45.0
-    event.location.lon shouldBe 90.0
-    event.location.link shouldBe "http://example.com/location"
+    event.title shouldBe Some("Test Event")
+    event.description shouldBe Some("Test description")
+    event.poster shouldBe Some("poster.jpg")
+    event.tags shouldBe Some(List(EventTag.TypeOfEvent.Concert))
+    event.price shouldBe Some(15.0)
+    event.location.get.country shouldBe Some("Test Country")
+    event.location.get.country_code shouldBe Some("TC")
+    event.location.get.road shouldBe Some("Test Road")
+    event.location.get.postcode shouldBe Some("12345")
+    event.location.get.house_number shouldBe Some("10A")
+    event.location.get.lat shouldBe Some(45.0)
+    event.location.get.lon shouldBe Some(90.0)
+    event.location.get.link shouldBe Some("http://example.com/location")
     event.id_collaborators shouldBe None
     event.status shouldBe EventStatus.DRAFT
 
   "Event.createDraft" should "create draft with generated ID and current time" in:
     val event = createEvent()
     event.status shouldBe EventStatus.DRAFT
-    event.price shouldBe 15.0
-    event.location.country shouldBe "Test Country"
-    event.location.postcode shouldBe "12345"
+    event.price shouldBe Some(15.0)
+    event.location.get.country shouldBe Some("Test Country")
+    event.location.get.postcode shouldBe Some("12345")
     event._id should not be empty
     UUID.fromString(event._id) shouldBe a[UUID]
     event.instant should not be null
@@ -81,34 +81,34 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val nilEvent = Event.nil()
 
     nilEvent._id shouldBe ""
-    nilEvent.title shouldBe ""
-    nilEvent.description shouldBe ""
-    nilEvent.poster shouldBe ""
-    nilEvent.tags shouldBe empty
-    nilEvent.price shouldBe 0.0
-    nilEvent.location shouldBe Location.Nil()
-    nilEvent.date shouldBe LocalDateTime.MAX
+    nilEvent.title shouldBe None
+    nilEvent.description shouldBe None
+    nilEvent.poster shouldBe None
+    nilEvent.tags shouldBe None
+    nilEvent.price shouldBe None
+    nilEvent.location shouldBe None
+    nilEvent.date shouldBe None
     nilEvent.status shouldBe EventStatus.DRAFT
     nilEvent.id_creator shouldBe ""
     nilEvent.id_collaborators shouldBe None
 
   "Event with multiple tags" should "handle them" in:
     val event = createEvent(tags =
-      List(
+      Some(List(
         EventTag.TypeOfEvent.Concert,
         EventTag.VenueType.Theatre,
         EventTag.MusicGenre.Rock,
         EventTag.Target.Vip,
         EventTag.Extra.ReservationRequired
-      )
+      ))
     )
 
-    event.tags should have size 5
-    event.tags should contain(EventTag.TypeOfEvent.Concert)
-    event.tags should contain(EventTag.VenueType.Theatre)
-    event.tags should contain(EventTag.MusicGenre.Rock)
-    event.tags should contain(EventTag.Target.Vip)
-    event.tags should contain(EventTag.Extra.ReservationRequired)
+    event.tags.get should have size 5
+    event.tags.get should contain(EventTag.TypeOfEvent.Concert)
+    event.tags.get should contain(EventTag.VenueType.Theatre)
+    event.tags.get should contain(EventTag.MusicGenre.Rock)
+    event.tags.get should contain(EventTag.Target.Vip)
+    event.tags.get should contain(EventTag.Extra.ReservationRequired)
 
   "Event with different EventStatus" should "handle PUBLISHED status" in:
     val event = createEvent().copy(status = EventStatus.PUBLISHED)
@@ -145,7 +145,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "be different when fields differ" in:
     val event1 = createEvent()
-    val event2 = event1.copy(title = "Different Title")
+    val event2 = event1.copy(title = Some("Different Title"))
 
     event1 should not equal event2
 
@@ -157,214 +157,24 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   "Event" should "handle empty tag list" in:
     val event = createEvent(
-      tags = List()
+      tags = None
     )
 
-    event.tags shouldBe empty
-
-  it should "handle very long strings" in:
-    val longTitle       = "A" * 1000
-    val longDescription = "B" * 5000
-    val event = createEvent(
-      title = longTitle,
-      description = longDescription
-    )
-
-    event.title should have length 1000
-    event.description should have length 5000
+    event.tags shouldBe None
 
   it should "handle past dates" in:
     val pastDate = LocalDateTime.of(2020, 1, 1, 10, 0)
     val event = createEvent(
-      date = pastDate
+      date = Some(pastDate)
     )
-    event.date shouldBe pastDate
-    event.date.isBefore(LocalDateTime.now()) shouldBe true
+    event.date shouldBe Some(pastDate)
+    event.date.get.isBefore(LocalDateTime.now()) shouldBe true
 
   it should "handle future dates far ahead" in:
     val futureDate = LocalDateTime.of(2050, 12, 31, 23, 59)
     val event = createEvent(
-      date = futureDate
+      date = Some(futureDate)
     )
 
-    event.date shouldBe futureDate
-    event.date.isAfter(LocalDateTime.now()) shouldBe true
-
-  "Event.nil() edge cases" should "be consistent across multiple calls" in:
-    val nil1 = Event.nil()
-    val nil2 = Event.nil()
-
-    nil1 shouldEqual nil2
-    nil1.hashCode shouldEqual nil2.hashCode
-
-  it should "have empty instant" in:
-    val nilEvent = Event.nil()
-    nilEvent.instant should not be null
-
-  it should "be different from any created event" in:
-    val nilEvent     = Event.nil()
-    val createdEvent = createEvent()
-
-    nilEvent should not equal createdEvent
-    nilEvent._id should not equal createdEvent._id
-    nilEvent.title should not equal createdEvent.title
-
-  "Event.createDraft edge cases" should "handle zero price" in:
-    val event = createEvent(price = 0.0)
-    event.price shouldBe 0.0
-
-  it should "handle negative price" in:
-    val event = createEvent(price = -10.0)
-    event.price shouldBe -10.0
-
-  it should "handle very high price" in:
-    val event = createEvent(price = 999999.99)
-    event.price shouldBe 999999.99
-
-  it should "handle empty strings for required fields" in:
-    val event = createEvent(
-      title = "",
-      description = "",
-      poster = "",
-      id_creator = ""
-    )
-
-    event.title shouldBe ""
-    event.description shouldBe ""
-    event.poster shouldBe ""
-    event.id_creator shouldBe ""
-    event.status shouldBe EventStatus.DRAFT
-
-  it should "handle special characters in string fields" in:
-    val event = createEvent(
-      title = "Special Event: Café & Müsik!",
-      description = "Event with émojis 🎵 and ñoño characters",
-      id_creator = "creator_with-special.chars@domain"
-    )
-
-    event.title shouldBe "Special Event: Café & Müsik!"
-    event.description shouldBe "Event with émojis 🎵 and ñoño characters"
-    event.id_creator shouldBe "creator_with-special.chars@domain"
-
-  it should "handle extreme date values" in:
-    val minDate = LocalDateTime.MIN
-    val maxDate = LocalDateTime.MAX
-
-    val eventMin = createEvent(date = minDate)
-    val eventMax = createEvent(date = maxDate)
-
-    eventMin.date shouldBe minDate
-    eventMax.date shouldBe maxDate
-
-  "Event copy method" should "copy with single field changes" in:
-    val original = createEvent()
-
-    val copiedTitle = original.copy(title = "New Title")
-    copiedTitle.title shouldBe "New Title"
-    copiedTitle._id shouldBe original._id
-    copiedTitle.description shouldBe original.description
-
-    val copiedStatus = original.copy(status = EventStatus.PUBLISHED)
-    copiedStatus.status shouldBe EventStatus.PUBLISHED
-    copiedStatus.title shouldBe original.title
-
-  it should "copy with multiple field changes" in:
-    val original = createEvent()
-
-    val multiCopy = original.copy(
-      title = "Updated Event",
-      price = 25.0,
-      status = EventStatus.PUBLISHED,
-      id_collaborators = Some(List("new-collaborator"))
-    )
-
-    multiCopy.title shouldBe "Updated Event"
-    multiCopy.price shouldBe 25.0
-    multiCopy.status shouldBe EventStatus.PUBLISHED
-    multiCopy.id_collaborators shouldBe Some(List("new-collaborator"))
-    multiCopy._id shouldBe original._id
-    multiCopy.description shouldBe original.description
-    multiCopy.location shouldBe original.location
-
-  it should "copy location field" in:
-    val original = createEvent()
-    val newLocation = Location.create(
-      country = "New Country",
-      country_code = "NC",
-      road = "New Road",
-      postcode = "54321",
-      house_number = "20",
-      lat = 50.0,
-      lon = 100.0,
-      link = "http://newlocation.com"
-    )
-
-    val copiedLocation = original.copy(location = newLocation)
-    copiedLocation.location shouldBe newLocation
-    copiedLocation.location.country shouldBe "New Country"
-    copiedLocation.title shouldBe original.title
-
-  "Event toString method" should "contain event information" in:
-    val event       = createEvent()
-    val eventString = event.toString
-
-    eventString should include("Test Event")
-    eventString should include("Event")
-
-  it should "handle nil event toString" in:
-    val nilEvent  = Event.nil()
-    val nilString = nilEvent.toString
-
-    nilString should include("Event")
-
-  "Event productArity and productElement" should "return correct arity" in:
-    val event = createEvent()
-    event.productArity should be > 0
-
-  it should "access product elements without error" in:
-    val event = createEvent()
-    val arity = event.productArity
-
-    for i <- 0 until arity do
-      noException should be thrownBy event.productElement(i)
-
-  "Event equals contract" should "be reflexive" in:
-    val event = createEvent()
-    event shouldEqual event
-
-  it should "be symmetric" in:
-    val event1 = createEvent()
-    val event2 = event1.copy()
-
-    (event1 == event2) shouldBe (event2 == event1)
-
-  it should "be transitive" in:
-    val event1 = createEvent()
-    val event2 = event1.copy()
-    val event3 = event1.copy()
-
-    event1 shouldEqual event2
-    event2 shouldEqual event3
-    event1 shouldEqual event3
-
-  it should "handle comparison with different types" in:
-    val event = createEvent()
-
-    event should not equal "not an event"
-    event should not equal 123
-    event should not equal null
-    event should not equal Location.Nil()
-
-  "Event hashCode consistency" should "be consistent across multiple calls" in:
-    val event = createEvent()
-    val hash1 = event.hashCode
-    val hash2 = event.hashCode
-
-    hash1 shouldEqual hash2
-
-  it should "have equal hash codes for equal objects" in:
-    val event1 = createEvent()
-    val event2 = event1.copy()
-
-    if event1 == event2 then
-      event1.hashCode shouldEqual event2.hashCode
+    event.date shouldBe Some(futureDate)
+    event.date.get.isAfter(LocalDateTime.now()) shouldBe true

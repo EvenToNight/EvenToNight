@@ -6,7 +6,8 @@ RUN npm install
 COPY ./services/frontend .
 
 ENV NODE_ENV=production
-ENV VITE_HOST="localhost"
+ARG HOST="eventonight.site"
+ENV VITE_HOST=${HOST}
 ENV VITE_USE_MOCK_API=false
 
 RUN npm run build

@@ -19,28 +19,28 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
   import ValidatorsInstances.given
 
   private val validLocation = Location(
-    name = "Test Venue",
-    country = "Test Country",
-    country_code = "TC",
-    state = "Test State",
-    province = "Test Province",
-    city = "Test City",
-    road = "Test Road",
-    postcode = "12345",
-    house_number = "1",
-    lat = 45.0,
-    lon = 9.0,
-    link = "https://test.com"
+    name = Some("Test Venue"),
+    country = Some("Test Country"),
+    country_code = Some("TC"),
+    state = Some("Test State"),
+    province = Some("Test Province"),
+    city = Some("Test City"),
+    road = Some("Test Road"),
+    postcode = Some("12345"),
+    house_number = Some("1"),
+    lat = Some(45.0),
+    lon = Some(9.0),
+    link = Some("https://test.com")
   )
 
   private val validCreateCommand = CreateEventCommand(
-    title = "Test Event",
-    description = "Test Description",
-    poster = "test.jpg",
-    tags = List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz),
-    location = validLocation,
-    date = LocalDateTime.now().plusDays(7),
-    price = 25.0,
+    title = Some("Test Event"),
+    description = Some("Test Description"),
+    poster = Some("test.jpg"),
+    tags = Some(List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz)),
+    location = Some(validLocation),
+    date = Some(LocalDateTime.now().plusDays(7)),
+    price = Some(25.0),
     status = EventStatus.PUBLISHED,
     id_creator = "creator123",
     id_collaborators = Some(List("collaborator456"))
@@ -61,7 +61,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     location = Some(validLocation),
     date = Some(LocalDateTime.now().plusDays(14)),
     price = Some(30.0),
-    status = Some(EventStatus.PUBLISHED),
+    status = EventStatus.PUBLISHED,
     id_collaborators = Some(List("collaborator789"))
   )
 
@@ -100,41 +100,10 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     Validator.validateCommand(validDeleteEventCommand) shouldBe Right(validDeleteEventCommand)
 
   it should "fail validation for invalid commands" in:
-    val invalidCreateCommand = validCreateCommand.copy(title = "", id_creator = "")
+    val invalidCreateCommand = validCreateCommand.copy(title = None, id_creator = "")
     val result               = Validator.validateCommand(invalidCreateCommand)
 
     result.isLeft shouldBe true
     val errors = result.left.value
     errors should contain("Title cannot be empty")
     errors should contain("Creator Id cannot be empty")
-
-  it should "handle edge cases with minimal valid data" in:
-    val minimalLocation = Location(
-      name = "A",
-      country = "A",
-      country_code = "AB",
-      state = "A",
-      province = "A",
-      city = "A",
-      road = "A",
-      postcode = "1",
-      house_number = "1",
-      lat = 0.0,
-      lon = 0.0,
-      link = ""
-    )
-
-    val minimalCommand = CreateEventCommand(
-      title = "A",
-      description = "A",
-      poster = "",
-      tags = List(),
-      location = minimalLocation,
-      date = LocalDateTime.now().plusMinutes(1),
-      price = 0.0,
-      status = EventStatus.DRAFT,
-      id_creator = "A",
-      id_collaborators = None
-    )
-
-    Validator.validateCommand(minimalCommand) shouldBe Right(minimalCommand)

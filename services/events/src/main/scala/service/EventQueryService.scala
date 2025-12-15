@@ -16,7 +16,7 @@ class EventQueryService(repo: EventRepository):
   def execCommand(cmd: UpdateEventPosterCommand): Either[String, Unit] =
     repo.findById(cmd.id_event) match
       case Some(event) =>
-        repo.update(event.copy(poster = cmd.posterUrl))
+        repo.update(event.copy(poster = Some(cmd.posterUrl)))
         Right(())
       case None =>
         Left(s"Event ${cmd.id_event} not found")
@@ -32,5 +32,8 @@ class EventQueryService(repo: EventRepository):
       endDate = cmd.endDate.map(_.toString()),
       id_organization = cmd.id_organization,
       city = cmd.city,
-      location_name = cmd.location_name
+      location_name = cmd.location_name,
+      priceRange = cmd.priceRange,
+      sortBy = cmd.sortBy,
+      sortOrder = cmd.sortOrder
     ).left.map(err => s"Error in ${cmd.getClass.getSimpleName}: ${err.getMessage}")

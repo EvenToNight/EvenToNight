@@ -20,22 +20,22 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
 
   private def createEvent(): Event =
     Event.create(
-      title = "Sample Event",
-      description = "This is a sample event.",
-      poster = "sample_poster.png",
-      tags = List(EventTag.TypeOfEvent.Concert),
-      location = Location.create(
-        country = "Test Country",
-        country_code = "TC",
-        road = "Test Road",
-        postcode = "12345",
-        house_number = "10A",
-        lat = 45.0,
-        lon = 90.0,
-        link = "http://example.com/location"
-      ),
-      price = 15.0,
-      date = LocalDateTime.now().plusDays(1),
+      title = Some("Sample Event"),
+      description = Some("This is a sample event."),
+      poster = Some("sample_poster.png"),
+      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      location = Some(Location.create(
+        country = Some("Test Country"),
+        country_code = Some("TC"),
+        road = Some("Test Road"),
+        postcode = Some("12345"),
+        house_number = Some("10A"),
+        lat = Some(45.0),
+        lon = Some(90.0),
+        link = Some("http://example.com/location")
+      )),
+      price = Some(15.0),
+      date = Some(LocalDateTime.now().plusDays(1)),
       status = EventStatus.PUBLISHED,
       id_creator = "creator123",
       id_collaborators = None
@@ -108,9 +108,9 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       case Right(_)    => fail("Update should have failed for non-existing event")
 
   "execCommand(getFilteredEventsCommand)" should "retrieve events based on filters" in:
-    val event1 = createEvent().copy(title = "Rock Concert", tags = List(EventTag.TypeOfEvent.Concert))
-    val event2 = createEvent().copy(title = "Disco", tags = List(EventTag.TypeOfEvent.Party))
-    val event3 = createEvent().copy(title = "Jazz Night", tags = List(EventTag.TypeOfEvent.Concert))
+    val event1 = createEvent().copy(title = Some("Rock Concert"), tags = Some(List(EventTag.TypeOfEvent.Concert)))
+    val event2 = createEvent().copy(title = Some("Disco"), tags = Some(List(EventTag.TypeOfEvent.Party)))
+    val event3 = createEvent().copy(title = Some("Jazz Night"), tags = Some(List(EventTag.TypeOfEvent.Concert)))
 
     repo.save(event1)
     repo.save(event2)
@@ -126,7 +126,10 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       endDate = None,
       id_organization = None,
       city = None,
-      location_name = None
+      location_name = None,
+      priceRange = None,
+      sortBy = None,
+      sortOrder = None
     )
 
     val result = service.execCommand(cmd)

@@ -3,112 +3,122 @@ package domain.models
 import domain.models.EventTag.validateTagList
 import org.bson.Document
 
+import java.time.{Instant, LocalDateTime}
 import scala.jdk.CollectionConverters.*
+import scala.util.Try
 
 object EventConversions:
 
-  private def getDoubleValue(doc: Document, key: String): Double =
-    Option(doc.get(key)) match
-      case Some(value: java.lang.Integer) => value.doubleValue()
-      case Some(value: java.lang.Double)  => value.doubleValue()
-      case Some(value: java.lang.Number)  => value.doubleValue()
-      case _                              => 0.0
-
   extension (event: Event)
     def toDocument: Document =
-      new Document()
-        .append("_id", event._id)
-        .append("title", event.title)
-        .append("description", event.description)
-        .append("poster", event.poster)
-        .append("tags", event.tags.map(_.displayName).asJava)
-        .append("location", localityToDocument(event.location))
-        .append("date", event.date.toString)
-        .append("price", event.price)
-        .append("status", event.status.toString)
-        .append("instant", event.instant.toString)
-        .append("id_creator", event.id_creator)
-        .append("id_collaborators", event.id_collaborators.map(_.asJava).orNull)
+      val doc = new Document().append("_id", event._id)
+
+      def appendIfPresent[T](key: String, value: Option[T], transform: T => Any = identity): Unit =
+        value.foreach(v => doc.append(key, transform(v)))
+
+      appendIfPresent("title", event.title)
+      appendIfPresent("description", event.description)
+      appendIfPresent("poster", event.poster)
+      appendIfPresent("tags", event.tags, (t: List[EventTag]) => t.map(_.displayName).asJava)
+      appendIfPresent("location", event.location, localityToDocument(_))
+      appendIfPresent("date", event.date, _.toString)
+      appendIfPresent("price", event.price)
+      doc.append("status", event.status.toString)
+      doc.append("instant", event.instant.toString)
+      doc.append("id_creator", event.id_creator)
+      appendIfPresent("id_collaborators", event.id_collaborators, (c: List[String]) => c.asJava)
+
+      doc
 
     def toJson: ujson.Value =
-      ujson.Obj(
-        "id_event"         -> event._id,
-        "title"            -> event.title,
-        "description"      -> event.description,
-        "poster"           -> event.poster,
-        "tags"             -> ujson.Arr(event.tags.map(t => ujson.Str(t.displayName))*),
-        "location"         -> localityToJson(event.location),
-        "date"             -> event.date.toString,
-        "price"            -> event.price,
-        "status"           -> event.status.toString,
-        "instant"          -> event.instant.toString,
-        "id_creator"       -> event.id_creator,
-        "id_collaborators" -> ujson.Arr(event.id_collaborators.getOrElse(Nil).map(s => ujson.Str(s))*)
+      val obj = ujson.Obj(
+        "id_event"   -> event._id,
+        "status"     -> event.status.toString,
+        "instant"    -> event.instant.toString,
+        "id_creator" -> event.id_creator
       )
 
+      def addIfPresent[T](key: String, value: Option[T], transform: T => ujson.Value): Unit =
+        value.filter(_ != null).foreach(v => obj(key) = transform(v))
+
+      addIfPresent("title", event.title, ujson.Str(_))
+      addIfPresent("description", event.description, ujson.Str(_))
+      addIfPresent("poster", event.poster, ujson.Str(_))
+      addIfPresent("tags", event.tags, (tags: List[EventTag]) => ujson.Arr(tags.map(t => ujson.Str(t.displayName))*))
+      addIfPresent("location", event.location, localityToJson)
+      addIfPresent("date", event.date, (d: LocalDateTime) => ujson.Str(d.toString))
+      addIfPresent("price", event.price, ujson.Num(_))
+      addIfPresent("id_collaborators", event.id_collaborators, (c: List[String]) => ujson.Arr(c.map(ujson.Str(_))*))
+      obj
+
   def fromDocument(doc: Document): Event =
-    val tagsString = doc.getList("tags", classOf[String]).asScala.mkString(",")
+    val tagsString = Option(doc.getList("tags", classOf[String])).map(_.asScala.mkString(",")).getOrElse("")
     val tagList    = validateTagList(tagsString)
     Event(
       _id = doc.getString("_id"),
-      title = doc.getString("title"),
-      description = doc.getString("description"),
-      poster = doc.getString("poster"),
+      title = Option(doc.getString("title")),
+      description = Option(doc.getString("description")),
+      poster = Option(doc.getString("poster")),
       tags = tagList,
-      location = localityFromDocument(doc.get("location", classOf[Document])),
-      date = java.time.LocalDateTime.parse(doc.getString("date")),
-      price = getDoubleValue(doc, "price"),
+      location = Option(doc.get("location", classOf[Document])).map(localityFromDocument),
+      date = Option(doc.getString("date")).flatMap(s => Try(LocalDateTime.parse(s)).toOption),
+      price = Option(doc.getDouble("price")).map(_.doubleValue),
       status = EventStatus.valueOf(doc.getString("status")),
-      instant = java.time.Instant.parse(doc.getString("instant")),
+      instant = Instant.parse(doc.getString("instant")),
       id_creator = doc.getString("id_creator"),
       id_collaborators = Option(doc.get("id_collaborators", classOf[java.util.List[String]])).map(_.asScala.toList)
     )
 
   private def localityToDocument(locality: Location): Document =
-    new Document()
-      .append("name", locality.name)
-      .append("country", locality.country)
-      .append("country_code", locality.country_code)
-      .append("state", locality.state)
-      .append("province", locality.province)
-      .append("city", locality.city)
-      .append("road", locality.road)
-      .append("postcode", locality.postcode)
-      .append("house_number", locality.house_number)
-      .append("lat", locality.lat)
-      .append("lon", locality.lon)
-      .append("link", locality.link)
+    val doc = new Document()
+    def appendIfPresent[T](key: String, value: Option[T], transform: T => Any = identity): Unit =
+      value.foreach(v => doc.append(key, transform(v)))
+    appendIfPresent("name", locality.name)
+    appendIfPresent("country", locality.country)
+    appendIfPresent("country_code", locality.country_code)
+    appendIfPresent("state", locality.state)
+    appendIfPresent("province", locality.province)
+    appendIfPresent("city", locality.city)
+    appendIfPresent("road", locality.road)
+    appendIfPresent("postcode", locality.postcode)
+    appendIfPresent("house_number", locality.house_number)
+    appendIfPresent("lat", locality.lat)
+    appendIfPresent("lon", locality.lon)
+    appendIfPresent("link", locality.link)
+    doc
 
   private def localityToJson(locality: Location): ujson.Value =
-    ujson.Obj(
-      "name"         -> locality.name,
-      "country"      -> locality.country,
-      "country_code" -> locality.country_code,
-      "state"        -> locality.state,
-      "province"     -> locality.province,
-      "city"         -> locality.city,
-      "road"         -> locality.road,
-      "postcode"     -> locality.postcode,
-      "house_number" -> locality.house_number,
-      "lat"          -> locality.lat,
-      "lon"          -> locality.lon,
-      "link"         -> locality.link
-    )
+    val obj = ujson.Obj()
+    def addIfPresent[T](key: String, value: Option[T], transform: T => ujson.Value): Unit =
+      value.filter(_ != null).foreach(v => obj(key) = transform(v))
+    addIfPresent("name", locality.name, ujson.Str(_))
+    addIfPresent("country", locality.country, ujson.Str(_))
+    addIfPresent("country_code", locality.country_code, ujson.Str(_))
+    addIfPresent("state", locality.state, ujson.Str(_))
+    addIfPresent("province", locality.province, ujson.Str(_))
+    addIfPresent("city", locality.city, ujson.Str(_))
+    addIfPresent("road", locality.road, ujson.Str(_))
+    addIfPresent("postcode", locality.postcode, ujson.Str(_))
+    addIfPresent("house_number", locality.house_number, ujson.Str(_))
+    addIfPresent("lat", locality.lat, ujson.Num(_))
+    addIfPresent("lon", locality.lon, ujson.Num(_))
+    addIfPresent("link", locality.link, ujson.Str(_))
+    obj
 
   private def localityFromDocument(doc: Document): Location =
     if doc == null then Location.Nil()
     else
       Location(
-        name = Option(doc.getString("name")).getOrElse(""),
-        country = Option(doc.getString("country")).getOrElse(""),
-        country_code = Option(doc.getString("country_code")).getOrElse(""),
-        state = Option(doc.getString("state")).getOrElse(""),
-        province = Option(doc.getString("province")).getOrElse(""),
-        city = Option(doc.getString("city")).getOrElse(""),
-        road = Option(doc.getString("road")).getOrElse(""),
-        postcode = Option(doc.getString("postcode")).getOrElse(""),
-        house_number = Option(doc.getString("house_number")).getOrElse(""),
-        lat = getDoubleValue(doc, "lat"),
-        lon = getDoubleValue(doc, "lon"),
-        link = Option(doc.getString("link")).getOrElse("")
+        name = Option(doc.getString("name")),
+        country = Option(doc.getString("country")),
+        country_code = Option(doc.getString("country_code")),
+        state = Option(doc.getString("state")),
+        province = Option(doc.getString("province")),
+        city = Option(doc.getString("city")),
+        road = Option(doc.getString("road")),
+        postcode = Option(doc.getString("postcode")),
+        house_number = Option(doc.getString("house_number")),
+        lat = Option(doc.getDouble("lat")).map(_.doubleValue),
+        lon = Option(doc.getDouble("lon")).map(_.doubleValue),
+        link = Option(doc.getString("link"))
       )

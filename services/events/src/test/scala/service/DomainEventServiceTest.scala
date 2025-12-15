@@ -30,7 +30,10 @@ class FailingEventRepository extends EventRepository:
       endDate: Option[String],
       id_organization: Option[String],
       city: Option[String],
-      location_name: Option[String]
+      location_name: Option[String],
+      priceRange: Option[(Double, Double)],
+      sortBy: Option[String],
+      sortOrder: Option[String]
   ): Either[Throwable, (List[Event], Boolean)] =
     Left(new RuntimeException("Database connection failed"))
 
@@ -46,22 +49,22 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     service = new DomainEventService(repo, publisher)
 
   private def validCreateEventCommand(
-      title: String = "Test Event",
-      description: String = "Test Description",
-      poster: String = "test-poster.jpg",
-      tags: List[EventTag] = List(EventTag.VenueType.Bar),
-      location: Location = Location.create(
-        country = "Test Country",
-        country_code = "TC",
-        road = "Test Road",
-        postcode = "12345",
-        house_number = "10A",
-        lat = 45.0,
-        lon = 90.0,
-        link = "http://example.com/location"
-      ),
-      price: Double = 15.0,
-      date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
+      title: Option[String] = Some("Test Event"),
+      description: Option[String] = Some("Test Description"),
+      poster: Option[String] = Some("test-poster.jpg"),
+      tags: Option[List[EventTag]] = Some(List(EventTag.VenueType.Bar)),
+      location: Option[Location] = Some(Location.create(
+        country = Some("Test Country"),
+        country_code = Some("TC"),
+        road = Some("Test Road"),
+        postcode = Some("12345"),
+        house_number = Some("10A"),
+        lat = Some(45.0),
+        lon = Some(90.0),
+        link = Some("http://example.com/location")
+      )),
+      price: Option[Double] = Some(15.0),
+      date: Option[LocalDateTime] = Some(LocalDateTime.of(2025, 12, 31, 20, 0)),
       status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "creator-123",
       id_collaborators: Option[List[String]] = None
@@ -76,7 +79,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       location: Option[Location] = None,
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
-      status: Option[EventStatus] = None,
+      status: EventStatus = EventStatus.DRAFT,
       id_collaborators: Option[List[String]] = None
   ): UpdateEventCommand =
     UpdateEventCommand(
@@ -162,6 +165,38 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     val deleteCmd    = DeleteEventCommand(id_event)
     val deleteResult = service.execCommand(deleteCmd)
     deleteResult.isRight shouldBe true
+
+  it should "change status when deleting a published event" in:
+    val createCmd    = validCreateEventCommand(status = EventStatus.PUBLISHED)
+    val createResult = service.execCommand(createCmd)
+    createResult.isRight shouldBe true
+    val id_event = createResult.fold(
+      _ => fail("Failed to create event"),
+      identity
+    )
+    val deleteCmd    = DeleteEventCommand(id_event)
+    val deleteResult = service.execCommand(deleteCmd)
+    deleteResult.isRight shouldBe true
+    val fetchedEvent = repo.findById(id_event)
+    fetchedEvent match
+      case Some(event) => event.status shouldBe EventStatus.CANCELLED
+      case None        => fail("Event should exist after deletion")
+
+  it should "delete draft or cancelled events from the database" in:
+    val createCmd    = validCreateEventCommand(status = EventStatus.DRAFT)
+    val createResult = service.execCommand(createCmd)
+    createResult.isRight shouldBe true
+    val id_event = createResult.fold(
+      _ => fail("Failed to create event"),
+      identity
+    )
+    val deleteCmd    = DeleteEventCommand(id_event)
+    val deleteResult = service.execCommand(deleteCmd)
+    deleteResult.isRight shouldBe true
+    val fetchedEvent = repo.findById(id_event)
+    fetchedEvent match
+      case Some(_) => fail("Event should be deleted from the database")
+      case None    => succeed
 
   it should "fail when deleting a non-existent event" in:
     val deleteCmd    = DeleteEventCommand("non-existent-event-id")
