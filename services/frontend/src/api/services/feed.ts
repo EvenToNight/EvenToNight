@@ -4,10 +4,11 @@ import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { Event, EventID } from '../types/events'
 import type { UserID } from '../types/users'
 import { buildQueryParams } from '../utils'
+import { evaluatePagination } from '../utils'
 
 export const createFeedApi = (feedClient: ApiClient): FeedAPI => ({
   async getUpcomingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
-    const queryParams = pagination ? buildQueryParams(pagination) : ''
+    const queryParams = buildQueryParams({ ...evaluatePagination(pagination) })
     const response = await feedClient.get<PaginatedResponse<Event>>(
       `/search${queryParams}?status=PUBLISHED`
     )
@@ -18,7 +19,7 @@ export const createFeedApi = (feedClient: ApiClient): FeedAPI => ({
   },
 
   async getTrendingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
-    const queryParams = pagination ? buildQueryParams(pagination) : ''
+    const queryParams = buildQueryParams({ ...evaluatePagination(pagination) })
     return feedClient.get<PaginatedResponse<EventID>>(`/trending-events${queryParams}`)
   },
 
@@ -26,12 +27,12 @@ export const createFeedApi = (feedClient: ApiClient): FeedAPI => ({
     userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<EventID>> {
-    const queryParams = pagination ? buildQueryParams(pagination) : ''
+    const queryParams = buildQueryParams({ ...evaluatePagination(pagination) })
     return feedClient.get<PaginatedResponse<EventID>>(`/feed/${userId}${queryParams}`)
   },
 
   async getNewestEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
-    const queryParams = pagination ? buildQueryParams(pagination) : ''
+    const queryParams = buildQueryParams({ ...evaluatePagination(pagination) })
     return feedClient.get<PaginatedResponse<EventID>>(`/newest-events${queryParams}`)
   },
 
@@ -40,7 +41,7 @@ export const createFeedApi = (feedClient: ApiClient): FeedAPI => ({
     lon: number,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<EventID>> {
-    const queryParams = buildQueryParams({ lat, lon, ...pagination })
+    const queryParams = buildQueryParams({ lat, lon, ...evaluatePagination(pagination) })
     return feedClient.get<PaginatedResponse<EventID>>(`/nearby-events${queryParams}`)
   },
 
@@ -48,7 +49,7 @@ export const createFeedApi = (feedClient: ApiClient): FeedAPI => ({
     userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<EventID>> {
-    const queryParams = pagination ? buildQueryParams(pagination) : ''
+    const queryParams = buildQueryParams({ ...evaluatePagination(pagination) })
     return feedClient.get<PaginatedResponse<EventID>>(`/friends-events/${userId}${queryParams}`)
   },
 })
