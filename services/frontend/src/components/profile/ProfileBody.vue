@@ -39,8 +39,8 @@ onMounted(async () => {
       api.events.getEventsByUserIdAndStatus(props.user.id, 'PUBLISHED', { limit: EVENTS_PER_PAGE }),
       api.events.getEventsByUserIdAndStatus(props.user.id, 'DRAFT', { limit: EVENTS_PER_PAGE }),
     ])
-    organizationEvents.value = publishedResponse.events
-    organizationDraftedEvents.value = draftResponse.events
+    organizationEvents.value = publishedResponse.items
+    organizationDraftedEvents.value = draftResponse.items
     hasMorePublished.value = publishedResponse.hasMore
     hasMoreDraft.value = draftResponse.hasMore
   } catch (error) {
@@ -59,7 +59,7 @@ const createLoadMoreFunction = (
         limit: EVENTS_PER_PAGE,
         offset: eventsRef.value.length,
       })
-      eventsRef.value.push(...response.events)
+      eventsRef.value.push(...response.items)
       hasMoreRef.value = response.hasMore
     } catch (error) {
       console.error(`Failed to load more ${status.toLowerCase()} events:`, error)

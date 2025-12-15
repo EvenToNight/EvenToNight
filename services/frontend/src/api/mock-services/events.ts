@@ -3,15 +3,15 @@ import type {
   GetTagResponse,
   PublishEventResponse,
   EventsDataResponse,
-  EventPaginatedResponse,
 } from '../interfaces/events'
 import type { EventAPI } from '../interfaces/events'
-import type { EventID, EventStatus, PartialEventData } from '../types/events'
+import type { EventID, EventStatus, PartialEventData, Event } from '../types/events'
 import { mockEvents } from './data/events'
 import { mockTags } from './data/tags'
 import type { UserID } from '../types/users'
 import type { PaginatedRequest } from '../interfaces/commons'
 import { getPaginatedItems } from '../utils'
+import type { PaginatedResponse } from '../interfaces/commons'
 
 export const mockEventsApi: EventAPI = {
   async getTags(): Promise<GetTagResponse> {
@@ -49,33 +49,25 @@ export const mockEventsApi: EventAPI = {
   async searchByName(
     title: string,
     pagination?: PaginatedRequest
-  ): Promise<EventPaginatedResponse> {
+  ): Promise<PaginatedResponse<Event>> {
     const lowerTitle = title.toLowerCase().trim()
     const publishedEvents = mockEvents.filter((e) => e.status === 'PUBLISHED')
     const matchedEvents = publishedEvents.filter((event) => {
       return event.title.toLowerCase().includes(lowerTitle)
     })
-    const { items: events, ...rest } = getPaginatedItems(matchedEvents, pagination)
-    return {
-      events,
-      ...rest,
-    }
+    return getPaginatedItems(matchedEvents, pagination)
   },
   async getEventsByUserIdAndStatus(
     id_organization: UserID,
     status: EventStatus,
     pagination?: PaginatedRequest
-  ): Promise<EventPaginatedResponse> {
+  ): Promise<PaginatedResponse<Event>> {
     const eventsByUserIdAndStatus = mockEvents.filter(
       (event) =>
         (event.id_creator === id_organization ||
           event.id_collaborators.includes(id_organization)) &&
         event.status === status
     )
-    const { items: events, ...rest } = getPaginatedItems(eventsByUserIdAndStatus, pagination)
-    return {
-      events,
-      ...rest,
-    }
+    return getPaginatedItems(eventsByUserIdAndStatus, pagination)
   },
 }

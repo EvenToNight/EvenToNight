@@ -105,7 +105,7 @@ export const getSearchResult = async (
   ])
 
   const results: SearchResult[] = (
-    await processEventSearchResults(eventsResponse.events, query)
+    await processEventSearchResults(eventsResponse.items, query)
   ).concat(await processUserSearchResults(usersResponse.users, query))
 
   const typePriority = { event: 3, organization: 2, member: 1 }
