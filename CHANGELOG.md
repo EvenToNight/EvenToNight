@@ -1,3 +1,9 @@
+## [1.8.0](https://github.com/EvenToNight/EvenToNight/compare/v1.7.0...v1.8.0) (2025-12-15)
+
+### Features
+
+* **event:** set fields in event creation as optional ([73383f3](https://github.com/EvenToNight/EvenToNight/commit/73383f31c38320805be6587fe953082ebaaf1897))
+
 ## [1.7.0](https://github.com/EvenToNight/EvenToNight/compare/v1.6.1...v1.7.0) (2025-12-15)
 
 ### Features
