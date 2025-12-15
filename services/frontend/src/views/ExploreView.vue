@@ -108,19 +108,23 @@ watch(searchQuery, () => {
   <NavigationBar />
   <div class="explore-page">
     <!-- Header Section -->
-    <div class="explore-header">
-      <h1 class="explore-title">Esplora</h1>
-      <p class="explore-subtitle">Trova eventi, organizzatori o connettiti con i tuoi amici</p>
+    <div class="explore-hero">
+      <div class="explore-header">
+        <h1 class="explore-title">Esplora</h1>
+        <p class="explore-subtitle">Trova eventi, organizzatori o connettiti con i tuoi amici</p>
 
-      <!-- Search Bar -->
-      <div class="search-container">
-        <SearchBar
-          v-model:search-query="searchQuery"
-          search-hint="Cerca eventi, organizzazioni o persone..."
-        />
+        <!-- Search Bar -->
+        <div class="search-container">
+          <SearchBar
+            v-model:search-query="searchQuery"
+            search-hint="Cerca eventi, organizzazioni o persone..."
+          />
+        </div>
       </div>
+    </div>
 
-      <!-- Tabs -->
+    <!-- Tabs (Sticky) -->
+    <div class="explore-tabs-container">
       <div class="explore-tabs">
         <div
           class="explore-tab"
@@ -202,6 +206,7 @@ watch(searchQuery, () => {
         </div>
       </div>
     </div>
+    <div class="colored-box"></div>
   </div>
 </template>
 
@@ -211,16 +216,24 @@ watch(searchQuery, () => {
   min-height: 100vh;
 }
 
-.explore-header {
+.explore-hero {
   background: linear-gradient(135deg, #6b46c1 0%, #7c3aed 50%, #8b5cf6 100%);
-  @include flex-column;
-  align-items: center;
-  padding: $spacing-8 $spacing-4 $spacing-6;
-  gap: $spacing-4;
 
   @include dark-mode {
     background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 50%, #6d28d9 100%);
   }
+
+  // Rounded corners only when viewport exceeds max-width
+  @media (min-width: calc($app-max-width + 1px)) {
+    border-radius: 24px;
+  }
+}
+
+.explore-header {
+  @include flex-column;
+  align-items: center;
+  padding: $spacing-8 $spacing-4 $spacing-6;
+  gap: $spacing-4;
 }
 
 .explore-title {
@@ -266,15 +279,47 @@ watch(searchQuery, () => {
   }
 }
 
+.explore-tabs-container {
+  position: sticky;
+  top: 64px; // NavigationBar height
+  z-index: 10; // Below navbar but above content
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: $spacing-4 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+
+  @include dark-mode {
+    background: rgba(18, 18, 18, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
 .explore-tabs {
   display: flex;
   gap: $spacing-8;
-  margin-top: $spacing-4;
+  justify-content: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; // Firefox
+  padding: 0 $spacing-6;
+
+  &::-webkit-scrollbar {
+    display: none; // Chrome, Safari
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    gap: $spacing-6;
+    padding: 0 $spacing-4;
+  }
+  @media (max-width: $app-min-width) {
+    gap: $spacing-4;
+    justify-content: flex-start;
+  }
 }
 
 .explore-tab {
-  color: $color-white;
-  opacity: 0.7;
+  color: $color-heading;
+  opacity: 0.6;
   cursor: pointer;
   padding-bottom: $spacing-2;
   border-bottom: 3px solid transparent;
@@ -283,14 +328,20 @@ watch(searchQuery, () => {
   font-size: $font-size-xl;
   font-weight: $font-weight-semibold;
   font-family: $font-family-heading;
+  white-space: nowrap;
+  flex-shrink: 0;
 
   &:hover {
-    opacity: 0.9;
+    opacity: 0.8;
   }
 
   &.active {
     opacity: 1;
-    border-bottom-color: $color-white;
+    border-bottom-color: $color-primary;
+  }
+
+  @include dark-mode {
+    color: $color-white;
   }
 }
 
@@ -341,5 +392,13 @@ watch(searchQuery, () => {
   margin: 0;
   font-size: $font-size-lg;
   line-height: $line-height-relaxed;
+}
+
+.colored-box {
+  width: 100%;
+  height: 800px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: $radius-xl;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 </style>
