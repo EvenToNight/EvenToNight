@@ -1,4 +1,4 @@
-import type { PaginatedRequest, PaginatedResponse } from './interfaces/commons'
+import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 
 export const delay = (ms: number = 0) => new Promise((resolve) => setTimeout(resolve, ms))
 
@@ -40,7 +40,3 @@ export const buildQueryParams = <T extends Record<string, any>>(params: T): stri
   const queryString = searchParams.toString()
   return queryString ? `?${queryString}` : ''
 }
-
-export { getSearchResult } from './searchUtils'
-export type { SearchResult, SearchResultEvent, SearchResultUser } from './searchUtils'
-export { parseLocation, buildLocationDisplayName, extractLocationMapsLink } from './locationUtils'

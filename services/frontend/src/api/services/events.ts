@@ -7,7 +7,7 @@ import type {
 } from '../interfaces/events'
 import type { GetTagResponse } from '../interfaces/events'
 import type { EventID, PartialEventData, Event, EventStatus } from '../types/events'
-import { buildQueryParams, evaluatePagination } from '../utils'
+import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { UserID } from '../types/users'
 

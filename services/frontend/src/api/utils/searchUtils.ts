@@ -1,6 +1,6 @@
 import { api } from '@/api'
-import type { Event } from './types/events'
-import type { User, UserRole } from './types/users'
+import type { Event } from '../types/events'
+import type { User, UserRole } from '../types/users'
 
 export interface SearchResultBase {
   type: 'event' | UserRole

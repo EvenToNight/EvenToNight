@@ -10,7 +10,7 @@ import { mockEvents } from './data/events'
 import { mockTags } from './data/tags'
 import type { UserID } from '../types/users'
 import type { PaginatedRequest } from '../interfaces/commons'
-import { getPaginatedItems } from '../utils'
+import { getPaginatedItems } from '../utils/requestUtils'
 import type { PaginatedResponse } from '../interfaces/commons'
 
 export const mockEventsApi: EventAPI = {

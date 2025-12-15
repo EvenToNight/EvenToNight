@@ -1,4 +1,4 @@
-import type { Location, LocationData } from './types/common'
+import type { Location, LocationData } from '../types/common'
 
 export const extractLocationMapsLink = (location: LocationData): string => {
   const query = `${location.name ? `${location.name},` : ''}${location.house_number ? `${location.house_number},` : ''}${location.road},${location.city},${location.province},${location.state},${location.postcode},${location.country}`

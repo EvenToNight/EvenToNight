@@ -10,7 +10,7 @@ import type {
 } from '../interfaces/users'
 import type { User, UserID } from '../types/users'
 import type { ApiClient } from '../client'
-import { buildQueryParams, evaluatePagination } from '../utils'
+import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 
 export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({

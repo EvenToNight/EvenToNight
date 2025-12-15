@@ -3,8 +3,8 @@ import type { FeedAPI } from '../interfaces/feed'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { Event, EventID } from '../types/events'
 import type { UserID } from '../types/users'
-import { buildQueryParams } from '../utils'
-import { evaluatePagination } from '../utils'
+import { buildQueryParams } from '../utils/requestUtils'
+import { evaluatePagination } from '../utils/requestUtils'
 
 export const createFeedApi = (feedClient: ApiClient): FeedAPI => ({
   async getUpcomingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {

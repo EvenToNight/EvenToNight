@@ -12,7 +12,7 @@ import type { ApiError, PaginatedRequest, PaginatedResponse } from '../interface
 import { mockOrganizations } from './data/organizations'
 import { mockUsers } from './data/members'
 import type { UserID, User, UserRole } from '../types/users'
-import { getPaginatedItems } from '../utils'
+import { getPaginatedItems } from '../utils/requestUtils'
 
 let currentLoggedInEmail: string | null = null
 
