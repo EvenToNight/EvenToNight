@@ -61,7 +61,7 @@ const tagFilters = ref<string[]>([])
 const loadTagFilters = async () => {
   try {
     const tagCategories: TagCategory[] = await api.events.getTags()
-    tagFilters.value = tagCategories.flatMap((cat) => cat.category)
+    tagFilters.value = tagCategories.flatMap((cat) => cat.tags)
   } catch (err) {
     console.error('Failed to load tag filters:', err)
   }
@@ -138,7 +138,10 @@ const searchEvents = async () => {
 
   loadingEvents.value = true
   try {
-    const response = await api.events.searchByName(searchQuery.value, { limit: ITEMS_PER_PAGE })
+    const response = await api.events.searchEvents({
+      title: searchQuery.value,
+      pagination: { limit: ITEMS_PER_PAGE },
+    })
     events.value = response.items
     _hasMoreEvents.value = response.hasMore
   } catch (error) {
@@ -156,10 +159,12 @@ const searchOrganizations = async () => {
 
   loadingOrganizations.value = true
   try {
-    const response = await api.users.getOrganizations(searchQuery.value, {
-      limit: ITEMS_PER_PAGE,
+    const response = await api.users.searchUsers({
+      name: searchQuery.value,
+      pagination: { limit: ITEMS_PER_PAGE },
+      role: 'organization',
     })
-    organizations.value = response.users
+    organizations.value = response.items
   } catch (error) {
     console.error('Failed to search organizations:', error)
   } finally {
@@ -174,8 +179,12 @@ const searchPeople = async () => {
   }
   loadingPeople.value = true
   try {
-    const response = await api.users.searchByName(searchQuery.value)
-    people.value = response.users
+    const response = await api.users.searchUsers({
+      name: searchQuery.value,
+      pagination: { limit: ITEMS_PER_PAGE },
+      role: 'member',
+    })
+    people.value = response.items
   } catch (error) {
     console.error('Failed to search people:', error)
   } finally {
@@ -371,9 +380,47 @@ onUnmounted(() => {
                       :color="selectedDateRange ? 'primary' : 'grey-3'"
                       :text-color="selectedDateRange ? 'white' : 'grey-8'"
                       clickable
-                      @click="showDateRangePicker = true"
                     >
                       {{ selectedDateRange ? formatDateRange(selectedDateRange) : 'Personalizza' }}
+                      <q-menu v-model="showDateRangePicker" anchor="bottom left" self="top left">
+                        <q-card style="min-width: 350px">
+                          <q-card-section>
+                            <div class="text-h6">Seleziona periodo</div>
+                          </q-card-section>
+
+                          <q-card-section class="q-pt-none">
+                            <q-date
+                              v-model="selectedDateRange"
+                              range
+                              minimal
+                              :options="(date) => date >= today"
+                            />
+                          </q-card-section>
+
+                          <q-card-actions align="right">
+                            <q-btn
+                              flat
+                              label="Annulla"
+                              color="grey-7"
+                              @click="showDateRangePicker = false"
+                            />
+                            <q-btn
+                              v-if="selectedDateRange"
+                              flat
+                              label="Cancella"
+                              color="grey-7"
+                              @click="clearDateRange"
+                            />
+                            <q-btn
+                              flat
+                              label="Applica"
+                              color="primary"
+                              :disable="!selectedDateRange"
+                              @click="applyDateRange"
+                            />
+                          </q-card-actions>
+                        </q-card>
+                      </q-menu>
                     </q-chip>
                   </div>
                 </div>
@@ -502,37 +549,6 @@ onUnmounted(() => {
       </div>
     </div>
     <div class="colored-box"></div>
-
-    <!-- Date Range Picker Dialog -->
-    <q-dialog v-model="showDateRangePicker">
-      <q-card style="min-width: 350px">
-        <q-card-section>
-          <div class="text-h6">Seleziona periodo</div>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <q-date v-model="selectedDateRange" range minimal :options="(date) => date >= today" />
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn flat label="Annulla" color="grey-7" @click="showDateRangePicker = false" />
-          <q-btn
-            v-if="selectedDateRange"
-            flat
-            label="Cancella"
-            color="grey-7"
-            @click="clearDateRange"
-          />
-          <q-btn
-            flat
-            label="Applica"
-            color="primary"
-            :disable="!selectedDateRange"
-            @click="applyDateRange"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
   </div>
 </template>
 

@@ -13,7 +13,6 @@ import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import type { Tag } from '@/api/types/events'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useI18n } from 'vue-i18n'
-import { validateLocation } from '@/api/utils'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 
 const { t } = useI18n()
@@ -102,7 +101,6 @@ const loadEvent = async () => {
   try {
     const event = await api.events.getEventById(eventId.value)
     title.value = event.title ?? ''
-    console.log(event.date)
     if (event.date) {
       const eventDate = new Date(event.date)
       const isoDate = eventDate.toISOString().split('T')[0] // YYYY-MM-DD
@@ -113,9 +111,7 @@ const loadEvent = async () => {
     price.value = String(event.price ?? '')
     tags.value = event.tags ?? []
     collaborators.value = event.id_collaborators ?? []
-    console.log(event.location)
-    if (event.location && validateLocation(event.location)) {
-      console.log('Valid location:', event.location)
+    if (event.location) {
       location.value = {
         label: buildLocationDisplayName(event.location),
         value: event.location,
@@ -289,7 +285,7 @@ const saveDraft = async () => {
       message: t('eventCreationForm.successForEventUpdate'),
     })
   } else {
-    await api.events.publishEvent(eventData)
+    await api.events.createEvent(eventData)
     $q.notify({
       color: 'positive',
       message: t('eventCreationForm.successForEventPublication'),
@@ -299,19 +295,17 @@ const saveDraft = async () => {
 }
 
 const buildEventData = (status: CreationEventStatus): PartialEventData => {
-  const dateTime = date.value && time.value ? new Date(`${date.value}T${time.value}`) : undefined
-
   return {
-    title: title.value,
-    description: description.value,
-    poster: poster.value!,
-    tags: tags.value,
-    location: location.value?.value,
-    date: dateTime,
-    price: Number(price.value),
+    title: title.value || undefined,
+    description: description.value || undefined,
+    poster: poster.value || undefined,
+    tags: tags.value.length > 0 ? tags.value : undefined,
+    location: location.value?.value || undefined,
+    date: date.value && time.value ? new Date(`${date.value}T${time.value}`) : undefined,
+    price: Number(price.value) || undefined,
     status: status,
     id_creator: currentUserId!,
-    id_collaborators: collaborators.value,
+    id_collaborators: collaborators.value.length > 0 ? collaborators.value : undefined,
   }
 }
 
@@ -368,7 +362,7 @@ const onSubmit = async () => {
       })
       goToEventDetails(eventId.value)
     } else {
-      const response = await api.events.publishEvent(eventData)
+      const response = await api.events.createEvent(eventData)
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventPublication'),

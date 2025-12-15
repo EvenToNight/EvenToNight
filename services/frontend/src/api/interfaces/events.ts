@@ -23,7 +23,7 @@ export interface EventAPI {
   getTags(): Promise<GetTagResponse>
   getEventById(id_event: EventID): Promise<GetEventByIdResponse>
   getEventsByIds(id_events: EventID[]): Promise<EventsDataResponse>
-  publishEvent(eventData: PartialEventData): Promise<PublishEventResponse>
+  createEvent(eventData: PartialEventData): Promise<PublishEventResponse>
   updateEventData(id_event: EventID, eventData: PartialEventData): Promise<void>
   updateEventPoster(id_event: EventID, poster: File): Promise<void>
   deleteEvent(id_event: EventID): Promise<void>

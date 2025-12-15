@@ -43,9 +43,4 @@ export const buildQueryParams = <T extends Record<string, any>>(params: T): stri
 
 export { getSearchResult } from './searchUtils'
 export type { SearchResult, SearchResultEvent, SearchResultUser } from './searchUtils'
-export {
-  parseLocation,
-  buildLocationDisplayName,
-  extractLocationMapsLink,
-  validateLocation,
-} from './locationUtils'
+export { parseLocation, buildLocationDisplayName, extractLocationMapsLink } from './locationUtils'

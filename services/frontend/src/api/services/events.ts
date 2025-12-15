@@ -24,7 +24,7 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     )
     return { events: eventsResponses }
   },
-  async publishEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
+  async createEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
     const { poster, date, ...rest } = eventData
     const formData = new FormData()
     if (poster) {
@@ -36,7 +36,7 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     }
     console.log('publishEvent backendEventData', backendEventData)
     formData.append('event', JSON.stringify(backendEventData))
-    return eventsClient.post<{ id_event: string }>('/', formData)
+    return eventsClient.post<PublishEventResponse>('/', formData)
   },
   async updateEventData(id_event: EventID, eventData: PartialEventData): Promise<void> {
     const { poster, date, ...rest } = eventData
