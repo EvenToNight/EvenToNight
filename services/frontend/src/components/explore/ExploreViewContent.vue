@@ -5,11 +5,13 @@ import type { Ref } from 'vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'
-import EventCardVariant from '@/components/cards/EventCardVariant.vue'
+import { useAuthStore } from '@/stores/auth'
+import EventCard from '@/components/cards/EventCard.vue'
 import UserCard from '@/components/cards/UserCard.vue'
 import SearchBar from '@/components/navigation/SearchBar.vue'
 
-//const emit = defineEmits(['auth-required'])
+const emit = defineEmits(['auth-required'])
+const authStore = useAuthStore()
 
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>(
   'pageContentSearchBarRef',
@@ -163,6 +165,25 @@ const switchTab = (tab: 'events' | 'organizations' | 'people') => {
   activeTab.value = tab
   if (searchQuery.value.trim()) {
     onSearch()
+  }
+}
+
+const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
+  if (!authStore.isAuthenticated || !authStore.user) {
+    emit('auth-required')
+    return
+  }
+
+  try {
+    if (isFavorite) {
+      await api.interactions.likeEvent(eventId, authStore.user.id)
+      console.log(`Event ${eventId} liked`)
+    } else {
+      await api.interactions.unlikeEvent(eventId, authStore.user.id)
+      console.log(`Event ${eventId} unliked`)
+    }
+  } catch (error) {
+    console.error('Failed to toggle favorite:', error)
   }
 }
 
@@ -336,7 +357,18 @@ onUnmounted(() => {
           <q-spinner-dots color="primary" size="50px" />
         </div>
         <div v-else-if="events.length > 0" class="events-grid">
-          <EventCardVariant v-for="event in events" :key="event.id_event" :event="event" />
+          <EventCard
+            v-for="event in events"
+            :id="event.id_event"
+            :key="event.id_event"
+            :image-url="event.poster"
+            :title="event.title"
+            :subtitle="event.location.name || event.location.city"
+            :date="new Date(event.date)"
+            :favorite="false"
+            @favorite-toggle="handleFavoriteToggle(event.id_event, $event)"
+            @auth-required="emit('auth-required')"
+          />
         </div>
         <div v-else-if="searchQuery" class="empty-state">
           <q-icon name="event_busy" size="64px" color="grey-5" />
