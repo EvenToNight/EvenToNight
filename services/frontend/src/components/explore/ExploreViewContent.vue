@@ -18,11 +18,11 @@ const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>(
   'pageContentSearchBarRef',
   ref(null)
 )
-// const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar', ref(false))
+const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar', ref(false))
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
-// const searchResults = inject<Ref<SearchResult[]>>('searchResults', ref([]))
-// const searchBarHasFocus = inject<Ref<boolean>>('searchBarHasFocus', ref(false))
-const hideDropdown = inject<boolean>('hideDropdown', false)
+const searchResults = inject<Ref<SearchResult[]>>('searchResults', ref([]))
+const searchBarHasFocus = inject<Ref<boolean>>('searchBarHasFocus', ref(false))
+const hideDropdown = inject<boolean>('hideDropdown', true)
 
 const activeTab = ref<'events' | 'organizations' | 'people'>('events')
 
@@ -249,11 +249,17 @@ onUnmounted(() => {
 
         <!-- Search Bar -->
         <div ref="pageContentSearchBarRef" class="search-container">
-          <SearchBar
-            v-model:search-query="searchQuery"
-            search-hint="Cerca eventi, organizzazioni o persone..."
-            :hide-dropdown="hideDropdown"
-          />
+          <div v-if="!showSearchInNavbar">
+            <SearchBar
+              ref="searchBarRef"
+              v-model:search-query="searchQuery"
+              v-model:search-results="searchResults"
+              v-model:has-focus="searchBarHasFocus"
+              search-hint="Cerca eventi, organizzazioni o persone..."
+              :autofocus="searchBarHasFocus"
+              :hide-dropdown="hideDropdown"
+            />
+          </div>
         </div>
       </div>
     </div>
