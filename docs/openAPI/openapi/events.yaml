@@ -9,7 +9,8 @@ paths:
       description: >
         Creates a new event with the provided information.  
         The payload must be multipart/form-data, containing a JSON string in the `event` field  
-        and optionally a `poster` file if the event is in DRAFT status.  
+        and optionally a `poster` file if the event is in DRAFT status.
+        If the event status is DRAFT, the poster is optional, and also all the fields in 'event' JSON are optional.
         If the event status is not DRAFT, both the event data and the poster file are required.
       servers:
         - url: http://localhost:9010
@@ -27,11 +28,9 @@ paths:
                 event:
                   type: string
                   description: |
-                    If the event status is DRAFT, all the field can be empty ("" for string, default values for others).
+                    If the event status is DRAFT, all the field are optional.
                     JSON string containing event data with the following structure:
-                    
-                    **Required fields:**
-                    - `title` (string): Event title
+                    - `title` (string): Event title.
                     - `description` (string): Event description
                     - `tags` (array of strings): List of event tags. In case of wrong tag, that tag is ignored
                     - `location` (object): Event location (required). Required fields:
@@ -51,9 +50,7 @@ paths:
                     - `price` (number): Event ticket price
                     - `status` (string): Event status, must be "DRAFT" or "PUBLISHED"
                     - `id_creator` (string): ID of the event creator
-                    
-                    **Optional fields:**
-                    - `id_collaborators` (List of strings): IDs of collaborators
+                    - `id_collaborators` (List of strings): IDs of collaborators. Optional
                   example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","id_creator":"user-123","id_collaborators":["user-456"]}'
                 poster:
                   type: string
@@ -276,7 +273,6 @@ paths:
           required: false
           schema:
             type: string
-          example: concert
         - name: tags
           in: query
           description: Filter by tags (can be repeated for multiple tags)
@@ -290,10 +286,8 @@ paths:
           examples:
             single:
               summary: Single tag
-              value: MUSIC
             multiple:
               summary: Multiple tags
-              value: [MUSIC, SPORT]
         - name: startDate
           in: query
           description: Filter events starting from this date (ISO 8601 format)
@@ -301,7 +295,6 @@ paths:
           schema:
             type: string
             format: date-time
-          example: "2025-01-01T00:00:00"
         - name: endDate
           in: query
           description: Filter events up to this date (ISO 8601 format)
@@ -309,28 +302,25 @@ paths:
           schema:
             type: string
             format: date-time
-          example: "2025-12-31T23:59:59"
         - name: id_organization
           in: query
           description: Filter by organization ID
           required: false
           schema:
             type: string
-          example: org789
         - name: city
           in: query
           description: Filter by city name (case-insensitive partial match)
           required: false
           schema:
             type: string
-          example: Bologna
+          example: Milano
         - name: location_name
           in: query
           description: Filter by location name (case-insensitive partial match)
           required: false
           schema:
             type: string
-          example: Arena
       responses:
         '200':
           description: Successfully retrieved filtered events
@@ -663,7 +653,10 @@ paths:
       summary: Update event details
       description: |
         Updates an existing event with the provided information.
-        Only the fields you include in the request body will be updated. Fields not included will remain unchanged.
+        Old event will be overwritten with the new provided data.
+        All fields are optional.
+
+        If status is updated to "PUBLISHED", all field are required except `id_collaborators` and `poster`.
         
         **Note:** To update the poster, use the separate `POST /poster/{id_event}` endpoint.
       servers:
@@ -770,13 +763,14 @@ paths:
                 summary: Update only title
                 value:
                   title: "New Event Title"
+                  status: "DRAFT"
               updateMultipleFields:
                 summary: Update multiple fields
                 value:
                   title: "Updated Summer Music Festival"
                   description: "An amazing updated summer music festival"
                   price: 30.00
-                  status: "PUBLISHED"
+                  status: "DRAFT"
               updateComplete:
                 summary: Update all fields
                 value:

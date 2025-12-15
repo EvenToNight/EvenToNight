@@ -1,5 +1,4 @@
 package domain.commands.validators
-
 import domain.commands.{
   CreateEventCommand,
   DeleteEventCommand,
@@ -8,7 +7,9 @@ import domain.commands.{
   UpdateEventCommand,
   UpdateEventPosterCommand
 }
-import domain.models.EventStatus
+import domain.models.{EventStatus, Location}
+
+import java.time.LocalDateTime
 
 import ValidationRules.{futureDate, nonEmpty, correctLocality, positiveInt, nonNegativeInt, dateRange}
 import Validator.combine
@@ -24,11 +25,12 @@ object CreateEventValidator extends Validator[CreateEventCommand]:
         validations.map(_ => cmd)
       case _ =>
         val validations = combine(
-          nonEmpty(cmd.title, "Title"),
-          nonEmpty(cmd.description, "Description"),
+          nonEmpty(cmd.title.getOrElse(""), "Title"),
+          nonEmpty(cmd.description.getOrElse(""), "Description"),
+          nonEmpty(cmd.price.getOrElse(0).toString(), "Price"),
           nonEmpty(cmd.id_creator, "Creator Id"),
-          correctLocality(cmd.location, "Location"),
-          futureDate(cmd.date, "Date")
+          correctLocality(cmd.location.getOrElse(Location.Nil()), "Location"),
+          futureDate(cmd.date.getOrElse(LocalDateTime.now()), "Date")
         )
         validations.map(_ => cmd)
 
@@ -49,9 +51,22 @@ object UpdateEventPosterValidator extends Validator[UpdateEventPosterCommand]:
 
 object UpdateEventValidator extends Validator[UpdateEventCommand]:
   override def validate(cmd: UpdateEventCommand): Either[List[String], UpdateEventCommand] =
-    combine(
-      nonEmpty(cmd.id_event, "Event ID")
-    ).map(_ => cmd)
+    cmd.status match
+      case EventStatus.DRAFT =>
+        val validations = combine(
+          nonEmpty(cmd.id_event, "Event ID")
+        )
+        validations.map(_ => cmd)
+      case _ =>
+        val validations = combine(
+          nonEmpty(cmd.id_event, "Event ID"),
+          nonEmpty(cmd.title.getOrElse(""), "Title"),
+          nonEmpty(cmd.description.getOrElse(""), "Description"),
+          nonEmpty(cmd.price.getOrElse("").toString(), "Price"),
+          correctLocality(cmd.location.getOrElse(Location.Nil()), "Location"),
+          futureDate(cmd.date.getOrElse(LocalDateTime.now()), "Date")
+        )
+        validations.map(_ => cmd)
 
 object DeleteEventValidator extends Validator[DeleteEventCommand]:
   override def validate(cmd: DeleteEventCommand): Either[List[String], DeleteEventCommand] =

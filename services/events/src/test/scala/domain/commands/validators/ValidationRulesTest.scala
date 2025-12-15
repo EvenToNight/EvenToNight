@@ -10,7 +10,7 @@ class ValidationRulesTest extends AnyFlatSpec with Matchers with BeforeAndAfterE
 
   private def createLocation(
       country: String = "Test Country",
-      country_code: String = "TC",
+      country_code: Option[String] = Some("TC"),
       road: String = "Test Road",
       postcode: String = "12345",
       house_number: String = "10A",
@@ -19,14 +19,14 @@ class ValidationRulesTest extends AnyFlatSpec with Matchers with BeforeAndAfterE
       link: String = "http://example.com/location"
   ): Location =
     Location.create(
-      country = country,
+      country = Some(country),
       country_code = country_code,
-      road = road,
-      postcode = postcode,
-      house_number = house_number,
-      lat = lat,
-      lon = lon,
-      link = link
+      road = Some(road),
+      postcode = Some(postcode),
+      house_number = Some(house_number),
+      lat = Some(lat),
+      lon = Some(lon),
+      link = Some(link)
     )
 
   "NonEmpty rule" should "validate non-empty strings successfully" in:
@@ -73,7 +73,7 @@ class ValidationRulesTest extends AnyFlatSpec with Matchers with BeforeAndAfterE
     val result          = ValidationRules.correctLocality(invalidLocation, "Event Location")
     result shouldBe Left("Event Location has invalid parameters")
   it should "reject locality with empty country code" in:
-    val invalidLocation = createLocation(country_code = "")
+    val invalidLocation = createLocation(country_code = None)
     val result          = ValidationRules.correctLocality(invalidLocation, "Event Location")
     result shouldBe Left("Event Location has invalid parameters")
   it should "reject locality with empty road" in:

@@ -170,18 +170,18 @@ class EventTagTest extends AnyFlatSpec with Matchers:
   "EventTag.validateTagList" should "return empty list for empty JSON array" in:
     val tags   = "[]"
     val result = EventTag.validateTagList(tags)
-    result should have size 0
+    result shouldBe None
 
   it should "filter out invalid tags and keep valid ones" in:
     val tags   = """["Party", "InvalidTag", "Concert", "AnotherInvalidTag", "Jazz"]"""
     val result = EventTag.validateTagList(tags)
 
-    result should have size 3
-    result.`should`(contain(EventTag.TypeOfEvent.Party))
-    result.`should`(contain(EventTag.TypeOfEvent.Concert))
-    result.`should`(contain(EventTag.MusicGenre.Jazz))
+    result.get should have size 3
+    result.get should contain(EventTag.TypeOfEvent.Party)
+    result.get should contain(EventTag.TypeOfEvent.Concert)
+    result.get should contain(EventTag.MusicGenre.Jazz)
 
   it should "return empty list for all invalid tags" in:
     val tags   = """["InvalidTag1", "InvalidTag2", "NonExistentTag"]"""
     val result = EventTag.validateTagList(tags)
-    result should have size 0
+    result shouldBe None

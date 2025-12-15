@@ -32,23 +32,23 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     service = new EventService(repo, publisher)
 
   private def validCreateEventCommand(
-      title: String = "Test Event",
-      description: String = "Test Description",
-      poster: String = "test-poster.jpg",
-      tags: List[EventTag] = List(EventTag.VenueType.Bar),
-      location: Location = Location.create(
-        country = "Test Country",
-        country_code = "TC",
-        road = "Test Road",
-        postcode = "12345",
-        house_number = "10A",
-        lat = 45.0,
-        lon = 90.0,
-        link = "http://example.com/location"
-      ),
-      price: Double = 15.0,
-      date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
-      status: EventStatus = EventStatus.PUBLISHED,
+      title: Option[String] = Some("Test Event"),
+      description: Option[String] = Some("Test Description"),
+      poster: Option[String] = Some("test-poster.jpg"),
+      tags: Option[List[EventTag]] = Some(List(EventTag.VenueType.Bar)),
+      location: Option[Location] = Some(Location.create(
+        country = Some("Test Country"),
+        country_code = Some("TC"),
+        road = Some("Test Road"),
+        postcode = Some("12345"),
+        house_number = Some("10A"),
+        lat = Some(45.0),
+        lon = Some(90.0),
+        link = Some("http://example.com/location")
+      )),
+      price: Option[Double] = Some(15.0),
+      date: Option[LocalDateTime] = Some(LocalDateTime.of(2025, 12, 31, 20, 0)),
+      status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "creator-123",
       id_collaborators: Option[List[String]] = None
   ): CreateEventCommand =
@@ -74,7 +74,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       location: Option[Location] = None,
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
-      status: Option[EventStatus] = None,
+      status: EventStatus = EventStatus.DRAFT,
       id_collaborators: Option[List[String]] = None
   ): UpdateEventCommand =
     UpdateEventCommand(id_event, title, description, tags, location, date, price, status, id_collaborators)
@@ -117,28 +117,29 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
     result.isRight shouldBe true
 
   it should "return validation errors for CreateEventCommand with empty title" in:
-    val command = validCreateEventCommand(title = "")
+    val command = validCreateEventCommand(title = None, status = EventStatus.PUBLISHED)
 
     val result = service.handleCommand(command)
 
     result shouldBe Left("Title cannot be empty")
 
   it should "return validation errors for CreateEventCommand with invalid date" in:
-    val command = validCreateEventCommand(date = LocalDateTime.of(2020, 1, 1, 0, 0))
+    val command =
+      validCreateEventCommand(date = Some(LocalDateTime.of(2020, 1, 1, 0, 0)), status = EventStatus.PUBLISHED)
 
     val result = service.handleCommand(command)
 
     result shouldBe Left("Date must be in the future")
 
   it should "return validation errors for CreateEventCommand with empty location" in:
-    val command = validCreateEventCommand(location = Location.Nil())
+    val command = validCreateEventCommand(location = Some(Location.Nil()), status = EventStatus.PUBLISHED)
 
     val result = service.handleCommand(command)
 
     result shouldBe Left("Location has invalid parameters")
 
   it should "return validation errors for CreateEventCommand with empty description" in:
-    val command = validCreateEventCommand(description = "")
+    val command = validCreateEventCommand(description = None, status = EventStatus.PUBLISHED)
 
     val result = service.handleCommand(command)
 
@@ -146,8 +147,12 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
   it should "concatenate multiple validation errors for CreateEventCommand" in:
     val command =
-      validCreateEventCommand(title = "", date = LocalDateTime.of(2020, 1, 1, 0, 0), location = Location.Nil())
-
+      validCreateEventCommand(
+        title = None,
+        date = Some(LocalDateTime.of(2020, 1, 1, 0, 0)),
+        location = None,
+        status = EventStatus.PUBLISHED
+      )
     val result = service.handleCommand(command) match
       case Left(errors) => errors
       case _            => fail("Expected validation errors")

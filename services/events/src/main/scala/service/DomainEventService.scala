@@ -50,13 +50,13 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
     repo.findById(cmd.id_event) match
       case Some(event) =>
         val updatedEvent = event.copy(
-          title = cmd.title.getOrElse(event.title),
-          description = cmd.description.getOrElse(event.description),
-          tags = cmd.tags.getOrElse(event.tags),
-          location = cmd.location.getOrElse(event.location),
-          date = cmd.date.getOrElse(event.date),
-          price = cmd.price.getOrElse(event.price),
-          status = cmd.status.getOrElse(event.status),
+          title = cmd.title,
+          description = cmd.description,
+          tags = cmd.tags,
+          location = cmd.location,
+          date = cmd.date,
+          price = cmd.price,
+          status = cmd.status,
           id_collaborators = cmd.id_collaborators.orElse(event.id_collaborators)
         )
         repo.update(updatedEvent) match

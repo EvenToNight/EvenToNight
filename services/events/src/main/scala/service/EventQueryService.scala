@@ -16,7 +16,7 @@ class EventQueryService(repo: EventRepository):
   def execCommand(cmd: UpdateEventPosterCommand): Either[String, Unit] =
     repo.findById(cmd.id_event) match
       case Some(event) =>
-        repo.update(event.copy(poster = cmd.posterUrl))
+        repo.update(event.copy(poster = Some(cmd.posterUrl)))
         Right(())
       case None =>
         Left(s"Event ${cmd.id_event} not found")

@@ -46,22 +46,22 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     service = new DomainEventService(repo, publisher)
 
   private def validCreateEventCommand(
-      title: String = "Test Event",
-      description: String = "Test Description",
-      poster: String = "test-poster.jpg",
-      tags: List[EventTag] = List(EventTag.VenueType.Bar),
-      location: Location = Location.create(
-        country = "Test Country",
-        country_code = "TC",
-        road = "Test Road",
-        postcode = "12345",
-        house_number = "10A",
-        lat = 45.0,
-        lon = 90.0,
-        link = "http://example.com/location"
-      ),
-      price: Double = 15.0,
-      date: LocalDateTime = LocalDateTime.of(2025, 12, 31, 20, 0),
+      title: Option[String] = Some("Test Event"),
+      description: Option[String] = Some("Test Description"),
+      poster: Option[String] = Some("test-poster.jpg"),
+      tags: Option[List[EventTag]] = Some(List(EventTag.VenueType.Bar)),
+      location: Option[Location] = Some(Location.create(
+        country = Some("Test Country"),
+        country_code = Some("TC"),
+        road = Some("Test Road"),
+        postcode = Some("12345"),
+        house_number = Some("10A"),
+        lat = Some(45.0),
+        lon = Some(90.0),
+        link = Some("http://example.com/location")
+      )),
+      price: Option[Double] = Some(15.0),
+      date: Option[LocalDateTime] = Some(LocalDateTime.of(2025, 12, 31, 20, 0)),
       status: EventStatus = EventStatus.DRAFT,
       id_creator: String = "creator-123",
       id_collaborators: Option[List[String]] = None
@@ -76,7 +76,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       location: Option[Location] = None,
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
-      status: Option[EventStatus] = None,
+      status: EventStatus = EventStatus.DRAFT,
       id_collaborators: Option[List[String]] = None
   ): UpdateEventCommand =
     UpdateEventCommand(
