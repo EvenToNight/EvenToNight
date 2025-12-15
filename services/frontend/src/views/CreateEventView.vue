@@ -169,21 +169,21 @@ const filterTags = (val: string, update: (fn: () => void) => void) => {
   })
 }
 
-const filterCollaborators = (val: string, update: (fn: () => void) => void) => {
+const filterCollaborators = (query: string, update: (fn: () => void) => void) => {
   const mapCollaborator = (org: any) => ({
     label: org.name,
     value: org.id,
     avatar: org.avatarUrl || undefined,
   })
-  if (!val) {
+  if (!query) {
     update(() => {
       collaboratorOptions.value = []
     })
     return
   }
-  api.users.getOrganizations(val, { limit: 10 }).then((response) => {
+  api.users.searchUsers({ name: query, pagination: { limit: 10 } }).then((response) => {
     update(() => {
-      collaboratorOptions.value = response.users.map(mapCollaborator)
+      collaboratorOptions.value = response.items.map(mapCollaborator)
     })
   })
 }

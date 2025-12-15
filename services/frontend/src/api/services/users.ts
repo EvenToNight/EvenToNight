@@ -5,7 +5,6 @@ import type {
   LoginResponse,
   RefreshTokenResponse,
   LogoutResponse,
-  SearchUsersResponse,
   RegisterResponse,
   RegisterRequest,
 } from '../interfaces/users'
@@ -35,20 +34,11 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
     return usersClient.post<RefreshTokenResponse>('/auth/refresh', undefined, { credentials: true })
   },
 
-  async searchByName(query: string): Promise<SearchUsersResponse> {
-    return usersClient.get<SearchUsersResponse>(
-      `/users${buildQueryParams({ query: encodeURIComponent(query) })}`
-    )
-  },
-
-  async getOrganizations(
-    query: string,
+  async searchUsers(params: {
+    name?: string
     pagination?: PaginatedRequest
-  ): Promise<SearchUsersResponse> {
-    const queryParams = buildQueryParams({ query, ...pagination })
-    return {
-      users: (await usersClient.get<PaginatedResponse<User>>(`/users/organizations${queryParams}`))
-        .items,
-    }
+    role?: string
+  }): Promise<PaginatedResponse<User>> {
+    return usersClient.get<PaginatedResponse<User>>(`/search${buildQueryParams(params)}`)
   },
 })

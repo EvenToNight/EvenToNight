@@ -1,9 +1,9 @@
 import { api } from '@/api'
 import type { Event } from './types/events'
-import type { User } from './types/users'
+import type { User, UserRole } from './types/users'
 
 export interface SearchResultBase {
-  type: 'event' | 'organization' | 'member'
+  type: 'event' | UserRole
   id: string
   relevance: number
 }
@@ -17,7 +17,7 @@ export interface SearchResultEvent extends SearchResultBase {
 }
 
 export interface SearchResultUser extends SearchResultBase {
-  type: 'organization' | 'member'
+  type: UserRole
   name: string
   avatarUrl?: string
 }
@@ -101,12 +101,12 @@ export const getSearchResult = async (
 ): Promise<SearchResult[]> => {
   const [eventsResponse, usersResponse] = await Promise.all([
     api.events.searchByName(query),
-    api.users.searchByName(query),
+    api.users.searchUsers({ name: query }),
   ])
 
   const results: SearchResult[] = (
     await processEventSearchResults(eventsResponse.items, query)
-  ).concat(await processUserSearchResults(usersResponse.users, query))
+  ).concat(await processUserSearchResults(usersResponse.items, query))
 
   const typePriority = { event: 3, organization: 2, member: 1 }
   results.sort((a, b) => {
