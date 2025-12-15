@@ -46,7 +46,10 @@ const calculateEventResultRelevance = async (event: Event, query: string): Promi
     calculateRelevance(query, event.location.name || ''),
     calculateRelevance(query, event.location.city)
   )
-  const tagsRelevance = Math.max(...event.tags.map((tag) => calculateRelevance(query, tag)), 0)
+  const tagsRelevance = Math.max(
+    ...(event.tags?.map((tag) => calculateRelevance(query, tag)) || []),
+    0
+  )
   return Math.max(titleRelevance * 100, locationRelevance * 50, tagsRelevance * 50)
 }
 
@@ -103,10 +106,9 @@ export const getSearchResult = async (
     api.events.searchEvents({ title: query }),
     api.users.searchUsers({ name: query }),
   ])
-
-  const results: SearchResult[] = (
-    await processEventSearchResults(eventsResponse.items, query)
-  ).concat(await processUserSearchResults(usersResponse.items, query))
+  const processedEvents = await processEventSearchResults(eventsResponse.items, query)
+  const processedUsers = await processUserSearchResults(usersResponse.items, query)
+  const results: SearchResult[] = processedEvents.concat(processedUsers)
 
   const typePriority = { event: 3, organization: 2, member: 1 }
   results.sort((a, b) => {
