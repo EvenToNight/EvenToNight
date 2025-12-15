@@ -1,5 +1,6 @@
 <script lang="ts">
 export const NAVBAR_HEIGHT = 64
+export const NAVBAR_HEIGHT_CSS = `${NAVBAR_HEIGHT}px`
 </script>
 
 <script setup lang="ts">

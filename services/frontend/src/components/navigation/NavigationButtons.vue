@@ -3,11 +3,9 @@ import { useNavigation } from '@/router/utils'
 import AppBrand from '../common/AppBrand.vue'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import HomeButton from '@/components/buttons/actionButtons/HomeButton.vue'
-import { NAVBAR_HEIGHT } from './NavigationBar.vue'
+import { NAVBAR_HEIGHT_CSS } from './NavigationBar.vue'
 
 const { goBack, goToHome } = useNavigation()
-
-const navbarHeight = `${NAVBAR_HEIGHT}px`
 
 interface Props {
   variant?: 'solid' | 'floating'
@@ -19,8 +17,10 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <template v-if="variant === 'floating'">
-    <BackButton />
-    <HomeButton />
+    <nav class="floating-navigation-bar">
+      <BackButton class="floating-nav-btn" />
+      <HomeButton class="floating-nav-btn" />
+    </nav>
   </template>
   <template v-else>
     <nav class="navigation-bar">
@@ -38,13 +38,23 @@ withDefaults(defineProps<Props>(), {
 </template>
 
 <style lang="scss" scoped>
+.floating-navigation-bar {
+  @include flex-between;
+  position: sticky;
+  top: 0;
+  background: transparent;
+  z-index: $z-index-sticky;
+}
+.floating-nav-btn {
+  position: relative;
+}
 .navigation-bar {
   @include flex-between;
   position: sticky;
   top: 0;
   min-width: $app-min-width;
   width: 100%;
-  height: v-bind(navbarHeight);
+  height: v-bind(NAVBAR_HEIGHT_CSS);
   padding: 0 $spacing-4;
   background: $color-background;
   z-index: $z-index-sticky;
