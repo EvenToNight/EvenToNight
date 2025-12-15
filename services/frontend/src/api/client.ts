@@ -5,7 +5,10 @@ const getServiceUrl = (service: string): string => {
   if (!host) {
     throw new Error('Environment variable VITE_HOST is not defined')
   }
-  return `http://${service}.${host}`
+  if (import.meta.env.DEV) {
+    return `http://${service}.${host}`
+  }
+  return `https://${service}.${host}`
 }
 
 // JWT Token provider function will be set by the app
