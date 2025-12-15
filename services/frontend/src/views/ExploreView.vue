@@ -10,7 +10,7 @@ const showAuthDialog = ref(false)
 <template>
   <div>
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
-    <NavigationPageView>
+    <NavigationPageView :hide-dropdown="true">
       <ExploreViewContent @auth-required="showAuthDialog = true" />
     </NavigationPageView>
   </div>

@@ -23,9 +23,12 @@ interface Props {
   searchQuery?: string
   searchResults?: SearchResult[]
   hasFocus?: boolean
+  hideDropdown?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  hideDropdown: false,
+})
 const $q = useQuasar()
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -102,6 +105,7 @@ const goToProfile = () => {
             v-model:search-results="searchResults"
             v-model:has-focus="searchBarHasFocus"
             :autofocus="hasFocus"
+            :hide-dropdown="hideDropdown"
           />
         </div>
         <q-btn flat dense icon="close" @mousedown.prevent="toggleMobileSearch" />
@@ -125,6 +129,7 @@ const goToProfile = () => {
               v-model:search-results="searchResults"
               v-model:has-focus="searchBarHasFocus"
               :autofocus="hasFocus"
+              :hide-dropdown="hideDropdown"
             />
           </div>
           <div v-if="authStore.isAuthenticated">

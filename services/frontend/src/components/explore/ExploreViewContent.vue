@@ -19,6 +19,7 @@ const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>(
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 // const searchResults = inject<Ref<SearchResult[]>>('searchResults', ref([]))
 // const searchBarHasFocus = inject<Ref<boolean>>('searchBarHasFocus', ref(false))
+const hideDropdown = inject<boolean>('hideDropdown', false)
 
 const activeTab = ref<'events' | 'organizations' | 'people'>('events')
 
@@ -207,6 +208,7 @@ onUnmounted(() => {
           <SearchBar
             v-model:search-query="searchQuery"
             search-hint="Cerca eventi, organizzazioni o persone..."
+            :hide-dropdown="hideDropdown"
           />
         </div>
       </div>

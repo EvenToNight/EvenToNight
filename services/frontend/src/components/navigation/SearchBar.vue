@@ -13,6 +13,7 @@ interface Props {
   searchHint?: string
   autofocus?: boolean
   hasFocus?: boolean
+  hideDropdown?: boolean
 }
 
 const { t } = useI18n()
@@ -23,6 +24,7 @@ const props = withDefaults(defineProps<Props>(), {
   searchHint: '',
   autofocus: false,
   hasFocus: false,
+  hideDropdown: false,
 })
 
 const emit = defineEmits<{
@@ -51,10 +53,15 @@ const searchResults = computed({
 let searchDebounceTimer: number | null = null
 
 watch(searchQuery, (value) => {
-  showSuggestions.value = value.length > 0
+  showSuggestions.value = !props.hideDropdown && value.length > 0
 
   if (searchDebounceTimer) {
     clearTimeout(searchDebounceTimer)
+  }
+
+  // Skip internal search if dropdown is hidden (parent handles search)
+  if (props.hideDropdown) {
+    return
   }
 
   if (value.trim()) {
@@ -80,7 +87,7 @@ watch(
 )
 
 onMounted(() => {
-  if (searchQuery.value.length > 0 && props.hasFocus) {
+  if (searchQuery.value.length > 0 && props.hasFocus && !props.hideDropdown) {
     showSuggestions.value = true
     performSearch()
   }
@@ -127,7 +134,7 @@ const hideSuggestions = () => {
 }
 
 const handleFocus = () => {
-  showSuggestions.value = searchQuery.value.length > 0
+  showSuggestions.value = !props.hideDropdown && searchQuery.value.length > 0
   emit('update:hasFocus', true)
 }
 

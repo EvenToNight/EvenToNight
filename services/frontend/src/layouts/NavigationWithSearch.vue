@@ -4,6 +4,14 @@ import type { SearchResult } from '@/api/utils'
 import NavigationBar, { NAVBAR_HEIGHT } from '@/components/navigation/NavigationBar.vue'
 import Footer from '@/components/navigation/Footer.vue'
 
+interface Props {
+  hideDropdown?: boolean
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  hideDropdown: false,
+})
+
 const searchQuery = ref('')
 const searchResults = ref<SearchResult[]>([])
 const searchBarHasFocus = ref(false)
@@ -32,6 +40,7 @@ provide('searchQuery', searchQuery)
 provide('searchResults', searchResults)
 provide('searchBarHasFocus', searchBarHasFocus)
 provide('showSearchInNavbar', showSearchInNavbar)
+provide('hideDropdown', props.hideDropdown)
 </script>
 
 <template>
@@ -42,6 +51,7 @@ provide('showSearchInNavbar', showSearchInNavbar)
         v-model:search-results="searchResults"
         v-model:has-focus="searchBarHasFocus"
         :show-search="showSearchInNavbar"
+        :hide-dropdown="hideDropdown"
       />
       <div class="page-content">
         <slot></slot>

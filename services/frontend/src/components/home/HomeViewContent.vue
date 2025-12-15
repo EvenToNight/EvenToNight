@@ -25,6 +25,7 @@ const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
 const searchQuery = inject<Ref<string>>('searchQuery')
 const searchResults = inject<Ref<SearchResult[]>>('searchResults')
 const searchBarHasFocus = inject<Ref<boolean>>('searchBarHasFocus')
+const hideDropdown = inject<boolean>('hideDropdown', false)
 const upcomingEvents = ref<Event[]>([])
 
 const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
@@ -89,6 +90,7 @@ onMounted(async () => {
                 v-model:search-results="searchResults"
                 v-model:has-focus="searchBarHasFocus"
                 :autofocus="searchBarHasFocus"
+                :hide-dropdown="hideDropdown"
               />
             </div>
           </div>
