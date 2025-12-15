@@ -135,7 +135,8 @@ object Utils:
       city: Option[String],
       location_name: Option[String]
   ): GetFilteredEventsCommand =
-    val parsedStatus: Option[EventStatus]  = status.flatMap(s => EventStatus.withNameOpt(s))
+    val parsedStatus: Option[EventStatus] =
+      status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
     val parsedTags: Option[List[EventTag]] = tags.map(_.map(t => EventTag.fromString(t)))
     val parsedStartDate: Option[LocalDateTime] = startDate.flatMap { sd =>
       Try(LocalDateTime.parse(sd)).toOption

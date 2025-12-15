@@ -395,7 +395,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       EventTag.TypeOfEvent.Concert,
       EventTag.MusicGenre.Rock
     )
-    commands.status shouldBe None
+    commands.status shouldBe Some(EventStatus.PUBLISHED)
     commands.startDate shouldBe None
     commands.endDate shouldBe None
     commands.id_organization shouldBe Some("123")
@@ -419,7 +419,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.offset shouldBe None
     commands.title shouldBe None
     commands.tags shouldBe None
-    commands.status shouldBe None
+    commands.status shouldBe Some(EventStatus.PUBLISHED)
     commands.startDate shouldBe None
     commands.endDate shouldBe None
     commands.id_organization shouldBe None
