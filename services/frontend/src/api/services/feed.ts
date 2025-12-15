@@ -10,7 +10,7 @@ export const createFeedApi = (feedClient: ApiClient): FeedAPI => ({
   async getUpcomingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
     const queryParams = buildQueryParams({ ...evaluatePagination(pagination) })
     const response = await feedClient.get<PaginatedResponse<Event>>(
-      `/search${queryParams}?status=PUBLISHED`
+      `/search${queryParams}&status=PUBLISHED`
     )
     return {
       ...response,
