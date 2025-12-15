@@ -1,3 +1,9 @@
+## [1.8.1](https://github.com/EvenToNight/EvenToNight/compare/v1.8.0...v1.8.1) (2025-12-15)
+
+### Bug Fixes
+
+* **protocol:** use https link in dev deployed environment ([bf8fc95](https://github.com/EvenToNight/EvenToNight/commit/bf8fc95105a2802acaf7b87b5b0ae661046943f7))
+
 ## [1.8.0](https://github.com/EvenToNight/EvenToNight/compare/v1.7.0...v1.8.0) (2025-12-15)
 
 ### Features
