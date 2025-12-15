@@ -361,7 +361,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       endDate = Some("2025-12-31T23:59:59"),
       id_organization = Some("123"),
       city = Some("New York"),
-      location_name = Some("Madison Square Garden")
+      location_name = Some("Madison Square Garden"),
+      priceMin = Some(10.0),
+      priceMax = Some(50.0)
     )
     commands.title shouldBe Some("Music Fest")
     commands.tags.getOrElse(List()) should contain allElementsOf List(
@@ -374,6 +376,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.id_organization shouldBe Some("123")
     commands.city shouldBe Some("New York")
     commands.location_name shouldBe Some("Madison Square Garden")
+    commands.limit shouldBe Some(2)
+    commands.offset shouldBe Some(5)
+    commands.priceRange shouldBe Some((10.0, 50.0))
 
   it should "handle missing filter parameters" in:
     val commands = Utils.parseEventFilters(
@@ -386,7 +391,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       endDate = None,
       id_organization = Some("123"),
       city = None,
-      location_name = Some("Madison Square Garden")
+      location_name = Some("Madison Square Garden"),
+      priceMin = None,
+      priceMax = None
     )
     commands.limit shouldBe Some(2)
     commands.offset shouldBe Some(5)
@@ -401,6 +408,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.id_organization shouldBe Some("123")
     commands.city shouldBe None
     commands.location_name shouldBe Some("Madison Square Garden")
+    commands.priceRange shouldBe None
 
   it should "handle all filter parameters missing" in:
     val commands = Utils.parseEventFilters(
@@ -413,7 +421,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       endDate = None,
       id_organization = None,
       city = None,
-      location_name = None
+      location_name = None,
+      priceMin = None,
+      priceMax = None
     )
     commands.limit shouldBe Some(Utils.DEFAULT_LIMIT)
     commands.offset shouldBe None
@@ -425,6 +435,41 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.id_organization shouldBe None
     commands.city shouldBe None
     commands.location_name shouldBe None
+    commands.priceRange shouldBe None
+
+  it should "handle null max price with min price provided" in:
+    val commands = Utils.parseEventFilters(
+      limit = None,
+      offset = None,
+      status = None,
+      title = None,
+      tags = None,
+      startDate = None,
+      endDate = None,
+      id_organization = None,
+      city = None,
+      location_name = None,
+      priceMin = Some(20.0),
+      priceMax = None
+    )
+    commands.priceRange shouldBe Some((20.0, Double.MaxValue))
+
+  it should "handle null min price with max price provided" in:
+    val commands = Utils.parseEventFilters(
+      limit = None,
+      offset = None,
+      status = None,
+      title = None,
+      tags = None,
+      startDate = None,
+      endDate = None,
+      id_organization = None,
+      city = None,
+      location_name = None,
+      priceMin = None,
+      priceMax = Some(50.0)
+    )
+    commands.priceRange shouldBe Some((0.0, 50.0))
 
   "Utils.createPaginatedResponse" should "create correct paginated response JSON" in:
     val events = List(

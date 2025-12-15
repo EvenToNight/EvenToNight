@@ -133,7 +133,9 @@ object Utils:
       endDate: Option[String],
       id_organization: Option[String],
       city: Option[String],
-      location_name: Option[String]
+      location_name: Option[String],
+      priceMin: Option[Double],
+      priceMax: Option[Double]
   ): GetFilteredEventsCommand =
     val parsedStatus: Option[EventStatus] =
       status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
@@ -145,6 +147,11 @@ object Utils:
       Try(LocalDateTime.parse(ed)).toOption
     }
     val limitValue = math.min(limit.getOrElse(DEFAULT_LIMIT), MAX_LIMIT)
+    val priceRange = (priceMin, priceMax) match
+      case (Some(min), Some(max)) => Some((min, max))
+      case (Some(min), None)      => Some((min, Double.MaxValue))
+      case (None, Some(max))      => Some((0.0, max))
+      case _                      => None
     GetFilteredEventsCommand(
       limit = Some(limitValue),
       offset = offset,
@@ -155,7 +162,8 @@ object Utils:
       endDate = parsedEndDate,
       id_organization = id_organization,
       city = city,
-      location_name = location_name
+      location_name = location_name,
+      priceRange = priceRange
     )
 
   def createPaginatedResponse(

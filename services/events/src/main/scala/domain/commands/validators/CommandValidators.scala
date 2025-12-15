@@ -11,7 +11,7 @@ import domain.models.{EventStatus, Location}
 
 import java.time.LocalDateTime
 
-import ValidationRules.{futureDate, nonEmpty, correctLocality, positiveInt, nonNegativeInt, dateRange}
+import ValidationRules.{futureDate, nonEmpty, correctLocality, positiveInt, nonNegativeInt, dateRange, priceRange}
 import Validator.combine
 
 object CreateEventValidator extends Validator[CreateEventCommand]:
@@ -79,5 +79,6 @@ object GetFilteredEventsValidator extends Validator[GetFilteredEventsCommand]:
     combine(
       positiveInt(cmd.limit, "Limit"),
       nonNegativeInt(cmd.offset, "Offset"),
-      dateRange(cmd.startDate, cmd.endDate, "Date range")
+      dateRange(cmd.startDate, cmd.endDate, "Date range"),
+      priceRange(cmd.priceRange, "Price range")
     ).map(_ => cmd)

@@ -27,7 +27,8 @@ trait EventRepository:
       endDate: Option[String] = None,
       id_organization: Option[String] = None,
       city: Option[String] = None,
-      location_name: Option[String] = None
+      location_name: Option[String] = None,
+      priceRange: Option[(Double, Double)] = None
   ): Either[Throwable, (List[Event], Boolean)]
 
 case class MongoEventRepository(connectionString: String, databaseName: String, collectionName: String = "events")
@@ -112,12 +113,13 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       endDate: Option[String] = None,
       id_organization: Option[String] = None,
       city: Option[String] = None,
-      location_name: Option[String] = None
+      location_name: Option[String] = None,
+      priceRange: Option[(Double, Double)] = None
   ): Either[Throwable, (List[Event], Boolean)] =
     Try {
 
       val combinedFilter =
-        buildFilterQuery(status, title, tags, startDate, endDate, id_organization, city, location_name)
+        buildFilterQuery(status, title, tags, startDate, endDate, id_organization, city, location_name, priceRange)
 
       val query = applyPagination(collection.find(combinedFilter), offset, limit)
 
@@ -140,7 +142,8 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       endDate: Option[String],
       id_organization: Option[String],
       city: Option[String],
-      location_name: Option[String]
+      location_name: Option[String],
+      priceRange: Option[(Double, Double)]
   ): org.bson.conversions.Bson =
     val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
 
@@ -163,6 +166,12 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
     startDate.foreach(start => filters += Filters.gte("date", start))
     endDate.foreach(end => filters += Filters.lte("date", end))
 
+    priceRange.foreach { case (min, max) =>
+      filters += Filters.and(
+        Filters.gte("price", min),
+        Filters.lte("price", max)
+      )
+    }
     if filters.isEmpty then
       new Document()
     else if filters.size == 1 then

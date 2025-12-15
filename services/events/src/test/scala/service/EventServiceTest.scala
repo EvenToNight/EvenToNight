@@ -92,7 +92,8 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       endDate: Option[LocalDateTime] = None,
       id_organization: Option[String] = None,
       city: Option[String] = None,
-      location_name: Option[String] = None
+      location_name: Option[String] = None,
+      priceRange: Option[(Double, Double)] = None
   ): GetFilteredEventsCommand =
     GetFilteredEventsCommand(
       limit,
@@ -104,7 +105,8 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       endDate,
       id_organization,
       city,
-      location_name
+      location_name,
+      priceRange
     )
 
   "EventService" should "be instantiated correctly" in:

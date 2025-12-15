@@ -321,6 +321,22 @@ paths:
           required: false
           schema:
             type: string
+        - name: priceMin
+          in: query
+          description: Minimum price filter. If not provided when priceMax is set, it defaults to 0.0.
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 10.0
+        - name: priceMax
+          in: query
+          description: Maximum price filter. If not provided when priceMin is set, it defaults to Double.MaxValue.
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 50.0
       responses:
         '200':
           description: Successfully retrieved filtered events

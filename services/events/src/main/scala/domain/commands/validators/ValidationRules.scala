@@ -50,3 +50,14 @@ object ValidationRules:
       case (Some(start), Some(end)) if start.isAfter(end) =>
         Left(s"$fieldName: start date must be before end date")
       case _ => Right(())
+
+  def priceRange(
+      priceRange: Option[(Double, Double)],
+      fieldName: String
+  ): Either[String, Unit] =
+    priceRange match
+      case Some((min, max)) if min < 0 || max < 0 =>
+        Left(s"$fieldName: prices cannot be negative")
+      case Some((min, max)) if min > max =>
+        Left(s"$fieldName: minimum price must be less than or equal to maximum price")
+      case _ => Right(())

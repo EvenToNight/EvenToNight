@@ -138,3 +138,23 @@ class ValidationRulesTest extends AnyFlatSpec with Matchers with BeforeAndAfterE
   it should "accept when both dates are None" in:
     val result = ValidationRules.dateRange(None, None, "Event Dates")
     result shouldBe Right(())
+
+  "PriceRange rule" should "validate correct price ranges successfully" in:
+    val result = ValidationRules.priceRange(Some((10.0, 50.0)), "Event Prices")
+    result shouldBe Right(())
+
+  it should "reject negative minimum price" in:
+    val result = ValidationRules.priceRange(Some((-5.0, 50.0)), "Event Prices")
+    result shouldBe Left("Event Prices: prices cannot be negative")
+
+  it should "reject negative maximum price" in:
+    val result = ValidationRules.priceRange(Some((10.0, -20.0)), "Event Prices")
+    result shouldBe Left("Event Prices: prices cannot be negative")
+
+  it should "reject minimum price greater than maximum price" in:
+    val result = ValidationRules.priceRange(Some((60.0, 50.0)), "Event Prices")
+    result shouldBe Left("Event Prices: minimum price must be less than or equal to maximum price")
+
+  it should "accept None as valid" in:
+    val result = ValidationRules.priceRange(None, "Event Prices")
+    result shouldBe Right(())

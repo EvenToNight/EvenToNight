@@ -66,7 +66,8 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       endDate = Some(baseDate.plusDays(10)),
       id_organization = Some("org-456"),
       city = Some("Sample City"),
-      location_name = Some("Sample Venue")
+      location_name = Some("Sample Venue"),
+      priceRange = Some((10.0, 50.0))
     )
 
   "CreateEventDraftCommand" should "implement Commands trait" in:
@@ -98,13 +99,13 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   it should "support pattern matching" in:
     val command: Commands = createCommand("Pattern Test")
     val result = command match
-      case CreateEventCommand(title, _, _, _, _, _, _, _, _, _)   => "Command: " + title.getOrElse("No Title")
-      case GetEventCommand(id_event)                              => s"Get Command: $id_event"
-      case UpdateEventPosterCommand(id_event, posterUrl)          => s"Update Poster Command: $id_event"
-      case GetAllEventsCommand()                                  => "Get All Events Command"
-      case UpdateEventCommand(id, _, _, _, _, _, _, _, _)         => s"Update $id Event Command"
-      case DeleteEventCommand(id_event)                           => s"Delete Command: $id_event"
-      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
+      case CreateEventCommand(title, _, _, _, _, _, _, _, _, _)      => "Command: " + title.getOrElse("No Title")
+      case GetEventCommand(id_event)                                 => s"Get Command: $id_event"
+      case UpdateEventPosterCommand(id_event, posterUrl)             => s"Update Poster Command: $id_event"
+      case GetAllEventsCommand()                                     => "Get All Events Command"
+      case UpdateEventCommand(id, _, _, _, _, _, _, _, _)            => s"Update $id Event Command"
+      case DeleteEventCommand(id_event)                              => s"Delete Command: $id_event"
+      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:

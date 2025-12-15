@@ -55,5 +55,6 @@ case class GetFilteredEventsCommand(
     endDate: Option[LocalDateTime],
     id_organization: Option[String],
     city: Option[String],
-    location_name: Option[String]
+    location_name: Option[String],
+    priceRange: Option[(Double, Double)]
 ) extends Commands

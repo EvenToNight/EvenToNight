@@ -61,7 +61,8 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       endDate: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(30)),
       id_organization: Option[String] = Some("org-123"),
       city: Option[String] = Some("Sample City"),
-      location_name: Option[String] = Some("Sample Venue")
+      location_name: Option[String] = Some("Sample Venue"),
+      priceRange: Option[(Double, Double)] = Some((10.0, 100.0))
   ): GetFilteredEventsCommand =
     GetFilteredEventsCommand(
       limit = limit,
@@ -73,7 +74,8 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       endDate = endDate,
       id_organization = id_organization,
       city = city,
-      location_name = location_name
+      location_name = location_name,
+      priceRange = priceRange
     )
 
   "CreateEventValidator" should "extends Validator trait" in:
@@ -331,3 +333,15 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val result = GetFilteredEventsValidator.validate(command)
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Date range: start date must be before end date")
+
+  it should "reject negative prices in price range" in:
+    val command = validGetFilteredEventsCommand(priceRange = Some((-10.0, 50.0)))
+    val result  = GetFilteredEventsValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Price range: prices cannot be negative")
+
+  it should "reject min greater than max in price range" in:
+    val command = validGetFilteredEventsCommand(priceRange = Some((100.0, 50.0)))
+    val result  = GetFilteredEventsValidator.validate(command)
+    result shouldBe a[Left[?, ?]]
+    result.left.value should contain("Price range: minimum price must be less than or equal to maximum price")
