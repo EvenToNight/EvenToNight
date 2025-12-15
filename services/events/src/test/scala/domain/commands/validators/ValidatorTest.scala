@@ -62,7 +62,9 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_organization: Option[String] = Some("org-123"),
       city: Option[String] = Some("Sample City"),
       location_name: Option[String] = Some("Sample Venue"),
-      priceRange: Option[(Double, Double)] = Some((10.0, 100.0))
+      priceRange: Option[(Double, Double)] = Some((10.0, 100.0)),
+      sortBy: Option[String] = Some("date"),
+      sortOrder: Option[String] = Some("asc")
   ): GetFilteredEventsCommand =
     GetFilteredEventsCommand(
       limit = limit,
@@ -75,7 +77,9 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_organization = id_organization,
       city = city,
       location_name = location_name,
-      priceRange = priceRange
+      priceRange = priceRange,
+      sortBy = sortBy,
+      sortOrder = sortOrder
     )
 
   "CreateEventValidator" should "extends Validator trait" in:

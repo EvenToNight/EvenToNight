@@ -65,7 +65,9 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       city: Option[String] = None,
       location_name: Option[String] = None,
       priceMin: Option[Double] = None,
-      priceMax: Option[Double] = None
+      priceMax: Option[Double] = None,
+      sortBy: Option[String] = None,
+      sortOrder: Option[String] = None
   ): cask.Response[ujson.Value] =
     val tagsList: Option[List[String]] = tags.map(_.toList)
     val command: GetFilteredEventsCommand = Utils.parseEventFilters(
@@ -80,7 +82,9 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       city,
       location_name,
       priceMin,
-      priceMax
+      priceMax,
+      sortBy,
+      sortOrder
     )
     eventService.handleCommand(command) match
       case Right((events: List[?], hasMore: Boolean)) =>

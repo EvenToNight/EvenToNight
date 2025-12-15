@@ -10,8 +10,8 @@ import scala.util.{Failure, Success, Try}
 
 object Utils:
 
-  val DEFAULT_LIMIT: Int   = 1
-  val MAX_LIMIT: Int       = 2
+  val DEFAULT_LIMIT: Int   = 10
+  val MAX_LIMIT: Int       = 20
   val DEFAULT_DATE: String = "2027-01-01T00:00:00"
 
   def parseLocationFromJson(locationJson: String): Option[Location] =
@@ -135,7 +135,9 @@ object Utils:
       city: Option[String],
       location_name: Option[String],
       priceMin: Option[Double],
-      priceMax: Option[Double]
+      priceMax: Option[Double],
+      sortBy: Option[String],
+      sortOrder: Option[String]
   ): GetFilteredEventsCommand =
     val parsedStatus: Option[EventStatus] =
       status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
@@ -152,6 +154,12 @@ object Utils:
       case (Some(min), None)      => Some((min, Double.MaxValue))
       case (None, Some(max))      => Some((0.0, max))
       case _                      => None
+    val validSortBy = sortBy.filter(s =>
+      Set("date", "price", "instant").contains(s.toLowerCase)
+    ).orElse(Some("date"))
+    val validSortOrder = sortOrder.filter(o =>
+      Set("asc", "desc").contains(o.toLowerCase)
+    ).map(_.toLowerCase).orElse(Some("asc"))
     GetFilteredEventsCommand(
       limit = Some(limitValue),
       offset = offset,
@@ -163,7 +171,9 @@ object Utils:
       id_organization = id_organization,
       city = city,
       location_name = location_name,
-      priceRange = priceRange
+      priceRange = priceRange,
+      sortBy = validSortBy,
+      sortOrder = validSortOrder
     )
 
   def createPaginatedResponse(
@@ -172,9 +182,10 @@ object Utils:
       offset: Option[Int] = None,
       hasMore: Boolean
   ): ujson.Obj =
+    val limitValue = math.min(limit.getOrElse(DEFAULT_LIMIT), MAX_LIMIT)
     ujson.Obj(
       "items"   -> ujson.Arr(events.map(_.toJson)*),
-      "limit"   -> limit.getOrElse(DEFAULT_LIMIT),
+      "limit"   -> limitValue,
       "offset"  -> offset.getOrElse(0),
       "hasMore" -> hasMore
     )

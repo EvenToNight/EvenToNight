@@ -363,7 +363,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       city = Some("New York"),
       location_name = Some("Madison Square Garden"),
       priceMin = Some(10.0),
-      priceMax = Some(50.0)
+      priceMax = Some(50.0),
+      sortBy = Some("date"),
+      sortOrder = Some("asc")
     )
     commands.title shouldBe Some("Music Fest")
     commands.tags.getOrElse(List()) should contain allElementsOf List(
@@ -379,6 +381,8 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.limit shouldBe Some(2)
     commands.offset shouldBe Some(5)
     commands.priceRange shouldBe Some((10.0, 50.0))
+    commands.sortBy shouldBe Some("date")
+    commands.sortOrder shouldBe Some("asc")
 
   it should "handle missing filter parameters" in:
     val commands = Utils.parseEventFilters(
@@ -393,7 +397,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       city = None,
       location_name = Some("Madison Square Garden"),
       priceMin = None,
-      priceMax = None
+      priceMax = None,
+      sortBy = None,
+      sortOrder = None
     )
     commands.limit shouldBe Some(2)
     commands.offset shouldBe Some(5)
@@ -409,6 +415,8 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.city shouldBe None
     commands.location_name shouldBe Some("Madison Square Garden")
     commands.priceRange shouldBe None
+    commands.sortBy shouldBe Some("date")
+    commands.sortOrder shouldBe Some("asc")
 
   it should "handle all filter parameters missing" in:
     val commands = Utils.parseEventFilters(
@@ -423,7 +431,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       city = None,
       location_name = None,
       priceMin = None,
-      priceMax = None
+      priceMax = None,
+      sortBy = None,
+      sortOrder = None
     )
     commands.limit shouldBe Some(Utils.DEFAULT_LIMIT)
     commands.offset shouldBe None
@@ -436,6 +446,8 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.city shouldBe None
     commands.location_name shouldBe None
     commands.priceRange shouldBe None
+    commands.sortBy shouldBe Some("date")
+    commands.sortOrder shouldBe Some("asc")
 
   it should "handle null max price with min price provided" in:
     val commands = Utils.parseEventFilters(
@@ -450,7 +462,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       city = None,
       location_name = None,
       priceMin = Some(20.0),
-      priceMax = None
+      priceMax = None,
+      sortBy = None,
+      sortOrder = None
     )
     commands.priceRange shouldBe Some((20.0, Double.MaxValue))
 
@@ -467,7 +481,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       city = None,
       location_name = None,
       priceMin = None,
-      priceMax = Some(50.0)
+      priceMax = Some(50.0),
+      sortBy = None,
+      sortOrder = None
     )
     commands.priceRange shouldBe Some((0.0, 50.0))
 

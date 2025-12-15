@@ -28,7 +28,9 @@ trait EventRepository:
       id_organization: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None,
-      priceRange: Option[(Double, Double)] = None
+      priceRange: Option[(Double, Double)] = None,
+      sortBy: Option[String] = None,
+      sortOrder: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)]
 
 case class MongoEventRepository(connectionString: String, databaseName: String, collectionName: String = "events")
@@ -115,14 +117,27 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       id_organization: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None,
-      priceRange: Option[(Double, Double)] = None
+      priceRange: Option[(Double, Double)] = None,
+      sortBy: Option[String] = None,
+      sortOrder: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)] =
     Try {
 
       val combinedFilter =
         buildFilterQuery(status, title, tags, startDate, endDate, id_organization, city, location_name, priceRange)
 
-      val query = applyPagination(collection.find(combinedFilter), offset, limit)
+      val sortField     = sortBy.getOrElse("date")
+      val sortDirection = if sortOrder.contains("desc") then -1 else 1
+
+      val sortCriteria = if sortField == "date" then
+        Sorts.orderBy(Sorts.descending("date"))
+      else
+        Sorts.orderBy(
+          if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField),
+          Sorts.ascending("date")
+        )
+
+      val query = applyPagination(collection.find(combinedFilter).sort(sortCriteria), offset, limit)
 
       val results = executeQueryAndUpdateEvents(query)
 
