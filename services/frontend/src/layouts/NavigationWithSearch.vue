@@ -1,16 +1,13 @@
 <script setup lang="ts">
-import { ref, provide } from 'vue'
+import { ref, provide, onMounted, onUnmounted } from 'vue'
 import type { SearchResult } from '@/api/utils'
-import NavigationBar from '@/components/navigation/NavigationBar.vue'
+import NavigationBar, { NAVBAR_HEIGHT } from '@/components/navigation/NavigationBar.vue'
 import Footer from '@/components/navigation/Footer.vue'
-import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
-import { onMounted, onUnmounted } from 'vue'
-import { NAVBAR_HEIGHT } from '../components/navigation/NavigationBar.vue'
 
 const searchQuery = ref('')
 const searchResults = ref<SearchResult[]>([])
 const searchBarHasFocus = ref(false)
-const showAuthDialog = ref(false)
+
 const pageContentSearchBarRef = ref<HTMLElement | null>(null)
 const showSearchInNavbar = ref(false)
 
@@ -30,19 +27,15 @@ onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll)
 })
 
-// Provide state to be used by the page content
 provide('pageContentSearchBarRef', pageContentSearchBarRef)
 provide('searchQuery', searchQuery)
 provide('searchResults', searchResults)
 provide('searchBarHasFocus', searchBarHasFocus)
-provide('showAuthDialog', showAuthDialog)
 provide('showSearchInNavbar', showSearchInNavbar)
 </script>
 
 <template>
   <div class="navigation-view">
-    <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
-
     <div class="scroll-wrapper">
       <NavigationBar
         v-model:search-query="searchQuery"
@@ -63,7 +56,7 @@ provide('showSearchInNavbar', showSearchInNavbar)
   @include flex-column;
   min-height: 100vh;
   position: relative;
-  min-width: 300px;
+  min-width: $app-min-width;
 }
 
 .scroll-wrapper {

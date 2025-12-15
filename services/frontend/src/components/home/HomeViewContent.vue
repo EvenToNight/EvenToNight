@@ -13,23 +13,23 @@ import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useNavigation } from '@/router/utils'
 
+const emit = defineEmits(['auth-required'])
+
 const { goToExplore } = useNavigation()
 const $q = useQuasar()
 const { t } = useI18n()
 const authStore = useAuthStore()
 
-inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
+const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
 const searchQuery = inject<Ref<string>>('searchQuery')
 const searchResults = inject<Ref<SearchResult[]>>('searchResults')
 const searchBarHasFocus = inject<Ref<boolean>>('searchBarHasFocus')
-const showAuthDialog = inject<Ref<boolean>>('showAuthDialog')
-
 const upcomingEvents = ref<Event[]>([])
 
 const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
   if (!authStore.isAuthenticated || !authStore.user) {
-    if (showAuthDialog) showAuthDialog.value = true
+    emit('auth-required')
     return
   }
 
@@ -113,7 +113,7 @@ onMounted(async () => {
             :date="new Date(event.date)"
             :favorite="false"
             @favorite-toggle="handleFavoriteToggle(event.id_event, $event)"
-            @auth-required="showAuthDialog = true"
+            @auth-required="emit('auth-required')"
           />
         </CardSlider>
 
