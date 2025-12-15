@@ -132,7 +132,6 @@ export default {
     publishEvent: 'Publish Event',
     updateEvent: 'Update Event',
     locationNoOptionHint: 'Type at least 3 characters to search',
-    errorForDraftCreation: 'Please provide at least a title for the draft',
     successForEventPublication: 'Event published successfully!',
     successForEventUpdate: 'Event updated successfully!',
     successForEventDeletion: 'Event deleted successfully!',

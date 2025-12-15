@@ -133,7 +133,6 @@ export default {
     publishEvent: 'Publicar evento',
     updateEvent: 'Evento de actualización',
     locationNoOptionHint: 'Escribe al menos 3 caracteres para buscar',
-    errorForDraftCreation: 'Proporcione al menos un título para el borrador.',
     successForEventPublication: '¡Evento publicado exitosamente!',
     successForEventUpdate: '¡Evento actualizado exitosamente!',
     successForEventDeletion: '¡Evento eliminado exitosamente!',

@@ -133,7 +133,6 @@ export default {
     publishEvent: 'Publier un événement',
     updateEvent: 'Événement de mise à jour',
     locationNoOptionHint: 'Tapez au moins 3 caractères pour rechercher',
-    errorForDraftCreation: 'Veuillez fournir au moins un titre pour le projet',
     successForEventPublication: 'Événement publié avec succès !',
     successForEventUpdate: 'Événement mis à jour avec succès !',
     successForEventDeletion: 'Événement supprimé avec succès !',

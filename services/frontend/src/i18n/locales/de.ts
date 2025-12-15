@@ -133,7 +133,6 @@ export default {
     publishEvent: 'Veranstaltung veröffentlichen',
     updateEvent: 'Ereignis aktualisieren',
     locationNoOptionHint: 'Geben Sie für die Suche mindestens 3 Zeichen ein',
-    errorForDraftCreation: 'Bitte geben Sie mindestens einen Titel für den Entwurf an',
     successForEventPublication: 'Veranstaltung erfolgreich veröffentlicht!',
     successForEventUpdate: 'Veranstaltung erfolgreich aktualisiert!',
     successForEventDeletion: 'Veranstaltung erfolgreich gelöscht!',
