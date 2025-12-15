@@ -5,9 +5,10 @@ import type { Ref } from 'vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'
+import type { SearchResult } from '@/api/utils'
 import { useAuthStore } from '@/stores/auth'
 import EventCard from '@/components/cards/EventCard.vue'
-import UserCard from '@/components/cards/UserCard.vue'
+import SearchResultCard from '@/components/cards/SearchResultCard.vue'
 import SearchBar from '@/components/navigation/SearchBar.vue'
 
 const emit = defineEmits(['auth-required'])
@@ -186,6 +187,28 @@ const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
     console.error('Failed to toggle favorite:', error)
   }
 }
+
+// Map organizations to SearchResult format
+const organizationsAsSearchResults = computed<SearchResult[]>(() => {
+  return organizations.value.map((org) => ({
+    type: 'organization' as const,
+    id: org.id,
+    name: org.name,
+    avatarUrl: org.avatarUrl,
+    relevance: 0,
+  }))
+})
+
+// Map people to SearchResult format
+const peopleAsSearchResults = computed<SearchResult[]>(() => {
+  return people.value.map((person) => ({
+    type: 'member' as const,
+    id: person.id,
+    name: person.name,
+    avatarUrl: person.avatarUrl,
+    relevance: 0,
+  }))
+})
 
 watch(searchQuery, () => {
   onSearch()
@@ -386,7 +409,11 @@ onUnmounted(() => {
           <q-spinner-dots color="primary" size="50px" />
         </div>
         <div v-else-if="organizations.length > 0" class="users-list">
-          <UserCard v-for="org in organizations" :key="org.id" :user="org" />
+          <SearchResultCard
+            v-for="result in organizationsAsSearchResults"
+            :key="result.id"
+            :result="result"
+          />
         </div>
         <div v-else-if="searchQuery" class="empty-state">
           <q-icon name="business" size="64px" color="grey-5" />
@@ -404,7 +431,11 @@ onUnmounted(() => {
           <q-spinner-dots color="primary" size="50px" />
         </div>
         <div v-else-if="people.length > 0" class="users-list">
-          <UserCard v-for="person in people" :key="person.id" :user="person" />
+          <SearchResultCard
+            v-for="result in peopleAsSearchResults"
+            :key="result.id"
+            :result="result"
+          />
         </div>
         <div v-else-if="searchQuery" class="empty-state">
           <q-icon name="people" size="64px" color="grey-5" />
