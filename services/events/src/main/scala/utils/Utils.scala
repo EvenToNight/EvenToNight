@@ -10,8 +10,8 @@ import scala.util.{Failure, Success, Try}
 
 object Utils:
 
-  val DEFAULT_LIMIT: Int   = 10
-  val MAX_LIMIT: Int       = 20
+  val DEFAULT_LIMIT: Int   = 1
+  val MAX_LIMIT: Int       = 2
   val DEFAULT_DATE: String = "2027-01-01T00:00:00"
 
   def parseLocationFromJson(locationJson: String): Option[Location] =

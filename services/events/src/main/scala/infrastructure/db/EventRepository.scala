@@ -1,7 +1,7 @@
 package infrastructure.db
 
 import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
-import com.mongodb.client.model.{Filters, ReplaceOptions}
+import com.mongodb.client.model.{Filters, ReplaceOptions, Sorts}
 import domain.models.{Event, EventStatus}
 import domain.models.EventConversions.{fromDocument, toDocument}
 import org.bson.Document
@@ -76,6 +76,7 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
     Try {
       collection
         .find(Filters.eq("status", EventStatus.PUBLISHED.toString))
+        .sort(Sorts.ascending("date"))
         .into(new java.util.ArrayList[Document]())
         .asScala
         .map(fromDocument)
