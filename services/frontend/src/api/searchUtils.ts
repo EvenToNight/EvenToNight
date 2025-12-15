@@ -100,7 +100,7 @@ export const getSearchResult = async (
   maxResults: number
 ): Promise<SearchResult[]> => {
   const [eventsResponse, usersResponse] = await Promise.all([
-    api.events.searchByName(query),
+    api.events.searchEvents({ title: query }),
     api.users.searchUsers({ name: query }),
   ])
 

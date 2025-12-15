@@ -36,8 +36,16 @@ const EVENTS_PER_PAGE = 5
 onMounted(async () => {
   try {
     const [publishedResponse, draftResponse] = await Promise.all([
-      api.events.getEventsByUserIdAndStatus(props.user.id, 'PUBLISHED', { limit: EVENTS_PER_PAGE }),
-      api.events.getEventsByUserIdAndStatus(props.user.id, 'DRAFT', { limit: EVENTS_PER_PAGE }),
+      api.events.searchEvents({
+        id_organization: props.user.id,
+        status: 'PUBLISHED',
+        pagination: { limit: EVENTS_PER_PAGE },
+      }),
+      api.events.searchEvents({
+        id_organization: props.user.id,
+        status: 'DRAFT',
+        pagination: { limit: EVENTS_PER_PAGE },
+      }),
     ])
     organizationEvents.value = publishedResponse.items
     organizationDraftedEvents.value = draftResponse.items
@@ -55,9 +63,13 @@ const createLoadMoreFunction = (
 ) => {
   return async () => {
     try {
-      const response = await api.events.getEventsByUserIdAndStatus(props.user.id, status, {
-        limit: EVENTS_PER_PAGE,
-        offset: eventsRef.value.length,
+      const response = await api.events.searchEvents({
+        id_organization: props.user.id,
+        status,
+        pagination: {
+          limit: EVENTS_PER_PAGE,
+          offset: eventsRef.value.length,
+        },
       })
       eventsRef.value.push(...response.items)
       hasMoreRef.value = response.hasMore

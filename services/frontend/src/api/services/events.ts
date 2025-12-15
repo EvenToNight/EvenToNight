@@ -6,9 +6,10 @@ import type {
   EventsDataResponse,
 } from '../interfaces/events'
 import type { GetTagResponse } from '../interfaces/events'
-import type { EventID, PartialEventData, Event } from '../types/events'
+import type { EventID, PartialEventData, Event, EventStatus } from '../types/events'
 import { buildQueryParams, evaluatePagination } from '../utils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
+import type { UserID } from '../types/users'
 
 export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async getTags(): Promise<GetTagResponse> {
@@ -54,21 +55,15 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async deleteEvent(id_event: EventID): Promise<void> {
     await eventsClient.delete(`/${id_event}`)
   },
-  async searchByName(
-    title: string,
+  async searchEvents(params: {
+    title?: string
     pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Event>> {
+    id_organization?: UserID
+    status?: EventStatus
+  }): Promise<PaginatedResponse<Event>> {
+    const { pagination = { ...evaluatePagination(params.pagination) }, ...rest } = params
     return eventsClient.get<PaginatedResponse<Event>>(
-      `/search${buildQueryParams({ title, ...evaluatePagination(pagination) })}`
-    )
-  },
-  async getEventsByUserIdAndStatus(
-    id_organization: string,
-    status: string,
-    pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Event>> {
-    return eventsClient.get<PaginatedResponse<Event>>(
-      `/search${buildQueryParams({ id_organization, status, ...evaluatePagination(pagination) })}`
+      `/search${buildQueryParams({ ...pagination, ...rest })}`
     )
   },
 })

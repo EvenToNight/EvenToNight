@@ -27,10 +27,10 @@ export interface EventAPI {
   updateEventData(id_event: EventID, eventData: PartialEventData): Promise<void>
   updateEventPoster(id_event: EventID, poster: File): Promise<void>
   deleteEvent(id_event: EventID): Promise<void>
-  searchByName(title: string, pagination?: PaginatedRequest): Promise<PaginatedResponse<Event>>
-  getEventsByUserIdAndStatus(
-    id_organization: UserID,
-    status: EventStatus,
+  searchEvents(params: {
+    title?: string
     pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Event>>
+    id_organization?: UserID
+    status?: EventStatus
+  }): Promise<PaginatedResponse<Event>>
 }

@@ -46,28 +46,27 @@ export const mockEventsApi: EventAPI = {
   async deleteEvent(_id_event: EventID): Promise<void> {
     return
   },
-  async searchByName(
-    title: string,
+  async searchEvents(params: {
+    title?: string
     pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Event>> {
-    const lowerTitle = title.toLowerCase().trim()
-    const publishedEvents = mockEvents.filter((e) => e.status === 'PUBLISHED')
-    const matchedEvents = publishedEvents.filter((event) => {
-      return event.title.toLowerCase().includes(lowerTitle)
-    })
-    return getPaginatedItems(matchedEvents, pagination)
-  },
-  async getEventsByUserIdAndStatus(
-    id_organization: UserID,
-    status: EventStatus,
-    pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Event>> {
-    const eventsByUserIdAndStatus = mockEvents.filter(
-      (event) =>
-        (event.id_creator === id_organization ||
-          event.id_collaborators.includes(id_organization)) &&
-        event.status === status
-    )
-    return getPaginatedItems(eventsByUserIdAndStatus, pagination)
+    id_organization?: UserID
+    status?: EventStatus
+  }): Promise<PaginatedResponse<Event>> {
+    const lowerTitle = (params.title ?? '').toLowerCase().trim()
+    const status = params.status ?? 'PUBLISHED'
+
+    const events = mockEvents
+      .filter((event) => event.status === status)
+      .filter((event) => {
+        return event.title.toLowerCase().includes(lowerTitle)
+      })
+      .filter((event) => {
+        return (
+          !params.id_organization ||
+          event.id_creator === params.id_organization ||
+          event.id_collaborators.includes(params.id_organization)
+        )
+      })
+    return getPaginatedItems(events, params.pagination)
   },
 }
