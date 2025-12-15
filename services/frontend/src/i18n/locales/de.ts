@@ -51,6 +51,8 @@ export default {
     eventCard: {
       loadingPoster: 'Laden...',
       favoriteButtonAriaLabel: 'Favoriten umschalten',
+      posterAlt: 'Veranstaltungsplakat',
+      draftMissingTitle: 'Veranstaltung ohne Titel',
     },
     ticketCard: {
       ticket: 'Ticket',
@@ -66,6 +68,7 @@ export default {
     about: 'Um',
     organizer: 'Organisiert von',
     collaborators: 'Mitarbeiter',
+    editEvent: 'Ereignis bearbeiten',
   },
 
   footer: {
@@ -103,6 +106,7 @@ export default {
 
   eventCreationForm: {
     createNewEvent: 'Neues Ereignis erstellen',
+    editEvent: 'Ereignis bearbeiten',
     eventTitle: 'Veranstaltungstitel',
     titleError: 'Titel ist erforderlich',
     date: 'Datum',
@@ -110,6 +114,7 @@ export default {
     time: 'Zeit',
     timeError: 'Zeit ist erforderlich',
     description: 'Beschreibung',
+    descriptionError: 'Beschreibung ist erforderlich',
     price: 'Preis',
     priceError: 'Preis ist erforderlich',
     tags: 'Schlagworte',
@@ -118,16 +123,24 @@ export default {
     location: 'Standort',
     locationError: 'Der Standort ist erforderlich',
     eventPoster: 'Veranstaltungsplakat',
+    posterError: 'Poster ist erforderlich',
     uploadPoster: 'Poster hochladen',
     cancel: 'Stornieren',
+    deleteEvent: 'Löschen',
+    deleteEventConfirm:
+      'Sind Sie sicher, dass Sie dieses Ereignis löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
     saveDraft: 'Entwurf speichern',
     publishEvent: 'Veranstaltung veröffentlichen',
+    updateEvent: 'Ereignis aktualisieren',
     locationNoOptionHint: 'Geben Sie für die Suche mindestens 3 Zeichen ein',
-    errorForDraftCreation: 'Bitte geben Sie mindestens einen Titel für den Entwurf an',
     successForEventPublication: 'Veranstaltung erfolgreich veröffentlicht!',
+    successForEventUpdate: 'Veranstaltung erfolgreich aktualisiert!',
+    successForEventDeletion: 'Veranstaltung erfolgreich gelöscht!',
     errorForEventCreation: 'Bitte füllen Sie alle erforderlichen Felder aus',
-    errorForEventPublication:
-      'Ereignis konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
+    errorForEventPublication: 'Failed to create event. Please try again.',
+    errorForEventUpdate: 'Failed to update event. Please try again.',
+    errorForEventDeletion: 'Ereignis konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
+    errorForEventLoad: 'Ereignis konnte nicht geladen werden. Bitte versuchen Sie es erneut.',
   },
 
   theme: {

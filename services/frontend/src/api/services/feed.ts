@@ -1,14 +1,21 @@
 import { ApiClient } from '../client'
 import type { FeedAPI } from '../interfaces/feed'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
-import type { EventID } from '../types/events'
+import type { EventPaginatedResponse } from '../interfaces/events'
+import type { Event, EventID } from '../types/events'
 import type { UserID } from '../types/users'
 import { buildQueryParams } from '../utils'
 
 export const createFeedApi = (feedClient: ApiClient): FeedAPI => ({
   async getUpcomingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
     const queryParams = pagination ? buildQueryParams(pagination) : ''
-    return feedClient.get<PaginatedResponse<EventID>>(`/upcoming-events${queryParams}`)
+    const response = await feedClient.get<EventPaginatedResponse>(
+      `/search${queryParams}?status=PUBLISHED`
+    )
+    return {
+      ...response,
+      items: response.events.map((item: Event) => item.id_event),
+    }
   },
 
   async getTrendingEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {

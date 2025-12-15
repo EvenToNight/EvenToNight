@@ -1,3 +1,19 @@
+## [1.7.0](https://github.com/EvenToNight/EvenToNight/compare/v1.6.1...v1.7.0) (2025-12-15)
+
+### Features
+
+* **client:** support formData in post request ([2f3c0e0](https://github.com/EvenToNight/EvenToNight/commit/2f3c0e0667bb225ff4f82564403a660c4d9d2cf5))
+* **event-creation:** add delete button ([fc844bd](https://github.com/EvenToNight/EvenToNight/commit/fc844bd417058f00d480a55a2b4aa1bd11529967))
+* **event-visualization:** add infinite scroll in eventTab ([80326e8](https://github.com/EvenToNight/EvenToNight/commit/80326e8cffc5357a0dcaaa563863927ff75ba060))
+* **events:** add guards for event details and event editing ([279642f](https://github.com/EvenToNight/EvenToNight/commit/279642feb641710ed76fadb0be3d2965003cd0e6))
+* **events:** support draft publication ([799f495](https://github.com/EvenToNight/EvenToNight/commit/799f495a6d271b60ac06f13a093316f1ba2d48d6))
+
+### Bug Fixes
+
+* **deploy-ci:** wait for application to go up before restart traefik ([388a6ba](https://github.com/EvenToNight/EvenToNight/commit/388a6ba63d69f0e1449b5a1eb9e336e17942db0b))
+* **media:** fix image get request ([b3229f8](https://github.com/EvenToNight/EvenToNight/commit/b3229f894207a4a9d78d7595a3b3a6603ac50761))
+* **NavigationBar:** profile action always close hamburger menu instead of toggle it ([2277a5b](https://github.com/EvenToNight/EvenToNight/commit/2277a5bb851938b64829f3c8e98e5786ce4f6ee1))
+
 ## [1.6.1](https://github.com/EvenToNight/EvenToNight/compare/v1.6.0...v1.6.1) (2025-12-14)
 
 ### Bug Fixes

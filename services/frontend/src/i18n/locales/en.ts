@@ -51,6 +51,8 @@ export default {
     eventCard: {
       loadingPoster: 'Loading...',
       favoriteButtonAriaLabel: 'Toggle Favorite',
+      posterAlt: 'Event Poster',
+      draftMissingTitle: 'Untitled Event',
     },
     ticketCard: {
       ticket: 'Ticket',
@@ -66,6 +68,7 @@ export default {
     about: 'About this event',
     organizer: 'Organized by',
     collaborators: 'In collaboration with',
+    editEvent: 'Edit',
   },
 
   footer: {
@@ -103,6 +106,7 @@ export default {
 
   eventCreationForm: {
     createNewEvent: 'Create New Event',
+    editEvent: 'Edit Event',
     eventTitle: 'Event Title',
     titleError: 'Title is required',
     date: 'Date',
@@ -110,6 +114,7 @@ export default {
     time: 'Time',
     timeError: 'Time is required',
     description: 'Description',
+    descriptionError: 'Description is required',
     price: 'Price',
     priceError: 'Price is required',
     tags: 'Tags',
@@ -118,15 +123,23 @@ export default {
     location: 'Location',
     locationError: 'Location is required',
     eventPoster: 'Event Poster',
+    posterError: 'Poster is required',
     uploadPoster: 'Upload Poster',
     cancel: 'Cancel',
+    deleteEvent: 'Delete',
+    deleteEventConfirm: 'Are you sure you want to delete this event? This action cannot be undone.',
     saveDraft: 'Save Draft',
     publishEvent: 'Publish Event',
+    updateEvent: 'Update Event',
     locationNoOptionHint: 'Type at least 3 characters to search',
-    errorForDraftCreation: 'Please provide at least a title for the draft',
     successForEventPublication: 'Event published successfully!',
+    successForEventUpdate: 'Event updated successfully!',
+    successForEventDeletion: 'Event deleted successfully!',
     errorForEventCreation: 'Please fill all required fields',
     errorForEventPublication: 'Failed to create event. Please try again.',
+    errorForEventUpdate: 'Failed to update event. Please try again.',
+    errorForEventDeletion: 'Failed to delete event. Please try again.',
+    errorForEventLoad: 'Failed to load event. Please try again.',
   },
 
   theme: {

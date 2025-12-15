@@ -13,7 +13,7 @@ import type { ApiError, PaginatedRequest } from '../interfaces/commons'
 import { mockOrganizations } from './data/organizations'
 import { mockUsers } from './data/members'
 import type { UserID, User } from '../types/users'
-import { getPagintedItems } from '../utils'
+import { getPaginatedItems } from '../utils'
 
 let currentLoggedInEmail: string | null = null
 
@@ -114,7 +114,7 @@ export const mockUsersApi: UsersAPI = {
     pagination?: PaginatedRequest
   ): Promise<SearchUsersResponse> {
     return {
-      users: getPagintedItems(
+      users: getPaginatedItems(
         mockOrganizations.filter((org) => org.name.toLowerCase().includes(query.toLowerCase())),
         pagination
       ).items,

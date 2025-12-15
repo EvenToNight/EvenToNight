@@ -1,16 +1,16 @@
 import type { Location } from '@/api/types/common'
-import { extractLocationMapsLink } from '@/api/types/common'
+import { extractLocationMapsLink } from '@/api/utils'
 
 const event1Location: Location = {
   name: 'Cocoricò',
   country: 'Italia',
-  countryCode: 'it',
+  country_code: 'it',
   state: 'Emilia-Romagna',
   province: 'Rimini',
   city: 'Riccione',
   road: 'Via Chieti',
-  postcode: 47838,
-  house_number: 44,
+  postcode: '47838',
+  house_number: '44',
   lat: 43.9873461,
   lon: 12.6567808,
   link: '',

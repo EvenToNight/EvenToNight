@@ -44,7 +44,7 @@ body.body--light {
   background-color: $color-white;
   color: $color-black;
 
-  h1, h2, h3, h4, h5, h6, p, span, div, a {
+  h1, h2, h3, h4, h5, h6, p, div, a {
     color: $color-black;
   }
 }
@@ -53,7 +53,7 @@ body.body--dark {
   background-color: $color-background-dark;
   color: $color-white;
 
-  h1, h2, h3, h4, h5, h6, p, span, div {
+  h1, h2, h3, h4, h5, h6, p, div {
     color: $color-white;
   }
 }

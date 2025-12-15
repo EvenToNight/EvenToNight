@@ -15,7 +15,7 @@ const event = ref<Event | null>(null)
 
 const loadEvent = async () => {
   try {
-    event.value = (await api.events.getEventById(eventId.value)).event
+    event.value = await api.events.getEventById(eventId.value)
   } catch (error) {
     console.error('Failed to load event:', error)
     goToHome()
@@ -30,7 +30,7 @@ onMounted(async () => {
 <template>
   <div v-if="event" class="event-details-view">
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
-    <EventDetailsHeader :posterLink="event.posterLink" :title="event.title" />
+    <EventDetailsHeader :posterLink="event.poster" :title="event.title" />
     <EventDetailsBody v-model:isAuthRequired="showAuthDialog" :event="event" />
   </div>
 </template>

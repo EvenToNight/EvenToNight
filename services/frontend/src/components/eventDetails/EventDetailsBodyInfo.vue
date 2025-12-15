@@ -40,7 +40,7 @@ const locationAddress = computed(() => {
       <q-icon name="event" class="info-icon" />
       <div class="info-text">
         <span class="info-label">{{ t('date') }}</span>
-        <span class="info-value">{{ formatDate(event.date) }}</span>
+        <span class="info-value">{{ formatDate(new Date(event.date)) }}</span>
       </div>
     </div>
 
@@ -48,7 +48,7 @@ const locationAddress = computed(() => {
       <q-icon name="schedule" class="info-icon" />
       <div class="info-text">
         <span class="info-label">{{ t('time') }}</span>
-        <span class="info-value">{{ formatTime(event.date) }}</span>
+        <span class="info-value">{{ formatTime(new Date(event.date)) }}</span>
       </div>
     </div>
 

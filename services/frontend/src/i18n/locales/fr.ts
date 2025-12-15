@@ -44,13 +44,15 @@ export default {
 
   cards: {
     slider: {
-      seeAll: 'Tout afficher',
+      seeAll: 'Tout voir',
       scrollLeftAriaLabel: 'Faire défiler vers la gauche',
       scrollRightAriaLabel: 'Faites défiler vers la droite',
     },
     eventCard: {
       loadingPoster: 'Chargement...',
       favoriteButtonAriaLabel: 'Basculer vers les favoris',
+      posterAlt: "Affiche d'événement",
+      draftMissingTitle: 'Événement sans titre',
     },
     ticketCard: {
       ticket: 'Billet',
@@ -66,6 +68,7 @@ export default {
     about: 'À propos',
     organizer: 'Organisé par',
     collaborators: 'Collaborateurs',
+    editEvent: "Modifier l'événement",
   },
 
   footer: {
@@ -94,7 +97,7 @@ export default {
     noEventCreated: "Vous n'avez encore créé aucun événement.",
     noEventCreatedExternal: "Cette organisation n'a pas encore créé d'événements.",
     noEventJoined: "Vous n'avez encore assisté à aucun événement.",
-    noEventJoinedExternal: "Cet utilisateur n'a encore assisté à aucun événement.",
+    noEventJoinedExternal: "Cet utilisateur n'a encore participé à aucun événement.",
     noTickets: 'Pas encore de billets',
     draftedEvents: 'Événements rédigés',
     noDraftedEvents: 'Vous n’avez aucun événement rédigé.',
@@ -103,6 +106,7 @@ export default {
 
   eventCreationForm: {
     createNewEvent: 'Créer un nouvel événement',
+    editEvent: "Modifier l'événement",
     eventTitle: "Titre de l'événement",
     titleError: 'Le titre est requis',
     date: 'Date',
@@ -110,23 +114,33 @@ export default {
     time: 'Temps',
     timeError: 'Il faut du temps',
     description: 'Description',
+    descriptionError: 'Une description est requise',
     price: 'Prix',
-    priceError: 'Le prix est requis',
+    priceError: 'Le prix est obligatoire',
     tags: 'Balises',
     collaborators: 'Collaborateurs',
     collaboratorAvatarAlt: 'Avatar du collaborateur',
     location: 'Emplacement',
     locationError: "L'emplacement est requis",
     eventPoster: "Affiche d'événement",
+    posterError: 'Une affiche est obligatoire',
     uploadPoster: "Télécharger l'affiche",
     cancel: 'Annuler',
+    deleteEvent: 'Supprimer',
+    deleteEventConfirm:
+      'Êtes-vous sûr de vouloir supprimer cet événement ? Cette action ne peut pas être annulée.',
     saveDraft: 'Enregistrer le brouillon',
     publishEvent: 'Publier un événement',
+    updateEvent: 'Événement de mise à jour',
     locationNoOptionHint: 'Tapez au moins 3 caractères pour rechercher',
-    errorForDraftCreation: 'Veuillez fournir au moins un titre pour le projet',
     successForEventPublication: 'Événement publié avec succès !',
+    successForEventUpdate: 'Événement mis à jour avec succès !',
+    successForEventDeletion: 'Événement supprimé avec succès !',
     errorForEventCreation: 'Veuillez remplir tous les champs obligatoires',
     errorForEventPublication: "Échec de la création de l'événement. Veuillez réessayer.",
+    errorForEventUpdate: "Échec de la mise à jour de l'événement. Veuillez réessayer.",
+    errorForEventDeletion: "Échec de la suppression de l'événement. Veuillez réessayer.",
+    errorForEventLoad: "Échec du chargement de l'événement. Veuillez réessayer.",
   },
 
   theme: {
@@ -136,7 +150,7 @@ export default {
 
   home: {
     hero: {
-      title: "Trouvez l'événement pour vous",
+      title: "Trouvez l'événement qui vous convient",
     },
     sections: {
       upcomingEvents: 'Événements à venir',

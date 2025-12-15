@@ -12,11 +12,11 @@ interface Props {
 const props = defineProps<Props>()
 
 const { t } = useI18n()
-const { locale, goToEventDetails, goToCreateEvent } = useNavigation()
+const { locale, goToEventDetails, goToEditEvent } = useNavigation()
 const imageObjectUrl = ref<string>('')
 const isLoadingImage = ref(true)
 
-const isDraft = computed(() => props.event.status === 'draft')
+const isDraft = computed(() => props.event.status === 'DRAFT')
 
 const loadImage = async (url: string) => {
   try {
@@ -29,8 +29,8 @@ const loadImage = async (url: string) => {
   }
 }
 
-onMounted(() => {
-  loadImage(props.event.posterLink)
+onMounted(async () => {
+  await loadImage(props.event.poster!)
 })
 
 onUnmounted(() => {
@@ -49,20 +49,33 @@ const formatDate = (date: Date) => {
 </script>
 
 <template>
-  <div class="event-card" @click="isDraft ? goToCreateEvent() : goToEventDetails(event.id)">
+  <div
+    class="event-card"
+    @click="isDraft ? goToEditEvent(event.id_event) : goToEventDetails(event.id_event)"
+  >
     <div class="event-image-container">
-      <img :src="event.posterLink" :alt="event.title" class="event-image" />
+      <img
+        v-if="!isLoadingImage && imageObjectUrl"
+        :src="imageObjectUrl"
+        :alt="event.title ?? t('cards.eventCard.posterAlt')"
+        class="event-image"
+      />
+      <div v-else class="image-loading">
+        <q-spinner color="primary" size="40px" />
+      </div>
       <div v-if="isDraft" class="draft-badge">
         <q-icon name="edit_note" size="16px" />
         {{ t('event.draft') }}
       </div>
     </div>
     <div class="event-info">
-      <h3 class="event-title">{{ event.title }}</h3>
+      <h3 class="event-title">
+        {{ event.title?.trim() ? event.title : t('cards.eventCard.draftMissingTitle') }}
+      </h3>
       <div v-if="!isDraft" class="event-details">
         <span class="event-date">
           <q-icon name="event" size="16px" />
-          {{ formatDate(event.date) }}
+          {{ formatDate(new Date(event.date)) }}
         </span>
         <span class="event-location">
           <q-icon name="location_on" size="16px" />
@@ -106,6 +119,17 @@ const formatDate = (date: Date) => {
 
   .event-card:hover & {
     transform: scale(1.05);
+  }
+}
+
+.image-loading {
+  @include flex-center;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.05);
+
+  @include dark-mode {
+    background: rgba(255, 255, 255, 0.05);
   }
 }
 

@@ -86,7 +86,7 @@ const handleLogout = async () => {
 const goToProfile = () => {
   if (authStore.user) {
     goToUserProfile(authStore.user.id)
-    toggleMobileMenu()
+    mobileMenuOpen.value = false
   }
 }
 </script>

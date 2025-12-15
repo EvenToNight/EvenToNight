@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
 import { api } from '@/api'
-import type { EventData } from '@/api/types/events'
+import type { CreationEventStatus, PartialEventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
-import { parseLocation } from '@/api/types/common'
+import { parseLocation, buildLocationDisplayName } from '@/api/utils'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import FormField from '@/components/forms/FormField.vue'
@@ -14,27 +13,38 @@ import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import type { Tag } from '@/api/types/events'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useI18n } from 'vue-i18n'
+import { validateLocation } from '@/api/utils'
+import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 
 const { t } = useI18n()
 const $q = useQuasar()
 
-const { goToHome, goToEventDetails } = useNavigation()
+const { goToEventDetails, goToUserProfile, params } = useNavigation()
 const authStore = useAuthStore()
 const currentUserId = authStore.user?.id
+const eventId = computed(() => params.id as string)
+const isEditMode = computed(() => !!eventId.value)
+
+interface LocationOption {
+  label: string
+  value: Location
+  description: string
+}
 
 const title = ref('')
 const date = ref('')
 const time = ref('')
 const description = ref('')
-const price = ref('0')
+const price = ref('')
 const tags = ref<string[]>([])
 const collaborators = ref<string[]>([])
-const location = ref<Location | null>(null)
+const location = ref<LocationOption | null>(null)
 const poster = ref<File | null>(null)
 
 const titleError = ref('')
 const dateError = ref('')
 const timeError = ref('')
+const descriptionError = ref('')
 const priceError = ref('')
 const locationError = ref('')
 const posterError = ref('')
@@ -86,8 +96,53 @@ const loadTags = async () => {
   }
 }
 
+const loadEvent = async () => {
+  if (!eventId.value) return
+
+  try {
+    const event = await api.events.getEventById(eventId.value)
+    title.value = event.title ?? ''
+    console.log(event.date)
+    if (event.date) {
+      const eventDate = new Date(event.date)
+      const isoDate = eventDate.toISOString().split('T')[0] // YYYY-MM-DD
+      date.value = isoDate || ''
+      time.value = eventDate.toTimeString().slice(0, 5) // HH:mm
+    }
+    description.value = event.description ?? ''
+    price.value = String(event.price ?? '')
+    tags.value = event.tags ?? []
+    collaborators.value = event.id_collaborators ?? []
+    console.log(event.location)
+    if (validateLocation(event.location)) {
+      console.log('Valid location:', event.location)
+      location.value = {
+        label: buildLocationDisplayName(event.location),
+        value: event.location,
+        description: '',
+      }
+    }
+    poster.value = (await api.media.get(event.poster!)).file
+  } catch (error) {
+    console.error('Failed to load event:', error)
+    $q.notify({
+      color: 'negative',
+      message: t('eventCreationForm.errorForEventLoad'),
+    })
+  }
+}
+
 onMounted(async () => {
   await loadTags()
+  if (isEditMode.value) {
+    await loadEvent()
+  }
+})
+
+watch(location, (newLocation) => {
+  if (newLocation) {
+    console.log('Location link:', newLocation.value.link)
+  }
 })
 
 const filterTags = (val: string, update: (fn: () => void) => void) => {
@@ -175,20 +230,15 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
   }
 }
 
-const handleLocationSelect = (selectedLocation: any) => {
-  location.value = selectedLocation
-  if (location.value) {
-    console.log('Location selected:', location.value.link)
-  }
-}
-
 const validateInput = (): boolean => {
   let isValid = true
   titleError.value = ''
   dateError.value = ''
   timeError.value = ''
+  descriptionError.value = ''
   priceError.value = ''
   locationError.value = ''
+  posterError.value = ''
 
   if (!title.value) {
     titleError.value = t('eventCreationForm.titleError')
@@ -205,35 +255,102 @@ const validateInput = (): boolean => {
     isValid = false
   }
 
+  if (!description.value) {
+    descriptionError.value = t('eventCreationForm.descriptionError')
+    isValid = false
+  }
+
   if (!price.value) {
     priceError.value = t('eventCreationForm.priceError')
     isValid = false
   }
 
-  if (!location.value) {
+  if (!location.value?.value) {
     locationError.value = t('eventCreationForm.locationError')
     isValid = false
   }
 
+  if (!poster.value) {
+    posterError.value = t('eventCreationForm.posterError')
+    isValid = false
+  }
   return isValid
 }
 
 const saveDraft = async () => {
-  titleError.value = ''
-  if (!title.value) {
-    titleError.value = t('eventCreationForm.titleError')
+  const eventData: PartialEventData = buildEventData('DRAFT')
+  if (isEditMode.value) {
+    await api.events.updateEventData(eventId.value, eventData)
+    if (poster.value) {
+      await api.events.updateEventPoster(eventId.value, poster.value)
+    }
     $q.notify({
-      color: 'negative',
-      message: t('eventCreationForm.errorForDraftCreation'),
+      color: 'positive',
+      message: t('eventCreationForm.successForEventUpdate'),
     })
-    return
+  } else {
+    await api.events.publishEvent(eventData)
+    $q.notify({
+      color: 'positive',
+      message: t('eventCreationForm.successForEventPublication'),
+    })
   }
-  // TODO implement draft saving
+  goToUserProfile(eventData.id_creator)
+}
+
+const buildEventData = (status: CreationEventStatus): PartialEventData => {
+  const dateTime = date.value && time.value ? new Date(`${date.value}T${time.value}`) : undefined
+
+  return {
+    title: title.value,
+    description: description.value,
+    poster: poster.value!,
+    tags: tags.value,
+    location: location.value?.value,
+    date: dateTime,
+    price: Number(price.value),
+    status: status,
+    id_creator: currentUserId!,
+    id_collaborators: collaborators.value,
+  }
+}
+
+const handleDelete = async () => {
+  $q.dialog({
+    title: t('eventCreationForm.deleteEvent'),
+    message: t('eventCreationForm.deleteEventConfirm'),
+    cancel: {
+      flat: true,
+      textColor: 'black',
+      label: t('eventCreationForm.cancel'),
+    },
+    ok: {
+      color: 'negative',
+      textColor: 'black',
+      label: t('eventCreationForm.deleteEvent'),
+    },
+    persistent: true,
+  }).onOk(async () => {
+    try {
+      await api.events.deleteEvent(eventId.value)
+      $q.notify({
+        color: 'positive',
+        message: t('eventCreationForm.successForEventDeletion'),
+      })
+      goToUserProfile(currentUserId!)
+    } catch (error) {
+      console.error('Failed to delete event:', error)
+      $q.notify({
+        color: 'negative',
+        message: t('eventCreationForm.errorForEventDeletion'),
+      })
+    }
+  })
 }
 
 const onSubmit = async () => {
-  const hasErrors = validateInput()
-  if (hasErrors) {
+  const isValid = validateInput()
+  if (!isValid) {
     $q.notify({
       color: 'negative',
       message: t('eventCreationForm.errorForEventCreation'),
@@ -241,42 +358,46 @@ const onSubmit = async () => {
     return
   }
   try {
-    const dateTime = new Date(`${date.value}T${time.value}`)
-    const eventData: EventData = {
-      title: title.value,
-      description: description.value,
-      ...(poster.value ? { poster: poster.value } : {}),
-      tags: tags.value,
-      location: location.value!,
-      date: dateTime,
-      price: Number(price.value),
-      status: 'published',
-      creatorId: currentUserId!,
-      collaboratorsId: collaborators.value,
+    const eventData: PartialEventData = buildEventData('PUBLISHED')
+    if (isEditMode.value) {
+      await api.events.updateEventData(eventId.value, eventData)
+      await api.events.updateEventPoster(eventId.value, poster.value!)
+      $q.notify({
+        color: 'positive',
+        message: t('eventCreationForm.successForEventUpdate'),
+      })
+      goToEventDetails(eventId.value)
+    } else {
+      const response = await api.events.publishEvent(eventData)
+      $q.notify({
+        color: 'positive',
+        message: t('eventCreationForm.successForEventPublication'),
+      })
+      goToEventDetails(response.id_event)
     }
-    const response = await api.events.publishEvent(eventData)
-    $q.notify({
-      color: 'positive',
-      message: t('eventCreationForm.successForEventPublication'),
-    })
-    goToEventDetails(response.eventId)
   } catch (error) {
-    console.error('Failed to create event:', error)
+    console.error('Failed to save event:', error)
     $q.notify({
       color: 'negative',
-      message: t('eventCreationForm.errorForEventPublication'),
+      message: isEditMode.value
+        ? t('eventCreationForm.errorForEventUpdate')
+        : t('eventCreationForm.errorForEventPublication'),
     })
   }
 }
 </script>
 
 <template>
-  <div class="create-event-page">
-    <BackButton />
+  <NavigationButtons />
 
+  <div class="create-event-page">
     <div class="page-content">
       <div class="container">
-        <h1 class="text-h3 q-mb-lg">{{ t('eventCreationForm.createNewEvent') }}</h1>
+        <h1 class="text-h3 q-mb-lg">
+          {{
+            isEditMode ? t('eventCreationForm.editEvent') : t('eventCreationForm.createNewEvent')
+          }}
+        </h1>
 
         <q-form class="form-container" @submit="onSubmit">
           <FormField
@@ -321,6 +442,7 @@ const onSubmit = async () => {
             v-model="description"
             type="textarea"
             :label="t('eventCreationForm.description')"
+            :error="descriptionError"
             rows="4"
           />
 
@@ -407,7 +529,6 @@ const onSubmit = async () => {
             input-debounce="500"
             :error="locationError"
             @filter="filterLocations"
-            @update:model-value="handleLocationSelect"
           >
             <template #no-option>
               <q-item>
@@ -439,7 +560,21 @@ const onSubmit = async () => {
             </div>
           </div>
           <div class="form-actions">
-            <Button variant="tertiary" :label="t('eventCreationForm.cancel')" @click="goToHome" />
+            <div class="action-buttons">
+              <Button
+                variant="tertiary"
+                :label="t('eventCreationForm.cancel')"
+                @click="goToUserProfile(currentUserId!)"
+              />
+              <Button
+                v-if="isEditMode"
+                :label="t('eventCreationForm.deleteEvent')"
+                color="negative"
+                variant="tertiary"
+                flat
+                @click="handleDelete"
+              />
+            </div>
             <div class="action-buttons">
               <Button
                 :label="t('eventCreationForm.saveDraft')"
@@ -450,7 +585,11 @@ const onSubmit = async () => {
                 @click="saveDraft"
               />
               <Button
-                :label="t('eventCreationForm.publishEvent')"
+                :label="
+                  isEditMode
+                    ? t('eventCreationForm.updateEvent')
+                    : t('eventCreationForm.publishEvent')
+                "
                 variant="primary"
                 type="submit"
               />
@@ -467,7 +606,8 @@ const onSubmit = async () => {
   @include flex-column;
   min-height: 100vh;
   position: relative;
-  padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
+  padding-top: $spacing-6;
+  //padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
 }
 
 .collaborator-avatar {
