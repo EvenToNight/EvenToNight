@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'
@@ -22,6 +22,58 @@ const loadingPeople = ref(false)
 const _hasMoreEvents = ref(false)
 
 const ITEMS_PER_PAGE = 20
+
+// Event filters
+const selectedDateFilter = ref<string | null>(null)
+const selectedTags = ref<string[]>([])
+const selectedPriceFilter = ref<string | null>(null)
+
+const dateFilters = [
+  { label: 'Oggi', value: 'today' },
+  { label: 'Questa settimana', value: 'this_week' },
+  { label: 'Questo mese', value: 'this_month' },
+]
+
+const tagFilters = ['Musica', 'Sport', 'Arte', 'Teatro', 'Cinema', 'Cibo']
+
+const priceFilters = [
+  { label: 'Gratis', value: 'free' },
+  { label: 'A pagamento', value: 'paid' },
+]
+
+const toggleDateFilter = (value: string) => {
+  selectedDateFilter.value = selectedDateFilter.value === value ? null : value
+  searchEvents()
+}
+
+const toggleTag = (tag: string) => {
+  const index = selectedTags.value.indexOf(tag)
+  if (index > -1) {
+    selectedTags.value.splice(index, 1)
+  } else {
+    selectedTags.value.push(tag)
+  }
+  searchEvents()
+}
+
+const togglePriceFilter = (value: string) => {
+  selectedPriceFilter.value = selectedPriceFilter.value === value ? null : value
+  searchEvents()
+}
+
+const clearFilters = () => {
+  selectedDateFilter.value = null
+  selectedTags.value = []
+  selectedPriceFilter.value = null
+  searchEvents()
+}
+
+const hasActiveFilters = computed(
+  () =>
+    selectedDateFilter.value !== null ||
+    selectedTags.value.length > 0 ||
+    selectedPriceFilter.value !== null
+)
 
 const searchEvents = async () => {
   if (!searchQuery.value.trim()) {
@@ -154,6 +206,93 @@ watch(searchQuery, () => {
     <div class="explore-content">
       <!-- Events Tab -->
       <div v-if="activeTab === 'events'" class="tab-content">
+        <!-- Filters Button -->
+        <!-- <div v-if="searchQuery" class="filters-button-wrapper"> -->
+
+        <div class="filters-button-wrapper">
+          <q-btn outline color="primary" label="Filtri" class="outline-btn-fix">
+            <q-badge
+              v-if="hasActiveFilters"
+              floating
+              class="filter-badge"
+              :style="{ color: 'white !important' }"
+            >
+              {{
+                (selectedDateFilter ? 1 : 0) + selectedTags.length + (selectedPriceFilter ? 1 : 0)
+              }}
+            </q-badge>
+            <q-menu>
+              <div class="filters-menu">
+                <!-- Date Filters -->
+                <div class="filter-group">
+                  <span class="filter-label">Data:</span>
+                  <div class="filter-chips">
+                    <q-chip
+                      v-for="filter in dateFilters"
+                      :key="filter.value"
+                      :outline="selectedDateFilter !== filter.value"
+                      :color="selectedDateFilter === filter.value ? 'primary' : 'grey-3'"
+                      :text-color="selectedDateFilter === filter.value ? 'white' : 'grey-8'"
+                      clickable
+                      @click="toggleDateFilter(filter.value)"
+                    >
+                      {{ filter.label }}
+                    </q-chip>
+                  </div>
+                </div>
+
+                <!-- Tag Filters -->
+                <div class="filter-group">
+                  <span class="filter-label">Categoria:</span>
+                  <div class="filter-chips">
+                    <q-chip
+                      v-for="tag in tagFilters"
+                      :key="tag"
+                      :outline="!selectedTags.includes(tag)"
+                      :color="selectedTags.includes(tag) ? 'primary' : 'grey-3'"
+                      :text-color="selectedTags.includes(tag) ? 'white' : 'grey-8'"
+                      clickable
+                      @click="toggleTag(tag)"
+                    >
+                      {{ tag }}
+                    </q-chip>
+                  </div>
+                </div>
+
+                <!-- Price Filters -->
+                <div class="filter-group">
+                  <span class="filter-label">Prezzo:</span>
+                  <div class="filter-chips">
+                    <q-chip
+                      v-for="filter in priceFilters"
+                      :key="filter.value"
+                      :outline="selectedPriceFilter !== filter.value"
+                      :color="selectedPriceFilter === filter.value ? 'primary' : 'grey-3'"
+                      :text-color="selectedPriceFilter === filter.value ? 'white' : 'grey-8'"
+                      clickable
+                      @click="togglePriceFilter(filter.value)"
+                    >
+                      {{ filter.label }}
+                    </q-chip>
+                  </div>
+                </div>
+
+                <!-- Clear Filters Button -->
+                <q-btn
+                  v-if="hasActiveFilters"
+                  flat
+                  dense
+                  color="grey-7"
+                  icon="clear"
+                  label="Cancella filtri"
+                  class="clear-filters-btn"
+                  @click="clearFilters"
+                />
+              </div>
+            </q-menu>
+          </q-btn>
+        </div>
+
         <div v-if="loadingEvents" class="loading-state">
           <q-spinner-dots color="primary" size="50px" />
         </div>
@@ -296,11 +435,13 @@ watch(searchQuery, () => {
 
 .explore-tabs {
   display: flex;
-  gap: $spacing-8;
   justify-content: center;
+  gap: $spacing-8;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none; // Firefox
+  max-width: $app-max-width;
+  margin: 0 auto;
   padding: 0 $spacing-6;
 
   &::-webkit-scrollbar {
@@ -312,8 +453,8 @@ watch(searchQuery, () => {
     padding: 0 $spacing-4;
   }
   @media (max-width: $app-min-width) {
-    gap: $spacing-4;
     justify-content: flex-start;
+    gap: $spacing-4;
   }
 }
 
@@ -358,6 +499,68 @@ watch(searchQuery, () => {
   gap: $spacing-4;
 }
 
+.filters-button-wrapper {
+  display: flex;
+  justify-content: flex-start;
+  margin-bottom: $spacing-4;
+}
+
+.has-active-filters {
+  border-width: 2px;
+}
+
+.filters-menu {
+  @include flex-column;
+  gap: $spacing-4;
+  padding: $spacing-4;
+  min-width: 320px;
+  max-width: 400px;
+
+  @media (max-width: $breakpoint-mobile) {
+    min-width: 280px;
+    max-width: 90vw;
+  }
+}
+
+.filter-group {
+  @include flex-column;
+  gap: $spacing-2;
+}
+
+.filter-label {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-semibold;
+  color: $color-heading;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+
+  @include dark-mode {
+    color: $color-white;
+  }
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: $spacing-2;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    flex-wrap: nowrap;
+  }
+}
+
+.clear-filters-btn {
+  align-self: flex-start;
+  margin-top: $spacing-2;
+}
+
 .events-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -400,5 +603,30 @@ watch(searchQuery, () => {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: $radius-xl;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+<style lang="scss">
+// Non-scoped styles for badge text and background color
+.filter-badge.q-badge {
+  background-color: #6f00ff !important;
+
+  .q-badge__content,
+  .q-badge__content *,
+  & > div,
+  & > span {
+    color: white !important;
+  }
+}
+
+.filter-badge.q-badge.q-badge--floating {
+  background-color: #6f00ff !important;
+
+  .q-badge__content,
+  .q-badge__content *,
+  & > div,
+  & > span {
+    color: white !important;
+  }
 }
 </style>
