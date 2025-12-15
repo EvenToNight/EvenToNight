@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted, onUnmounted } from 'vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'
@@ -10,6 +10,8 @@ import SearchBar from '@/components/navigation/SearchBar.vue'
 
 const searchQuery = ref('')
 const activeTab = ref<'events' | 'organizations' | 'people'>('events')
+const filtersMenuOpen = ref(false)
+const filtersButtonRef = ref<HTMLElement | null>(null)
 
 const events = ref<Event[]>([])
 const organizations = ref<User[]>([])
@@ -154,6 +156,35 @@ const switchTab = (tab: 'events' | 'organizations' | 'people') => {
 watch(searchQuery, () => {
   onSearch()
 })
+
+// Check if element is in viewport
+const isElementInViewport = (el: HTMLElement | null) => {
+  if (!el) return false
+  const rect = el.getBoundingClientRect()
+  return (
+    rect.top >= 0 &&
+    rect.left >= 0 &&
+    rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+    rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+  )
+}
+
+// Close menu when button goes out of viewport
+const handleScroll = () => {
+  if (filtersMenuOpen.value && !isElementInViewport(filtersButtonRef.value)) {
+    filtersMenuOpen.value = false
+  }
+}
+
+// Add scroll listener
+onMounted(() => {
+  window.addEventListener('scroll', handleScroll, true)
+})
+
+// Remove scroll listener
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll, true)
+})
 </script>
 
 <template>
@@ -209,7 +240,7 @@ watch(searchQuery, () => {
         <!-- Filters Button -->
         <!-- <div v-if="searchQuery" class="filters-button-wrapper"> -->
 
-        <div class="filters-button-wrapper">
+        <div ref="filtersButtonRef" class="filters-button-wrapper">
           <q-btn outline color="primary" label="Filtri" class="outline-btn-fix">
             <q-badge
               v-if="hasActiveFilters"
@@ -221,7 +252,7 @@ watch(searchQuery, () => {
                 (selectedDateFilter ? 1 : 0) + selectedTags.length + (selectedPriceFilter ? 1 : 0)
               }}
             </q-badge>
-            <q-menu>
+            <q-menu v-model="filtersMenuOpen">
               <div class="filters-menu">
                 <!-- Date Filters -->
                 <div class="filter-group">
