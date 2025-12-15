@@ -37,7 +37,11 @@ onMounted(() => {
 
   // Dev logging
   const isDev = import.meta.env.DEV
-  console.log(`🔌 API Mode: ${isDev ? 'MOCK (Development)' : 'REAL (Production)'}`)
+  console.log(
+    `🔌 API Mode("import.meta.env.DEV"): ${isDev ? 'MOCK (Development)' : 'REAL (Production)'}`
+  )
+  console.log(`🌐 Use HTTPS: ${import.meta.env.VITE_USE_HTTPS}`)
+
   if (authStore.isAuthenticated) {
     console.log('🔐 User authenticated:', authStore.user?.email)
   }
