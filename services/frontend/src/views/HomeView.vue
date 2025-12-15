@@ -13,6 +13,9 @@ import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
+import { useNavigation } from '@/router/utils'
+
+const { goToExplore } = useNavigation()
 
 const $q = useQuasar()
 const { t } = useI18n()
@@ -45,6 +48,7 @@ const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
 
 const handleSeeAllEvents = () => {
   console.log('See all events clicked')
+  goToExplore()
 }
 
 const toggleDarkMode = () => {

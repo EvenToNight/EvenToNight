@@ -9,6 +9,7 @@ import {
   CREATE_EVENT_ROUTE_NAME,
   EDIT_EVENT_ROUTE_NAME,
   USER_PROFILE_ROUTE_NAME,
+  EXPLORE_ROUTE_NAME,
 } from '@/router'
 
 export const useNavigation = () => {
@@ -61,6 +62,10 @@ export const useNavigation = () => {
     pushWithLocale(EVENT_DETAILS_ROUTE_NAME, { id: eventId })
   }
 
+  const goToExplore = () => {
+    pushWithLocale(EXPLORE_ROUTE_NAME)
+  }
+
   const goToCreateEvent = () => {
     pushWithLocale(CREATE_EVENT_ROUTE_NAME)
   }
@@ -94,6 +99,7 @@ export const useNavigation = () => {
     goToLogin,
     goToRegister,
     goToEventDetails,
+    goToExplore,
     goToCreateEvent,
     goToEditEvent,
     goToUserProfile,
