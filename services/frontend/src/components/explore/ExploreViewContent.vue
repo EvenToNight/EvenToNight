@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, computed, onMounted, onUnmounted, inject } from 'vue'
 import type { Ref } from 'vue'
-// import type { SearchResult } from '@/api/utils'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'
@@ -10,6 +9,7 @@ import { useAuthStore } from '@/stores/auth'
 import EventCard from '@/components/cards/EventCard.vue'
 import SearchResultCard from '@/components/cards/SearchResultCard.vue'
 import SearchBar from '@/components/navigation/SearchBar.vue'
+import type { TagCategory } from '@/api/interfaces/events'
 
 const emit = defineEmits(['auth-required'])
 const authStore = useAuthStore()
@@ -45,8 +45,11 @@ const ITEMS_PER_PAGE = 20
 
 // Event filters
 const selectedDateFilter = ref<string | null>(null)
+const selectedDateRange = ref<{ from: string; to: string } | null>(null)
 const selectedTags = ref<string[]>([])
 const selectedPriceFilter = ref<string | null>(null)
+const showDateRangePicker = ref(false)
+const today = new Date().toISOString().split('T')[0] as string
 
 const dateFilters = [
   { label: 'Oggi', value: 'today' },
@@ -54,7 +57,15 @@ const dateFilters = [
   { label: 'Questo mese', value: 'this_month' },
 ]
 
-const tagFilters = ['Musica', 'Sport', 'Arte', 'Teatro', 'Cinema', 'Cibo']
+const tagFilters = ref<string[]>([])
+const loadTagFilters = async () => {
+  try {
+    const tagCategories: TagCategory[] = await api.events.getTags()
+    tagFilters.value = tagCategories.flatMap((cat) => cat.category)
+  } catch (err) {
+    console.error('Failed to load tag filters:', err)
+  }
+}
 
 const priceFilters = [
   { label: 'Gratis', value: 'free' },
@@ -63,6 +74,28 @@ const priceFilters = [
 
 const toggleDateFilter = (value: string) => {
   selectedDateFilter.value = selectedDateFilter.value === value ? null : value
+  selectedDateRange.value = null // Clear custom range when selecting preset
+  searchEvents()
+}
+
+const formatDateRange = (range: { from: string; to: string }) => {
+  const from = new Date(range.from)
+  const to = new Date(range.to)
+  const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
+  return `${from.toLocaleDateString('it-IT', options)} - ${to.toLocaleDateString('it-IT', options)}`
+}
+
+const applyDateRange = () => {
+  if (selectedDateRange.value) {
+    selectedDateFilter.value = null // Clear preset filter when selecting custom range
+    showDateRangePicker.value = false
+    searchEvents()
+  }
+}
+
+const clearDateRange = () => {
+  selectedDateRange.value = null
+  showDateRangePicker.value = false
   searchEvents()
 }
 
@@ -83,6 +116,7 @@ const togglePriceFilter = (value: string) => {
 
 const clearFilters = () => {
   selectedDateFilter.value = null
+  selectedDateRange.value = null
   selectedTags.value = []
   selectedPriceFilter.value = null
   searchEvents()
@@ -91,6 +125,7 @@ const clearFilters = () => {
 const hasActiveFilters = computed(
   () =>
     selectedDateFilter.value !== null ||
+    selectedDateRange.value !== null ||
     selectedTags.value.length > 0 ||
     selectedPriceFilter.value !== null
 )
@@ -232,6 +267,7 @@ const handleScroll = () => {
 
 onMounted(() => {
   window.addEventListener('scroll', handleScroll, true)
+  loadTagFilters()
 })
 
 onUnmounted(() => {
@@ -307,7 +343,10 @@ onUnmounted(() => {
               :style="{ color: 'white !important' }"
             >
               {{
-                (selectedDateFilter ? 1 : 0) + selectedTags.length + (selectedPriceFilter ? 1 : 0)
+                (selectedDateFilter ? 1 : 0) +
+                (selectedDateRange ? 1 : 0) +
+                selectedTags.length +
+                (selectedPriceFilter ? 1 : 0)
               }}
             </q-badge>
             <q-menu v-model="filtersMenuOpen">
@@ -326,6 +365,15 @@ onUnmounted(() => {
                       @click="toggleDateFilter(filter.value)"
                     >
                       {{ filter.label }}
+                    </q-chip>
+                    <q-chip
+                      :outline="!selectedDateRange"
+                      :color="selectedDateRange ? 'primary' : 'grey-3'"
+                      :text-color="selectedDateRange ? 'white' : 'grey-8'"
+                      clickable
+                      @click="showDateRangePicker = true"
+                    >
+                      {{ selectedDateRange ? formatDateRange(selectedDateRange) : 'Personalizza' }}
                     </q-chip>
                   </div>
                 </div>
@@ -454,6 +502,37 @@ onUnmounted(() => {
       </div>
     </div>
     <div class="colored-box"></div>
+
+    <!-- Date Range Picker Dialog -->
+    <q-dialog v-model="showDateRangePicker">
+      <q-card style="min-width: 350px">
+        <q-card-section>
+          <div class="text-h6">Seleziona periodo</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-date v-model="selectedDateRange" range minimal :options="(date) => date >= today" />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Annulla" color="grey-7" @click="showDateRangePicker = false" />
+          <q-btn
+            v-if="selectedDateRange"
+            flat
+            label="Cancella"
+            color="grey-7"
+            @click="clearDateRange"
+          />
+          <q-btn
+            flat
+            label="Applica"
+            color="primary"
+            :disable="!selectedDateRange"
+            @click="applyDateRange"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
   </div>
 </template>
 
