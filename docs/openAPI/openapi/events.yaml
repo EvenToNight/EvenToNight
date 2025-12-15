@@ -233,7 +233,12 @@ paths:
   /search:
     get:
       summary: Search and filter events
-      description: Search events with various filters and pagination support
+      description: |
+        Search events with various filters and pagination support
+        **Sorting behavior:**
+        - Results are sorted by the specified `sortBy` field first
+        - If multiple events have the same value for the primary sort field, they are sorted by date (ascending) as a secondary criterion
+        - Default sorting: by date (ascending)
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
@@ -304,7 +309,7 @@ paths:
             format: date-time
         - name: id_organization
           in: query
-          description: Filter by organization ID
+          description: Filter by organization ID (search in both creators and collaborators)
           required: false
           schema:
             type: string
@@ -337,6 +342,24 @@ paths:
             type: number
             format: double
           example: 50.0
+        - name: sortBy
+          in: query
+          description: Field to sort results by. Secondary sort is always by date (ascending).
+          required: false
+          schema:
+            type: string
+            enum: [date, price, title, instant]
+            default: date
+          example: price
+        - name: sortOrder
+          in: query
+          description: Sort order for the primary sort field
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          example: asc
       responses:
         '200':
           description: Successfully retrieved filtered events
