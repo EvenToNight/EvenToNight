@@ -13,7 +13,7 @@ export const evaluatePagination = (
   return { limit, offset }
 }
 
-export const getPagintedItems = <T>(
+export const getPaginatedItems = <T>(
   collection: T[],
   pagination?: PaginatedRequest
 ): PaginatedResponse<T> => {
@@ -43,3 +43,9 @@ export const buildQueryParams = <T extends Record<string, any>>(params: T): stri
 
 export { getSearchResult } from './searchUtils'
 export type { SearchResult, SearchResultEvent, SearchResultUser } from './searchUtils'
+export {
+  parseLocation,
+  buildLocationDisplayName,
+  extractLocationMapsLink,
+  validateLocation,
+} from './locationUtils'

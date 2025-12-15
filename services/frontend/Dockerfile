@@ -7,7 +7,7 @@ COPY ./services/frontend .
 
 ENV NODE_ENV=production
 ENV VITE_HOST="localhost"
-ENV VITE_USE_MOCK_API=true
+ENV VITE_USE_MOCK_API=false
 
 RUN npm run build
 RUN npm prune --omit=dev

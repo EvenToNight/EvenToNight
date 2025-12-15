@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { api } from '@/api'
-import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import type { User } from '@/api/types/users'
 import { useNavigation } from '@/router/utils'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileBody from '@/components/profile/ProfileBody.vue'
+import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 
 const { params } = useNavigation()
 const isFollowing = ref(false)
@@ -32,8 +32,9 @@ const loadUser = async () => {
 </script>
 
 <template>
+  <NavigationButtons />
+
   <div class="user-profile">
-    <BackButton />
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
     <template v-if="user">
       <ProfileHeader
@@ -53,7 +54,9 @@ const loadUser = async () => {
   min-height: 100vh;
   background: var(--q-background);
   position: relative;
-  padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
+  padding-top: $spacing-6;
+  //padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
+
   background: #f5f5f5;
 
   @include dark-mode {

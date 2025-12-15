@@ -51,6 +51,8 @@ export default {
     eventCard: {
       loadingPoster: 'Cargando...',
       favoriteButtonAriaLabel: 'Alternar favorito',
+      posterAlt: 'Cartel del evento',
+      draftMissingTitle: 'Evento sin título',
     },
     ticketCard: {
       ticket: 'Boleto',
@@ -66,6 +68,7 @@ export default {
     about: 'Acerca de',
     organizer: 'Organizado por',
     collaborators: 'Colaboradores',
+    editEvent: 'Editar evento',
   },
 
   footer: {
@@ -103,6 +106,7 @@ export default {
 
   eventCreationForm: {
     createNewEvent: 'Crear nuevo evento',
+    editEvent: 'Editar evento',
     eventTitle: 'Título del evento',
     titleError: 'Se requiere título',
     date: 'Fecha',
@@ -110,6 +114,7 @@ export default {
     time: 'Tiempo',
     timeError: 'Se requiere tiempo',
     description: 'Descripción',
+    descriptionError: 'Se requiere descripción',
     price: 'Precio',
     priceError: 'Se requiere precio',
     tags: 'Etiquetas',
@@ -118,15 +123,24 @@ export default {
     location: 'Ubicación',
     locationError: 'Se requiere ubicación',
     eventPoster: 'Cartel del evento',
+    posterError: 'Se requiere cartel',
     uploadPoster: 'Subir cartel',
     cancel: 'Cancelar',
+    deleteEvent: 'Borrar',
+    deleteEventConfirm:
+      '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.',
     saveDraft: 'Guardar borrador',
     publishEvent: 'Publicar evento',
+    updateEvent: 'Evento de actualización',
     locationNoOptionHint: 'Escribe al menos 3 caracteres para buscar',
-    errorForDraftCreation: 'Proporcione al menos un título para el borrador.',
     successForEventPublication: '¡Evento publicado exitosamente!',
+    successForEventUpdate: '¡Evento actualizado exitosamente!',
+    successForEventDeletion: '¡Evento eliminado exitosamente!',
     errorForEventCreation: 'Por favor complete todos los campos requeridos',
     errorForEventPublication: 'No se pudo crear el evento. Por favor inténtalo de nuevo.',
+    errorForEventUpdate: 'No se pudo actualizar el evento. Por favor inténtalo de nuevo.',
+    errorForEventDeletion: 'No se pudo eliminar el evento. Por favor inténtalo de nuevo.',
+    errorForEventLoad: 'No se pudo cargar el evento. Por favor inténtalo de nuevo.',
   },
 
   theme: {
