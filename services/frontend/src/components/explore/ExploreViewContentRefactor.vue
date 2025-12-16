@@ -20,7 +20,7 @@ const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar', ref(false)
 
 const activeTab = ref<'events' | 'organizations' | 'people'>('events')
 
-const events = ref<Event[]>([])
+const events = ref<{ event: Event; isFavorite: boolean }[]>([])
 const loadingEvents = ref(false)
 
 const organizations = ref<User[]>([])
@@ -34,6 +34,7 @@ const _hasMoreEvents = ref(false)
 const ITEMS_PER_PAGE = 20
 
 const searchEvents = async () => {
+  console.log('Searching events for query:', searchQuery.value)
   if (!searchQuery.value.trim()) {
     events.value = []
     return
@@ -45,7 +46,7 @@ const searchEvents = async () => {
       title: searchQuery.value,
       pagination: { limit: ITEMS_PER_PAGE },
     })
-    events.value = response.items
+    events.value = response.items.map((event) => ({ event, isFavorite: false }))
     _hasMoreEvents.value = response.hasMore
   } catch (error) {
     console.error('Failed to search events:', error)
