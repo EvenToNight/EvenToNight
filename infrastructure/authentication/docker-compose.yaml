@@ -13,8 +13,9 @@ services:
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "${POSTGRES_USER}"]
       interval: 5s
-      retries: 5
+      retries: 10
       timeout: 5s
+      start_period: 30s
 
   keycloak:
     image: ghcr.io/eventonight/eventonight/keycloak:latest
