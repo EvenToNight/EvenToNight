@@ -43,6 +43,7 @@ const selectedDateRange = ref<{ from: string; to: string } | null>(null)
 const selectedTags = ref<string[]>([])
 const selectedPriceFilter = ref<string | null>(null)
 const customPriceRange = ref<{ min: number | null; max: number | null }>({ min: null, max: null })
+const tempPriceRange = ref<{ min: number | null; max: number | null }>({ min: null, max: null })
 const selectedSortBy = ref<string | null>(null)
 const showDateRangePicker = ref(false)
 const showPriceRangePicker = ref(false)
@@ -130,19 +131,76 @@ const formatPriceRange = (range: { min: number | null; max: number | null }) => 
   return 'Personalizza'
 }
 
+const openPriceRangePicker = () => {
+  // Copy current values to temp when opening
+  tempPriceRange.value = { ...customPriceRange.value }
+}
+
 const applyPriceRange = () => {
-  if (customPriceRange.value.min !== null || customPriceRange.value.max !== null) {
-    selectedPriceFilter.value = null // Clear preset filter when selecting custom range
-    showPriceRangePicker.value = false
-    searchEvents()
+  // Skip if nothing is set
+  if (tempPriceRange.value.min === null && tempPriceRange.value.max === null) {
+    return
   }
+
+  // Validate min >= 0
+  if (tempPriceRange.value.min !== null && tempPriceRange.value.min < 0) {
+    tempPriceRange.value.min = 0
+  }
+
+  // Validate max >= 0
+  if (tempPriceRange.value.max !== null && tempPriceRange.value.max < 0) {
+    tempPriceRange.value.max = 0
+  }
+
+  // Always set min to 0 if not specified
+  if (tempPriceRange.value.min === null) {
+    tempPriceRange.value.min = 0
+  }
+
+  // Validate min < max (only if max is set)
+  if (tempPriceRange.value.max !== null && tempPriceRange.value.min >= tempPriceRange.value.max) {
+    return // Don't apply if min >= max
+  }
+
+  // Apply temp values to actual filter
+  customPriceRange.value = { ...tempPriceRange.value }
+  selectedPriceFilter.value = null // Clear preset filter when selecting custom range
+  showPriceRangePicker.value = false
+  searchEvents()
 }
 
 const clearPriceRange = () => {
+  tempPriceRange.value = { min: null, max: null }
   customPriceRange.value = { min: null, max: null }
   showPriceRangePicker.value = false
   searchEvents()
 }
+
+const isPriceRangeValid = computed(() => {
+  const { min, max } = tempPriceRange.value
+
+  // At least one value must be set
+  if (min === null && max === null) {
+    return false
+  }
+
+  // Min must be >= 0
+  if (min !== null && min < 0) {
+    return false
+  }
+
+  // Max must be >= 0
+  if (max !== null && max < 0) {
+    return false
+  }
+
+  // If both are set, min must be < max
+  if (min !== null && max !== null && min >= max) {
+    return false
+  }
+
+  return true
+})
 
 const toggleSortBy = (value: string) => {
   selectedSortBy.value = selectedSortBy.value === value ? null : value
@@ -525,7 +583,12 @@ onUnmounted(() => {
                       clickable
                     >
                       {{ formatPriceRange(customPriceRange) }}
-                      <q-menu v-model="showPriceRangePicker" anchor="bottom left" self="top left">
+                      <q-menu
+                        v-model="showPriceRangePicker"
+                        anchor="bottom left"
+                        self="top left"
+                        @before-show="openPriceRangePicker"
+                      >
                         <q-card style="min-width: 320px">
                           <q-card-section>
                             <div class="text-h6">Seleziona range di prezzo</div>
@@ -534,7 +597,7 @@ onUnmounted(() => {
                           <q-card-section class="q-pt-none">
                             <div class="price-range-inputs">
                               <q-input
-                                v-model.number="customPriceRange.min"
+                                v-model.number="tempPriceRange.min"
                                 type="number"
                                 label="Prezzo minimo"
                                 prefix="€"
@@ -543,13 +606,13 @@ onUnmounted(() => {
                                 :min="0"
                               />
                               <q-input
-                                v-model.number="customPriceRange.max"
+                                v-model.number="tempPriceRange.max"
                                 type="number"
                                 label="Prezzo massimo"
                                 prefix="€"
                                 outlined
                                 dense
-                                :min="customPriceRange.min || 0"
+                                :min="tempPriceRange.min || 0"
                               />
                             </div>
                           </q-card-section>
@@ -562,7 +625,7 @@ onUnmounted(() => {
                               @click="showPriceRangePicker = false"
                             />
                             <q-btn
-                              v-if="customPriceRange.min !== null || customPriceRange.max !== null"
+                              v-if="tempPriceRange.min !== null || tempPriceRange.max !== null"
                               flat
                               label="Cancella"
                               color="grey-7"
@@ -572,9 +635,7 @@ onUnmounted(() => {
                               flat
                               label="Applica"
                               color="primary"
-                              :disable="
-                                customPriceRange.min === null && customPriceRange.max === null
-                              "
+                              :disable="!isPriceRangeValid"
                               @click="applyPriceRange"
                             />
                           </q-card-actions>
