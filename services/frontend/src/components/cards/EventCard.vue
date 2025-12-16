@@ -4,13 +4,10 @@ import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
+import type { Event as AppEvent } from '@/api/types/events'
 
 interface Props {
-  id: string
-  imageUrl: string
-  title: string
-  subtitle: string
-  date: Date
+  event: AppEvent
   favorite?: boolean
 }
 
@@ -42,7 +39,7 @@ const loadImage = async (url: string) => {
 }
 
 onMounted(() => {
-  loadImage(props.imageUrl)
+  loadImage(props.event.poster)
 })
 
 onUnmounted(() => {
@@ -62,18 +59,18 @@ const toggleFavorite = (event: Event) => {
 }
 
 const day = computed(() => {
-  return props.date.getDate()
+  return props.event.date.getDate()
 })
 
 const month = computed(() => {
-  return props.date.toLocaleString(locale.value, { month: 'short' }).toUpperCase()
+  return props.event.date.toLocaleString(locale.value, { month: 'short' }).toUpperCase()
 })
 </script>
 
 <template>
-  <div class="event-card" @click="goToEventDetails(id)">
+  <div class="event-card" @click="goToEventDetails(event.id_event)">
     <div class="card-image-container">
-      <img v-if="imageObjectUrl" :src="imageObjectUrl" :alt="title" class="card-image" />
+      <img v-if="imageObjectUrl" :src="imageObjectUrl" :alt="event.title" class="card-image" />
       <div v-else-if="isLoadingImage" class="card-image-loading">
         {{ t('cards.eventCard.loadingPoster') }}
       </div>
@@ -94,8 +91,8 @@ const month = computed(() => {
     </div>
 
     <div class="card-content">
-      <h3 class="card-title">{{ title }}</h3>
-      <p class="card-subtitle">{{ subtitle }}</p>
+      <h3 class="card-title">{{ event.title }}</h3>
+      <p class="card-subtitle">{{ event.location.name || event.location.city }}</p>
     </div>
   </div>
 </template>

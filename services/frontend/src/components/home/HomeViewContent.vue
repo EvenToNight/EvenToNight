@@ -95,12 +95,8 @@ onMounted(async () => {
         >
           <EventCard
             v-for="event in upcomingEvents"
-            :id="event.id_event"
             :key="event.id_event"
-            :image-url="event.poster"
-            :title="event.title"
-            :subtitle="event.location.name || event.location.city"
-            :date="new Date(event.date)"
+            :event="event"
             :favorite="false"
             @favorite-toggle="handleFavoriteToggle(event.id_event, $event)"
             @auth-required="emit('auth-required')"

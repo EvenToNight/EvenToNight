@@ -71,8 +71,8 @@ const priceFilters = [
 ]
 
 const sortByOptions = [
-  { label: 'Più recenti', value: 'date_desc' },
-  { label: 'Meno recenti', value: 'date_asc' },
+  { label: 'Data crescente', value: 'date_asc' },
+  { label: 'Data decrescente', value: 'date_desc' },
   { label: 'Prezzo più basso', value: 'price_asc' },
   { label: 'Prezzo più alto', value: 'price_desc' },
 ]
@@ -152,13 +152,12 @@ const applyPriceRange = () => {
     tempPriceRange.value.max = 0
   }
 
-  // Always set min to 0 if not specified
-  if (tempPriceRange.value.min === null) {
-    tempPriceRange.value.min = 0
-  }
-
-  // Validate min < max (only if max is set)
-  if (tempPriceRange.value.max !== null && tempPriceRange.value.min >= tempPriceRange.value.max) {
+  // Validate min < max (only if both are set)
+  if (
+    tempPriceRange.value.min !== null &&
+    tempPriceRange.value.max !== null &&
+    tempPriceRange.value.min >= tempPriceRange.value.max
+  ) {
     return // Don't apply if min >= max
   }
 
@@ -685,12 +684,8 @@ onUnmounted(() => {
         <div v-else-if="sortedEvents.length > 0" class="events-grid">
           <EventCard
             v-for="event in sortedEvents"
-            :id="event.id_event"
             :key="event.id_event"
-            :image-url="event.poster"
-            :title="event.title"
-            :subtitle="event.location.name || event.location.city"
-            :date="new Date(event.date)"
+            :event="event"
             :favorite="false"
             @favorite-toggle="handleFavoriteToggle(event.id_event, $event)"
             @auth-required="emit('auth-required')"
