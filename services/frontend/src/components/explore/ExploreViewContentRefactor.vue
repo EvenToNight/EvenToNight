@@ -9,7 +9,6 @@ import { useAuthStore } from '@/stores/auth'
 import SearchBar from '@/components/navigation/SearchBar.vue'
 import TabView, { type Tab } from '@/components/navigation/TabView.vue'
 import ExploreEventsTab from '@/components/explore/tabs/ExploreEventsTab.vue'
-import ExploreOrganizationsTab from '@/components/explore/tabs/ExploreOrganizationsTab.vue'
 import ExplorePeopleTab from '@/components/explore/tabs/ExplorePeopleTab.vue'
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 
@@ -175,7 +174,7 @@ const tabs = computed<Tab[]>(() => [
   {
     id: 'organizations',
     label: 'Organizzazioni',
-    component: ExploreOrganizationsTab,
+    component: ExplorePeopleTab,
     props: {
       organizations: organizationsAsSearchResults.value,
       loading: loadingOrganizations.value,
