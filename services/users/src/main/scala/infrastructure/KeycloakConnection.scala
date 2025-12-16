@@ -1,6 +1,8 @@
 package infrastructure
 
+import io.circe.Json
 import io.circe.parser.parse
+import io.circe.syntax._
 import sttp.client3._
 import sttp.model.StatusCode
 
@@ -76,3 +78,44 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
       else
         Left(s"Failed to delete user $userId: ${response.code} ${response.body}")
     )
+
+  def getRoles(): Either[String, String] =
+    getAccessToken() match
+      case Left(err) => Left(s"Cannot get access token: $err")
+      case Right(token) =>
+        val request = basicRequest
+          .get(uri"$keycloakUrl/admin/realms/$realm/roles")
+          .header("Authorization", s"Bearer $token")
+          .header("Content-Type", "application/json")
+
+        val response = request.send(backend)
+        response.code match
+          case StatusCode.Ok =>
+            response.body match
+              case Right(body) =>
+                Right(body)
+              case Left(err) => Left(s"Error reading body: $err")
+          case other =>
+            Left(s"Failed to fetch roles: ${other.code} ${response.body}")
+
+  def assignRoleToUser(keycloakId: String, roleId: String, roleName: String): Either[String, Unit] =
+    getAccessToken() match
+      case Left(err) => Left(s"Cannot get access token: $err")
+      case Right(token) =>
+        val body = List(Json.obj(
+          "id"   -> Json.fromString(roleId),
+          "name" -> Json.fromString(roleName)
+        )).asJson.noSpaces
+
+        val request = basicRequest
+          .post(uri"${keycloakUrl}/admin/realms/${realm}/users/$keycloakId/role-mappings/realm")
+          .header("Authorization", s"Bearer $token")
+          .header("Content-Type", "application/json")
+          .body(body)
+
+        val response = request.send(backend)
+        response.code match
+          case StatusCode.NoContent =>
+            Right(())
+          case other =>
+            Left(s"Failed to assign role '$roleName' to user '$keycloakId': ${other.code} ${response.body}")
