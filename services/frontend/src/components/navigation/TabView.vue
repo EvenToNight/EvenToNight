@@ -36,33 +36,43 @@ const getCurrentTabComponent = (): Tab => {
 </script>
 
 <template>
-  <div :class="`${props.variant}-tab-view`">
-    <div :class="`${props.variant}-tab-header`">
-      <template v-if="props.variant === 'explore'">
-        <div
-          v-for="tab in tabs"
-          :key="tab.id"
-          class="explore-tab"
-          :class="{ active: activeTab === tab.id }"
-          @click="selectTab(tab.id)"
-        >
-          {{ tab.label }}
-        </div>
-      </template>
-      <template v-else>
-        <button
-          v-for="tab in tabs"
-          :key="tab.id"
-          :class="[`profile-tab-button`, { active: activeTab === tab.id }]"
-          @click="selectTab(tab.id)"
-        >
-          <q-icon v-if="tab.icon" :name="tab.icon" size="20px" class="tab-icon" />
-          <span :class="`${props.variant}-tab-label`">{{ tab.label }}</span>
-        </button>
-      </template>
+  <template v-if="props.variant === 'explore'">
+    <!-- Explore variant: header and content as siblings for sticky to work -->
+    <div class="explore-tab-header">
+      <div
+        v-for="tab in tabs"
+        :key="tab.id"
+        class="explore-tab"
+        :class="{ active: activeTab === tab.id }"
+        @click="selectTab(tab.id)"
+      >
+        {{ tab.label }}
+      </div>
     </div>
 
-    <div :class="`${props.variant}-tab-content`">
+    <div class="explore-tab-content">
+      <component
+        :is="getCurrentTabComponent().component"
+        v-bind="getCurrentTabComponent().props || {}"
+      />
+    </div>
+  </template>
+
+  <!-- Profile variant: traditional wrapped structure -->
+  <div v-else class="profile-tab-view">
+    <div class="profile-tab-header">
+      <button
+        v-for="tab in tabs"
+        :key="tab.id"
+        :class="['profile-tab-button', { active: activeTab === tab.id }]"
+        @click="selectTab(tab.id)"
+      >
+        <q-icon v-if="tab.icon" :name="tab.icon" size="20px" class="tab-icon" />
+        <span class="profile-tab-label">{{ tab.label }}</span>
+      </button>
+    </div>
+
+    <div class="profile-tab-content">
       <component
         :is="getCurrentTabComponent().component"
         v-bind="getCurrentTabComponent().props || {}"
@@ -156,22 +166,21 @@ const getCurrentTabComponent = (): Tab => {
   min-height: 0;
 }
 
-.explore-tab-view {
+.explore-tab-header {
   position: sticky;
   top: 64px; // NavigationBar height
   z-index: 10; // Below navbar but above content
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  padding: $spacing-4 0;
+  padding: $spacing-4 $spacing-6;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  width: 100%;
 
   @include dark-mode {
     background: rgba(18, 18, 18, 0.95);
     border-bottom-color: rgba(255, 255, 255, 0.1);
   }
-}
 
-.explore-tab-header {
   display: flex;
   justify-content: center;
   gap: $spacing-8;
@@ -180,7 +189,6 @@ const getCurrentTabComponent = (): Tab => {
   scrollbar-width: none; // Firefox
   max-width: $app-max-width;
   margin: 0 auto;
-  padding: 0 $spacing-6;
 
   &::-webkit-scrollbar {
     display: none; // Chrome, Safari
@@ -188,7 +196,7 @@ const getCurrentTabComponent = (): Tab => {
 
   @media (max-width: $breakpoint-mobile) {
     gap: $spacing-6;
-    padding: 0 $spacing-4;
+    padding: $spacing-4;
   }
   @media (max-width: $app-min-width) {
     justify-content: flex-start;

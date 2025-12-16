@@ -63,9 +63,9 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
   height: 100%;
 }
 
-.events-scroll {
-  height: 100%;
-}
+// .events-scroll {
+//   height: 100%;
+// }
 
 .events-grid {
   display: grid;
