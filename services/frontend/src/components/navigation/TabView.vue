@@ -39,14 +39,16 @@ const getCurrentTabComponent = (): Tab => {
   <template v-if="props.variant === 'explore'">
     <!-- Explore variant: header and content as siblings for sticky to work -->
     <div class="explore-tab-header">
-      <div
-        v-for="tab in tabs"
-        :key="tab.id"
-        class="explore-tab"
-        :class="{ active: activeTab === tab.id }"
-        @click="selectTab(tab.id)"
-      >
-        {{ tab.label }}
+      <div class="explore-tab-header-inner">
+        <div
+          v-for="tab in tabs"
+          :key="tab.id"
+          class="explore-tab"
+          :class="{ active: activeTab === tab.id }"
+          @click="selectTab(tab.id)"
+        >
+          {{ tab.label }}
+        </div>
       </div>
     </div>
 
@@ -172,7 +174,7 @@ const getCurrentTabComponent = (): Tab => {
   z-index: 10; // Below navbar but above content
   background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
-  padding: $spacing-4 $spacing-6;
+  padding: $spacing-4 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   width: 100%;
 
@@ -180,7 +182,9 @@ const getCurrentTabComponent = (): Tab => {
     background: rgba(18, 18, 18, 0.95);
     border-bottom-color: rgba(255, 255, 255, 0.1);
   }
+}
 
+.explore-tab-header-inner {
   display: flex;
   justify-content: center;
   gap: $spacing-8;
@@ -189,6 +193,7 @@ const getCurrentTabComponent = (): Tab => {
   scrollbar-width: none; // Firefox
   max-width: $app-max-width;
   margin: 0 auto;
+  padding: 0 $spacing-6;
 
   &::-webkit-scrollbar {
     display: none; // Chrome, Safari
@@ -196,7 +201,7 @@ const getCurrentTabComponent = (): Tab => {
 
   @media (max-width: $breakpoint-mobile) {
     gap: $spacing-6;
-    padding: $spacing-4;
+    padding: 0 $spacing-4;
   }
   @media (max-width: $app-min-width) {
     justify-content: flex-start;
