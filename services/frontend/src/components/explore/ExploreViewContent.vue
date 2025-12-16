@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ref, watch, computed, onMounted, onUnmounted, inject } from 'vue'
+import { ref, watch, computed, inject } from 'vue'
 import type { Ref } from 'vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'
 import type { SearchResult } from '@/api/utils'
 import { useAuthStore } from '@/stores/auth'
-import EventCard from '@/components/cards/EventCard.vue'
-import SearchResultCard from '@/components/cards/SearchResultCard.vue'
 import SearchBar from '@/components/navigation/SearchBar.vue'
-import type { TagCategory } from '@/api/interfaces/events'
+import TabView, { type Tab } from '@/components/navigation/TabView.vue'
+import ExploreEventsTab from '@/components/explore/tabs/ExploreEventsTab.vue'
+import ExplorePeopleTab from '@/components/explore/tabs/ExplorePeopleTab.vue'
 
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 
@@ -18,234 +18,24 @@ const authStore = useAuthStore()
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar', ref(false))
 
-const activeTab = ref<'events' | 'organizations' | 'people'>('events')
+const ITEMS_PER_PAGE = 20
+type ExploreTab = 'events' | 'organizations' | 'people'
+const activeTab = ref<ExploreTab>('events')
 
-const events = ref<Event[]>([])
+const events = ref<{ event: Event; isFavorite: boolean }[]>([])
+const hasMoreEvents = ref(true)
 const loadingEvents = ref(false)
 
 const organizations = ref<User[]>([])
+const hasMoreOrganizations = ref(true)
 const loadingOrganizations = ref(false)
 
 const people = ref<User[]>([])
+const hasMorePeople = ref(true)
 const loadingPeople = ref(false)
 
-const filtersMenuOpen = ref(false)
-const filtersButtonRef = ref<HTMLElement | null>(null)
-const tabsContainerRef = ref<HTMLElement | null>(null)
-
-const _hasMoreEvents = ref(false)
-
-const ITEMS_PER_PAGE = 20
-
-// Event filters
-const selectedDateFilter = ref<string | null>(null)
-const selectedDateRange = ref<{ from: string; to: string } | null>(null)
-const selectedTags = ref<string[]>([])
-const selectedPriceFilter = ref<string | null>(null)
-const customPriceRange = ref<{ min: number | null; max: number | null }>({ min: null, max: null })
-const tempPriceRange = ref<{ min: number | null; max: number | null }>({ min: null, max: null })
-const selectedSortBy = ref<string | null>(null)
-const showDateRangePicker = ref(false)
-const showPriceRangePicker = ref(false)
-const today = new Date().toISOString().split('T')[0] as string
-
-const dateFilters = [
-  { label: 'Oggi', value: 'today' },
-  { label: 'Questa settimana', value: 'this_week' },
-  { label: 'Questo mese', value: 'this_month' },
-]
-
-const tagFilters = ref<string[]>([])
-const loadTagFilters = async () => {
-  try {
-    const tagCategories: TagCategory[] = await api.events.getTags()
-    tagFilters.value = tagCategories.flatMap((cat) => cat.tags)
-  } catch (err) {
-    console.error('Failed to load tag filters:', err)
-  }
-}
-
-const priceFilters = [
-  { label: 'Gratis', value: 'free' },
-  { label: 'A pagamento', value: 'paid' },
-]
-
-const sortByOptions = [
-  { label: 'Data crescente', value: 'date_asc' },
-  { label: 'Data decrescente', value: 'date_desc' },
-  { label: 'Prezzo più basso', value: 'price_asc' },
-  { label: 'Prezzo più alto', value: 'price_desc' },
-]
-
-const toggleDateFilter = (value: string) => {
-  selectedDateFilter.value = selectedDateFilter.value === value ? null : value
-  selectedDateRange.value = null // Clear custom range when selecting preset
-  searchEvents()
-}
-
-const formatDateRange = (range: { from: string; to: string }) => {
-  const from = new Date(range.from)
-  const to = new Date(range.to)
-  const options: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }
-  return `${from.toLocaleDateString('it-IT', options)} - ${to.toLocaleDateString('it-IT', options)}`
-}
-
-const applyDateRange = () => {
-  if (selectedDateRange.value) {
-    selectedDateFilter.value = null // Clear preset filter when selecting custom range
-    showDateRangePicker.value = false
-    searchEvents()
-  }
-}
-
-const clearDateRange = () => {
-  selectedDateRange.value = null
-  showDateRangePicker.value = false
-  searchEvents()
-}
-
-const toggleTag = (tag: string) => {
-  const index = selectedTags.value.indexOf(tag)
-  if (index > -1) {
-    selectedTags.value.splice(index, 1)
-  } else {
-    selectedTags.value.push(tag)
-  }
-  searchEvents()
-}
-
-const togglePriceFilter = (value: string) => {
-  selectedPriceFilter.value = selectedPriceFilter.value === value ? null : value
-  customPriceRange.value = { min: null, max: null } // Clear custom range when selecting preset
-  searchEvents()
-}
-
-const formatPriceRange = (range: { min: number | null; max: number | null }) => {
-  if (range.min !== null && range.max !== null) {
-    return `€${range.min} - €${range.max}`
-  } else if (range.min !== null) {
-    return `Da €${range.min}`
-  } else if (range.max !== null) {
-    return `Fino a €${range.max}`
-  }
-  return 'Personalizza'
-}
-
-const openPriceRangePicker = () => {
-  // Copy current values to temp when opening
-  tempPriceRange.value = { ...customPriceRange.value }
-}
-
-const applyPriceRange = () => {
-  // Skip if nothing is set
-  if (tempPriceRange.value.min === null && tempPriceRange.value.max === null) {
-    return
-  }
-
-  // Validate min >= 0
-  if (tempPriceRange.value.min !== null && tempPriceRange.value.min < 0) {
-    tempPriceRange.value.min = 0
-  }
-
-  // Validate max >= 0
-  if (tempPriceRange.value.max !== null && tempPriceRange.value.max < 0) {
-    tempPriceRange.value.max = 0
-  }
-
-  // Validate min < max (only if both are set)
-  if (
-    tempPriceRange.value.min !== null &&
-    tempPriceRange.value.max !== null &&
-    tempPriceRange.value.min >= tempPriceRange.value.max
-  ) {
-    return // Don't apply if min >= max
-  }
-
-  // Apply temp values to actual filter
-  customPriceRange.value = { ...tempPriceRange.value }
-  selectedPriceFilter.value = null // Clear preset filter when selecting custom range
-  showPriceRangePicker.value = false
-  searchEvents()
-}
-
-const clearPriceRange = () => {
-  tempPriceRange.value = { min: null, max: null }
-  customPriceRange.value = { min: null, max: null }
-  showPriceRangePicker.value = false
-  searchEvents()
-}
-
-const isPriceRangeValid = computed(() => {
-  const { min, max } = tempPriceRange.value
-
-  // At least one value must be set
-  if (min === null && max === null) {
-    return false
-  }
-
-  // Min must be >= 0
-  if (min !== null && min < 0) {
-    return false
-  }
-
-  // Max must be >= 0
-  if (max !== null && max < 0) {
-    return false
-  }
-
-  // If both are set, min must be < max
-  if (min !== null && max !== null && min >= max) {
-    return false
-  }
-
-  return true
-})
-
-const toggleSortBy = (value: string) => {
-  selectedSortBy.value = selectedSortBy.value === value ? null : value
-}
-
-const clearFilters = () => {
-  selectedDateFilter.value = null
-  selectedDateRange.value = null
-  selectedTags.value = []
-  selectedPriceFilter.value = null
-  customPriceRange.value = { min: null, max: null }
-  selectedSortBy.value = null
-  searchEvents()
-}
-
-const hasActiveFilters = computed(
-  () =>
-    selectedDateFilter.value !== null ||
-    selectedDateRange.value !== null ||
-    selectedTags.value.length > 0 ||
-    selectedPriceFilter.value !== null ||
-    customPriceRange.value.min !== null ||
-    customPriceRange.value.max !== null ||
-    selectedSortBy.value !== null
-)
-
-const sortedEvents = computed(() => {
-  if (!selectedSortBy.value) return events.value
-
-  const sorted = [...events.value]
-
-  switch (selectedSortBy.value) {
-    case 'date_desc':
-      return sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-    case 'date_asc':
-      return sorted.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
-    case 'price_asc':
-      return sorted.sort((a, b) => (a.price || 0) - (b.price || 0))
-    case 'price_desc':
-      return sorted.sort((a, b) => (b.price || 0) - (a.price || 0))
-    default:
-      return sorted
-  }
-})
-
 const searchEvents = async () => {
+  console.log('Searching events for query:', searchQuery.value)
   if (!searchQuery.value.trim()) {
     events.value = []
     return
@@ -257,8 +47,8 @@ const searchEvents = async () => {
       title: searchQuery.value,
       pagination: { limit: ITEMS_PER_PAGE },
     })
-    events.value = response.items
-    _hasMoreEvents.value = response.hasMore
+    events.value = response.items.map((event) => ({ event, isFavorite: false }))
+    hasMoreEvents.value = response.hasMore
   } catch (error) {
     console.error('Failed to search events:', error)
   } finally {
@@ -280,6 +70,7 @@ const searchOrganizations = async () => {
       role: 'organization',
     })
     organizations.value = response.items
+    hasMoreOrganizations.value = response.hasMore
   } catch (error) {
     console.error('Failed to search organizations:', error)
   } finally {
@@ -300,6 +91,7 @@ const searchPeople = async () => {
       role: 'member',
     })
     people.value = response.items
+    hasMorePeople.value = response.hasMore
   } catch (error) {
     console.error('Failed to search people:', error)
   } finally {
@@ -321,8 +113,8 @@ const onSearch = () => {
   }
 }
 
-const switchTab = (tab: 'events' | 'organizations' | 'people') => {
-  activeTab.value = tab
+const onTabChange = (tabId: string) => {
+  activeTab.value = tabId as ExploreTab
   if (searchQuery.value.trim()) {
     onSearch()
   }
@@ -347,7 +139,6 @@ const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
   }
 }
 
-// Map organizations to SearchResult format
 const organizationsAsSearchResults = computed<SearchResult[]>(() => {
   return organizations.value.map((org) => ({
     type: 'organization' as const,
@@ -358,7 +149,6 @@ const organizationsAsSearchResults = computed<SearchResult[]>(() => {
   }))
 })
 
-// Map people to SearchResult format
 const peopleAsSearchResults = computed<SearchResult[]>(() => {
   return people.value.map((person) => ({
     type: 'member' as const,
@@ -369,45 +159,52 @@ const peopleAsSearchResults = computed<SearchResult[]>(() => {
   }))
 })
 
+const tabs = computed<Tab[]>(() => [
+  {
+    id: 'events',
+    label: 'Eventi',
+    component: ExploreEventsTab,
+    props: {
+      events: events.value,
+      loading: loadingEvents.value,
+      searchQuery: searchQuery.value,
+      onFavoriteToggle: handleFavoriteToggle,
+      onAuthRequired: () => emit('auth-required'),
+    },
+  },
+  {
+    id: 'organizations',
+    label: 'Organizzazioni',
+    component: ExplorePeopleTab,
+    props: {
+      organizations: organizationsAsSearchResults.value,
+      loading: loadingOrganizations.value,
+      searchQuery: searchQuery.value,
+    },
+  },
+  {
+    id: 'people',
+    label: 'Persone',
+    component: ExplorePeopleTab,
+    props: {
+      people: peopleAsSearchResults.value,
+      loading: loadingPeople.value,
+      searchQuery: searchQuery.value,
+    },
+  },
+])
+
 watch(searchQuery, () => {
   onSearch()
-})
-
-const isElementHiddenBehindStickyHeader = (el: HTMLElement | null) => {
-  if (!el) return true
-  const rect = el.getBoundingClientRect()
-  const tabsContainer = tabsContainerRef.value
-  if (!tabsContainer) return false
-  const tabsRect = tabsContainer.getBoundingClientRect()
-  const stickyHeaderHeight = tabsRect.bottom
-  return rect.top < stickyHeaderHeight
-}
-
-const handleScroll = () => {
-  if (filtersMenuOpen.value && isElementHiddenBehindStickyHeader(filtersButtonRef.value)) {
-    filtersMenuOpen.value = false
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('scroll', handleScroll, true)
-  loadTagFilters()
-})
-
-onUnmounted(() => {
-  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>
 
 <template>
   <div class="explore-page">
-    <!-- Header Section -->
     <div class="explore-hero">
       <div class="explore-header">
         <h1 class="explore-title">Esplora</h1>
         <p class="explore-subtitle">Trova eventi, organizzatori o connettiti con i tuoi amici</p>
-
-        <!-- Search Bar -->
         <div ref="pageContentSearchBarRef" class="search-container">
           <div v-if="!showSearchInNavbar">
             <SearchBar ref="searchBarRef" />
@@ -415,337 +212,15 @@ onUnmounted(() => {
         </div>
       </div>
     </div>
-
-    <!-- Tabs (Sticky) -->
-    <div ref="tabsContainerRef" class="explore-tabs-container">
-      <div class="explore-tabs">
-        <div
-          class="explore-tab"
-          :class="{ active: activeTab === 'events' }"
-          @click="switchTab('events')"
-        >
-          Eventi
-        </div>
-        <div
-          class="explore-tab"
-          :class="{ active: activeTab === 'organizations' }"
-          @click="switchTab('organizations')"
-        >
-          Organizzazioni
-        </div>
-        <div
-          class="explore-tab"
-          :class="{ active: activeTab === 'people' }"
-          @click="switchTab('people')"
-        >
-          Persone
-        </div>
-      </div>
+    <div class="content-wrapper">
+      <TabView
+        :variant="'explore'"
+        :tabs="tabs"
+        default-tab="events"
+        @update:active-tab="onTabChange"
+      />
+      <div class="colored-box"></div>
     </div>
-
-    <!-- Content Section -->
-    <div class="explore-content">
-      <!-- Events Tab -->
-      <div v-if="activeTab === 'events'" class="tab-content">
-        <!-- Filters Button -->
-        <!-- <div v-if="searchQuery" class="filters-button-wrapper"> -->
-
-        <div ref="filtersButtonRef" class="filters-button-wrapper">
-          <q-btn outline color="primary" label="Filtri" class="outline-btn-fix">
-            <q-badge
-              v-if="hasActiveFilters"
-              floating
-              class="filter-badge"
-              :style="{ color: 'white !important' }"
-            >
-              {{
-                (selectedDateFilter ? 1 : 0) +
-                (selectedDateRange ? 1 : 0) +
-                selectedTags.length +
-                (selectedPriceFilter ? 1 : 0) +
-                (customPriceRange.min !== null || customPriceRange.max !== null ? 1 : 0) +
-                (selectedSortBy ? 1 : 0)
-              }}
-            </q-badge>
-            <q-menu v-model="filtersMenuOpen">
-              <div class="filters-menu">
-                <!-- Date Filters -->
-                <div class="filter-group">
-                  <span class="filter-label">Data:</span>
-                  <div class="filter-chips">
-                    <q-chip
-                      v-for="filter in dateFilters"
-                      :key="filter.value"
-                      :outline="selectedDateFilter !== filter.value"
-                      :color="selectedDateFilter === filter.value ? 'primary' : 'grey-3'"
-                      :text-color="selectedDateFilter === filter.value ? 'white' : 'grey-8'"
-                      clickable
-                      @click="toggleDateFilter(filter.value)"
-                    >
-                      {{ filter.label }}
-                    </q-chip>
-                    <q-chip
-                      :outline="!selectedDateRange"
-                      :color="selectedDateRange ? 'primary' : 'grey-3'"
-                      :text-color="selectedDateRange ? 'white' : 'grey-8'"
-                      clickable
-                    >
-                      {{ selectedDateRange ? formatDateRange(selectedDateRange) : 'Personalizza' }}
-                      <q-menu v-model="showDateRangePicker" anchor="bottom left" self="top left">
-                        <q-card style="min-width: 350px">
-                          <q-card-section>
-                            <div class="text-h6">Seleziona periodo</div>
-                          </q-card-section>
-
-                          <q-card-section class="q-pt-none">
-                            <q-date
-                              v-model="selectedDateRange"
-                              range
-                              minimal
-                              :options="(date) => date >= today"
-                            />
-                          </q-card-section>
-
-                          <q-card-actions align="right">
-                            <q-btn
-                              flat
-                              label="Annulla"
-                              color="grey-7"
-                              @click="showDateRangePicker = false"
-                            />
-                            <q-btn
-                              v-if="selectedDateRange"
-                              flat
-                              label="Cancella"
-                              color="grey-7"
-                              @click="clearDateRange"
-                            />
-                            <q-btn
-                              flat
-                              label="Applica"
-                              color="primary"
-                              :disable="!selectedDateRange"
-                              @click="applyDateRange"
-                            />
-                          </q-card-actions>
-                        </q-card>
-                      </q-menu>
-                    </q-chip>
-                  </div>
-                </div>
-
-                <!-- Tag Filters -->
-                <div class="filter-group">
-                  <span class="filter-label">Categoria:</span>
-                  <div class="filter-chips">
-                    <q-chip
-                      v-for="tag in tagFilters"
-                      :key="tag"
-                      :outline="!selectedTags.includes(tag)"
-                      :color="selectedTags.includes(tag) ? 'primary' : 'grey-3'"
-                      :text-color="selectedTags.includes(tag) ? 'white' : 'grey-8'"
-                      clickable
-                      @click="toggleTag(tag)"
-                    >
-                      {{ tag }}
-                    </q-chip>
-                  </div>
-                </div>
-
-                <!-- Price Filters -->
-                <div class="filter-group">
-                  <span class="filter-label">Prezzo:</span>
-                  <div class="filter-chips">
-                    <q-chip
-                      v-for="filter in priceFilters"
-                      :key="filter.value"
-                      :outline="selectedPriceFilter !== filter.value"
-                      :color="selectedPriceFilter === filter.value ? 'primary' : 'grey-3'"
-                      :text-color="selectedPriceFilter === filter.value ? 'white' : 'grey-8'"
-                      clickable
-                      @click="togglePriceFilter(filter.value)"
-                    >
-                      {{ filter.label }}
-                    </q-chip>
-                    <q-chip
-                      :outline="customPriceRange.min === null && customPriceRange.max === null"
-                      :color="
-                        customPriceRange.min !== null || customPriceRange.max !== null
-                          ? 'primary'
-                          : 'grey-3'
-                      "
-                      :text-color="
-                        customPriceRange.min !== null || customPriceRange.max !== null
-                          ? 'white'
-                          : 'grey-8'
-                      "
-                      clickable
-                    >
-                      {{ formatPriceRange(customPriceRange) }}
-                      <q-menu
-                        v-model="showPriceRangePicker"
-                        anchor="bottom left"
-                        self="top left"
-                        @before-show="openPriceRangePicker"
-                      >
-                        <q-card style="min-width: 320px">
-                          <q-card-section>
-                            <div class="text-h6">Seleziona range di prezzo</div>
-                          </q-card-section>
-
-                          <q-card-section class="q-pt-none">
-                            <div class="price-range-inputs">
-                              <q-input
-                                v-model.number="tempPriceRange.min"
-                                type="number"
-                                label="Prezzo minimo"
-                                prefix="€"
-                                outlined
-                                dense
-                                :min="0"
-                              />
-                              <q-input
-                                v-model.number="tempPriceRange.max"
-                                type="number"
-                                label="Prezzo massimo"
-                                prefix="€"
-                                outlined
-                                dense
-                                :min="tempPriceRange.min || 0"
-                              />
-                            </div>
-                          </q-card-section>
-
-                          <q-card-actions align="right">
-                            <q-btn
-                              flat
-                              label="Annulla"
-                              color="grey-7"
-                              @click="showPriceRangePicker = false"
-                            />
-                            <q-btn
-                              v-if="tempPriceRange.min !== null || tempPriceRange.max !== null"
-                              flat
-                              label="Cancella"
-                              color="grey-7"
-                              @click="clearPriceRange"
-                            />
-                            <q-btn
-                              flat
-                              label="Applica"
-                              color="primary"
-                              :disable="!isPriceRangeValid"
-                              @click="applyPriceRange"
-                            />
-                          </q-card-actions>
-                        </q-card>
-                      </q-menu>
-                    </q-chip>
-                  </div>
-                </div>
-
-                <!-- Sort By -->
-                <div class="filter-group">
-                  <span class="filter-label">Ordina per:</span>
-                  <div class="filter-chips">
-                    <q-chip
-                      v-for="option in sortByOptions"
-                      :key="option.value"
-                      :outline="selectedSortBy !== option.value"
-                      :color="selectedSortBy === option.value ? 'primary' : 'grey-3'"
-                      :text-color="selectedSortBy === option.value ? 'white' : 'grey-8'"
-                      clickable
-                      @click="toggleSortBy(option.value)"
-                    >
-                      {{ option.label }}
-                    </q-chip>
-                  </div>
-                </div>
-
-                <!-- Clear Filters Button -->
-                <q-btn
-                  v-if="hasActiveFilters"
-                  flat
-                  dense
-                  color="grey-7"
-                  icon="clear"
-                  label="Cancella filtri"
-                  class="clear-filters-btn"
-                  @click="clearFilters"
-                />
-              </div>
-            </q-menu>
-          </q-btn>
-        </div>
-
-        <div v-if="loadingEvents" class="loading-state">
-          <q-spinner-dots color="primary" size="50px" />
-        </div>
-        <div v-else-if="sortedEvents.length > 0" class="events-grid">
-          <EventCard
-            v-for="event in sortedEvents"
-            :key="event.id_event"
-            :event="event"
-            :favorite="false"
-            @favorite-toggle="handleFavoriteToggle(event.id_event, $event)"
-            @auth-required="emit('auth-required')"
-          />
-        </div>
-        <div v-else-if="searchQuery" class="empty-state">
-          <q-icon name="event_busy" size="64px" color="grey-5" />
-          <p class="empty-text">Nessun evento trovato</p>
-        </div>
-        <div v-else class="empty-state">
-          <q-icon name="search" size="64px" color="grey-5" />
-          <p class="empty-text">Cerca eventi per nome</p>
-        </div>
-      </div>
-
-      <!-- Organizations Tab -->
-      <div v-else-if="activeTab === 'organizations'" class="tab-content">
-        <div v-if="loadingOrganizations" class="loading-state">
-          <q-spinner-dots color="primary" size="50px" />
-        </div>
-        <div v-else-if="organizations.length > 0" class="users-list">
-          <SearchResultCard
-            v-for="result in organizationsAsSearchResults"
-            :key="result.id"
-            :result="result"
-          />
-        </div>
-        <div v-else-if="searchQuery" class="empty-state">
-          <q-icon name="business" size="64px" color="grey-5" />
-          <p class="empty-text">Nessuna organizzazione trovata</p>
-        </div>
-        <div v-else class="empty-state">
-          <q-icon name="search" size="64px" color="grey-5" />
-          <p class="empty-text">Cerca organizzazioni per nome</p>
-        </div>
-      </div>
-
-      <!-- People Tab -->
-      <div v-else-if="activeTab === 'people'" class="tab-content">
-        <div v-if="loadingPeople" class="loading-state">
-          <q-spinner-dots color="primary" size="50px" />
-        </div>
-        <div v-else-if="people.length > 0" class="users-list">
-          <SearchResultCard
-            v-for="result in peopleAsSearchResults"
-            :key="result.id"
-            :result="result"
-          />
-        </div>
-        <div v-else-if="searchQuery" class="empty-state">
-          <q-icon name="people" size="64px" color="grey-5" />
-          <p class="empty-text">Nessuna persona trovata</p>
-        </div>
-        <div v-else class="empty-state">
-          <q-icon name="search" size="64px" color="grey-5" />
-          <p class="empty-text">Cerca persone per nome</p>
-        </div>
-      </div>
-    </div>
-    <div class="colored-box"></div>
   </div>
 </template>
 
@@ -804,202 +279,9 @@ onUnmounted(() => {
   margin-top: $spacing-4;
 }
 
-.search-input {
-  background: $color-white;
-  border-radius: $radius-xl;
-
-  :deep(.q-field__control) {
-    border-radius: $radius-xl;
-    height: 56px;
-  }
-
-  :deep(.q-field__prepend) {
-    padding-left: $spacing-2;
-  }
-}
-
-.explore-tabs-container {
-  position: sticky;
-  top: 64px; // NavigationBar height
-  z-index: 10; // Below navbar but above content
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
-  padding: $spacing-4 0;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
-
-  @include dark-mode {
-    background: rgba(18, 18, 18, 0.95);
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
-.explore-tabs {
-  display: flex;
-  justify-content: center;
-  gap: $spacing-8;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none; // Firefox
-  max-width: $app-max-width;
-  margin: 0 auto;
-  padding: 0 $spacing-6;
-
-  &::-webkit-scrollbar {
-    display: none; // Chrome, Safari
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    gap: $spacing-6;
-    padding: 0 $spacing-4;
-  }
-  @media (max-width: $app-min-width) {
-    justify-content: flex-start;
-    gap: $spacing-4;
-  }
-}
-
-.explore-tab {
-  color: $color-heading;
-  opacity: 0.6;
-  cursor: pointer;
-  padding-bottom: $spacing-2;
-  border-bottom: 3px solid transparent;
-  transition: all 0.3s ease;
-  user-select: none;
-  font-size: $font-size-xl;
-  font-weight: $font-weight-semibold;
-  font-family: $font-family-heading;
-  white-space: nowrap;
-  flex-shrink: 0;
-
-  &:hover {
-    opacity: 0.8;
-  }
-
-  &.active {
-    opacity: 1;
-    border-bottom-color: $color-primary;
-  }
-
-  @include dark-mode {
-    color: $color-white;
-  }
-}
-
-.explore-content {
-  flex: 1;
-  padding: $spacing-6 $spacing-4;
-  max-width: $app-max-width;
+.content-wrapper {
+  @include flex-column;
   width: 100%;
-  margin: 0 auto;
-}
-
-.tab-content {
-  @include flex-column;
-  gap: $spacing-4;
-}
-
-.filters-button-wrapper {
-  display: flex;
-  justify-content: flex-start;
-  margin-bottom: $spacing-4;
-}
-
-.has-active-filters {
-  border-width: 2px;
-}
-
-.filters-menu {
-  @include flex-column;
-  gap: $spacing-4;
-  padding: $spacing-4;
-  min-width: 320px;
-  max-width: 400px;
-
-  @media (max-width: $breakpoint-mobile) {
-    min-width: 280px;
-    max-width: 90vw;
-  }
-}
-
-.filter-group {
-  @include flex-column;
-  gap: $spacing-2;
-}
-
-.filter-label {
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
-  color: $color-heading;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-
-  @include dark-mode {
-    color: $color-white;
-  }
-}
-
-.filter-chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-2;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    flex-wrap: nowrap;
-  }
-}
-
-.clear-filters-btn {
-  align-self: flex-start;
-  margin-top: $spacing-2;
-}
-
-.price-range-inputs {
-  @include flex-column;
-  gap: $spacing-3;
-}
-
-.events-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: $spacing-6;
-
-  @media (max-width: $breakpoint-mobile) {
-    grid-template-columns: 1fr;
-    gap: $spacing-4;
-  }
-}
-
-.users-list {
-  @include flex-column;
-  gap: $spacing-3;
-}
-
-.loading-state {
-  @include flex-center;
-  padding: $spacing-8;
-}
-
-.empty-state {
-  @include flex-column;
-  @include flex-center;
-  gap: $spacing-4;
-  padding: $spacing-8;
-  text-align: center;
-}
-
-.empty-text {
-  color: $color-gray-500;
-  margin: 0;
-  font-size: $font-size-lg;
-  line-height: $line-height-relaxed;
 }
 
 .colored-box {
@@ -1008,38 +290,5 @@ onUnmounted(() => {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border-radius: $radius-xl;
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-}
-</style>
-
-<style lang="scss">
-// Non-scoped styles for badge text and background color
-.filter-badge.q-badge {
-  background-color: #6f00ff !important;
-
-  .q-badge__content,
-  .q-badge__content *,
-  & > div,
-  & > span {
-    color: white !important;
-  }
-}
-
-.filter-badge.q-badge.q-badge--floating {
-  background-color: #6f00ff !important;
-
-  .q-badge__content,
-  .q-badge__content *,
-  & > div,
-  & > span {
-    color: white !important;
-  }
-}
-
-// Force white text on selected filter chips in both light and dark mode
-.filters-menu .q-chip.bg-primary {
-  .q-chip__content,
-  .q-chip__content * {
-    color: white !important;
-  }
 }
 </style>

@@ -35,7 +35,6 @@ const EVENTS_PER_PAGE = 5
 
 const handleTabChange = (tabId: string) => {
   console.log('Tab attiva:', tabId)
-  // fai quello che vuoi con tabId
 }
 
 onMounted(async () => {

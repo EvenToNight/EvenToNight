@@ -2,7 +2,9 @@
 import { ref } from 'vue'
 import type { Event } from '@/api/types/events'
 import EventCard from '@/components/cards/EventCard.vue'
-import EventFiltersButton, { type EventFilters } from '@/components/explore/EventFiltersButton.vue'
+import EventFiltersButton, {
+  type EventFilters,
+} from '@/components/explore/filters/FiltersButton.vue'
 
 interface Props {
   events: { event: Event; isFavorite: boolean }[]
