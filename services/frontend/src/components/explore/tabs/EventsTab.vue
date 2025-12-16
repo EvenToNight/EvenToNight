@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Event } from '@/api/types/events'
-import EventCardVariant from '@/components/cards/EventCardVariant.vue'
+import EventCard from '@/components/cards/EventCardVariant.vue'
 import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 
 interface Props {
-  events: Event[]
+  events: { event: Event; isFavorite: boolean }[]
   emptyText: string
   emptyIconName: string
   hasMore?: boolean
@@ -43,7 +43,12 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
       @load="onLoad"
     >
       <div class="events-grid">
-        <EventCardVariant v-for="event in events" :key="event.id_event" :event="event" />
+        <EventCard
+          v-for="item in events"
+          :key="item.event.id_event"
+          :event="item.event"
+          :isFavorite="item.isFavorite"
+        />
       </div>
 
       <template #loading>

@@ -33,6 +33,11 @@ const hasMoreDraft = ref(true)
 
 const EVENTS_PER_PAGE = 5
 
+const handleTabChange = (tabId: string) => {
+  console.log('Tab attiva:', tabId)
+  // fai quello che vuoi con tabId
+}
+
 onMounted(async () => {
   try {
     const [publishedResponse, draftResponse] = await Promise.all([
@@ -136,7 +141,7 @@ const tabs = computed<Tab[]>(() => {
 
 <template>
   <div class="profile-body">
-    <TabView :tabs="tabs" />
+    <TabView :variant="'profile'" :tabs="tabs" @update:activeTab="handleTabChange" />
   </div>
 </template>
 

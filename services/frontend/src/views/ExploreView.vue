@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { ref, provide } from 'vue'
 import NavigationPageView from '@/layouts/NavigationWithSearch.vue'
-import ExploreViewContent from '@/components/explore/ExploreViewContent.vue'
+// import ExploreViewContent from '@/components/explore/ExploreViewContent.vue'
+import ExploreViewContent2 from '@/components/explore/ExploreViewContentRefactor.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 
 const showAuthDialog = ref(false)
@@ -13,7 +14,7 @@ provide('hideDropdown', true)
   <div>
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
     <NavigationPageView>
-      <ExploreViewContent @auth-required="showAuthDialog = true" />
+      <ExploreViewContent2 @auth-required="showAuthDialog = true" />
     </NavigationPageView>
   </div>
 </template>
