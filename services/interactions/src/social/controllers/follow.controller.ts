@@ -11,7 +11,7 @@ export class FollowController {
     const follow = await this.followService.createFollow(createFollowDto);
     return {
       message: 'Follow created successfully',
-      status: 201,
+      statusCode: 201,
     };
   }
 }

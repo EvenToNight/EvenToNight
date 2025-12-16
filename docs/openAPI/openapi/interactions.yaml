@@ -1,0 +1,74 @@
+openapi: 3.0.1
+info:
+  title: EvenToNight - Events API
+  version: 1.0.0
+paths:
+  /follows:
+    post:
+      summary: Create a new follow relationship
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateFollowDto'
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      responses:
+        '201':
+          description: Follow created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Follow created successfully
+                  statusCode:
+                    type: integer
+                    example: 201
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'  
+        '409':
+          description: Conflict - Already following or cannot follow yourself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    CreateFollowDto:
+      type: object
+      properties:
+        followerId:
+          type: string
+          description: ID of the user who is following
+          example: user123
+        followedId:
+          type: string
+          description: ID of the user being followed
+          example: user456
+      required:
+        - followerId
+        - followedId
+        
+    ErrorResponse:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 409
+        message:
+          type: string
+          example: Already following this user
+        error:
+          type: string
+          example: Conflict
+
