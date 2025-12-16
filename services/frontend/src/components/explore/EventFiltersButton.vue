@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { api } from '@/api'
 import type { TagCategory } from '@/api/interfaces/events'
 
@@ -17,6 +17,7 @@ const emit = defineEmits<{
 }>()
 
 // Filter states
+const filtersButtonRef = ref<HTMLElement | null>(null)
 const filtersMenuOpen = ref(false)
 const selectedDateFilter = ref<string | null>(null)
 const selectedDateRange = ref<{ from: string; to: string } | null>(null)
@@ -219,13 +220,39 @@ const hasActiveFilters = computed(
     selectedSortBy.value !== null
 )
 
+// Check if button is hidden behind sticky header
+const isElementHiddenBehindStickyHeader = (el: HTMLElement | null) => {
+  if (!el) return true
+  const rect = el.getBoundingClientRect()
+
+  // Find the sticky header (.explore-tab-header)
+  const stickyHeader = document.querySelector('.explore-tab-header')
+  if (!stickyHeader) return false
+
+  const headerRect = stickyHeader.getBoundingClientRect()
+  const stickyHeaderHeight = headerRect.bottom
+
+  return rect.top < stickyHeaderHeight
+}
+
+const handleScroll = () => {
+  if (filtersMenuOpen.value && isElementHiddenBehindStickyHeader(filtersButtonRef.value)) {
+    filtersMenuOpen.value = false
+  }
+}
+
 onMounted(() => {
   loadTagFilters()
+  window.addEventListener('scroll', handleScroll, true)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll, true)
 })
 </script>
 
 <template>
-  <div class="filters-button-wrapper">
+  <div ref="filtersButtonRef" class="filters-button-wrapper">
     <q-btn outline color="primary" label="Filtri" class="outline-btn-fix">
       <q-badge
         v-if="hasActiveFilters"
