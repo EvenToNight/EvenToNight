@@ -1,10 +1,6 @@
 import { IsString, IsNotEmpty } from 'class-validator';
 
-export class CreateFollowDto {
-  @IsString()
-  @IsNotEmpty()
-  followerId: string;
-
+export class FollowUserDto {
   @IsString()
   @IsNotEmpty()
   followedId: string;

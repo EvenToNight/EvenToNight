@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FollowController } from './controllers/follow.controller';
 import { FollowService } from './services/follow.service';
-import { Follow, FollowSchema } from './model/schemas/follow.schema';
+import { Follow, FollowSchema } from './common/schemas/follow.schema';
 
 @Module({
   imports: [
@@ -11,4 +11,4 @@ import { Follow, FollowSchema } from './model/schemas/follow.schema';
   controllers: [FollowController],
   providers: [FollowService],
 })
-export class SocialModule {}
+export class UserModule {}
