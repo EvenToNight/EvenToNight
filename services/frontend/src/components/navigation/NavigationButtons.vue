@@ -31,7 +31,7 @@ withDefaults(defineProps<Props>(), {
         <AppBrand />
       </div>
       <div class="nav-right">
-        <q-btn flat round icon="home" class="nav-btn" @click="goToHome" />
+        <q-btn flat round icon="home" class="nav-btn" @click="() => goToHome()" />
       </div>
     </nav>
   </template>
