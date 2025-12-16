@@ -42,7 +42,10 @@ const selectedDateFilter = ref<string | null>(null)
 const selectedDateRange = ref<{ from: string; to: string } | null>(null)
 const selectedTags = ref<string[]>([])
 const selectedPriceFilter = ref<string | null>(null)
+const customPriceRange = ref<{ min: number | null; max: number | null }>({ min: null, max: null })
+const selectedSortBy = ref<string | null>(null)
 const showDateRangePicker = ref(false)
+const showPriceRangePicker = ref(false)
 const today = new Date().toISOString().split('T')[0] as string
 
 const dateFilters = [
@@ -64,6 +67,13 @@ const loadTagFilters = async () => {
 const priceFilters = [
   { label: 'Gratis', value: 'free' },
   { label: 'A pagamento', value: 'paid' },
+]
+
+const sortByOptions = [
+  { label: 'Più recenti', value: 'date_desc' },
+  { label: 'Meno recenti', value: 'date_asc' },
+  { label: 'Prezzo più basso', value: 'price_asc' },
+  { label: 'Prezzo più alto', value: 'price_desc' },
 ]
 
 const toggleDateFilter = (value: string) => {
@@ -105,7 +115,37 @@ const toggleTag = (tag: string) => {
 
 const togglePriceFilter = (value: string) => {
   selectedPriceFilter.value = selectedPriceFilter.value === value ? null : value
+  customPriceRange.value = { min: null, max: null } // Clear custom range when selecting preset
   searchEvents()
+}
+
+const formatPriceRange = (range: { min: number | null; max: number | null }) => {
+  if (range.min !== null && range.max !== null) {
+    return `€${range.min} - €${range.max}`
+  } else if (range.min !== null) {
+    return `Da €${range.min}`
+  } else if (range.max !== null) {
+    return `Fino a €${range.max}`
+  }
+  return 'Personalizza'
+}
+
+const applyPriceRange = () => {
+  if (customPriceRange.value.min !== null || customPriceRange.value.max !== null) {
+    selectedPriceFilter.value = null // Clear preset filter when selecting custom range
+    showPriceRangePicker.value = false
+    searchEvents()
+  }
+}
+
+const clearPriceRange = () => {
+  customPriceRange.value = { min: null, max: null }
+  showPriceRangePicker.value = false
+  searchEvents()
+}
+
+const toggleSortBy = (value: string) => {
+  selectedSortBy.value = selectedSortBy.value === value ? null : value
 }
 
 const clearFilters = () => {
@@ -113,6 +153,8 @@ const clearFilters = () => {
   selectedDateRange.value = null
   selectedTags.value = []
   selectedPriceFilter.value = null
+  customPriceRange.value = { min: null, max: null }
+  selectedSortBy.value = null
   searchEvents()
 }
 
@@ -121,8 +163,30 @@ const hasActiveFilters = computed(
     selectedDateFilter.value !== null ||
     selectedDateRange.value !== null ||
     selectedTags.value.length > 0 ||
-    selectedPriceFilter.value !== null
+    selectedPriceFilter.value !== null ||
+    customPriceRange.value.min !== null ||
+    customPriceRange.value.max !== null ||
+    selectedSortBy.value !== null
 )
+
+const sortedEvents = computed(() => {
+  if (!selectedSortBy.value) return events.value
+
+  const sorted = [...events.value]
+
+  switch (selectedSortBy.value) {
+    case 'date_desc':
+      return sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+    case 'date_asc':
+      return sorted.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+    case 'price_asc':
+      return sorted.sort((a, b) => (a.price || 0) - (b.price || 0))
+    case 'price_desc':
+      return sorted.sort((a, b) => (b.price || 0) - (a.price || 0))
+    default:
+      return sorted
+  }
+})
 
 const searchEvents = async () => {
   if (!searchQuery.value.trim()) {
@@ -341,7 +405,9 @@ onUnmounted(() => {
                 (selectedDateFilter ? 1 : 0) +
                 (selectedDateRange ? 1 : 0) +
                 selectedTags.length +
-                (selectedPriceFilter ? 1 : 0)
+                (selectedPriceFilter ? 1 : 0) +
+                (customPriceRange.min !== null || customPriceRange.max !== null ? 1 : 0) +
+                (selectedSortBy ? 1 : 0)
               }}
             </q-badge>
             <q-menu v-model="filtersMenuOpen">
@@ -444,6 +510,95 @@ onUnmounted(() => {
                     >
                       {{ filter.label }}
                     </q-chip>
+                    <q-chip
+                      :outline="customPriceRange.min === null && customPriceRange.max === null"
+                      :color="
+                        customPriceRange.min !== null || customPriceRange.max !== null
+                          ? 'primary'
+                          : 'grey-3'
+                      "
+                      :text-color="
+                        customPriceRange.min !== null || customPriceRange.max !== null
+                          ? 'white'
+                          : 'grey-8'
+                      "
+                      clickable
+                    >
+                      {{ formatPriceRange(customPriceRange) }}
+                      <q-menu v-model="showPriceRangePicker" anchor="bottom left" self="top left">
+                        <q-card style="min-width: 320px">
+                          <q-card-section>
+                            <div class="text-h6">Seleziona range di prezzo</div>
+                          </q-card-section>
+
+                          <q-card-section class="q-pt-none">
+                            <div class="price-range-inputs">
+                              <q-input
+                                v-model.number="customPriceRange.min"
+                                type="number"
+                                label="Prezzo minimo"
+                                prefix="€"
+                                outlined
+                                dense
+                                :min="0"
+                              />
+                              <q-input
+                                v-model.number="customPriceRange.max"
+                                type="number"
+                                label="Prezzo massimo"
+                                prefix="€"
+                                outlined
+                                dense
+                                :min="customPriceRange.min || 0"
+                              />
+                            </div>
+                          </q-card-section>
+
+                          <q-card-actions align="right">
+                            <q-btn
+                              flat
+                              label="Annulla"
+                              color="grey-7"
+                              @click="showPriceRangePicker = false"
+                            />
+                            <q-btn
+                              v-if="customPriceRange.min !== null || customPriceRange.max !== null"
+                              flat
+                              label="Cancella"
+                              color="grey-7"
+                              @click="clearPriceRange"
+                            />
+                            <q-btn
+                              flat
+                              label="Applica"
+                              color="primary"
+                              :disable="
+                                customPriceRange.min === null && customPriceRange.max === null
+                              "
+                              @click="applyPriceRange"
+                            />
+                          </q-card-actions>
+                        </q-card>
+                      </q-menu>
+                    </q-chip>
+                  </div>
+                </div>
+
+                <!-- Sort By -->
+                <div class="filter-group">
+                  <span class="filter-label">Ordina per:</span>
+                  <div class="filter-chips">
+                    <q-chip
+                      v-for="option in sortByOptions"
+                      :key="option.value"
+                      :outline="selectedSortBy !== option.value"
+                      :color="selectedSortBy === option.value ? 'primary' : 'grey-3'"
+                      :text-color="selectedSortBy === option.value ? 'white' : 'grey-8'"
+                      clickable
+                      @click="toggleSortBy(option.value)"
+                    >
+                      {{ option.label }}
+                    </q-chip>
                   </div>
                 </div>
 
@@ -466,9 +621,9 @@ onUnmounted(() => {
         <div v-if="loadingEvents" class="loading-state">
           <q-spinner-dots color="primary" size="50px" />
         </div>
-        <div v-else-if="events.length > 0" class="events-grid">
+        <div v-else-if="sortedEvents.length > 0" class="events-grid">
           <EventCard
-            v-for="event in events"
+            v-for="event in sortedEvents"
             :id="event.id_event"
             :key="event.id_event"
             :image-url="event.poster"
@@ -750,6 +905,11 @@ onUnmounted(() => {
   margin-top: $spacing-2;
 }
 
+.price-range-inputs {
+  @include flex-column;
+  gap: $spacing-3;
+}
+
 .events-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -815,6 +975,14 @@ onUnmounted(() => {
   .q-badge__content *,
   & > div,
   & > span {
+    color: white !important;
+  }
+}
+
+// Force white text on selected filter chips in both light and dark mode
+.filters-menu .q-chip.bg-primary {
+  .q-chip__content,
+  .q-chip__content * {
     color: white !important;
   }
 }
