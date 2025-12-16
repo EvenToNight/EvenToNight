@@ -3,58 +3,155 @@ info:
   title: EvenToNight - Events API
   version: 1.0.0
 paths:
-  /follows:
+  /users/{userId}/following:
     post:
-      summary: Create a new follow relationship
+      summary: Follow a user
+      description: Create a follow relationship between two users
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user who wants to follow
+          schema:
+            type: string
+          example: user123
       requestBody:
         required: true
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateFollowDto'
-      servers:
-        - url: http://localhost:9030
-          description: Local server
+              $ref: '#/components/schemas/FollowUserDto'
+            example:
+              followedId: user456
       responses:
         '201':
-          description: Follow created successfully
+          description: Successfully followed the user
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                    example: Follow created successfully
-                  statusCode:
-                    type: integer
-                    example: 201
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Follow created successfully
+                statusCode: 201
         '400':
-          description: Bad Request - Validation error
+          description: Bad Request - Invalid input
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ErrorResponse'  
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: ["followedId should not be empty"]
+                error: Bad Request
         '409':
           description: Conflict - Already following or cannot follow yourself
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                alreadyFollowing:
+                  summary: Already following
+                  value:
+                    statusCode: 409
+                    message: Already following this user
+                    error: Conflict
+                cannotFollowSelf:
+                  summary: Cannot follow yourself
+                  value:
+                    statusCode: 409
+                    message: Cannot follow yourself
+                    error: Conflict
+      tags:
+         - Users
+
+  /users/{userId}/following/{followedId}:
     delete:
-      summary: Delete a follow relationship
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/DeleteFollowDto'
+      summary: Unfollow a user
+      description: Remove a follow relationship between two users
       servers:
         - url: http://localhost:9030
           description: Local server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user who wants to unfollow
+          schema:
+            type: string
+          example: user123
+        - name: followedId
+          in: path
+          required: true
+          description: ID of the user to unfollow
+          schema:
+            type: string
+          example: user456
       responses:
         '200':
-          description: Follow deleted successfully
+          description: Successfully unfollowed the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Unfollowed successfully
+                statusCode: 200
+        '404':
+          description: Not Found - Follow relationship does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Follow relationship not found
+                error: Not Found
+      tags:
+        - Users
+
+  /users/{userId}/followers:
+    get:
+      summary: Get followers of a user with pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of followers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginationResponseDto'
+        '400':
+          description: Bad Request
           content:
             application/json:
               schema:
@@ -62,29 +159,75 @@ paths:
                 properties:
                   message:
                     type: string
-                    example: Follow deleted successfully
                   statusCode:
                     type: integer
-                    example: 200
-        '400':
-          description: Bad Request - Validation error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'  
-        '404':
-          description: Not Found - Follow relationship does not exist
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
+      tags:
+        - Users
 
 components:
   schemas:
-    CreateFollowDto:
+    FollowUserDto:
       type: object
       properties:
+        followedId:
+          type: string
+      required:
+        - followedId
+    
+    PaginationQueryDto:
+      type: object
+      properties:
+        offset:
+          type: integer
+          minimum: 0
+          default: 0
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      required: []
+    
+    PaginatedResponseDto:
+      type: object
+      description: Paginated response containing follow relationships
+      properties:
+        items:
+          type: array
+          description: Array of follow relationships
+          items:
+            $ref: '#/components/schemas/Follow'
+        limit:
+          type: integer 
+          description: Maximum number of items per page
+          example: 20
+        offset:
+          type: integer 
+          description: Number of items skipped
+          example: 0
+        hasMore:
+          type: boolean 
+          description: Whether there are more items available
+          example: false
+        totalItems:
+          type: integer
+          description: Total number of items available
+          example: 42
+      required:
+        - items
+        - limit
+        - offset
+        - hasMore
+        - totalItems
+    
+    Follow:
+      type: object
+      description: Follow relationship entity
+      properties:
+        _id:
+          type: string
+          description: MongoDB ObjectId
+          example: 507f1f77bcf86cd799439011
         followerId:
           type: string
           description: ID of the user who is following
@@ -93,34 +236,43 @@ components:
           type: string
           description: ID of the user being followed
           example: user456
-      required:
-        - followerId
-        - followedId
-    DeleteFollowDto:
+
+    SuccessResponse:
       type: object
+      description: Generic success response
       properties:
-        followerId:
+        message:
           type: string
-          description: ID of the user who is unfollowing
-          example: user123
-        followedId:
-          type: string
-          description: ID of the user being unfollowed
-          example: user456
+          description: Success message
+          example: Operation completed successfully
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 200
       required:
-        - followerId
-        - followedId
-        
+        - message
+        - statusCode
+
     ErrorResponse:
       type: object
+      description: Generic error response
       properties:
         statusCode:
           type: integer
-          example: 409
+          description: HTTP status code
+          example: 400
         message:
-          type: string
-          example: Already following this user
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: Error message(s)
+          example: Validation failed
         error:
           type: string
-          example: Conflict
-
+          description: Error type
+          example: Bad Request
+      required:
+        - statusCode
+        - message
