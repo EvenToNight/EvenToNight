@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch, onMounted } from 'vue'
+import { ref, watch, onMounted, inject, type Ref } from 'vue'
 import type { QInput } from 'quasar'
 import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
@@ -7,60 +7,30 @@ import type { SearchResult } from '@/api/utils'
 import { getSearchResult } from '@/api/utils'
 import SearchResultCard from '../cards/SearchResultCard.vue'
 
-interface Props {
-  searchQuery?: string
-  searchResults?: SearchResult[]
-  searchHint?: string
-  autofocus?: boolean
-  hasFocus?: boolean
-  hideDropdown?: boolean
-}
-
 const { t } = useI18n()
-
-const props = withDefaults(defineProps<Props>(), {
-  searchQuery: '',
-  searchResults: () => [],
-  searchHint: '',
-  autofocus: false,
-  hasFocus: false,
-  hideDropdown: false,
-})
-
-const emit = defineEmits<{
-  'update:searchQuery': [value: string]
-  'update:searchResults': [value: SearchResult[]]
-  'update:hasFocus': [value: boolean]
-}>()
+const searchHint = inject<string>('searchHint', t('search.baseHint'))
+const hideDropdown = inject<boolean>('hideDropdown', false)
+const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
+const searchResults = inject<Ref<SearchResult[]>>('searchResults', ref([]))
+const hasFocus = inject<Ref<boolean>>('searchBarHasFocus', ref(false))
 
 const { goToEventDetails, goToUserProfile } = useNavigation()
 const showSuggestions = ref(false)
 const inputRef = ref<QInput | null>(null)
 const isSearching = ref(false)
-const searchHint = computed(() => props.searchHint || t('search.baseHint'))
 const maxResults = 5
-
-const searchQuery = computed({
-  get: () => props.searchQuery,
-  set: (value) => emit('update:searchQuery', value),
-})
-
-const searchResults = computed({
-  get: () => props.searchResults,
-  set: (value) => emit('update:searchResults', value),
-})
 
 let searchDebounceTimer: number | null = null
 
 watch(searchQuery, (value) => {
-  showSuggestions.value = !props.hideDropdown && value.length > 0
+  showSuggestions.value = !hideDropdown && value.length > 0
 
   if (searchDebounceTimer) {
     clearTimeout(searchDebounceTimer)
   }
 
   // Skip internal search if dropdown is hidden (parent handles search)
-  if (props.hideDropdown) {
+  if (hideDropdown) {
     return
   }
 
@@ -74,7 +44,7 @@ watch(searchQuery, (value) => {
 })
 
 watch(
-  () => props.hasFocus,
+  () => hasFocus.value,
   (shouldFocus) => {
     if (!inputRef.value) return
     if (shouldFocus) {
@@ -87,7 +57,7 @@ watch(
 )
 
 onMounted(() => {
-  if (searchQuery.value.length > 0 && props.hasFocus && !props.hideDropdown) {
+  if (searchQuery.value.length > 0 && hasFocus.value && !hideDropdown) {
     showSuggestions.value = true
     performSearch()
   }
@@ -134,13 +104,13 @@ const hideSuggestions = () => {
 }
 
 const handleFocus = () => {
-  showSuggestions.value = !props.hideDropdown && searchQuery.value.length > 0
-  emit('update:hasFocus', true)
+  showSuggestions.value = !hideDropdown && searchQuery.value.length > 0
+  hasFocus.value = true
 }
 
 const handleBlur = () => {
   hideSuggestions()
-  emit('update:hasFocus', false)
+  hasFocus.value = false
 }
 </script>
 
@@ -152,7 +122,7 @@ const handleBlur = () => {
       dense
       standout
       :placeholder="searchHint"
-      :autofocus="autofocus"
+      :autofocus="hasFocus"
       class="search-input"
       @keyup.enter="handleSearch"
       @focus="handleFocus"

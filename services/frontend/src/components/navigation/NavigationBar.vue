@@ -4,12 +4,11 @@ export const NAVBAR_HEIGHT_CSS = `${NAVBAR_HEIGHT}px`
 </script>
 
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, inject, type Ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import SearchBar from './SearchBar.vue'
-import type { SearchResult } from '@/api/utils'
 import AppBrand from '@/components/common/AppBrand.vue'
 import { useNavigation } from '@/router/utils'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
@@ -18,48 +17,25 @@ import DrawerMenu from './DrawerMenu.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
+const searchQuery = inject<Ref<string>>('searchQuery')
+const searchBarHasFocus = inject<Ref<boolean>>('searchBarHasFocus', ref(false))
 interface Props {
   showSearch?: boolean
-  searchQuery?: string
-  searchResults?: SearchResult[]
-  hasFocus?: boolean
-  hideDropdown?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  hideDropdown: false,
-})
+const props = defineProps<Props>()
 const $q = useQuasar()
 const { t } = useI18n()
 const authStore = useAuthStore()
 const { goToHome, goToUserProfile } = useNavigation()
 
-const emit = defineEmits<{
-  'update:searchQuery': [value: string]
-  'update:searchResults': [value: SearchResult[]]
-  'update:hasFocus': [value: boolean]
-}>()
-
 const mobileSearchOpen = ref(false) //TODO evaluate usage
 const mobileMenuOpen = ref(false)
 
-const searchQuery = computed({
-  get: () => props.searchQuery ?? '',
-  set: (value) => emit('update:searchQuery', value),
-})
-
-const searchResults = computed({
-  get: () => props.searchResults ?? [],
-  set: (value) => emit('update:searchResults', value),
-})
-
-const searchBarHasFocus = computed({
-  get: () => props.hasFocus ?? false,
-  set: (value) => {
-    emit('update:hasFocus', value)
-    mobileSearchOpen.value = value
-  },
-})
+watch(
+  () => searchBarHasFocus.value,
+  (newVal) => (mobileSearchOpen.value = newVal)
+)
 
 const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
 const showMobileSearch = computed(() => {
@@ -69,7 +45,7 @@ const showMobileSearch = computed(() => {
 const toggleMobileSearch = () => {
   if (mobileSearchOpen.value) {
     mobileSearchOpen.value = false
-    searchQuery.value = ''
+    if (searchQuery) searchQuery.value = ''
     searchBarHasFocus.value = false
   } else {
     mobileSearchOpen.value = true
@@ -100,13 +76,7 @@ const goToProfile = () => {
     <q-toolbar class="navigation-bar">
       <div v-if="showMobileSearch" class="mobile-search-bar">
         <div class="mobile-search-container">
-          <SearchBar
-            v-model:search-query="searchQuery"
-            v-model:search-results="searchResults"
-            v-model:has-focus="searchBarHasFocus"
-            :autofocus="hasFocus"
-            :hide-dropdown="hideDropdown"
-          />
+          <SearchBar />
         </div>
         <q-btn flat dense icon="close" @mousedown.prevent="toggleMobileSearch" />
       </div>
@@ -124,13 +94,7 @@ const goToProfile = () => {
         </template>
         <template v-else>
           <div v-if="showSearch" class="search-container">
-            <SearchBar
-              v-model:search-query="searchQuery"
-              v-model:search-results="searchResults"
-              v-model:has-focus="searchBarHasFocus"
-              :autofocus="hasFocus"
-              :hide-dropdown="hideDropdown"
-            />
+            <SearchBar />
           </div>
           <div v-if="authStore.isAuthenticated">
             <q-btn flat round>

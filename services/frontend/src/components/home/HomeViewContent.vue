@@ -5,7 +5,6 @@ import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import SearchBar from '@/components/navigation/SearchBar.vue'
-import type { SearchResult } from '@/api/utils'
 import EventCard from '@/components/cards/EventCard.vue'
 import CardSlider from '@/components/cards/CardSlider.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
@@ -22,10 +21,6 @@ const authStore = useAuthStore()
 
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
-const searchQuery = inject<Ref<string>>('searchQuery')
-const searchResults = inject<Ref<SearchResult[]>>('searchResults')
-const searchBarHasFocus = inject<Ref<boolean>>('searchBarHasFocus')
-const hideDropdown = inject<boolean>('hideDropdown', false)
 const upcomingEvents = ref<Event[]>([])
 
 const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
@@ -84,14 +79,7 @@ onMounted(async () => {
           <h1 class="hero-title">{{ t('home.hero.title') }}</h1>
           <div ref="pageContentSearchBarRef" class="hero-search-wrapper">
             <div v-if="!showSearchInNavbar">
-              <SearchBar
-                ref="searchBarRef"
-                v-model:search-query="searchQuery"
-                v-model:search-results="searchResults"
-                v-model:has-focus="searchBarHasFocus"
-                :autofocus="searchBarHasFocus"
-                :hide-dropdown="hideDropdown"
-              />
+              <SearchBar ref="searchBarRef" />
             </div>
           </div>
         </div>

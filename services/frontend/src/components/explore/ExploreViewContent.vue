@@ -11,18 +11,12 @@ import SearchResultCard from '@/components/cards/SearchResultCard.vue'
 import SearchBar from '@/components/navigation/SearchBar.vue'
 import type { TagCategory } from '@/api/interfaces/events'
 
+const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
+
 const emit = defineEmits(['auth-required'])
 const authStore = useAuthStore()
-
-const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>(
-  'pageContentSearchBarRef',
-  ref(null)
-)
+const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar', ref(false))
-const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
-const searchResults = inject<Ref<SearchResult[]>>('searchResults', ref([]))
-const searchBarHasFocus = inject<Ref<boolean>>('searchBarHasFocus', ref(false))
-const hideDropdown = inject<boolean>('hideDropdown', true)
 
 const activeTab = ref<'events' | 'organizations' | 'people'>('events')
 
@@ -295,15 +289,7 @@ onUnmounted(() => {
         <!-- Search Bar -->
         <div ref="pageContentSearchBarRef" class="search-container">
           <div v-if="!showSearchInNavbar">
-            <SearchBar
-              ref="searchBarRef"
-              v-model:search-query="searchQuery"
-              v-model:search-results="searchResults"
-              v-model:has-focus="searchBarHasFocus"
-              search-hint="Cerca eventi, organizzazioni o persone..."
-              :autofocus="searchBarHasFocus"
-              :hide-dropdown="hideDropdown"
-            />
+            <SearchBar ref="searchBarRef" />
           </div>
         </div>
       </div>
