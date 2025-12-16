@@ -41,6 +41,44 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+    delete:
+      summary: Delete a follow relationship
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DeleteFollowDto'
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      responses:
+        '200':
+          description: Follow deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Follow deleted successfully
+                  statusCode:
+                    type: integer
+                    example: 200
+        '400':
+          description: Bad Request - Validation error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'  
+        '404':
+          description: Not Found - Follow relationship does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
 
 components:
   schemas:
@@ -54,6 +92,20 @@ components:
         followedId:
           type: string
           description: ID of the user being followed
+          example: user456
+      required:
+        - followerId
+        - followedId
+    DeleteFollowDto:
+      type: object
+      properties:
+        followerId:
+          type: string
+          description: ID of the user who is unfollowing
+          example: user123
+        followedId:
+          type: string
+          description: ID of the user being unfollowed
           example: user456
       required:
         - followerId
