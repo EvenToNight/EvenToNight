@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import type { Event } from '@/api/types/events'
 import EventCard from '@/components/cards/EventCard.vue'
+import EventFiltersButton, { type EventFilters } from '@/components/explore/EventFiltersButton.vue'
 
 interface Props {
   events: { event: Event; isFavorite: boolean }[]
@@ -15,6 +16,7 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   'favorite-toggle': [eventId: string, isFavorite: boolean]
   'auth-required': []
+  'filters-changed': [filters: EventFilters]
 }>()
 
 const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
@@ -36,6 +38,8 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
 
 <template>
   <div class="tab-content">
+    <EventFiltersButton @filters-changed="emit('filters-changed', $event)" />
+
     <q-infinite-scroll
       v-if="events.length > 0"
       :offset="250"
