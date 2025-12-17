@@ -1,6 +1,6 @@
 import { validate } from 'class-validator';
 import { plainToInstance } from 'class-transformer';
-import { FollowUserDto } from '../../../src/users/common/dto/follow-user.dto';
+import { FollowUserDto } from '../../../src/users/dto/follow-user.dto';
 
 describe('FollowUserDto', () => {
   it('valid when followedId is a non-empty string', async () => {

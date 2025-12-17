@@ -8,8 +8,8 @@ import {
   Query,
 } from '@nestjs/common';
 import { FollowService } from '../services/follow.service';
-import { FollowUserDto } from '../common/dto/follow-user.dto';
-import { PaginatedQueryDto } from '../common/dto/paginated-query.dto';
+import { FollowUserDto } from '../dto/follow-user.dto';
+import { PaginatedQueryDto } from '../../common/dto/paginated-query.dto';
 
 @Controller('users/:userId/')
 export class FollowController {

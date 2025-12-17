@@ -1,4 +1,4 @@
-import { PaginatedUserResponseDto } from '../../../src/users/common/dto/paginated-user-response.dto';
+import { PaginatedUserResponseDto } from '../../../src/users/dto/paginated-user-response.dto';
 
 describe('PaginatedUserResponseDto', () => {
   it('assigns followers and following with totals', () => {
