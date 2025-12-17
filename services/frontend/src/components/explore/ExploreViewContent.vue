@@ -14,6 +14,9 @@ import type { EventFilters } from './filters/FiltersButton.vue'
 import type { EventsQueryParams } from '@/api/interfaces/events'
 import { convertFiltersToEventsQueryParams } from '@/api/utils'
 import { pendingExploreFilters } from '@/router/utils'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 
@@ -158,7 +161,7 @@ const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
 
 const organizationsAsSearchResults = computed<SearchResult[]>(() => {
   return organizations.value.map((org) => ({
-    type: 'organization' as const,
+    type: 'organization',
     id: org.id,
     name: org.name,
     avatarUrl: org.avatarUrl,
@@ -168,7 +171,7 @@ const organizationsAsSearchResults = computed<SearchResult[]>(() => {
 
 const peopleAsSearchResults = computed<SearchResult[]>(() => {
   return people.value.map((person) => ({
-    type: 'member' as const,
+    type: 'member',
     id: person.id,
     name: person.name,
     avatarUrl: person.avatarUrl,
@@ -179,7 +182,7 @@ const peopleAsSearchResults = computed<SearchResult[]>(() => {
 const tabs = computed<Tab[]>(() => [
   {
     id: 'events',
-    label: 'Eventi',
+    label: t('explore.events.title'),
     component: ExploreEventsTab,
     props: {
       events: events.value,
@@ -192,24 +195,24 @@ const tabs = computed<Tab[]>(() => [
   },
   {
     id: 'organizations',
-    label: 'Organizzazioni',
+    label: t('explore.organizations.title'),
     component: ExplorePeopleTab,
     props: {
       people: organizationsAsSearchResults.value,
       searchQuery: searchQuery.value,
-      emptySearchText: 'Cerca organizzazioni per nome',
-      emptyText: 'Nessuna organizzazione trovata',
+      emptySearchText: t('explore.organizations.emptySearchText'),
+      emptyText: t('explore.organizations.emptySearch'),
     },
   },
   {
     id: 'people',
-    label: 'Persone',
+    label: t('explore.users.title'),
     component: ExplorePeopleTab,
     props: {
       people: peopleAsSearchResults.value,
       searchQuery: searchQuery.value,
-      emptySearchText: 'Cerca persone per nome',
-      emptyText: 'Nessuna persona trovata',
+      emptySearchText: t('explore.users.emptySearchText'),
+      emptyText: t('explore.users.emptySearch'),
     },
   },
 ])
@@ -223,8 +226,8 @@ watch(searchQuery, () => {
   <div class="explore-page">
     <div class="explore-hero">
       <div class="explore-header">
-        <h1 class="explore-title">Esplora</h1>
-        <p class="explore-subtitle">Trova eventi, organizzatori o connettiti con i tuoi amici</p>
+        <h1 class="explore-title">{{ t('explore.title') }}</h1>
+        <p class="explore-subtitle">{{ t('explore.subtitile') }}</p>
         <div ref="pageContentSearchBarRef" class="search-container">
           <div v-if="!showSearchInNavbar">
             <SearchBar ref="searchBarRef" />

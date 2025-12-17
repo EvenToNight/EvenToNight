@@ -7,6 +7,9 @@ import SortFilters, { type SortBy } from './SortFilters.vue'
 import type { Tag } from '@/api/types/events'
 import type { OtherFilter } from './FeedFilters.vue'
 import FeedFilters from './FeedFilters.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 export interface EventFilters extends DateFilterValue, PriceFilterValue {
   tags?: Tag[] | null
@@ -64,7 +67,6 @@ const clearFilters = () => {
   selectedOtherFilter.value = null
 }
 
-// Computed: has active filters
 const hasActiveFilters = computed(
   () =>
     dateFilterValue.value.dateFilter ||
@@ -128,7 +130,7 @@ onUnmounted(() => {
 
 <template>
   <div ref="filtersButtonRef" class="filters-button-wrapper">
-    <q-btn outline color="primary" label="Filtri" class="outline-btn-fix">
+    <q-btn outline color="primary" :label="t('filters.filters')" class="outline-btn-fix">
       <q-badge
         v-if="hasActiveFilters"
         floating
@@ -150,12 +152,12 @@ onUnmounted(() => {
               flat
               dense
               color="grey-7"
-              label="Cancella"
+              :label="t('filters.cancel')"
               class="clear-filters-btn"
               @click="clearFilters"
             />
             <q-space v-else />
-            <q-btn color="primary" label="Applica" @click="applyFilters" />
+            <q-btn color="primary" :label="t('filters.apply')" @click="applyFilters" />
           </div>
         </div>
       </q-menu>

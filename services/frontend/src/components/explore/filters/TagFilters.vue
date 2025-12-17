@@ -3,10 +3,13 @@ import { ref, onMounted, watch } from 'vue'
 import { api } from '@/api'
 import type { TagCategory } from '@/api/interfaces/events'
 import type { Tag } from '@/api/types/events'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   modelValue?: Tag[]
 }
+
+const { t } = useI18n()
 
 const props = defineProps<Props>()
 
@@ -40,7 +43,6 @@ onMounted(() => {
   loadTagFilters()
 })
 
-// Sync with parent when modelValue changes (for clear filters)
 watch(
   () => props.modelValue,
   (newValue) => {
@@ -52,7 +54,7 @@ watch(
 
 <template>
   <div class="filter-group">
-    <span class="filter-label">Categoria:</span>
+    <span class="filter-label">{{ t('filters.TagFilters.tags') }}:</span>
     <div class="filter-chips">
       <q-chip
         v-for="tag in tagFilters"

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type SortBy = 'date_asc' | 'date_desc' | 'price_asc' | 'price_desc'
 
 interface Props {
   modelValue?: SortBy | null
 }
+
+const { t } = useI18n()
 
 const props = defineProps<Props>()
 
@@ -16,10 +19,10 @@ const emit = defineEmits<{
 const selectedSortBy = ref<SortBy | null>(props.modelValue || null)
 
 const sortByOptions: { label: string; value: SortBy }[] = [
-  { label: 'Data crescente', value: 'date_asc' },
-  { label: 'Data decrescente', value: 'date_desc' },
-  { label: 'Prezzo più basso', value: 'price_asc' },
-  { label: 'Prezzo più alto', value: 'price_desc' },
+  { label: t('filters.sortFilters.date_asc'), value: 'date_asc' },
+  { label: t('filters.sortFilters.date_desc'), value: 'date_desc' },
+  { label: t('filters.sortFilters.price_asc'), value: 'price_asc' },
+  { label: t('filters.sortFilters.price_desc'), value: 'price_desc' },
 ]
 
 const toggleSortBy = (value: SortBy) => {
@@ -27,7 +30,6 @@ const toggleSortBy = (value: SortBy) => {
   emit('update:modelValue', selectedSortBy.value)
 }
 
-// Sync with parent when modelValue changes (for clear filters)
 watch(
   () => props.modelValue,
   (newValue) => {
@@ -38,7 +40,7 @@ watch(
 
 <template>
   <div class="filter-group">
-    <span class="filter-label">Ordina per:</span>
+    <span class="filter-label">{{ t('filters.sortFilters.sort') }}:</span>
     <div class="filter-chips">
       <q-chip
         v-for="option in sortByOptions"

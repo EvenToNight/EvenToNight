@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 
 export type OtherFilter = 'upcoming' | 'popular' | 'for_you' | 'new' | 'nearby'
 
@@ -13,14 +14,15 @@ const emit = defineEmits<{
   'update:modelValue': [value: OtherFilter | null]
 }>()
 
+const { t } = useI18n()
 const selectedOtherFilter = ref<OtherFilter | null>(props.modelValue || null)
 
 const otherFilters: { label: string; value: OtherFilter }[] = [
-  { label: 'In arrivo', value: 'upcoming' },
-  { label: 'Popolari', value: 'popular' },
-  { label: 'Per te', value: 'for_you' },
-  { label: 'Nuovi', value: 'new' },
-  { label: 'Vicino a te', value: 'nearby' },
+  { label: t('filters.feedFilters.upcoming'), value: 'upcoming' },
+  { label: t('filters.feedFilters.popular'), value: 'popular' },
+  { label: t('filters.feedFilters.forYou'), value: 'for_you' },
+  { label: t('filters.feedFilters.new'), value: 'new' },
+  { label: t('filters.feedFilters.nearby'), value: 'nearby' },
 ]
 
 const toggleOtherFilter = (value: OtherFilter) => {
@@ -28,7 +30,6 @@ const toggleOtherFilter = (value: OtherFilter) => {
   emit('update:modelValue', selectedOtherFilter.value)
 }
 
-// Sync with parent when modelValue changes (for clear filters)
 watch(
   () => props.modelValue,
   (newValue) => {
@@ -39,7 +40,7 @@ watch(
 
 <template>
   <div class="filter-group">
-    <span class="filter-label">Altri:</span>
+    <span class="filter-label">{{ t('filters.feedFilters.others') }}:</span>
     <div class="filter-chips">
       <q-chip
         v-for="filter in otherFilters"

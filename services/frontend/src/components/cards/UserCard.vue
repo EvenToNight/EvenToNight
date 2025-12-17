@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { User } from '@/api/types/users'
 import { useNavigation } from '@/router/utils'
+import { useI18n } from 'vue-i18n'
 
 interface Props {
   user: User
@@ -8,6 +9,7 @@ interface Props {
 
 const props = defineProps<Props>()
 const { goToUserProfile } = useNavigation()
+const { t } = useI18n()
 
 const handleClick = () => {
   goToUserProfile(props.user.id)
@@ -26,7 +28,9 @@ const handleClick = () => {
       <p v-if="user.bio" class="user-bio">{{ user.bio }}</p>
       <div class="user-type">
         <q-icon :name="user.role === 'organization' ? 'business' : 'person'" size="16px" />
-        <span>{{ user.role === 'organization' ? 'Organizzazione' : 'Utente' }}</span>
+        <span>{{
+          user.role === 'organization' ? t('users.organizations') : t('users.members')
+        }}</span>
       </div>
     </div>
   </div>

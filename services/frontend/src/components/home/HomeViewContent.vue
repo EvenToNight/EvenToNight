@@ -145,7 +145,6 @@ onMounted(async () => {
       padding: $spacing-10 $spacing-4;
     }
 
-    // Rounded corners only when viewport exceeds max-width
     @media (min-width: calc($app-max-width + 1px)) {
       border-radius: 24px;
     }

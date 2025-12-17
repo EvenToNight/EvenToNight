@@ -6,6 +6,9 @@ import EventFiltersButton, {
   type EventFilters,
 } from '@/components/explore/filters/FiltersButton.vue'
 import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 interface Props {
   events: { event: Event; isFavorite: boolean }[]
@@ -69,10 +72,10 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
     </q-infinite-scroll>
     <EmptyTab
       v-else-if="searchQuery"
-      :emptyText="'Nessun evento trovato'"
+      :emptyText="t('explore.events.emptySearch')"
       :emptyIconName="'event_busy'"
     />
-    <EmptyTab v-else :emptyText="'Cerca eventi per nome'" :emptyIconName="'search'" />
+    <EmptyTab v-else :emptyText="t('explore.events.emptySearchText')" :emptyIconName="'search'" />
   </div>
 </template>
 
