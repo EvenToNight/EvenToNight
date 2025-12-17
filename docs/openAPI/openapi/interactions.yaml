@@ -38,6 +38,41 @@ paths:
                     type: integer
       tags:
         - Users  
+    
+    delete:
+      summary: Delete a user and all associated follow relationships
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: Successfully deleted the user and associated follow relationships
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: User and associated follows deleted successfully
+                statusCode: 200
+        '404':
+          description: Not Found - User does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: User not found
+                error: Not Found
+      tags:
+        - Users
 
   /users/{userId}/following:
     post:

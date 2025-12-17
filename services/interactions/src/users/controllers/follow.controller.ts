@@ -61,4 +61,13 @@ export class FollowController {
   async getUserFollowsInteraction(@Param('userId') userId: string) {
     return this.followService.getUserFollowsInteraction(userId);
   }
+
+  @Delete()
+  async deleteUser(@Param('userId') userId: string) {
+    await this.followService.deleteUser(userId);
+    return {
+      message: 'All follow relationships removed successfully',
+      statusCode: 200,
+    };
+  }
 }
