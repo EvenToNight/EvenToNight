@@ -32,6 +32,7 @@ dependencies {
     implementation("io.circe:circe-core_3:0.14.7")
     implementation("io.circe:circe-parser_3:0.14.7")
     implementation("com.lihaoyi:cask_3:0.11.3")
+    implementation("com.lihaoyi:upickle_3:3.3.1")
     implementation("io.undertow:undertow-core:2.3.12.Final")
     implementation("org.jboss.logging:jboss-logging:3.5.3.Final")
     testImplementation("org.scalatest:scalatest_3:3.2.19")
