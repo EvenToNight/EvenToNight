@@ -1,6 +1,15 @@
-import { Body, Controller, Param, Post, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  Post,
+  Delete,
+  Get,
+  Query,
+} from '@nestjs/common';
 import { LikeService } from '../services/like.service';
 import { LikeEventDto } from '../dto/like-event.dto';
+import { PaginatedQueryDto } from '../../common/dto/paginated-query.dto';
 
 @Controller('events/:eventId')
 export class LikeController {
@@ -28,5 +37,14 @@ export class LikeController {
       message: 'Event unliked successfully',
       statusCode: 200,
     };
+  }
+
+  @Get('likes')
+  async getEventLikes(
+    @Param('eventId') eventId: string,
+    @Query() paginatedQuery: PaginatedQueryDto,
+  ) {
+    const { limit, offset } = paginatedQuery;
+    return this.likeService.getEventLikes(eventId, limit, offset);
   }
 }

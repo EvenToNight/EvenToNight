@@ -6,6 +6,8 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Like } from '../schemas/like.schema';
+import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
+import { off } from 'process';
 
 @Injectable()
 export class LikeService {
@@ -27,5 +29,25 @@ export class LikeService {
     if (result.deletedCount === 0) {
       throw new NotFoundException('Like not found');
     }
+  }
+
+  async getEventLikes(
+    eventId: string,
+    limit: number | undefined,
+    offset: number | undefined,
+  ): Promise<PaginatedResponseDto<string>> {
+    let query = this.likeModel.find({ eventId });
+    if (offset !== undefined) query = query.skip(offset);
+    if (limit !== undefined) query = query.limit(limit);
+    const [items, total] = await Promise.all([
+      query.exec(),
+      this.likeModel.countDocuments({ eventId }),
+    ]);
+    return new PaginatedResponseDto(
+      items.map((item) => item.userId),
+      total,
+      limit ?? total,
+      offset ?? 0,
+    );
   }
 }
