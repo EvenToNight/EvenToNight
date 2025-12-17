@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Follow } from '../common/schemas/follow.schema';
+import { Follow } from '../schemas/follow.schema';
 import { Model } from 'mongoose';
 import { ConflictException } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
-import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
-import { PaginatedUserResponseDto } from '../common/dto/paginated-user-response.dto';
+import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
+import { PaginatedUserResponseDto } from '../dto/paginated-user-response.dto';
 
 @Injectable()
 export class FollowService {

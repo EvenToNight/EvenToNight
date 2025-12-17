@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { FollowController } from './controllers/follow.controller';
 import { FollowService } from './services/follow.service';
-import { Follow, FollowSchema } from './common/schemas/follow.schema';
+import { Follow, FollowSchema } from './schemas/follow.schema';
 
 @Module({
   imports: [

@@ -1,4 +1,4 @@
-import { FollowSchema } from '../../../src/users/common/schemas/follow.schema';
+import { FollowSchema } from '../../../src/users/schemas/follow.schema';
 
 describe('FollowSchema', () => {
   it('defines followerId and followedId as required and indexed', () => {
