@@ -36,13 +36,34 @@ export class FollowService {
     limit: number | undefined,
     offset: number | undefined,
   ): Promise<PaginatedResponseDto<Follow>> {
-    let query = this.followModel.find({ followedId: userId });
+    let query = this.followModel
+      .find({ followedId: userId })
+      .select({ _id: 0, followerId: 1, followedId: 1 });
     if (offset !== undefined) query = query.skip(offset);
     if (limit !== undefined) query = query.limit(limit);
 
     const [items, total] = await Promise.all([
       query.exec(),
       this.followModel.countDocuments({ followedId: userId }),
+    ]);
+
+    return new PaginatedResponseDto(items, total, limit ?? total, offset ?? 0);
+  }
+
+  async getFollowing(
+    userId: string,
+    limit: number | undefined,
+    offset: number | undefined,
+  ): Promise<PaginatedResponseDto<Follow>> {
+    let query = this.followModel
+      .find({ followerId: userId })
+      .select({ _id: 0, followerId: 1, followedId: 1 });
+    if (offset !== undefined) query = query.skip(offset);
+    if (limit !== undefined) query = query.limit(limit);
+
+    const [items, total] = await Promise.all([
+      query.exec(),
+      this.followModel.countDocuments({ followerId: userId }),
     ]);
 
     return new PaginatedResponseDto(items, total, limit ?? total, offset ?? 0);

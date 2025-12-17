@@ -47,4 +47,13 @@ export class FollowController {
     const { limit, offset } = paginationQuery;
     return this.followService.getFollowers(userId, limit, offset);
   }
+
+  @Get('following')
+  async getFollowing(
+    @Param('userId') userId: string,
+    @Query() paginationQuery: PaginationQueryDto,
+  ) {
+    const { limit, offset } = paginationQuery;
+    return this.followService.getFollowing(userId, limit, offset);
+  }
 }
