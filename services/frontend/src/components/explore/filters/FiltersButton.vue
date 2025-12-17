@@ -5,10 +5,13 @@ import TagFilters from './TagFilters.vue'
 import PriceFilters, { type PriceFilterValue } from './PriceFilters.vue'
 import SortFilters, { type SortBy } from './SortFilters.vue'
 import type { Tag } from '@/api/types/events'
+import type { OtherFilter } from './FeedFilters.vue'
+import FeedFilters from './FeedFilters.vue'
 
 export interface EventFilters extends DateFilterValue, PriceFilterValue {
   tags?: Tag[] | null
   sortBy?: SortBy | null
+  otherFilter?: OtherFilter | null
 }
 
 const emit = defineEmits<{
@@ -19,6 +22,7 @@ const dateFilterValue = ref<DateFilterValue>({})
 const selectedTags = ref<Tag[]>([])
 const priceFilterValue = ref<PriceFilterValue>({})
 const selectedSortBy = ref<SortBy | null>(null)
+const selectedOtherFilter = ref<OtherFilter | null>(null)
 
 const countActiveFilters = () => {
   let count = 0
@@ -29,6 +33,7 @@ const countActiveFilters = () => {
   if (priceFilterValue.value.customPriceRange?.min || priceFilterValue.value.customPriceRange?.max)
     count++
   if (selectedSortBy.value) count++
+  if (selectedOtherFilter.value) count++
   return count
 }
 
@@ -41,7 +46,13 @@ const emitFiltersChanged = () => {
     ...priceFilterValue.value,
     tags: selectedTags.value,
     sortBy: selectedSortBy.value,
+    otherFilter: selectedOtherFilter.value,
   })
+}
+
+const applyFilters = () => {
+  emitFiltersChanged()
+  filtersMenuOpen.value = false
 }
 
 const clearFilters = () => {
@@ -49,7 +60,7 @@ const clearFilters = () => {
   selectedTags.value = []
   priceFilterValue.value = {}
   selectedSortBy.value = null
-  emitFiltersChanged()
+  selectedOtherFilter.value = null
 }
 
 // Computed: has active filters
@@ -61,7 +72,8 @@ const hasActiveFilters = computed(
     priceFilterValue.value.priceFilter ||
     priceFilterValue.value.customPriceRange?.min ||
     priceFilterValue.value.customPriceRange?.max ||
-    selectedSortBy.value
+    selectedSortBy.value ||
+    selectedOtherFilter.value
 )
 
 const isElementHiddenBehindStickyHeader = (el: HTMLElement | null) => {
@@ -102,20 +114,24 @@ onUnmounted(() => {
       </q-badge>
       <q-menu v-model="filtersMenuOpen">
         <div class="filters-menu">
-          <DateFilters v-model="dateFilterValue" @update:model-value="emitFiltersChanged" />
-          <TagFilters v-model="selectedTags" @update:model-value="emitFiltersChanged" />
-          <PriceFilters v-model="priceFilterValue" @update:model-value="emitFiltersChanged" />
-          <SortFilters v-model="selectedSortBy" @update:model-value="emitFiltersChanged" />
-          <q-btn
-            v-if="hasActiveFilters"
-            flat
-            dense
-            color="grey-7"
-            icon="clear"
-            label="Cancella filtri"
-            class="clear-filters-btn"
-            @click="clearFilters"
-          />
+          <DateFilters v-model="dateFilterValue" />
+          <TagFilters v-model="selectedTags" />
+          <PriceFilters v-model="priceFilterValue" />
+          <SortFilters v-model="selectedSortBy" />
+          <FeedFilters v-model="selectedOtherFilter" />
+          <div class="action-buttons">
+            <q-btn
+              v-if="hasActiveFilters"
+              flat
+              dense
+              color="grey-7"
+              label="Cancella"
+              class="clear-filters-btn"
+              @click="clearFilters"
+            />
+            <q-space v-else />
+            <q-btn color="primary" label="Applica" @click="applyFilters" />
+          </div>
         </div>
       </q-menu>
     </q-btn>
@@ -145,6 +161,10 @@ onUnmounted(() => {
 .clear-filters-btn {
   align-self: flex-start;
   margin-top: $spacing-2;
+}
+
+.action-buttons {
+  @include flex-between;
 }
 </style>
 

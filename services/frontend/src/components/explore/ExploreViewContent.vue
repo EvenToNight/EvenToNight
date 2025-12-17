@@ -10,6 +10,7 @@ import SearchBar from '@/components/navigation/SearchBar.vue'
 import TabView, { type Tab } from '@/components/navigation/TabView.vue'
 import ExploreEventsTab from '@/components/explore/tabs/ExploreEventsTab.vue'
 import ExplorePeopleTab from '@/components/explore/tabs/ExplorePeopleTab.vue'
+import type { EventFilters } from './filters/FiltersButton.vue'
 
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 
@@ -34,6 +35,14 @@ const people = ref<User[]>([])
 const hasMorePeople = ref(true)
 const loadingPeople = ref(false)
 
+const filters = ref<EventFilters>({})
+
+const handleFiltersChanged = (newFilters: EventFilters) => {
+  filters.value = newFilters
+  console.log('Filters changed:', newFilters)
+  // searchEvents()
+}
+
 const searchEvents = async () => {
   console.log('Searching events for query:', searchQuery.value)
   if (!searchQuery.value.trim()) {
@@ -46,6 +55,7 @@ const searchEvents = async () => {
     const response = await api.events.searchEvents({
       title: searchQuery.value,
       pagination: { limit: ITEMS_PER_PAGE },
+      ...filters.value,
     })
     events.value = response.items.map((event) => ({ event, isFavorite: false }))
     hasMoreEvents.value = response.hasMore
@@ -170,6 +180,7 @@ const tabs = computed<Tab[]>(() => [
       searchQuery: searchQuery.value,
       onFavoriteToggle: handleFavoriteToggle,
       onAuthRequired: () => emit('auth-required'),
+      onFiltersChanged: handleFiltersChanged,
     },
   },
   {
