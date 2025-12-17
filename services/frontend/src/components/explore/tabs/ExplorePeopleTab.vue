@@ -2,10 +2,14 @@
 import type { SearchResultUser } from '@/api/utils'
 import SearchResultCard from '@/components/cards/SearchResultCard.vue'
 import { ref } from 'vue'
+import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 
 interface Props {
   people: SearchResultUser[]
   searchQuery: string
+  emptySearchText: string
+  emptyText: string
+  emptyIconName?: string
   hasMore?: boolean
   onLoadMore?: () => void | Promise<void>
 }
@@ -47,15 +51,12 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
         </div>
       </template>
     </q-infinite-scroll>
-    <div v-else-if="searchQuery" class="empty-state">
-      <q-icon name="people" size="64px" color="grey-5" />
-      <p class="empty-text">Nessuna persona trovata</p>
-    </div>
-    <div v-else class="empty-state">
-      <q-icon name="search" size="64px" color="grey-5" />
-      <p class="empty-text">Cerca persone per nome</p>
-    </div>
-    <!-- <EmptyTab v-else :emptyText="emptyText" :emptyIconName="emptyIconName" /> -->
+    <EmptyTab
+      v-else-if="searchQuery"
+      :emptyText="emptyText"
+      :emptyIconName="emptyIconName || 'search'"
+    />
+    <EmptyTab v-else :emptyText="emptySearchText" :emptyIconName="emptyIconName || 'search'" />
   </div>
 </template>
 
@@ -77,20 +78,5 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
 .loading-state {
   @include flex-center;
   padding: $spacing-8;
-}
-
-.empty-state {
-  @include flex-column;
-  @include flex-center;
-  gap: $spacing-4;
-  padding: $spacing-8;
-  text-align: center;
-}
-
-.empty-text {
-  color: $color-gray-500;
-  margin: 0;
-  font-size: $font-size-lg;
-  line-height: $line-height-relaxed;
 }
 </style>

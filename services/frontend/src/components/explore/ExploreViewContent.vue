@@ -190,9 +190,10 @@ const tabs = computed<Tab[]>(() => [
     label: 'Organizzazioni',
     component: ExplorePeopleTab,
     props: {
-      organizations: organizationsAsSearchResults.value,
-      loading: loadingOrganizations.value,
+      people: organizationsAsSearchResults.value,
       searchQuery: searchQuery.value,
+      emptySearchText: 'Cerca organizzazioni per nome',
+      emptyText: 'Nessuna organizzazione trovata',
     },
   },
   {
@@ -201,8 +202,9 @@ const tabs = computed<Tab[]>(() => [
     component: ExplorePeopleTab,
     props: {
       people: peopleAsSearchResults.value,
-      loading: loadingPeople.value,
       searchQuery: searchQuery.value,
+      emptySearchText: 'Cerca persone per nome',
+      emptyText: 'Nessuna persona trovata',
     },
   },
 ])

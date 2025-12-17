@@ -5,6 +5,7 @@ import EventCard from '@/components/cards/EventCard.vue'
 import EventFiltersButton, {
   type EventFilters,
 } from '@/components/explore/filters/FiltersButton.vue'
+import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 
 interface Props {
   events: { event: Event; isFavorite: boolean }[]
@@ -66,15 +67,12 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
         </div>
       </template>
     </q-infinite-scroll>
-    <div v-else-if="searchQuery" class="empty-state">
-      <q-icon name="event_busy" size="64px" color="grey-5" />
-      <p class="empty-text">Nessun evento trovato</p>
-    </div>
-    <div v-else class="empty-state">
-      <q-icon name="search" size="64px" color="grey-5" />
-      <p class="empty-text">Cerca eventi per nome</p>
-    </div>
-    <!-- <EmptyTab v-else :emptyText="emptyText" :emptyIconName="emptyIconName" /> -->
+    <EmptyTab
+      v-else-if="searchQuery"
+      :emptyText="'Nessun evento trovato'"
+      :emptyIconName="'event_busy'"
+    />
+    <EmptyTab v-else :emptyText="'Cerca eventi per nome'" :emptyIconName="'search'" />
   </div>
 </template>
 
@@ -102,20 +100,5 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
 .loading-state {
   @include flex-center;
   padding: $spacing-8;
-}
-
-.empty-state {
-  @include flex-column;
-  @include flex-center;
-  gap: $spacing-4;
-  padding: $spacing-8;
-  text-align: center;
-}
-
-.empty-text {
-  color: $color-gray-500;
-  margin: 0;
-  font-size: $font-size-lg;
-  line-height: $line-height-relaxed;
 }
 </style>
