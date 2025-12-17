@@ -284,6 +284,68 @@ paths:
       tags:
         - Users
 
+  /events/{eventId}/likes:
+    post:
+      summary: Like an event
+      description: Create a like between a user and an event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event to be liked
+          schema:
+            type: string
+          example: event123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+              required:
+                - userId
+            example:
+              userId: user123
+      responses:
+        '201':
+          description: Successfully liked the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Event liked successfully
+                statusCode: 201
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: ["userId should not be empty"]
+                error: Bad Request
+        '409':
+          description: Conflict - Already liked the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 409
+                message: User has already liked this event
+                error: Conflict
+      tags:
+         - Events
+
+
 components:
   schemas:
     FollowUserDto:
