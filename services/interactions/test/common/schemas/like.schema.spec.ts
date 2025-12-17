@@ -1,4 +1,4 @@
-import { LikeSchema } from '../../../src/events/schemas/likes.schema';
+import { LikeSchema } from '../../../src/events/schemas/like.schema';
 
 describe('LikeSchema', () => {
   it('defines eventId and userId as required and indexed', () => {

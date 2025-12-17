@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema({ timestamps: true, versionKey: false })
+@Schema({ timestamps: false, versionKey: false })
 export class Like extends Document {
   @Prop({ required: true, index: true })
   eventId: string;
