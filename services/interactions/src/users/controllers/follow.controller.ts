@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { FollowService } from '../services/follow.service';
 import { FollowUserDto } from '../common/dto/follow-user.dto';
-import { PaginationQueryDto } from '../common/dto/pagination-query.dto';
+import { PaginatedQueryDto } from '../common/dto/paginated-query.dto';
 
 @Controller('users/:userId/')
 export class FollowController {
@@ -42,7 +42,7 @@ export class FollowController {
   @Get('followers')
   async getFollowers(
     @Param('userId') userId: string,
-    @Query() paginationQuery: PaginationQueryDto,
+    @Query() paginationQuery: PaginatedQueryDto,
   ) {
     const { limit, offset } = paginationQuery;
     return this.followService.getFollowers(userId, limit, offset);
@@ -51,9 +51,14 @@ export class FollowController {
   @Get('following')
   async getFollowing(
     @Param('userId') userId: string,
-    @Query() paginationQuery: PaginationQueryDto,
+    @Query() paginationQuery: PaginatedQueryDto,
   ) {
     const { limit, offset } = paginationQuery;
     return this.followService.getFollowing(userId, limit, offset);
+  }
+
+  @Get()
+  async getUserFollowsInteraction(@Param('userId') userId: string) {
+    return this.followService.getUserFollowsInteraction(userId);
   }
 }

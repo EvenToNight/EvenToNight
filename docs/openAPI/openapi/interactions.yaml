@@ -3,6 +3,42 @@ info:
   title: EvenToNight - Events API
   version: 1.0.0
 paths:
+  /users/{userId}:
+    get:
+      summary: Get user information (followers and following) with pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: User information with followers and following
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Users  
+
   /users/{userId}/following:
     post:
       summary: Follow a user
@@ -229,9 +265,11 @@ components:
       properties:
         items:
           type: array
-          description: Array of follow relationships
+          description: Array of users IDs
           items:
-            $ref: '#/components/schemas/Follow'
+            type: string
+            description: ID of the user who is following
+            example: user123
         limit:
           type: integer 
           description: Maximum number of items per page
@@ -254,6 +292,38 @@ components:
         - offset
         - hasMore
         - totalItems
+    
+    PaginatedUserResponseDto:
+      type: object
+      description: Paginated response containing followers and following user IDs
+      properties:
+        followers:
+          type: array
+          description: Array of follower user IDs
+          items:
+            type: string
+            description: ID of the user who is following
+            example: user123
+        totalFollowers:
+          type: integer
+          description: Total number of followers
+          example: 42
+        following:
+          type: array
+          description: Array of followed user IDs
+          items:
+            type: string
+            description: ID of the user being followed
+            example: user456
+        totalFollowing:
+          type: integer
+          description: Total number of following
+          example: 27
+      required:
+        - followers
+        - totalFollowers
+        - following
+        - totalFollowing
     
     Follow:
       type: object

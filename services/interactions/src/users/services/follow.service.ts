@@ -4,7 +4,8 @@ import { Follow } from '../common/schemas/follow.schema';
 import { Model } from 'mongoose';
 import { ConflictException } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
-import { PaginatedResponseDto } from '../common/dto/pagination-response.dto';
+import { PaginatedResponseDto } from '../common/dto/paginated-response.dto';
+import { PaginatedUserResponseDto } from '../common/dto/paginated-user-response.dto';
 
 @Injectable()
 export class FollowService {
@@ -35,7 +36,7 @@ export class FollowService {
     userId: string,
     limit: number | undefined,
     offset: number | undefined,
-  ): Promise<PaginatedResponseDto<Follow>> {
+  ) {
     let query = this.followModel
       .find({ followedId: userId })
       .select({ _id: 0, followerId: 1, followedId: 1 });
@@ -47,14 +48,19 @@ export class FollowService {
       this.followModel.countDocuments({ followedId: userId }),
     ]);
 
-    return new PaginatedResponseDto(items, total, limit ?? total, offset ?? 0);
+    return new PaginatedResponseDto(
+      items.map((f) => f.followerId),
+      total,
+      limit ?? total,
+      offset ?? 0,
+    );
   }
 
   async getFollowing(
     userId: string,
     limit: number | undefined,
     offset: number | undefined,
-  ): Promise<PaginatedResponseDto<Follow>> {
+  ) {
     let query = this.followModel
       .find({ followerId: userId })
       .select({ _id: 0, followerId: 1, followedId: 1 });
@@ -66,6 +72,24 @@ export class FollowService {
       this.followModel.countDocuments({ followerId: userId }),
     ]);
 
-    return new PaginatedResponseDto(items, total, limit ?? total, offset ?? 0);
+    return new PaginatedResponseDto(
+      items.map((f) => f.followedId),
+      total,
+      limit ?? total,
+      offset ?? 0,
+    );
+  }
+
+  async getUserFollowsInteraction(userId: string) {
+    const [followersData, followingData] = await Promise.all([
+      this.getFollowers(userId, undefined, undefined),
+      this.getFollowing(userId, undefined, undefined),
+    ]);
+    return new PaginatedUserResponseDto(
+      followersData.items,
+      followersData.totalItems,
+      followingData.items,
+      followingData.totalItems,
+    );
   }
 }
