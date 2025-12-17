@@ -345,6 +345,50 @@ paths:
       tags:
          - Events
 
+  /events/{eventId}/likes/{userId}:
+    delete:
+      summary: Unlike an event
+      description: Remove a like between a user and an event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event to be unliked
+          schema:
+            type: string
+          example: event123
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user who wants to unlike the event
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: Successfully unliked the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Event unliked successfully
+                statusCode: 200
+        '404':
+          description: Not Found - Like relationship does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Like relationship not found
+                error: Not Found
+      tags:
+        - Events
 
 components:
   schemas:

@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import { Body, Controller, Param, Post, Delete } from '@nestjs/common';
 import { LikeService } from '../services/like.service';
 import { LikeEventDto } from '../dto/like-event.dto';
 
@@ -15,6 +15,18 @@ export class LikeController {
     return {
       message: 'Event liked successfully',
       statusCode: 201,
+    };
+  }
+
+  @Delete('likes/:userId')
+  async unlikeEvent(
+    @Param('eventId') eventId: string,
+    @Param('userId') userId: string,
+  ) {
+    await this.likeService.unlikeEvent(eventId, userId);
+    return {
+      message: 'Event unliked successfully',
+      statusCode: 200,
     };
   }
 }
