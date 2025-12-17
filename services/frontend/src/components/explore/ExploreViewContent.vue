@@ -232,13 +232,17 @@ watch(searchQuery, () => {
         </div>
       </div>
     </div>
-    <div class="content-wrapper">
+    <div v-if="searchQuery" class="content-wrapper">
       <TabView
         :variant="'explore'"
         :tabs="tabs"
         default-tab="events"
         @update:active-tab="onTabChange"
       />
+      <div class="colored-box"></div>
+    </div>
+    <div v-else class="content-wrapper padded-content">
+      <component :is="tabs[0]!.component" v-bind="tabs[0]!.props" />
       <div class="colored-box"></div>
     </div>
   </div>
@@ -302,6 +306,10 @@ watch(searchQuery, () => {
 .content-wrapper {
   @include flex-column;
   width: 100%;
+}
+
+.padded-content {
+  padding: $spacing-4;
 }
 
 .colored-box {
