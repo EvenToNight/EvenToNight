@@ -50,4 +50,24 @@ export class LikeService {
       offset ?? 0,
     );
   }
+
+  async getUserLikes(
+    userId: string,
+    limit: number | undefined,
+    offset: number | undefined,
+  ) {
+    let query = this.likeModel.find({ userId });
+    if (offset !== undefined) query = query.skip(offset);
+    if (limit !== undefined) query = query.limit(limit);
+    const [items, total] = await Promise.all([
+      query.exec(),
+      this.likeModel.countDocuments({ userId }),
+    ]);
+    return new PaginatedResponseDto(
+      items.map((item) => item.eventId),
+      total,
+      limit ?? total,
+      offset ?? 0,
+    );
+  }
 }
