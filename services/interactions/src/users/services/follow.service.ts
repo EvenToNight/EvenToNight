@@ -92,4 +92,10 @@ export class FollowService {
       followingData.totalItems,
     );
   }
+
+  async deleteUser(userId: string) {
+    await this.followModel.deleteMany({
+      $or: [{ followerId: userId }, { followedId: userId }],
+    });
+  }
 }
