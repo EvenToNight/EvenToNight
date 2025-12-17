@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, computed, inject } from 'vue'
+import { ref, watch, computed, inject, provide } from 'vue'
 import type { Ref } from 'vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
@@ -13,6 +13,7 @@ import ExplorePeopleTab from '@/components/explore/tabs/ExplorePeopleTab.vue'
 import type { EventFilters } from './filters/FiltersButton.vue'
 import type { EventsQueryParams } from '@/api/interfaces/events'
 import { convertFiltersToEventsQueryParams } from '@/api/utils'
+import { pendingExploreFilters } from '@/router/utils'
 
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 
@@ -38,6 +39,10 @@ const hasMorePeople = ref(true)
 const loadingPeople = ref(false)
 
 const eventFilters = ref<EventsQueryParams>({})
+
+const initialEventFilters = pendingExploreFilters.value || {}
+pendingExploreFilters.value = null
+provide('initialEventFilters', initialEventFilters)
 
 const handleFiltersChanged = (newFilters: EventFilters) => {
   eventFilters.value = convertFiltersToEventsQueryParams(newFilters)

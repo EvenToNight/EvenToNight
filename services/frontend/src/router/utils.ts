@@ -1,5 +1,5 @@
 import { DEFAULT_LOCALE } from '@/i18n'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import {
   HOME_ROUTE_NAME,
@@ -11,6 +11,9 @@ import {
   USER_PROFILE_ROUTE_NAME,
   EXPLORE_ROUTE_NAME,
 } from '@/router'
+import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
+
+export const pendingExploreFilters = ref<EventFilters | null>(null)
 
 export const useNavigation = () => {
   const router = useRouter()

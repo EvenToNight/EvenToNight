@@ -10,7 +10,7 @@ import CardSlider from '@/components/cards/CardSlider.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
-import { useNavigation } from '@/router/utils'
+import { useNavigation, pendingExploreFilters } from '@/router/utils'
 
 const emit = defineEmits(['auth-required'])
 
@@ -43,6 +43,7 @@ const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
 
 const handleSeeAllEvents = () => {
   console.log('See all events clicked')
+  pendingExploreFilters.value = { otherFilter: 'upcoming' }
   goToExplore()
 }
 

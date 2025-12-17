@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
 import DateFilters, { type DateFilterValue } from './DateFilters.vue'
 import TagFilters from './TagFilters.vue'
 import PriceFilters, { type PriceFilterValue } from './PriceFilters.vue'
@@ -13,6 +13,7 @@ export interface EventFilters extends DateFilterValue, PriceFilterValue {
   sortBy?: SortBy | null
   otherFilter?: OtherFilter | null
 }
+const initialFilters = inject<EventFilters>('initialEventFilters', {})
 
 const emit = defineEmits<{
   'filters-changed': [filters: EventFilters]
@@ -93,6 +94,30 @@ const handleScroll = () => {
 }
 
 onMounted(() => {
+  if (initialFilters && Object.keys(initialFilters).length > 0) {
+    if (initialFilters.dateFilter) {
+      dateFilterValue.value.dateFilter = initialFilters.dateFilter
+    }
+    if (initialFilters.dateRange) {
+      dateFilterValue.value.dateRange = initialFilters.dateRange
+    }
+    if (initialFilters.tags) {
+      selectedTags.value = initialFilters.tags
+    }
+    if (initialFilters.priceFilter) {
+      priceFilterValue.value.priceFilter = initialFilters.priceFilter
+    }
+    if (initialFilters.customPriceRange) {
+      priceFilterValue.value.customPriceRange = initialFilters.customPriceRange
+    }
+    if (initialFilters.sortBy) {
+      selectedSortBy.value = initialFilters.sortBy
+    }
+    if (initialFilters.otherFilter) {
+      selectedOtherFilter.value = initialFilters.otherFilter
+    }
+    emitFiltersChanged()
+  }
   window.addEventListener('scroll', handleScroll, true)
 })
 
