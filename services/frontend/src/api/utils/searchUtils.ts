@@ -1,6 +1,11 @@
 import { api } from '@/api'
-import type { Event } from '../types/events'
+import type { Event, Tag } from '../types/events'
 import type { User, UserRole } from '../types/users'
+import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
+import type { EventsQueryParams } from '../interfaces/events'
+import type { SortBy } from '@/components/explore/filters/SortFilters.vue'
+import type { DateFilter } from '@/components/explore/filters/DateFilters.vue'
+import type { PriceFilter } from '@/components/explore/filters/PriceFilters.vue'
 
 export interface SearchResultBase {
   type: 'event' | UserRole
@@ -117,4 +122,120 @@ export const getSearchResult = async (
   })
 
   return results.slice(0, maxResults)
+}
+
+const convertSortBy = (
+  eventsQueryParams: EventsQueryParams,
+  sortBy: SortBy | undefined | null
+): void => {
+  if (sortBy) {
+    switch (sortBy) {
+      case 'date_asc':
+        eventsQueryParams.sortBy = 'date'
+        eventsQueryParams.sortOrder = 'asc'
+        break
+      case 'date_desc':
+        eventsQueryParams.sortBy = 'date'
+        eventsQueryParams.sortOrder = 'desc'
+        break
+      case 'price_asc':
+        eventsQueryParams.sortBy = 'price'
+        eventsQueryParams.sortOrder = 'asc'
+        break
+      case 'price_desc':
+        eventsQueryParams.sortBy = 'price'
+        eventsQueryParams.sortOrder = 'desc'
+        break
+    }
+  }
+}
+
+const convertDateFilter = (
+  eventsQueryParams: EventsQueryParams,
+  dateFilter: DateFilter | undefined | null
+): void => {
+  if (dateFilter) {
+    const now = new Date()
+    let startDate: Date
+    let endDate: Date
+
+    switch (dateFilter) {
+      case 'today':
+        startDate = new Date(now.setHours(0, 0, 0, 0))
+        endDate = new Date(now.setHours(23, 59, 59, 999))
+        break
+      case 'this_week':
+        startDate = new Date(now)
+        startDate.setDate(now.getDate() - now.getDay())
+        startDate.setHours(0, 0, 0, 0)
+        endDate = new Date(startDate)
+        endDate.setDate(startDate.getDate() + 6)
+        endDate.setHours(23, 59, 59, 999)
+        break
+      case 'this_month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1)
+        endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999)
+        break
+    }
+
+    eventsQueryParams.startDate = startDate!.toISOString().replace(/\.\d{3}Z$/, '')
+    eventsQueryParams.endDate = endDate!.toISOString().replace(/\.\d{3}Z$/, '')
+  }
+}
+
+const convertDateRange = (
+  eventsQueryParams: EventsQueryParams,
+  dateRange: { from: Date; to: Date } | undefined | null
+): void => {
+  if (dateRange) {
+    eventsQueryParams.startDate = dateRange.from.toISOString().replace(/\.\d{3}Z$/, '')
+    eventsQueryParams.endDate = dateRange.to.toISOString().replace(/\.\d{3}Z$/, '')
+  }
+}
+
+const convertTags = (
+  eventsQueryParams: EventsQueryParams,
+  tags: Tag[] | undefined | null
+): void => {
+  if (tags && tags.length > 0) {
+    eventsQueryParams.tags = tags
+  }
+}
+
+const convertCustomPriceRange = (
+  eventsQueryParams: EventsQueryParams,
+  customPriceRange: { min?: number | null; max?: number | null } | undefined | null
+): void => {
+  if (customPriceRange) {
+    if (customPriceRange.min !== null && customPriceRange.min !== undefined) {
+      eventsQueryParams.priceMin = customPriceRange.min
+    }
+    if (customPriceRange.max !== null && customPriceRange.max !== undefined) {
+      eventsQueryParams.priceMax = customPriceRange.max
+    }
+  }
+}
+
+const convertPriceFilter = (
+  eventsQueryParams: EventsQueryParams,
+  priceFilter: PriceFilter | undefined | null
+): void => {
+  if (priceFilter === 'free') {
+    eventsQueryParams.priceMin = 0
+    eventsQueryParams.priceMax = 0
+  } else if (priceFilter === 'paid') {
+    eventsQueryParams.priceMin = 0.01
+  }
+}
+
+export const convertFiltersToEventsQueryParams = (filters: EventFilters): EventsQueryParams => {
+  const { sortBy, dateRange, customPriceRange, dateFilter, priceFilter, tags } = filters
+  const eventsQueryParams: EventsQueryParams = {}
+  convertSortBy(eventsQueryParams, sortBy)
+  convertDateFilter(eventsQueryParams, dateFilter)
+  convertDateRange(eventsQueryParams, dateRange)
+  convertTags(eventsQueryParams, tags)
+  convertCustomPriceRange(eventsQueryParams, customPriceRange)
+  convertPriceFilter(eventsQueryParams, priceFilter)
+  return eventsQueryParams
 }
