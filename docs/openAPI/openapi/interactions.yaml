@@ -67,6 +67,55 @@ paths:
                     error: Conflict
       tags:
          - Users
+    get:
+      summary: Get users followed by a user with pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of followed users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Users
 
   /users/{userId}/following/{followedId}:
     delete:
@@ -149,7 +198,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginationResponseDto'
+                $ref: '#/components/schemas/PaginatedResponseDto'
         '400':
           description: Bad Request
           content:
@@ -173,20 +222,6 @@ components:
           type: string
       required:
         - followedId
-    
-    PaginationQueryDto:
-      type: object
-      properties:
-        offset:
-          type: integer
-          minimum: 0
-          default: 0
-        limit:
-          type: integer
-          minimum: 1
-          maximum: 100
-          default: 20
-      required: []
     
     PaginatedResponseDto:
       type: object
@@ -224,10 +259,6 @@ components:
       type: object
       description: Follow relationship entity
       properties:
-        _id:
-          type: string
-          description: MongoDB ObjectId
-          example: 507f1f77bcf86cd799439011
         followerId:
           type: string
           description: ID of the user who is following
