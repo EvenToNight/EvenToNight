@@ -8,7 +8,7 @@ import infrastructure.Wiring._
 object Main extends cask.MainRoutes {
   override def port: Int                   = 9000 // Use your desired port here
   override def host: String                = "0.0.0.0"
-  override def allRoutes: Seq[cask.Routes] = Seq(new UserRoutes(userService))
+  override def allRoutes: Seq[cask.Routes] = Seq(new UserRoutes(userService, authService))
 
   sys.addShutdownHook {
     try {

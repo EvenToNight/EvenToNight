@@ -1,6 +1,7 @@
 package infrastructure
 
 import com.mongodb.client.MongoCollection
+import infrastructure.Secret.usersServiceSecret
 import model.ForeignKeys
 import model.member.MemberAccount
 import model.member.MemberProfile
@@ -12,7 +13,9 @@ import repository.MongoAccountProfileRepository
 import repository.MongoMemberRepository
 import repository.MongoOrganizationRepository
 import repository.OrganizationRepository
+import service.AuthenticationService
 import service.UserService
+import sttp.client3.HttpURLConnectionBackend
 
 import MongoConnection._
 
@@ -39,3 +42,6 @@ object Wiring:
     new MongoOrganizationRepository(organizationAccountProfileRepository)
 
   val userService: UserService = new UserService(memberRepository, organizationRepository)
+
+  val kc          = new KeycloakConnection(HttpURLConnectionBackend(), usersServiceSecret)
+  val authService = new AuthenticationService(kc)
