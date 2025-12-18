@@ -6,6 +6,11 @@ export default {
   download: 'Télécharger',
   profile: 'Profil',
 
+  users: {
+    organizations: 'Organisations',
+    members: 'Utilisateurs',
+  },
+
   brand: {
     appName: 'EvenToNight', //[ignorei18n]
     logo: 'Logo',
@@ -65,10 +70,10 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acheter des billets',
-    about: 'À propos',
+    about: 'À propos de cet événement',
     organizer: 'Organisé par',
-    collaborators: 'Collaborateurs',
-    editEvent: "Modifier l'événement",
+    collaborators: 'En collaboration avec',
+    editEvent: 'Modifier',
   },
 
   footer: {
@@ -97,7 +102,7 @@ export default {
     noEventCreated: "Vous n'avez encore créé aucun événement.",
     noEventCreatedExternal: "Cette organisation n'a pas encore créé d'événements.",
     noEventJoined: "Vous n'avez encore assisté à aucun événement.",
-    noEventJoinedExternal: "Cet utilisateur n'a encore participé à aucun événement.",
+    noEventJoinedExternal: "Cet utilisateur n'a encore assisté à aucun événement.",
     noTickets: 'Pas encore de billets',
     draftedEvents: 'Événements rédigés',
     noDraftedEvents: 'Vous n’avez aucun événement rédigé.',
@@ -116,7 +121,7 @@ export default {
     description: 'Description',
     descriptionError: 'Une description est requise',
     price: 'Prix',
-    priceError: 'Le prix est obligatoire',
+    priceError: 'Le prix est requis',
     tags: 'Balises',
     collaborators: 'Collaborateurs',
     collaboratorAvatarAlt: 'Avatar du collaborateur',
@@ -154,6 +159,68 @@ export default {
     },
     sections: {
       upcomingEvents: 'Événements à venir',
+    },
+  },
+  explore: {
+    title: 'Explorer',
+    subtitile: 'Trouvez des événements, des organisateurs ou connectez-vous avec vos amis',
+    events: {
+      title: 'Événements',
+      emptySearch: 'Aucun événement trouvé',
+      emptySearchText: 'Rechercher des événements par nom',
+    },
+    organizations: {
+      title: 'Organisations',
+      emptySearch: 'Aucune organisation trouvée',
+      emptySearchText: 'Rechercher des organisations par nom',
+    },
+    users: {
+      title: 'Utilisateurs',
+      emptySearch: 'Aucun utilisateur trouvé',
+      emptySearchText: 'Rechercher des utilisateurs par nom',
+    },
+  },
+
+  filters: {
+    filters: 'Filtres',
+    cancel: 'Annuler',
+    delete: 'Clair',
+    apply: 'Appliquer',
+    dateFilters: {
+      date: 'Date',
+      selectPeriod: 'Sélectionnez la période',
+      today: "Aujourd'hui",
+      thisWeek: 'Cette semaine',
+      thisMonth: 'Ce mois-ci',
+    },
+    feedFilters: {
+      others: 'Autres',
+      upcoming: 'Prochain',
+      popular: 'Populaire',
+      nearby: 'Proche',
+      forYou: 'Pour toi',
+      new: 'Nouveau',
+    },
+    priceFilters: {
+      price: 'Prix',
+      selectPrice: 'Sélectionnez une fourchette de prix',
+      minPrice: 'Prix ​​minimum',
+      maxPrice: 'Prix ​​maximum',
+      customize: 'Personnaliser',
+      free: 'Gratuit',
+      paid: 'Payé',
+      from: 'Depuis',
+      to: 'À',
+    },
+    sortFilters: {
+      sort: 'Trier par',
+      date_asc: 'Date ascendante',
+      date_desc: 'Date décroissante',
+      price_asc: 'Prix ​​croissant',
+      price_desc: 'Prix ​​décroissant',
+    },
+    TagFilters: {
+      tags: 'Balises',
     },
   },
 }

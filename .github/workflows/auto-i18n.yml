@@ -2,9 +2,9 @@ name: Auto Translate i18n
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - feature/frontend-service
+  # push:
+  #   branches:
+  #     - feature/frontend-service
 
 permissions:
   contents: write
