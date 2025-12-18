@@ -3,6 +3,10 @@ import type { SearchResultUser } from '@/api/utils'
 import SearchResultCard from '@/components/cards/SearchResultCard.vue'
 import { ref } from 'vue'
 import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
+import { useNavigation } from '@/router/utils'
+import type { SearchResult } from '@/api/utils'
+
+const { goToEventDetails, goToUserProfile } = useNavigation()
 
 interface Props {
   people: SearchResultUser[]
@@ -30,6 +34,13 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
     done(!props.hasMore)
   }
 }
+const selectResult = (result: SearchResult) => {
+  if (result.type === 'event') {
+    goToEventDetails(result.id)
+  } else {
+    goToUserProfile(result.id)
+  }
+}
 </script>
 
 <template>
@@ -42,7 +53,12 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
       @load="onLoad"
     >
       <div class="users-list">
-        <SearchResultCard v-for="result in people" :key="result.id" :result="result" />
+        <SearchResultCard
+          v-for="result in people"
+          :key="result.id"
+          :result="result"
+          @mousedown="selectResult(result)"
+        />
       </div>
 
       <template #loading>
