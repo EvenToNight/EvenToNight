@@ -1,10 +1,15 @@
 export default {
   date: 'Data',
-  time: 'Ora',
+  time: 'Tempo',
   location: 'Posizione',
   price: 'Prezzo',
-  download: 'Scarica',
+  download: 'Scaricamento',
   profile: 'Profilo',
+
+  users: {
+    organizations: 'Organizzazioni',
+    members: 'Utenti',
+  },
 
   brand: {
     appName: 'EvenToNight', //[ignorei18n]
@@ -12,10 +17,10 @@ export default {
   },
 
   auth: {
-    login: 'Accedi',
-    register: 'Registrati',
+    login: 'Iscrizione',
+    register: 'Registrazione',
     logout: 'Esci',
-    notLoggedIn: "Ops! Non hai effettuato l'accesso",
+    notLoggedIn: "Ops! Non effettuato l'accesso",
     loginRequired: "È necessario effettuare l'accesso per eseguire questa azione",
     form: {
       emailLabel: 'E-mail',
@@ -27,7 +32,7 @@ export default {
     loginForm: {
       successfulLogin: 'Accesso riuscito!',
       failedLogin: 'Accesso non riuscito',
-      switchToRegister: 'Non hai un account? Registrati',
+      switchToRegister: 'Hai bisogno di un account? Registro',
     },
     registerForm: {
       nameLabel: 'Nome',
@@ -35,10 +40,10 @@ export default {
       confirmPasswordLabel: 'Conferma password',
       emptyConfirmPasswordError: 'Per favore conferma la tua password',
       passwordMismatchError: 'Le password non corrispondono',
-      isOrganizationLabel: "Sono un'organizzazione",
+      isOrganizationLabel: 'Mi sto registrando come organizzazione',
       successfulRegistration: 'Registrazione riuscita!',
       failedRegistration: 'La registrazione non è riuscita',
-      switchToLogin: 'Hai già un account? Accedi',
+      switchToLogin: 'Hai già un account? Login',
     },
   },
 
@@ -65,17 +70,17 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acquista i biglietti',
-    about: 'Descrizione',
+    about: 'A proposito di questo evento',
     organizer: 'Organizzato da',
-    collaborators: 'Collaboratori',
-    editEvent: 'Modifica evento',
+    collaborators: 'In collaborazione con',
+    editEvent: 'Modifica',
   },
 
   footer: {
-    about: 'Informazioni',
+    about: 'Chi siamo',
     events: 'Eventi',
-    contact: 'Contatti',
-    privacy: 'Privacy',
+    contact: 'Contattaci',
+    privacy: 'politica sulla riservatezza',
     copyright: 'Tutti i diritti riservati.',
   },
 
@@ -89,8 +94,8 @@ export default {
     editProfile: 'Modifica profilo',
     createEvent: 'Crea evento',
     followers: 'Seguaci',
-    following: 'Seguiti',
-    follow: 'Segui',
+    following: 'Seguente',
+    follow: 'Seguire',
     myTickets: 'I miei biglietti',
     myEvents: 'I miei eventi',
     events: 'Eventi',
@@ -98,9 +103,9 @@ export default {
     noEventCreatedExternal: 'Questa organizzazione non ha ancora creato alcun evento.',
     noEventJoined: 'Non hai ancora partecipato a nessun evento.',
     noEventJoinedExternal: 'Questo utente non ha ancora partecipato ad alcun evento.',
-    noTickets: 'Nessun biglietto presente',
-    draftedEvents: 'Bozze',
-    noDraftedEvents: 'Non hai bozze di eventi.',
+    noTickets: 'Nessun biglietto ancora',
+    draftedEvents: 'Eventi redatti',
+    noDraftedEvents: 'Non hai eventi in bozza.',
     userAvatarAlt: "Avatar dell'utente",
   },
 
@@ -111,22 +116,22 @@ export default {
     titleError: 'Il titolo è obbligatorio',
     date: 'Data',
     dateError: 'La data è obbligatoria',
-    time: 'Ora',
-    timeError: "L'ora è obbligatoria",
+    time: 'Tempo',
+    timeError: 'È necessario tempo',
     description: 'Descrizione',
     descriptionError: 'La descrizione è obbligatoria',
     price: 'Prezzo',
-    priceError: 'Il prezzo è obbligatorio',
+    priceError: 'Il prezzo è richiesto',
     tags: 'Tag',
     collaborators: 'Collaboratori',
     collaboratorAvatarAlt: 'Avatar collaboratore',
     location: 'Posizione',
     locationError: 'La posizione è obbligatoria',
     eventPoster: "Locandina dell'evento",
-    posterError: 'La locandina è obbligatoria',
-    uploadPoster: 'Carica locandina',
-    cancel: 'Annulla',
-    deleteEvent: 'Elimina',
+    posterError: 'Il manifesto è obbligatorio',
+    uploadPoster: 'Carica poster',
+    cancel: 'Cancellare',
+    deleteEvent: 'Eliminare',
     deleteEventConfirm:
       'Sei sicuro di voler eliminare questo evento? Questa azione non può essere annullata.',
     saveDraft: 'Salva bozza',
@@ -144,8 +149,8 @@ export default {
   },
 
   theme: {
-    light_mode: 'Modalità Chiara',
-    dark_mode: 'Modalità Scura',
+    light_mode: 'Modalità luce',
+    dark_mode: 'Modalità oscura',
   },
 
   home: {
@@ -154,6 +159,68 @@ export default {
     },
     sections: {
       upcomingEvents: 'Prossimi eventi',
+    },
+  },
+  explore: {
+    title: 'Esplora',
+    subtitile: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
+    events: {
+      title: 'Eventi',
+      emptySearch: 'Nessun evento trovato',
+      emptySearchText: 'Cerca eventi per nome',
+    },
+    organizations: {
+      title: 'Organizzazioni',
+      emptySearch: 'Nessuna organizzazione trovata',
+      emptySearchText: 'Cerca organizzazioni per nome',
+    },
+    users: {
+      title: 'Utenti',
+      emptySearch: 'Nessun utente trovato',
+      emptySearchText: 'Cerca gli utenti per nome',
+    },
+  },
+
+  filters: {
+    filters: 'Filtri',
+    cancel: 'Cancella',
+    delete: 'Annulla',
+    apply: 'Applica',
+    dateFilters: {
+      date: 'Data',
+      selectPeriod: 'Seleziona Periodo',
+      today: 'Oggi',
+      thisWeek: 'Questa settimana',
+      thisMonth: 'Questo mese',
+    },
+    feedFilters: {
+      others: 'Altri',
+      upcoming: 'Prossimamente',
+      popular: 'Popolari',
+      nearby: 'Nelle vicinanze',
+      forYou: 'Per te',
+      new: 'Nuovi',
+    },
+    priceFilters: {
+      price: 'Prezzo',
+      selectPrice: 'Seleziona fascia di prezzo',
+      minPrice: 'Prezzo minimo',
+      maxPrice: 'Prezzo massimo',
+      customize: 'Personalizza',
+      free: 'Gratuito',
+      paid: 'A Pagamento',
+      from: 'Da',
+      to: 'A',
+    },
+    sortFilters: {
+      sort: 'Ordina per',
+      date_asc: 'Data crescente',
+      date_desc: 'Data decrescente',
+      price_asc: 'Prezzo crescente',
+      price_desc: 'Prezzo decrescente',
+    },
+    TagFilters: {
+      tags: 'Tag',
     },
   },
 }

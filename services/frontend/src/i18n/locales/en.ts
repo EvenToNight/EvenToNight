@@ -6,6 +6,11 @@ export default {
   download: 'Download',
   profile: 'Profile',
 
+  users: {
+    organizations: 'Organizations',
+    members: 'Users',
+  },
+
   brand: {
     appName: 'EvenToNight', //[ignorei18n]
     logo: 'Logo',
@@ -153,6 +158,68 @@ export default {
     },
     sections: {
       upcomingEvents: 'Upcoming Events',
+    },
+  },
+  explore: {
+    title: 'Explore',
+    subtitile: 'Find events, organizers, or connect with your friends',
+    events: {
+      title: 'Events',
+      emptySearch: 'No events found',
+      emptySearchText: 'Search events by name',
+    },
+    organizations: {
+      title: 'Organizations',
+      emptySearch: 'No organizations found',
+      emptySearchText: 'Search organizations by name',
+    },
+    users: {
+      title: 'Users',
+      emptySearch: 'No users found',
+      emptySearchText: 'Search users by name',
+    },
+  },
+
+  filters: {
+    filters: 'Filters',
+    cancel: 'Cancel',
+    delete: 'Clear',
+    apply: 'Apply',
+    dateFilters: {
+      date: 'Date',
+      selectPeriod: 'Select Period',
+      today: 'Today',
+      thisWeek: 'This Week',
+      thisMonth: 'This Month',
+    },
+    feedFilters: {
+      others: 'Others',
+      upcoming: 'Upcoming',
+      popular: 'Popular',
+      nearby: 'Nearby',
+      forYou: 'For You',
+      new: 'New',
+    },
+    priceFilters: {
+      price: 'Price',
+      selectPrice: 'Select Price Range',
+      minPrice: 'Minimum Price',
+      maxPrice: 'Maximum Price',
+      customize: 'Customize',
+      free: 'Free',
+      paid: 'Paid',
+      from: 'From',
+      to: 'To',
+    },
+    sortFilters: {
+      sort: 'Sort By',
+      date_asc: 'Ascenting Date',
+      date_desc: 'Descending Date',
+      price_asc: 'Ascenting Price',
+      price_desc: 'Descending Price',
+    },
+    TagFilters: {
+      tags: 'Tags',
     },
   },
 }

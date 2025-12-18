@@ -7,6 +7,7 @@ import { useNavigation } from '@/router/utils'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileBody from '@/components/profile/ProfileBody.vue'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
+import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 
 const { params } = useNavigation()
 const isFollowing = ref(false)
@@ -54,7 +55,9 @@ const loadUser = async () => {
   min-height: 100vh;
   background: var(--q-background);
   position: relative;
-  padding-top: $spacing-6;
+  margin-top: calc(-1 * v-bind(NAVBAR_HEIGHT_CSS));
+  padding-top: calc(v-bind(NAVBAR_HEIGHT_CSS) + #{$spacing-6});
+  // padding-top: $spacing-6;
   //padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
 
   background: #f5f5f5;

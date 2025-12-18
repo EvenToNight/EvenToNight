@@ -19,7 +19,6 @@ const authStore = useAuthStore()
 const { goToEditEvent } = useNavigation()
 const { t } = useI18n()
 
-// Check if current user is the event organizer
 const isOrganizer = computed(() => {
   return authStore.user?.id === props.event.id_creator
 })

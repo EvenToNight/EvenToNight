@@ -14,3 +14,5 @@ export interface PaginatedResponse<T> {
   offset: number
   hasMore: boolean
 }
+
+export type SortOrder = 'asc' | 'desc'

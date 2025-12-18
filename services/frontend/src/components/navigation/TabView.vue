@@ -13,14 +13,20 @@ export interface Tab {
 interface Props {
   tabs: Tab[]
   defaultTab?: string
+  variant: 'explore' | 'profile'
 }
 
 const props = defineProps<Props>()
+
+const emit = defineEmits<{
+  'update:activeTab': [tabId: string]
+}>()
 
 const activeTab = ref(props.defaultTab || props.tabs[0]!.id)
 
 const selectTab = (tabId: string) => {
   activeTab.value = tabId
+  emit('update:activeTab', tabId)
 }
 
 const getCurrentTabComponent = (): Tab => {
@@ -30,20 +36,45 @@ const getCurrentTabComponent = (): Tab => {
 </script>
 
 <template>
-  <div class="tab-view">
-    <div class="tab-header">
+  <template v-if="props.variant === 'explore'">
+    <!-- Explore variant: header and content as siblings for sticky to work -->
+    <div class="explore-tab-header">
+      <div class="explore-tab-header-inner">
+        <div
+          v-for="tab in tabs"
+          :key="tab.id"
+          class="explore-tab"
+          :class="{ active: activeTab === tab.id }"
+          @click="selectTab(tab.id)"
+        >
+          {{ tab.label }}
+        </div>
+      </div>
+    </div>
+
+    <div class="explore-tab-content">
+      <component
+        :is="getCurrentTabComponent().component"
+        v-bind="getCurrentTabComponent().props || {}"
+      />
+    </div>
+  </template>
+
+  <!-- Profile variant: traditional wrapped structure -->
+  <div v-else class="profile-tab-view">
+    <div class="profile-tab-header">
       <button
         v-for="tab in tabs"
         :key="tab.id"
-        :class="['tab-button', { active: activeTab === tab.id }]"
+        :class="['profile-tab-button', { active: activeTab === tab.id }]"
         @click="selectTab(tab.id)"
       >
         <q-icon v-if="tab.icon" :name="tab.icon" size="20px" class="tab-icon" />
-        <span class="tab-label">{{ tab.label }}</span>
+        <span class="profile-tab-label">{{ tab.label }}</span>
       </button>
     </div>
 
-    <div class="tab-content">
+    <div class="profile-tab-content">
       <component
         :is="getCurrentTabComponent().component"
         v-bind="getCurrentTabComponent().props || {}"
@@ -53,7 +84,7 @@ const getCurrentTabComponent = (): Tab => {
 </template>
 
 <style lang="scss" scoped>
-.tab-view {
+.profile-tab-view {
   background: $color-background;
   border-radius: $radius-2xl;
   box-shadow: $shadow-base;
@@ -69,7 +100,7 @@ const getCurrentTabComponent = (): Tab => {
   }
 }
 
-.tab-header {
+.profile-tab-header {
   display: flex;
   gap: $spacing-2;
   border-bottom: 2px solid rgba(0, 0, 0, 0.1);
@@ -80,7 +111,7 @@ const getCurrentTabComponent = (): Tab => {
   }
 }
 
-.tab-button {
+.profile-tab-button {
   display: flex;
   align-items: center;
   gap: $spacing-2;
@@ -120,11 +151,11 @@ const getCurrentTabComponent = (): Tab => {
   }
 }
 
-.tab-icon {
+.profile-tab-icon {
   color: inherit;
 }
 
-.tab-label {
+.profile-tab-label {
   color: inherit;
 
   @media (max-width: $breakpoint-mobile) {
@@ -132,8 +163,86 @@ const getCurrentTabComponent = (): Tab => {
   }
 }
 
-.tab-content {
+.profile-tab-content {
   flex: 1;
   min-height: 0;
+}
+
+.explore-tab-header {
+  position: sticky;
+  top: 64px; // NavigationBar height
+  z-index: 10; // Below navbar but above content
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  padding: $spacing-4 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  width: 100%;
+
+  @include dark-mode {
+    background: rgba(18, 18, 18, 0.95);
+    border-bottom-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.explore-tab-header-inner {
+  display: flex;
+  justify-content: center;
+  gap: $spacing-8;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none; // Firefox
+  max-width: $app-max-width;
+  margin: 0 auto;
+  padding: 0 $spacing-6;
+
+  &::-webkit-scrollbar {
+    display: none; // Chrome, Safari
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    gap: $spacing-6;
+    padding: 0 $spacing-4;
+  }
+  @media (max-width: $app-min-width) {
+    justify-content: flex-start;
+    gap: $spacing-4;
+  }
+}
+
+.explore-tab {
+  color: $color-heading;
+  opacity: 0.6;
+  cursor: pointer;
+  padding-bottom: $spacing-2;
+  border-bottom: 3px solid transparent;
+  transition: all 0.3s ease;
+  user-select: none;
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  font-family: $font-family-heading;
+  white-space: nowrap;
+  flex-shrink: 0;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  &.active {
+    opacity: 1;
+    border-bottom-color: $color-primary;
+  }
+
+  @include dark-mode {
+    color: $color-white;
+  }
+}
+
+.explore-tab-content {
+  flex: 1;
+  min-height: 0;
+  padding: $spacing-6 $spacing-4;
+  max-width: $app-max-width;
+  width: 100%;
+  margin: 0 auto;
 }
 </style>

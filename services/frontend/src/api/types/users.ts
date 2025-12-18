@@ -1,4 +1,7 @@
 export type UserID = string
+
+export type UserRole = 'member' | 'organization'
+
 export interface User {
   id: UserID
   name: string
@@ -8,5 +11,5 @@ export interface User {
   website?: string
   followers: number
   following: number
-  role: 'member' | 'organization'
+  role: UserRole
 }

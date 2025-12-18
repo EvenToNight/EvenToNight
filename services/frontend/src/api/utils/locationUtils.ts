@@ -1,4 +1,4 @@
-import type { Location, LocationData } from './types/common'
+import type { Location, LocationData } from '../types/common'
 
 export const extractLocationMapsLink = (location: LocationData): string => {
   const query = `${location.name ? `${location.name},` : ''}${location.house_number ? `${location.house_number},` : ''}${location.road},${location.city},${location.province},${location.state},${location.postcode},${location.country}`
@@ -18,22 +18,7 @@ export const buildLocationDisplayName = (location: LocationData): string => {
   return parts.join(', ')
 }
 
-export const validateLocation = (location: LocationData): LocationData | undefined => {
-  if (
-    location.country == '' ||
-    location.country_code == '' ||
-    location.state == '' ||
-    location.province == '' ||
-    location.city == '' ||
-    location.road == '' ||
-    location.postcode == '' ||
-    location.lat == 0 ||
-    location.lon == 0
-  )
-    return undefined
-  return location
-}
-const _validateLocation = (location: any): any => {
+const validateLocation = (location: any): any => {
   if (!location.address) throw new Error('Location address data is missing')
   const address = location.address
 
@@ -51,7 +36,7 @@ const _validateLocation = (location: any): any => {
   return location
 }
 export const parseLocation = (locationResponseData: any): [string, Location] => {
-  locationResponseData = _validateLocation(locationResponseData)
+  locationResponseData = validateLocation(locationResponseData)
   const address = locationResponseData.address
 
   const locationData: LocationData = {

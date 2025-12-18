@@ -40,7 +40,7 @@ const rules = computed(() => {
   if (props.type === 'email') {
     return [
       (val: string) => {
-        if (!val) return true // Empty validation is handled by required check
+        if (!val) return true
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
         return emailPattern.test(val) || t('auth.form.emailFormatError')
       },
