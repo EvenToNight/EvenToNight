@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, inject } from 'vue'
+import { ref, computed, onMounted, onUnmounted, inject, watch } from 'vue'
 import DateFilters, { type DateFilterValue } from './DateFilters.vue'
 import TagFilters from './TagFilters.vue'
 import PriceFilters, { type PriceFilterValue } from './PriceFilters.vue'
@@ -28,16 +28,25 @@ const priceFilterValue = ref<PriceFilterValue>({})
 const selectedSortBy = ref<SortBy | null>(null)
 const selectedOtherFilter = ref<OtherFilter | null>(null)
 
+const activeDateFilterValue = ref<DateFilterValue>({})
+const activeTags = ref<Tag[]>([])
+const activePriceFilterValue = ref<PriceFilterValue>({})
+const activeSortBy = ref<SortBy | null>(null)
+const activeOtherFilter = ref<OtherFilter | null>(null)
+
 const countActiveFilters = () => {
   let count = 0
-  if (dateFilterValue.value.dateFilter) count++
-  if (dateFilterValue.value.dateRange) count++
-  count += selectedTags.value.length
-  if (priceFilterValue.value.priceFilter) count++
-  if (priceFilterValue.value.customPriceRange?.min || priceFilterValue.value.customPriceRange?.max)
+  if (activeDateFilterValue.value.dateFilter) count++
+  if (activeDateFilterValue.value.dateRange) count++
+  count += activeTags.value.length
+  if (activePriceFilterValue.value.priceFilter) count++
+  if (
+    activePriceFilterValue.value.customPriceRange?.min ||
+    activePriceFilterValue.value.customPriceRange?.max
+  )
     count++
-  if (selectedSortBy.value) count++
-  if (selectedOtherFilter.value) count++
+  if (activeSortBy.value) count++
+  if (activeOtherFilter.value) count++
   return count
 }
 
@@ -46,15 +55,21 @@ const filtersMenuOpen = ref(false)
 
 const emitFiltersChanged = () => {
   emit('filters-changed', {
-    ...dateFilterValue.value,
-    ...priceFilterValue.value,
-    tags: selectedTags.value,
-    sortBy: selectedSortBy.value,
-    otherFilter: selectedOtherFilter.value,
+    ...activeDateFilterValue.value,
+    ...activePriceFilterValue.value,
+    tags: activeTags.value,
+    sortBy: activeSortBy.value,
+    otherFilter: activeOtherFilter.value,
   })
 }
 
 const applyFilters = () => {
+  activeDateFilterValue.value = { ...dateFilterValue.value }
+  activeTags.value = [...selectedTags.value]
+  activePriceFilterValue.value = { ...priceFilterValue.value }
+  activeSortBy.value = selectedSortBy.value
+  activeOtherFilter.value = selectedOtherFilter.value
+
   emitFiltersChanged()
   filtersMenuOpen.value = false
 }
@@ -65,18 +80,26 @@ const clearFilters = () => {
   priceFilterValue.value = {}
   selectedSortBy.value = null
   selectedOtherFilter.value = null
+
+  activeDateFilterValue.value = {}
+  activeTags.value = []
+  activePriceFilterValue.value = {}
+  activeSortBy.value = null
+  activeOtherFilter.value = null
+
+  emitFiltersChanged()
 }
 
 const hasActiveFilters = computed(
   () =>
-    dateFilterValue.value.dateFilter ||
-    dateFilterValue.value.dateRange ||
-    selectedTags.value.length > 0 ||
-    priceFilterValue.value.priceFilter ||
-    priceFilterValue.value.customPriceRange?.min ||
-    priceFilterValue.value.customPriceRange?.max ||
-    selectedSortBy.value ||
-    selectedOtherFilter.value
+    activeDateFilterValue.value.dateFilter ||
+    activeDateFilterValue.value.dateRange ||
+    activeTags.value.length > 0 ||
+    activePriceFilterValue.value.priceFilter ||
+    activePriceFilterValue.value.customPriceRange?.min ||
+    activePriceFilterValue.value.customPriceRange?.max ||
+    activeSortBy.value ||
+    activeOtherFilter.value
 )
 
 const isElementHiddenBehindStickyHeader = (el: HTMLElement | null) => {
@@ -95,8 +118,19 @@ const handleScroll = () => {
   }
 }
 
+watch(filtersMenuOpen, (isOpen) => {
+  if (isOpen) {
+    dateFilterValue.value = { ...activeDateFilterValue.value }
+    selectedTags.value = [...activeTags.value]
+    priceFilterValue.value = { ...activePriceFilterValue.value }
+    selectedSortBy.value = activeSortBy.value
+    selectedOtherFilter.value = activeOtherFilter.value
+  }
+})
+
 onMounted(() => {
   if (initialFilters && Object.keys(initialFilters).length > 0) {
+    // Set draft filters
     if (initialFilters.dateFilter) {
       dateFilterValue.value.dateFilter = initialFilters.dateFilter
     }
@@ -118,6 +152,30 @@ onMounted(() => {
     if (initialFilters.otherFilter) {
       selectedOtherFilter.value = initialFilters.otherFilter
     }
+
+    // Set active filters (same as draft initially)
+    if (initialFilters.dateFilter) {
+      activeDateFilterValue.value.dateFilter = initialFilters.dateFilter
+    }
+    if (initialFilters.dateRange) {
+      activeDateFilterValue.value.dateRange = initialFilters.dateRange
+    }
+    if (initialFilters.tags) {
+      activeTags.value = initialFilters.tags
+    }
+    if (initialFilters.priceFilter) {
+      activePriceFilterValue.value.priceFilter = initialFilters.priceFilter
+    }
+    if (initialFilters.customPriceRange) {
+      activePriceFilterValue.value.customPriceRange = initialFilters.customPriceRange
+    }
+    if (initialFilters.sortBy) {
+      activeSortBy.value = initialFilters.sortBy
+    }
+    if (initialFilters.otherFilter) {
+      activeOtherFilter.value = initialFilters.otherFilter
+    }
+
     emitFiltersChanged()
   }
   window.addEventListener('scroll', handleScroll, true)

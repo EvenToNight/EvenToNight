@@ -73,13 +73,13 @@ export default {
     about: 'A proposito di questo evento',
     organizer: 'Organizzato da',
     collaborators: 'In collaborazione con',
-    editEvent: 'Modificare',
+    editEvent: 'Modifica',
   },
 
   footer: {
-    about: 'Di',
+    about: 'Chi siamo',
     events: 'Eventi',
-    contact: 'Contatto',
+    contact: 'Contattaci',
     privacy: 'politica sulla riservatezza',
     copyright: 'Tutti i diritti riservati.',
   },
@@ -162,7 +162,7 @@ export default {
     },
   },
   explore: {
-    title: 'Esplorare',
+    title: 'Esplora',
     subtitile: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
     events: {
       title: 'Eventi',
@@ -183,9 +183,9 @@ export default {
 
   filters: {
     filters: 'Filtri',
-    cancel: 'Cancellare',
-    delete: 'Chiaro',
-    apply: 'Fare domanda a',
+    cancel: 'Cancella',
+    delete: 'Annulla',
+    apply: 'Applica',
     dateFilters: {
       date: 'Data',
       selectPeriod: 'Seleziona Periodo',
@@ -196,10 +196,10 @@ export default {
     feedFilters: {
       others: 'Altri',
       upcoming: 'Prossimamente',
-      popular: 'Popolare',
+      popular: 'Popolari',
       nearby: 'Nelle vicinanze',
       forYou: 'Per te',
-      new: 'Nuovo',
+      new: 'Nuovi',
     },
     priceFilters: {
       price: 'Prezzo',
@@ -208,15 +208,15 @@ export default {
       maxPrice: 'Prezzo massimo',
       customize: 'Personalizza',
       free: 'Gratuito',
-      paid: 'Pagato',
+      paid: 'A Pagamento',
       from: 'Da',
       to: 'A',
     },
     sortFilters: {
       sort: 'Ordina per',
-      date_asc: 'Data di ascesa',
-      date_desc: 'Data discendente',
-      price_asc: 'Prezzo ascendente',
+      date_asc: 'Data crescente',
+      date_desc: 'Data decrescente',
+      price_asc: 'Prezzo crescente',
       price_desc: 'Prezzo decrescente',
     },
     TagFilters: {
