@@ -64,8 +64,8 @@ tasks.withType<ScalaCompile>().configureEach {
 }
 
 tasks.test {
-    dependsOn(rootProject.tasks.named("setupTestEnvironment"))
-    finalizedBy(rootProject.tasks.named("teardownTestEnvironment"))
+    dependsOn(rootProject.tasks.named("setupTestEnvironment"),rootProject.tasks.named("setupKeycloak"))
+    finalizedBy(rootProject.tasks.named("teardownTestEnvironment"), rootProject.tasks.named("teardownKeycloak"))
     useJUnitPlatform {
         includeEngines("scalatest")
         testLogging {
