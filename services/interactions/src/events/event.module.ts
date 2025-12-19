@@ -7,6 +7,7 @@ import { MetadataModule } from 'src/metadata/metadata.module';
 import { ReviewService } from './services/review.service';
 import { ReviewController } from './controllers/review.controller';
 import { Review, ReviewSchema } from './schemas/review.schema';
+import { OrganizationController } from './controllers/organization.controller';
 
 @Module({
   imports: [
@@ -16,7 +17,7 @@ import { Review, ReviewSchema } from './schemas/review.schema';
     ]),
     MetadataModule,
   ],
-  controllers: [LikeController, ReviewController],
+  controllers: [LikeController, ReviewController, OrganizationController],
   providers: [LikeService, ReviewService],
   exports: [LikeService, ReviewService],
 })
