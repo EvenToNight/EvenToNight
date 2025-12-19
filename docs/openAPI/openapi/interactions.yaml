@@ -490,6 +490,87 @@ paths:
       tags:
         - Events
 
+  /events/{eventId}/reviews:
+    post:
+      summary: Create a review for an event
+      description: Submit a review for a specific event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event to be reviewed
+          schema:
+            type: string
+          example: event123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                organizationId:
+                  type: string
+                collaboratorsId:
+                  type: array
+                  items:
+                    type: string
+                rating:
+                  type: integer
+                title:
+                  type: string
+                comment:
+                  type: string
+              required:
+                - userId
+                - organizationId
+                - rating
+                - title
+            example:
+              userId: user123
+              organizationId: org456
+              collaboratorsId: [collab789]
+              rating: 5
+              title: "Amazing Event!"
+              comment: "Had a fantastic time at this event."
+      responses:
+        '201':
+          description: Review created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Review created successfully
+                statusCode: 201
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: ["rating must be between 1 and 5"]
+                error: Bad Request
+        '409':
+          description: Conflict - Review already exists for this user and event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 409
+                message: User has already reviewed this event
+                error: Conflict
+      tags:
+         - Events
+
 components:
   schemas:
     FollowUserDto:
