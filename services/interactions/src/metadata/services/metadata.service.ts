@@ -10,4 +10,18 @@ export class MetadataService {
     @InjectModel(Event.name) private eventModel: Model<Event>,
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
+
+  // TODO: Implement checks eventschema for real validation
+  async validateEvent(
+    eventId: string,
+    organizationId: string,
+    collaboratorsId: string[] | undefined,
+  ): Promise<void> {
+    true;
+  }
+
+  // TODO: Implement checks userschema for real validation
+  async validateUser(userId: string): Promise<void> {
+    true;
+  }
 }
