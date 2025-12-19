@@ -570,6 +570,123 @@ paths:
                 error: Conflict
       tags:
          - Events
+  /events/{eventId}/reviews/{userId}:
+    delete:
+      summary: Delete a review for an event
+      description: Remove a review submitted by a user for a specific event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event whose review is to be deleted
+          schema:
+            type: string
+          example: event123
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user who submitted the review
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Review deleted successfully
+                statusCode: 200
+        '404':
+          description: Not Found - Review does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Review not found
+                error: Not Found
+      tags:
+        - Events
+    put:
+      summary: Update a review for an event
+      description: Modify an existing review submitted by a user for a specific event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event whose review is to be updated
+          schema:
+            type: string
+          example: event123
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user who submitted the review
+          schema:
+            type: string
+          example: user123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                title:
+                  type: string
+                comment:
+                  type: string
+              required:
+                - rating
+                - title
+            example:
+              rating: 4
+              title: "Great Event!"
+              comment: "Really enjoyed it, but room for improvement."
+      responses:
+        '200':
+          description: Review updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Review updated successfully
+                statusCode: 200
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: ["rating must be between 1 and 5"]
+                error: Bad Request
+        '404':
+          description: Not Found - Review does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Review not found
+                error: Not Found
+      tags:
+        - Events
 
 components:
   schemas:

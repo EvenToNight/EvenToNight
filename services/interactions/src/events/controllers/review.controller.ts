@@ -1,16 +1,7 @@
-import {
-  Controller,
-  Post,
-  Delete,
-  Put,
-  Get,
-  Body,
-  Param,
-  Query,
-} from '@nestjs/common';
+import { Controller, Post, Delete, Put, Body, Param } from '@nestjs/common';
 import { ReviewService } from '../services/review.service';
 import { CreateReviewDto } from '../dto/create-review.dto';
-import { PaginatedQueryDto } from '../../common/dto/paginated-query.dto';
+import { UpdateReviewDto } from '../dto/update-review.dto';
 
 @Controller('events/:eventId/')
 export class ReviewController {
@@ -28,6 +19,35 @@ export class ReviewController {
     return {
       message: 'Review created successfully',
       statusCode: 201,
+    };
+  }
+
+  @Put('reviews/:userId')
+  async updateReview(
+    @Param('eventId') eventId: string,
+    @Param('userId') userId: string,
+    @Body() updateReviewDto: UpdateReviewDto,
+  ) {
+    const review = await this.reviewService.updateReview(
+      eventId,
+      userId,
+      updateReviewDto,
+    );
+    return {
+      message: 'Review updated successfully',
+      statusCode: 200,
+    };
+  }
+
+  @Delete('reviews/:userId')
+  async deleteReview(
+    @Param('eventId') eventId: string,
+    @Param('userId') userId: string,
+  ) {
+    await this.reviewService.deleteReview(eventId, userId);
+    return {
+      message: 'Review deleted successfully',
+      statusCode: 200,
     };
   }
 }
