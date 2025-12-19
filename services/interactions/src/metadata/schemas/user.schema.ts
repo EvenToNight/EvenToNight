@@ -5,9 +5,6 @@ import { Document } from 'mongoose';
 export class User extends Document {
   @Prop({ required: true, unique: true })
   userId: string;
-
-  @Prop({ required: false, type: [String], default: [] })
-  partecipatedEvents: string[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
