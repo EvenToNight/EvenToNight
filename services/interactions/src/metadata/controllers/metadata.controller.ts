@@ -6,4 +6,11 @@ import { MetadataService } from '../services/metadata.service';
 @Controller()
 export class MetadataController {
   constructor(private readonly metadataService: MetadataService) {}
+
+  // Test connection to RabbitMQ
+  @EventPattern('test.ping')
+  async handleTestPing(@Payload() data: any) {
+    console.log('🎉 TEST MESSAGE RECEIVED:', data);
+    return { status: 'ok', receivedAt: new Date(), data };
+  }
 }
