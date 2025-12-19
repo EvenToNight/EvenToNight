@@ -788,6 +788,64 @@ paths:
       tags:
         - Events
 
+  /organizations/{organizationId}/reviews:
+    get:
+      summary: Get reviews for an organization with role-based filtering and pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: org123
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [owner, collaborator, all]
+            default: all
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of reviews for the organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Organizations
+  
 components:
   schemas:
     FollowUserDto:

@@ -111,4 +111,34 @@ export class ReviewService {
     ]);
     return new PaginatedResponseDto(items, total, limit || total, offset || 0);
   }
+
+  async getOrganizationReviews(
+    organizationId: string,
+    role: 'owner' | 'collaborator' | 'all' = 'all',
+    limit: number = 20,
+    offset: number = 0,
+  ): Promise<PaginatedResponseDto<Review>> {
+    let filter: any;
+    if (role === 'owner') {
+      filter = { organizationId };
+    } else if (role === 'collaborator') {
+      filter = { collaboratorsId: organizationId };
+    } else {
+      filter = {
+        $or: [{ organizationId }, { collaboratorsId: organizationId }],
+      };
+    }
+
+    const [items, total] = await Promise.all([
+      this.reviewModel
+        .find(filter)
+        .skip(offset)
+        .limit(limit)
+        .sort({ createdAt: -1 })
+        .exec(),
+      this.reviewModel.countDocuments(filter),
+    ]);
+
+    return new PaginatedResponseDto(items, total, limit, offset);
+  }
 }
