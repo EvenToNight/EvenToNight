@@ -334,6 +334,56 @@ paths:
                     type: integer
       tags:
         - Users
+  /users/{userId}/reviews:
+    get:
+      summary: Get reviews made by a user
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of reviews made by the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Users
 
   /events/{eventId}/likes:
     post:

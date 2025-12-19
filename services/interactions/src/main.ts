@@ -10,7 +10,6 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe({ transform: true }));
   app.enableShutdownHooks();
 
-  // RabbitMQ connection
   const rabbitmqHost = process.env.RABBITMQ_HOST || 'localhost';
   const rabbitmqUser = process.env.RABBITMQ_USER || 'admin';
   const rabbitmqPass = process.env.RABBITMQ_PASS || 'admin';
