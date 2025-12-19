@@ -18,6 +18,6 @@ import { Review, ReviewSchema } from './schemas/review.schema';
   ],
   controllers: [LikeController, ReviewController],
   providers: [LikeService, ReviewService],
-  exports: [LikeService],
+  exports: [LikeService, ReviewService],
 })
 export class EventModule {}

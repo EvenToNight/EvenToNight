@@ -90,4 +90,25 @@ export class ReviewService {
 
     return new PaginatedResponseDto(items, total, limit || total, offset || 0);
   }
+
+  async getUserReviews(
+    userId: string,
+    limit: number | undefined,
+    offset: number | undefined,
+  ) {
+    const query = this.reviewModel.find({ userId });
+    if (offset !== undefined) {
+      query.skip(offset);
+    }
+    if (limit !== undefined) {
+      query.limit(limit);
+    }
+    query.sort({ createdAt: -1 });
+
+    const [items, total] = await Promise.all([
+      query.exec(),
+      this.reviewModel.countDocuments({ userId }),
+    ]);
+    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
+  }
 }
