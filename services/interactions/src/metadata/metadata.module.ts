@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Event, EventSchema } from './schemas/event.schema';
-import { User, UserSchema } from './schemas/user-.schema';
+import { User, UserSchema } from './schemas/user.schema';
 import { MetadataService } from './services/metadata.service';
 import { MetadataController } from './controllers/metadata.controller';
 

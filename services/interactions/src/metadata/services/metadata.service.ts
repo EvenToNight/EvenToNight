@@ -2,7 +2,7 @@ import { Injectable, BadRequestException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Event } from '../schemas/event.schema';
-import { User } from '../schemas/user-.schema';
+import { User } from '../schemas/user.schema';
 
 @Injectable()
 export class MetadataService {
@@ -22,6 +22,10 @@ export class MetadataService {
 
   // TODO: Implement checks userschema for real validation
   async validateUser(userId: string): Promise<void> {
+    true;
+  }
+
+  async checkEventCompleted(eventId: string): Promise<void> {
     true;
   }
 }
