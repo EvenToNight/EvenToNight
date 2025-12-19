@@ -84,6 +84,10 @@ const formatDate = (date: Date): string => {
 
   .result-avatar {
     flex-shrink: 0;
+
+    :deep(img) {
+      object-fit: cover;
+    }
   }
 
   .event-avatar {

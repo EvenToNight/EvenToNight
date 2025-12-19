@@ -6,16 +6,22 @@ import type {
   EventsDataResponse,
 } from '../interfaces/events'
 import type { GetTagResponse } from '../interfaces/events'
-import type { EventID, PartialEventData, Event } from '../types/events'
-import { buildQueryParams, evaluatePagination } from '../utils'
+import type { EventID, PartialEventData, Event, EventStatus } from '../types/events'
+import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
+import type { UserID } from '../types/users'
 
 export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async getTags(): Promise<GetTagResponse> {
     return eventsClient.get<GetTagResponse>('/tags')
   },
   async getEventById(id_event: EventID): Promise<GetEventByIdResponse> {
-    return eventsClient.get<GetEventByIdResponse>(`/${id_event}`)
+    const { date, ...rest } = await eventsClient.get<GetEventByIdResponse>(`/${id_event}`)
+    let localeDate = date
+    if (date) {
+      localeDate = new Date(String(date).endsWith('Z') ? date : `${date}Z`)
+    }
+    return { date: localeDate, ...rest }
   },
   async getEventsByIds(id_events: EventID[]): Promise<EventsDataResponse> {
     const eventsResponses = await Promise.all(
@@ -23,7 +29,7 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     )
     return { events: eventsResponses }
   },
-  async publishEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
+  async createEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
     const { poster, date, ...rest } = eventData
     const formData = new FormData()
     if (poster) {
@@ -35,7 +41,7 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     }
     console.log('publishEvent backendEventData', backendEventData)
     formData.append('event', JSON.stringify(backendEventData))
-    return eventsClient.post<{ id_event: string }>('/', formData)
+    return eventsClient.post<PublishEventResponse>('/', formData)
   },
   async updateEventData(id_event: EventID, eventData: PartialEventData): Promise<void> {
     const { poster, date, ...rest } = eventData
@@ -43,6 +49,8 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
       ...rest,
       date: date?.toISOString().replace(/\.\d{3}Z$/, ''),
     }
+    console.log('createEvent backendEventData1', date?.toISOString())
+
     console.log('updateEventData backendEventData', backendEventData)
     await eventsClient.put(`/${id_event}`, backendEventData)
   },
@@ -54,21 +62,15 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async deleteEvent(id_event: EventID): Promise<void> {
     await eventsClient.delete(`/${id_event}`)
   },
-  async searchByName(
-    title: string,
+  async searchEvents(params: {
+    title?: string
     pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Event>> {
+    id_organization?: UserID
+    status?: EventStatus
+  }): Promise<PaginatedResponse<Event>> {
+    const { pagination = { ...evaluatePagination(params.pagination) }, ...rest } = params
     return eventsClient.get<PaginatedResponse<Event>>(
-      `/search${buildQueryParams({ title, ...evaluatePagination(pagination) })}`
-    )
-  },
-  async getEventsByUserIdAndStatus(
-    id_organization: string,
-    status: string,
-    pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Event>> {
-    return eventsClient.get<PaginatedResponse<Event>>(
-      `/search${buildQueryParams({ id_organization, status, ...evaluatePagination(pagination) })}`
+      `/search${buildQueryParams({ ...pagination, ...rest })}`
     )
   },
 })

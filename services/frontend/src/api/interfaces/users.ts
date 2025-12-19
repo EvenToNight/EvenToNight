@@ -1,5 +1,5 @@
-import type { User, UserID } from '../types/users'
-import type { PaginatedRequest } from './commons'
+import type { User, UserID, UserRole } from '../types/users'
+import type { PaginatedRequest, PaginatedResponse } from './commons'
 
 export interface GetUserByIdResponse {
   user: User
@@ -39,16 +39,15 @@ export interface LogoutResponse {
   success: boolean
 }
 
-export interface SearchUsersResponse {
-  users: User[]
-}
-
 export interface UsersAPI {
   getUserById(id: UserID): Promise<GetUserByIdResponse>
   register(data: RegisterRequest): Promise<RegisterResponse>
   login(credentials: LoginRequest): Promise<LoginResponse>
   logout(): Promise<LogoutResponse>
   refreshToken(): Promise<RefreshTokenResponse>
-  searchByName(query: string): Promise<SearchUsersResponse>
-  getOrganizations(query: string, pagination?: PaginatedRequest): Promise<SearchUsersResponse>
+  searchUsers(params: {
+    name?: string
+    pagination?: PaginatedRequest
+    role?: UserRole
+  }): Promise<PaginatedResponse<User>>
 }

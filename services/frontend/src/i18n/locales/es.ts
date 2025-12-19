@@ -6,6 +6,11 @@ export default {
   download: 'Descargar',
   profile: 'Perfil',
 
+  users: {
+    organizations: 'Organizaciones',
+    members: 'Usuarios',
+  },
+
   brand: {
     appName: 'EvenToNight', //[ignorei18n]
     logo: 'Logo',
@@ -65,10 +70,10 @@ export default {
 
   eventDetails: {
     buyTickets: 'Comprar Entradas',
-    about: 'Acerca de',
+    about: 'Acerca de este evento',
     organizer: 'Organizado por',
-    collaborators: 'Colaboradores',
-    editEvent: 'Editar evento',
+    collaborators: 'En colaboración con',
+    editEvent: 'Editar',
   },
 
   footer: {
@@ -154,6 +159,68 @@ export default {
     },
     sections: {
       upcomingEvents: 'Próximos eventos',
+    },
+  },
+  explore: {
+    title: 'Explorar',
+    subtitile: 'Encuentra eventos, organizadores o conéctate con tus amigos',
+    events: {
+      title: 'Eventos',
+      emptySearch: 'No se encontraron eventos',
+      emptySearchText: 'Buscar eventos por nombre',
+    },
+    organizations: {
+      title: 'Organizaciones',
+      emptySearch: 'No se encontraron organizaciones',
+      emptySearchText: 'Buscar organizaciones por nombre',
+    },
+    users: {
+      title: 'Usuarios',
+      emptySearch: 'No se encontraron usuarios',
+      emptySearchText: 'Buscar usuarios por nombre',
+    },
+  },
+
+  filters: {
+    filters: 'Filtros',
+    cancel: 'Cancelar',
+    delete: 'Claro',
+    apply: 'Aplicar',
+    dateFilters: {
+      date: 'Fecha',
+      selectPeriod: 'Seleccionar periodo',
+      today: 'Hoy',
+      thisWeek: 'Esta semana',
+      thisMonth: 'este mes',
+    },
+    feedFilters: {
+      others: 'Otros',
+      upcoming: 'Próximo',
+      popular: 'Popular',
+      nearby: 'Cercano',
+      forYou: 'Para ti',
+      new: 'Nuevo',
+    },
+    priceFilters: {
+      price: 'Precio',
+      selectPrice: 'Seleccionar rango de precios',
+      minPrice: 'Precio Mínimo',
+      maxPrice: 'Precio Máximo',
+      customize: 'Personalizar',
+      free: 'Gratis',
+      paid: 'Pagado',
+      from: 'De',
+      to: 'A',
+    },
+    sortFilters: {
+      sort: 'Ordenar por',
+      date_asc: 'Fecha de ascenso',
+      date_desc: 'Fecha descendente',
+      price_asc: 'Precio ascendente',
+      price_desc: 'Precio descendente',
+    },
+    TagFilters: {
+      tags: 'Etiquetas',
     },
   },
 }

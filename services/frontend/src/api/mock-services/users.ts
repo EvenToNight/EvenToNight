@@ -5,15 +5,14 @@ import type {
   LoginResponse,
   RefreshTokenResponse,
   LogoutResponse,
-  SearchUsersResponse,
   RegisterResponse,
   RegisterRequest,
 } from '../interfaces/users'
-import type { ApiError, PaginatedRequest } from '../interfaces/commons'
+import type { ApiError, PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import { mockOrganizations } from './data/organizations'
 import { mockUsers } from './data/members'
-import type { UserID, User } from '../types/users'
-import { getPaginatedItems } from '../utils'
+import type { UserID, User, UserRole } from '../types/users'
+import { getPaginatedItems } from '../utils/requestUtils'
 
 let currentLoggedInEmail: string | null = null
 
@@ -92,32 +91,15 @@ export const mockUsersApi: UsersAPI = {
     }
   },
 
-  async searchByName(query: string): Promise<SearchUsersResponse> {
-    if (!query || query.trim().length === 0) {
-      return { users: [] }
-    }
-
-    const lowerQuery = query.toLowerCase().trim()
-    const allUsers = [...mockOrganizations, ...mockUsers]
-
-    const matchedUsers = allUsers.filter((user) => {
-      const nameMatch = user.name.toLowerCase().includes(lowerQuery)
-      const bioMatch = user.bio?.toLowerCase().includes(lowerQuery)
-      return nameMatch || bioMatch
-    })
-
-    return { users: matchedUsers }
-  },
-
-  async getOrganizations(
-    query: string,
+  async searchUsers(params: {
+    name?: string
     pagination?: PaginatedRequest
-  ): Promise<SearchUsersResponse> {
-    return {
-      users: getPaginatedItems(
-        mockOrganizations.filter((org) => org.name.toLowerCase().includes(query.toLowerCase())),
-        pagination
-      ).items,
-    }
+    role?: UserRole
+  }): Promise<PaginatedResponse<User>> {
+    const lowerName = (params.name ?? '').toLowerCase().trim()
+    const allUsers = [...mockOrganizations, ...mockUsers]
+      .filter((user) => (params.role ? user.role === params.role : true))
+      .filter((user) => user.name.toLowerCase().includes(lowerName))
+    return getPaginatedItems(allUsers, params.pagination)
   },
 }

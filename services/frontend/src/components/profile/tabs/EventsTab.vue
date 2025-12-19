@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import type { Event } from '@/api/types/events'
 import EventCardVariant from '@/components/cards/EventCardVariant.vue'
-import EmptyTab from '@/components/profile/tabs/EmptyTab.vue'
+import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 
 interface Props {
   events: Event[]

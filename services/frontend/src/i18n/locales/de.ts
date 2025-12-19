@@ -6,6 +6,11 @@ export default {
   download: 'Herunterladen',
   profile: 'Profil',
 
+  users: {
+    organizations: 'Organisationen',
+    members: 'Benutzer',
+  },
+
   brand: {
     appName: 'EvenToNight', //[ignorei18n]
     logo: 'Logo',
@@ -65,10 +70,10 @@ export default {
 
   eventDetails: {
     buyTickets: 'Kaufen Sie Tickets',
-    about: 'Um',
+    about: 'Über diese Veranstaltung',
     organizer: 'Organisiert von',
-    collaborators: 'Mitarbeiter',
-    editEvent: 'Ereignis bearbeiten',
+    collaborators: 'In Zusammenarbeit mit',
+    editEvent: 'Bearbeiten',
   },
 
   footer: {
@@ -137,8 +142,10 @@ export default {
     successForEventUpdate: 'Veranstaltung erfolgreich aktualisiert!',
     successForEventDeletion: 'Veranstaltung erfolgreich gelöscht!',
     errorForEventCreation: 'Bitte füllen Sie alle erforderlichen Felder aus',
-    errorForEventPublication: 'Failed to create event. Please try again.',
-    errorForEventUpdate: 'Failed to update event. Please try again.',
+    errorForEventPublication:
+      'Ereignis konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
+    errorForEventUpdate:
+      'Das Ereignis konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.',
     errorForEventDeletion: 'Ereignis konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
     errorForEventLoad: 'Ereignis konnte nicht geladen werden. Bitte versuchen Sie es erneut.',
   },
@@ -154,6 +161,69 @@ export default {
     },
     sections: {
       upcomingEvents: 'Kommende Veranstaltungen',
+    },
+  },
+  explore: {
+    title: 'Erkunden',
+    subtitile:
+      'Finden Sie Veranstaltungen, Organisatoren oder vernetzen Sie sich mit Ihren Freunden',
+    events: {
+      title: 'Veranstaltungen',
+      emptySearch: 'Keine Veranstaltungen gefunden',
+      emptySearchText: 'Suchen Sie nach Ereignissen nach Namen',
+    },
+    organizations: {
+      title: 'Organisationen',
+      emptySearch: 'Keine Organisationen gefunden',
+      emptySearchText: 'Suchen Sie nach Organisationen nach Namen',
+    },
+    users: {
+      title: 'Benutzer',
+      emptySearch: 'Keine Benutzer gefunden',
+      emptySearchText: 'Suchen Sie Benutzer nach Namen',
+    },
+  },
+
+  filters: {
+    filters: 'Filter',
+    cancel: 'Stornieren',
+    delete: 'Klar',
+    apply: 'Anwenden',
+    dateFilters: {
+      date: 'Datum',
+      selectPeriod: 'Wählen Sie Zeitraum aus',
+      today: 'Heute',
+      thisWeek: 'Diese Woche',
+      thisMonth: 'Diesen Monat',
+    },
+    feedFilters: {
+      others: 'Andere',
+      upcoming: 'Demnächst',
+      popular: 'Beliebt',
+      nearby: 'Nahe',
+      forYou: 'Für Sie',
+      new: 'Neu',
+    },
+    priceFilters: {
+      price: 'Preis',
+      selectPrice: 'Wählen Sie Preisspanne aus',
+      minPrice: 'Mindestpreis',
+      maxPrice: 'Maximaler Preis',
+      customize: 'Anpassen',
+      free: 'Frei',
+      paid: 'Bezahlt',
+      from: 'Aus',
+      to: 'Zu',
+    },
+    sortFilters: {
+      sort: 'Sortieren nach',
+      date_asc: 'Aufstiegsdatum',
+      date_desc: 'Absteigendes Datum',
+      price_asc: 'Steigender Preis',
+      price_desc: 'Absteigender Preis',
+    },
+    TagFilters: {
+      tags: 'Schlagworte',
     },
   },
 }

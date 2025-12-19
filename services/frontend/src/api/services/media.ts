@@ -1,7 +1,7 @@
 import type { MediaAPI, MediaGetResponse } from '../interfaces/media'
 
 const parseUrl = (url: string): string => {
-  if (url.startsWith('http://') && !import.meta.env.DEV) {
+  if (url.startsWith('http://') && import.meta.env.VITE_USE_HTTPS === 'true') {
     return url.replace('http://', 'https://')
   }
   return url

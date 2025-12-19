@@ -9,7 +9,7 @@ defineProps<Props>()
 
 <template>
   <div class="empty-state">
-    <q-icon :name="emptyIconName" size="64px" />
+    <q-icon :name="emptyIconName" size="64px" color="grey-5" />
     <p class="empty-text">
       {{ emptyText }}
     </p>
@@ -24,8 +24,9 @@ defineProps<Props>()
 }
 
 .empty-text {
-  font-size: $font-size-base;
-  opacity: 0.6;
+  color: $color-gray-500;
   margin: 0;
+  font-size: $font-size-lg;
+  line-height: $line-height-relaxed;
 }
 </style>

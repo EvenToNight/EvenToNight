@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TicketCard from '@/components/cards/TicketCard.vue'
-import EmptyTab from '@/components/profile/tabs/EmptyTab.vue'
+import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 
 const { t } = useI18n()
 

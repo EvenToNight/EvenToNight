@@ -5,5 +5,6 @@ services:
       dockerfile: ./services/frontend/Dockerfile
       args:
         HOST: ${HOST}
+        USE_HTTPS: false
     ports:
       - "${FRONTEND_SERVICE_PORT}:${FRONTEND_SERVICE_PORT}"

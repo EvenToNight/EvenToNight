@@ -1,3 +1,16 @@
+## [1.9.0](https://github.com/EvenToNight/EvenToNight/compare/v1.8.1...v1.9.0) (2025-12-18)
+
+### Features
+
+* **search:** add initial filters to explore page ([777ddf3](https://github.com/EvenToNight/EvenToNight/commit/777ddf3ea8c04556fbc8dbdf985b3aa38f84ddaf))
+* **search:** search events based on filters ([d20e059](https://github.com/EvenToNight/EvenToNight/commit/d20e05945a5e869781fc4763eeb0c57e87dbd435))
+
+### Bug Fixes
+
+* **date:** add Z at the end of 'yyyy-mm-dd:hh:mm' dates to convert it in localtime when create date ([b7d8ffa](https://github.com/EvenToNight/EvenToNight/commit/b7d8ffa3f98dacd68c245231f1e91408c8f97cda))
+* **filters:** keep filters when typing a query and handle newly selected vs applied filters separately ([f74dc40](https://github.com/EvenToNight/EvenToNight/commit/f74dc4068b2a03351510c4cf40df8c53604bbf1a))
+* **search:** account for undefined tags ([3c4bfc8](https://github.com/EvenToNight/EvenToNight/commit/3c4bfc878c47782b00e4434c1869460478a2002a))
+
 ## [1.8.1](https://github.com/EvenToNight/EvenToNight/compare/v1.8.0...v1.8.1) (2025-12-15)
 
 ### Bug Fixes
