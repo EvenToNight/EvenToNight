@@ -9,6 +9,7 @@ import { Review } from '../schemas/review.schema';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
 import { UpdateReviewDto } from '../dto/update-review.dto';
+import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
 
 @Injectable()
 export class ReviewService {
@@ -66,5 +67,27 @@ export class ReviewService {
     }
 
     return review;
+  }
+
+  async getEventReviews(
+    eventId: string,
+    limit: number | undefined,
+    offset: number | undefined,
+  ): Promise<PaginatedResponseDto<Review>> {
+    const query = this.reviewModel.find({ eventId });
+    if (offset !== undefined) {
+      query.skip(offset);
+    }
+    if (limit !== undefined) {
+      query.limit(limit);
+    }
+    query.sort({ createdAt: -1 });
+
+    const [items, total] = await Promise.all([
+      query.exec(),
+      this.reviewModel.countDocuments({ eventId }),
+    ]);
+
+    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
   }
 }
