@@ -7,6 +7,8 @@ services:
     environment:
       - PORT=${INTERACTIONS_SERVICE_PORT}
       - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
       - MONGO_HOST=mongo-interactions
     labels:
       - "traefik.enable=true"
