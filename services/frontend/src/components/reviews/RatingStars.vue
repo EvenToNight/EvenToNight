@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 
 interface Props {
-  rating: 0 | 1 | 2 | 3 | 4 | 5
+  rating: number
   size?: 'sm' | 'md' | 'lg'
   showNumber?: boolean
 }
@@ -23,9 +23,16 @@ const sizeClass = computed(() => {
   }
 })
 
+const getStarType = (index: number): 'filled' | 'half' | 'empty' => {
+  const position = index + 1
+  if (props.rating >= position) return 'filled'
+  if (props.rating >= position - 0.5) return 'half'
+  return 'empty'
+}
+
 const stars = computed(() => {
   return Array.from({ length: 5 }, (_, i) => ({
-    filled: i < props.rating,
+    type: getStarType(i),
     index: i,
   }))
 })
@@ -37,11 +44,15 @@ const stars = computed(() => {
       <q-icon
         v-for="star in stars"
         :key="star.index"
-        :name="star.filled ? 'star' : 'star_border'"
-        :class="{ filled: star.filled, empty: !star.filled }"
+        :name="star.type === 'filled' ? 'star' : star.type === 'half' ? 'star_half' : 'star_border'"
+        :class="{
+          filled: star.type === 'filled',
+          half: star.type === 'half',
+          empty: star.type === 'empty',
+        }"
       />
     </div>
-    <span v-if="showNumber" class="rating-number">{{ rating }}/5</span>
+    <span v-if="showNumber" class="rating-number">{{ rating.toFixed(1) }}/5</span>
   </div>
 </template>
 
@@ -57,7 +68,8 @@ const stars = computed(() => {
   gap: $spacing-1;
 
   .q-icon {
-    &.filled {
+    &.filled,
+    &.half {
       color: $color-warning;
     }
 

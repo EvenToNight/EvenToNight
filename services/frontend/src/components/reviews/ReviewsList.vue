@@ -37,8 +37,8 @@ const averageRating = computed(() => {
   return (sum / props.reviews.length).toFixed(1)
 })
 
-const roundedRating = computed((): 0 | 1 | 2 | 3 | 4 | 5 => {
-  return Math.round(Number(averageRating.value)) as 0 | 1 | 2 | 3 | 4 | 5
+const numericRating = computed(() => {
+  return Number(averageRating.value)
 })
 
 const ratingDistribution = computed(() => {
@@ -76,7 +76,7 @@ const ratingDistribution = computed(() => {
         <div class="rating-summary">
           <span class="rating-number">{{ averageRating }}</span>
           <div class="rating-stars">
-            <RatingStars :rating="roundedRating" :show-number="false" size="md" />
+            <RatingStars :rating="numericRating" :show-number="false" size="md" />
           </div>
           <span class="review-count">{{ reviews.length.toLocaleString() }} recensioni</span>
         </div>

@@ -107,7 +107,7 @@ export const mockEventReviews: EventReview[] = [
     organizationId: 'organization_1',
     collaboratorId: ['organization_2', 'organization_3'],
     userId: 'member_4',
-    rating: 2,
+    rating: 4,
     description: 'Great event!4',
   },
 ]
