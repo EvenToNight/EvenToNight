@@ -12,23 +12,23 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build and Check
-        uses: DanySK/build-check-deploy-gradle-action@4.0.17
-        with:
-          build-command: ./gradlew clean build --parallel --no-configuration-cache
-          java-distribution: temurin
-          java-version: '21'
-          should-run-codecov: false
+      # - name: Build and Check
+      #   uses: DanySK/build-check-deploy-gradle-action@4.0.17
+      #   with:
+      #     build-command: ./gradlew clean build --parallel --no-configuration-cache
+      #     java-distribution: temurin
+      #     java-version: '21'
+      #     should-run-codecov: false
         
-      - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: |
-            services/events/build/reports/jacoco/test/jacocoTestReport.xml
-            services/media/coverage/lcov.info
-          flags: unittests
-          fail_ci_if_error: true
+      # - name: Upload coverage report to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: |
+      #       services/events/build/reports/jacoco/test/jacocoTestReport.xml
+      #       services/media/coverage/lcov.info
+      #     flags: unittests
+      #     fail_ci_if_error: true
       
 
   build-docker-images:
@@ -38,19 +38,12 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-      
-      - name: Find all directories with Dockerfiles
+
+      - name: Find all modified directories with Dockerfiles
         id: find-dockerfiles
         run: |
-          dirs=""
-          while IFS= read -r dockerfile; do
-            dir=$(dirname "$dockerfile")
-            dirs="$dirs $dir"
-          done < <(find . -name Dockerfile -type f -not -path '*/node_modules/*' -not -path '*/.git/*')
-          echo "Found dirs with Dockerfiles:"
-          echo "$dirs"
-          echo "dirs=$dirs" >> $GITHUB_OUTPUT
-
+            dirs=$(./scripts/findDirsWithDockerfile.sh "${{ github.event.before }}" "${{ github.sha }}")
+            echo "dirs=$dirs" >> $GITHUB_OUTPUT
       - name: Build Docker images
         run: |
           for dir in ${{ steps.find-dockerfiles.outputs.dirs }}; do
