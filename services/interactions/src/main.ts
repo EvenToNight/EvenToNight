@@ -15,9 +15,7 @@ async function bootstrap() {
   const rabbitmqPass = process.env.RABBITMQ_PASS || 'admin';
   const rabbitmqUrl = `amqp://${rabbitmqUser}:${rabbitmqPass}@${rabbitmqHost}:5672`;
 
-  console.log(
-    `🔗 Connecting to RabbitMQ: ${rabbitmqUrl.replace(rabbitmqPass, '***')}`,
-  );
+  console.log(`🔗 Connecting to RabbitMQ`);
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,

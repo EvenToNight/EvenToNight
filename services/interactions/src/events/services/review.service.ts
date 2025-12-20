@@ -22,8 +22,8 @@ export class ReviewService {
     eventId: string,
     createReviewDto: CreateReviewDto,
   ): Promise<Review> {
-    await this.metadataService.validateUser(createReviewDto.userId);
-    await this.metadataService.validateEvent(
+    this.metadataService.validateUser(createReviewDto.userId);
+    this.metadataService.validateEvent(
       eventId,
       createReviewDto.organizationId,
       createReviewDto.collaboratorsId,
@@ -71,8 +71,8 @@ export class ReviewService {
 
   async getEventReviews(
     eventId: string,
-    limit: number | undefined,
-    offset: number | undefined,
+    limit?: number,
+    offset?: number,
   ): Promise<PaginatedResponseDto<Review>> {
     const query = this.reviewModel.find({ eventId });
     if (offset !== undefined) {
@@ -91,11 +91,7 @@ export class ReviewService {
     return new PaginatedResponseDto(items, total, limit || total, offset || 0);
   }
 
-  async getUserReviews(
-    userId: string,
-    limit: number | undefined,
-    offset: number | undefined,
-  ) {
+  async getUserReviews(userId: string, limit?: number, offset?: number) {
     const query = this.reviewModel.find({ userId });
     if (offset !== undefined) {
       query.skip(offset);
@@ -115,8 +111,8 @@ export class ReviewService {
   async getOrganizationReviews(
     organizationId: string,
     role: 'owner' | 'collaborator' | 'all' = 'all',
-    limit: number = 20,
-    offset: number = 0,
+    limit?: number,
+    offset?: number,
   ): Promise<PaginatedResponseDto<Review>> {
     let filter: any;
     if (role === 'owner') {
@@ -129,16 +125,19 @@ export class ReviewService {
       };
     }
 
+    const query = this.reviewModel.find(filter);
+    if (offset !== undefined) {
+      query.skip(offset);
+    }
+    if (limit !== undefined) {
+      query.limit(limit);
+    }
+    query.sort({ createdAt: -1 });
     const [items, total] = await Promise.all([
-      this.reviewModel
-        .find(filter)
-        .skip(offset)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .exec(),
+      query.exec(),
       this.reviewModel.countDocuments(filter),
     ]);
 
-    return new PaginatedResponseDto(items, total, limit, offset);
+    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
   }
 }

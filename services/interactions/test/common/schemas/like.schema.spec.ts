@@ -2,8 +2,12 @@ import { LikeSchema } from '../../../src/events/schemas/like.schema';
 
 describe('LikeSchema', () => {
   it('defines eventId and userId as required and indexed', () => {
-    const eventPath: any = LikeSchema.path('eventId');
-    const userPath: any = LikeSchema.path('userId');
+    const eventPath = LikeSchema.path('eventId') as {
+      options?: { required?: boolean; index?: boolean };
+    };
+    const userPath = LikeSchema.path('userId') as {
+      options?: { required?: boolean; index?: boolean };
+    };
 
     expect(eventPath).toBeDefined();
     expect(userPath).toBeDefined();
@@ -16,7 +20,9 @@ describe('LikeSchema', () => {
   });
 
   it('defines a unique compound index on eventId and userId', () => {
-    const indexes = LikeSchema.indexes();
+    const indexes = LikeSchema.indexes() as Array<
+      [Record<string, number>, Record<string, unknown> | undefined]
+    >;
     const compound = indexes.find(
       ([keys, options]) =>
         keys.eventId === 1 &&

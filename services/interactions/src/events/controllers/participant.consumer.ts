@@ -8,5 +8,7 @@ export class ParticipationConsumer {
 
   // TODO: implement handle events participation
   @EventPattern('test')
-  async handleTicketPurchased(@Payload() data: any) {}
+  handleTicketPurchased(@Payload() data: unknown) {
+    console.log('Received event:', data);
+  }
 }
