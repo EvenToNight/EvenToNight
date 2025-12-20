@@ -1,0 +1,1078 @@
+openapi: 3.0.1
+info:
+  title: EvenToNight - Interactions API
+  version: 1.0.0
+paths:
+  /users/{userId}:
+    get:
+      summary: Get user information (followers and following) with pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: User information with followers and following
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Users  
+    
+    delete:
+      summary: Delete a user and all associated follow relationships
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: Successfully deleted the user and associated follow relationships
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: User and associated follows deleted successfully
+                statusCode: 200
+        '404':
+          description: Not Found - User does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: User not found
+                error: Not Found
+      tags:
+        - Users
+
+  /users/{userId}/following:
+    post:
+      summary: Follow a user
+      description: Create a follow relationship between two users
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user who wants to follow
+          schema:
+            type: string
+          example: user123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FollowUserDto'
+            example:
+              followedId: user456
+      responses:
+        '201':
+          description: Successfully followed the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Follow created successfully
+                statusCode: 201
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: ["followedId should not be empty"]
+                error: Bad Request
+        '409':
+          description: Conflict - Already following or cannot follow yourself
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                alreadyFollowing:
+                  summary: Already following
+                  value:
+                    statusCode: 409
+                    message: Already following this user
+                    error: Conflict
+                cannotFollowSelf:
+                  summary: Cannot follow yourself
+                  value:
+                    statusCode: 409
+                    message: Cannot follow yourself
+                    error: Conflict
+      tags:
+         - Users
+    get:
+      summary: Get users followed by a user with pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of followed users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Users
+
+  /users/{userId}/following/{followedId}:
+    delete:
+      summary: Unfollow a user
+      description: Remove a follow relationship between two users
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user who wants to unfollow
+          schema:
+            type: string
+          example: user123
+        - name: followedId
+          in: path
+          required: true
+          description: ID of the user to unfollow
+          schema:
+            type: string
+          example: user456
+      responses:
+        '200':
+          description: Successfully unfollowed the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Unfollowed successfully
+                statusCode: 200
+        '404':
+          description: Not Found - Follow relationship does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Follow relationship not found
+                error: Not Found
+      tags:
+        - Users
+
+  /users/{userId}/followers:
+    get:
+      summary: Get followers of a user with pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of followers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Users
+
+  /users/{userId}/likes:
+    get:
+      summary: Get events liked by a user
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of liked events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Users
+  /users/{userId}/reviews:
+    get:
+      summary: Get reviews made by a user
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of reviews made by the user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Users
+
+  /events/{eventId}/likes:
+    post:
+      summary: Like an event
+      description: Create a like between a user and an event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event to be liked
+          schema:
+            type: string
+          example: event123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+              required:
+                - userId
+            example:
+              userId: user123
+      responses:
+        '201':
+          description: Successfully liked the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Event liked successfully
+                statusCode: 201
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: ["userId should not be empty"]
+                error: Bad Request
+        '409':
+          description: Conflict - Already liked the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 409
+                message: User has already liked this event
+                error: Conflict
+      tags:
+         - Events
+    get:
+      summary: Get users who liked an event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: event123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of users who liked the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Events
+
+  /events/{eventId}/likes/{userId}:
+    delete:
+      summary: Unlike an event
+      description: Remove a like between a user and an event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event to be unliked
+          schema:
+            type: string
+          example: event123
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user who wants to unlike the event
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: Successfully unliked the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Event unliked successfully
+                statusCode: 200
+        '404':
+          description: Not Found - Like relationship does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Like relationship not found
+                error: Not Found
+      tags:
+        - Events
+
+  /events/{eventId}/reviews:
+    post:
+      summary: Create a review for an event
+      description: Submit a review for a specific event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event to be reviewed
+          schema:
+            type: string
+          example: event123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                organizationId:
+                  type: string
+                collaboratorsId:
+                  type: array
+                  items:
+                    type: string
+                rating:
+                  type: integer
+                title:
+                  type: string
+                comment:
+                  type: string
+              required:
+                - userId
+                - organizationId
+                - rating
+                - title
+            example:
+              userId: user123
+              organizationId: org456
+              collaboratorsId: [collab789]
+              rating: 5
+              title: "Amazing Event!"
+              comment: "Had a fantastic time at this event."
+      responses:
+        '201':
+          description: Review created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Review created successfully
+                statusCode: 201
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: ["rating must be between 1 and 5"]
+                error: Bad Request
+        '409':
+          description: Conflict - Review already exists for this user and event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 409
+                message: User has already reviewed this event
+                error: Conflict
+      tags:
+         - Events
+    get:
+      summary: Get reviews for an event with pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: event123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of reviews for the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:   
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Events
+
+  /users/{userId}/participants:
+    get:
+      summary: Get events a user is participating in
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of events the user is participating in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Users
+
+  /events/{eventId}/participants:
+    get:
+      summary: Get participants of an event with pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: event123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of participants for the event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Events
+
+  /events/{eventId}/reviews/{userId}:
+    delete:
+      summary: Delete a review for an event
+      description: Remove a review submitted by a user for a specific event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event whose review is to be deleted
+          schema:
+            type: string
+          example: event123
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user who submitted the review
+          schema:
+            type: string
+          example: user123
+      responses:
+        '200':
+          description: Review deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Review deleted successfully
+                statusCode: 200
+        '404':
+          description: Not Found - Review does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Review not found
+                error: Not Found
+      tags:
+        - Events
+    put:
+      summary: Update a review for an event
+      description: Modify an existing review submitted by a user for a specific event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event whose review is to be updated
+          schema:
+            type: string
+          example: event123
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user who submitted the review
+          schema:
+            type: string
+          example: user123
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: integer
+                title:
+                  type: string
+                comment:
+                  type: string
+              required:
+                - rating
+                - title
+            example:
+              rating: 4
+              title: "Great Event!"
+              comment: "Really enjoyed it, but room for improvement."
+      responses:
+        '200':
+          description: Review updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SuccessResponse'
+              example:
+                message: Review updated successfully
+                statusCode: 200
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: ["rating must be between 1 and 5"]
+                error: Bad Request
+        '404':
+          description: Not Found - Review does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Review not found
+                error: Not Found
+      tags:
+        - Events
+
+  /organizations/{organizationId}/reviews:
+    get:
+      summary: Get reviews for an organization with role-based filtering and pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: org123
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [owner, collaborator, all]
+            default: all
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of reviews for the organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Organizations
+  
+components:
+  schemas:
+    FollowUserDto:
+      type: object
+      properties:
+        followedId:
+          type: string
+      required:
+        - followedId
+    
+    PaginatedResponseDto:
+      type: object
+      description: Paginated response containing follow relationships
+      properties:
+        items:
+          type: array
+          description: Array of users IDs
+          items:
+            type: string
+            description: ID of the user who is following
+            example: user123
+        limit:
+          type: integer 
+          description: Maximum number of items per page
+          example: 20
+        offset:
+          type: integer 
+          description: Number of items skipped
+          example: 0
+        hasMore:
+          type: boolean 
+          description: Whether there are more items available
+          example: false
+        totalItems:
+          type: integer
+          description: Total number of items available
+          example: 42
+      required:
+        - items
+        - limit
+        - offset
+        - hasMore
+        - totalItems
+    
+    PaginatedUserResponseDto:
+      type: object
+      description: Paginated response containing followers and following user IDs
+      properties:
+        followers:
+          type: array
+          description: Array of follower user IDs
+          items:
+            type: string
+            description: ID of the user who is following
+            example: user123
+        totalFollowers:
+          type: integer
+          description: Total number of followers
+          example: 42
+        following:
+          type: array
+          description: Array of followed user IDs
+          items:
+            type: string
+            description: ID of the user being followed
+            example: user456
+        totalFollowing:
+          type: integer
+          description: Total number of following
+          example: 27
+      required:
+        - followers
+        - totalFollowers
+        - following
+        - totalFollowing
+    
+    Follow:
+      type: object
+      description: Follow relationship entity
+      properties:
+        followerId:
+          type: string
+          description: ID of the user who is following
+          example: user123
+        followedId:
+          type: string
+          description: ID of the user being followed
+          example: user456
+
+    SuccessResponse:
+      type: object
+      description: Generic success response
+      properties:
+        message:
+          type: string
+          description: Success message
+          example: Operation completed successfully
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 200
+      required:
+        - message
+        - statusCode
+
+    ErrorResponse:
+      type: object
+      description: Generic error response
+      properties:
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: Error message(s)
+          example: Validation failed
+        error:
+          type: string
+          description: Error type
+          example: Bad Request
+      required:
+        - statusCode
+        - message
