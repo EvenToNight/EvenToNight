@@ -6,6 +6,7 @@ import {
   LOGIN_ROUTE_NAME,
   REGISTER_ROUTE_NAME,
   EVENT_DETAILS_ROUTE_NAME,
+  EVENT_REVIEWS_ROUTE_NAME,
   CREATE_EVENT_ROUTE_NAME,
   EDIT_EVENT_ROUTE_NAME,
   USER_PROFILE_ROUTE_NAME,
@@ -95,6 +96,14 @@ export const useNavigation = () => {
     }
   }
 
+  const goToEventReviews = (eventId: string, swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(EVENT_REVIEWS_ROUTE_NAME, { id: eventId })
+    } else {
+      pushWithLocale(EVENT_REVIEWS_ROUTE_NAME, { id: eventId })
+    }
+  }
+
   const goToExplore = (swap: boolean = false) => {
     if (swap) {
       replaceWithLocale(EXPLORE_ROUTE_NAME)
@@ -148,6 +157,7 @@ export const useNavigation = () => {
     goToLogin,
     goToRegister,
     goToEventDetails,
+    goToEventReviews,
     goToExplore,
     goToCreateEvent,
     goToEditEvent,

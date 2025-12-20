@@ -1,5 +1,6 @@
 import type { UserID } from '../types/users'
 import type { EventID } from '../types/events'
+import type { EventReview } from '../types/interaction'
 
 export interface GetEventInteractionsResponse {
   likes: UserID[]
@@ -11,4 +12,5 @@ export interface InteractionAPI {
   unlikeEvent(eventId: EventID, userId: UserID): Promise<void>
   followUser(targetUserId: UserID, currentUserId: UserID): Promise<void>
   unfollowUser(targetUserId: UserID, currentUserId: UserID): Promise<void>
+  getEventReviews(eventId: EventID): Promise<EventReview[]>
 }

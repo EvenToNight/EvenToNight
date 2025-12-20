@@ -1,7 +1,8 @@
 import type { GetEventInteractionsResponse, InteractionAPI } from '../interfaces/interactions'
 import type { EventID } from '../types/events'
+import type { EventReview } from '../types/interaction'
 import type { UserID } from '../types/users'
-import { mockEventInteractions, mockUserInteractions } from './data/interactions'
+import { mockEventInteractions, mockEventReviews, mockUserInteractions } from './data/interactions'
 
 const findInteractionByEventId = (eventId: EventID) => {
   const interaction = mockEventInteractions.find((interaction) => interaction.eventId === eventId)
@@ -64,5 +65,8 @@ export const mockInteractionsApi: InteractionAPI = {
     targetUserInteraction.followers = targetUserInteraction.followers.filter(
       (id) => id !== currentUserId
     )
+  },
+  async getEventReviews(eventId: EventID): Promise<EventReview[]> {
+    return mockEventReviews.filter((review) => review.eventId === eventId)
   },
 }

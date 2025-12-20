@@ -2,6 +2,7 @@ import type { GetEventInteractionsResponse, InteractionAPI } from '../interfaces
 import type { EventID } from '../types/events'
 import type { ApiClient } from '../client'
 import type { UserID } from '../types/users'
+import type { EventReview } from '../types/interaction'
 
 export const createInteractionsApi = (interactionsClient: ApiClient): InteractionAPI => ({
   async getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse> {
@@ -22,5 +23,8 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
     return interactionsClient.delete<void>(
       `/users/${targetUserId}/interactions/followers/${currentUserId}`
     )
+  },
+  async getEventReviews(eventId: EventID): Promise<EventReview[]> {
+    return interactionsClient.get<EventReview[]>(`/events/${eventId}/reviews`)
   },
 })
