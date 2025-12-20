@@ -9,7 +9,7 @@ export class MetadataController {
 
   // Test connection to RabbitMQ
   @EventPattern('test.ping')
-  async handleTestPing(@Payload() data: any) {
+  handleTestPing(@Payload() data: unknown) {
     console.log('🎉 TEST MESSAGE RECEIVED:', data);
     return { status: 'ok', receivedAt: new Date(), data };
   }

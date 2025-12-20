@@ -7,7 +7,6 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Like } from '../schemas/like.schema';
 import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
-import { off } from 'process';
 
 @Injectable()
 export class LikeService {
@@ -33,8 +32,8 @@ export class LikeService {
 
   async getEventLikes(
     eventId: string,
-    limit: number | undefined,
-    offset: number | undefined,
+    limit?: number,
+    offset?: number,
   ): Promise<PaginatedResponseDto<string>> {
     let query = this.likeModel.find({ eventId });
     if (offset !== undefined) query = query.skip(offset);
@@ -51,11 +50,7 @@ export class LikeService {
     );
   }
 
-  async getUserLikes(
-    userId: string,
-    limit: number | undefined,
-    offset: number | undefined,
-  ) {
+  async getUserLikes(userId: string, limit?: number, offset?: number) {
     let query = this.likeModel.find({ userId });
     if (offset !== undefined) query = query.skip(offset);
     if (limit !== undefined) query = query.limit(limit);

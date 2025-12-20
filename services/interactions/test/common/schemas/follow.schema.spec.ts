@@ -2,8 +2,12 @@ import { FollowSchema } from '../../../src/users/schemas/follow.schema';
 
 describe('FollowSchema', () => {
   it('defines followerId and followedId as required and indexed', () => {
-    const followerPath: any = FollowSchema.path('followerId');
-    const followedPath: any = FollowSchema.path('followedId');
+    const followerPath = FollowSchema.path('followerId') as {
+      options?: { required?: boolean; index?: boolean };
+    };
+    const followedPath = FollowSchema.path('followedId') as {
+      options?: { required?: boolean; index?: boolean };
+    };
 
     expect(followerPath).toBeDefined();
     expect(followedPath).toBeDefined();
@@ -16,7 +20,9 @@ describe('FollowSchema', () => {
   });
 
   it('defines a unique compound index on followerId and followedId', () => {
-    const indexes = FollowSchema.indexes();
+    const indexes = FollowSchema.indexes() as Array<
+      [Record<string, number>, Record<string, unknown> | undefined]
+    >;
     const compound = indexes.find(
       ([keys, options]) =>
         keys.followerId === 1 &&

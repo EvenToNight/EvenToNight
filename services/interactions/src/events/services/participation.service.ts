@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  ConflictException,
-  NotFoundException,
-} from '@nestjs/common';
+import { Injectable, ConflictException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Participation } from '../schemas/participation.schema';
@@ -18,8 +14,8 @@ export class ParticipationService {
   ) {}
 
   async participate(eventId: string, userId: string): Promise<Participation> {
-    await this.metadataService.validateUser(userId);
-    await this.metadataService.checkEventCompleted(eventId);
+    this.metadataService.validateUser(userId);
+    this.metadataService.checkEventCompleted(eventId);
     const existing = await this.participationModel.findOne({ eventId, userId });
     if (existing) {
       throw new ConflictException('Already purchased ticket for this event');
@@ -30,38 +26,44 @@ export class ParticipationService {
 
   async getEventParticipants(
     eventId: string,
-    limit: number = 20,
-    offset: number = 0,
+    limit?: number,
+    offset?: number,
   ): Promise<PaginatedResponseDto<Participation>> {
+    const query = this.participationModel.find({ eventId });
+    if (offset !== undefined) {
+      query.skip(offset);
+    }
+    if (limit !== undefined) {
+      query.limit(limit);
+    }
+    query.sort({ createdAt: -1 });
     const [items, total] = await Promise.all([
-      this.participationModel
-        .find({ eventId })
-        .skip(offset)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .exec(),
+      query.exec(),
       this.participationModel.countDocuments({ eventId }),
     ]);
 
-    return new PaginatedResponseDto(items, total, limit, offset);
+    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
   }
 
   async getUserParticipations(
     userId: string,
-    limit: number = 20,
-    offset: number = 0,
+    limit?: number,
+    offset?: number,
   ): Promise<PaginatedResponseDto<Participation>> {
+    const query = this.participationModel.find({ userId });
+    if (offset !== undefined) {
+      query.skip(offset);
+    }
+    if (limit !== undefined) {
+      query.limit(limit);
+    }
+    query.sort({ createdAt: -1 });
     const [items, total] = await Promise.all([
-      this.participationModel
-        .find({ userId })
-        .skip(offset)
-        .limit(limit)
-        .sort({ createdAt: -1 })
-        .exec(),
+      query.exec(),
       this.participationModel.countDocuments({ userId }),
     ]);
 
-    return new PaginatedResponseDto(items, total, limit, offset);
+    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
   }
 
   async hasTicket(eventId: string, userId: string): Promise<boolean> {

@@ -13,7 +13,7 @@ import { CreateReviewDto } from '../dto/create-review.dto';
 import { UpdateReviewDto } from '../dto/update-review.dto';
 import { PaginatedQueryDto } from '../../common/dto/paginated-query.dto';
 
-@Controller('events/:eventId/')
+@Controller('events/:eventId')
 export class ReviewController {
   constructor(private readonly reviewService: ReviewService) {}
 
@@ -22,10 +22,7 @@ export class ReviewController {
     @Param('eventId') eventId: string,
     @Body() createReviewDto: CreateReviewDto,
   ) {
-    const review = await this.reviewService.createReview(
-      eventId,
-      createReviewDto,
-    );
+    await this.reviewService.createReview(eventId, createReviewDto);
     return {
       message: 'Review created successfully',
       statusCode: 201,
@@ -38,11 +35,7 @@ export class ReviewController {
     @Param('userId') userId: string,
     @Body() updateReviewDto: UpdateReviewDto,
   ) {
-    const review = await this.reviewService.updateReview(
-      eventId,
-      userId,
-      updateReviewDto,
-    );
+    await this.reviewService.updateReview(eventId, userId, updateReviewDto);
     return {
       message: 'Review updated successfully',
       statusCode: 200,

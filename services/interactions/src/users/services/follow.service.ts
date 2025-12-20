@@ -32,11 +32,7 @@ export class FollowService {
     }
   }
 
-  async getFollowers(
-    userId: string,
-    limit: number | undefined,
-    offset: number | undefined,
-  ) {
+  async getFollowers(userId: string, limit?: number, offset?: number) {
     let query = this.followModel
       .find({ followedId: userId })
       .select({ _id: 0, followerId: 1, followedId: 1 });
@@ -56,11 +52,7 @@ export class FollowService {
     );
   }
 
-  async getFollowing(
-    userId: string,
-    limit: number | undefined,
-    offset: number | undefined,
-  ) {
+  async getFollowing(userId: string, limit?: number, offset?: number) {
     let query = this.followModel
       .find({ followerId: userId })
       .select({ _id: 0, followerId: 1, followedId: 1 });
