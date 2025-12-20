@@ -4,13 +4,13 @@ import type { Event } from '@/api/types/events'
 import EventDetailsBodyHeader from './EventDetailsBodyHeader.vue'
 import EventDetailsBodyInfo from './EventDetailsBodyInfo.vue'
 import EventDetailsOrganizationInfo from './EventDetailsOrganizationInfo.vue'
+import EventReviewsPreview from './EventReviewsPreview.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 
 interface Props {
   event: Event
   isAuthRequired: boolean
 }
-
 defineProps<Props>()
 const emit = defineEmits<{
   'update:isAuthRequired': [boolean]
@@ -34,6 +34,7 @@ const { t } = useI18n()
         :class="'full-width'"
         size="lg"
       />
+      <EventReviewsPreview :eventId="event.id_event" />
     </div>
   </div>
 </template>

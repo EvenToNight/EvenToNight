@@ -239,6 +239,7 @@ onMounted(() => {
 
   @media (max-width: $breakpoint-mobile) {
     width: 100%;
+    order: 2;
   }
 }
 
@@ -290,6 +291,7 @@ onMounted(() => {
   @media (max-width: $breakpoint-mobile) {
     min-width: auto;
     width: 100%;
+    order: 1;
   }
 
   .rating-number {
