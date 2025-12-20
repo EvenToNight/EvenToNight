@@ -1,3 +1,9 @@
+## [1.10.0](https://github.com/EvenToNight/EvenToNight/compare/v1.9.0...v1.10.0) (2025-12-20)
+
+### Features
+
+* **interactions:** implement nest architecture for interactions service ([858910a](https://github.com/EvenToNight/EvenToNight/commit/858910a43c9c8611a15ec248360885f3b8ffc4fd))
+
 ## [1.9.0](https://github.com/EvenToNight/EvenToNight/compare/v1.8.1...v1.9.0) (2025-12-18)
 
 ### Features
