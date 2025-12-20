@@ -1,9 +1,10 @@
 name: Test and Coverage
 
 on:
-  push:
-    branches: [ main, feature/** ]
-  pull_request:
+  workflow_dispatch:
+  # push:
+  #   branches: [ main, feature/** ]
+  # pull_request:
 
 jobs:
   test-and-coverage:
