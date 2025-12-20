@@ -23,12 +23,7 @@ const boxStyle = computed<CSSProperties>(() => ({
 const getCityFromCoords = async (lat: number, lon: number) => {
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`,
-      {
-        headers: {
-          'User-Agent': 'YourAppName',
-        },
-      }
+      `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&zoom=10&addressdetails=1`
     )
     const data = await response.json()
     city.value =

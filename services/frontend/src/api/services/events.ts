@@ -16,12 +16,7 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     return eventsClient.get<GetTagResponse>('/tags')
   },
   async getEventById(id_event: EventID): Promise<GetEventByIdResponse> {
-    const { date, ...rest } = await eventsClient.get<GetEventByIdResponse>(`/${id_event}`)
-    let localeDate = date
-    if (date) {
-      localeDate = new Date(String(date).endsWith('Z') ? date : `${date}Z`)
-    }
-    return { date: localeDate, ...rest }
+    return eventsClient.get<GetEventByIdResponse>(`/${id_event}`)
   },
   async getEventsByIds(id_events: EventID[]): Promise<EventsDataResponse> {
     const eventsResponses = await Promise.all(

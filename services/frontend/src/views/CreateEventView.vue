@@ -194,12 +194,7 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
 
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`,
-      {
-        headers: {
-          'User-Agent': 'EvenToNight',
-        },
-      }
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`
     )
     const data = await response.json()
     update(() => {
