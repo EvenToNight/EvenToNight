@@ -1,19 +1,27 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import type { EventReview } from '@/api/types/interaction'
+import type { Event } from '@/api/types/events'
 import ReviewCard from './ReviewCard.vue'
 import RatingStars from './RatingStars.vue'
+import { api } from '@/api'
 
 interface Props {
   reviews: EventReview[]
   loading?: boolean
+  showEventInfo?: boolean
+  showStats?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
+  showEventInfo: false,
+  showStats: true,
 })
 
 const selectedRating = ref<number | null>(null)
+const selectedEventId = ref<string | null>(null)
+const events = ref<Map<string, Event>>(new Map())
 
 const ratingOptions = [
   { label: 'All', value: null },
@@ -24,11 +32,38 @@ const ratingOptions = [
   { label: '1 Star', value: 1 },
 ]
 
+// Get unique events from reviews
+const uniqueEvents = computed(() => {
+  if (!props.showEventInfo) return []
+  const eventIds = new Set(props.reviews.map((r) => r.eventId))
+  return Array.from(eventIds)
+})
+
+const eventOptions = computed(() => {
+  const options: Array<{ label: string; value: string | null }> = [
+    { label: 'All Events', value: null },
+  ]
+  uniqueEvents.value.forEach((eventId) => {
+    const event = events.value.get(eventId)
+    if (event) {
+      options.push({ label: event.title, value: eventId })
+    }
+  })
+  return options
+})
+
 const filteredReviews = computed(() => {
-  if (selectedRating.value === null) {
-    return props.reviews
+  let filtered = props.reviews
+
+  if (selectedRating.value !== null) {
+    filtered = filtered.filter((review) => review.rating === selectedRating.value)
   }
-  return props.reviews.filter((review) => review.rating === selectedRating.value)
+
+  if (selectedEventId.value !== null) {
+    filtered = filtered.filter((review) => review.eventId === selectedEventId.value)
+  }
+
+  return filtered
 })
 
 const averageRating = computed(() => {
@@ -50,11 +85,40 @@ const ratingDistribution = computed(() => {
   })
   return distribution
 })
+
+// Load event info for unique events
+const loadEventsInfo = async () => {
+  if (!props.showEventInfo) return
+
+  for (const eventId of uniqueEvents.value) {
+    if (!events.value.has(eventId)) {
+      try {
+        const event = await api.events.getEventById(eventId)
+        events.value.set(eventId, event)
+      } catch (error) {
+        console.error(`Failed to load event ${eventId}:`, error)
+      }
+    }
+  }
+}
+
+// Watch for reviews changes to load event info
+watch(
+  () => props.reviews,
+  () => {
+    loadEventsInfo()
+  },
+  { immediate: true }
+)
+
+onMounted(() => {
+  loadEventsInfo()
+})
 </script>
 
 <template>
   <div class="reviews-list">
-    <div class="reviews-header">
+    <div v-if="showStats" class="reviews-header">
       <div class="stats-section">
         <div class="rating-distribution">
           <div v-for="rating in [5, 4, 3, 2, 1]" :key="rating" class="distribution-bar">
@@ -83,16 +147,32 @@ const ratingDistribution = computed(() => {
       </div>
 
       <div class="filter-section">
-        <label class="filter-label">Filter by rating:</label>
-        <div class="filter-buttons">
-          <button
-            v-for="option in ratingOptions"
-            :key="option.label"
-            :class="['filter-btn', { active: selectedRating === option.value }]"
-            @click="selectedRating = option.value"
-          >
-            {{ option.label }}
-          </button>
+        <div v-if="showEventInfo" class="filter-group">
+          <label class="filter-label">Filter by event:</label>
+          <div class="filter-buttons">
+            <button
+              v-for="option in eventOptions"
+              :key="option.label"
+              :class="['filter-btn', { active: selectedEventId === option.value }]"
+              @click="selectedEventId = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
+        </div>
+
+        <div class="filter-group">
+          <label class="filter-label">Filter by rating:</label>
+          <div class="filter-buttons">
+            <button
+              v-for="option in ratingOptions"
+              :key="option.label"
+              :class="['filter-btn', { active: selectedRating === option.value }]"
+              @click="selectedRating = option.value"
+            >
+              {{ option.label }}
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -108,7 +188,12 @@ const ratingDistribution = computed(() => {
     </div>
 
     <div v-else class="reviews-container">
-      <ReviewCard v-for="review in filteredReviews" :key="review.id" :review="review" />
+      <ReviewCard
+        v-for="review in filteredReviews"
+        :key="review.id"
+        :review="review"
+        :show-event-info="showEventInfo"
+      />
     </div>
   </div>
 </template>
@@ -237,10 +322,19 @@ const ratingDistribution = computed(() => {
 .filter-section {
   padding-top: $spacing-4;
   border-top: 1px solid $color-border;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
 
   @include dark-mode {
     border-top-color: $color-border-dark;
   }
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
 }
 
 .filter-label {

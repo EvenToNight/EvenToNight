@@ -14,4 +14,5 @@ export interface InteractionAPI {
   unfollowUser(targetUserId: UserID, currentUserId: UserID): Promise<void>
   getEventReviews(eventId: EventID): Promise<EventReview[]>
   createEventReview(eventId: EventID, review: EventReviewData): Promise<void>
+  getOrganizationReviews(organizationId: UserID): Promise<EventReview[]>
 }

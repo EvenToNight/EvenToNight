@@ -30,4 +30,7 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
   async createEventReview(eventId: EventID, review: EventReviewData): Promise<void> {
     return interactionsClient.post<void>(`/events/${eventId}/reviews`, review)
   },
+  async getOrganizationReviews(organizationId: UserID): Promise<EventReview[]> {
+    return interactionsClient.get<EventReview[]>(`/organizations/${organizationId}/reviews`)
+  },
 })

@@ -2,7 +2,9 @@
 import TabView, { type Tab } from '@/components/navigation/TabView.vue'
 import TicketsTab from './tabs/TicketsTab.vue'
 import EventsTab from './tabs/EventsTab.vue'
+import ReviewsTab from './tabs/ReviewsTab.vue'
 import type { User } from '@/api/types/users'
+import type { EventReview } from '@/api/types/interaction'
 import { useAuthStore } from '@/stores/auth'
 import { computed, onMounted, ref } from 'vue'
 import { api } from '@/api'
@@ -27,9 +29,11 @@ const isOrganization = computed(() => {
 const organizationEvents = ref<Event[]>([])
 const organizationDraftedEvents = ref<Event[]>([])
 const memberAttendedEvents = ref<Event[]>([])
+const organizationReviews = ref<EventReview[]>([])
 
 const hasMorePublished = ref(true)
 const hasMoreDraft = ref(true)
+const hasMoreReviews = ref(false)
 
 const EVENTS_PER_PAGE = 5
 
@@ -37,26 +41,47 @@ const handleTabChange = (tabId: string) => {
   console.log('Tab attiva:', tabId)
 }
 
+const reloadOrganizationReviews = async () => {
+  try {
+    const reviews = await api.interactions.getOrganizationReviews(props.user.id)
+    organizationReviews.value = reviews
+  } catch (error) {
+    console.error('Failed to reload reviews:', error)
+  }
+}
+
 onMounted(async () => {
   try {
-    const [publishedResponse, draftResponse] = await Promise.all([
-      api.events.searchEvents({
+    if (isOrganization.value) {
+      const [publishedResponse, draftResponse, reviews] = await Promise.all([
+        api.events.searchEvents({
+          id_organization: props.user.id,
+          status: 'PUBLISHED',
+          pagination: { limit: EVENTS_PER_PAGE },
+        }),
+        api.events.searchEvents({
+          id_organization: props.user.id,
+          status: 'DRAFT',
+          pagination: { limit: EVENTS_PER_PAGE },
+        }),
+        api.interactions.getOrganizationReviews(props.user.id),
+      ])
+      organizationEvents.value = publishedResponse.items
+      organizationDraftedEvents.value = draftResponse.items
+      organizationReviews.value = reviews
+      hasMorePublished.value = publishedResponse.hasMore
+      hasMoreDraft.value = draftResponse.hasMore
+    } else {
+      const publishedResponse = await api.events.searchEvents({
         id_organization: props.user.id,
         status: 'PUBLISHED',
         pagination: { limit: EVENTS_PER_PAGE },
-      }),
-      api.events.searchEvents({
-        id_organization: props.user.id,
-        status: 'DRAFT',
-        pagination: { limit: EVENTS_PER_PAGE },
-      }),
-    ])
-    organizationEvents.value = publishedResponse.items
-    organizationDraftedEvents.value = draftResponse.items
-    hasMorePublished.value = publishedResponse.hasMore
-    hasMoreDraft.value = draftResponse.hasMore
+      })
+      organizationEvents.value = publishedResponse.items
+      hasMorePublished.value = publishedResponse.hasMore
+    }
   } catch (error) {
-    console.error('Failed to fetch events for user:', error)
+    console.error('Failed to fetch data for user:', error)
   }
 })
 
@@ -130,6 +155,24 @@ const tabs = computed<Tab[]>(() => {
         onLoadMore: loadMoreDraft,
         emptyText: t('userProfile.noDraftedEvents'),
         emptyIconName: 'edit_note',
+      },
+    })
+  }
+
+  if (isOrganization.value) {
+    baseTabs.push({
+      id: 'reviews',
+      label: t('userProfile.reviews'),
+      icon: 'star',
+      component: ReviewsTab,
+      props: {
+        reviews: organizationReviews.value,
+        hasMore: hasMoreReviews.value,
+        onLoadMore: undefined,
+        emptyText: t('userProfile.noReviews'),
+        emptyIconName: 'rate_review',
+        organizationId: props.user.id,
+        'onReviews-updated': reloadOrganizationReviews,
       },
     })
   }

@@ -1,19 +1,25 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import type { EventReview } from '@/api/types/interaction'
+import type { Event } from '@/api/types/events'
 import RatingStars from './RatingStars.vue'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 
 interface Props {
   review: EventReview
+  showEventInfo?: boolean
 }
 
-const props = defineProps<Props>()
-const { goToUserProfile } = useNavigation()
+const props = withDefaults(defineProps<Props>(), {
+  showEventInfo: false,
+})
+
+const { goToUserProfile, goToEventDetails } = useNavigation()
 
 const userName = ref<string>('Loading...')
 const userAvatar = ref<string | null>(null)
+const eventInfo = ref<Event | null>(null)
 
 const loadUserInfo = async () => {
   try {
@@ -26,12 +32,28 @@ const loadUserInfo = async () => {
   }
 }
 
+const loadEventInfo = async () => {
+  if (!props.showEventInfo) return
+  try {
+    eventInfo.value = await api.events.getEventById(props.review.eventId)
+  } catch (error) {
+    console.error('Failed to load event info:', error)
+  }
+}
+
 const handleUserClick = () => {
   goToUserProfile(props.review.userId)
 }
 
+const handleEventClick = () => {
+  if (eventInfo.value) {
+    goToEventDetails(props.review.eventId)
+  }
+}
+
 onMounted(() => {
   loadUserInfo()
+  loadEventInfo()
 })
 </script>
 
@@ -51,6 +73,10 @@ onMounted(() => {
     </div>
 
     <div class="review-body">
+      <div v-if="showEventInfo && eventInfo" class="event-info" @click="handleEventClick">
+        <q-icon name="event" class="event-icon" />
+        <span class="event-title">{{ eventInfo.title }}</span>
+      </div>
       <h3 v-if="review.title" class="review-title">{{ review.title }}</h3>
       <p class="review-description">{{ review.comment }}</p>
     </div>
@@ -133,6 +159,60 @@ onMounted(() => {
 
 .review-body {
   padding-left: calc(40px + #{$spacing-3});
+}
+
+.event-info {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2 $spacing-3;
+  background: $color-primary-light;
+  border-radius: $radius-full;
+  margin-bottom: $spacing-3;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    background: $color-primary;
+    transform: translateY(-1px);
+
+    .event-title {
+      color: white;
+    }
+
+    .event-icon {
+      color: white;
+    }
+  }
+
+  @include dark-mode {
+    background: rgba($color-primary, 0.2);
+
+    &:hover {
+      background: $color-primary;
+    }
+  }
+
+  .event-icon {
+    color: $color-primary;
+    font-size: 1rem;
+    transition: color $transition-base;
+
+    @include dark-mode {
+      color: $color-primary-light;
+    }
+  }
+
+  .event-title {
+    font-size: $font-size-sm;
+    font-weight: 600;
+    color: $color-primary;
+    transition: color $transition-base;
+
+    @include dark-mode {
+      color: $color-primary-light;
+    }
+  }
 }
 
 .review-title {

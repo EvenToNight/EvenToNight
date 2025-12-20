@@ -105,4 +105,12 @@ export const mockInteractionsApi: InteractionAPI = {
     }
     return
   },
+  async getOrganizationReviews(organizationId: UserID): Promise<EventReview[]> {
+    // Get all events for this organization
+    const organizationEvents = mockEvents.filter((event) => event.id_creator === organizationId)
+    const eventIds = organizationEvents.map((event) => event.id_event)
+
+    // Get all reviews for these events
+    return mockEventReviews.filter((review) => eventIds.includes(review.eventId))
+  },
 }
