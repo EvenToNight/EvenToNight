@@ -1,16 +1,24 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 interface Props {
   rating: number
   size?: 'sm' | 'md' | 'lg'
   showNumber?: boolean
+  editable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   size: 'md',
   showNumber: true,
+  editable: false,
 })
+
+const emit = defineEmits<{
+  'update:rating': [rating: number]
+}>()
+
+const hoverRating = ref<number | null>(null)
 
 const sizeClass = computed(() => {
   switch (props.size) {
@@ -23,10 +31,15 @@ const sizeClass = computed(() => {
   }
 })
 
+const displayRating = computed(() => {
+  return hoverRating.value !== null ? hoverRating.value : props.rating
+})
+
 const getStarType = (index: number): 'filled' | 'half' | 'empty' => {
   const position = index + 1
-  if (props.rating >= position) return 'filled'
-  if (props.rating >= position - 0.5) return 'half'
+  const rating = displayRating.value
+  if (rating >= position) return 'filled'
+  if (rating >= position - 0.5) return 'half'
   return 'empty'
 }
 
@@ -36,11 +49,30 @@ const stars = computed(() => {
     index: i,
   }))
 })
+
+const handleStarClick = (index: number) => {
+  if (props.editable) {
+    const newRating = index + 1
+    emit('update:rating', newRating)
+  }
+}
+
+const handleStarHover = (index: number) => {
+  if (props.editable) {
+    hoverRating.value = index + 1
+  }
+}
+
+const handleMouseLeave = () => {
+  if (props.editable) {
+    hoverRating.value = null
+  }
+}
 </script>
 
 <template>
   <div class="rating-stars">
-    <div class="stars" :class="sizeClass">
+    <div class="stars" :class="[sizeClass, { editable }]" @mouseleave="handleMouseLeave">
       <q-icon
         v-for="star in stars"
         :key="star.index"
@@ -50,9 +82,11 @@ const stars = computed(() => {
           half: star.type === 'half',
           empty: star.type === 'empty',
         }"
+        @click="handleStarClick(star.index)"
+        @mouseenter="handleStarHover(star.index)"
       />
     </div>
-    <span v-if="showNumber" class="rating-number">{{ rating.toFixed(1) }}/5</span>
+    <span v-if="showNumber" class="rating-number">{{ displayRating.toFixed(1) }}/5</span>
   </div>
 </template>
 
@@ -66,6 +100,17 @@ const stars = computed(() => {
 .stars {
   display: flex;
   gap: $spacing-1;
+
+  &.editable {
+    .q-icon {
+      cursor: pointer;
+      transition: transform $transition-base;
+
+      &:hover {
+        transform: scale(1.2);
+      }
+    }
+  }
 
   .q-icon {
     &.filled,

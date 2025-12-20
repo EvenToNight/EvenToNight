@@ -14,12 +14,17 @@ export interface UserInteraction {
   following: UserID[]
 }
 
-export interface EventReview {
+export type Rating = 0 | 1 | 2 | 3 | 4 | 5
+
+export interface EventReviewData {
+  userId: UserID
+  organizationId: UserID
+  collaboratorsId: UserID[]
+  rating: Rating
+  title: string
+  comment: string
+}
+export interface EventReview extends EventReviewData {
   id: string
   eventId: EventID
-  organizationId: UserID
-  collaboratorId?: UserID[]
-  userId: UserID
-  rating: 0 | 1 | 2 | 3 | 4 | 5
-  description: string
 }

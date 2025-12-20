@@ -2,7 +2,7 @@ import type { GetEventInteractionsResponse, InteractionAPI } from '../interfaces
 import type { EventID } from '../types/events'
 import type { ApiClient } from '../client'
 import type { UserID } from '../types/users'
-import type { EventReview } from '../types/interaction'
+import type { EventReview, EventReviewData } from '../types/interaction'
 
 export const createInteractionsApi = (interactionsClient: ApiClient): InteractionAPI => ({
   async getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse> {
@@ -26,5 +26,8 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
   },
   async getEventReviews(eventId: EventID): Promise<EventReview[]> {
     return interactionsClient.get<EventReview[]>(`/events/${eventId}/reviews`)
+  },
+  async createEventReview(eventId: EventID, review: EventReviewData): Promise<void> {
+    return interactionsClient.post<void>(`/events/${eventId}/reviews`, review)
   },
 })

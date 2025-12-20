@@ -1,8 +1,11 @@
 import type { GetEventInteractionsResponse, InteractionAPI } from '../interfaces/interactions'
 import type { EventID } from '../types/events'
-import type { EventReview } from '../types/interaction'
+import type { EventReview, EventReviewData } from '../types/interaction'
 import type { UserID } from '../types/users'
+import { mockEvents } from './data/events'
+import { mockUsers } from './data/members'
 import { mockEventInteractions, mockEventReviews, mockUserInteractions } from './data/interactions'
+import { mockOrganizations } from './data/organizations'
 
 const findInteractionByEventId = (eventId: EventID) => {
   const interaction = mockEventInteractions.find((interaction) => interaction.eventId === eventId)
@@ -68,5 +71,38 @@ export const mockInteractionsApi: InteractionAPI = {
   },
   async getEventReviews(eventId: EventID): Promise<EventReview[]> {
     return mockEventReviews.filter((review) => review.eventId === eventId)
+  },
+  async createEventReview(eventId: EventID, review: EventReviewData): Promise<void> {
+    if (!mockEvents.find((event) => event.id_event === eventId)) {
+      throw {
+        message: `Event ${eventId} not found`,
+        code: 'EVENT_NOT_FOUND',
+        status: 404,
+      }
+    }
+    if (!mockUsers.find((user) => user.id === review.userId)) {
+      throw {
+        message: `User ${review.userId} not found`,
+        code: 'USER_NOT_FOUND',
+        status: 404,
+      }
+    }
+    if (!mockOrganizations.find((org) => org.id === review.organizationId)) {
+      throw {
+        message: `Organization ${review.organizationId} not found`,
+        code: 'ORGANIZATION_NOT_FOUND',
+        status: 404,
+      }
+    }
+    for (const collaboratorId of review.collaboratorsId) {
+      if (!mockOrganizations.find((org) => org.id === collaboratorId)) {
+        throw {
+          message: `Collaborator organization ${collaboratorId} not found`,
+          code: 'ORGANIZATION_NOT_FOUND',
+          status: 404,
+        }
+      }
+    }
+    return
   },
 }

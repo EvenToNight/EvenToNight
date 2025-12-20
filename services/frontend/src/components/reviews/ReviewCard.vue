@@ -3,12 +3,14 @@ import { ref, onMounted } from 'vue'
 import type { EventReview } from '@/api/types/interaction'
 import RatingStars from './RatingStars.vue'
 import { api } from '@/api'
+import { useNavigation } from '@/router/utils'
 
 interface Props {
   review: EventReview
 }
 
 const props = defineProps<Props>()
+const { goToUserProfile } = useNavigation()
 
 const userName = ref<string>('Loading...')
 const userAvatar = ref<string | null>(null)
@@ -24,6 +26,10 @@ const loadUserInfo = async () => {
   }
 }
 
+const handleUserClick = () => {
+  goToUserProfile(props.review.userId)
+}
+
 onMounted(() => {
   loadUserInfo()
 })
@@ -33,19 +39,20 @@ onMounted(() => {
   <div class="review-card">
     <div class="review-header">
       <div class="user-info">
-        <q-avatar size="40px" class="user-avatar">
+        <q-avatar size="40px" class="user-avatar" @click="handleUserClick">
           <img v-if="userAvatar" :src="userAvatar" :alt="userName" />
           <q-icon v-else name="person" />
         </q-avatar>
         <div class="user-details">
-          <span class="user-name">{{ userName }}</span>
+          <span class="user-name" @click="handleUserClick">{{ userName }}</span>
           <RatingStars :rating="review.rating" size="sm" />
         </div>
       </div>
     </div>
 
     <div class="review-body">
-      <p class="review-description">{{ review.description }}</p>
+      <h3 v-if="review.title" class="review-title">{{ review.title }}</h3>
+      <p class="review-description">{{ review.comment }}</p>
     </div>
   </div>
 </template>
@@ -79,6 +86,12 @@ onMounted(() => {
 
 .user-avatar {
   background: $color-primary-light;
+  cursor: pointer;
+  transition: transform $transition-base;
+
+  &:hover {
+    transform: scale(1.05);
+  }
 
   @include dark-mode {
     background: $color-primary-dark;
@@ -105,6 +118,13 @@ onMounted(() => {
   font-weight: 600;
   font-size: $font-size-base;
   color: $color-text-primary;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  &:hover {
+    text-decoration: underline;
+    color: $color-primary;
+  }
 
   @include dark-mode {
     color: $color-heading-dark;
@@ -113,6 +133,17 @@ onMounted(() => {
 
 .review-body {
   padding-left: calc(40px + #{$spacing-3});
+}
+
+.review-title {
+  font-size: $font-size-lg;
+  font-weight: 600;
+  color: $color-text-primary;
+  margin: 0 0 $spacing-2 0;
+
+  @include dark-mode {
+    color: $color-heading-dark;
+  }
 }
 
 .review-description {
