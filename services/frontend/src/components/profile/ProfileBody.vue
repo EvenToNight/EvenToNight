@@ -44,7 +44,7 @@ const handleTabChange = (tabId: string) => {
 const reloadOrganizationReviews = async () => {
   try {
     const reviews = await api.interactions.getOrganizationReviews(props.user.id)
-    organizationReviews.value = reviews
+    organizationReviews.value = reviews.items
   } catch (error) {
     console.error('Failed to reload reviews:', error)
   }
@@ -68,7 +68,7 @@ onMounted(async () => {
       ])
       organizationEvents.value = publishedResponse.items
       organizationDraftedEvents.value = draftResponse.items
-      organizationReviews.value = reviews
+      organizationReviews.value = reviews.items
       hasMorePublished.value = publishedResponse.hasMore
       hasMoreDraft.value = draftResponse.hasMore
     } else {

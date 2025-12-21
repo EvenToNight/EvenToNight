@@ -1,11 +1,17 @@
-import type { GetEventInteractionsResponse, InteractionAPI } from '../interfaces/interactions'
+import type {
+  GetEventInteractionsResponse,
+  GetReviewResponse,
+  InteractionAPI,
+} from '../interfaces/interactions'
 import type { EventID } from '../types/events'
-import type { EventReview, EventReviewData } from '../types/interaction'
+import type { EventReviewData } from '../types/interaction'
 import type { UserID } from '../types/users'
 import { mockEvents } from './data/events'
 import { mockUsers } from './data/members'
 import { mockEventInteractions, mockEventReviews, mockUserInteractions } from './data/interactions'
 import { mockOrganizations } from './data/organizations'
+import type { PaginatedRequest } from '../interfaces/commons'
+import { getPaginatedItems } from '@/api/utils'
 
 const findInteractionByEventId = (eventId: EventID) => {
   const interaction = mockEventInteractions.find((interaction) => interaction.eventId === eventId)
@@ -69,8 +75,12 @@ export const mockInteractionsApi: InteractionAPI = {
       (id) => id !== currentUserId
     )
   },
-  async getEventReviews(eventId: EventID): Promise<EventReview[]> {
-    return mockEventReviews.filter((review) => review.eventId === eventId)
+  async getEventReviews(
+    eventId: EventID,
+    pagination?: PaginatedRequest
+  ): Promise<GetReviewResponse> {
+    const reviews = mockEventReviews.filter((review) => review.eventId === eventId)
+    return { ...getPaginatedItems(reviews, pagination), totalItems: reviews.length }
   },
   async createEventReview(eventId: EventID, review: EventReviewData): Promise<void> {
     if (!mockEvents.find((event) => event.id_event === eventId)) {
@@ -105,12 +115,13 @@ export const mockInteractionsApi: InteractionAPI = {
     }
     return
   },
-  async getOrganizationReviews(organizationId: UserID): Promise<EventReview[]> {
-    // Get all events for this organization
+  async getOrganizationReviews(
+    organizationId: UserID,
+    pagination?: PaginatedRequest
+  ): Promise<GetReviewResponse> {
     const organizationEvents = mockEvents.filter((event) => event.id_creator === organizationId)
     const eventIds = organizationEvents.map((event) => event.id_event)
-
-    // Get all reviews for these events
-    return mockEventReviews.filter((review) => eventIds.includes(review.eventId))
+    const reviews = mockEventReviews.filter((review) => eventIds.includes(review.eventId))
+    return { ...getPaginatedItems(reviews, pagination), totalItems: reviews.length }
   },
 }

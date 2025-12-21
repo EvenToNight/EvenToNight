@@ -24,7 +24,7 @@ const submittingReview = ref(false)
 const loadReviews = async () => {
   loading.value = true
   try {
-    reviews.value = await api.interactions.getEventReviews(eventId.value)
+    reviews.value = (await api.interactions.getEventReviews(eventId.value)).items
   } catch (error) {
     console.error('Failed to load reviews:', error)
   } finally {

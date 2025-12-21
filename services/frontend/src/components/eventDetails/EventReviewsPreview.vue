@@ -27,7 +27,7 @@ const averageRating = computed(() => {
 const loadReviews = async () => {
   try {
     loading.value = true
-    reviews.value = await api.interactions.getEventReviews(props.eventId)
+    reviews.value = (await api.interactions.getEventReviews(props.eventId)).items
   } catch (error) {
     console.error('Failed to load reviews:', error)
   } finally {

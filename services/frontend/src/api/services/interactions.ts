@@ -1,8 +1,14 @@
-import type { GetEventInteractionsResponse, InteractionAPI } from '../interfaces/interactions'
+import type {
+  GetEventInteractionsResponse,
+  GetReviewResponse,
+  InteractionAPI,
+} from '../interfaces/interactions'
 import type { EventID } from '../types/events'
 import type { ApiClient } from '../client'
 import type { UserID } from '../types/users'
-import type { EventReview, EventReviewData } from '../types/interaction'
+import type { EventReviewData } from '../types/interaction'
+import type { PaginatedRequest } from '../interfaces/commons'
+import { evaluatePagination, buildQueryParams } from '../utils'
 
 export const createInteractionsApi = (interactionsClient: ApiClient): InteractionAPI => ({
   async getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse> {
@@ -24,13 +30,23 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
       `/users/${targetUserId}/interactions/followers/${currentUserId}`
     )
   },
-  async getEventReviews(eventId: EventID): Promise<EventReview[]> {
-    return interactionsClient.get<EventReview[]>(`/events/${eventId}/reviews`)
+  async getEventReviews(
+    eventId: EventID,
+    pagination?: PaginatedRequest
+  ): Promise<GetReviewResponse> {
+    return interactionsClient.get<GetReviewResponse>(
+      `/events/${eventId}/reviews${buildQueryParams({ ...evaluatePagination(pagination) })}`
+    )
   },
   async createEventReview(eventId: EventID, review: EventReviewData): Promise<void> {
     return interactionsClient.post<void>(`/events/${eventId}/reviews`, review)
   },
-  async getOrganizationReviews(organizationId: UserID): Promise<EventReview[]> {
-    return interactionsClient.get<EventReview[]>(`/organizations/${organizationId}/reviews`)
+  async getOrganizationReviews(
+    organizationId: UserID,
+    pagination?: PaginatedRequest
+  ): Promise<GetReviewResponse> {
+    return interactionsClient.get<GetReviewResponse>(
+      `/organizations/${organizationId}/reviews${buildQueryParams({ ...evaluatePagination(pagination) })}`
+    )
   },
 })

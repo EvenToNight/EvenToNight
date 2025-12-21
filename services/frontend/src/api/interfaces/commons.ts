@@ -15,4 +15,8 @@ export interface PaginatedResponse<T> {
   hasMore: boolean
 }
 
+export interface PaginatedResponseWithTotalCount<T> extends PaginatedResponse<T> {
+  totalItems: number
+}
+
 export type SortOrder = 'asc' | 'desc'
