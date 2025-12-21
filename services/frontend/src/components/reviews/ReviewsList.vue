@@ -28,7 +28,7 @@ const emit = defineEmits<{
 const selectedRating = ref<number | null>(null)
 const selectedEventId = ref<string | null>(null)
 const events = ref<Map<string, Event>>(new Map())
-const eventOptions = ref<Array<{ label: string; value: string | null }>>([])
+const eventOptions = ref<Array<{ label: string; value: string | null; poster?: string }>>([])
 const ratingOptions = ref<Array<{ label: string; value: number | null }>>([])
 
 // Get unique events from reviews
@@ -39,13 +39,13 @@ const uniqueEvents = computed(() => {
 })
 
 const allEventOptions = computed(() => {
-  const options: Array<{ label: string; value: string | null }> = [
+  const options: Array<{ label: string; value: string | null; poster?: string }> = [
     { label: 'Tutti gli eventi', value: null },
   ]
   uniqueEvents.value.forEach((eventId) => {
     const event = events.value.get(eventId)
     if (event) {
-      options.push({ label: event.title, value: eventId })
+      options.push({ label: event.title, value: eventId, poster: event.poster })
     }
   })
   return options
@@ -205,6 +205,16 @@ onMounted(() => {
             map-options
             @filter="filterEvents"
           >
+            <template #option="scope">
+              <q-item v-bind="scope.itemProps">
+                <q-item-section v-if="scope.opt.poster" avatar>
+                  <img :src="scope.opt.poster" alt="Event poster" class="event-option-image" />
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </template>
             <template #no-option>
               <q-item>
                 <q-item-section class="text-grey"> Nessun evento trovato </q-item-section>
@@ -406,6 +416,13 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: $spacing-2;
+}
+
+.event-option-image {
+  width: 48px;
+  height: 48px;
+  border-radius: $radius-md;
+  object-fit: cover;
 }
 
 .add-review-section {

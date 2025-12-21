@@ -37,6 +37,7 @@ const loadReviews = async () => {
 }
 
 const goToAllReviews = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
   goToEventReviews(props.eventId)
 }
 

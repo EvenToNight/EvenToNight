@@ -7,12 +7,13 @@ import ReviewsList from '@/components/reviews/ReviewsList.vue'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import RatingStars from '@/components/reviews/RatingStars.vue'
 
-const { params, goToEventDetails } = useNavigation()
+const { params, goToEventDetails, goToUserProfile } = useNavigation()
 
 const eventId = computed(() => params.id as string)
 const reviews = ref<EventReview[]>([])
 const loading = ref(true)
 const eventTitle = ref<string>('')
+const organizationId = ref<string>('')
 
 // Review dialog
 const showReviewDialog = ref(false)
@@ -36,8 +37,15 @@ const loadEventInfo = async () => {
   try {
     const event = await api.events.getEventById(eventId.value)
     eventTitle.value = event.title || 'Event'
+    organizationId.value = event.id_creator
   } catch (error) {
     console.error('Failed to load event:', error)
+  }
+}
+
+const goToOrganizationProfile = () => {
+  if (organizationId.value) {
+    goToUserProfile(organizationId.value)
   }
 }
 
@@ -90,10 +98,20 @@ onMounted(async () => {
           </button>
           <div class="title-row">
             <h1 class="page-title">Reviews for {{ eventTitle }}</h1>
-            <button class="add-review-btn" @click="openReviewDialog">
-              <q-icon name="rate_review" />
-              Lascia una recensione
-            </button>
+            <div class="action-buttons">
+              <button
+                v-if="organizationId"
+                class="organization-btn"
+                @click="goToOrganizationProfile"
+              >
+                <q-icon name="business" />
+                Vai al profilo
+              </button>
+              <button class="add-review-btn" @click="openReviewDialog">
+                <q-icon name="rate_review" />
+                Lascia una recensione
+              </button>
+            </div>
           </div>
         </div>
 
@@ -190,6 +208,47 @@ onMounted(async () => {
   @media (max-width: $breakpoint-mobile) {
     flex-direction: column;
     align-items: flex-start;
+  }
+}
+
+.action-buttons {
+  display: flex;
+  gap: $spacing-3;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: column;
+    width: 100%;
+  }
+}
+
+.organization-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-3 $spacing-5;
+  background: $color-background;
+  color: $color-primary;
+  border: 2px solid $color-primary;
+  border-radius: $radius-full;
+  font-size: $font-size-base;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all $transition-base;
+  white-space: nowrap;
+
+  &:hover {
+    background: $color-primary;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
+  }
+
+  @include dark-mode {
+    background: $color-background-dark;
+  }
+
+  .q-icon {
+    font-size: 1.25rem;
   }
 }
 
