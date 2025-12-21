@@ -29,12 +29,13 @@ const { t } = useI18n()
       <EventDetailsBodyInfo :event="event" />
       <EventDetailsOrganizationInfo :event="event" />
       <Button
+        v-if="event.status === 'PUBLISHED'"
         variant="primary"
         :label="t('eventDetails.buyTickets')"
         :class="'full-width'"
         size="lg"
       />
-      <EventReviewsPreview :eventId="event.id_event" />
+      <EventReviewsPreview v-else-if="event.status === 'COMPLETED'" :eventId="event.id_event" />
     </div>
   </div>
 </template>

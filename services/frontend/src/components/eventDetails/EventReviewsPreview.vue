@@ -5,6 +5,7 @@ import ReviewCard from '@/components/reviews/ReviewCard.vue'
 import RatingStars from '@/components/reviews/RatingStars.vue'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
+import SeeAllButton from '@/components/buttons/basicButtons/SeeAllButton.vue'
 
 interface Props {
   eventId: string
@@ -54,17 +55,14 @@ onMounted(() => {
 
   <div v-else-if="reviews.length > 0" class="reviews-preview">
     <div class="preview-header">
-      <div class="header-left">
+      <div class="header-top">
         <h3 class="section-title">Recensioni</h3>
-        <div class="rating-summary">
-          <RatingStars :rating="averageRating" size="md" :show-number="true" />
-          <span class="review-count">({{ reviews.length }} recensioni)</span>
-        </div>
+        <SeeAllButton @click="goToAllReviews" />
       </div>
-      <button class="see-all-btn" @click="goToAllReviews">
-        Vedi tutte
-        <q-icon name="arrow_forward" />
-      </button>
+      <div class="rating-summary">
+        <RatingStars :rating="averageRating" size="md" :show-number="true" />
+        <span class="review-count">({{ reviews.length }} recensioni)</span>
+      </div>
     </div>
 
     <div class="reviews-list">
@@ -98,21 +96,14 @@ onMounted(() => {
 
 .preview-header {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: $spacing-6;
-  gap: $spacing-4;
-
-  @media (max-width: $breakpoint-sm) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-.header-left {
-  display: flex;
   flex-direction: column;
   gap: $spacing-2;
+  margin-bottom: $spacing-3;
+}
+
+.header-top {
+  @include flex-between;
+  gap: $spacing-6;
 }
 
 .section-title {
@@ -130,6 +121,11 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: $spacing-3;
+
+  @media (max-width: $app-min-width) {
+    flex-direction: column;
+    align-items: flex-start;
+  }
 }
 
 .review-count {
@@ -138,33 +134,6 @@ onMounted(() => {
 
   @include dark-mode {
     color: $color-text-dark;
-  }
-}
-
-.see-all-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-2;
-  padding: $spacing-3 $spacing-5;
-  background: transparent;
-  color: $color-primary;
-  border: 2px solid $color-primary;
-  border-radius: $radius-full;
-  font-size: $font-size-base;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all $transition-base;
-  white-space: nowrap;
-
-  &:hover {
-    background: $color-primary;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: $shadow-md;
-  }
-
-  .q-icon {
-    font-size: 1.25rem;
   }
 }
 

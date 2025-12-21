@@ -355,6 +355,9 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
   gap: $spacing-2;
+  @include dark-mode {
+    color: $color-heading-dark;
+  }
 }
 
 .filter-btn {
@@ -382,6 +385,9 @@ onMounted(() => {
     border-color: $color-primary;
     background: $color-primary;
     color: white;
+    @include dark-mode {
+      color: $color-heading-dark;
+    }
   }
 }
 

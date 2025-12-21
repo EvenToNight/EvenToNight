@@ -19,7 +19,7 @@ export const mockEvents: Event[] = [
     location: event1Location,
     date: new Date(2024, 11, 8, 23, 0),
     price: 25,
-    status: 'PUBLISHED',
+    status: 'COMPLETED',
     id_creator: 'organization_1',
     id_collaborators: ['organization_2', 'organization_3'],
   },

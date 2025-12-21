@@ -77,7 +77,7 @@ onMounted(() => {
         <q-icon name="event" class="event-icon" />
         <span class="event-title">{{ eventInfo.title }}</span>
       </div>
-      <h3 v-if="review.title" class="review-title">{{ review.title }}</h3>
+      <h3 class="review-title">{{ review.title }}</h3>
       <p class="review-description">{{ review.comment }}</p>
     </div>
   </div>
@@ -88,15 +88,11 @@ onMounted(() => {
   background: $color-background;
   border-radius: $radius-lg;
   padding: $spacing-4;
-  box-shadow: $shadow-sm;
+  box-shadow: $shadow-md;
   transition: all $transition-base;
 
   @include dark-mode {
     background: $color-background-dark;
-  }
-
-  &:hover {
-    box-shadow: $shadow-md;
   }
 }
 
@@ -149,7 +145,6 @@ onMounted(() => {
 
   &:hover {
     text-decoration: underline;
-    color: $color-primary;
   }
 
   @include dark-mode {
@@ -162,41 +157,16 @@ onMounted(() => {
 }
 
 .event-info {
-  display: inline-flex;
+  display: flex;
   align-items: center;
   gap: $spacing-2;
-  padding: $spacing-2 $spacing-3;
-  background: $color-primary-light;
-  border-radius: $radius-full;
+  color: $color-primary;
   margin-bottom: $spacing-3;
   cursor: pointer;
   transition: all $transition-base;
 
-  &:hover {
-    background: $color-primary;
-    transform: translateY(-1px);
-
-    .event-title {
-      color: white;
-    }
-
-    .event-icon {
-      color: white;
-    }
-  }
-
-  @include dark-mode {
-    background: rgba($color-primary, 0.2);
-
-    &:hover {
-      background: $color-primary;
-    }
-  }
-
   .event-icon {
-    color: $color-primary;
     font-size: 1rem;
-    transition: color $transition-base;
 
     @include dark-mode {
       color: $color-primary-light;
@@ -206,9 +176,9 @@ onMounted(() => {
   .event-title {
     font-size: $font-size-sm;
     font-weight: 600;
-    color: $color-primary;
-    transition: color $transition-base;
-
+    &:hover {
+      text-decoration: underline;
+    }
     @include dark-mode {
       color: $color-primary-light;
     }
