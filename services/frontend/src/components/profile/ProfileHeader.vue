@@ -115,6 +115,9 @@ const handleCreateEvent = () => {
   @include dark-mode {
     background: $color-background-dark;
   }
+  @media (max-width: $breakpoint-mobile) {
+    margin: 0 $spacing-4;
+  }
 }
 
 .profile-header {

@@ -11,26 +11,25 @@ interface Props {
   loading?: boolean
   showEventInfo?: boolean
   showStats?: boolean
+  showAddReviewButton?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
   loading: false,
   showEventInfo: false,
   showStats: true,
+  showAddReviewButton: false,
 })
+
+const emit = defineEmits<{
+  'add-review': []
+}>()
 
 const selectedRating = ref<number | null>(null)
 const selectedEventId = ref<string | null>(null)
 const events = ref<Map<string, Event>>(new Map())
-
-const ratingOptions = [
-  { label: 'All', value: null },
-  { label: '5 Stars', value: 5 },
-  { label: '4 Stars', value: 4 },
-  { label: '3 Stars', value: 3 },
-  { label: '2 Stars', value: 2 },
-  { label: '1 Star', value: 1 },
-]
+const eventOptions = ref<Array<{ label: string; value: string | null }>>([])
+const ratingOptions = ref<Array<{ label: string; value: number | null }>>([])
 
 // Get unique events from reviews
 const uniqueEvents = computed(() => {
@@ -39,9 +38,9 @@ const uniqueEvents = computed(() => {
   return Array.from(eventIds)
 })
 
-const eventOptions = computed(() => {
+const allEventOptions = computed(() => {
   const options: Array<{ label: string; value: string | null }> = [
-    { label: 'All Events', value: null },
+    { label: 'Tutti gli eventi', value: null },
   ]
   uniqueEvents.value.forEach((eventId) => {
     const event = events.value.get(eventId)
@@ -50,6 +49,17 @@ const eventOptions = computed(() => {
     }
   })
   return options
+})
+
+const allRatingOptions = computed(() => {
+  return [
+    { label: 'Tutte le stelle', value: null },
+    { label: '5 Stelle', value: 5 },
+    { label: '4 Stelle', value: 4 },
+    { label: '3 Stelle', value: 3 },
+    { label: '2 Stelle', value: 2 },
+    { label: '1 Stella', value: 1 },
+  ]
 })
 
 const filteredReviews = computed(() => {
@@ -86,6 +96,33 @@ const ratingDistribution = computed(() => {
   return distribution
 })
 
+// Filter functions
+const filterEvents = (val: string, update: (callback: () => void) => void) => {
+  update(() => {
+    if (val === '') {
+      eventOptions.value = allEventOptions.value
+    } else {
+      const needle = val.toLowerCase()
+      eventOptions.value = allEventOptions.value.filter(
+        (option) => option.label.toLowerCase().indexOf(needle) > -1
+      )
+    }
+  })
+}
+
+const filterRatings = (val: string, update: (callback: () => void) => void) => {
+  update(() => {
+    if (val === '') {
+      ratingOptions.value = allRatingOptions.value
+    } else {
+      const needle = val.toLowerCase()
+      ratingOptions.value = allRatingOptions.value.filter(
+        (option) => option.label.toLowerCase().indexOf(needle) > -1
+      )
+    }
+  })
+}
+
 // Load event info for unique events
 const loadEventsInfo = async () => {
   if (!props.showEventInfo) return
@@ -100,6 +137,10 @@ const loadEventsInfo = async () => {
       }
     }
   }
+
+  // Initialize options after loading events
+  eventOptions.value = allEventOptions.value
+  ratingOptions.value = allRatingOptions.value
 }
 
 // Watch for reviews changes to load event info
@@ -148,31 +189,59 @@ onMounted(() => {
 
       <div class="filter-section">
         <div v-if="showEventInfo" class="filter-group">
-          <label class="filter-label">Filter by event:</label>
-          <div class="filter-buttons">
-            <button
-              v-for="option in eventOptions"
-              :key="option.label"
-              :class="['filter-btn', { active: selectedEventId === option.value }]"
-              @click="selectedEventId = option.value"
-            >
-              {{ option.label }}
-            </button>
-          </div>
+          <q-select
+            v-model="selectedEventId"
+            :options="eventOptions"
+            option-value="value"
+            option-label="label"
+            label="Filtra per evento"
+            outlined
+            :clearable="selectedEventId !== null"
+            use-input
+            hide-selected
+            fill-input
+            input-debounce="300"
+            emit-value
+            map-options
+            @filter="filterEvents"
+          >
+            <template #no-option>
+              <q-item>
+                <q-item-section class="text-grey"> Nessun evento trovato </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
         </div>
 
         <div class="filter-group">
-          <label class="filter-label">Filter by rating:</label>
-          <div class="filter-buttons">
-            <button
-              v-for="option in ratingOptions"
-              :key="option.label"
-              :class="['filter-btn', { active: selectedRating === option.value }]"
-              @click="selectedRating = option.value"
-            >
-              {{ option.label }}
-            </button>
-          </div>
+          <q-select
+            v-model="selectedRating"
+            :options="ratingOptions"
+            option-value="value"
+            option-label="label"
+            label="Filtra per stelle"
+            outlined
+            use-input
+            hide-selected
+            fill-input
+            input-debounce="300"
+            emit-value
+            map-options
+            @filter="filterRatings"
+          >
+            <template #no-option>
+              <q-item>
+                <q-item-section class="text-grey"> Nessuna opzione trovata </q-item-section>
+              </q-item>
+            </template>
+          </q-select>
+        </div>
+
+        <div v-if="showAddReviewButton" class="add-review-section">
+          <button class="add-review-btn" @click="emit('add-review')">
+            <q-icon name="rate_review" />
+            Lascia una recensione
+          </button>
         </div>
       </div>
     </div>
@@ -339,55 +408,35 @@ onMounted(() => {
   gap: $spacing-2;
 }
 
-.filter-label {
-  display: block;
-  font-size: $font-size-sm;
-  font-weight: 600;
-  color: $color-text-primary;
-  margin-bottom: $spacing-3;
-
-  @include dark-mode {
-    color: $color-heading-dark;
-  }
-}
-
-.filter-buttons {
+.add-review-section {
   display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-2;
-  @include dark-mode {
-    color: $color-heading-dark;
-  }
+  justify-content: center;
+  padding-top: $spacing-2;
 }
 
-.filter-btn {
-  padding: $spacing-2 $spacing-4;
-  border: 2px solid $color-border;
+.add-review-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-3 $spacing-5;
+  background: $color-primary;
+  color: white;
+  border: none;
   border-radius: $radius-full;
-  background: transparent;
-  color: $color-text-secondary;
-  font-size: $font-size-sm;
+  font-size: $font-size-base;
   font-weight: 600;
   cursor: pointer;
   transition: all $transition-base;
-
-  @include dark-mode {
-    border-color: $color-border-dark;
-    color: $color-text-dark;
-  }
+  white-space: nowrap;
 
   &:hover {
-    border-color: $color-primary;
-    color: $color-primary;
+    background: $color-primary-dark;
+    transform: translateY(-2px);
+    box-shadow: $shadow-md;
   }
 
-  &.active {
-    border-color: $color-primary;
-    background: $color-primary;
-    color: white;
-    @include dark-mode {
-      color: $color-heading-dark;
-    }
+  .q-icon {
+    font-size: 1.25rem;
   }
 }
 

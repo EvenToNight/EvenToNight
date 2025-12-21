@@ -122,13 +122,6 @@ const submitReview = async () => {
 
 <template>
   <div class="reviews-tab">
-    <div v-if="canLeaveReview" class="review-action-header">
-      <button class="add-review-btn" @click="openReviewDialog">
-        <q-icon name="rate_review" />
-        {{ t('userProfile.leaveReview') }}
-      </button>
-    </div>
-
     <q-infinite-scroll
       v-if="reviews.length > 0"
       :offset="250"
@@ -137,7 +130,13 @@ const submitReview = async () => {
       @load="onLoad"
     >
       <div class="reviews-container">
-        <ReviewsList :reviews="reviews" :show-event-info="true" :show-stats="true" />
+        <ReviewsList
+          :reviews="reviews"
+          :show-event-info="true"
+          :show-stats="true"
+          :show-add-review-button="canLeaveReview"
+          @add-review="openReviewDialog"
+        />
       </div>
 
       <template #loading>
@@ -230,43 +229,6 @@ const submitReview = async () => {
 .reviews-tab {
   @include flex-column;
   height: 100%;
-}
-
-.review-action-header {
-  display: flex;
-  justify-content: flex-end;
-  padding: $spacing-4 $spacing-3;
-  border-bottom: 1px solid $color-border;
-
-  @include dark-mode {
-    border-bottom-color: $color-border-dark;
-  }
-}
-
-.add-review-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-2;
-  padding: $spacing-3 $spacing-5;
-  background: $color-primary;
-  color: white;
-  border: none;
-  border-radius: $radius-full;
-  font-size: $font-size-base;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all $transition-base;
-  white-space: nowrap;
-
-  &:hover {
-    background: $color-primary-dark;
-    transform: translateY(-2px);
-    box-shadow: $shadow-md;
-  }
-
-  .q-icon {
-    font-size: 1.25rem;
-  }
 }
 
 .reviews-scroll {
