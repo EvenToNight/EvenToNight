@@ -7,13 +7,15 @@ import ReviewsList from '@/components/reviews/ReviewsList.vue'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import RatingStars from '@/components/reviews/RatingStars.vue'
 
-const { params, goToEventDetails, goToUserProfile } = useNavigation()
+const { params, goToUserProfile } = useNavigation()
 
 const eventId = computed(() => params.id as string)
 const reviews = ref<EventReview[]>([])
 const loading = ref(true)
 const eventTitle = ref<string>('')
 const organizationId = ref<string>('')
+const organizationName = ref<string>('')
+const organizationAvatar = ref<string>('')
 
 // Review dialog
 const showReviewDialog = ref(false)
@@ -38,6 +40,13 @@ const loadEventInfo = async () => {
     const event = await api.events.getEventById(eventId.value)
     eventTitle.value = event.title || 'Event'
     organizationId.value = event.id_creator
+
+    // Load organization info
+    if (organizationId.value) {
+      const response = await api.users.getUserById(organizationId.value)
+      organizationName.value = response.user.name
+      organizationAvatar.value = response.user.avatarUrl || ''
+    }
   } catch (error) {
     console.error('Failed to load event:', error)
   }
@@ -49,12 +58,12 @@ const goToOrganizationProfile = () => {
   }
 }
 
-const openReviewDialog = () => {
-  newReviewRating.value = 5
-  newReviewTitle.value = ''
-  newReviewDescription.value = ''
-  showReviewDialog.value = true
-}
+// const openReviewDialog = () => {
+//   newReviewRating.value = 5
+//   newReviewTitle.value = ''
+//   newReviewDescription.value = ''
+//   showReviewDialog.value = true
+// }
 
 const submitReview = async () => {
   if (newReviewTitle.value.trim() === '' || newReviewDescription.value.trim() === '') {
@@ -92,30 +101,21 @@ onMounted(async () => {
     <div class="page-content">
       <div class="container">
         <div class="header-section">
-          <button class="back-button" @click="goToEventDetails(eventId)">
-            <q-icon name="arrow_back" />
-            Back to Event
-          </button>
           <div class="title-row">
             <h1 class="page-title">Reviews for {{ eventTitle }}</h1>
-            <div class="action-buttons">
-              <button
-                v-if="organizationId"
-                class="organization-btn"
-                @click="goToOrganizationProfile"
-              >
-                <q-icon name="business" />
-                Vai al profilo
-              </button>
-              <button class="add-review-btn" @click="openReviewDialog">
-                <q-icon name="rate_review" />
-                Lascia una recensione
-              </button>
+            <div v-if="organizationId" class="organization-info">
+              <q-avatar size="40px" class="organization-avatar" @click="goToOrganizationProfile">
+                <img v-if="organizationAvatar" :src="organizationAvatar" :alt="organizationName" />
+                <q-icon v-else name="business" />
+              </q-avatar>
+              <span class="organization-name" @click="goToOrganizationProfile">{{
+                organizationName
+              }}</span>
             </div>
           </div>
         </div>
 
-        <ReviewsList :reviews="reviews" :loading="loading" />
+        <ReviewsList :reviews="reviews" :loading="loading" :show-add-review-button="true" />
       </div>
     </div>
 
@@ -199,106 +199,53 @@ onMounted(async () => {
   margin-bottom: $spacing-6;
 }
 
-.title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: $spacing-4;
-
-  @media (max-width: $breakpoint-mobile) {
-    flex-direction: column;
-    align-items: flex-start;
-  }
+.title-column {
+  @include flex-column;
 }
 
-.action-buttons {
+.organization-info {
   display: flex;
+  align-items: center;
   gap: $spacing-3;
-
-  @media (max-width: $breakpoint-mobile) {
-    flex-direction: column;
-    width: 100%;
-  }
 }
 
-.organization-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-2;
-  padding: $spacing-3 $spacing-5;
-  background: $color-background;
-  color: $color-primary;
-  border: 2px solid $color-primary;
-  border-radius: $radius-full;
-  font-size: $font-size-base;
-  font-weight: 600;
+.organization-avatar {
+  background: $color-primary-light;
   cursor: pointer;
-  transition: all $transition-base;
-  white-space: nowrap;
+  transition: transform $transition-base;
 
   &:hover {
-    background: $color-primary;
-    color: white;
-    transform: translateY(-2px);
-    box-shadow: $shadow-md;
+    transform: scale(1.05);
   }
 
   @include dark-mode {
-    background: $color-background-dark;
-  }
-
-  .q-icon {
-    font-size: 1.25rem;
-  }
-}
-
-.add-review-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-2;
-  padding: $spacing-3 $spacing-5;
-  background: $color-primary;
-  color: white;
-  border: none;
-  border-radius: $radius-full;
-  font-size: $font-size-base;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all $transition-base;
-  white-space: nowrap;
-
-  &:hover {
     background: $color-primary-dark;
-    transform: translateY(-2px);
-    box-shadow: $shadow-md;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .q-icon {
-    font-size: 1.25rem;
+    color: $color-primary;
   }
 }
 
-.back-button {
-  display: inline-flex;
-  align-items: center;
-  gap: $spacing-2;
-  padding: $spacing-2 $spacing-4;
-  margin-bottom: $spacing-4;
-  background: transparent;
-  border: none;
-  color: $color-primary;
-  font-size: $font-size-base;
+.organization-name {
   font-weight: 600;
+  font-size: $font-size-base;
+  color: $color-text-primary;
   cursor: pointer;
   transition: all $transition-base;
 
   &:hover {
-    color: $color-primary-dark;
-    transform: translateX(-4px);
+    text-decoration: underline;
   }
 
-  .q-icon {
-    font-size: 1.25rem;
+  @include dark-mode {
+    color: $color-heading-dark;
   }
 }
 

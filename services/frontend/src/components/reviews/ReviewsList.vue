@@ -248,10 +248,14 @@ onMounted(() => {
         </div>
 
         <div v-if="showAddReviewButton" class="add-review-section">
-          <button class="add-review-btn" @click="emit('add-review')">
+          <!-- <button class="add-review-btn" @click="emit('add-review')">
             <q-icon name="rate_review" />
             Lascia una recensione
-          </button>
+          </button> -->
+          <div v-if="showAddReviewButton" class="event-info" @click="emit('add-review')">
+            <q-icon name="rate_review" class="event-icon" />
+            <span class="event-title">Lascia una recensione</span>
+          </div>
         </div>
       </div>
     </div>
@@ -481,6 +485,39 @@ onMounted(() => {
     @include dark-mode {
       color: $color-text-dark;
     }
+  }
+}
+
+.event-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  color: $color-white;
+  margin-bottom: $spacing-3;
+  padding: $spacing-2 $spacing-4;
+  cursor: pointer;
+  transition: all $transition-base;
+  border-radius: $radius-full;
+  border: 2px solid $color-text-muted;
+
+  .event-icon {
+    font-size: 1rem;
+
+    @include dark-mode {
+      color: $color-white;
+    }
+  }
+
+  .event-title {
+    font-size: $font-size-sm;
+    font-weight: 600;
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+
+  &:hover {
+    border-color: $color-white;
   }
 }
 </style>

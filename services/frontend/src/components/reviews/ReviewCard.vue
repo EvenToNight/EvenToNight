@@ -24,7 +24,7 @@ const eventInfo = ref<Event | null>(null)
 const loadUserInfo = async () => {
   try {
     const response = await api.users.getUserById(props.review.userId)
-    userName.value = response.user.name || 'Anonymous'
+    userName.value = response.user.name
     userAvatar.value = response.user.avatarUrl || null
   } catch (error) {
     console.error('Failed to load user info:', error)
