@@ -7,7 +7,7 @@ services:
     ports:
       - '5672:5672'
     healthcheck:
-      test: [ 'CMD', 'rabbitmq-diagnostics', 'status' ]
+      test: [ 'CMD', 'rabbitmqctl', 'await_startup' ]
       interval: 5s
       timeout: 5s
       retries: 1000
