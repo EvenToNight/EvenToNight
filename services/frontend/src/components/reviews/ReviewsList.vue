@@ -248,11 +248,7 @@ onMounted(() => {
         </div>
 
         <div v-if="showAddReviewButton" class="add-review-section">
-          <!-- <button class="add-review-btn" @click="emit('add-review')">
-            <q-icon name="rate_review" />
-            Lascia una recensione
-          </button> -->
-          <div v-if="showAddReviewButton" class="event-info" @click="emit('add-review')">
+          <div class="event-info" @click="emit('add-review')">
             <q-icon name="rate_review" class="event-icon" />
             <span class="event-title">Lascia una recensione</span>
           </div>

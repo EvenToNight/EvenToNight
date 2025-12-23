@@ -5,7 +5,7 @@ import { api } from '@/api'
 import type { EventReview } from '@/api/types/interaction'
 import ReviewsList from '@/components/reviews/ReviewsList.vue'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
-import RatingStars from '@/components/reviews/RatingStars.vue'
+import SubmitReviewDialog from '@/components/reviews/SubmitReviewDialog.vue'
 
 const { params, goToUserProfile } = useNavigation()
 
@@ -17,12 +17,7 @@ const organizationId = ref<string>('')
 const organizationName = ref<string>('')
 const organizationAvatar = ref<string>('')
 
-// Review dialog
 const showReviewDialog = ref(false)
-const newReviewRating = ref<number>(5)
-const newReviewTitle = ref('')
-const newReviewDescription = ref('')
-const submittingReview = ref(false)
 
 const loadReviews = async () => {
   loading.value = true
@@ -65,30 +60,6 @@ const goToOrganizationProfile = () => {
 //   showReviewDialog.value = true
 // }
 
-const submitReview = async () => {
-  if (newReviewTitle.value.trim() === '' || newReviewDescription.value.trim() === '') {
-    return
-  }
-
-  submittingReview.value = true
-  try {
-    await api.interactions.createEventReview(eventId.value, {
-      userId: 'current-user-id', // TODO: Get from auth context
-      organizationId: 'org-1', // TODO: Get from event
-      collaboratorsId: [],
-      rating: Math.round(newReviewRating.value) as 0 | 1 | 2 | 3 | 4 | 5,
-      title: newReviewTitle.value.trim(),
-      comment: newReviewDescription.value.trim(),
-    })
-    showReviewDialog.value = false
-    await loadReviews()
-  } catch (error) {
-    console.error('Failed to submit review:', error)
-  } finally {
-    submittingReview.value = false
-  }
-}
-
 onMounted(async () => {
   await Promise.all([loadReviews(), loadEventInfo()])
 })
@@ -115,61 +86,15 @@ onMounted(async () => {
           </div>
         </div>
 
-        <ReviewsList :reviews="reviews" :loading="loading" :show-add-review-button="true" />
+        <ReviewsList
+          :reviews="reviews"
+          :loading="loading"
+          :show-add-review-button="true"
+          @add-review="showReviewDialog = true"
+        />
       </div>
     </div>
-
-    <!-- Review Dialog -->
-    <q-dialog v-model="showReviewDialog">
-      <q-card style="min-width: 400px">
-        <q-card-section>
-          <div class="text-h6">Lascia una recensione</div>
-        </q-card-section>
-
-        <q-card-section class="q-pt-none">
-          <div class="rating-input">
-            <label>Seleziona il rating:</label>
-            <RatingStars
-              :rating="newReviewRating"
-              size="lg"
-              :show-number="true"
-              :editable="true"
-              @update:rating="newReviewRating = $event"
-            />
-          </div>
-
-          <q-input
-            v-model="newReviewTitle"
-            label="Titolo"
-            placeholder="Dai un titolo alla tua recensione..."
-            outlined
-            class="q-mt-md"
-          />
-
-          <q-input
-            v-model="newReviewDescription"
-            type="textarea"
-            label="Descrizione"
-            placeholder="Scrivi la tua recensione..."
-            rows="5"
-            outlined
-            class="q-mt-md"
-          />
-        </q-card-section>
-
-        <q-card-actions align="right">
-          <q-btn v-close-popup flat label="Annulla" color="primary" />
-          <q-btn
-            flat
-            label="Invia"
-            color="primary"
-            :loading="submittingReview"
-            :disable="newReviewTitle.trim() === '' || newReviewDescription.trim() === ''"
-            @click="submitReview"
-          />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
+    <SubmitReviewDialog v-model:isOpen="showReviewDialog" :creator-id="organizationId" />
   </div>
 </template>
 
