@@ -1,7 +1,7 @@
 package service
 
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventCommand}
-import domain.events.{EventCreated, EventDeleted, EventPublished, EventUpdated}
+import domain.events.{EventDeleted, EventPublished, EventUpdated}
 import domain.models.{Event, EventStatus}
 import infrastructure.db.EventRepository
 import infrastructure.messaging.EventPublisher
@@ -29,19 +29,14 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
       case Left(_) =>
         Left("Failed to save new event")
       case Right(_) =>
-        publisher.publish(
-          EventCreated(
-            id = UUID.randomUUID().toString(),
-            timestamp = Instant.now(),
-            id_event = newEvent._id
-          )
-        )
         if cmd.status == EventStatus.PUBLISHED then
           publisher.publish(
             EventPublished(
               id = UUID.randomUUID().toString(),
               timestamp = Instant.now(),
-              id_event = newEvent._id
+              id_event = newEvent._id,
+              id_creator = cmd.id_creator,
+              id_collaborators = cmd.id_collaborators
             )
           )
         Right(newEvent._id)
@@ -68,7 +63,9 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
                 EventPublished(
                   id = UUID.randomUUID().toString(),
                   timestamp = Instant.now(),
-                  id_event = updatedEvent._id
+                  id_event = updatedEvent._id,
+                  id_creator = updatedEvent.id_creator,
+                  id_collaborators = updatedEvent.id_collaborators
                 )
               )
             else
