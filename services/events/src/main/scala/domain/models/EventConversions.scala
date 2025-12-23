@@ -32,7 +32,7 @@ object EventConversions:
 
     def toJson: ujson.Value =
       val obj = ujson.Obj(
-        "id_event"   -> event._id,
+        "eventId"    -> event._id,
         "status"     -> event.status.toString,
         "instant"    -> event.instant.toString,
         "id_creator" -> event.id_creator

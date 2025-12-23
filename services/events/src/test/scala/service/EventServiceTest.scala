@@ -54,20 +54,20 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
   ): CreateEventCommand =
     CreateEventCommand(title, description, poster, tags, location, date, price, status, id_creator, id_collaborators)
 
-  private def validGetEventCommand(id_event: String = "event-123"): GetEventCommand =
-    GetEventCommand(id_event)
+  private def validGetEventCommand(eventId: String = "event-123"): GetEventCommand =
+    GetEventCommand(eventId)
 
   private def validUpdateEventPosterCommand(
-      id_event: String = "event-123",
+      eventId: String = "event-123",
       posterUrl: String = "poster-url.jpg"
   ): UpdateEventPosterCommand =
-    UpdateEventPosterCommand(id_event, posterUrl)
+    UpdateEventPosterCommand(eventId, posterUrl)
 
   private def validGetAllEventsCommand(): GetAllEventsCommand =
     GetAllEventsCommand()
 
   private def validUpdateEventCommand(
-      id_event: String,
+      eventId: String,
       title: Option[String],
       description: Option[String] = None,
       tags: Option[List[EventTag]] = None,
@@ -77,10 +77,10 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       status: EventStatus = EventStatus.DRAFT,
       id_collaborators: Option[List[String]] = None
   ): UpdateEventCommand =
-    UpdateEventCommand(id_event, title, description, tags, location, date, price, status, id_collaborators)
+    UpdateEventCommand(eventId, title, description, tags, location, date, price, status, id_collaborators)
 
-  private def validDeleteEventCommand(id_event: String): DeleteEventCommand =
-    DeleteEventCommand(id_event)
+  private def validDeleteEventCommand(eventId: String): DeleteEventCommand =
+    DeleteEventCommand(eventId)
 
   private def validGetFilteredEventsCommand(
       limit: Option[Int] = None,
@@ -167,21 +167,21 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
   it should "successfully process valid UpdateEventPosterCommand" in:
     val createCommand = validCreateEventCommand()
-    val id_event = service.handleCommand(createCommand) match
+    val eventId = service.handleCommand(createCommand) match
       case Right(id: String) => id
       case _                 => fail("Expected event ID as String")
 
-    val command = validUpdateEventPosterCommand(id_event = id_event)
+    val command = validUpdateEventPosterCommand(eventId = eventId)
     val result  = service.handleCommand(command)
     result.isRight shouldBe true
 
-  it should "return errors for UpdateEventPosterCommand with non-existent id_event" in:
-    val command = validUpdateEventPosterCommand(id_event = "non-existent-id")
+  it should "return errors for UpdateEventPosterCommand with non-existent eventId" in:
+    val command = validUpdateEventPosterCommand(eventId = "non-existent-id")
     val result  = service.handleCommand(command)
     result.isLeft shouldBe true
 
-  it should "return validation errors for UpdateEventPosterCommand with empty id_event" in:
-    val command = validUpdateEventPosterCommand(id_event = "")
+  it should "return validation errors for UpdateEventPosterCommand with empty eventId" in:
+    val command = validUpdateEventPosterCommand(eventId = "")
     val result  = service.handleCommand(command)
     result.isLeft shouldBe true
 
@@ -192,10 +192,10 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
   it should "successfully process valid GetEventCommand" in:
     val createCommand = validCreateEventCommand()
-    val id_event = service.handleCommand(createCommand) match
+    val eventId = service.handleCommand(createCommand) match
       case Right(id: String) => id
       case _                 => fail("Expected event ID as String")
-    val command = validGetEventCommand(id_event)
+    val command = validGetEventCommand(eventId)
     val result  = service.handleCommand(command)
     result.isRight shouldBe true
 
@@ -238,28 +238,28 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
   it should "successfully process valid UpdateEventCommand" in:
     val createCommand = validCreateEventCommand()
-    val id_event = service.handleCommand(createCommand) match
+    val eventId = service.handleCommand(createCommand) match
       case Right(id: String) => id
       case _                 => fail("Expected event ID as String")
     val command = validUpdateEventCommand(
-      id_event = id_event,
+      eventId = eventId,
       title = Some("Updated Event Title"),
       price = Some(20.0)
     )
     val result = service.handleCommand(command)
     result.isRight shouldBe true
 
-  it should "return validation errors for UpdateEventCommand with empty id_event" in:
+  it should "return validation errors for UpdateEventCommand with empty eventId" in:
     val command = validUpdateEventCommand(
-      id_event = "",
+      eventId = "",
       title = Some("Updated Event Title")
     )
     val result = service.handleCommand(command)
     result.isLeft shouldBe true
 
-  it should "return not found error for UpdateEventCommand with non-existent id_event" in:
+  it should "return not found error for UpdateEventCommand with non-existent eventId" in:
     val command = validUpdateEventCommand(
-      id_event = "non-existent-id",
+      eventId = "non-existent-id",
       title = Some("Updated Event Title")
     )
     val result = service.handleCommand(command)
@@ -270,19 +270,19 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
 
   it should "successfully process valid DeleteEventCommand" in:
     val createCommand = validCreateEventCommand()
-    val id_event = service.handleCommand(createCommand) match
+    val eventId = service.handleCommand(createCommand) match
       case Right(id: String) => id
       case _                 => fail("Expected event ID as String")
-    val command = validDeleteEventCommand(id_event)
+    val command = validDeleteEventCommand(eventId)
     val result  = service.handleCommand(command)
     result.isRight shouldBe true
 
-  it should "return validation errors for DeleteEventCommand with empty id_event" in:
+  it should "return validation errors for DeleteEventCommand with empty eventId" in:
     val command = validDeleteEventCommand("")
     val result  = service.handleCommand(command)
     result.isLeft shouldBe true
 
-  it should "return not found error for DeleteEventCommand with non-existent id_event" in:
+  it should "return not found error for DeleteEventCommand with non-existent eventId" in:
     val command = validDeleteEventCommand("non-existent-id")
     val result  = service.handleCommand(command)
     result.isLeft shouldBe true

@@ -112,7 +112,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     )
     val json = event.toJson
 
-    json("id_event").str shouldBe "event123"
+    json("eventId").str shouldBe "event123"
     json("title").str shouldBe "Jazz Concert"
     json("description").str shouldBe "Test description"
     json("poster").str shouldBe "poster.jpg"
@@ -151,7 +151,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     )
     val json = event.toJson
 
-    json("id_event").str shouldBe "minimal-event"
+    json("eventId").str shouldBe "minimal-event"
     json("status").str shouldBe "DRAFT"
     json("id_creator").str shouldBe "creator123"
 
@@ -335,7 +335,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
 
     val json = event.toJson
 
-    json("id_event").str shouldBe event._id
+    json("eventId").str shouldBe event._id
     json("title").str shouldBe event.title.get
     json("status").str shouldBe event.status.toString
     json("id_creator").str shouldBe event.id_creator

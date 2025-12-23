@@ -35,7 +35,7 @@ object Utils:
       case Success(location) => Some(location)
       case Failure(_)        => println("Failed to parse location JSON"); None
 
-  def uploadPosterToMediaService(id_event: String, posterOpt: Option[cask.FormFile], mediaServiceUrl: String): String =
+  def uploadPosterToMediaService(eventId: String, posterOpt: Option[cask.FormFile], mediaServiceUrl: String): String =
     def defaultUrl = "events/default.jpg"
     posterOpt match
       case None => defaultUrl
@@ -46,7 +46,7 @@ object Utils:
             fileBytes <- Try(Files.readAllBytes(path)).toEither
             response <- Try {
               requests.post(
-                s"$mediaServiceUrl/events/$id_event",
+                s"$mediaServiceUrl/events/$eventId",
                 data = requests.MultiPart(
                   requests.MultiItem(
                     name = "file",
@@ -90,7 +90,7 @@ object Utils:
       id_collaborators = id_collaborators
     )
 
-  def getUpdateCommandFromJson(id_event: String, newEvent: String): UpdateEventCommand =
+  def getUpdateCommandFromJson(eventId: String, newEvent: String): UpdateEventCommand =
     val eventData = ujson.read(newEvent)
 
     val title            = eventData.obj.get("title").map(_.str).filter(_.nonEmpty)
@@ -103,7 +103,7 @@ object Utils:
     val id_collaborators = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
     UpdateEventCommand(
-      id_event = id_event,
+      eventId = eventId,
       title = title,
       description = description,
       tags = tags,

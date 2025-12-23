@@ -12,28 +12,28 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   var eventPublished: EventPublished = uninitialized
   var eventUpdated: EventUpdated     = uninitialized
   var eventDeleted: EventDeleted     = uninitialized
-  val domainid_event: String         = "domainid_event"
+  val domaineventId: String          = "domaineventId"
   val timestamp: Instant             = Instant.now()
-  val id_event: String               = "id_event"
+  val eventId: String                = "eventId"
 
   override def beforeEach(): Unit =
     super.beforeEach()
     eventPublished = EventPublished(
       id = "published-1",
       timestamp = Instant.now(),
-      id_event = "event-published-1",
+      eventId = "event-published-1",
       id_creator = "creator-1",
       id_collaborators = Some(List("collab-1", "collab-2"))
     )
     eventUpdated = EventUpdated(
       id = "updated-1",
       timestamp = Instant.now(),
-      id_event = "event-updated-1"
+      eventId = "event-updated-1"
     )
     eventDeleted = EventDeleted(
       id = "deleted-1",
       timestamp = Instant.now(),
-      id_event = "event-deleted-1"
+      eventId = "event-deleted-1"
     )
 
   "EventPublished" should "implement DomainEvent trait correctly" in:
@@ -41,14 +41,14 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store all provided data correctly" in:
     eventPublished.id shouldBe "published-1"
-    eventPublished.id_event shouldBe "event-published-1"
+    eventPublished.eventId shouldBe "event-published-1"
     eventPublished.timestamp shouldBe a[Instant]
 
   it should "be comparable with itself" in:
     val event2 = EventPublished(
       id = "published-1",
       timestamp = eventPublished.timestamp,
-      id_event = "event-published-1",
+      eventId = "event-published-1",
       id_creator = "creator-1",
       id_collaborators = Some(List("collab-1", "collab-2"))
     )
@@ -59,14 +59,14 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store all provided data correctly" in:
     eventUpdated.id shouldBe "updated-1"
-    eventUpdated.id_event shouldBe "event-updated-1"
+    eventUpdated.eventId shouldBe "event-updated-1"
     eventUpdated.timestamp shouldBe a[Instant]
 
   it should "be comparable with itself" in:
     val event2 = EventUpdated(
       id = "updated-1",
       timestamp = eventUpdated.timestamp,
-      id_event = "event-updated-1"
+      eventId = "event-updated-1"
     )
     eventUpdated shouldBe event2
 
@@ -75,13 +75,13 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store all provided data correctly" in:
     eventDeleted.id shouldBe "deleted-1"
-    eventDeleted.id_event shouldBe "event-deleted-1"
+    eventDeleted.eventId shouldBe "event-deleted-1"
     eventDeleted.timestamp shouldBe a[Instant]
 
   it should "be comparable with itself" in:
     val event2 = EventDeleted(
       id = "deleted-1",
       timestamp = eventDeleted.timestamp,
-      id_event = "event-deleted-1"
+      eventId = "event-deleted-1"
     )
     eventDeleted shouldBe event2

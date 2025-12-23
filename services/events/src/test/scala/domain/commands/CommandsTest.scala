@@ -46,14 +46,14 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       id_collaborators
     )
 
-  private def getCommand(id_event: String): GetEventCommand =
-    GetEventCommand(id_event)
+  private def getCommand(eventId: String): GetEventCommand =
+    GetEventCommand(eventId)
 
   private def updatePosterCommand(
-      id_event: String = "event-123",
+      eventId: String = "event-123",
       posterUrl: String = "https://example.com/poster.jpg"
   ): UpdateEventPosterCommand =
-    UpdateEventPosterCommand(id_event, posterUrl)
+    UpdateEventPosterCommand(eventId, posterUrl)
 
   private def getFilteredEventsCommand(): GetFilteredEventsCommand =
     GetFilteredEventsCommand(
@@ -102,11 +102,11 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val command: Commands = createCommand("Pattern Test")
     val result = command match
       case CreateEventCommand(title, _, _, _, _, _, _, _, _, _)            => "Command: " + title.getOrElse("No Title")
-      case GetEventCommand(id_event)                                       => s"Get Command: $id_event"
-      case UpdateEventPosterCommand(id_event, posterUrl)                   => s"Update Poster Command: $id_event"
+      case GetEventCommand(eventId)                                        => s"Get Command: $eventId"
+      case UpdateEventPosterCommand(eventId, posterUrl)                    => s"Update Poster Command: $eventId"
       case GetAllEventsCommand()                                           => "Get All Events Command"
       case UpdateEventCommand(id, _, _, _, _, _, _, _, _)                  => s"Update $id Event Command"
-      case DeleteEventCommand(id_event)                                    => s"Delete Command: $id_event"
+      case DeleteEventCommand(eventId)                                     => s"Delete Command: $eventId"
       case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
     result shouldBe "Command: Pattern Test"
 
@@ -117,7 +117,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store properties correctly" in:
     val command = getCommand("event-123")
-    command.id_event shouldBe "event-123"
+    command.eventId shouldBe "event-123"
 
   "UpdateEventPosterCommand" should "implement Commands trait" in:
     val command = updatePosterCommand()
@@ -126,7 +126,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store properties correctly" in:
     val command = updatePosterCommand("custom-event-456", "https://custom.com/poster.png")
-    command.id_event shouldBe "custom-event-456"
+    command.eventId shouldBe "custom-event-456"
     command.posterUrl shouldBe "https://custom.com/poster.png"
 
   "GetAllEventsCommand" should "implement Commands trait" in:
@@ -136,7 +136,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   "UpdateEventCommand" should "implement Commands trait" in:
     val command = UpdateEventCommand(
-      id_event = "event-321",
+      eventId = "event-321",
       title = Some("Updated Title"),
       description = None,
       tags = None,
@@ -151,7 +151,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store properties correctly" in:
     val command = UpdateEventCommand(
-      id_event = "event-654",
+      eventId = "event-654",
       title = Some("New Title"),
       description = Some("New Description"),
       tags = Some(List(EventTag.TypeOfEvent.Concert)),
@@ -161,7 +161,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       status = EventStatus.CANCELLED,
       id_collaborators = None
     )
-    command.id_event shouldBe "event-654"
+    command.eventId shouldBe "event-654"
     command.title shouldBe Some("New Title")
     command.description shouldBe Some("New Description")
     command.tags shouldBe Some(List(EventTag.TypeOfEvent.Concert))
@@ -178,7 +178,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store properties correctly" in:
     val command = DeleteEventCommand("event-999")
-    command.id_event shouldBe "event-999"
+    command.eventId shouldBe "event-999"
 
   "GetFilteredEventsCommand" should "implement Commands trait" in:
     val command = getFilteredEventsCommand()

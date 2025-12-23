@@ -13,10 +13,10 @@ import scala.util.{Failure, Success, Try}
 trait EventRepository:
 
   def save(event: Event): Either[Throwable, Unit]
-  def findById(id_event: String): Option[Event]
+  def findById(eventId: String): Option[Event]
   def update(event: Event): Either[Throwable, Unit]
   def findAllPublished(): Either[Throwable, List[Event]]
-  def delete(id_event: String): Either[Throwable, Unit]
+  def delete(eventId: String): Either[Throwable, Unit]
   def findByFilters(
       limit: Option[Int] = None,
       offset: Option[Int] = None,
@@ -52,8 +52,8 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
         println(s"[MongoDB][Error] Failed to save Event ID: ${event._id} - ${ex.getMessage}")
         Left(ex)
 
-  override def findById(id_event: String): Option[Event] =
-    val doc = collection.find(Filters.eq("_id", id_event)).first()
+  override def findById(eventId: String): Option[Event] =
+    val doc = collection.find(Filters.eq("_id", eventId)).first()
     if doc != null then
       val event        = fromDocument(doc)
       val updatedEvent = Utils.updateEventIfPastDate(event)
@@ -96,14 +96,14 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       ex
     }
 
-  override def delete(id_event: String): Either[Throwable, Unit] =
+  override def delete(eventId: String): Either[Throwable, Unit] =
     Try {
-      collection.deleteOne(Filters.eq("_id", id_event))
-      println(s"[MongoDB] Deleted Event ID: $id_event")
+      collection.deleteOne(Filters.eq("_id", eventId))
+      println(s"[MongoDB] Deleted Event ID: $eventId")
     } match
       case Success(_) => Right(())
       case Failure(ex) =>
-        println(s"[MongoDB][Error] Failed to delete Event ID: $id_event -" + s" ${ex.getMessage}")
+        println(s"[MongoDB][Error] Failed to delete Event ID: $eventId -" + s" ${ex.getMessage}")
         Left(ex)
 
   override def findByFilters(

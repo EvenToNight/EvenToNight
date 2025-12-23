@@ -9,7 +9,7 @@ sealed trait DomainEvent:
 case class EventPublished(
     id: String,
     timestamp: Instant,
-    id_event: String,
+    eventId: String,
     id_creator: String,
     id_collaborators: Option[List[String]]
 ) extends DomainEvent
@@ -17,11 +17,11 @@ case class EventPublished(
 case class EventUpdated(
     id: String,
     timestamp: Instant,
-    id_event: String
+    eventId: String
 ) extends DomainEvent
 
 case class EventDeleted(
     id: String,
     timestamp: Instant,
-    id_event: String
+    eventId: String
 ) extends DomainEvent

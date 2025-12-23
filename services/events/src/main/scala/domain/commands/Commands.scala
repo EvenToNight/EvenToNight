@@ -19,18 +19,18 @@ case class CreateEventCommand(
 ) extends Commands
 
 case class UpdateEventPosterCommand(
-    id_event: String,
+    eventId: String,
     posterUrl: String
 ) extends Commands
 
 case class GetEventCommand(
-    id_event: String
+    eventId: String
 ) extends Commands
 
 case class GetAllEventsCommand() extends Commands
 
 case class UpdateEventCommand(
-    id_event: String,
+    eventId: String,
     title: Option[String],
     description: Option[String],
     tags: Option[List[EventTag]],
@@ -42,7 +42,7 @@ case class UpdateEventCommand(
 ) extends Commands
 
 case class DeleteEventCommand(
-    id_event: String
+    eventId: String
 ) extends Commands
 
 case class GetFilteredEventsCommand(

@@ -34,7 +34,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
             EventPublished(
               id = UUID.randomUUID().toString(),
               timestamp = Instant.now(),
-              id_event = newEvent._id,
+              eventId = newEvent._id,
               id_creator = cmd.id_creator,
               id_collaborators = cmd.id_collaborators
             )
@@ -42,7 +42,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         Right(newEvent._id)
 
   def execCommand(cmd: UpdateEventCommand): Either[String, Unit] =
-    repo.findById(cmd.id_event) match
+    repo.findById(cmd.eventId) match
       case Some(event) =>
         val updatedEvent = event.copy(
           title = cmd.title,
@@ -56,14 +56,14 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         )
         repo.update(updatedEvent) match
           case Left(_) =>
-            Left(s"Failed to update event with id ${cmd.id_event}")
+            Left(s"Failed to update event with id ${cmd.eventId}")
           case Right(_) =>
             if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
               publisher.publish(
                 EventPublished(
                   id = UUID.randomUUID().toString(),
                   timestamp = Instant.now(),
-                  id_event = updatedEvent._id,
+                  eventId = updatedEvent._id,
                   id_creator = updatedEvent.id_creator,
                   id_collaborators = updatedEvent.id_collaborators
                 )
@@ -73,42 +73,42 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
                 EventUpdated(
                   id = UUID.randomUUID().toString(),
                   timestamp = Instant.now(),
-                  id_event = updatedEvent._id
+                  eventId = updatedEvent._id
                 )
               )
             Right(())
       case None =>
-        Left(s"Event with id ${cmd.id_event} not found")
+        Left(s"Event with id ${cmd.eventId} not found")
 
   def execCommand(cmd: DeleteEventCommand): Either[String, Unit] =
-    repo.findById(cmd.id_event) match
+    repo.findById(cmd.eventId) match
       case None =>
-        Left(s"Event with id ${cmd.id_event} not found")
+        Left(s"Event with id ${cmd.eventId} not found")
       case Some(event) =>
         event.status match
           case EventStatus.PUBLISHED =>
             repo.update(event.copy(status = EventStatus.CANCELLED)) match
               case Left(_) =>
-                Left(s"Failed to cancel event with id ${cmd.id_event}")
+                Left(s"Failed to cancel event with id ${cmd.eventId}")
               case Right(_) =>
                 publisher.publish(
                   EventDeleted(
                     id = UUID.randomUUID().toString(),
                     timestamp = Instant.now(),
-                    id_event = cmd.id_event
+                    eventId = cmd.eventId
                   )
                 )
                 Right(())
           case _ =>
-            repo.delete(cmd.id_event) match
+            repo.delete(cmd.eventId) match
               case Left(_) =>
-                Left(s"Failed to delete event with id ${cmd.id_event}")
+                Left(s"Failed to delete event with id ${cmd.eventId}")
               case Right(_) =>
                 publisher.publish(
                   EventDeleted(
                     id = UUID.randomUUID().toString(),
                     timestamp = Instant.now(),
-                    id_event = cmd.id_event
+                    eventId = cmd.eventId
                   )
                 )
                 Right(())

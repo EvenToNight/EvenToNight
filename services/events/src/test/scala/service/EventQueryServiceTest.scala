@@ -41,17 +41,17 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       id_collaborators = None
     )
 
-  private def validGetEventCommand(id_event: String): GetEventCommand =
-    GetEventCommand(id_event)
+  private def validGetEventCommand(eventId: String): GetEventCommand =
+    GetEventCommand(eventId)
 
   private def validGetAllEventsCommand(): GetAllEventsCommand =
     GetAllEventsCommand()
 
   private def validUpdateEventPosterCommand(
-      id_event: String,
+      eventId: String,
       posterUrl: String
   ): UpdateEventPosterCommand =
-    UpdateEventPosterCommand(id_event, posterUrl)
+    UpdateEventPosterCommand(eventId, posterUrl)
 
   "EventQueryService" should "be instantiated correctly" in:
     service.`should`(be(a[EventQueryService]))
@@ -95,12 +95,12 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
   "execCommand(updateEventPosterCommand)" should "update event poster successfully for existing event" in:
     val event = createEvent()
     repo.save(event)
-    val updateCmd    = validUpdateEventPosterCommand(id_event = event._id, posterUrl = "new-poster.jpg")
+    val updateCmd    = validUpdateEventPosterCommand(eventId = event._id, posterUrl = "new-poster.jpg")
     val updateResult = service.execCommand(updateCmd)
     updateResult.isRight shouldBe true
 
   it should "fail to update event poster for non-existing event" in:
-    val updateCmd    = validUpdateEventPosterCommand(id_event = "nonexistent-id", posterUrl = "new-poster.jpg")
+    val updateCmd    = validUpdateEventPosterCommand(eventId = "nonexistent-id", posterUrl = "new-poster.jpg")
     val updateResult = service.execCommand(updateCmd)
     updateResult.isLeft shouldBe true
     updateResult match

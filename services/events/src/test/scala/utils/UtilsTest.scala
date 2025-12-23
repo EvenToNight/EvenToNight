@@ -84,19 +84,19 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     location shouldBe None
 
   "Utils.uploadPosterToMediaService" should "return default URL when FormFile has no filePath" in:
-    val id_event            = "test-event-123"
+    val eventId             = "test-event-123"
     val formFileWithoutPath = FormFile("test.jpg", None, new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithoutPath), "http://media-service")
+    val result = Utils.uploadPosterToMediaService(eventId, Some(formFileWithoutPath), "http://media-service")
 
     result shouldBe "events/default.jpg"
 
   it should "return default URL when file cannot be read" in:
-    val id_event            = "test-event-456"
+    val eventId             = "test-event-456"
     val nonExistentPath     = Paths.get("/non/existent/file.jpg")
     val formFileWithBadPath = FormFile("test.jpg", Some(nonExistentPath), new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithBadPath), "http://media-service")
+    val result = Utils.uploadPosterToMediaService(eventId, Some(formFileWithBadPath), "http://media-service")
 
     result shouldBe "events/default.jpg"
 
@@ -104,12 +104,12 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val tempFile = Files.createTempFile("test-poster", ".jpg")
     Files.write(tempFile, "test image data".getBytes)
 
-    val id_event              = "test-event-789"
+    val eventId               = "test-event-789"
     val formFileWithValidPath = FormFile("test.jpg", Some(tempFile), new HeaderMap())
 
     val invalidMediaServiceUrl = "http://non-existent-service:9999"
 
-    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithValidPath), invalidMediaServiceUrl)
+    val result = Utils.uploadPosterToMediaService(eventId, Some(formFileWithValidPath), invalidMediaServiceUrl)
 
     result shouldBe "events/default.jpg"
 
@@ -117,10 +117,10 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val tempFile = Files.createTempFile("test-poster", ".jpg")
     Files.write(tempFile, "test image data".getBytes)
 
-    val id_event              = "test-event-success"
+    val eventId               = "test-event-success"
     val formFileWithValidPath = FormFile("test.jpg", Some(tempFile), new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithValidPath), "http://localhost:8080")
+    val result = Utils.uploadPosterToMediaService(eventId, Some(formFileWithValidPath), "http://localhost:8080")
 
     result shouldBe "events/default.jpg"
 
@@ -128,19 +128,19 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val tempFile = Files.createTempFile("test-poster", ".jpg")
     Files.write(tempFile, "test image data".getBytes)
 
-    val id_event              = "test-event-malformed"
+    val eventId               = "test-event-malformed"
     val formFileWithValidPath = FormFile("test.jpg", Some(tempFile), new HeaderMap())
 
     val result =
-      Utils.uploadPosterToMediaService(id_event, Some(formFileWithValidPath), "http://httpbin.org/status/500")
+      Utils.uploadPosterToMediaService(eventId, Some(formFileWithValidPath), "http://httpbin.org/status/500")
 
     result shouldBe "events/default.jpg"
 
   it should "generate correct default URL format" in:
-    val id_event            = "special-event-#123"
+    val eventId             = "special-event-#123"
     val formFileWithoutPath = FormFile("test.jpg", None, new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithoutPath), "http://media-service")
+    val result = Utils.uploadPosterToMediaService(eventId, Some(formFileWithoutPath), "http://media-service")
 
     result shouldBe "events/default.jpg"
 
@@ -249,7 +249,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
 
     val command = Utils.getUpdateCommandFromJson("event-123", validJson)
 
-    command.id_event shouldBe "event-123"
+    command.eventId shouldBe "event-123"
     command.title shouldBe Some("Updated Event Title")
     command.description shouldBe Some("Updated description.")
     command.tags.getOrElse(List()) should contain allElementsOf List(EventTag.VenueType.Club, EventTag.MusicGenre.Rock)
@@ -267,7 +267,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "status": "DRAFT"
     }"""
     val command     = Utils.getUpdateCommandFromJson("event-456", partialJson)
-    command.id_event shouldBe "event-456"
+    command.eventId shouldBe "event-456"
     command.title shouldBe Some("Partially Updated Title")
     command.description shouldBe None
     command.tags.get should contain(EventTag.TypeOfEvent.Concert)
