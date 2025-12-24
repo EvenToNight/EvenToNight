@@ -23,14 +23,14 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
 
   @cask.post("/register")
   def register(req: Request): Response[String] =
-    val json = read[RegistrationRequest](req.text())
-    validateRegistrationRequest(json) match
+    val registrationReq = read[RegistrationRequest](req.text())
+    validateRegistrationRequest(registrationReq) match
       case Left(err) => Response(s"Invalid registration request: $err", 400)
       case Right(_) =>
-        authService.createUserWithRole(json.username, json.email, json.password, json.userType) match
+        authService.createUserWithRole(registrationReq) match
           case Left(err) => Response(s"Failed to create user: $err", 500)
           case Right(keycloakId) =>
-            val registeredUser = fromRegistrationRequest(json, keycloakId)
+            val registeredUser = fromRegistrationRequest(registrationReq, keycloakId)
             val userId         = userService.insertUser(registeredUser)
             val jsonResponse   = UserIdResponse(userId)
             Response(write(jsonResponse), 201)
