@@ -50,7 +50,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
   "Event.toDocument" should "convert Event to Document with all fields present" in:
     val event = createEvent(
       title = Some("Christmas Party"),
-      tags = Some(List(EventTag.TypeOfEvent.Party, EventTag.Theme.Christmas))
+      tags = Some(List(EventTag.EventType.Party, EventTag.Special.Christmas))
     )
     val document = event.toDocument
 
@@ -107,17 +107,16 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
 
   "Event.toJson" should "convert Event to JSON with all fields present" in:
     val event = createEvent(
-      title = Some("Jazz Concert"),
-      tags = Some(List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz))
+      title = Some("Rock Concert"),
+      tags = Some(List(EventTag.EventType.Concert, EventTag.MusicStyle.Rock))
     )
     val json = event.toJson
 
     json("eventId").str shouldBe "event123"
-    json("title").str shouldBe "Jazz Concert"
+    json("title").str shouldBe "Rock Concert"
     json("description").str shouldBe "Test description"
     json("poster").str shouldBe "poster.jpg"
-    json("tags").arr.map(_.str).toList shouldBe List("Concert", "Jazz")
-
+    json("tags").arr.map(_.str).toList shouldBe List("Concert", "Rock")
     json("location").obj("name").str shouldBe "Test Venue"
     json("location").obj("country").str shouldBe "Test Country"
     json("location").obj("country_code").str shouldBe "TC"
@@ -170,7 +169,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("title", "Test Event From Doc")
       .append("description", "Document description")
       .append("poster", "doc-poster.jpg")
-      .append("tags", List("Concert", "Jazz").asJava)
+      .append("tags", List("Concert", "Rock").asJava)
       .append(
         "location",
         new Document()
@@ -198,7 +197,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     event.title shouldBe Some("Test Event From Doc")
     event.description shouldBe Some("Document description")
     event.poster shouldBe Some("doc-poster.jpg")
-    event.tags shouldBe Some(List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz))
+    event.tags shouldBe Some(List(EventTag.EventType.Concert, EventTag.MusicStyle.Rock))
 
     event.location shouldBe defined
     event.location.get.name shouldBe Some("Test Venue")
@@ -330,7 +329,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
   it should "handle round-trip conversion Event -> JSON -> verification" in:
     val event = createEvent(
       title = Some("JSON Test"),
-      tags = Some(List(EventTag.TypeOfEvent.Concert))
+      tags = Some(List(EventTag.EventType.Concert))
     )
 
     val json = event.toJson

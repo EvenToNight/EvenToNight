@@ -13,7 +13,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       title: Option[String] = Some("Test Event"),
       description: Option[String] = Some("Test description"),
       poster: Option[String] = Some("poster.jpg"),
-      tags: Option[List[EventTag]] = Some(List(EventTag.TypeOfEvent.Concert)),
+      tags: Option[List[EventTag]] = Some(List(EventTag.EventType.Concert)),
       location: Option[Location] = Some(Location.create(
         country = Some("Test Country"),
         country_code = Some("TC"),
@@ -48,7 +48,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     event.title shouldBe Some("Test Event")
     event.description shouldBe Some("Test description")
     event.poster shouldBe Some("poster.jpg")
-    event.tags shouldBe Some(List(EventTag.TypeOfEvent.Concert))
+    event.tags shouldBe Some(List(EventTag.EventType.Concert))
     event.price shouldBe Some(15.0)
     event.location.get.country shouldBe Some("Test Country")
     event.location.get.country_code shouldBe Some("TC")
@@ -95,20 +95,18 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   "Event with multiple tags" should "handle them" in:
     val event = createEvent(tags =
       Some(List(
-        EventTag.TypeOfEvent.Concert,
-        EventTag.VenueType.Theatre,
-        EventTag.MusicGenre.Rock,
-        EventTag.Target.Vip,
-        EventTag.Extra.ReservationRequired
+        EventTag.EventType.Concert,
+        EventTag.Venue.Theatre,
+        EventTag.MusicStyle.Rock,
+        EventTag.Extra.ReservationsRequired
       ))
     )
 
-    event.tags.get should have size 5
-    event.tags.get should contain(EventTag.TypeOfEvent.Concert)
-    event.tags.get should contain(EventTag.VenueType.Theatre)
-    event.tags.get should contain(EventTag.MusicGenre.Rock)
-    event.tags.get should contain(EventTag.Target.Vip)
-    event.tags.get should contain(EventTag.Extra.ReservationRequired)
+    event.tags.get should have size 4
+    event.tags.get should contain(EventTag.EventType.Concert)
+    event.tags.get should contain(EventTag.Venue.Theatre)
+    event.tags.get should contain(EventTag.MusicStyle.Rock)
+    event.tags.get should contain(EventTag.Extra.ReservationsRequired)
 
   "Event with different EventStatus" should "handle PUBLISHED status" in:
     val event = createEvent().copy(status = EventStatus.PUBLISHED)

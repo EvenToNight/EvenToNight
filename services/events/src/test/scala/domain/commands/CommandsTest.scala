@@ -17,7 +17,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   override def beforeEach(): Unit =
     super.beforeEach()
     baseDate = LocalDateTime.of(2025, 12, 31, 20, 0)
-    sampleTags = List(EventTag.TypeOfEvent.Party, EventTag.VenueType.Club)
+    sampleTags = List(EventTag.EventType.Party, EventTag.Venue.Club)
     sampleLocation = Location.create(
       country = Some("Test Country"),
       country_code = Some("TC"),
@@ -61,7 +61,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       offset = Some(0),
       status = Some(EventStatus.PUBLISHED),
       title = Some("Sample"),
-      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      tags = Some(List(EventTag.EventType.Concert)),
       startDate = Some(baseDate),
       endDate = Some(baseDate.plusDays(10)),
       id_organization = Some("org-456"),
@@ -154,7 +154,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       eventId = "event-654",
       title = Some("New Title"),
       description = Some("New Description"),
-      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      tags = Some(List(EventTag.EventType.Concert)),
       location = Some(sampleLocation),
       date = Some(baseDate.plusDays(5)),
       price = Some(30.0),
@@ -164,7 +164,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.eventId shouldBe "event-654"
     command.title shouldBe Some("New Title")
     command.description shouldBe Some("New Description")
-    command.tags shouldBe Some(List(EventTag.TypeOfEvent.Concert))
+    command.tags shouldBe Some(List(EventTag.EventType.Concert))
     command.location shouldBe Some(sampleLocation)
     command.date shouldBe Some(baseDate.plusDays(5))
     command.price shouldBe Some(30.0)
@@ -191,7 +191,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.offset shouldBe Some(0)
     command.status shouldBe Some(EventStatus.PUBLISHED)
     command.title shouldBe Some("Sample")
-    command.tags shouldBe Some(List(EventTag.TypeOfEvent.Concert))
+    command.tags shouldBe Some(List(EventTag.EventType.Concert))
     command.startDate shouldBe Some(baseDate)
     command.endDate shouldBe Some(baseDate.plusDays(10))
     command.id_organization shouldBe Some("org-456")

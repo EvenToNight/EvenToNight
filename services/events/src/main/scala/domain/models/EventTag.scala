@@ -7,78 +7,63 @@ object EventTag:
   class InvalidTag() extends EventTag:
     val displayName: String = "Invalid Tag"
 
-  enum TypeOfEvent(val displayName: String) extends EventTag:
-    case Party      extends TypeOfEvent("Party")
-    case LiveMusic  extends TypeOfEvent("Live Music")
-    case Concert    extends TypeOfEvent("Concert")
-    case DJSet      extends TypeOfEvent("DJ Set")
-    case Karaoke    extends TypeOfEvent("Karaoke")
-    case PreDinner  extends TypeOfEvent("Pre Dinner")
-    case Dinner     extends TypeOfEvent("Dinner")
-    case NewOpening extends TypeOfEvent("New Opening")
+  enum EventType(val displayName: String) extends EventTag:
+    case LiveMusic extends EventType("Live Music")
+    case Concert   extends EventType("Concert")
+    case DJSet     extends EventType("DJ Set")
+    case Party     extends EventType("Party")
+    case Dinner    extends EventType("Dinner")
+    case Karaoke   extends EventType("Karaoke")
+    case Show      extends EventType("Show")
 
-  enum VenueType(val displayName: String) extends EventTag:
-    case Club       extends VenueType("Club")
-    case Pub        extends VenueType("Pub")
-    case Bar        extends VenueType("Bar")
-    case Restaurant extends VenueType("Restaurant")
-    case Theatre    extends VenueType("Theatre")
-    case OpenPlace  extends VenueType("Open Place")
+  enum Venue(val displayName: String) extends EventTag:
+    case Club       extends Venue("Club")
+    case Pub        extends Venue("Pub")
+    case Bar        extends Venue("Bar")
+    case Restaurant extends Venue("Restaurant")
+    case Theatre    extends Venue("Theatre")
+    case Outdoor    extends Venue("Outdoor")
 
-  enum MusicGenre(val displayName: String) extends EventTag:
-    case House      extends MusicGenre("House")
-    case Techno     extends MusicGenre("Techno")
-    case Commercial extends MusicGenre("Commercial")
-    case Reggaeton  extends MusicGenre("Reggaeton")
-    case Trap       extends MusicGenre("Trap")
-    case HipHop     extends MusicGenre("Hip Hop")
-    case Rock       extends MusicGenre("Rock")
-    case Pop        extends MusicGenre("Pop")
-    case Jazz       extends MusicGenre("Jazz")
-    case Blues      extends MusicGenre("Blues")
-    case Indie      extends MusicGenre("Indie")
+  enum MusicStyle(val displayName: String) extends EventTag:
+    case Electronic extends MusicStyle("Electronic")
+    case Pop        extends MusicStyle("Pop")
+    case HipHop     extends MusicStyle("Hip Hop")
+    case Rock       extends MusicStyle("Rock")
+    case Reggaeton  extends MusicStyle("Reggaeton")
+    case Commercial extends MusicStyle("Commercial")
 
-  enum Theme(val displayName: String) extends EventTag:
-    case Halloween       extends Theme("Halloween")
-    case Christmas       extends Theme("Christmas")
-    case NewYear         extends Theme("New Year")
-    case Carnival        extends Theme("Carnival")
-    case GraduationParty extends Theme("Graduation Party")
-    case BirthdayParty   extends Theme("Birthday Party")
-    case PrivateEvent    extends Theme("Private Event")
-    case WhiteParty      extends Theme("White Party")
-    case BlackParty      extends Theme("Black Party")
-    case PoolParty       extends Theme("Pool Party")
-    case Festival        extends Theme("Festival")
-    case StreetFood      extends Theme("Street Food")
-    case StandUpComedy   extends Theme("Stand Up Comedy")
+  enum Special(val displayName: String) extends EventTag:
+    case Halloween    extends Special("Halloween")
+    case Christmas    extends Special("Christmas")
+    case NewYear      extends Special("New Year")
+    case Carnival     extends Special("Carnival")
+    case PrivateEvent extends Special("Private Event")
 
   enum Target(val displayName: String) extends EventTag:
     case Students       extends Target("Students")
     case Over18         extends Target("Over 18")
     case Over30         extends Target("Over 30")
-    case OnlyInvitation extends Target("Only Invitation")
-    case FreeEntry      extends Target("Free Entry")
-    case Vip            extends Target("VIP")
-    case Charity        extends Target("Charity")
+    case FamilyFriendly extends Target("Family Friendly")
 
   enum Extra(val displayName: String) extends EventTag:
-    case ReservationRequired extends Extra("Reservation Required")
-    case DressCode           extends Extra("Dress Code")
-    case FreeParking         extends Extra("Free Parking")
+    case DressCode            extends Extra("Dress Code")
+    case WhiteParty           extends Extra("White Party")
+    case BlackParty           extends Extra("Black Party")
+    case FreeEntry            extends Extra("Free Entry")
+    case ReservationsRequired extends Extra("Reservations Required")
 
-  val TypeOfEvents: List[String] = TypeOfEvent.values.map(_.displayName).toList
-  val VenueTypes: List[String]   = VenueType.values.map(_.displayName).toList
-  val MusicGenres: List[String]  = MusicGenre.values.map(_.displayName).toList
-  val Themes: List[String]       = Theme.values.map(_.displayName).toList
-  val Targets: List[String]      = Target.values.map(_.displayName).toList
-  val Extras: List[String]       = Extra.values.map(_.displayName).toList
+  val EventTypes: List[String]  = EventType.values.map(_.displayName).toList
+  val Venues: List[String]      = Venue.values.map(_.displayName).toList
+  val MusicStyles: List[String] = MusicStyle.values.map(_.displayName).toList
+  val Specials: List[String]    = Special.values.map(_.displayName).toList
+  val Targets: List[String]     = Target.values.map(_.displayName).toList
+  val Extras: List[String]      = Extra.values.map(_.displayName).toList
 
   def fromString(value: String): EventTag =
-    TypeOfEvent.values.find(_.displayName.toLowerCase == value.toLowerCase)
-      .orElse(VenueType.values.find(_.displayName.toLowerCase == value.toLowerCase))
-      .orElse(MusicGenre.values.find(_.displayName.toLowerCase == value.toLowerCase))
-      .orElse(Theme.values.find(_.displayName.toLowerCase == value.toLowerCase))
+    EventType.values.find(_.displayName.toLowerCase == value.toLowerCase)
+      .orElse(Venue.values.find(_.displayName.toLowerCase == value.toLowerCase))
+      .orElse(MusicStyle.values.find(_.displayName.toLowerCase == value.toLowerCase))
+      .orElse(Special.values.find(_.displayName.toLowerCase == value.toLowerCase))
       .orElse(Target.values.find(_.displayName.toLowerCase == value.toLowerCase))
       .orElse(Extra.values.find(_.displayName.toLowerCase == value.toLowerCase))
       .getOrElse(new InvalidTag)

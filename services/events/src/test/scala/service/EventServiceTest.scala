@@ -35,7 +35,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       title: Option[String] = Some("Test Event"),
       description: Option[String] = Some("Test Description"),
       poster: Option[String] = Some("test-poster.jpg"),
-      tags: Option[List[EventTag]] = Some(List(EventTag.VenueType.Bar)),
+      tags: Option[List[EventTag]] = Some(List(EventTag.Venue.Bar)),
       location: Option[Location] = Some(Location.create(
         country = Some("Test Country"),
         country_code = Some("TC"),

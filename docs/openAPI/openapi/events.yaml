@@ -437,7 +437,7 @@ paths:
                         location:
                           name: "Arena"
                           city: "Bologna"
-                        tags: ["MUSIC"]
+                        tags: ["Concert"]
                     limit: 10
                     offset: 0
                     hasMore: true
@@ -934,8 +934,8 @@ paths:
                       description: List of tags for the category
               example: |
                 [
-                  {"category": "TypeOfEvent", "tags": ["Party", "Live Music"]},
-                  {"category": "VenueType", "tags": ["Club", "Bar"]}
+                  {"category": "EventType", "tags": ["Party", "Live Music"]},
+                  {"category": "Venue", "tags": ["Club", "Bar"]}
                 ]
       tags: 
         - Event Tag Routes   
@@ -956,10 +956,10 @@ paths:
           schema:
             type: string
             enum:
-              - TypeOfEvent
-              - VenueType
-              - MusicGenre
-              - Theme
+              - EventType
+              - Venue
+              - MusicStyle
+              - Special
               - Target
               - Extra
           description: The category of tags to retrieve.
