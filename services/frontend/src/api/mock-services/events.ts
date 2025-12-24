@@ -17,12 +17,12 @@ export const mockEventsApi: EventAPI = {
   async getTags(): Promise<GetTagResponse> {
     return mockTags
   },
-  async getEventById(id_event: EventID): Promise<GetEventByIdResponse> {
-    const event = mockEvents.find((event) => event.id_event === id_event)
+  async getEventById(eventId: EventID): Promise<GetEventByIdResponse> {
+    const event = mockEvents.find((event) => event.eventId === eventId)
 
     if (!event) {
       throw {
-        message: `Event ${id_event} not found`,
+        message: `Event ${eventId} not found`,
         code: 'EVENT_NOT_FOUND',
         status: 404,
       }
@@ -30,20 +30,20 @@ export const mockEventsApi: EventAPI = {
 
     return event
   },
-  async getEventsByIds(id_events: EventID[]): Promise<EventsDataResponse> {
-    const events = await Promise.all(id_events.map((id_event) => this.getEventById(id_event)))
+  async getEventsByIds(eventsId: EventID[]): Promise<EventsDataResponse> {
+    const events = await Promise.all(eventsId.map((eventId) => this.getEventById(eventId)))
     return { events }
   },
   async createEvent(_eventData: PartialEventData): Promise<PublishEventResponse> {
-    return { id_event: mockEvents[0]!.id_event }
+    return { eventId: mockEvents[0]!.eventId }
   },
-  async updateEventData(_id_event: EventID, _eventData: PartialEventData): Promise<void> {
+  async updateEventData(_eventId: EventID, _eventData: PartialEventData): Promise<void> {
     return
   },
-  async updateEventPoster(_id_event: EventID, _poster: File): Promise<void> {
+  async updateEventPoster(_eventId: EventID, _poster: File): Promise<void> {
     return
   },
-  async deleteEvent(_id_event: EventID): Promise<void> {
+  async deleteEvent(_eventId: EventID): Promise<void> {
     return
   },
   async searchEvents(params: {

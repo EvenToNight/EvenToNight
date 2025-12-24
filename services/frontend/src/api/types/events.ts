@@ -21,7 +21,7 @@ export interface EventData {
 }
 
 export interface Event extends Omit<EventData, 'poster'> {
-  id_event: EventID
+  eventId: EventID
   poster: string
 }
 

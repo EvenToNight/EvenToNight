@@ -10,7 +10,7 @@ import {
 
 export const mockEvents: Event[] = [
   {
-    id_event: '1',
+    eventId: '1',
     title: 'Techno vibes',
     description:
       'Join us for an unforgettable night of electronic music featuring top DJs from around the world. Experience the best techno vibes in one of the most iconic venues. The night will feature multiple stages with different music styles, from deep house to hard techno.',
@@ -24,7 +24,7 @@ export const mockEvents: Event[] = [
     id_collaborators: ['organization_2', 'organization_3'],
   },
   {
-    id_event: '2',
+    eventId: '2',
     title: 'House Music Night',
     description:
       "Experience the finest house music in London's legendary Fabric nightclub. Featuring international DJs and the best sound system in the UK. Get ready for a night of deep grooves and unforgettable beats.",
@@ -38,7 +38,7 @@ export const mockEvents: Event[] = [
     id_collaborators: [],
   },
   {
-    id_event: '3',
+    eventId: '3',
     title: 'Electronic Dreams',
     description:
       "Step into the legendary Berghain for a night of pure electronic music. One of the world's most famous techno clubs brings you an exceptional lineup of underground artists. Experience techno at its finest.",
@@ -52,7 +52,7 @@ export const mockEvents: Event[] = [
     id_collaborators: ['organization_1'],
   },
   {
-    id_event: '4',
+    eventId: '4',
     title: 'Summer Festival 2024',
     description:
       'The biggest summer festival of the year featuring over 50 artists across 5 stages. From sunset to sunrise, enjoy electronic music in a beautiful outdoor setting with camping options available.',
@@ -66,7 +66,7 @@ export const mockEvents: Event[] = [
     id_collaborators: [],
   },
   {
-    id_event: '5',
+    eventId: '5',
     title: 'Deep House Sessions',
     description:
       "Immerse yourself in the smooth sounds of deep house at Berlin's Watergate. Located by the river with stunning views, this venue offers an intimate setting for true house music lovers.",
@@ -80,7 +80,7 @@ export const mockEvents: Event[] = [
     id_collaborators: [],
   },
   {
-    id_event: '6',
+    eventId: '6',
     title: 'Minimal Techno Night',
     description: '',
     poster: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',

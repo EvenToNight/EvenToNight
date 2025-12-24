@@ -96,10 +96,10 @@ onMounted(async () => {
         >
           <EventCard
             v-for="event in upcomingEvents"
-            :key="event.id_event"
+            :key="event.eventId"
             :event="event"
             :favorite="false"
-            @favorite-toggle="handleFavoriteToggle(event.id_event, $event)"
+            @favorite-toggle="handleFavoriteToggle(event.eventId, $event)"
             @auth-required="emit('auth-required')"
           />
         </CardSlider>

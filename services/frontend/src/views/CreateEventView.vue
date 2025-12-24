@@ -367,7 +367,7 @@ const onSubmit = async () => {
         color: 'positive',
         message: t('eventCreationForm.successForEventPublication'),
       })
-      goToEventDetails(response.id_event)
+      goToEventDetails(response.eventId)
     }
   } catch (error) {
     console.error('Failed to save event:', error)

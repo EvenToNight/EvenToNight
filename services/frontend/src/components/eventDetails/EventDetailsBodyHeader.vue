@@ -28,7 +28,7 @@ const likesCount = ref(0)
 
 const loadInteractions = async () => {
   try {
-    const interaction = await api.interactions.getEventInteractions(props.event.id_event)
+    const interaction = await api.interactions.getEventInteractions(props.event.eventId)
     likesCount.value = interaction.likes.length
     if (authStore.user?.id) {
       isFavorite.value = interaction.likes.includes(authStore.user.id)
@@ -53,9 +53,9 @@ const toggleLike = async () => {
 
   try {
     if (!wasLiked) {
-      await api.interactions.likeEvent(props.event.id_event, authStore.user!.id)
+      await api.interactions.likeEvent(props.event.eventId, authStore.user!.id)
     } else {
-      await api.interactions.unlikeEvent(props.event.id_event, authStore.user!.id)
+      await api.interactions.unlikeEvent(props.event.eventId, authStore.user!.id)
     }
   } catch (error) {
     console.error('Failed to toggle like:', error)
@@ -80,7 +80,7 @@ onMounted(async () => {
         :label="t('eventDetails.editEvent')"
         icon="edit"
         variant="secondary"
-        @click="goToEditEvent(props.event.id_event)"
+        @click="goToEditEvent(props.event.eventId)"
       />
       <button class="like-button" :class="{ liked: isFavorite }" @click="toggleLike">
         <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="24px" />

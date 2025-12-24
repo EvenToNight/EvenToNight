@@ -14,7 +14,7 @@ export const createFeedApi = (feedClient: ApiClient): FeedAPI => ({
     )
     return {
       ...response,
-      items: response.items.map((item: Event) => item.id_event),
+      items: response.items.map((item: Event) => item.eventId),
     }
   },
 
