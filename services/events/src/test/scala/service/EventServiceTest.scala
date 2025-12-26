@@ -49,10 +49,10 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       price: Option[Double] = Some(15.0),
       date: Option[LocalDateTime] = Some(LocalDateTime.of(2025, 12, 31, 20, 0)),
       status: EventStatus = EventStatus.DRAFT,
-      id_creator: String = "creator-123",
+      creatorId: String = "creator-123",
       id_collaborators: Option[List[String]] = None
   ): CreateEventCommand =
-    CreateEventCommand(title, description, poster, tags, location, date, price, status, id_creator, id_collaborators)
+    CreateEventCommand(title, description, poster, tags, location, date, price, status, creatorId, id_collaborators)
 
   private def validGetEventCommand(eventId: String = "event-123"): GetEventCommand =
     GetEventCommand(eventId)

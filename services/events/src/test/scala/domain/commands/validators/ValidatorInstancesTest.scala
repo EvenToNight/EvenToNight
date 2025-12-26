@@ -42,7 +42,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     date = Some(LocalDateTime.now().plusDays(7)),
     price = Some(25.0),
     status = EventStatus.PUBLISHED,
-    id_creator = "creator123",
+    creatorId = "creator123",
     id_collaborators = Some(List("collaborator456"))
   )
 
@@ -100,7 +100,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     Validator.validateCommand(validDeleteEventCommand) shouldBe Right(validDeleteEventCommand)
 
   it should "fail validation for invalid commands" in:
-    val invalidCreateCommand = validCreateCommand.copy(title = None, id_creator = "")
+    val invalidCreateCommand = validCreateCommand.copy(title = None, creatorId = "")
     val result               = Validator.validateCommand(invalidCreateCommand)
 
     result.isLeft shouldBe true

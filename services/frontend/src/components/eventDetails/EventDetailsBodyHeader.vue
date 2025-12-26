@@ -20,7 +20,7 @@ const { goToEditEvent } = useNavigation()
 const { t } = useI18n()
 
 const isOrganizer = computed(() => {
-  return authStore.user?.id === props.event.id_creator
+  return authStore.user?.id === props.event.creatorId
 })
 
 const isFavorite = ref(false)

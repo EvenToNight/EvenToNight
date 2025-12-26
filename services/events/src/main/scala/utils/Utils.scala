@@ -75,7 +75,7 @@ object Utils:
       case None    => None
     val price: Option[Double] = eventData.obj.get("price").map(_.num)
     val status                = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
-    val id_creator            = eventData("id_creator").str
+    val creatorId             = eventData("creatorId").str
     val id_collaborators      = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
     CreateEventCommand(
@@ -86,7 +86,7 @@ object Utils:
       date = date,
       price = price,
       status = status,
-      id_creator = id_creator,
+      creatorId = creatorId,
       id_collaborators = id_collaborators
     )
 

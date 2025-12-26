@@ -21,7 +21,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         date = cmd.date,
         price = cmd.price,
         status = cmd.status,
-        id_creator = cmd.id_creator,
+        creatorId = cmd.creatorId,
         id_collaborators = cmd.id_collaborators
       )
     repo.save(newEvent) match
@@ -33,7 +33,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
             EventPublished(
               timestamp = Instant.now(),
               eventId = newEvent._id,
-              id_creator = cmd.id_creator,
+              creatorId = cmd.creatorId,
               id_collaborators = cmd.id_collaborators
             )
           )
@@ -61,7 +61,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
                 EventPublished(
                   timestamp = Instant.now(),
                   eventId = updatedEvent._id,
-                  id_creator = updatedEvent.id_creator,
+                  creatorId = updatedEvent.creatorId,
                   id_collaborators = updatedEvent.id_collaborators
                 )
               )

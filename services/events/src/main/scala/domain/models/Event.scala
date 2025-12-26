@@ -14,7 +14,7 @@ case class Event(
     price: Option[Double] = None,
     status: EventStatus,
     instant: java.time.Instant,
-    id_creator: String,
+    creatorId: String,
     id_collaborators: Option[List[String]]
 )
 
@@ -32,7 +32,7 @@ object Event:
       price = None,
       status = EventStatus.DRAFT,
       instant = java.time.Instant.MAX,
-      id_creator = "",
+      creatorId = "",
       id_collaborators = None
     )
 
@@ -45,7 +45,7 @@ object Event:
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
       status: EventStatus,
-      id_creator: String,
+      creatorId: String,
       id_collaborators: Option[List[String]]
   ): Event =
     Event(
@@ -59,6 +59,6 @@ object Event:
       price = price,
       status = status,
       instant = java.time.Instant.now(),
-      id_creator = id_creator,
+      creatorId = creatorId,
       id_collaborators = id_collaborators
     )

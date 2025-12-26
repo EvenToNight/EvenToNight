@@ -38,7 +38,7 @@ const loadCollaborators = async (userIds: UserID[]) => {
 
 onMounted(async () => {
   const promises = []
-  promises.push(loadOrganizer(props.event.id_creator))
+  promises.push(loadOrganizer(props.event.creatorId))
   if (props.event.id_collaborators?.length) {
     promises.push(loadCollaborators(props.event.id_collaborators))
   }
@@ -49,7 +49,7 @@ onMounted(async () => {
 <template>
   <div v-if="organizer" class="organizer-section">
     <h3 class="section-subtitle">{{ t('eventDetails.organizer') }}</h3>
-    <div class="organizer-card" @click="goToUserProfile(event.id_creator)">
+    <div class="organizer-card" @click="goToUserProfile(event.creatorId)">
       <img
         v-if="organizer.avatarUrl"
         :src="organizer.avatarUrl"

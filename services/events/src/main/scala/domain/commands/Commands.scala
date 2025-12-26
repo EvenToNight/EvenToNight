@@ -14,7 +14,7 @@ case class CreateEventCommand(
     date: Option[LocalDateTime] = None,
     price: Option[Double] = None,
     status: EventStatus,
-    id_creator: String,
+    creatorId: String,
     id_collaborators: Option[List[String]] = None
 ) extends Commands
 

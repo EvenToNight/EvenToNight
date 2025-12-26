@@ -25,17 +25,17 @@ object EventConversions:
       appendIfPresent("price", event.price)
       doc.append("status", event.status.toString)
       doc.append("instant", event.instant.toString)
-      doc.append("id_creator", event.id_creator)
+      doc.append("creatorId", event.creatorId)
       appendIfPresent("id_collaborators", event.id_collaborators, (c: List[String]) => c.asJava)
 
       doc
 
     def toJson: ujson.Value =
       val obj = ujson.Obj(
-        "eventId"    -> event._id,
-        "status"     -> event.status.toString,
-        "instant"    -> event.instant.toString,
-        "id_creator" -> event.id_creator
+        "eventId"   -> event._id,
+        "status"    -> event.status.toString,
+        "instant"   -> event.instant.toString,
+        "creatorId" -> event.creatorId
       )
 
       def addIfPresent[T](key: String, value: Option[T], transform: T => ujson.Value): Unit =
@@ -65,7 +65,7 @@ object EventConversions:
       price = Option(doc.getDouble("price")).map(_.doubleValue),
       status = EventStatus.valueOf(doc.getString("status")),
       instant = Instant.parse(doc.getString("instant")),
-      id_creator = doc.getString("id_creator"),
+      creatorId = doc.getString("creatorId"),
       id_collaborators = Option(doc.get("id_collaborators", classOf[java.util.List[String]])).map(_.asScala.toList)
     )
 

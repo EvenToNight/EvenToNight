@@ -63,7 +63,7 @@ export const mockEventsApi: EventAPI = {
       .filter((event) => {
         return (
           !params.id_organization ||
-          event.id_creator === params.id_organization ||
+          event.creatorId === params.id_organization ||
           event.id_collaborators.includes(params.id_organization)
         )
       })

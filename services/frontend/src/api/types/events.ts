@@ -16,7 +16,7 @@ export interface EventData {
   date: Date // send ISO 8601 format to backend
   price: number
   status: EventStatus
-  id_creator: UserID
+  creatorId: UserID
   id_collaborators: UserID[]
 }
 
@@ -25,4 +25,4 @@ export interface Event extends Omit<EventData, 'poster'> {
   poster: string
 }
 
-export type PartialEventData = Partial<EventData> & Pick<EventData, 'id_creator' | 'status'>
+export type PartialEventData = Partial<EventData> & Pick<EventData, 'creatorId' | 'status'>

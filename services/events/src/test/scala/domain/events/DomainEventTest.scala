@@ -21,7 +21,7 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     eventPublished = EventPublished(
       timestamp = Instant.now(),
       eventId = "event-published-1",
-      id_creator = "creator-1",
+      creatorId = "creator-1",
       id_collaborators = Some(List("collab-1", "collab-2"))
     )
     eventUpdated = EventUpdated(
@@ -44,7 +44,7 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val event2 = EventPublished(
       timestamp = eventPublished.timestamp,
       eventId = "event-published-1",
-      id_creator = "creator-1",
+      creatorId = "creator-1",
       id_collaborators = Some(List("collab-1", "collab-2"))
     )
     eventPublished shouldBe event2

@@ -27,7 +27,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       date: Option[LocalDateTime] = Some(LocalDateTime.of(2024, 12, 31, 22, 0)),
       price: Option[Double] = Some(15.0),
       status: EventStatus = EventStatus.DRAFT,
-      id_creator: String = "creator123",
+      creatorId: String = "creator123",
       id_collaborators: Option[List[String]] = None
   ): Event =
     Event.create(
@@ -39,7 +39,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       date = date,
       price = price,
       status = status,
-      id_creator = id_creator,
+      creatorId = creatorId,
       id_collaborators = id_collaborators
     )
 
@@ -89,7 +89,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     nilEvent.location shouldBe None
     nilEvent.date shouldBe None
     nilEvent.status shouldBe EventStatus.DRAFT
-    nilEvent.id_creator shouldBe ""
+    nilEvent.creatorId shouldBe ""
     nilEvent.id_collaborators shouldBe None
 
   "Event with multiple tags" should "handle them" in:
@@ -122,11 +122,11 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   "Event with collaborators" should "store collaborator IDs correctly" in:
     val event = createEvent(
-      id_creator = "creator-main",
+      creatorId = "creator-main",
       id_collaborators = Some(List("collaborator-123"))
     )
     event.id_collaborators shouldBe Some(List("collaborator-123"))
-    event.id_creator shouldBe "creator-main"
+    event.creatorId shouldBe "creator-main"
 
   it should "handle None collaborator" in:
     val event = createEvent(

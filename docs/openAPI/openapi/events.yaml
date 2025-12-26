@@ -49,9 +49,9 @@ paths:
                     - `date` (string, ISO 8601 format): Event date and time (e.g., "2026-07-15T20:00:00")
                     - `price` (number): Event ticket price
                     - `status` (string): Event status, must be "DRAFT" or "PUBLISHED"
-                    - `id_creator` (string): ID of the event creator
+                    - `creatorId` (string): ID of the event creator
                     - `id_collaborators` (List of strings): IDs of collaborators. Optional
-                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","id_creator":"user-123","id_collaborators":["user-456"]}'
+                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","creatorId":"user-123","id_collaborators":["user-456"]}'
                 poster:
                   type: string
                   format: binary
@@ -189,7 +189,7 @@ paths:
                           type: string
                           format: date-time
                           description: Event creation timestamp
-                        id_creator:
+                        creatorId:
                           type: string
                           description: ID of the event creator
                         id_collaborators:
@@ -211,7 +211,7 @@ paths:
                       address: "Via Arena 1"
                     tags: ["MUSIC"]
                     posterUrl: "http://media:9020/posters/evt123.jpg"
-                    id_creator: "user456"
+                    creatorId: "user456"
                     id_collaborators: ["org789"]
                 limit: null
                 offset: 0
@@ -406,7 +406,7 @@ paths:
                         posterUrl:
                           type: string
                           description: Event poster URL
-                        id_creator:
+                        creatorId:
                           type: string
                           description: ID of the event creator
                         id_collaborators:
@@ -641,7 +641,7 @@ paths:
                     type: string
                     format: date-time
                     description: Event creation timestamp
-                  id_creator:
+                  creatorId:
                     type: string
                     description: ID of the event creator
                   id_collaborators:
@@ -672,7 +672,7 @@ paths:
                 date: "2026-07-15T20:00:00"
                 status: "DRAFT"
                 instant: "2026-11-22T10:00:00Z"
-                id_creator: "user-123"
+                creatorId: "user-123"
                 id_collaborators: []
         '404':
           description: Event not found

@@ -86,7 +86,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.date shouldBe Some(baseDate)
 
   it should "handle optional fields correctly" in:
-    val command = CreateEventCommand(status = EventStatus.DRAFT, id_creator = "creator-999")
+    val command = CreateEventCommand(status = EventStatus.DRAFT, creatorId = "creator-999")
     command.title shouldBe None
     command.description shouldBe None
     command.poster shouldBe None
@@ -95,7 +95,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.date shouldBe None
     command.price shouldBe None
     command.status shouldBe EventStatus.DRAFT
-    command.id_creator shouldBe "creator-999"
+    command.creatorId shouldBe "creator-999"
     command.id_collaborators shouldBe None
 
   it should "support pattern matching" in:

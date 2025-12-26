@@ -291,7 +291,7 @@ const saveDraft = async () => {
       message: t('eventCreationForm.successForEventPublication'),
     })
   }
-  goToUserProfile(eventData.id_creator)
+  goToUserProfile(eventData.creatorId)
 }
 
 const buildEventData = (status: CreationEventStatus): PartialEventData => {
@@ -304,7 +304,7 @@ const buildEventData = (status: CreationEventStatus): PartialEventData => {
     date: date.value && time.value ? new Date(`${date.value}T${time.value}`) : undefined,
     price: Number(price.value) || undefined,
     status: status,
-    id_creator: currentUserId!,
+    creatorId: currentUserId!,
     id_collaborators: collaborators.value.length > 0 ? collaborators.value : undefined,
   }
 }

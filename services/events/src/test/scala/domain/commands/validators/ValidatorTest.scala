@@ -36,7 +36,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       date: LocalDateTime = LocalDateTime.now().plusDays(10),
       price: Double = 20.0,
       status: EventStatus = EventStatus.DRAFT,
-      id_creator: String = "valid-creator-id"
+      creatorId: String = "valid-creator-id"
   ): CreateEventCommand =
     CreateEventCommand(
       title = title,
@@ -47,7 +47,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       date = Some(date),
       price = Some(price),
       status = status,
-      id_creator = id_creator,
+      creatorId = creatorId,
       id_collaborators = None
     )
 
@@ -111,7 +111,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     result shouldBe a[Right[?, ?]]
 
   it should "reject empty creator id" in:
-    val command = validCreateEventCommand(id_creator = "")
+    val command = validCreateEventCommand(creatorId = "")
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
@@ -145,7 +145,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     result.left.value should contain("Location has invalid parameters")
 
   it should "reject empty creator id" in:
-    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, id_creator = "")
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, creatorId = "")
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]

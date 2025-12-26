@@ -162,7 +162,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "date": "2025-11-15T19:30:00",
       "price": 20.0,
       "status": "DRAFT",
-      "id_creator": "creator-001",
+      "creatorId": "creator-001",
       "id_collaborators": ["collab-001"]
     }"""
 
@@ -175,7 +175,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.date shouldBe Some(java.time.LocalDateTime.parse("2025-11-15T19:30:00"))
     command.price shouldBe Some(20.0)
     command.status shouldBe EventStatus.DRAFT
-    command.id_creator shouldBe "creator-001"
+    command.creatorId shouldBe "creator-001"
     command.id_collaborators shouldBe Some(List("collab-001"))
 
   it should "handle JSON with missing optional fields" in:
@@ -196,7 +196,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "date": "2025-12-01T10:00:00",
       "price": 0.0,
       "status": "PUBLISHED",
-      "id_creator": "creator-002"
+      "creatorId": "creator-002"
     }"""
     val command     = Utils.getCreateCommandFromJson(partialJson)
     command.title shouldBe Some("Partial Event")
@@ -206,7 +206,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.date shouldBe Some(java.time.LocalDateTime.parse("2025-12-01T" + "10:00:00"))
     command.price shouldBe Some(0.0)
     command.status shouldBe EventStatus.PUBLISHED
-    command.id_creator shouldBe "creator-002"
+    command.creatorId shouldBe "creator-002"
     command.id_collaborators shouldBe None
 
   it should "throw on invalid JSON for CreateEventCommand" in:
@@ -306,7 +306,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       price = Some(10.0),
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
-      id_creator = "creator-past",
+      creatorId = "creator-past",
       id_collaborators = None
     )
 
@@ -326,7 +326,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       price = Some(15.0),
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
-      id_creator = "creator-future",
+      creatorId = "creator-future",
       id_collaborators = None
     )
     val updatedEvent = Utils.updateEventIfPastDate(futureEvent)
@@ -344,7 +344,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       price = Some(20.0),
       status = EventStatus.COMPLETED,
       instant = java.time.Instant.now(),
-      id_creator = "creator-completed",
+      creatorId = "creator-completed",
       id_collaborators = None
     )
     val updatedEvent = Utils.updateEventIfPastDate(completedEvent)
@@ -500,7 +500,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
         price = Some(10.0),
         status = EventStatus.PUBLISHED,
         instant = java.time.Instant.now(),
-        id_creator = "creator-1",
+        creatorId = "creator-1",
         id_collaborators = None
       ),
       Event(
@@ -514,7 +514,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
         price = Some(15.0),
         status = EventStatus.PUBLISHED,
         instant = java.time.Instant.now(),
-        id_creator = "creator-2",
+        creatorId = "creator-2",
         id_collaborators = None
       )
     )

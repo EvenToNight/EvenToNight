@@ -8,7 +8,7 @@ sealed trait DomainEvent:
 case class EventPublished(
     timestamp: Instant,
     eventId: String,
-    id_creator: String,
+    creatorId: String,
     id_collaborators: Option[List[String]]
 ) extends DomainEvent
 

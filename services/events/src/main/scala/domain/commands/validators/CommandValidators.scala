@@ -20,7 +20,7 @@ object CreateEventValidator extends Validator[CreateEventCommand]:
     cmd.status match
       case EventStatus.DRAFT =>
         val validations = combine(
-          nonEmpty(cmd.id_creator, "Creator Id")
+          nonEmpty(cmd.creatorId, "Creator Id")
         )
         validations.map(_ => cmd)
       case _ =>
@@ -28,7 +28,7 @@ object CreateEventValidator extends Validator[CreateEventCommand]:
           nonEmpty(cmd.title.getOrElse(""), "Title"),
           nonEmpty(cmd.description.getOrElse(""), "Description"),
           nonEmpty(cmd.price.getOrElse(0).toString(), "Price"),
-          nonEmpty(cmd.id_creator, "Creator Id"),
+          nonEmpty(cmd.creatorId, "Creator Id"),
           correctLocality(cmd.location.getOrElse(Location.Nil()), "Location"),
           futureDate(cmd.date.getOrElse(LocalDateTime.now()), "Date")
         )

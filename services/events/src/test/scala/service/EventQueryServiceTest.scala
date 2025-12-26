@@ -37,7 +37,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       price = Some(15.0),
       date = Some(LocalDateTime.now().plusDays(1)),
       status = EventStatus.PUBLISHED,
-      id_creator = "creator123",
+      creatorId = "creator123",
       id_collaborators = None
     )
 
