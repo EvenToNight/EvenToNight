@@ -151,10 +151,7 @@ jobs:
         id: find-dockerfiles
         run: |
           dockerfiles=$(./scripts/findDockerfiles.sh "${{ github.event.before }}" "${{ github.sha }}")
-          # Convert space-separated list to JSON array, removing newlines and empty strings
-          json_array=$(echo "$dockerfiles" | jq -R -s -c 'gsub("\n"; "") | split(" ") | map(select(length > 0))')
-          echo "Found Dockerfiles: $json_array" >&2
-          echo "dockerfiles=$json_array" >> $GITHUB_OUTPUT
+          echo "dockerfiles=$dockerfiles" >> $GITHUB_OUTPUT
 
       - name: Get latest GitHub Release tag
         id: get_tag

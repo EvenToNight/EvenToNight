@@ -32,7 +32,7 @@ if [ -n "$BASE_COMMIT" ] && git cat-file -e "$BASE_COMMIT" 2>/dev/null; then
     use_git=true
 else
     echo "⚠️ BASE_COMMIT not found, using find to get all files" >&2
-    files=$(find . -type f -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/build/*' -not -path '*/.gradle/*')
+    files=$(find . -type f \( -path './services/*' -o -path './infrastructure/*' \) -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/build/*' -not -path '*/.gradle/*')
     use_git=false
 fi
 
@@ -62,5 +62,5 @@ done <<< "$dockerfiles_dirs"
 echo "Found Dockerfiles:" >&2
 echo "$dockerfiles" >&2
 echo "------------------------" >&2
-echo "$dockerfiles"
-
+dockerfiles_array=$(echo "$dockerfiles" | jq -R -s -c 'gsub("\n"; "") | split(" ") | map(select(length > 0))')
+echo "$dockerfiles_array"
