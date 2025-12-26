@@ -136,15 +136,44 @@ jobs:
           gh release create "$new_tag" --title "$new_tag" --notes "Automated pre-release" --prerelease
           echo "✅ Created $new_tag"
 
-  build-and-push-docker-images:
+  find-modified-dockerfiles:
     needs: release
     if: ${{ needs.release.outputs.release_done == 'true'}}
+    runs-on: ubuntu-22.04
+    outputs:
+      dockerfiles: ${{ steps.find-dockerfiles.outputs.dockerfiles }}
+      release_tag: ${{ steps.get_tag.outputs.release }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Find all modified directories with Dockerfiles
+        id: find-dockerfiles
+        run: |
+          dockerfiles=$(./scripts/findDockerfiles.sh "${{ github.event.before }}" "${{ github.sha }}")
+          # Convert space-separated list to JSON array, removing newlines and empty strings
+          json_array=$(echo "$dockerfiles" | jq -R -s -c 'gsub("\n"; "") | split(" ") | map(select(length > 0))')
+          echo "Found Dockerfiles: $json_array" >&2
+          echo "dockerfiles=$json_array" >> $GITHUB_OUTPUT
+
+      - name: Get latest GitHub Release tag
+        id: get_tag
+        uses: pozetroninc/github-action-get-latest-release@v0.8.0
+        with:
+          repository: ${{ github.repository }}
+
+  build-and-push-docker-images:
+    needs: find-modified-dockerfiles
+    if: ${{ needs.find-modified-dockerfiles.outputs.dockerfiles != '[]' }}
     runs-on: ubuntu-22.04
     permissions:
       contents: read
       packages: write
       id-token: write
       attestations: write
+    strategy:
+      matrix:
+        dockerfile: ${{ fromJson(needs.find-modified-dockerfiles.outputs.dockerfiles) }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -156,46 +185,33 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Find all modified directories with Dockerfiles
-        id: services
-        run: |
-          dockerfiles=$(./scripts/findDockerfiles.sh "${{ github.event.before }}" "${{ github.sha }}")
-          echo "dockerfiles=$dockerfiles" >> $GITHUB_OUTPUT
-
-      - name: Get latest GitHub Release tag
-        id: get_tag
-        uses: pozetroninc/github-action-get-latest-release@v0.8.0
-        with:
-          repository: ${{ github.repository }}
-
-
-      - name: Build and push Docker images
+      - name: Build and push Docker image
         run: |
           repo_lower=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          release_tag="${{ steps.get_tag.outputs.release }}"
+          release_tag="${{ needs.find-modified-dockerfiles.outputs.release_tag }}"
           echo "🏷️ Using release tag: $release_tag"
-          
-          for dockerfile in ${{ steps.services.outputs.dockerfiles }}; do
-            dockerfile_name=$(basename "$dockerfile")
-            parent_dir=$(basename "$(dirname "$dockerfile")")
 
-            if [ "$dockerfile_name" = "Dockerfile" ]; then
-                service_name="$parent_dir"
-            else
-                suffix="${dockerfile_name#Dockerfile}"
-                service_name="${parent_dir}${suffix}"
-            fi
-            image_base="ghcr.io/${repo_lower}/${service_name}"
-            image_latest="${image_base}:latest"
-            image_release="${image_base}:${release_tag}"
+          dockerfile="${{ matrix.dockerfile }}"
+          dockerfile_name=$(basename "$dockerfile")
+          parent_dir=$(basename "$(dirname "$dockerfile")")
 
-            echo "🚀 Building image for $service_name"
-            docker build -t "$image_latest" -t "$image_release" -f "$dockerfile" .
+          if [ "$dockerfile_name" = "Dockerfile" ]; then
+              service_name="$parent_dir"
+          else
+              suffix="${dockerfile_name#Dockerfile}"
+              service_name="${parent_dir}${suffix}"
+          fi
 
-            echo "📤 Pushing $image_latest and $image_release"
-            docker push "$image_latest"
-            docker push "$image_release"
-          done
+          image_base="ghcr.io/${repo_lower}/${service_name}"
+          image_latest="${image_base}:latest"
+          image_release="${image_base}:${release_tag}"
+
+          echo "🚀 Building image for $service_name"
+          docker build -t "$image_latest" -t "$image_release" -f "$dockerfile" .
+
+          echo "📤 Pushing $image_latest and $image_release"
+          docker push "$image_latest"
+          docker push "$image_release"
 
   dev-deploy:
     needs: build-and-push-docker-images
