@@ -7,7 +7,6 @@ import infrastructure.db.EventRepository
 import infrastructure.messaging.EventPublisher
 
 import java.time.Instant
-import java.util.UUID
 
 class DomainEventService(repo: EventRepository, publisher: EventPublisher):
 
@@ -32,7 +31,6 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         if cmd.status == EventStatus.PUBLISHED then
           publisher.publish(
             EventPublished(
-              id = UUID.randomUUID().toString(),
               timestamp = Instant.now(),
               eventId = newEvent._id,
               id_creator = cmd.id_creator,
@@ -61,7 +59,6 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
             if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
               publisher.publish(
                 EventPublished(
-                  id = UUID.randomUUID().toString(),
                   timestamp = Instant.now(),
                   eventId = updatedEvent._id,
                   id_creator = updatedEvent.id_creator,
@@ -71,7 +68,6 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
             else
               publisher.publish(
                 EventUpdated(
-                  id = UUID.randomUUID().toString(),
                   timestamp = Instant.now(),
                   eventId = updatedEvent._id
                 )
@@ -93,7 +89,6 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
               case Right(_) =>
                 publisher.publish(
                   EventDeleted(
-                    id = UUID.randomUUID().toString(),
                     timestamp = Instant.now(),
                     eventId = cmd.eventId
                   )
@@ -106,7 +101,6 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
               case Right(_) =>
                 publisher.publish(
                   EventDeleted(
-                    id = UUID.randomUUID().toString(),
                     timestamp = Instant.now(),
                     eventId = cmd.eventId
                   )

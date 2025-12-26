@@ -11,7 +11,7 @@ trait EventPublisher:
 class MockEventPublisher extends EventPublisher:
   override def publish(event: DomainEvent): Unit =
     val eventType = event.getClass.getSimpleName
-    println(s"[RABBITMQ MOCK] Published domain event: $eventType (ID: ${event.id})")
+    println(s"[RABBITMQ MOCK] Published domain event: $eventType")
 
 class RabbitEventPublisher(
     host: String = "localhost",
@@ -48,7 +48,7 @@ class RabbitEventPublisher(
     val publishTry = Try {
       val eventType  = event.getClass.getSimpleName
       val routingKey = s"event.${eventType.toLowerCase}"
-      val message    = s"Event: $eventType - ID: ${event.id}"
+      val message    = s"Event: $eventType"
 
       channel.basicPublish(
         exchangeName,
@@ -58,7 +58,7 @@ class RabbitEventPublisher(
       )
 
       println(
-        s"[RABBITMQ] Published event: $eventType (ID: ${event.id}) to exchange '$exchangeName' with routing key '$routingKey'"
+        s"[RABBITMQ] Published event: $eventType to exchange '$exchangeName' with routing key '$routingKey'"
       )
     }
 

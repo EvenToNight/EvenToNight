@@ -19,19 +19,16 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   override def beforeEach(): Unit =
     super.beforeEach()
     eventPublished = EventPublished(
-      id = "published-1",
       timestamp = Instant.now(),
       eventId = "event-published-1",
       id_creator = "creator-1",
       id_collaborators = Some(List("collab-1", "collab-2"))
     )
     eventUpdated = EventUpdated(
-      id = "updated-1",
       timestamp = Instant.now(),
       eventId = "event-updated-1"
     )
     eventDeleted = EventDeleted(
-      id = "deleted-1",
       timestamp = Instant.now(),
       eventId = "event-deleted-1"
     )
@@ -40,13 +37,11 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     eventPublished shouldBe a[DomainEvent]
 
   it should "store all provided data correctly" in:
-    eventPublished.id shouldBe "published-1"
     eventPublished.eventId shouldBe "event-published-1"
     eventPublished.timestamp shouldBe a[Instant]
 
   it should "be comparable with itself" in:
     val event2 = EventPublished(
-      id = "published-1",
       timestamp = eventPublished.timestamp,
       eventId = "event-published-1",
       id_creator = "creator-1",
@@ -58,13 +53,11 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     eventUpdated shouldBe a[DomainEvent]
 
   it should "store all provided data correctly" in:
-    eventUpdated.id shouldBe "updated-1"
     eventUpdated.eventId shouldBe "event-updated-1"
     eventUpdated.timestamp shouldBe a[Instant]
 
   it should "be comparable with itself" in:
     val event2 = EventUpdated(
-      id = "updated-1",
       timestamp = eventUpdated.timestamp,
       eventId = "event-updated-1"
     )
@@ -74,13 +67,11 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     eventDeleted shouldBe a[DomainEvent]
 
   it should "store all provided data correctly" in:
-    eventDeleted.id shouldBe "deleted-1"
     eventDeleted.eventId shouldBe "event-deleted-1"
     eventDeleted.timestamp shouldBe a[Instant]
 
   it should "be comparable with itself" in:
     val event2 = EventDeleted(
-      id = "deleted-1",
       timestamp = eventDeleted.timestamp,
       eventId = "event-deleted-1"
     )
