@@ -1,16 +1,16 @@
 #!/bin/bash
 # Find directories containing Dockerfiles
-# Usage: ./scripts/find-dockerfiles.sh [BASE_COMMIT] [HEAD_COMMIT]
+# Usage: ./scripts/findDockerfiles.sh [BASE_COMMIT] [HEAD_COMMIT]
 #
-# If BASE_COMMIT is provided, tries to fetch it and use git diff
-# Otherwise, uses find to get all files
+# If BASE_COMMIT and/or HEAD_COMMIT are provided, tries to fetch them and use git diff
+# Otherwise, uses find to search in current working directory
 
 set -e
 
 BASE_COMMIT="${1:-}"
 HEAD_COMMIT="${2:-HEAD}"
 
-docker_dirs=""
+dockerfiles=""
 
 if [ -n "$BASE_COMMIT" ]; then
     if ! git cat-file -e "$BASE_COMMIT" 2>/dev/null; then
@@ -29,24 +29,32 @@ fi
 if [ -n "$BASE_COMMIT" ] && git cat-file -e "$BASE_COMMIT" 2>/dev/null; then
     echo "📋 Diffing from $BASE_COMMIT to $HEAD_COMMIT" >&2
     files=$(git diff --name-only "$BASE_COMMIT" "$HEAD_COMMIT")
+    use_git=true
 else
     echo "⚠️ BASE_COMMIT not found, using find to get all files" >&2
-    files=$(find . -type f -not -path '*/node_modules/*' -not -path '*/.git/*')
+    files=$(find . -type f -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/build/*' -not -path '*/.gradle/*')
+    use_git=false
 fi
 
 unique_dirs=$(echo "$files" | xargs -n1 dirname 2>/dev/null | sort -u)
-
+printf "Modified directories:\n%s\n------------------------\n" "$unique_dirs" >&2
 while IFS= read -r dir; do
     if [ -n "$dir" ]; then
-        dockerfiles=$(git ls-tree -r --name-only "$HEAD_COMMIT" "$dir/" 2>/dev/null | grep -F "${dir}/Dockerfile" || true)
-        if [ -n "$dockerfiles" ]; then
-            docker_dirs="$docker_dirs $dockerfiles"
+        if [ "$use_git" = true ]; then
+            dockerfiles_in_dir=$(git ls-tree -r --name-only "$HEAD_COMMIT" "$dir/" 2>/dev/null | grep -F "${dir}/Dockerfile" || true)
+        else
+            dockerfiles_in_dir=$(find "$dir" -maxdepth 1 -type f -name "Dockerfile*" 2>/dev/null || true)
+        fi
+        if [ -n "$dockerfiles_in_dir" ]; then
+            dockerfiles="$dockerfiles $dockerfiles_in_dir"
         fi
     fi
 done <<< "$unique_dirs"
 
-docker_dirs=$(echo "$docker_dirs" | tr ' ' '\n' | sed 's|^\./||' | sort -u | tr '\n' ' ')
+dockerfiles=$(echo "$dockerfiles" | tr ' ' '\n' | sed 's|^\./||' | sort -u | tr '\n' ' ')
 
 echo "Found docker_dirs with Dockerfiles:" >&2
-echo "$docker_dirs" >&2
-echo "$docker_dirs"
+echo "$dockerfiles" >&2
+echo "------------------------" >&2
+echo "$dockerfiles"
+
