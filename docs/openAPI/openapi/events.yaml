@@ -50,8 +50,8 @@ paths:
                     - `price` (number): Event ticket price
                     - `status` (string): Event status, must be "DRAFT" or "PUBLISHED"
                     - `creatorId` (string): ID of the event creator
-                    - `id_collaborators` (List of strings): IDs of collaborators. Optional
-                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","creatorId":"user-123","id_collaborators":["user-456"]}'
+                    - `collaboratorIds` (List of strings): IDs of collaborators. Optional
+                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","creatorId":"user-123","collaboratorIds":["user-456"]}'
                 poster:
                   type: string
                   format: binary
@@ -192,7 +192,7 @@ paths:
                         creatorId:
                           type: string
                           description: ID of the event creator
-                        id_collaborators:
+                        collaboratorIds:
                           type: array
                           items:
                             type: string
@@ -212,7 +212,7 @@ paths:
                     tags: ["MUSIC"]
                     posterUrl: "http://media:9020/posters/evt123.jpg"
                     creatorId: "user456"
-                    id_collaborators: ["org789"]
+                    collaboratorIds: ["org789"]
                 limit: null
                 offset: 0
                 hasMore: false        
@@ -409,7 +409,7 @@ paths:
                         creatorId:
                           type: string
                           description: ID of the event creator
-                        id_collaborators:
+                        collaboratorIds:
                           type: array
                           items:
                             type: string
@@ -644,7 +644,7 @@ paths:
                   creatorId:
                     type: string
                     description: ID of the event creator
-                  id_collaborators:
+                  collaboratorIds:
                     type: array
                     items:
                       type: string
@@ -673,7 +673,7 @@ paths:
                 status: "DRAFT"
                 instant: "2026-11-22T10:00:00Z"
                 creatorId: "user-123"
-                id_collaborators: []
+                collaboratorIds: []
         '404':
           description: Event not found
           content:
@@ -695,7 +695,7 @@ paths:
         Old event will be overwritten with the new provided data.
         All fields are optional.
 
-        If status is updated to "PUBLISHED", all field are required except `id_collaborators` and `poster`.
+        If status is updated to "PUBLISHED", all field are required except `collaboratorIds` and `poster`.
         
         **Note:** To update the poster, use the separate `POST /poster/{eventId}` endpoint.
       servers:
@@ -736,7 +736,7 @@ paths:
                 - `date` (string, ISO 8601 format): Event date and time
                 - `price` (number): Event ticket price
                 - `status` (string): Event status ("DRAFT", "PUBLISHED", or "CANCELLED")
-                - `id_collaborators` (array of strings): IDs of collaborators
+                - `collaboratorIds` (array of strings): IDs of collaborators
               properties:
                 title:
                   type: string
@@ -791,7 +791,7 @@ paths:
                   enum: [DRAFT, PUBLISHED, CANCELLED]
                   description: Event status (optional)
                   example: "PUBLISHED"
-                id_collaborators:
+                collaboratorIds:
                   type: array
                   items:
                     type: string

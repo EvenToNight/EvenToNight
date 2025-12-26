@@ -20,7 +20,7 @@ export class CreateReviewDto {
   @IsArray()
   @IsString({ each: true })
   @IsOptional()
-  collaboratorsId?: string[];
+  collaboratorIds?: string[];
 
   @IsInt()
   @Min(1)

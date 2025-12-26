@@ -566,7 +566,7 @@ paths:
                   type: string
                 organizationId:
                   type: string
-                collaboratorsId:
+                collaboratorIds:
                   type: array
                   items:
                     type: string
@@ -584,7 +584,7 @@ paths:
             example:
               userId: user123
               organizationId: org456
-              collaboratorsId: [collab789]
+              collaboratorIds: [collab789]
               rating: 5
               title: "Amazing Event!"
               comment: "Had a fantastic time at this event."

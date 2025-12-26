@@ -110,7 +110,7 @@ const loadEvent = async () => {
     description.value = event.description ?? ''
     price.value = String(event.price ?? '')
     tags.value = event.tags ?? []
-    collaborators.value = event.id_collaborators ?? []
+    collaborators.value = event.collaboratorIds ?? []
     if (event.location) {
       location.value = {
         label: buildLocationDisplayName(event.location),
@@ -305,7 +305,7 @@ const buildEventData = (status: CreationEventStatus): PartialEventData => {
     price: Number(price.value) || undefined,
     status: status,
     creatorId: currentUserId!,
-    id_collaborators: collaborators.value.length > 0 ? collaborators.value : undefined,
+    collaboratorIds: collaborators.value.length > 0 ? collaborators.value : undefined,
   }
 }
 

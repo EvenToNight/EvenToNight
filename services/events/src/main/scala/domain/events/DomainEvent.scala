@@ -9,7 +9,7 @@ case class EventPublished(
     timestamp: Instant,
     eventId: String,
     creatorId: String,
-    id_collaborators: Option[List[String]]
+    collaboratorIds: Option[List[String]]
 ) extends DomainEvent
 
 case class EventUpdated(

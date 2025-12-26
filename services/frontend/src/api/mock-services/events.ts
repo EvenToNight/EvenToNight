@@ -64,7 +64,7 @@ export const mockEventsApi: EventAPI = {
         return (
           !params.id_organization ||
           event.creatorId === params.id_organization ||
-          event.id_collaborators.includes(params.id_organization)
+          event.collaboratorIds.includes(params.id_organization)
         )
       })
     return getPaginatedItems(events, params.pagination)

@@ -26,7 +26,7 @@ object EventConversions:
       doc.append("status", event.status.toString)
       doc.append("instant", event.instant.toString)
       doc.append("creatorId", event.creatorId)
-      appendIfPresent("id_collaborators", event.id_collaborators, (c: List[String]) => c.asJava)
+      appendIfPresent("collaboratorIds", event.collaboratorIds, (c: List[String]) => c.asJava)
 
       doc
 
@@ -48,7 +48,7 @@ object EventConversions:
       addIfPresent("location", event.location, localityToJson)
       addIfPresent("date", event.date, (d: LocalDateTime) => ujson.Str(d.toString))
       addIfPresent("price", event.price, ujson.Num(_))
-      addIfPresent("id_collaborators", event.id_collaborators, (c: List[String]) => ujson.Arr(c.map(ujson.Str(_))*))
+      addIfPresent("collaboratorIds", event.collaboratorIds, (c: List[String]) => ujson.Arr(c.map(ujson.Str(_))*))
       obj
 
   def fromDocument(doc: Document): Event =
@@ -66,7 +66,7 @@ object EventConversions:
       status = EventStatus.valueOf(doc.getString("status")),
       instant = Instant.parse(doc.getString("instant")),
       creatorId = doc.getString("creatorId"),
-      id_collaborators = Option(doc.get("id_collaborators", classOf[java.util.List[String]])).map(_.asScala.toList)
+      collaboratorIds = Option(doc.get("collaboratorIds", classOf[java.util.List[String]])).map(_.asScala.toList)
     )
 
   private def localityToDocument(locality: Location): Document =

@@ -21,7 +21,7 @@ export const mockEvents: Event[] = [
     price: 25,
     status: 'PUBLISHED',
     creatorId: 'organization_1',
-    id_collaborators: ['organization_2', 'organization_3'],
+    collaboratorIds: ['organization_2', 'organization_3'],
   },
   {
     eventId: '2',
@@ -35,7 +35,7 @@ export const mockEvents: Event[] = [
     price: 20,
     status: 'PUBLISHED',
     creatorId: 'organization_2',
-    id_collaborators: [],
+    collaboratorIds: [],
   },
   {
     eventId: '3',
@@ -49,7 +49,7 @@ export const mockEvents: Event[] = [
     price: 18,
     status: 'PUBLISHED',
     creatorId: 'organization_3',
-    id_collaborators: ['organization_1'],
+    collaboratorIds: ['organization_1'],
   },
   {
     eventId: '4',
@@ -63,7 +63,7 @@ export const mockEvents: Event[] = [
     price: 85,
     status: 'PUBLISHED',
     creatorId: 'organization_2',
-    id_collaborators: [],
+    collaboratorIds: [],
   },
   {
     eventId: '5',
@@ -77,7 +77,7 @@ export const mockEvents: Event[] = [
     price: 15,
     status: 'PUBLISHED',
     creatorId: 'organization_1',
-    id_collaborators: [],
+    collaboratorIds: [],
   },
   {
     eventId: '6',
@@ -90,6 +90,6 @@ export const mockEvents: Event[] = [
     price: 0,
     status: 'DRAFT',
     creatorId: 'organization_1',
-    id_collaborators: [],
+    collaboratorIds: [],
   },
 ]

@@ -17,7 +17,7 @@ export interface EventData {
   price: number
   status: EventStatus
   creatorId: UserID
-  id_collaborators: UserID[]
+  collaboratorIds: UserID[]
 }
 
 export interface Event extends Omit<EventData, 'poster'> {

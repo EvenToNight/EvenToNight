@@ -43,7 +43,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     price = Some(25.0),
     status = EventStatus.PUBLISHED,
     creatorId = "creator123",
-    id_collaborators = Some(List("collaborator456"))
+    collaboratorIds = Some(List("collaborator456"))
   )
 
   private val validGetCommand = GetEventCommand("event123")
@@ -62,7 +62,7 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     date = Some(LocalDateTime.now().plusDays(14)),
     price = Some(30.0),
     status = EventStatus.PUBLISHED,
-    id_collaborators = Some(List("collaborator789"))
+    collaboratorIds = Some(List("collaborator789"))
   )
 
   private def validDeleteEventCommand = DeleteEventCommand("event123")

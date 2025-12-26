@@ -39,8 +39,8 @@ const loadCollaborators = async (userIds: UserID[]) => {
 onMounted(async () => {
   const promises = []
   promises.push(loadOrganizer(props.event.creatorId))
-  if (props.event.id_collaborators?.length) {
-    promises.push(loadCollaborators(props.event.id_collaborators))
+  if (props.event.collaboratorIds?.length) {
+    promises.push(loadCollaborators(props.event.collaboratorIds))
   }
   await Promise.all(promises)
 })

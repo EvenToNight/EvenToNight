@@ -31,7 +31,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   private def createCommand(
       title: String = "Test Event",
-      id_collaborators: Option[List[String]] = Some(List("collaborator-456"))
+      collaboratorIds: Option[List[String]] = Some(List("collaborator-456"))
   ): CreateEventCommand =
     CreateEventCommand(
       Some(title),
@@ -43,7 +43,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       Some(15.0),
       EventStatus.DRAFT,
       "creator-123",
-      id_collaborators
+      collaboratorIds
     )
 
   private def getCommand(eventId: String): GetEventCommand =
@@ -80,7 +80,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   it should "store properties correctly" in:
     val command = createCommand("Custom Title", None)
     command.title shouldBe Some("Custom Title")
-    command.id_collaborators shouldBe None
+    command.collaboratorIds shouldBe None
     command.tags shouldBe Some(sampleTags)
     command.location shouldBe Some(sampleLocation)
     command.date shouldBe Some(baseDate)
@@ -96,7 +96,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.price shouldBe None
     command.status shouldBe EventStatus.DRAFT
     command.creatorId shouldBe "creator-999"
-    command.id_collaborators shouldBe None
+    command.collaboratorIds shouldBe None
 
   it should "support pattern matching" in:
     val command: Commands = createCommand("Pattern Test")
@@ -144,7 +144,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       date = None,
       price = Some(20.0),
       status = EventStatus.PUBLISHED,
-      id_collaborators = Some(List("collaborator-789"))
+      collaboratorIds = Some(List("collaborator-789"))
     )
     command shouldBe a[Commands]
     command shouldBe a[UpdateEventCommand]
@@ -159,7 +159,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       date = Some(baseDate.plusDays(5)),
       price = Some(30.0),
       status = EventStatus.CANCELLED,
-      id_collaborators = None
+      collaboratorIds = None
     )
     command.eventId shouldBe "event-654"
     command.title shouldBe Some("New Title")
@@ -169,7 +169,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.date shouldBe Some(baseDate.plusDays(5))
     command.price shouldBe Some(30.0)
     command.status shouldBe EventStatus.CANCELLED
-    command.id_collaborators shouldBe None
+    command.collaboratorIds shouldBe None
 
   "DeleteEventCommand" should "implement Commands trait" in:
     val command = DeleteEventCommand("event-to-delete")

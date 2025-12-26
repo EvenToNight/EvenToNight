@@ -22,7 +22,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         price = cmd.price,
         status = cmd.status,
         creatorId = cmd.creatorId,
-        id_collaborators = cmd.id_collaborators
+        collaboratorIds = cmd.collaboratorIds
       )
     repo.save(newEvent) match
       case Left(_) =>
@@ -34,7 +34,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
               timestamp = Instant.now(),
               eventId = newEvent._id,
               creatorId = cmd.creatorId,
-              id_collaborators = cmd.id_collaborators
+              collaboratorIds = cmd.collaboratorIds
             )
           )
         Right(newEvent._id)
@@ -50,7 +50,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
           date = cmd.date,
           price = cmd.price,
           status = cmd.status,
-          id_collaborators = cmd.id_collaborators.orElse(event.id_collaborators)
+          collaboratorIds = cmd.collaboratorIds.orElse(event.collaboratorIds)
         )
         repo.update(updatedEvent) match
           case Left(_) =>
@@ -62,7 +62,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
                   timestamp = Instant.now(),
                   eventId = updatedEvent._id,
                   creatorId = updatedEvent.creatorId,
-                  id_collaborators = updatedEvent.id_collaborators
+                  collaboratorIds = updatedEvent.collaboratorIds
                 )
               )
             else

@@ -163,7 +163,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "price": 20.0,
       "status": "DRAFT",
       "creatorId": "creator-001",
-      "id_collaborators": ["collab-001"]
+      "collaboratorIds": ["collab-001"]
     }"""
 
     val command = Utils.getCreateCommandFromJson(validJson)
@@ -176,7 +176,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.price shouldBe Some(20.0)
     command.status shouldBe EventStatus.DRAFT
     command.creatorId shouldBe "creator-001"
-    command.id_collaborators shouldBe Some(List("collab-001"))
+    command.collaboratorIds shouldBe Some(List("collab-001"))
 
   it should "handle JSON with missing optional fields" in:
     val partialJson = """{
@@ -207,7 +207,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.price shouldBe Some(0.0)
     command.status shouldBe EventStatus.PUBLISHED
     command.creatorId shouldBe "creator-002"
-    command.id_collaborators shouldBe None
+    command.collaboratorIds shouldBe None
 
   it should "throw on invalid JSON for CreateEventCommand" in:
     val invalidJson = "{ invalid json structure"
@@ -244,7 +244,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "date": "2026-01-20T18:00:00",
       "price": 30.0,
       "status": "CANCELLED",
-      "id_collaborators": ["collab-002"]
+      "collaboratorIds": ["collab-002"]
     }"""
 
     val command = Utils.getUpdateCommandFromJson("event-123", validJson)
@@ -257,7 +257,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-01-20T18:00:00"))
     command.price shouldBe Some(30.0)
     command.status shouldBe EventStatus.CANCELLED
-    command.id_collaborators shouldBe Some(List("collab-002"))
+    command.collaboratorIds shouldBe Some(List("collab-002"))
 
   it should "handle JSON with missing optional fields" in:
     val partialJson = """{
@@ -275,7 +275,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-02-10" + "T12:00:00"))
     command.price shouldBe None
     command.status shouldBe EventStatus.DRAFT
-    command.id_collaborators shouldBe None
+    command.collaboratorIds shouldBe None
 
   it should "throw on invalid JSON for UpdateEventCommand" in:
     val invalidJson = "{ invalid json structure"
@@ -307,7 +307,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
       creatorId = "creator-past",
-      id_collaborators = None
+      collaboratorIds = None
     )
 
     val updatedEvent = Utils.updateEventIfPastDate(pastEvent)
@@ -327,7 +327,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
       creatorId = "creator-future",
-      id_collaborators = None
+      collaboratorIds = None
     )
     val updatedEvent = Utils.updateEventIfPastDate(futureEvent)
     updatedEvent.status shouldBe EventStatus.PUBLISHED
@@ -345,7 +345,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       status = EventStatus.COMPLETED,
       instant = java.time.Instant.now(),
       creatorId = "creator-completed",
-      id_collaborators = None
+      collaboratorIds = None
     )
     val updatedEvent = Utils.updateEventIfPastDate(completedEvent)
     updatedEvent.status shouldBe EventStatus.COMPLETED
@@ -501,7 +501,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
         status = EventStatus.PUBLISHED,
         instant = java.time.Instant.now(),
         creatorId = "creator-1",
-        id_collaborators = None
+        collaboratorIds = None
       ),
       Event(
         _id = "event-2",
@@ -515,7 +515,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
         status = EventStatus.PUBLISHED,
         instant = java.time.Instant.now(),
         creatorId = "creator-2",
-        id_collaborators = None
+        collaboratorIds = None
       )
     )
 

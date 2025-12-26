@@ -76,7 +76,7 @@ object Utils:
     val price: Option[Double] = eventData.obj.get("price").map(_.num)
     val status                = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
     val creatorId             = eventData("creatorId").str
-    val id_collaborators      = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
+    val collaboratorIds       = eventData.obj.get("collaboratorIds").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
     CreateEventCommand(
       title = title,
@@ -87,20 +87,20 @@ object Utils:
       price = price,
       status = status,
       creatorId = creatorId,
-      id_collaborators = id_collaborators
+      collaboratorIds = collaboratorIds
     )
 
   def getUpdateCommandFromJson(eventId: String, newEvent: String): UpdateEventCommand =
     val eventData = ujson.read(newEvent)
 
-    val title            = eventData.obj.get("title").map(_.str).filter(_.nonEmpty)
-    val description      = eventData.obj.get("description").map(_.str).filter(_.nonEmpty)
-    val tags             = eventData.obj.get("tags").map(t => validateTagList(t.toString())).flatten
-    val location         = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString())).flatten
-    val date             = eventData.obj.get("date").map(d => LocalDateTime.parse(d.str))
-    val price            = eventData.obj.get("price").map(_.num)
-    val status           = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
-    val id_collaborators = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
+    val title           = eventData.obj.get("title").map(_.str).filter(_.nonEmpty)
+    val description     = eventData.obj.get("description").map(_.str).filter(_.nonEmpty)
+    val tags            = eventData.obj.get("tags").map(t => validateTagList(t.toString())).flatten
+    val location        = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString())).flatten
+    val date            = eventData.obj.get("date").map(d => LocalDateTime.parse(d.str))
+    val price           = eventData.obj.get("price").map(_.num)
+    val status          = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
+    val collaboratorIds = eventData.obj.get("collaboratorIds").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
     UpdateEventCommand(
       eventId = eventId,
@@ -111,7 +111,7 @@ object Utils:
       date = date,
       price = price,
       status = status,
-      id_collaborators = id_collaborators
+      collaboratorIds = collaboratorIds
     )
 
   private def pastDate(eventDate: LocalDateTime): Boolean =

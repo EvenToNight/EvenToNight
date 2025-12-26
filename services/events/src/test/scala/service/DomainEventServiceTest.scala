@@ -67,9 +67,9 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       date: Option[LocalDateTime] = Some(LocalDateTime.of(2025, 12, 31, 20, 0)),
       status: EventStatus = EventStatus.DRAFT,
       creatorId: String = "creator-123",
-      id_collaborators: Option[List[String]] = None
+      collaboratorIds: Option[List[String]] = None
   ): CreateEventCommand =
-    CreateEventCommand(title, description, poster, tags, location, date, price, status, creatorId, id_collaborators)
+    CreateEventCommand(title, description, poster, tags, location, date, price, status, creatorId, collaboratorIds)
 
   private def validUpdateEventCommand(
       eventId: String,
@@ -80,7 +80,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
       status: EventStatus = EventStatus.DRAFT,
-      id_collaborators: Option[List[String]] = None
+      collaboratorIds: Option[List[String]] = None
   ): UpdateEventCommand =
     UpdateEventCommand(
       eventId,
@@ -91,7 +91,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       date,
       price,
       status,
-      id_collaborators
+      collaboratorIds
     )
 
   "DomainEventService" should "be instantiated correctly" in:

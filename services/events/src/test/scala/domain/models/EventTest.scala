@@ -28,7 +28,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       price: Option[Double] = Some(15.0),
       status: EventStatus = EventStatus.DRAFT,
       creatorId: String = "creator123",
-      id_collaborators: Option[List[String]] = None
+      collaboratorIds: Option[List[String]] = None
   ): Event =
     Event.create(
       title = title,
@@ -40,7 +40,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       price = price,
       status = status,
       creatorId = creatorId,
-      id_collaborators = id_collaborators
+      collaboratorIds = collaboratorIds
     )
 
   "Event case class" should "store properties correctly" in:
@@ -58,7 +58,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     event.location.get.lat shouldBe Some(45.0)
     event.location.get.lon shouldBe Some(90.0)
     event.location.get.link shouldBe Some("http://example.com/location")
-    event.id_collaborators shouldBe None
+    event.collaboratorIds shouldBe None
     event.status shouldBe EventStatus.DRAFT
 
   "Event.createDraft" should "create draft with generated ID and current time" in:
@@ -90,7 +90,7 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     nilEvent.date shouldBe None
     nilEvent.status shouldBe EventStatus.DRAFT
     nilEvent.creatorId shouldBe ""
-    nilEvent.id_collaborators shouldBe None
+    nilEvent.collaboratorIds shouldBe None
 
   "Event with multiple tags" should "handle them" in:
     val event = createEvent(tags =
@@ -123,16 +123,16 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   "Event with collaborators" should "store collaborator IDs correctly" in:
     val event = createEvent(
       creatorId = "creator-main",
-      id_collaborators = Some(List("collaborator-123"))
+      collaboratorIds = Some(List("collaborator-123"))
     )
-    event.id_collaborators shouldBe Some(List("collaborator-123"))
+    event.collaboratorIds shouldBe Some(List("collaborator-123"))
     event.creatorId shouldBe "creator-main"
 
   it should "handle None collaborator" in:
     val event = createEvent(
-      id_collaborators = None
+      collaboratorIds = None
     )
-    event.id_collaborators shouldBe None
+    event.collaboratorIds shouldBe None
 
   "Event equality" should "be equal when all fields are the same" in:
     val event1 = createEvent()
