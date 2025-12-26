@@ -10,7 +10,7 @@ set -e
 BASE_COMMIT="${1:-}"
 HEAD_COMMIT="${2:-HEAD}"
 
-dirs=""
+docker_dirs=""
 
 if [ -n "$BASE_COMMIT" ]; then
     if ! git cat-file -e "$BASE_COMMIT" 2>/dev/null; then
@@ -34,17 +34,19 @@ else
     files=$(find . -type f -not -path '*/node_modules/*' -not -path '*/.git/*')
 fi
 
-while IFS= read -r file; do
-    if [ -n "$file" ]; then
-        dir=$(dirname "$file")
-        if git ls-tree -r --name-only "$HEAD_COMMIT" "$dir/" 2>/dev/null | grep -qF "${dir}/Dockerfile"; then
-            dirs="$dirs $dir"
+unique_dirs=$(echo "$files" | xargs -n1 dirname 2>/dev/null | sort -u)
+
+while IFS= read -r dir; do
+    if [ -n "$dir" ]; then
+        dockerfiles=$(git ls-tree -r --name-only "$HEAD_COMMIT" "$dir/" 2>/dev/null | grep -F "${dir}/Dockerfile" || true)
+        if [ -n "$dockerfiles" ]; then
+            docker_dirs="$docker_dirs $dockerfiles"
         fi
     fi
-done <<< "$files"
+done <<< "$unique_dirs"
 
-dirs=$(echo "$dirs" | tr ' ' '\n' | sed 's|^\./||' | sort -u | tr '\n' ' ')
+docker_dirs=$(echo "$docker_dirs" | tr ' ' '\n' | sed 's|^\./||' | sort -u | tr '\n' ' ')
 
-echo "Found dirs with Dockerfiles:" >&2
-echo "$dirs" >&2
-echo "$dirs"
+echo "Found docker_dirs with Dockerfiles:" >&2
+echo "$docker_dirs" >&2
+echo "$docker_dirs"
