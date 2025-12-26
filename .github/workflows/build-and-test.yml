@@ -43,7 +43,7 @@ jobs:
       - name: Find all modified directories with Dockerfiles
         id: find-dockerfiles
         run: |
-          dockerfiles=$(./scripts/findDockerfiles.sh "${{ github.event.before }}" "${{ github.sha }}")
+          dockerfiles=$(./scripts/findDockerfiles.sh "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}")
           echo "dockerfiles=$dockerfiles" >> $GITHUB_OUTPUT
 
   build-docker-images:
