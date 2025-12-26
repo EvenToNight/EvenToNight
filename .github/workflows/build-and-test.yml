@@ -12,27 +12,27 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # - name: Build and Check
-      #   uses: DanySK/build-check-deploy-gradle-action@4.0.17
-      #   with:
-      #     build-command: ./gradlew clean build --parallel --no-configuration-cache
-      #     java-distribution: temurin
-      #     java-version: '21'
-      #     should-run-codecov: false
+      - name: Build and Check
+        uses: DanySK/build-check-deploy-gradle-action@4.0.17
+        with:
+          build-command: ./gradlew clean build --parallel --no-configuration-cache
+          java-distribution: temurin
+          java-version: '21'
+          should-run-codecov: false
         
-      # - name: Upload coverage report to Codecov
-      #   uses: codecov/codecov-action@v4
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     files: |
-      #       services/events/build/reports/jacoco/test/jacocoTestReport.xml
-      #       services/media/coverage/lcov.info
-      #     flags: unittests
-      #     fail_ci_if_error: true
+      - name: Upload coverage report to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: |
+            services/events/build/reports/jacoco/test/jacocoTestReport.xml
+            services/media/coverage/lcov.info
+          flags: unittests
+          fail_ci_if_error: true
       
 
   find-dockerfiles:
-    needs: build-and-test-services
+    if : ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-22.04
     outputs:
       dockerfiles: ${{ steps.find-dockerfiles.outputs.dockerfiles }}
