@@ -36,8 +36,15 @@ else
     use_git=false
 fi
 
-unique_dirs=$(echo "$files" | xargs -n1 dirname 2>/dev/null | sort -u)
-printf "Modified directories:\n%s\n------------------------\n" "$unique_dirs" >&2
+dockerfiles_dirs=$(echo "$files" | sed 's|^\./||' | xargs -n1 dirname 2>/dev/null | awk -F'/' '{
+    if (($1 == "services" || $1 == "infrastructure") && NF >= 2) {
+        print $1 "/" $2
+    }
+}' | sort -u)
+echo "Modified directories under services/ or infrastructure/:" >&2
+echo "$dockerfiles_dirs" >&2
+echo "------------------------" >&2
+
 while IFS= read -r dir; do
     if [ -n "$dir" ]; then
         if [ "$use_git" = true ]; then
@@ -49,11 +56,10 @@ while IFS= read -r dir; do
             dockerfiles="$dockerfiles $dockerfiles_in_dir"
         fi
     fi
-done <<< "$unique_dirs"
+done <<< "$dockerfiles_dirs"
 
-dockerfiles=$(echo "$dockerfiles" | tr ' ' '\n' | sed 's|^\./||' | sort -u | tr '\n' ' ')
 
-echo "Found docker_dirs with Dockerfiles:" >&2
+echo "Found Dockerfiles:" >&2
 echo "$dockerfiles" >&2
 echo "------------------------" >&2
 echo "$dockerfiles"
