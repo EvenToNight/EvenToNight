@@ -1,17 +1,18 @@
 package infrastructure.messaging
-import com.rabbitmq.client.{Channel, Connection, ConnectionFactory}
-import domain.events.DomainEvent
+import com.rabbitmq.client.{AMQP, Channel, Connection, ConnectionFactory}
+import domain.events.{DomainEvent, EventDeleted, EventEnvelope, EventPublished, EventUpdated}
+import io.circe.generic.auto.*
+import io.circe.syntax.*
 
 import scala.compiletime.uninitialized
-import scala.util.Try
+import scala.jdk.CollectionConverters.*
 
 trait EventPublisher:
   def publish(event: DomainEvent): Unit
 
 class MockEventPublisher extends EventPublisher:
   override def publish(event: DomainEvent): Unit =
-    val eventType = event.getClass.getSimpleName
-    println(s"[RABBITMQ MOCK] Published domain event: $eventType")
+    println(s"[RABBITMQ MOCK] Published domain event: ${event.getClass.getSimpleName}")
 
 class RabbitEventPublisher(
     host: String = "localhost",
@@ -21,7 +22,7 @@ class RabbitEventPublisher(
     exchangeName: String = "events"
 ) extends EventPublisher:
 
-  private val factory: ConnectionFactory = new ConnectionFactory()
+  private val factory = new ConnectionFactory()
   factory.setHost(host)
   factory.setPort(port)
   factory.setUsername(username)
@@ -33,39 +34,55 @@ class RabbitEventPublisher(
   initialize()
 
   private def initialize(): Unit =
-    val initTry = Try {
+    try
       connection = factory.newConnection()
       channel = connection.createChannel()
-
       channel.exchangeDeclare(exchangeName, "topic", true)
-
       println(s"[RABBITMQ] Connected to RabbitMQ at $host:$port")
-    }
-
-    initTry.get
+    catch
+      case e: Exception =>
+        println(s"[RABBITMQ] Failed to connect: ${e.getMessage}")
 
   override def publish(event: DomainEvent): Unit =
-    val publishTry = Try {
-      val eventType  = event.getClass.getSimpleName
-      val routingKey = s"event.${eventType.toLowerCase}"
-      val message    = s"Event: $eventType"
+    try
+      val key = routingKey(event)
+      val envelope = EventEnvelope(
+        eventType = key,
+        occurredAt = event.timestamp,
+        payload = event
+      )
+
+      val body = envelope.asJson.noSpaces.getBytes("UTF-8")
+
+      val props = new AMQP.BasicProperties.Builder()
+        .contentType("application/json")
+        .deliveryMode(2)
+        .headers(
+          Map(
+            "event-type" -> key,
+            "producer"   -> "events-service",
+            "schema"     -> "1"
+          ).asJava
+        )
+        .build()
 
       channel.basicPublish(
         exchangeName,
-        routingKey,
-        null,
-        message.getBytes("UTF-8")
+        key,
+        props,
+        body
       )
 
-      println(
-        s"[RABBITMQ] Published event: $eventType to exchange '$exchangeName' with routing key '$routingKey'"
-      )
-    }
+      println(s"[RABBITMQ] Published $key event to exchange '$exchangeName'")
 
-    if publishTry.isFailure then
-      println(s"[RABBITMQ] Failed to publish event: ${publishTry.failed.get.getMessage}")
+    catch
+      case e: Exception =>
+        println(s"[RABBITMQ] Error publishing event: ${e.getMessage}")
 
-    publishTry.get
+  private def routingKey(event: DomainEvent): String = event match
+    case _: EventPublished => "event.published"
+    case _: EventUpdated   => "event.updated"
+    case _: EventDeleted   => "event.deleted"
 
   def close(): Unit =
     try
