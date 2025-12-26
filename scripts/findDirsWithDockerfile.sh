@@ -19,6 +19,13 @@ if [ -n "$BASE_COMMIT" ]; then
     fi
 fi
 
+if [ -n "$HEAD_COMMIT" ]; then
+    if ! git cat-file -e "$HEAD_COMMIT" 2>/dev/null; then
+        echo "🔄 Fetching commit $HEAD_COMMIT..." >&2
+        git fetch origin "$HEAD_COMMIT" --depth=1 2>/dev/null || echo "⚠️ Could not fetch commit" >&2
+    fi
+fi
+
 if [ -n "$BASE_COMMIT" ] && git cat-file -e "$BASE_COMMIT" 2>/dev/null; then
     echo "📋 Diffing from $BASE_COMMIT to $HEAD_COMMIT" >&2
     files=$(git diff --name-only "$BASE_COMMIT" "$HEAD_COMMIT")
@@ -30,7 +37,7 @@ fi
 while IFS= read -r file; do
     if [ -n "$file" ]; then
         dir=$(dirname "$file")
-        if [ -f "$dir/Dockerfile" ]; then
+        if git ls-tree -r --name-only "$HEAD_COMMIT" "$dir/" 2>/dev/null | grep -qF "${dir}/Dockerfile"; then
             dirs="$dirs $dir"
         fi
     fi
@@ -40,5 +47,4 @@ dirs=$(echo "$dirs" | tr ' ' '\n' | sed 's|^\./||' | sort -u | tr '\n' ' ')
 
 echo "Found dirs with Dockerfiles:" >&2
 echo "$dirs" >&2
-
 echo "$dirs"
