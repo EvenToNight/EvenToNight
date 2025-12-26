@@ -11,9 +11,9 @@ class AuthenticationService(kc: KeycloakConnection):
     case Left(err) => println(s"Failed to initialize member and organization roles: $err")
     case Right(_)  => println("Retrieve member and organization roles from Keycloak successfully.")
 
-  def createUserWithRole(registration: RegistrationRequest): Either[String, String] =
+  def createUserWithRole(registration: RegistrationRequest): Either[String, (String, String)] =
     for
-      keycloakId <- kc.createUser(registration.username, registration.email, registration.password)
-      roleId     <- roleIds.get(registration.userType).toRight(s"Role '${registration.userType}' not initialized")
-      _          <- kc.assignRoleToUser(keycloakId, roleId, registration.userType)
-    yield keycloakId
+      (keycloakId, userId) <- kc.createUser(registration.username, registration.email, registration.password)
+      roleId <- roleIds.get(registration.userType).toRight(s"Role '${registration.userType}' not initialized")
+      _      <- kc.assignRoleToUser(keycloakId, roleId, registration.userType)
+    yield (keycloakId, userId)

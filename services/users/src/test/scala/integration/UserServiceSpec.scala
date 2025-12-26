@@ -5,7 +5,9 @@ import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Filters.{eq => eqFilter}
 import fixtures.MemberFixtures.member
+import fixtures.MemberFixtures.memberUserId
 import fixtures.OrganizationFixtures.organization
+import fixtures.OrganizationFixtures.organizationUserId
 import infrastructure.MongoConnection.client
 import model.ForeignKeys
 import model.member.MemberAccount
@@ -28,10 +30,10 @@ class UserServiceSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   val membersDB: MongoDatabase = client.getDatabase("members_db_test")
   val orgsDB: MongoDatabase    = client.getDatabase("organizations_db_test")
 
-  val membersColl: MongoCollection[ForeignKeys] =
-    membersDB.getCollection("members", classOf[ForeignKeys])
-  val orgsColl: MongoCollection[ForeignKeys] =
-    orgsDB.getCollection("organizations", classOf[ForeignKeys])
+  val memberForeignKeysColl: MongoCollection[ForeignKeys] =
+    membersDB.getCollection("member_foreign_keys", classOf[ForeignKeys])
+  val orgForeignKeysColl: MongoCollection[ForeignKeys] =
+    orgsDB.getCollection("organization_foreign_keys", classOf[ForeignKeys])
   val memberAccountsColl: MongoCollection[MemberAccount] =
     membersDB.getCollection("member_accounts", classOf[MemberAccount])
   val memberProfilesColl: MongoCollection[MemberProfile] =
@@ -42,18 +44,18 @@ class UserServiceSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     orgsDB.getCollection("organization_profiles", classOf[OrganizationProfile])
 
   val memberAccountProfileRepo: AccountProfileRepository[MemberAccount, MemberProfile] =
-    new MongoAccountProfileRepository(membersColl, memberAccountsColl, memberProfilesColl)
+    new MongoAccountProfileRepository(memberForeignKeysColl, memberAccountsColl, memberProfilesColl)
   val memberRepo: MemberRepository = new MongoMemberRepository(memberAccountProfileRepo)
   val orgAccountProfileRepo: AccountProfileRepository[OrganizationAccount, OrganizationProfile] =
-    new MongoAccountProfileRepository(orgsColl, orgAccountsColl, orgProfilesColl)
+    new MongoAccountProfileRepository(orgForeignKeysColl, orgAccountsColl, orgProfilesColl)
   val orgRepo: OrganizationRepository = new MongoOrganizationRepository(orgAccountProfileRepo)
 
   val service: UserService = new UserService(memberRepo, orgRepo)
 
   private def clearCollections() =
     Seq(
-      membersColl,
-      orgsColl,
+      memberForeignKeysColl,
+      orgForeignKeysColl,
       memberAccountsColl,
       memberProfilesColl,
       orgAccountsColl,
@@ -64,28 +66,28 @@ class UserServiceSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     super.beforeEach()
     clearCollections()
 
-  "insertUser" should "persist a member's account and profile along with their link" in:
-    val userId      = service.insertUser(member)
-    val foreignKeys = membersColl.find(eqFilter("_id", ObjectId(userId))).first()
+  "insertUser" should "persist a member's account and profile and their references via foreign keys" in:
+    service.insertUser(member, memberUserId)
+    val foreignKeys = memberForeignKeysColl.find(eqFilter("_id", memberUserId)).first()
     foreignKeys.accountId should not be empty
     foreignKeys.profileId should not be empty
 
     val account = memberAccountsColl.find(eqFilter("_id", ObjectId(foreignKeys.accountId))).first()
-    account.keycloakId shouldEqual member.account.keycloakId
-    account.email shouldEqual member.account.email
+    account.keycloakId shouldBe member.account.keycloakId
+    account.email shouldBe member.account.email
 
     val profile = memberProfilesColl.find(eqFilter("_id", ObjectId(foreignKeys.profileId))).first()
-    profile.nickname shouldEqual member.profile.nickname
+    profile.nickname shouldBe member.profile.nickname
 
-  it should "persist an organization's account and profile along with their link" in:
-    val userId      = service.insertUser(organization)
-    val foreignKeys = orgsColl.find(eqFilter("_id", ObjectId(userId))).first()
+  it should "persist an organization's account and profile and their references via foreign keys" in:
+    service.insertUser(organization, organizationUserId)
+    val foreignKeys = orgForeignKeysColl.find(eqFilter("_id", organizationUserId)).first()
     foreignKeys.accountId should not be empty
     foreignKeys.profileId should not be empty
 
     val account = orgAccountsColl.find(eqFilter("_id", ObjectId(foreignKeys.accountId))).first()
-    account.keycloakId shouldEqual organization.account.keycloakId
-    account.email shouldEqual organization.account.email
+    account.keycloakId shouldBe organization.account.keycloakId
+    account.email shouldBe organization.account.email
 
     val profile = orgProfilesColl.find(eqFilter("_id", ObjectId(foreignKeys.profileId))).first()
-    profile.nickname shouldEqual organization.profile.nickname
+    profile.nickname shouldBe organization.profile.nickname

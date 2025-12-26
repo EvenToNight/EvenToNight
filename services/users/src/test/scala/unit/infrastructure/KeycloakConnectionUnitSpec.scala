@@ -11,11 +11,13 @@ import sttp.model.Header
 import sttp.model.Method
 import sttp.model.StatusCode
 
+import java.util.UUID
+
 class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
   private val tokenPath      = List("realms", "eventonight", "protocol", "openid-connect", "token")
   private val testSecret     = "test-secret"
   private val createUserPath = List("admin", "realms", "eventonight", "users")
-  private val testUserId     = "12345"
+  private val testKeycloakId = "3c4d5e6f-7a8b-9c0d-1e2f-3456789abcde"
 
   private def stubbedConnectionWithResponse(responseBody: String) =
     val backendStub = SttpBackendStub.synchronous
@@ -50,7 +52,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
   "getAccessToken" should "return Right(access_token) when Keycloak returns valid JSON with access_token" in:
     val connectionStub = stubbedConnectionWithResponse("""{"access_token": "test_token"}""")
     val token          = connectionStub.getAccessToken()
-    token shouldEqual Right("test_token")
+    token shouldBe Right("test_token")
 
   it should "return Left when a connection error occurs" in:
     val connectionStub = stubbedConnectionWithError("Internal Server Error")
@@ -70,16 +72,18 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     val token = connectionStub.getAccessToken()
     token.left.value should include("Missing access_token")
 
-  "createUser" should "return Right(keycloakId) when Keycloak returns 201 with Location header" in:
+  "createUser" should "return Right(keycloakId, userId) when Keycloak returns 201 with Location header" in:
     val successResponse = Response(
       body = "",
       code = StatusCode.Created,
       statusText = "Created",
-      headers = List(Header("Location", s"/admin/realms/eventonight/users/$testUserId"))
+      headers = List(Header("Location", s"/admin/realms/eventonight/users/$testKeycloakId"))
     )
-    val connectionStub = stubbedCreateUserConnectionWithResponse(successResponse)
-    val result         = connectionStub.createUser(username, email, password)
-    result shouldEqual Right(testUserId)
+    val connectionStub       = stubbedCreateUserConnectionWithResponse(successResponse)
+    val result               = connectionStub.createUser(username, email, password)
+    val (keycloakId, userId) = result.getOrElse(fail(s"Expected Right but got Left($result)"))
+    keycloakId shouldBe testKeycloakId
+    noException shouldBe thrownBy(UUID.fromString(userId))
 
   it should "return Left when getAccessToken fails" in:
     val connectionStub = stubbedConnectionWithError("Internal Server Error")
@@ -95,7 +99,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     )
     val connectionStub = stubbedCreateUserConnectionWithResponse(responseWithoutLocation)
     val result         = connectionStub.createUser(username, email, password)
-    result shouldEqual Left("User created but could not retrieve ID from Keycloak")
+    result shouldBe Left("User created but could not retrieve ID from Keycloak")
 
   it should "return Left when Keycloak returns non-201 status" in:
     val errorResponse = Response(
@@ -114,9 +118,9 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
       code = StatusCode.NoContent,
       statusText = "No Content"
     )
-    val connectionStub = stubbedDeleteUserConnectionWithResponse(testUserId, deleteResponse)
-    val result         = connectionStub.deleteUser(testUserId)
-    result shouldEqual Right(())
+    val connectionStub = stubbedDeleteUserConnectionWithResponse(testKeycloakId, deleteResponse)
+    val result         = connectionStub.deleteUser(testKeycloakId)
+    result shouldBe Right(())
 
   it should "return Left when Keycloak returns non-204 status" in:
     val unauthorizedResponse = Response(
@@ -124,13 +128,13 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
       code = StatusCode.Unauthorized,
       statusText = "Unauthorized"
     )
-    val connectionStub = stubbedDeleteUserConnectionWithResponse(testUserId, unauthorizedResponse)
-    val result         = connectionStub.deleteUser(testUserId)
+    val connectionStub = stubbedDeleteUserConnectionWithResponse(testKeycloakId, unauthorizedResponse)
+    val result         = connectionStub.deleteUser(testKeycloakId)
     result.isLeft shouldBe true
     result.left.value should include("Failed to delete user")
 
   it should "return Left when getAccessToken fails" in:
     val connectionStub = stubbedConnectionWithError("Internal Server Error")
-    val result         = connectionStub.deleteUser(testUserId)
+    val result         = connectionStub.deleteUser(testKeycloakId)
     result.isLeft shouldBe true
     result.left.value should include("Keycloak error")

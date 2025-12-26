@@ -1,7 +1,9 @@
 package unit.service
 
 import fixtures.MemberFixtures.member
+import fixtures.MemberFixtures.memberUserId
 import fixtures.OrganizationFixtures.organization
+import fixtures.OrganizationFixtures.organizationUserId
 import org.mockito.Mockito._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -14,12 +16,16 @@ class UserServiceUnitSpec extends AnyFlatSpec with Matchers:
     val memberRepoMock: MemberRepository    = mock(classOf[MemberRepository])
     val orgRepoMock: OrganizationRepository = mock(classOf[OrganizationRepository])
     val service: UserService                = new UserService(memberRepoMock, orgRepoMock)
-    service.insertUser(member)
-    verify(memberRepoMock).insert(member)
+    when(memberRepoMock.insert(member, memberUserId)).thenReturn(memberUserId)
+    val result = service.insertUser(member, memberUserId)
+    verify(memberRepoMock).insert(member, memberUserId)
+    result shouldBe memberUserId
 
   "insertUser" should "delegate inserting an organization to the organization repository" in:
     val memberRepoMock: MemberRepository    = mock(classOf[MemberRepository])
     val orgRepoMock: OrganizationRepository = mock(classOf[OrganizationRepository])
     val service: UserService                = new UserService(memberRepoMock, orgRepoMock)
-    service.insertUser(organization)
-    verify(orgRepoMock).insert(organization)
+    when(orgRepoMock.insert(organization, organizationUserId)).thenReturn(organizationUserId)
+    val result = service.insertUser(organization, organizationUserId)
+    verify(orgRepoMock).insert(organization, organizationUserId)
+    result shouldBe organizationUserId

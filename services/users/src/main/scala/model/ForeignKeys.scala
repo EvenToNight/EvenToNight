@@ -1,3 +1,3 @@
 package model
 
-case class ForeignKeys(accountId: String, profileId: String)
+case class ForeignKeys(userId: String, accountId: String, profileId: String)

@@ -6,6 +6,8 @@ import io.circe.syntax._
 import sttp.client3._
 import sttp.model.StatusCode
 
+import java.util.UUID
+
 class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: String):
   val keycloakUrl = sys.env.getOrElse("KEYCLOAK_URL", "http://localhost:8082")
   val realm       = "eventonight"
@@ -31,8 +33,9 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
       token <- json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
     yield token
 
-  def createUser(username: String, email: String, password: String) =
+  def createUser(username: String, email: String, password: String): Either[String, (String, String)] =
     getAccessToken().flatMap(token =>
+      val userId = UUID.randomUUID().toString()
       val jsonBody = s"""
           {
             "username": "$username",
@@ -58,8 +61,8 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
       if response.code == StatusCode.Created then
         response.header("Location") match
           case Some(location) =>
-            val id = location.split("/").last
-            Right(id)
+            val keycloakId = location.split("/").last
+            Right(keycloakId, userId)
           case None =>
             Left("User created but could not retrieve ID from Keycloak")
       else
