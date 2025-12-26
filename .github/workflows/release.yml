@@ -159,8 +159,8 @@ jobs:
       - name: Find all modified directories with Dockerfiles
         id: services
         run: |
-          dirs=$(./scripts/findDirsWithDockerfile.sh "${{ github.event.before }}" "${{ github.sha }}")
-          echo "dirs=$dirs" >> $GITHUB_OUTPUT
+          dockerfiles=$(./scripts/findDockerfiles.sh "${{ github.event.before }}" "${{ github.sha }}")
+          echo "dockerfiles=$dockerfiles" >> $GITHUB_OUTPUT
 
       - name: Get latest GitHub Release tag
         id: get_tag
@@ -174,15 +174,23 @@ jobs:
           repo_lower=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           release_tag="${{ steps.get_tag.outputs.release }}"
           echo "🏷️ Using release tag: $release_tag"
+          
+          for dockerfile in ${{ steps.services.outputs.dockerfiles }}; do
+            dockerfile_name=$(basename "$dockerfile")
+            parent_dir=$(basename "$(dirname "$dockerfile")")
 
-          for dir in ${{ steps.services.outputs.dirs }}; do
-            service_name=$(basename "$dir")
+            if [ "$dockerfile_name" = "Dockerfile" ]; then
+                service_name="$parent_dir"
+            else
+                suffix="${dockerfile_name#Dockerfile}"
+                service_name="${parent_dir}${suffix}"
+            fi
             image_base="ghcr.io/${repo_lower}/${service_name}"
             image_latest="${image_base}:latest"
             image_release="${image_base}:${release_tag}"
 
             echo "🚀 Building image for $service_name"
-            docker build -t "$image_latest" -t "$image_release" -f "$dir/Dockerfile" .
+            docker build -t "$image_latest" -t "$image_release" -f "$dockerfile" .
 
             echo "📤 Pushing $image_latest and $image_release"
             docker push "$image_latest"
