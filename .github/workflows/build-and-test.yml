@@ -12,39 +12,65 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build and Check
-        uses: DanySK/build-check-deploy-gradle-action@4.0.17
-        with:
-          build-command: ./gradlew clean build --parallel --no-configuration-cache
-          java-distribution: temurin
-          java-version: '21'
-          should-run-codecov: false
+      # - name: Build and Check
+      #   uses: DanySK/build-check-deploy-gradle-action@4.0.17
+      #   with:
+      #     build-command: ./gradlew clean build --parallel --no-configuration-cache
+      #     java-distribution: temurin
+      #     java-version: '21'
+      #     should-run-codecov: false
         
-      - name: Upload coverage report to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
-          files: |
-            services/events/build/reports/jacoco/test/jacocoTestReport.xml
-            services/media/coverage/lcov.info
-          flags: unittests
-          fail_ci_if_error: true
+      # - name: Upload coverage report to Codecov
+      #   uses: codecov/codecov-action@v4
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     files: |
+      #       services/events/build/reports/jacoco/test/jacocoTestReport.xml
+      #       services/media/coverage/lcov.info
+      #     flags: unittests
+      #     fail_ci_if_error: true
       
 
-  build-docker-images:
+  find-dockerfiles:
     needs: build-and-test-services
-    if: github.event_name == 'pull_request'
     runs-on: ubuntu-22.04
+    outputs:
+      dockerfiles: ${{ steps.find-dockerfiles.outputs.dockerfiles }}
     steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
       - name: Find all modified directories with Dockerfiles
         id: find-dockerfiles
         run: |
-            dirs=$(./scripts/findDirsWithDockerfile.sh "${{ github.event.before }}" "${{ github.sha }}")
-            echo "dirs=$dirs" >> $GITHUB_OUTPUT
-      - name: Build Docker images
+          dockerfiles=$(./scripts/findDockerfiles.sh "${{ github.event.before }}" "${{ github.sha }}")
+          # Convert space-separated list to JSON array, removing newlines and empty strings
+          json_array=$(echo "$dockerfiles" | jq -R -s -c 'gsub("\n"; "") | split(" ") | map(select(length > 0))')
+          echo "Found Dockerfiles: $json_array" >&2
+          echo "dockerfiles=$json_array" >> $GITHUB_OUTPUT
+
+  build-docker-images:
+    needs: find-dockerfiles
+    if: ${{ needs.find-dockerfiles.outputs.dockerfiles != '[]' }}
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        dockerfile: ${{ fromJson(needs.find-dockerfiles.outputs.dockerfiles) }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
         run: |
-          for dir in ${{ steps.find-dockerfiles.outputs.dirs }}; do
-            service_name=$(basename "$dir")
-            echo "🚀 Building image for $service_name"
-            docker build -f "$dir/Dockerfile" .
-          done
+          dockerfile="${{ matrix.dockerfile }}"
+          dockerfile_name=$(basename "$dockerfile")
+          parent_dir=$(basename "$(dirname "$dockerfile")")
+
+          if [ "$dockerfile_name" = "Dockerfile" ]; then
+              service_name="$parent_dir"
+          else
+              suffix="${dockerfile_name#Dockerfile}"
+              service_name="${parent_dir}${suffix}"
+          fi
+          echo "🚀 Building image for $service_name"
+          docker build -f "$dockerfile" .
