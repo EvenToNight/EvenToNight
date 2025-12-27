@@ -41,7 +41,7 @@ describe('Utils', () => {
 
   describe('returnDefault', () => {
     it('should return events default for event-related types', () => {
-      const type = "events/id_event/test.png".split("/")[0];
+      const type = "events/eventId/test.png".split("/")[0];
       expect(returnDefault(type)).toBe('events/default.png');
     });
 

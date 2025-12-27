@@ -68,7 +68,7 @@ const month = computed(() => {
 </script>
 
 <template>
-  <div class="event-card" @click="goToEventDetails(event.id_event)">
+  <div class="event-card" @click="goToEventDetails(event.eventId)">
     <div class="card-image-container">
       <img v-if="imageObjectUrl" :src="imageObjectUrl" :alt="event.title" class="card-image" />
       <div v-else-if="isLoadingImage" class="card-image-loading">

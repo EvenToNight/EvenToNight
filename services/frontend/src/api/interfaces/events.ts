@@ -12,7 +12,7 @@ export type GetTagResponse = TagCategory[]
 export type GetEventByIdResponse = Event
 
 export interface PublishEventResponse {
-  id_event: EventID
+  eventId: EventID
 }
 
 export interface EventsDataResponse {
@@ -38,11 +38,11 @@ export interface EventsQueryParams {
 
 export interface EventAPI {
   getTags(): Promise<GetTagResponse>
-  getEventById(id_event: EventID): Promise<GetEventByIdResponse>
-  getEventsByIds(id_events: EventID[]): Promise<EventsDataResponse>
+  getEventById(eventId: EventID): Promise<GetEventByIdResponse>
+  getEventsByIds(eventIds: EventID[]): Promise<EventsDataResponse>
   createEvent(eventData: PartialEventData): Promise<PublishEventResponse>
-  updateEventData(id_event: EventID, eventData: PartialEventData): Promise<void>
-  updateEventPoster(id_event: EventID, poster: File): Promise<void>
-  deleteEvent(id_event: EventID): Promise<void>
+  updateEventData(eventId: EventID, eventData: PartialEventData): Promise<void>
+  updateEventPoster(eventId: EventID, poster: File): Promise<void>
+  deleteEvent(eventId: EventID): Promise<void>
   searchEvents(params: EventsQueryParams): Promise<PaginatedResponse<Event>>
 }

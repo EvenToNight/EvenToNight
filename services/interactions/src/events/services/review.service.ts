@@ -26,7 +26,7 @@ export class ReviewService {
     this.metadataService.validateEvent(
       eventId,
       createReviewDto.organizationId,
-      createReviewDto.collaboratorsId,
+      createReviewDto.collaboratorIds,
     );
 
     const existing = await this.reviewModel.findOne({
@@ -118,10 +118,10 @@ export class ReviewService {
     if (role === 'owner') {
       filter = { organizationId };
     } else if (role === 'collaborator') {
-      filter = { collaboratorsId: organizationId };
+      filter = { collaboratorIds: organizationId };
     } else {
       filter = {
-        $or: [{ organizationId }, { collaboratorsId: organizationId }],
+        $or: [{ organizationId }, { collaboratorIds: organizationId }],
       };
     }
 

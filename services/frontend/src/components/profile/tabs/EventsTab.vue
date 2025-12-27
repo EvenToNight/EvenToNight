@@ -43,7 +43,7 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
       @load="onLoad"
     >
       <div class="events-grid">
-        <EventCardVariant v-for="event in events" :key="event.id_event" :event="event" />
+        <EventCardVariant v-for="event in events" :key="event.eventId" :event="event" />
       </div>
 
       <template #loading>

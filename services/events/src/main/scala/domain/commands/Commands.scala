@@ -14,23 +14,23 @@ case class CreateEventCommand(
     date: Option[LocalDateTime] = None,
     price: Option[Double] = None,
     status: EventStatus,
-    id_creator: String,
-    id_collaborators: Option[List[String]] = None
+    creatorId: String,
+    collaboratorIds: Option[List[String]] = None
 ) extends Commands
 
 case class UpdateEventPosterCommand(
-    id_event: String,
+    eventId: String,
     posterUrl: String
 ) extends Commands
 
 case class GetEventCommand(
-    id_event: String
+    eventId: String
 ) extends Commands
 
 case class GetAllEventsCommand() extends Commands
 
 case class UpdateEventCommand(
-    id_event: String,
+    eventId: String,
     title: Option[String],
     description: Option[String],
     tags: Option[List[EventTag]],
@@ -38,11 +38,11 @@ case class UpdateEventCommand(
     date: Option[LocalDateTime],
     price: Option[Double],
     status: EventStatus,
-    id_collaborators: Option[List[String]]
+    collaboratorIds: Option[List[String]]
 ) extends Commands
 
 case class DeleteEventCommand(
-    id_event: String
+    eventId: String
 ) extends Commands
 
 case class GetFilteredEventsCommand(

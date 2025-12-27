@@ -10,7 +10,7 @@ export class Event extends Document {
   organizationId: string;
 
   @Prop({ type: [String], default: [] })
-  collaboratorsId: string[];
+  collaboratorIds: string[];
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);

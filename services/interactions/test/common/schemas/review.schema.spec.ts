@@ -25,8 +25,8 @@ describe('ReviewSchema', () => {
     expect(orgPath.options.index).toBe(true);
   });
 
-  it('defines collaboratorsId as array of strings and indexed', () => {
-    const collabPath = ReviewSchema.path('collaboratorsId') as {
+  it('defines collaboratorIds as array of strings and indexed', () => {
+    const collabPath = ReviewSchema.path('collaboratorIds') as {
       instance?: string;
       caster?: { instance?: string };
       options?: { index?: boolean };

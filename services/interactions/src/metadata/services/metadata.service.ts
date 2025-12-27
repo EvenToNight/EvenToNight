@@ -15,11 +15,11 @@ export class MetadataService {
   validateEvent(
     eventId: string,
     organizationId: string,
-    collaboratorsId: string[] | undefined,
+    collaboratorIds: string[] | undefined,
   ): void {
     void eventId;
     void organizationId;
-    void collaboratorsId;
+    void collaboratorIds;
   }
 
   // TODO: Implement checks userschema for real validation

@@ -25,17 +25,17 @@ object EventConversions:
       appendIfPresent("price", event.price)
       doc.append("status", event.status.toString)
       doc.append("instant", event.instant.toString)
-      doc.append("id_creator", event.id_creator)
-      appendIfPresent("id_collaborators", event.id_collaborators, (c: List[String]) => c.asJava)
+      doc.append("creatorId", event.creatorId)
+      appendIfPresent("collaboratorIds", event.collaboratorIds, (c: List[String]) => c.asJava)
 
       doc
 
     def toJson: ujson.Value =
       val obj = ujson.Obj(
-        "id_event"   -> event._id,
-        "status"     -> event.status.toString,
-        "instant"    -> event.instant.toString,
-        "id_creator" -> event.id_creator
+        "eventId"   -> event._id,
+        "status"    -> event.status.toString,
+        "instant"   -> event.instant.toString,
+        "creatorId" -> event.creatorId
       )
 
       def addIfPresent[T](key: String, value: Option[T], transform: T => ujson.Value): Unit =
@@ -48,7 +48,7 @@ object EventConversions:
       addIfPresent("location", event.location, localityToJson)
       addIfPresent("date", event.date, (d: LocalDateTime) => ujson.Str(d.toString))
       addIfPresent("price", event.price, ujson.Num(_))
-      addIfPresent("id_collaborators", event.id_collaborators, (c: List[String]) => ujson.Arr(c.map(ujson.Str(_))*))
+      addIfPresent("collaboratorIds", event.collaboratorIds, (c: List[String]) => ujson.Arr(c.map(ujson.Str(_))*))
       obj
 
   def fromDocument(doc: Document): Event =
@@ -65,8 +65,8 @@ object EventConversions:
       price = Option(doc.getDouble("price")).map(_.doubleValue),
       status = EventStatus.valueOf(doc.getString("status")),
       instant = Instant.parse(doc.getString("instant")),
-      id_creator = doc.getString("id_creator"),
-      id_collaborators = Option(doc.get("id_collaborators", classOf[java.util.List[String]])).map(_.asScala.toList)
+      creatorId = doc.getString("creatorId"),
+      collaboratorIds = Option(doc.get("collaboratorIds", classOf[java.util.List[String]])).map(_.asScala.toList)
     )
 
   private def localityToDocument(locality: Location): Document =

@@ -19,8 +19,8 @@ describe('EventSchema', () => {
     expect(orgPath.options?.index).toBe(true);
   });
 
-  it('defines collaboratorsId as array of strings with default empty array', () => {
-    const collabPath = EventSchema.path('collaboratorsId') as {
+  it('defines collaboratorIds as array of strings with default empty array', () => {
+    const collabPath = EventSchema.path('collaboratorIds') as {
       instance?: string;
       caster?: { instance?: string };
       options?: { default?: unknown };

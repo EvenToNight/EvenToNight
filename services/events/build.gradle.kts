@@ -21,6 +21,9 @@ dependencies {
     implementation("com.rabbitmq:amqp-client:5.26.0")
     implementation("com.lihaoyi:cask_3:0.11.3")
     implementation("com.lihaoyi:requests_3:0.8.0")
+    implementation("io.circe:circe-core_3:0.14.7")
+    implementation("io.circe:circe-generic_3:0.14.7")
+    implementation("io.circe:circe-parser_3:0.14.7")
     testImplementation("org.scalatest:scalatest_3:3.2.19")
     testRuntimeOnly("org.scalatestplus:junit-5-13_3:3.2.19.0")
 }

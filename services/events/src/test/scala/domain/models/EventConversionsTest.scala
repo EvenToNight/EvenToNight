@@ -18,7 +18,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       id: String = "event123",
       title: Option[String],
       tags: Option[List[EventTag]],
-      id_collaborators: Option[List[String]] = Some(List("collab789"))
+      collaboratorIds: Option[List[String]] = Some(List("collab789"))
   ): Event = Event(
     _id = id,
     title = title,
@@ -43,14 +43,14 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     price = Some(15.0),
     status = EventStatus.DRAFT,
     instant = sampleInstant,
-    id_creator = "creator123",
-    id_collaborators = id_collaborators
+    creatorId = "creator123",
+    collaboratorIds = collaboratorIds
   )
 
   "Event.toDocument" should "convert Event to Document with all fields present" in:
     val event = createEvent(
       title = Some("Christmas Party"),
-      tags = Some(List(EventTag.TypeOfEvent.Party, EventTag.Theme.Christmas))
+      tags = Some(List(EventTag.EventType.Party, EventTag.Special.Christmas))
     )
     val document = event.toDocument
 
@@ -61,8 +61,8 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     document.getList("tags", classOf[String]).asScala.toList shouldBe List("Party", "Christmas")
     document.getDouble("price") shouldBe 15.0
     document.getString("status") shouldBe "DRAFT"
-    document.getString("id_creator") shouldBe "creator123"
-    document.getList("id_collaborators", classOf[String]).asScala.toList shouldBe List("collab789")
+    document.getString("creatorId") shouldBe "creator123"
+    document.getList("collaboratorIds", classOf[String]).asScala.toList shouldBe List("collab789")
 
     val locationDoc = document.get("location", classOf[Document])
     locationDoc.getString("name") shouldBe "Test Venue"
@@ -87,14 +87,14 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       price = None,
       status = EventStatus.DRAFT,
       instant = sampleInstant,
-      id_creator = "creator123",
-      id_collaborators = None
+      creatorId = "creator123",
+      collaboratorIds = None
     )
     val document = event.toDocument
 
     document.getString("_id") shouldBe "minimal-event"
     document.getString("status") shouldBe "DRAFT"
-    document.getString("id_creator") shouldBe "creator123"
+    document.getString("creatorId") shouldBe "creator123"
 
     document.containsKey("title") shouldBe false
     document.containsKey("description") shouldBe false
@@ -103,21 +103,20 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     document.containsKey("location") shouldBe false
     document.containsKey("date") shouldBe false
     document.containsKey("price") shouldBe false
-    document.containsKey("id_collaborators") shouldBe false
+    document.containsKey("collaboratorIds") shouldBe false
 
   "Event.toJson" should "convert Event to JSON with all fields present" in:
     val event = createEvent(
-      title = Some("Jazz Concert"),
-      tags = Some(List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz))
+      title = Some("Rock Concert"),
+      tags = Some(List(EventTag.EventType.Concert, EventTag.MusicStyle.Rock))
     )
     val json = event.toJson
 
-    json("id_event").str shouldBe "event123"
-    json("title").str shouldBe "Jazz Concert"
+    json("eventId").str shouldBe "event123"
+    json("title").str shouldBe "Rock Concert"
     json("description").str shouldBe "Test description"
     json("poster").str shouldBe "poster.jpg"
-    json("tags").arr.map(_.str).toList shouldBe List("Concert", "Jazz")
-
+    json("tags").arr.map(_.str).toList shouldBe List("Concert", "Rock")
     json("location").obj("name").str shouldBe "Test Venue"
     json("location").obj("country").str shouldBe "Test Country"
     json("location").obj("country_code").str shouldBe "TC"
@@ -131,8 +130,8 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     json("price").num shouldBe 15.0
     json("status").str shouldBe "DRAFT"
     json("instant").str shouldBe sampleInstant.toString
-    json("id_creator").str shouldBe "creator123"
-    json("id_collaborators").arr.map(_.str).toList shouldBe List("collab789")
+    json("creatorId").str shouldBe "creator123"
+    json("collaboratorIds").arr.map(_.str).toList shouldBe List("collab789")
 
   it should "not include None fields in JSON" in:
     val event = Event(
@@ -146,14 +145,14 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       price = None,
       status = EventStatus.DRAFT,
       instant = sampleInstant,
-      id_creator = "creator123",
-      id_collaborators = None
+      creatorId = "creator123",
+      collaboratorIds = None
     )
     val json = event.toJson
 
-    json("id_event").str shouldBe "minimal-event"
+    json("eventId").str shouldBe "minimal-event"
     json("status").str shouldBe "DRAFT"
-    json("id_creator").str shouldBe "creator123"
+    json("creatorId").str shouldBe "creator123"
 
     json.obj.contains("title") shouldBe false
     json.obj.contains("description") shouldBe false
@@ -162,7 +161,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     json.obj.contains("location") shouldBe false
     json.obj.contains("date") shouldBe false
     json.obj.contains("price") shouldBe false
-    json.obj.contains("id_collaborators") shouldBe false
+    json.obj.contains("collaboratorIds") shouldBe false
 
   "EventConversions.fromDocument" should "convert Document to Event with all fields" in:
     val document = new Document()
@@ -170,7 +169,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("title", "Test Event From Doc")
       .append("description", "Document description")
       .append("poster", "doc-poster.jpg")
-      .append("tags", List("Concert", "Jazz").asJava)
+      .append("tags", List("Concert", "Rock").asJava)
       .append(
         "location",
         new Document()
@@ -189,8 +188,8 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("price", 25.5)
       .append("status", "PUBLISHED")
       .append("instant", sampleInstant.toString)
-      .append("id_creator", "doc-creator")
-      .append("id_collaborators", List("doc-collaborator").asJava)
+      .append("creatorId", "doc-creator")
+      .append("collaboratorIds", List("doc-collaborator").asJava)
 
     val event = EventConversions.fromDocument(document)
 
@@ -198,7 +197,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     event.title shouldBe Some("Test Event From Doc")
     event.description shouldBe Some("Document description")
     event.poster shouldBe Some("doc-poster.jpg")
-    event.tags shouldBe Some(List(EventTag.TypeOfEvent.Concert, EventTag.MusicGenre.Jazz))
+    event.tags shouldBe Some(List(EventTag.EventType.Concert, EventTag.MusicStyle.Rock))
 
     event.location shouldBe defined
     event.location.get.name shouldBe Some("Test Venue")
@@ -216,15 +215,15 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     event.price shouldBe Some(25.5)
     event.status shouldBe EventStatus.PUBLISHED
     event.instant shouldBe sampleInstant
-    event.id_creator shouldBe "doc-creator"
-    event.id_collaborators shouldBe Some(List("doc-collaborator"))
+    event.creatorId shouldBe "doc-creator"
+    event.collaboratorIds shouldBe Some(List("doc-collaborator"))
 
   it should "handle missing optional fields in Document" in:
     val document = new Document()
       .append("_id", "minimal-event")
       .append("status", "DRAFT")
       .append("instant", sampleInstant.toString)
-      .append("id_creator", "creator123")
+      .append("creatorId", "creator123")
 
     val event = EventConversions.fromDocument(document)
 
@@ -238,8 +237,8 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     event.price shouldBe None
     event.status shouldBe EventStatus.DRAFT
     event.instant shouldBe sampleInstant
-    event.id_creator shouldBe "creator123"
-    event.id_collaborators shouldBe None
+    event.creatorId shouldBe "creator123"
+    event.collaboratorIds shouldBe None
 
   it should "handle null values in Document" in:
     val document = new Document()
@@ -250,8 +249,8 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("location", null)
       .append("status", "DRAFT")
       .append("instant", sampleInstant.toString)
-      .append("id_creator", "creator123")
-      .append("id_collaborators", null)
+      .append("creatorId", "creator123")
+      .append("collaboratorIds", null)
 
     val event = EventConversions.fromDocument(document)
 
@@ -260,7 +259,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     event.description shouldBe None
     event.tags shouldBe None
     event.location shouldBe None
-    event.id_collaborators shouldBe None
+    event.collaboratorIds shouldBe None
 
   "EventConversions.localityFromDocument" should "handle null location document" in:
     val event = EventConversions.fromDocument(
@@ -269,7 +268,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
         .append("location", null)
         .append("status", "DRAFT")
         .append("instant", sampleInstant.toString)
-        .append("id_creator", "creator")
+        .append("creatorId", "creator")
     )
 
     event.location shouldBe None
@@ -284,7 +283,7 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("location", incompleteLocationDoc)
       .append("status", "DRAFT")
       .append("instant", sampleInstant.toString)
-      .append("id_creator", "creator")
+      .append("creatorId", "creator")
 
     val event = EventConversions.fromDocument(testDoc)
 
@@ -314,8 +313,8 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       .append("price", 20.0)
       .append("status", "PUBLISHED")
       .append("instant", sampleInstant.toString)
-      .append("id_creator", "creator123")
-      .append("id_collaborators", List("collab1", "collab2").asJava)
+      .append("creatorId", "creator123")
+      .append("collaboratorIds", List("collab1", "collab2").asJava)
 
     val event        = EventConversions.fromDocument(originalDoc)
     val convertedDoc = event.toDocument
@@ -324,18 +323,18 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     convertedDoc.getString("title") shouldBe originalDoc.getString("title")
     convertedDoc.getString("description") shouldBe originalDoc.getString("description")
     convertedDoc.getString("status") shouldBe originalDoc.getString("status")
-    convertedDoc.getString("id_creator") shouldBe originalDoc.getString("id_creator")
+    convertedDoc.getString("creatorId") shouldBe originalDoc.getString("creatorId")
     convertedDoc.getDouble("price") shouldBe originalDoc.getDouble("price")
 
   it should "handle round-trip conversion Event -> JSON -> verification" in:
     val event = createEvent(
       title = Some("JSON Test"),
-      tags = Some(List(EventTag.TypeOfEvent.Concert))
+      tags = Some(List(EventTag.EventType.Concert))
     )
 
     val json = event.toJson
 
-    json("id_event").str shouldBe event._id
+    json("eventId").str shouldBe event._id
     json("title").str shouldBe event.title.get
     json("status").str shouldBe event.status.toString
-    json("id_creator").str shouldBe event.id_creator
+    json("creatorId").str shouldBe event.creatorId

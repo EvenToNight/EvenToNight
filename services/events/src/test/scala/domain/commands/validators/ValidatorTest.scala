@@ -36,19 +36,19 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       date: LocalDateTime = LocalDateTime.now().plusDays(10),
       price: Double = 20.0,
       status: EventStatus = EventStatus.DRAFT,
-      id_creator: String = "valid-creator-id"
+      creatorId: String = "valid-creator-id"
   ): CreateEventCommand =
     CreateEventCommand(
       title = title,
       description = Some(description),
       poster = Some("valid-poster.jpg"),
-      tags = Some(List(EventTag.VenueType.Bar)),
+      tags = Some(List(EventTag.Venue.Bar)),
       location = Some(location),
       date = Some(date),
       price = Some(price),
       status = status,
-      id_creator = id_creator,
-      id_collaborators = None
+      creatorId = creatorId,
+      collaboratorIds = None
     )
 
   private def validGetFilteredEventsCommand(
@@ -56,7 +56,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       offset: Option[Int] = Some(0),
       status: Option[EventStatus] = Some(EventStatus.PUBLISHED),
       title: Option[String] = Some("Sample Event"),
-      tags: Option[List[EventTag]] = Some(List(EventTag.TypeOfEvent.Concert)),
+      tags: Option[List[EventTag]] = Some(List(EventTag.EventType.Concert)),
       startDate: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(1)),
       endDate: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(30)),
       id_organization: Option[String] = Some("org-123"),
@@ -111,7 +111,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     result shouldBe a[Right[?, ?]]
 
   it should "reject empty creator id" in:
-    val command = validCreateEventCommand(id_creator = "")
+    val command = validCreateEventCommand(creatorId = "")
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]
@@ -145,7 +145,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     result.left.value should contain("Location has invalid parameters")
 
   it should "reject empty creator id" in:
-    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, id_creator = "")
+    val command = validCreateEventCommand(status = EventStatus.PUBLISHED, creatorId = "")
     val result  = CreateEventValidator.validate(command)
 
     result shouldBe a[Left[?, ?]]

@@ -6,8 +6,10 @@ services:
       - events-network
     environment:
       - PORT=${EVENTS_SERVICE_PORT}
-      - RABBITMQ_HOST=rabbitmq
       - MONGO_HOST=mongo-events
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
       - HOST=${HOST}
     labels:
       - "traefik.enable=true"

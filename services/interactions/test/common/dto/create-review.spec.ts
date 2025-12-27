@@ -7,7 +7,7 @@ describe('CreateReviewDto', () => {
     const dto = plainToInstance(CreateReviewDto, {
       userId: 'user1',
       organizationId: 'org1',
-      collaboratorsId: ['c1', 'c2'],
+      collaboratorIds: ['c1', 'c2'],
       rating: 5,
       title: 'Great event',
       comment: 'Had a wonderful time',
@@ -60,11 +60,11 @@ describe('CreateReviewDto', () => {
     expect(errorsFloat.length).toBeGreaterThan(0);
   });
 
-  it('fails when collaboratorsId is not array of strings', async () => {
+  it('fails when collaboratorIds is not array of strings', async () => {
     const dtoNotArray = plainToInstance(CreateReviewDto, {
       userId: 'u',
       organizationId: 'o',
-      collaboratorsId: 'not-array',
+      collaboratorIds: 'not-array',
       rating: 4,
       title: 't',
     });
@@ -72,7 +72,7 @@ describe('CreateReviewDto', () => {
     const dtoNonString = plainToInstance(CreateReviewDto, {
       userId: 'u',
       organizationId: 'o',
-      collaboratorsId: [1, 2],
+      collaboratorIds: [1, 2],
       rating: 4,
       title: 't',
     });

@@ -20,7 +20,7 @@ object CreateEventValidator extends Validator[CreateEventCommand]:
     cmd.status match
       case EventStatus.DRAFT =>
         val validations = combine(
-          nonEmpty(cmd.id_creator, "Creator Id")
+          nonEmpty(cmd.creatorId, "Creator Id")
         )
         validations.map(_ => cmd)
       case _ =>
@@ -28,7 +28,7 @@ object CreateEventValidator extends Validator[CreateEventCommand]:
           nonEmpty(cmd.title.getOrElse(""), "Title"),
           nonEmpty(cmd.description.getOrElse(""), "Description"),
           nonEmpty(cmd.price.getOrElse(0).toString(), "Price"),
-          nonEmpty(cmd.id_creator, "Creator Id"),
+          nonEmpty(cmd.creatorId, "Creator Id"),
           correctLocality(cmd.location.getOrElse(Location.Nil()), "Location"),
           futureDate(cmd.date.getOrElse(LocalDateTime.now()), "Date")
         )
@@ -38,14 +38,14 @@ object GetEventValidator extends Validator[GetEventCommand]:
 
   override def validate(cmd: GetEventCommand): Either[List[String], GetEventCommand] =
     combine(
-      nonEmpty(cmd.id_event, "Event ID")
+      nonEmpty(cmd.eventId, "Event ID")
     ).map(_ => cmd)
 
 object UpdateEventPosterValidator extends Validator[UpdateEventPosterCommand]:
 
   override def validate(cmd: UpdateEventPosterCommand): Either[List[String], UpdateEventPosterCommand] =
     combine(
-      nonEmpty(cmd.id_event, "Event ID"),
+      nonEmpty(cmd.eventId, "Event ID"),
       nonEmpty(cmd.posterUrl, "Poster URL")
     ).map(_ => cmd)
 
@@ -54,12 +54,12 @@ object UpdateEventValidator extends Validator[UpdateEventCommand]:
     cmd.status match
       case EventStatus.DRAFT =>
         val validations = combine(
-          nonEmpty(cmd.id_event, "Event ID")
+          nonEmpty(cmd.eventId, "Event ID")
         )
         validations.map(_ => cmd)
       case _ =>
         val validations = combine(
-          nonEmpty(cmd.id_event, "Event ID"),
+          nonEmpty(cmd.eventId, "Event ID"),
           nonEmpty(cmd.title.getOrElse(""), "Title"),
           nonEmpty(cmd.description.getOrElse(""), "Description"),
           nonEmpty(cmd.price.getOrElse("").toString(), "Price"),
@@ -71,7 +71,7 @@ object UpdateEventValidator extends Validator[UpdateEventCommand]:
 object DeleteEventValidator extends Validator[DeleteEventCommand]:
   override def validate(cmd: DeleteEventCommand): Either[List[String], DeleteEventCommand] =
     combine(
-      nonEmpty(cmd.id_event, "Event ID")
+      nonEmpty(cmd.eventId, "Event ID")
     ).map(_ => cmd)
 
 object GetFilteredEventsValidator extends Validator[GetFilteredEventsCommand]:
