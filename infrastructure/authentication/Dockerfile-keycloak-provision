@@ -2,4 +2,8 @@ FROM quay.io/keycloak/keycloak:26.4
 
 COPY ./infrastructure/authentication/provision.sh /opt/keycloak/provision.sh
 
+COPY ./infrastructure/authentication/user-profile.json /opt/keycloak/user-profile.json
+
+COPY ./infrastructure/authentication/custom-user-id-mapper.json /opt/keycloak/custom-user-id-mapper.json
+
 ENTRYPOINT ["/opt/keycloak/provision.sh"]

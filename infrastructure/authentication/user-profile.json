@@ -1,0 +1,29 @@
+{
+  "attributes": [
+    {
+      "name": "username",
+      "displayName": "Username",
+      "permissions": {
+        "view": ["admin", "user"],
+        "edit": ["admin", "user"]
+      }
+    },
+    {
+      "name": "email",
+      "displayName": "Email",
+      "permissions": {
+        "view": ["admin", "user"],
+        "edit": ["admin", "user"]
+      }
+    },
+    {
+      "name": "custom_user_id",
+      "displayName": "Custom User ID",
+      "permissions": {
+        "view": ["admin"],
+        "edit": ["admin"]
+      },
+      "multivalued": false
+    }
+  ]
+}

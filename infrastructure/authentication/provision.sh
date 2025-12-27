@@ -11,6 +11,31 @@ echo "[Provisioning] Logging in with kcadm..."
   --password "$KEYCLOAK_ADMIN_PASSWORD" > /dev/null 2>&1
 echo "[Provisioning] Login successful!"
 
+echo ""
+echo "[Provisioning][$REALM] Disabling default Required Actions..."
+
+REQUIRED_ACTIONS=(
+  CONFIGURE_TOTP
+  UPDATE_PASSWORD
+  UPDATE_PROFILE
+  VERIFY_EMAIL
+  VERIFY_PROFILE
+)
+
+for action in "${REQUIRED_ACTIONS[@]}"; do
+  echo "[Provisioning] Disabling Required Action: $action..."
+  if /opt/keycloak/bin/kcadm.sh update authentication/required-actions/$action \
+    -r "$REALM" \
+    -s enabled=false \
+    -s defaultAction=false; then
+    echo "[Provisioning] $action disabled."
+  else
+    echo "[Provisioning][WARNING] Failed to disable $action. It may not exist."
+  fi
+done
+
+echo "[Provisioning][$REALM] Required Actions configuration completed."
+
 EXISTING=$(/opt/keycloak/bin/kcadm.sh get clients -r "$REALM" --fields id,clientId | grep "\"clientId\" : \"$CLIENT_ID\"" || true)
 if [ -z "$EXISTING" ]; then
   echo "[Provisioning] Creating client '$CLIENT_ID'..."
@@ -70,3 +95,41 @@ if [ "$CURRENT_SECRET" != "$USERS_SERVICE_SECRET" ]; then
 else
   echo "[Provisioning] Client secret already up to date, skipping update."
 fi
+
+echo ""
+echo "[Provisioning][$REALM] Configuring user profile attributes..."
+
+CUSTOM_USER_PROFILE="/opt/keycloak/user-profile.json"
+if [ ! -f "$CUSTOM_USER_PROFILE" ]; then
+  echo "[Provisioning][ERROR] Custom User Profile JSON not found: $CUSTOM_USER_PROFILE, aborting!"
+  exit 1
+fi
+ 
+if /opt/keycloak/bin/kcadm.sh update users/profile -r "$REALM" -f "$CUSTOM_USER_PROFILE" 2>/dev/null; then
+  echo "[Provisioning] Custom user profile configured successfully."
+else
+  echo "[Provisioning][WARNING] Failed to update user profile automatically."
+  echo "[Provisioning] You may need to configure the desired attributes manually via Admin Console."
+fi
+
+echo ""
+MAPPER_JSON="/opt/keycloak/custom-user-id-mapper.json"
+if [ ! -f "$MAPPER_JSON" ]; then
+  echo "[Provisioning][ERROR] Mapper JSON not found: $MAPPER_JSON, aborting!"
+  exit 1
+fi
+
+MAPPER_EXISTS=$(/opt/keycloak/bin/kcadm.sh get clients/"$CLIENT_UUID"/protocol-mappers/models -r "$REALM" | grep '"name" : "custom-user-id-mapper"' || true)
+if [ -z "$MAPPER_EXISTS" ]; then
+  echo "[Provisioning][$REALM][$CLIENT_ID] Creating protocol mapper custom-user-id-mapper..."
+  if /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_UUID/protocol-mappers/models -r "$REALM" -f "$MAPPER_JSON" &>/dev/null; then
+    echo "[Provisioning] Protocol mapper created successfully."
+  else
+    echo "[Provisioning][WARNING] Failed to create protocol mapper."
+  fi
+else
+  echo "[Provisioning] Protocol mapper custom-user-id-mapper already exists, skipping creation."  
+fi
+
+echo ""
+echo "[Provisioning] Provisioning completed."

@@ -47,7 +47,10 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
                 "value": "$password",
                 "temporary": false
               }
-            ]
+            ],
+            "attributes": {
+              "custom_user_id": ["$userId"]
+            }
           }
         """
 
