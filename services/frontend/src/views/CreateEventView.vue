@@ -14,7 +14,7 @@ import type { Tag } from '@/api/types/events'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useI18n } from 'vue-i18n'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
-
+import { notEmpty } from '@/components/forms/validationUtils'
 const { t } = useI18n()
 const $q = useQuasar()
 
@@ -388,19 +388,19 @@ const onSubmit = async () => {
           }}
         </h1>
 
-        <q-form class="form-container" @submit="onSubmit">
+        <q-form class="form-container" greedy @submit.prevent="onSubmit">
           <FormField
             v-model="title"
             type="text"
             :label="t('eventCreationForm.eventTitle') + ' *'"
-            :error="titleError"
+            :rules="[notEmpty(t('eventCreationForm.titleError'))]"
           />
           <FormField
             ref="dateInput"
             v-model="date"
             type="date"
             :label="t('eventCreationForm.date') + ' *'"
-            :error="dateError"
+            :rules="[notEmpty(t('eventCreationForm.dateError'))]"
           >
             <template #prepend>
               <q-icon
@@ -416,7 +416,7 @@ const onSubmit = async () => {
             v-model="time"
             type="time"
             :label="t('eventCreationForm.time') + ' *'"
-            :error="timeError"
+            :rules="[notEmpty(t('eventCreationForm.timeError'))]"
           >
             <template #prepend>
               <q-icon
@@ -431,7 +431,7 @@ const onSubmit = async () => {
             v-model="description"
             type="textarea"
             :label="t('eventCreationForm.description')"
-            :error="descriptionError"
+            :rules="[notEmpty(t('eventCreationForm.descriptionError'))]"
             rows="4"
           />
 
@@ -439,7 +439,7 @@ const onSubmit = async () => {
             v-model="price"
             type="number"
             :label="t('eventCreationForm.price') + ' (€)'"
-            :error="priceError"
+            :rules="[notEmpty(t('eventCreationForm.priceError'))]"
             prefix="€"
           />
 

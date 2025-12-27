@@ -7,6 +7,7 @@ import BaseAuthForm from './BaseAuthForm.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import FormField from '@/components/forms/FormField.vue'
 import { useNavigation } from '@/router/utils'
+import { isEmail, matching, notEmpty } from '@/components/forms/validationUtils'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
@@ -18,44 +19,6 @@ const email = ref('')
 const password = ref('')
 const confirmPassword = ref('')
 const isOrganization = ref(false)
-
-const nameError = ref('')
-const emailError = ref('')
-const passwordError = ref('')
-const confirmPasswordError = ref('')
-
-const validateInput = (): boolean => {
-  let isValid = true
-  nameError.value = ''
-  emailError.value = ''
-  passwordError.value = ''
-  confirmPasswordError.value = ''
-
-  if (!name.value) {
-    nameError.value = t('auth.registerForm.nameError')
-    isValid = false
-  }
-
-  if (!email.value) {
-    emailError.value = t('auth.form.emailError')
-    isValid = false
-  }
-
-  if (!password.value) {
-    passwordError.value = t('auth.form.passwordError')
-    isValid = false
-  }
-
-  if (!confirmPassword.value) {
-    confirmPasswordError.value = t('auth.registerForm.emptyConfirmPasswordError')
-    isValid = false
-  } else if (password.value !== confirmPassword.value) {
-    confirmPasswordError.value = t('auth.registerForm.passwordMismatchError')
-    isValid = false
-  }
-
-  return isValid
-}
 
 const onSuccessfulRegistration = () => {
   $q.notify({
@@ -73,7 +36,6 @@ const onFailedRegistration = (errorMsg?: string) => {
 }
 
 const handleRegister = async () => {
-  if (!validateInput()) return
   const result = await authStore.register(
     name.value,
     email.value,
@@ -102,7 +64,7 @@ const handleRegister = async () => {
         type="text"
         :label="t('auth.registerForm.nameLabel') + ' *'"
         icon="person"
-        :error="nameError"
+        :rules="[notEmpty(t('auth.registerForm.nameError'))]"
       />
 
       <FormField
@@ -110,7 +72,7 @@ const handleRegister = async () => {
         type="email"
         :label="t('auth.form.emailLabel') + ' *'"
         icon="mail"
-        :error="emailError"
+        :rules="[isEmail(t('auth.form.emailError'))]"
       />
 
       <FormField
@@ -118,7 +80,7 @@ const handleRegister = async () => {
         type="password"
         :label="t('auth.form.passwordLabel') + ' *'"
         icon="lock"
-        :error="passwordError"
+        :rules="[notEmpty(t('auth.form.passwordError'))]"
       />
 
       <FormField
@@ -126,7 +88,10 @@ const handleRegister = async () => {
         type="password"
         :label="t('auth.registerForm.confirmPasswordLabel') + ' *'"
         icon="lock"
-        :error="confirmPasswordError"
+        :rules="[
+          notEmpty(t('auth.registerForm.emptyConfirmPasswordError')),
+          matching(password, t('auth.registerForm.passwordMismatchError')),
+        ]"
       />
 
       <q-checkbox

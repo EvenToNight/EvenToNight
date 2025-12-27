@@ -34,7 +34,7 @@ const handleSwitch = () => {
     </q-card-section>
 
     <q-card-section>
-      <q-form @submit.prevent="handleSubmit">
+      <q-form greedy @submit.prevent="handleSubmit">
         <slot name="fields" />
         <slot name="submit-button" :is-loading="isLoading" />
         <div class="text-center">

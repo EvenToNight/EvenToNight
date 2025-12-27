@@ -1,44 +1,31 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useAuthStore } from '@/stores/auth'
 import type { Rating } from '@/api/types/interaction'
 import RatingStars from './RatingStars.vue'
 import { useI18n } from 'vue-i18n'
+import { required, notEmpty } from '@/components/forms/validationUtils'
+import FormField from '../forms/FormField.vue'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 
 interface Props {
-  isOpen: boolean
   creatorId: string
   selectedEvent?: Event
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits<{
-  'update:isOpen': [value: boolean]
-}>()
-
-const modelValue = computed({
-  get: () => props.isOpen,
-  set: (value: boolean) => {
-    console.log('Emitting update:isOpen with value:', value)
-    emit('update:isOpen', value)
-  },
-})
+const isOpen = defineModel<boolean>('isOpen', { required: true })
 
 const selectedEvent = ref<Event | null>(props.selectedEvent ?? null)
 const eventOptions = ref<Event[]>([])
-const formRef = ref()
 const hasSearched = ref(false)
 
 const rating = ref<Rating>(5)
 
-// Validation rules
-const required = (msg: string) => (val: any) => !!val || msg
-const notEmpty = (msg: string) => (val: string) => (val && val.trim()) || msg
 const reviewDescription = ref('')
 
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
@@ -71,11 +58,6 @@ const reviewTitle = ref('')
 
 const submittingReview = ref(false)
 const submitReview = async () => {
-  const isValid = await formRef.value?.validate()
-  if (!isValid) {
-    return
-  }
-
   submittingReview.value = true
   try {
     await api.interactions.createEventReview(selectedEvent.value!.id_event, {
@@ -86,7 +68,7 @@ const submitReview = async () => {
       title: 'TITLE',
       comment: 'COMMENT',
     })
-    modelValue.value = false
+    isOpen.value = false
   } catch (error) {
     console.error('Failed to submit review:', error)
   } finally {
@@ -95,14 +77,14 @@ const submitReview = async () => {
 }
 </script>
 <template>
-  <q-dialog v-model="modelValue">
-    <q-card class="cropper-dialog">
+  <q-dialog v-model="isOpen">
+    <q-card class="modal-dialog relative-position">
       <q-card-section>
         <div class="text-h6">Lascia una recensione</div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
-        <q-form ref="formRef" greedy>
+        <q-form greedy @submit.prevent="submitReview">
           <q-select
             v-model="selectedEvent"
             :options="eventOptions"
@@ -153,73 +135,46 @@ const submitReview = async () => {
             />
           </div>
 
-          <q-input
+          <FormField
             v-model="reviewTitle"
             :label="t('userProfile.reviewTitle')"
             :placeholder="t('userProfile.reviewTitlePlaceholder')"
             :rules="[notEmpty('Inserisci un titolo per la recensione')]"
-            lazy-rules="ondemand"
-            hide-bottom-space
-            outlined
-            class="q-mt-md"
           />
 
-          <q-input
+          <FormField
             v-model="reviewDescription"
             type="textarea"
             :label="t('userProfile.reviewDescription')"
             :placeholder="t('userProfile.reviewDescriptionPlaceholder')"
             :rules="[notEmpty('Inserisci una descrizione per la recensione')]"
-            lazy-rules="ondemand"
-            hide-bottom-space
             rows="5"
-            outlined
-            class="q-mt-md"
           />
+
+          <q-card-actions align="right" class="q-px-none q-pb-none">
+            <q-btn v-close-popup flat :label="t('userProfile.cancel')" color="primary" />
+            <q-btn
+              type="submit"
+              flat
+              :label="t('userProfile.submit')"
+              color="primary"
+              :loading="submittingReview"
+            />
+          </q-card-actions>
         </q-form>
       </q-card-section>
-
-      <q-card-actions align="right">
-        <q-btn v-close-popup flat :label="t('userProfile.cancel')" color="primary" />
-        <q-btn
-          flat
-          :label="t('userProfile.submit')"
-          color="primary"
-          :loading="submittingReview"
-          @click="submitReview"
-        />
-      </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
 <style scoped lang="scss">
-.cropper-dialog {
-  max-width: 400px;
-  width: calc(100% - #{$spacing-4 * 2});
-  border-radius: $radius-2xl;
-  position: relative;
-
-  @include dark-mode {
-    background: #1e1e1e;
-  }
-
-  @media (max-width: $app-min-width) {
-    position: absolute;
-    border-radius: 0;
-    width: 100%;
-    height: 100%;
-    max-width: 100vw;
-    max-height: 100vh;
-  }
-}
-
 .event-option-image {
   width: 48px;
   height: 48px;
   border-radius: $radius-md;
   object-fit: cover;
 }
+
 .rating-input {
   display: flex;
   flex-direction: column;
@@ -233,6 +188,14 @@ const submitReview = async () => {
     @include dark-mode {
       color: $color-heading-dark;
     }
+  }
+}
+.modal-dialog {
+  max-width: $modal-max-width;
+  width: calc(100% - #{$spacing-4 * 2});
+  border-radius: $radius-2xl;
+  @media (max-width: $app-min-width) {
+    @include absolute-fill;
   }
 }
 </style>
