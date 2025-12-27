@@ -1,16 +1,24 @@
 import { Controller } from '@nestjs/common';
-import { EventPattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MetadataService } from '../services/metadata.service';
+import { RmqContext, Ctx } from '@nestjs/microservices';
 
-// controller to handle rabbit communication for metadata updates
 @Controller()
 export class MetadataController {
   constructor(private readonly metadataService: MetadataService) {}
 
-  // Test connection to RabbitMQ
-  @EventPattern('test.ping')
-  handleTestPing(@Payload() data: unknown) {
-    console.log('🎉 TEST MESSAGE RECEIVED:', data);
-    return { status: 'ok', receivedAt: new Date(), data };
+  @MessagePattern()
+  async handleEvent(@Payload() payload: any, @Ctx() context: RmqContext) {
+    const msg = context.getMessage();
+    const routingKey = msg.fields.routingKey;
+
+    console.log('📥 Message received:', routingKey);
+
+    if (routingKey === 'event.published') {
+      await this.metadataService.handleEventPublished(payload);
+    }
+
+    const channel = context.getChannelRef();
+    channel.ack(msg);
   }
 }
