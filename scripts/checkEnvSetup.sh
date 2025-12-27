@@ -1,10 +1,50 @@
+: '
+Check Environment Setup Script
+
+SYNOPSIS
+    ./checkEnvSetup.sh
+
+DESCRIPTION
+    This script validates the consistency between .env and .env.template files.
+    It performs the following checks:
+    - Verifies that both .env and .env.template exist
+    - Ensures all keys match between the two files
+    - Validates that all lines in .env have valid KEY=VALUE format
+
+NOTES:
+  - Requires Bash installed.
+  - Both .env and .env.template must exist.
+  - Reports all issues before exiting.
+'
+
 #!/usr/bin/env bash
 set -euo pipefail
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  sed -n '/^: \x27$/,/^'\''$/p' "$0" | sed '1d;$d'
+  exit 0
+fi
+
 echo "Checking .env and .env.template for consistency..."
 
 ENV_FILE=".env"
 TEMPLATE_FILE=".env.template"
 ERROR=0
+
+if [[ ! -f "$ENV_FILE" ]]; then
+  echo "❌ $ENV_FILE not found"
+  ERROR=$((ERROR + 1))
+fi
+
+if [[ ! -f "$TEMPLATE_FILE" ]]; then
+  echo "❌ $TEMPLATE_FILE not found"
+  ERROR=$((ERROR + 1))
+fi
+
+if [[ $ERROR -gt 0 ]]; then
+  echo "⚠️ Missing required file(s). Exiting."
+  exit 1
+fi
 
 extract_keys() {
   local file="$1"
