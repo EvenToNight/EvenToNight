@@ -1,5 +1,5 @@
 #!/bin/bash
-# Find directories containing Dockerfiles
+# Find Dockerfile* files placed directly in services/<name>/ and infrastructure/<name>/ directories (non-recursive)
 # Usage: ./scripts/findDockerfiles.sh [BASE_COMMIT] [HEAD_COMMIT]
 #
 # If BASE_COMMIT and/or HEAD_COMMIT are provided, tries to fetch them and use git diff
@@ -36,7 +36,7 @@ else
     use_git=false
 fi
 
-dockerfiles_dirs=$(echo "$files" | sed 's|^\./||' | xargs -n1 dirname 2>/dev/null | awk -F'/' '{
+dockerfiles_dirs=$(echo "$files" | sed 's|^\./||' | awk -F'/' '{
     if (($1 == "services" || $1 == "infrastructure") && NF >= 2) {
         print $1 "/" $2
     }
@@ -53,7 +53,7 @@ while IFS= read -r dir; do
             dockerfiles_in_dir=$(find "$dir" -maxdepth 1 -type f -name "Dockerfile*" 2>/dev/null || true)
         fi
         if [ -n "$dockerfiles_in_dir" ]; then
-            dockerfiles="$dockerfiles $dockerfiles_in_dir"
+            dockerfiles="$dockerfiles $(echo "$dockerfiles_in_dir" | tr '\n' ' ')"
         fi
     fi
 done <<< "$dockerfiles_dirs"
