@@ -1,6 +1,6 @@
 package infrastructure
 
-import codec.ForeignKeysCodec
+import codec.UserReferencesCodec
 import codec.member.MemberAccountCodec
 import codec.member.MemberProfileCodec
 import codec.organization.OrganizationAccountCodec
@@ -20,7 +20,7 @@ object MongoConnection:
       new MemberProfileCodec,
       new OrganizationAccountCodec,
       new OrganizationProfileCodec,
-      new ForeignKeysCodec
+      new UserReferencesCodec
     )
   )
   private val settings = MongoClientSettings.builder().codecRegistry(pojoCodecRegistry).applyConnectionString(

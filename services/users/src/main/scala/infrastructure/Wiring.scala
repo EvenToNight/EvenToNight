@@ -2,7 +2,7 @@ package infrastructure
 
 import com.mongodb.client.MongoCollection
 import infrastructure.Secret.usersServiceSecret
-import model.ForeignKeys
+import model.UserReferences
 import model.member.MemberAccount
 import model.member.MemberProfile
 import model.organization.OrganizationAccount
@@ -20,10 +20,10 @@ import sttp.client3.HttpURLConnectionBackend
 import MongoConnection._
 
 object Wiring:
-  val membersColl: MongoCollection[ForeignKeys] =
-    membersDB.getCollection("members", classOf[ForeignKeys])
-  val organizationsColl: MongoCollection[ForeignKeys] =
-    organizationsDB.getCollection("organizations", classOf[ForeignKeys])
+  val memberReferencesColl: MongoCollection[UserReferences] =
+    membersDB.getCollection("member_references", classOf[UserReferences])
+  val organizationReferencesColl: MongoCollection[UserReferences] =
+    organizationsDB.getCollection("organization_references", classOf[UserReferences])
   val memberAccountsColl: MongoCollection[MemberAccount] =
     membersDB.getCollection("member_accounts", classOf[MemberAccount])
   val memberProfilesColl: MongoCollection[MemberProfile] =
@@ -34,10 +34,10 @@ object Wiring:
     organizationsDB.getCollection("organization_profiles", classOf[OrganizationProfile])
 
   val memberAccountProfileRepository: AccountProfileRepository[MemberAccount, MemberProfile] =
-    new MongoAccountProfileRepository(membersColl, memberAccountsColl, memberProfilesColl)
+    new MongoAccountProfileRepository(memberReferencesColl, memberAccountsColl, memberProfilesColl)
   val memberRepository: MemberRepository = new MongoMemberRepository(memberAccountProfileRepository)
   val organizationAccountProfileRepository: AccountProfileRepository[OrganizationAccount, OrganizationProfile] =
-    new MongoAccountProfileRepository(organizationsColl, organizationAccountsColl, organizationProfilesColl)
+    new MongoAccountProfileRepository(organizationReferencesColl, organizationAccountsColl, organizationProfilesColl)
   val organizationRepository: OrganizationRepository =
     new MongoOrganizationRepository(organizationAccountProfileRepository)
 

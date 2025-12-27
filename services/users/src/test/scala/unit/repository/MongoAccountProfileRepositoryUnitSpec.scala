@@ -6,7 +6,7 @@ import fixtures.MemberFixtures.member
 import fixtures.MemberFixtures.memberUserId
 import fixtures.OrganizationFixtures.organization
 import fixtures.OrganizationFixtures.organizationUserId
-import model.ForeignKeys
+import model.UserReferences
 import model.member.MemberAccount
 import model.member.MemberProfile
 import model.organization.OrganizationAccount
@@ -23,9 +23,9 @@ import repository.MongoAccountProfileRepository
 
 class MongoAccountProfileRepositoryUnitSpec extends AnyFlatSpec with Matchers:
   private def setupMemberMocks() =
-    val memberForeignKeysCollMock: MongoCollection[ForeignKeys] = mock(classOf[MongoCollection[ForeignKeys]])
-    val memberAccountsCollMock: MongoCollection[MemberAccount]  = mock(classOf[MongoCollection[MemberAccount]])
-    val memberProfilesCollMock: MongoCollection[MemberProfile]  = mock(classOf[MongoCollection[MemberProfile]])
+    val memberReferencesCollMock: MongoCollection[UserReferences] = mock(classOf[MongoCollection[UserReferences]])
+    val memberAccountsCollMock: MongoCollection[MemberAccount]    = mock(classOf[MongoCollection[MemberAccount]])
+    val memberProfilesCollMock: MongoCollection[MemberProfile]    = mock(classOf[MongoCollection[MemberProfile]])
 
     val accountId     = ObjectId()
     val accountResult = mock(classOf[InsertOneResult])
@@ -37,12 +37,12 @@ class MongoAccountProfileRepositoryUnitSpec extends AnyFlatSpec with Matchers:
     when(profileResult.getInsertedId()).thenReturn(BsonObjectId(profileId))
     when(memberProfilesCollMock.insertOne(member.profile)).thenReturn(profileResult)
 
-    val userId            = ObjectId()
-    val foreignKeysResult = mock(classOf[InsertOneResult])
-    when(foreignKeysResult.getInsertedId()).thenReturn(BsonObjectId(userId))
-    when(memberForeignKeysCollMock.insertOne(any[ForeignKeys])).thenReturn(foreignKeysResult)
+    val userId           = ObjectId()
+    val referencesResult = mock(classOf[InsertOneResult])
+    when(referencesResult.getInsertedId()).thenReturn(BsonObjectId(userId))
+    when(memberReferencesCollMock.insertOne(any[UserReferences])).thenReturn(referencesResult)
     (
-      memberForeignKeysCollMock,
+      memberReferencesCollMock,
       memberAccountsCollMock,
       memberProfilesCollMock,
       accountId,
@@ -50,7 +50,7 @@ class MongoAccountProfileRepositoryUnitSpec extends AnyFlatSpec with Matchers:
     )
 
   private def setupOrganizationMocks() =
-    val orgForeignKeysCollMock: MongoCollection[ForeignKeys]      = mock(classOf[MongoCollection[ForeignKeys]])
+    val orgReferencesCollMock: MongoCollection[UserReferences]    = mock(classOf[MongoCollection[UserReferences]])
     val orgAccountsCollMock: MongoCollection[OrganizationAccount] = mock(classOf[MongoCollection[OrganizationAccount]])
     val orgProfilesCollMock: MongoCollection[OrganizationProfile] = mock(classOf[MongoCollection[OrganizationProfile]])
 
@@ -64,12 +64,12 @@ class MongoAccountProfileRepositoryUnitSpec extends AnyFlatSpec with Matchers:
     when(profileResult.getInsertedId()).thenReturn(BsonObjectId(profileId))
     when(orgProfilesCollMock.insertOne(organization.profile)).thenReturn(profileResult)
 
-    val userId            = ObjectId()
-    val foreignKeysResult = mock(classOf[InsertOneResult])
-    when(foreignKeysResult.getInsertedId()).thenReturn(BsonObjectId(userId))
-    when(orgForeignKeysCollMock.insertOne(any[ForeignKeys])).thenReturn(foreignKeysResult)
+    val userId           = ObjectId()
+    val referencesResult = mock(classOf[InsertOneResult])
+    when(referencesResult.getInsertedId()).thenReturn(BsonObjectId(userId))
+    when(orgReferencesCollMock.insertOne(any[UserReferences])).thenReturn(referencesResult)
     (
-      orgForeignKeysCollMock,
+      orgReferencesCollMock,
       orgAccountsCollMock,
       orgProfilesCollMock,
       accountId,
@@ -77,64 +77,64 @@ class MongoAccountProfileRepositoryUnitSpec extends AnyFlatSpec with Matchers:
     )
 
   private def createAccountProfileRepo[A, P](
-      foreignKeysColl: MongoCollection[ForeignKeys],
+      referencesColl: MongoCollection[UserReferences],
       accountsColl: MongoCollection[A],
       profilesColl: MongoCollection[P]
   ): AccountProfileRepository[A, P] =
-    new MongoAccountProfileRepository(foreignKeysColl, accountsColl, profilesColl)
+    new MongoAccountProfileRepository(referencesColl, accountsColl, profilesColl)
 
   "insert" should "delegate member's account and profile insertion to the respective Mongo collections and return the userId" in:
-    val (memberForeignKeysCollMock, memberAccountsCollMock, memberProfilesCollMock, _, _) = setupMemberMocks()
-    val memberAccountProfileRepo = createAccountProfileRepo[MemberAccount, MemberProfile](
-      memberForeignKeysCollMock,
+    val (memberReferencesCollMock, memberAccountsCollMock, memberProfilesCollMock, _, _) = setupMemberMocks()
+    val repo = createAccountProfileRepo[MemberAccount, MemberProfile](
+      memberReferencesCollMock,
       memberAccountsCollMock,
       memberProfilesCollMock
     )
-    val result = memberAccountProfileRepo.insert(member.account, member.profile, memberUserId)
+    val result = repo.insert(member.account, member.profile, memberUserId)
     verify(memberAccountsCollMock).insertOne(member.account)
     verify(memberProfilesCollMock).insertOne(member.profile)
     result shouldBe memberUserId
 
-  it should "create foreign keys for the inserted member using the userId and the Mongo generated accountId and profileId" in:
-    val (memberForeignKeysCollMock, memberAccountsCollMock, memberProfilesCollMock, accountId, profileId) =
+  it should "persist user references for the inserted member" in:
+    val (memberReferencesCollMock, memberAccountsCollMock, memberProfilesCollMock, accountId, profileId) =
       setupMemberMocks()
-    val memberAccountProfileRepo = createAccountProfileRepo[MemberAccount, MemberProfile](
-      memberForeignKeysCollMock,
+    val repo = createAccountProfileRepo[MemberAccount, MemberProfile](
+      memberReferencesCollMock,
       memberAccountsCollMock,
       memberProfilesCollMock
     )
-    memberAccountProfileRepo.insert(member.account, member.profile, memberUserId)
-    val foreignKeysCaptor = ArgumentCaptor.forClass(classOf[ForeignKeys])
-    verify(memberForeignKeysCollMock).insertOne(foreignKeysCaptor.capture())
-    val insertedForeignKeys = foreignKeysCaptor.getValue()
-    insertedForeignKeys.userId shouldBe memberUserId
-    insertedForeignKeys.accountId shouldBe accountId.toHexString()
-    insertedForeignKeys.profileId shouldBe profileId.toHexString()
+    repo.insert(member.account, member.profile, memberUserId)
+    val userReferencesCaptor = ArgumentCaptor.forClass(classOf[UserReferences])
+    verify(memberReferencesCollMock).insertOne(userReferencesCaptor.capture())
+    val insertedReferences = userReferencesCaptor.getValue()
+    insertedReferences.userId shouldBe memberUserId
+    insertedReferences.accountId shouldBe accountId.toHexString()
+    insertedReferences.profileId shouldBe profileId.toHexString()
 
   it should "delegate organization's account and profile insertion to the respective Mongo collections and return the userId" in:
-    val (orgForeignKeysCollMock, orgAccountsCollMock, orgProfilesCollMock, _, _) = setupOrganizationMocks()
-    val orgAccountProfileRepo = createAccountProfileRepo[OrganizationAccount, OrganizationProfile](
-      orgForeignKeysCollMock,
+    val (orgReferencesCollMock, orgAccountsCollMock, orgProfilesCollMock, _, _) = setupOrganizationMocks()
+    val repo = createAccountProfileRepo[OrganizationAccount, OrganizationProfile](
+      orgReferencesCollMock,
       orgAccountsCollMock,
       orgProfilesCollMock
     )
-    val result = orgAccountProfileRepo.insert(organization.account, organization.profile, organizationUserId)
+    val result = repo.insert(organization.account, organization.profile, organizationUserId)
     verify(orgAccountsCollMock).insertOne(organization.account)
     verify(orgProfilesCollMock).insertOne(organization.profile)
     result shouldBe organizationUserId
 
-  it should "create foreign keys for the inserted organization using the userId and the Mongo generated accountId and profileId" in:
-    val (orgForeignKeysCollMock, orgAccountsCollMock, orgProfilesCollMock, accountId, profileId) =
+  it should "persist user references for the inserted organization" in:
+    val (orgReferencesCollMock, orgAccountsCollMock, orgProfilesCollMock, accountId, profileId) =
       setupOrganizationMocks()
-    val orgAccountProfileRepo = createAccountProfileRepo[OrganizationAccount, OrganizationProfile](
-      orgForeignKeysCollMock,
+    val repo = createAccountProfileRepo[OrganizationAccount, OrganizationProfile](
+      orgReferencesCollMock,
       orgAccountsCollMock,
       orgProfilesCollMock
     )
-    orgAccountProfileRepo.insert(organization.account, organization.profile, organizationUserId)
-    val foreignKeysCaptor = ArgumentCaptor.forClass(classOf[ForeignKeys])
-    verify(orgForeignKeysCollMock).insertOne(foreignKeysCaptor.capture())
-    val insertedForeignKeys = foreignKeysCaptor.getValue()
-    insertedForeignKeys.userId shouldBe organizationUserId
-    insertedForeignKeys.accountId shouldBe accountId.toHexString()
-    insertedForeignKeys.profileId shouldBe profileId.toHexString()
+    repo.insert(organization.account, organization.profile, organizationUserId)
+    val userReferencesCaptor = ArgumentCaptor.forClass(classOf[UserReferences])
+    verify(orgReferencesCollMock).insertOne(userReferencesCaptor.capture())
+    val insertedReferences = userReferencesCaptor.getValue()
+    insertedReferences.userId shouldBe organizationUserId
+    insertedReferences.accountId shouldBe accountId.toHexString()
+    insertedReferences.profileId shouldBe profileId.toHexString()
