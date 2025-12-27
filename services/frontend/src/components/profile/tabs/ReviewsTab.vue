@@ -106,7 +106,7 @@ const submitReview = async () => {
       userId: authStore.user!.id,
       organizationId: props.organizationId,
       collaboratorsId: [],
-      rating: Math.round(newReviewRating.value) as 0 | 1 | 2 | 3 | 4 | 5,
+      rating: Math.round(newReviewRating.value) as 1 | 2 | 3 | 4 | 5,
       title: newReviewTitle.value.trim(),
       comment: newReviewDescription.value.trim(),
     })

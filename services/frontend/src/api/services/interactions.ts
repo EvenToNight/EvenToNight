@@ -1,6 +1,7 @@
 import type {
   GetEventInteractionsResponse,
   GetReviewResponse,
+  GetReviewWithStatisticsResponse,
   InteractionAPI,
 } from '../interfaces/interactions'
 import type { EventID } from '../types/events'
@@ -44,8 +45,8 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
   async getOrganizationReviews(
     organizationId: UserID,
     pagination?: PaginatedRequest
-  ): Promise<GetReviewResponse> {
-    return interactionsClient.get<GetReviewResponse>(
+  ): Promise<GetReviewWithStatisticsResponse> {
+    return interactionsClient.get<GetReviewWithStatisticsResponse>(
       `/organizations/${organizationId}/reviews${buildQueryParams({ ...evaluatePagination(pagination) })}`
     )
   },

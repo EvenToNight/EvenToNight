@@ -2,10 +2,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
-import type { EventReview } from '@/api/types/interaction'
-import ReviewsList from '@/components/reviews/ReviewsList.vue'
+import type { EventReview, OrganizationReviewsStatistics } from '@/api/types/interaction'
+import ReviewsListView from '@/components/reviews/ReviewsListView.vue'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import SubmitReviewDialog from '@/components/reviews/SubmitReviewDialog.vue'
+import ReviewsStatistics from '@/components/reviews/ReviewsStatistics.vue'
 
 const { params, goToUserProfile } = useNavigation()
 
@@ -18,7 +19,7 @@ const organizationName = ref<string>('')
 const organizationAvatar = ref<string>('')
 
 const showReviewDialog = ref(false)
-
+const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 const loadReviews = async () => {
   loading.value = true
   try {
@@ -35,6 +36,7 @@ const loadEventInfo = async () => {
     const event = await api.events.getEventById(eventId.value)
     eventTitle.value = event.title || 'Event'
     organizationId.value = event.id_creator
+    reviewsStatistics.value = await api.interactions.getOrganizationReviews(organizationId.value)
 
     // Load organization info
     if (organizationId.value) {
@@ -83,8 +85,8 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-
-        <ReviewsList
+        <ReviewsStatistics v-if="reviewsStatistics" :reviews-statistics="reviewsStatistics" />
+        <ReviewsListView
           :reviews="reviews"
           :loading="loading"
           :show-add-review-button="true"
@@ -166,17 +168,6 @@ onMounted(async () => {
   &:hover {
     text-decoration: underline;
   }
-
-  @include dark-mode {
-    color: $color-heading-dark;
-  }
-}
-
-.page-title {
-  font-size: $font-size-3xl;
-  font-weight: 700;
-  color: $color-text-primary;
-  margin: 0;
 
   @include dark-mode {
     color: $color-heading-dark;

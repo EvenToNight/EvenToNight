@@ -14,7 +14,8 @@ export interface UserInteraction {
   following: UserID[]
 }
 
-export type Rating = 0 | 1 | 2 | 3 | 4 | 5
+export const RATING_VALUES = [1, 2, 3, 4, 5] as const
+export type Rating = (typeof RATING_VALUES)[number]
 
 export interface EventReviewData {
   userId: UserID
@@ -27,4 +28,10 @@ export interface EventReviewData {
 export interface EventReview extends EventReviewData {
   id: string
   eventId: EventID
+}
+
+export interface OrganizationReviewsStatistics {
+  averageRating: number
+  totalReviews: number
+  ratingDistribution: Record<Rating, number>
 }

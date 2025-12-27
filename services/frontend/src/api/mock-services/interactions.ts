@@ -1,6 +1,7 @@
 import type {
   GetEventInteractionsResponse,
   GetReviewResponse,
+  GetReviewWithStatisticsResponse,
   InteractionAPI,
 } from '../interfaces/interactions'
 import type { EventID } from '../types/events'
@@ -12,6 +13,7 @@ import { mockEventInteractions, mockEventReviews, mockUserInteractions } from '.
 import { mockOrganizations } from './data/organizations'
 import type { PaginatedRequest } from '../interfaces/commons'
 import { getPaginatedItems } from '@/api/utils'
+import type { Rating } from '../types/interaction'
 
 const findInteractionByEventId = (eventId: EventID) => {
   const interaction = mockEventInteractions.find((interaction) => interaction.eventId === eventId)
@@ -118,10 +120,25 @@ export const mockInteractionsApi: InteractionAPI = {
   async getOrganizationReviews(
     organizationId: UserID,
     pagination?: PaginatedRequest
-  ): Promise<GetReviewResponse> {
+  ): Promise<GetReviewWithStatisticsResponse> {
     const organizationEvents = mockEvents.filter((event) => event.id_creator === organizationId)
     const eventIds = organizationEvents.map((event) => event.id_event)
     const reviews = mockEventReviews.filter((review) => eventIds.includes(review.eventId))
-    return { ...getPaginatedItems(reviews, pagination), totalItems: reviews.length }
+    const averageRating =
+      reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length || 0
+    const ratingDistribution: Record<Rating, number> = reviews.reduce(
+      (acc, review) => {
+        acc[review.rating] = (acc[review.rating] || 0) + 1
+        return acc
+      },
+      {} as Record<Rating, number>
+    )
+
+    return {
+      ...getPaginatedItems(reviews, pagination),
+      totalReviews: reviews.length,
+      averageRating,
+      ratingDistribution,
+    }
   },
 }

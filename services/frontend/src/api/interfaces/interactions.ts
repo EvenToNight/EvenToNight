@@ -1,9 +1,21 @@
 import type { UserID } from '../types/users'
 import type { EventID } from '../types/events'
-import type { EventReview, EventReviewData } from '../types/interaction'
-import type { PaginatedRequest, PaginatedResponseWithTotalCount } from './commons'
+import type {
+  EventReview,
+  EventReviewData,
+  OrganizationReviewsStatistics,
+} from '../types/interaction'
+import type {
+  PaginatedRequest,
+  PaginatedResponseWithTotalCount,
+  PaginatedResponseWithStatistics,
+} from './commons'
 
 export type GetReviewResponse = PaginatedResponseWithTotalCount<EventReview>
+export type GetReviewWithStatisticsResponse = PaginatedResponseWithStatistics<
+  EventReview,
+  OrganizationReviewsStatistics
+>
 
 export interface GetEventInteractionsResponse {
   likes: UserID[]
@@ -20,5 +32,5 @@ export interface InteractionAPI {
   getOrganizationReviews(
     organizationId: UserID,
     pagination?: PaginatedRequest
-  ): Promise<GetReviewResponse>
+  ): Promise<GetReviewWithStatisticsResponse>
 }
