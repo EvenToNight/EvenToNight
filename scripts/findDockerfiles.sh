@@ -1,11 +1,45 @@
-#!/bin/bash
-# Find Dockerfile* files placed directly in services/<name>/ and infrastructure/<name>/ directories (non-recursive)
-# Usage: ./scripts/findDockerfiles.sh [BASE_COMMIT] [HEAD_COMMIT]
-#
-# If BASE_COMMIT and/or HEAD_COMMIT are provided, tries to fetch them and use git diff
-# Otherwise, uses find to search in current working directory
+: '
+Find Dockerfiles Script
 
-set -e
+SYNOPSIS
+    ./findDockerfiles.sh [BASE_COMMIT] [HEAD_COMMIT]
+
+DESCRIPTION
+    This script finds Dockerfile* files placed directly in services/<name>/ and
+    infrastructure/<name>/ directories (non-recursive).
+
+    If BASE_COMMIT and HEAD_COMMIT are provided, the script uses git diff to find
+    modified directories and searches for Dockerfiles in those directories.
+    If BASE_COMMIT is not provided or not found, it uses find to search all files
+    in the current working directory.
+
+    The script outputs a JSON array of Dockerfile paths to stdout.
+    Diagnostic messages are sent to stderr.
+
+PARAMETERS
+    BASE_COMMIT    Optional. The base commit to diff from.
+    HEAD_COMMIT    Optional. The head commit to diff to. Defaults to HEAD.
+
+EXAMPLES
+    ./findDockerfiles.sh
+        Find all Dockerfiles in services/ and infrastructure/ directories.
+
+    ./findDockerfiles.sh abc123 HEAD
+        Find Dockerfiles in directories modified between commits abc123 and HEAD.
+
+NOTES:
+  - Requires Bash, git, and jq installed.
+  - Only finds Dockerfiles in the first level of service/infrastructure subdirectories.
+  - Output is a JSON array suitable for GitHub Actions matrix strategy.
+'
+
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
+  sed -n '/^: \x27$/,/^'\''$/p' "$0" | sed '1d;$d'
+  exit 0
+fi
 
 BASE_COMMIT="${1:-}"
 HEAD_COMMIT="${2:-HEAD}"
