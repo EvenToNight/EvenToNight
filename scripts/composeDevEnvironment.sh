@@ -27,12 +27,13 @@ NOTES:
   - Changes directory to the project root before execution.
   - The docker compose project name is set to eventonight-dev-environment.
 '
-#!/bin/bash
-set -e
+
+#!/usr/bin/env bash
+set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   sed -n '/^: \x27$/,/^'\''$/p' "$0" | sed '1d;$d'
   exit 0
 fi
