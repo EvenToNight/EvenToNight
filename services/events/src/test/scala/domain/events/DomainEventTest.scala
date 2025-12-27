@@ -11,8 +11,6 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   var eventPublished: EventPublished = uninitialized
   var eventUpdated: EventUpdated     = uninitialized
   var eventDeleted: EventDeleted     = uninitialized
-  val domaineventId: String          = "domaineventId"
-  val eventId: String                = "eventId"
 
   override def beforeEach(): Unit =
     super.beforeEach()

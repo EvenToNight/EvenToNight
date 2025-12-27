@@ -30,8 +30,8 @@ export const mockEventsApi: EventAPI = {
 
     return event
   },
-  async getEventsByIds(eventsId: EventID[]): Promise<EventsDataResponse> {
-    const events = await Promise.all(eventsId.map((eventId) => this.getEventById(eventId)))
+  async getEventsByIds(eventIds: EventID[]): Promise<EventsDataResponse> {
+    const events = await Promise.all(eventIds.map((eventId) => this.getEventById(eventId)))
     return { events }
   },
   async createEvent(_eventData: PartialEventData): Promise<PublishEventResponse> {

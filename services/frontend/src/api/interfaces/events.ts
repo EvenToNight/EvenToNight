@@ -39,7 +39,7 @@ export interface EventsQueryParams {
 export interface EventAPI {
   getTags(): Promise<GetTagResponse>
   getEventById(eventId: EventID): Promise<GetEventByIdResponse>
-  getEventsByIds(eventsId: EventID[]): Promise<EventsDataResponse>
+  getEventsByIds(eventIds: EventID[]): Promise<EventsDataResponse>
   createEvent(eventData: PartialEventData): Promise<PublishEventResponse>
   updateEventData(eventId: EventID, eventData: PartialEventData): Promise<void>
   updateEventPoster(eventId: EventID, poster: File): Promise<void>

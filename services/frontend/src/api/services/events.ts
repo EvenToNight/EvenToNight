@@ -23,8 +23,8 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     }
     return { date: localeDate, ...rest }
   },
-  async getEventsByIds(eventsId: EventID[]): Promise<EventsDataResponse> {
-    const eventsResponses = await Promise.all(eventsId.map((eventId) => this.getEventById(eventId)))
+  async getEventsByIds(eventIds: EventID[]): Promise<EventsDataResponse> {
+    const eventsResponses = await Promise.all(eventIds.map((eventId) => this.getEventById(eventId)))
     return { events: eventsResponses }
   },
   async createEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
