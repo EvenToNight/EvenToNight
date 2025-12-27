@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { setTokenProvider, setTokenExpiredCallback } from '@/api/client'
@@ -9,7 +9,18 @@ import { api } from '@/api'
 const authStore = useAuthStore()
 const $q = useQuasar()
 
+const handleKeyboardShortcut = (event: KeyboardEvent) => {
+  if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
+    event.preventDefault()
+    $q.dark.toggle()
+    localStorage.setItem('darkMode', String($q.dark.isActive))
+  }
+}
+
 onMounted(() => {
+  // Add keyboard shortcut listener
+  window.addEventListener('keydown', handleKeyboardShortcut)
+
   // Load dark mode preference from localStorage
   const savedDarkMode = localStorage.getItem('darkMode')
   console.log('Saved dark mode preference:', savedDarkMode)
@@ -54,6 +65,10 @@ onMounted(() => {
       console.error('Failed to fetch event tags:', err)
     })
 })
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleKeyboardShortcut)
+})
 </script>
 
 <template>
@@ -78,5 +93,17 @@ body {
 
 body.body--dark {
   background-color: $color-background-dark;
+
+  .q-menu {
+    background: #1e1e1e;
+  }
+
+  .q-item {
+    color: #e0e0e0;
+
+    &:hover {
+      background: #2a2a2a;
+    }
+  }
 }
 </style>

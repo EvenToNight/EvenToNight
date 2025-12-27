@@ -200,6 +200,10 @@ const submitReview = async () => {
   border-radius: $radius-2xl;
   position: relative;
 
+  @include dark-mode {
+    background: #1e1e1e;
+  }
+
   @media (max-width: $app-min-width) {
     position: absolute;
     border-radius: 0;

@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { useQuasar } from 'quasar'
 import { RATING_VALUES } from '@/api/types/interaction'
+
+type StarType = 'filled' | 'half' | 'empty'
 
 interface Props {
   rating: number
-  size?: 'sm' | 'md' | 'lg'
   showNumber?: boolean
   variant?: 'default' | 'compact'
   editable?: boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  size: 'md',
   showNumber: true,
   editable: false,
   variant: 'default',
@@ -21,18 +22,8 @@ const emit = defineEmits<{
   'update:rating': [rating: number]
 }>()
 
+const $q = useQuasar()
 const hoverRating = ref<number | null>(null)
-
-const sizeClass = computed(() => {
-  switch (props.size) {
-    case 'sm':
-      return 'text-sm'
-    case 'lg':
-      return 'text-2xl'
-    default:
-      return 'text-lg'
-  }
-})
 
 const displayRating = computed(() => {
   return hoverRating.value !== null ? hoverRating.value : props.rating
@@ -45,7 +36,7 @@ const formattedRating = computed(() => {
 
 const maxRating = computed(() => Math.max(...RATING_VALUES))
 
-const getStarType = (index: number): 'filled' | 'half' | 'empty' => {
+const getStarType = (index: number): StarType => {
   const position = index + 1
   const rating = displayRating.value
   if (rating >= position) return 'filled'
@@ -78,99 +69,57 @@ const handleMouseLeave = () => {
     hoverRating.value = null
   }
 }
+
+const getStarColor = (type: StarType) => {
+  if (type === 'filled' || type === 'half') return 'warning'
+  return $q.dark.isActive ? 'grey-8' : 'grey-5'
+}
 </script>
 
 <template>
   <div
-    class="rating-stars"
-    :class="{
-      'rating-stars--default': props.variant === 'default',
-      'rating-stars--compact': props.variant === 'compact',
-    }"
+    class="q-gutter-y-xs"
+    :class="[
+      props.variant === 'default' ? 'flex column items-center' : 'flex items-center q-gutter-x-xs',
+    ]"
   >
-    <span v-if="showNumber && props.variant === 'default'" class="rating-number">{{
-      formattedRating
-    }}</span>
-    <div class="stars" :class="[sizeClass, { editable }]" @mouseleave="handleMouseLeave">
+    <span
+      v-if="showNumber && props.variant === 'default'"
+      class="text-weight-light"
+      :class="$q.dark.isActive ? 'text-grey-3' : 'text-grey-9'"
+      :style="{ fontSize: '5rem', lineHeight: 1 }"
+    >
+      {{ formattedRating }}
+    </span>
+
+    <div class="flex q-gutter-x-xs" @mouseleave="handleMouseLeave">
       <q-icon
         v-for="star in stars"
         :key="star.index"
         :name="star.type === 'filled' ? 'star' : star.type === 'half' ? 'star_half' : 'star_border'"
-        :class="{
-          filled: star.type === 'filled',
-          half: star.type === 'half',
-          empty: star.type === 'empty',
-        }"
+        :class="['text-h5', props.editable ? 'cursor-pointer star-hover' : '']"
+        :color="getStarColor(star.type)"
         @click="handleStarClick(star.index)"
         @mouseenter="handleStarHover(star.index)"
       />
     </div>
-    <span v-if="showNumber && props.variant === 'compact'" class="rating-number-compact"
-      >{{ formattedRating }}/{{ maxRating }}</span
+
+    <span
+      v-if="showNumber && props.variant === 'compact'"
+      class="text-weight-bold"
+      :class="['text-subtitle2', $q.dark.isActive ? 'text-grey-5' : 'text-grey-7']"
     >
+      {{ formattedRating }}/{{ maxRating }}
+    </span>
   </div>
 </template>
 
-<style lang="scss" scoped>
-.rating-stars {
-  gap: $spacing-2;
-
-  &--default {
-    @include flex-column-center;
-  }
-  &--compact {
-    display: flex;
-    align-items: center;
-  }
-}
-.rating-number {
-  font-size: 5rem;
-  font-weight: 300;
-  color: $color-text-primary;
-  line-height: 1;
-
-  @include dark-mode {
-    color: $color-heading-dark;
-  }
-}
-.stars {
-  display: flex;
-  gap: $spacing-1;
-
-  &.editable {
-    .q-icon {
-      cursor: pointer;
-      transition: transform $transition-base;
-
-      &:hover {
-        transform: scale(1.2);
-      }
-    }
-  }
-
-  .q-icon {
-    &.filled,
-    &.half {
-      color: $color-warning;
-    }
-
-    &.empty {
-      color: $color-text-muted;
-
-      @include dark-mode {
-        color: $color-text-dark;
-      }
-    }
-  }
+<style scoped>
+.star-hover {
+  transition: transform 0.2s ease;
 }
 
-.rating-number-compact {
-  font-size: $font-size-sm;
-  font-weight: 600;
-  color: $color-text-secondary;
-
-  @include dark-mode {
-    color: $color-text-dark;
-  }
+.star-hover:hover {
+  transform: scale(1.2);
 }
 </style>
