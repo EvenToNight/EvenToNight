@@ -21,48 +21,34 @@ const descendingRatings = computed(() => {
 </script>
 
 <template>
-  <div class="reviews-header">
-    <div class="stats-section">
-      <div class="rating-distribution">
-        <div v-for="rating in descendingRatings" :key="rating" class="distribution-bar">
-          <span class="rating-label">{{ rating }}</span>
-          <div class="bar-container">
-            <div
-              class="bar-fill"
-              :style="{
-                width: hasReviews
-                  ? `${((reviewsStatistics.ratingDistribution[rating] || 0) / reviewsStatistics.totalReviews) * 100}%`
-                  : '0%',
-              }"
-            />
-          </div>
+  <div class="stats-section">
+    <div class="rating-distribution">
+      <div v-for="rating in descendingRatings" :key="rating" class="distribution-bar">
+        <span class="rating-label">{{ rating }}</span>
+        <div class="bar-container">
+          <div
+            class="bar-fill"
+            :style="{
+              width: hasReviews
+                ? `${((reviewsStatistics.ratingDistribution[rating] || 0) / reviewsStatistics.totalReviews) * 100}%`
+                : '0%',
+            }"
+          />
         </div>
       </div>
+    </div>
 
-      <div class="rating-summary">
-        <span class="rating-number">{{ reviewsStatistics.averageRating }}</span>
-        <div class="rating-stars">
-          <RatingStars :rating="reviewsStatistics.averageRating" :show-number="false" size="md" />
-        </div>
-        <span class="review-count">{{ reviewsStatistics.totalReviews }} recensioni</span>
+    <div class="rating-summary">
+      <!-- <span class="rating-number">{{ reviewsStatistics.averageRating }}</span> -->
+      <div class="rating-stars">
+        <RatingStars :rating="reviewsStatistics.averageRating" :show-number="true" size="md" />
       </div>
+      <span class="review-count">{{ reviewsStatistics.totalReviews }} recensioni</span>
     </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
-.reviews-header {
-  background: $color-background;
-  border-radius: $radius-xl;
-  padding: $spacing-6;
-  margin-bottom: $spacing-6;
-  box-shadow: $shadow-md;
-
-  @include dark-mode {
-    background: $color-background-dark;
-  }
-}
-
 .rating-distribution {
   flex: 1;
   // max-width: 600px;
@@ -151,10 +137,10 @@ const descendingRatings = computed(() => {
     }
   }
 
-  .rating-stars {
-    display: flex;
-    justify-content: center;
-  }
+  // .rating-stars {
+  //   display: flex;
+  //   justify-content: center;
+  // }
 
   .review-count {
     font-size: $font-size-lg;

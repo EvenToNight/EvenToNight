@@ -144,7 +144,13 @@ const submitReview = async () => {
 
           <div class="rating-input">
             <label>{{ t('userProfile.selectRating') }}</label>
-            <RatingStars v-model:rating="rating" size="lg" :show-number="true" :editable="true" />
+            <RatingStars
+              v-model:rating="rating"
+              size="lg"
+              :show-number="true"
+              :editable="true"
+              variant="compact"
+            />
           </div>
 
           <q-input

@@ -61,7 +61,7 @@ onMounted(() => {
         <SeeAllButton @click="goToAllReviews" />
       </div>
       <div class="rating-summary">
-        <RatingStars :rating="averageRating" size="md" :show-number="true" />
+        <RatingStars :rating="averageRating" size="md" :show-number="true" variant="compact" />
         <span class="review-count">({{ reviews.length }} recensioni)</span>
       </div>
     </div>

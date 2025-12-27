@@ -67,7 +67,7 @@ onMounted(() => {
         </q-avatar>
         <div class="user-details">
           <span class="user-name" @click="handleUserClick">{{ userName }}</span>
-          <RatingStars :rating="review.rating" size="sm" />
+          <RatingStars :rating="review.rating" size="sm" variant="compact" />
         </div>
       </div>
     </div>

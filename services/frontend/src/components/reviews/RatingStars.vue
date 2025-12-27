@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { RATING_VALUES } from '@/api/types/interaction'
 
 interface Props {
   rating: number
   size?: 'sm' | 'md' | 'lg'
   showNumber?: boolean
+  variant?: 'default' | 'compact'
   editable?: boolean
 }
 
@@ -12,6 +14,7 @@ const props = withDefaults(defineProps<Props>(), {
   size: 'md',
   showNumber: true,
   editable: false,
+  variant: 'default',
 })
 
 const emit = defineEmits<{
@@ -34,6 +37,13 @@ const sizeClass = computed(() => {
 const displayRating = computed(() => {
   return hoverRating.value !== null ? hoverRating.value : props.rating
 })
+
+const formattedRating = computed(() => {
+  const rating = displayRating.value
+  return Number.isInteger(rating) ? rating.toFixed(0) : rating.toFixed(1)
+})
+
+const maxRating = computed(() => Math.max(...RATING_VALUES))
 
 const getStarType = (index: number): 'filled' | 'half' | 'empty' => {
   const position = index + 1
@@ -71,7 +81,16 @@ const handleMouseLeave = () => {
 </script>
 
 <template>
-  <div class="rating-stars">
+  <div
+    class="rating-stars"
+    :class="{
+      'rating-stars--default': props.variant === 'default',
+      'rating-stars--compact': props.variant === 'compact',
+    }"
+  >
+    <span v-if="showNumber && props.variant === 'default'" class="rating-number">{{
+      formattedRating
+    }}</span>
     <div class="stars" :class="[sizeClass, { editable }]" @mouseleave="handleMouseLeave">
       <q-icon
         v-for="star in stars"
@@ -86,17 +105,34 @@ const handleMouseLeave = () => {
         @mouseenter="handleStarHover(star.index)"
       />
     </div>
-    <span v-if="showNumber" class="rating-number">{{ displayRating.toFixed(1) }}/5</span>
+    <span v-if="showNumber && props.variant === 'compact'" class="rating-number-compact"
+      >{{ formattedRating }}/{{ maxRating }}</span
+    >
   </div>
 </template>
 
 <style lang="scss" scoped>
 .rating-stars {
-  display: flex;
-  align-items: center;
   gap: $spacing-2;
-}
 
+  &--default {
+    @include flex-column-center;
+  }
+  &--compact {
+    display: flex;
+    align-items: center;
+  }
+}
+.rating-number {
+  font-size: 5rem;
+  font-weight: 300;
+  color: $color-text-primary;
+  line-height: 1;
+
+  @include dark-mode {
+    color: $color-heading-dark;
+  }
+}
 .stars {
   display: flex;
   gap: $spacing-1;
@@ -128,7 +164,7 @@ const handleMouseLeave = () => {
   }
 }
 
-.rating-number {
+.rating-number-compact {
   font-size: $font-size-sm;
   font-weight: 600;
   color: $color-text-secondary;
