@@ -12,7 +12,7 @@ interface Props {
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  showEventInfo: false,
+  showEventInfo: true,
 })
 
 const { goToUserProfile, goToEventDetails } = useNavigation()

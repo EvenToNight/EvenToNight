@@ -68,12 +68,10 @@ onMounted(async () => {
 <template>
   <div class="reviews-view">
     <NavigationButtons />
-
     <div class="page-content">
       <div class="container">
         <div class="header-section">
           <div class="title-row">
-            <h1 class="page-title">Reviews for {{ eventTitle }}</h1>
             <div v-if="organizationId" class="organization-info">
               <q-avatar size="40px" class="organization-avatar" @click="goToOrganizationProfile">
                 <img v-if="organizationAvatar" :src="organizationAvatar" :alt="organizationName" />
