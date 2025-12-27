@@ -4,6 +4,7 @@ import domain.events.{DomainEvent, EventDeleted, EventEnvelope, EventPublished, 
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 
+import java.time.Instant
 import scala.compiletime.uninitialized
 import scala.jdk.CollectionConverters.*
 
@@ -48,7 +49,7 @@ class RabbitEventPublisher(
       val key = routingKey(event)
       val envelope = EventEnvelope(
         eventType = key,
-        occurredAt = event.timestamp,
+        occurredAt = Instant.now(),
         payload = event
       )
 

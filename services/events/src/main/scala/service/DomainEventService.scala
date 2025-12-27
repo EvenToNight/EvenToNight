@@ -6,8 +6,6 @@ import domain.models.{Event, EventStatus}
 import infrastructure.db.EventRepository
 import infrastructure.messaging.EventPublisher
 
-import java.time.Instant
-
 class DomainEventService(repo: EventRepository, publisher: EventPublisher):
 
   def execCommand(cmd: CreateEventCommand): Either[String, String] =
@@ -31,7 +29,6 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         if cmd.status == EventStatus.PUBLISHED then
           publisher.publish(
             EventPublished(
-              timestamp = Instant.now(),
               eventId = newEvent._id,
               creatorId = cmd.creatorId,
               collaboratorIds = cmd.collaboratorIds
@@ -59,7 +56,6 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
             if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
               publisher.publish(
                 EventPublished(
-                  timestamp = Instant.now(),
                   eventId = updatedEvent._id,
                   creatorId = updatedEvent.creatorId,
                   collaboratorIds = updatedEvent.collaboratorIds
@@ -68,8 +64,8 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
             else
               publisher.publish(
                 EventUpdated(
-                  timestamp = Instant.now(),
-                  eventId = updatedEvent._id
+                  eventId = updatedEvent._id,
+                  collaboratorIds = updatedEvent.collaboratorIds
                 )
               )
             Right(())
@@ -89,7 +85,6 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
               case Right(_) =>
                 publisher.publish(
                   EventDeleted(
-                    timestamp = Instant.now(),
                     eventId = cmd.eventId
                   )
                 )
@@ -101,7 +96,6 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
               case Right(_) =>
                 publisher.publish(
                   EventDeleted(
-                    timestamp = Instant.now(),
                     eventId = cmd.eventId
                   )
                 )
