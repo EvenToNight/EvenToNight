@@ -66,9 +66,13 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
     organizationId: UserID,
     pagination?: PaginatedRequest
   ): Promise<GetReviewWithStatisticsResponse> {
-    return interactionsClient.get<GetReviewWithStatisticsResponse>(
+    const response = await interactionsClient.get<GetReviewWithStatisticsResponse>(
       `/organizations/${organizationId}/reviews${buildQueryParams({ ...evaluatePagination(pagination) })}`
     )
+    //TODO: decide how to retrieve statistics from backend
+    response.averageRating = 0
+    response.ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+    return response
   },
   async deleteEventReview(eventId: EventID, userId: UserID): Promise<void> {
     return interactionsClient.delete<void>(`/events/${eventId}/reviews/${userId}`)
