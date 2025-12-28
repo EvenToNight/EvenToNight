@@ -2,17 +2,25 @@
 
 REALM="eventonight"
 CLIENT_ID="users-service"
+LOG_PREFIX="[Provisioning][$REALM]"
 
 echo "[Provisioning] Logging in with kcadm..."
-/opt/keycloak/bin/kcadm.sh config credentials \
+if /opt/keycloak/bin/kcadm.sh config credentials \
   --server http://keycloak:8080 \
   --realm master \
   --user "$KEYCLOAK_ADMIN" \
-  --password "$KEYCLOAK_ADMIN_PASSWORD" > /dev/null 2>&1
-echo "[Provisioning] Login successful!"
+  --password "$KEYCLOAK_ADMIN_PASSWORD" > /dev/null 2>&1; then
+  echo "[Provisioning] Login successful!"
+else
+  echo "[Provisioning] [ERROR] Failed to login with kcadm, aborting!"
+  exit 1
+fi
 
 echo ""
-echo "[Provisioning][$REALM] Disabling default Required Actions..."
+echo "[Provisioning] Starting Keycloak realm provisioning for '$REALM'"
+echo ""
+
+echo "$LOG_PREFIX Disabling default Required Actions..."
 
 REQUIRED_ACTIONS=(
   CONFIGURE_TOTP
@@ -23,113 +31,155 @@ REQUIRED_ACTIONS=(
 )
 
 for action in "${REQUIRED_ACTIONS[@]}"; do
-  echo "[Provisioning] Disabling Required Action: $action..."
+  echo "$LOG_PREFIX Disabling Required Action: $action..."
   if /opt/keycloak/bin/kcadm.sh update authentication/required-actions/$action \
     -r "$REALM" \
     -s enabled=false \
     -s defaultAction=false; then
-    echo "[Provisioning] $action disabled."
+    echo "$LOG_PREFIX $action disabled."
   else
-    echo "[Provisioning][WARNING] Failed to disable $action. It may not exist."
+    echo "$LOG_PREFIX [WARNING] Failed to disable $action. It may not exist."
   fi
 done
 
-echo "[Provisioning][$REALM] Required Actions configuration completed."
+echo "$LOG_PREFIX Required Actions configuration completed."
+echo ""
 
 EXISTING=$(/opt/keycloak/bin/kcadm.sh get clients -r "$REALM" --fields id,clientId | grep "\"clientId\" : \"$CLIENT_ID\"" || true)
 if [ -z "$EXISTING" ]; then
-  echo "[Provisioning] Creating client '$CLIENT_ID'..."
-  /opt/keycloak/bin/kcadm.sh create clients -r "$REALM" \
+  echo "$LOG_PREFIX Creating client '$CLIENT_ID'..."
+  if /opt/keycloak/bin/kcadm.sh create clients -r "$REALM" \
     -s clientId="$CLIENT_ID" \
     -s enabled=true \
     -s protocol=openid-connect \
     -s publicClient=false \
-    -s serviceAccountsEnabled=true
-else
-  echo "[Provisioning] Client '$CLIENT_ID' already exists, skipping creation."
-fi
-
-CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r "$REALM" --query "clientId=$CLIENT_ID" --fields id --format csv | tail -n1 | tr -d '"')
-echo "[Provisioning] CLIENT_UUID = $CLIENT_UUID"
-
-echo "[Provisioning] Fetching service account for $CLIENT_ID..."
-SERVICE_ACCOUNT_ID=$(/opt/keycloak/bin/kcadm.sh get clients/"$CLIENT_UUID"/service-account-user -r "$REALM" | grep -oP '"id"\s*:\s*"\K[^"]+')
-echo "[Provisioning] SERVICE_ACCOUNT_ID = $SERVICE_ACCOUNT_ID"
-
-echo "[Provisioning] Fetching realm-management client UUID..."
-REALM_MGMT_CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r "$REALM" | tr -d '\n' | grep -oP '"id"\s*:\s*"\K[0-9a-f-]+(?="\s*,\s*"clientId"\s*:\s*"realm-management")')
-echo "[Provisioning] REALM_MGMT_CLIENT_UUID = $REALM_MGMT_CLIENT_UUID"
-
-ROLES=("manage-users" "view-realm")
-echo "[Provisioning] Assigning roles to service account…"
-
-for role in "${ROLES[@]}"; do
-  echo "[Provisioning] Fetching role '$role'…"
-
-  ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get clients/"$REALM_MGMT_CLIENT_UUID"/roles/"$role" -r "$REALM" | grep -oP '"id"\s*:\s*"\K[^"]+')
-
-  if [ -z "$ROLE_ID" ]; then
-    echo "[Provisioning][ERROR] Role '$role' not found in realm-management, aborting!"
+    -s serviceAccountsEnabled=true &>/dev/null; then
+    echo "$LOG_PREFIX Client '$CLIENT_ID' created successfully."
+  else
+    echo "$LOG_PREFIX [ERROR] Failed to create client '$CLIENT_ID', aborting!"
     exit 1
   fi
-  echo "[Provisioning] $role id = $ROLE_ID"
+else
+  echo "$LOG_PREFIX Client '$CLIENT_ID' already exists, skipping creation."
+fi
+
+echo "$LOG_PREFIX[$CLIENT_ID] Fetching client UUID..."
+if ! CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r "$REALM" --query "clientId=$CLIENT_ID" --fields id --format csv | tail -n1 | tr -d '"'); then
+  echo "$LOG_PREFIX[$CLIENT_ID] [ERROR] Failed to fetch client UUID, aborting!"
+  exit 1
+fi
+if [ -z "$CLIENT_UUID" ]; then
+  echo "$LOG_PREFIX[$CLIENT_ID] [ERROR] Client UUID is empty, aborting!"
+  exit 1
+fi
+echo "$LOG_PREFIX[$CLIENT_ID] CLIENT_UUID = $CLIENT_UUID"
+
+echo "$LOG_PREFIX[$CLIENT_ID] Fetching service account..."
+if ! SERVICE_ACCOUNT_ID=$(/opt/keycloak/bin/kcadm.sh get clients/"$CLIENT_UUID"/service-account-user -r "$REALM" | grep -oP '"id"\s*:\s*"\K[^"]+'); then
+  echo "$LOG_PREFIX[$CLIENT_ID] [ERROR] Failed to fetch service account ID, aborting!"
+  exit 1
+fi
+if [ -z "$SERVICE_ACCOUNT_ID" ]; then
+  echo "$LOG_PREFIX[$CLIENT_ID] [ERROR] Service account ID is empty, aborting!"
+  exit 1
+fi
+echo "$LOG_PREFIX[$CLIENT_ID] SERVICE_ACCOUNT_ID = $SERVICE_ACCOUNT_ID"
+
+echo "$LOG_PREFIX Fetching realm-management client UUID..."
+if ! REALM_MGMT_CLIENT_UUID=$(/opt/keycloak/bin/kcadm.sh get clients -r "$REALM" | tr -d '\n' | grep -oP '"id"\s*:\s*"\K[0-9a-f-]+(?="\s*,\s*"clientId"\s*:\s*"realm-management")'); then
+  echo "$LOG_PREFIX [ERROR] Failed to fetch realm-management client UUID, aborting!"
+  exit 1
+fi
+if [ -z "$REALM_MGMT_CLIENT_UUID" ]; then
+  echo "$LOG_PREFIX [ERROR] realm-management client UUID is empty, aborting!"
+  exit 1
+fi
+echo "$LOG_PREFIX REALM_MGMT_CLIENT_UUID = $REALM_MGMT_CLIENT_UUID"
+
+ROLES=("manage-users" "view-realm")
+echo "$LOG_PREFIX[$CLIENT_ID] Assigning roles to service account..."
+
+for role in "${ROLES[@]}"; do
+  echo "$LOG_PREFIX Fetching role '$role'…"
+  if ! ROLE_ID=$(/opt/keycloak/bin/kcadm.sh get clients/"$REALM_MGMT_CLIENT_UUID"/roles/"$role" -r "$REALM" | grep -oP '"id"\s*:\s*"\K[^"]+'); then
+    echo "$LOG_PREFIX [ERROR] Failed to fetch role ID for role '$role', aborting!"
+    exit 1
+  fi
+  if [ -z "$ROLE_ID" ]; then
+    echo "$LOG_PREFIX [ERROR] Role '$role' not found, aborting!"
+    exit 1
+  fi
 
   EXISTS=$(/opt/keycloak/bin/kcadm.sh get users/"$SERVICE_ACCOUNT_ID"/role-mappings/clients/"$REALM_MGMT_CLIENT_UUID" -r "$REALM" \
            | grep -oP '"id"\s*:\s*"\K[^"]+' | grep -x "$ROLE_ID" || true)
   if [[ -n "$EXISTS" ]]; then
-    echo "[Provisioning] '$role' already assigned, skipping."
+    echo "$LOG_PREFIX[$CLIENT_ID] Role '$role' already assigned, skipping."
     continue
   fi
 
-  echo "[Provisioning] Assigning '$role'…"
-  /opt/keycloak/bin/kcadm.sh create users/"$SERVICE_ACCOUNT_ID"/role-mappings/clients/"$REALM_MGMT_CLIENT_UUID" -r "$REALM" -f <(echo '[{"id":"'"$ROLE_ID"'","name":"'"$role"'"}]') || echo "[Provisioning][ERROR] Failed to assign role '$role'"
+  echo "$LOG_PREFIX[$CLIENT_ID] Assigning role '$role'..."
+  if /opt/keycloak/bin/kcadm.sh create users/"$SERVICE_ACCOUNT_ID"/role-mappings/clients/"$REALM_MGMT_CLIENT_UUID" -r "$REALM" -f <(echo '[{"id":"'"$ROLE_ID"'","name":"'"$role"'"}]'); then
+    echo "$LOG_PREFIX[$CLIENT_ID] Role '$role' assigned successfully."
+  else
+    echo "$LOG_PREFIX[$CLIENT_ID] [ERROR] Failed to assign role '$role', aborting!"
+    exit 1
+  fi
 done
-echo "[Provisioning] Roles assigned."
+echo "$LOG_PREFIX[$CLIENT_ID] Roles assigned."
+echo ""
 
-CURRENT_SECRET=$(/opt/keycloak/bin/kcadm.sh get clients/"$CLIENT_UUID"/client-secret -r "$REALM" --fields value --format csv | tail -n1 | tr -d '"')
-
+echo "$LOG_PREFIX[$CLIENT_ID] Fetching current client secret..."
+if ! CURRENT_SECRET=$(/opt/keycloak/bin/kcadm.sh get clients/"$CLIENT_UUID"/client-secret -r "$REALM" --fields value --format csv | tail -n1 | tr -d '"'); then
+  echo "$LOG_PREFIX[$CLIENT_ID] [ERROR] Failed to fetch current client secret, aborting!"
+  exit 1
+fi
 if [ "$CURRENT_SECRET" != "$USERS_SERVICE_SECRET" ]; then
-  echo "[Provisioning] Updating client '$CLIENT_ID' secret..."
-  /opt/keycloak/bin/kcadm.sh update clients/"$CLIENT_UUID" -r "$REALM" -s "secret=$USERS_SERVICE_SECRET"
-  echo "[Provisioning] Client secret updated."
+  echo "$LOG_PREFIX[$CLIENT_ID] Updating client secret..."
+  if /opt/keycloak/bin/kcadm.sh update clients/"$CLIENT_UUID" -r "$REALM" -s "secret=$USERS_SERVICE_SECRET"; then
+    echo "$LOG_PREFIX[$CLIENT_ID] Client secret updated successfully."
+  else
+    echo "$LOG_PREFIX[$CLIENT_ID] [ERROR] Failed to update client secret, aborting!"
+    exit 1
+  fi
 else
-  echo "[Provisioning] Client secret already up to date, skipping update."
+  echo "$LOG_PREFIX[$CLIENT_ID] Client secret already up to date, skipping update."
 fi
 
 echo ""
-echo "[Provisioning][$REALM] Configuring user profile attributes..."
+echo "$LOG_PREFIX Configuring user profile attributes..."
 
 CUSTOM_USER_PROFILE="/opt/keycloak/user-profile.json"
 if [ ! -f "$CUSTOM_USER_PROFILE" ]; then
-  echo "[Provisioning][ERROR] Custom User Profile JSON not found: $CUSTOM_USER_PROFILE, aborting!"
+  echo "$LOG_PREFIX [ERROR] Custom User Profile JSON not found: $CUSTOM_USER_PROFILE, aborting!"
   exit 1
 fi
  
 if /opt/keycloak/bin/kcadm.sh update users/profile -r "$REALM" -f "$CUSTOM_USER_PROFILE" 2>/dev/null; then
-  echo "[Provisioning] Custom user profile configured successfully."
+  echo "$LOG_PREFIX Custom user profile configured successfully."
 else
-  echo "[Provisioning][WARNING] Failed to update user profile automatically."
-  echo "[Provisioning] You may need to configure the desired attributes manually via Admin Console."
+  echo "$LOG_PREFIX [ERROR] Failed to update user profile, aborting!"
+  exit 1
 fi
 
 echo ""
 MAPPER_JSON="/opt/keycloak/custom-user-id-mapper.json"
 if [ ! -f "$MAPPER_JSON" ]; then
-  echo "[Provisioning][ERROR] Mapper JSON not found: $MAPPER_JSON, aborting!"
+  echo "$LOG_PREFIX[$CLIENT_ID] [ERROR] Mapper JSON not found: $MAPPER_JSON, aborting!"
   exit 1
 fi
 
 MAPPER_EXISTS=$(/opt/keycloak/bin/kcadm.sh get clients/"$CLIENT_UUID"/protocol-mappers/models -r "$REALM" | grep '"name" : "custom-user-id-mapper"' || true)
 if [ -z "$MAPPER_EXISTS" ]; then
-  echo "[Provisioning][$REALM][$CLIENT_ID] Creating protocol mapper custom-user-id-mapper..."
+  echo "$LOG_PREFIX[$CLIENT_ID] Creating protocol mapper 'custom-user-id-mapper'..."
   if /opt/keycloak/bin/kcadm.sh create clients/$CLIENT_UUID/protocol-mappers/models -r "$REALM" -f "$MAPPER_JSON" &>/dev/null; then
-    echo "[Provisioning] Protocol mapper created successfully."
+    echo "$LOG_PREFIX[$CLIENT_ID] Protocol mapper 'custom-user-id-mapper' created successfully."
   else
-    echo "[Provisioning][WARNING] Failed to create protocol mapper."
+    echo "$LOG_PREFIX[$CLIENT_ID] [ERROR] Failed to create protocol mapper 'custom-user-id-mapper', aborting!"
+    exit 1
   fi
 else
-  echo "[Provisioning] Protocol mapper custom-user-id-mapper already exists, skipping creation."  
+  echo "$LOG_PREFIX[$CLIENT_ID] Protocol mapper 'custom-user-id-mapper' already exists, skipping creation."
 fi
 
 echo ""
-echo "[Provisioning] Provisioning completed."
+echo "$LOG_PREFIX Provisioning completed."
