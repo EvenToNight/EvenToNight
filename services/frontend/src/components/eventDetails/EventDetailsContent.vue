@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { Event } from '@/api/types/events'
-import EventDetailsBodyHeader from './EventDetailsBodyHeader.vue'
-import EventDetailsBodyInfo from './EventDetailsBodyInfo.vue'
-import EventDetailsOrganizationInfo from './EventDetailsOrganizationInfo.vue'
+import EventDetailsBodyHeader from './EventDetailsHeader.vue'
+import EventDetailsBodyInfo from './EventInfo.vue'
+import EventDetailsOrganizationInfo from './OrganizationInfo.vue'
 import EventReviewsPreview from './EventReviewsPreview.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 
