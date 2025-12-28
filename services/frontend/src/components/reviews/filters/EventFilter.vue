@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import type { Event, EventID } from '@/api/types/events'
 import { api } from '@/api'
 import type { UserID } from '@/api/types/users'
@@ -15,6 +15,17 @@ const hasFocus = ref(false)
 const selectedEventId = defineModel<EventID | null>('selectedEventId', { required: true })
 const eventOptions = ref<Event[]>([])
 
+const loadInitialEvent = async () => {
+  if (selectedEventId.value) {
+    try {
+      const event = await api.events.getEventById(selectedEventId.value)
+      eventOptions.value = [event]
+    } catch (error) {
+      console.error('Failed to load initial event:', error)
+    }
+  }
+}
+
 const displayValue = computed({
   get(): EventID | null | undefined {
     if (selectedEventId.value === null) {
@@ -24,6 +35,7 @@ const displayValue = computed({
         return 'Tutti gli eventi'
       }
     }
+    console.log('selectedEventId', selectedEventId.value)
     return selectedEventId.value
   },
   set(value: EventID | null | undefined) {
@@ -49,6 +61,10 @@ const filterEvents = (query: string, update: (callback: () => void) => void) => 
       })
   }
 }
+
+onMounted(() => {
+  loadInitialEvent()
+})
 </script>
 
 <template>

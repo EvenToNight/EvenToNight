@@ -9,6 +9,7 @@ import SeeAllButton from '@/components/buttons/basicButtons/SeeAllButton.vue'
 
 interface Props {
   eventId: string
+  organizationId: string
 }
 
 const props = defineProps<Props>()
@@ -38,7 +39,7 @@ const loadReviews = async () => {
 
 const goToAllReviews = () => {
   window.scrollTo({ top: 0, behavior: 'smooth' })
-  goToEventReviews(props.eventId)
+  goToEventReviews(props.organizationId, props.eventId)
 }
 
 onMounted(() => {

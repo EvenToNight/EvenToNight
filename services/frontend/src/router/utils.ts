@@ -22,27 +22,42 @@ export const useNavigation = () => {
 
   const locale = computed(() => (route.params.locale as string) || DEFAULT_LOCALE)
   const params = route.params
+  const query = route.query
   const routeName = computed(() => route.name as string)
   const redirect = computed(() => {
     return route.query.redirect as string | undefined
   })
 
-  const replaceWithLocale = (name: string, additionalParams?: Record<string, any>) => {
+  const replaceWithLocale = (
+    name: string,
+    additionalParams?: Record<string, any>,
+    additionalQuery?: Record<string, any>
+  ) => {
     router.replace({
       name,
       params: {
         locale: locale.value,
         ...additionalParams,
       },
+      query: {
+        ...additionalQuery,
+      },
     })
   }
 
-  const pushWithLocale = (name: string, additionalParams?: Record<string, any>) => {
+  const pushWithLocale = (
+    name: string,
+    additionalParams?: Record<string, any>,
+    additionalQuery?: Record<string, any>
+  ) => {
     router.push({
       name,
       params: {
         locale: locale.value,
         ...additionalParams,
+      },
+      query: {
+        ...additionalQuery,
       },
     })
   }
@@ -96,11 +111,11 @@ export const useNavigation = () => {
     }
   }
 
-  const goToEventReviews = (eventId: string, swap: boolean = false) => {
+  const goToEventReviews = (organizationId: string, eventId?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(EVENT_REVIEWS_ROUTE_NAME, { id: eventId })
+      replaceWithLocale(EVENT_REVIEWS_ROUTE_NAME, { organizationId }, { eventId })
     } else {
-      pushWithLocale(EVENT_REVIEWS_ROUTE_NAME, { id: eventId })
+      pushWithLocale(EVENT_REVIEWS_ROUTE_NAME, { organizationId }, { eventId })
     }
   }
 
@@ -150,6 +165,7 @@ export const useNavigation = () => {
   return {
     locale,
     params,
+    query,
     routeName,
     goBack,
     goToRedirect,

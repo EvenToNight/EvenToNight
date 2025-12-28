@@ -35,7 +35,11 @@ const { t } = useI18n()
         :class="'full-width'"
         size="lg"
       />
-      <EventReviewsPreview v-else-if="event.status === 'COMPLETED'" :eventId="event.id_event" />
+      <EventReviewsPreview
+        v-else-if="event.status === 'COMPLETED'"
+        :eventId="event.id_event"
+        :organizationId="event.id_creator"
+      />
     </div>
   </div>
 </template>

@@ -78,7 +78,7 @@ const router = createRouter({
           beforeEnter: requireNotDraft,
         },
         {
-          path: 'events/:id/reviews',
+          path: 'organization/:organizationId/reviews',
           name: EVENT_REVIEWS_ROUTE_NAME,
           component: () => import('../views/ReviewsView.vue'),
         },

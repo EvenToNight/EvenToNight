@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
 import type { EventReview, OrganizationReviewsStatistics } from '@/api/types/interaction'
@@ -10,25 +10,45 @@ import ReviewsStatistics from '@/components/reviews/ReviewsStatistics.vue'
 import ReviewsFilters from '@/components/reviews/ReviewsFilters.vue'
 import type { EventID } from '@/api/types/events'
 import type { Rating } from '@/api/types/interaction'
-import ReviewCard from '@/components/reviews/ReviewCard.vue'
 
-const { params, goToUserProfile } = useNavigation()
-const tempEventId = ref<EventID | null>(null)
+const { query, params, goToUserProfile } = useNavigation()
+const organizationId = computed(() => params.organizationId as string)
+const tempEventId = ref<EventID | null>((query.eventId as EventID) || null)
 const tempSelectedRating = ref<Rating | null>(null)
-const eventId = computed(() => params.id as string)
-const reviews = ref<EventReview[]>([])
+const allReviews = ref<EventReview[]>([])
 const loading = ref(true)
-const eventTitle = ref<string>('')
-const organizationId = ref<string | null>(null)
 const organizationName = ref<string>('')
 const organizationAvatar = ref<string>('')
 
 const showReviewDialog = ref(false)
 const reviewsStatistics = ref<OrganizationReviewsStatistics>()
+
+const reviews = computed(() => {
+  let filtered = allReviews.value
+
+  // Filter by event if selected
+  if (tempEventId.value) {
+    filtered = filtered.filter((review) => review.eventId === tempEventId.value)
+  }
+
+  // Filter by rating if selected
+  if (tempSelectedRating.value) {
+    filtered = filtered.filter((review) => review.rating === tempSelectedRating.value)
+  }
+
+  return filtered
+})
+
 const loadReviews = async () => {
   loading.value = true
   try {
-    reviews.value = (await api.interactions.getEventReviews(eventId.value)).items
+    const response = await api.interactions.getOrganizationReviews(organizationId.value)
+    allReviews.value = response.items
+    reviewsStatistics.value = {
+      averageRating: response.averageRating,
+      totalReviews: response.totalReviews,
+      ratingDistribution: response.ratingDistribution,
+    }
   } catch (error) {
     console.error('Failed to load reviews:', error)
   } finally {
@@ -36,21 +56,13 @@ const loadReviews = async () => {
   }
 }
 
-const loadEventInfo = async () => {
+const loadOrganizationInfo = async () => {
   try {
-    const event = await api.events.getEventById(eventId.value)
-    eventTitle.value = event.title || 'Event'
-    organizationId.value = event.id_creator
-    reviewsStatistics.value = await api.interactions.getOrganizationReviews(organizationId.value)
-
-    // Load organization info
-    if (organizationId.value) {
-      const response = await api.users.getUserById(organizationId.value)
-      organizationName.value = response.user.name
-      organizationAvatar.value = response.user.avatarUrl || ''
-    }
+    const response = await api.users.getUserById(organizationId.value)
+    organizationName.value = response.user.name
+    organizationAvatar.value = response.user.avatarUrl || ''
   } catch (error) {
-    console.error('Failed to load event:', error)
+    console.error('Failed to load organization:', error)
   }
 }
 
@@ -60,25 +72,9 @@ const goToOrganizationProfile = () => {
   }
 }
 
-// const openReviewDialog = () => {
-//   newReviewRating.value = 5
-//   newReviewTitle.value = ''
-//   newReviewDescription.value = ''
-//   showReviewDialog.value = true
-// }
-
-watch(tempEventId, (newValue) => {
-  console.log('Selected event ID:', newValue)
-  // TODO: Filter reviews by event
-})
-
-watch(tempSelectedRating, (newValue) => {
-  console.log('Selected rating:', newValue)
-  // TODO: Filter reviews by rating
-})
-
-onMounted(async () => {
-  await Promise.all([loadReviews(), loadEventInfo()])
+onMounted(() => {
+  loadReviews()
+  loadOrganizationInfo()
 })
 </script>
 
@@ -115,20 +111,6 @@ onMounted(async () => {
             </div>
           </div>
         </div>
-        <div v-if="loading" class="loading-state">
-          <q-spinner color="primary" size="50px" />
-          <p>Loading reviews...</p>
-        </div>
-
-        <div v-else-if="reviews.length === 0" class="empty-state">
-          <q-icon name="reviews" size="64px" />
-          <p>No reviews found</p>
-        </div>
-
-        <div v-else class="reviews-container">
-          <ReviewCard v-for="review in reviews" :key="review.id" :review="review" />
-        </div>
-
         <ReviewsList :reviews="reviews" :loading="loading" />
       </div>
     </div>
