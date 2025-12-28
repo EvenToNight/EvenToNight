@@ -6,6 +6,7 @@ import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import sttp.client3.Response
+import sttp.client3.StringBody
 import sttp.client3.testing._
 import sttp.model.Header
 import sttp.model.Method
@@ -49,6 +50,13 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
       .thenRespond(response)
     new KeycloakConnection(backendStub, testSecret)
 
+  private val successResponse = Response(
+    body = "",
+    code = StatusCode.Created,
+    statusText = "Created",
+    headers = List(Header("Location", s"/admin/realms/eventonight/users/$testKeycloakId"))
+  )
+
   "getAccessToken" should "return Right(access_token) when Keycloak returns valid JSON with access_token" in:
     val connectionStub = stubbedConnectionWithResponse("""{"access_token": "test_token"}""")
     val token          = connectionStub.getAccessToken()
@@ -73,12 +81,6 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     token.left.value should include("Missing access_token")
 
   "createUser" should "return Right(keycloakId, userId) when Keycloak returns 201 with Location header" in:
-    val successResponse = Response(
-      body = "",
-      code = StatusCode.Created,
-      statusText = "Created",
-      headers = List(Header("Location", s"/admin/realms/eventonight/users/$testKeycloakId"))
-    )
     val connectionStub       = stubbedCreateUserConnectionWithResponse(successResponse)
     val result               = connectionStub.createUser(username, email, password)
     val (keycloakId, userId) = result.getOrElse(fail(s"Expected Right but got Left($result)"))
@@ -111,6 +113,27 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     val result         = connectionStub.createUser(username, email, password)
     result.isLeft shouldBe true
     result.left.value should include("Failed to create user on Keycloak")
+
+  it should "include the generated userId in the request JSON" in:
+    var capturedJsonBody: String = ""
+    val backendStub = SttpBackendStub.synchronous
+      .whenRequestMatches(_.uri.path == tokenPath)
+      .thenRespond("""{"access_token": "test_token"}""")
+      .whenRequestMatches(req =>
+        req.uri.path == createUserPath &&
+          (req.body match
+            case StringBody(body, _, _) =>
+              capturedJsonBody = body
+              true
+            case _ => false)
+      )
+      .thenRespond(successResponse)
+    val connectionStub = new KeycloakConnection(backendStub, testSecret)
+    val result         = connectionStub.createUser(username, email, password)
+    result.isRight shouldBe true
+    val (_, generatedUserId) = result.value
+    capturedJsonBody should include(generatedUserId)
+    noException shouldBe thrownBy(UUID.fromString(generatedUserId))
 
   "deleteUser" should "return Right(()) when Keycloak returns 204 on delete" in:
     val deleteResponse = Response(
