@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import type { Rating } from '@/api/types/interaction'
 import { RATING_VALUES } from '@/api/types/interaction'
-import RatingStars from './RatingStars.vue'
+import RatingStars from './ratings/RatingStars.vue'
 import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
 
 interface Props {

@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { api } from '@/api'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import type { User } from '@/api/types/users'
+import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
 import { useNavigation } from '@/router/utils'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileBody from '@/components/profile/ProfileBody.vue'
@@ -13,6 +14,7 @@ const { params } = useNavigation()
 const isFollowing = ref(false)
 const showAuthDialog = ref(false)
 const user = ref<User | null>(null)
+const reviewsStatistics = ref<OrganizationReviewsStatistics | null>(null)
 
 onMounted(async () => {
   await loadUser()
@@ -25,6 +27,20 @@ const loadUser = async () => {
     user.value = response.user
     // TODO: Load following status from API
     isFollowing.value = false
+
+    // Load reviews statistics if organization
+    if (user.value.role === 'organization') {
+      try {
+        const reviews = await api.interactions.getOrganizationReviews(userId)
+        reviewsStatistics.value = {
+          averageRating: reviews.averageRating,
+          totalReviews: reviews.totalReviews,
+          ratingDistribution: reviews.ratingDistribution,
+        }
+      } catch (error) {
+        console.error('Failed to load organization reviews:', error)
+      }
+    }
   } catch (error) {
     console.error('Failed to load user:', error)
     user.value = null
@@ -41,6 +57,7 @@ const loadUser = async () => {
       <ProfileHeader
         v-model:is-following="isFollowing"
         :user="user"
+        :reviews-statistics="reviewsStatistics"
         @auth-required="showAuthDialog = true"
       />
       <div class="profile-container">

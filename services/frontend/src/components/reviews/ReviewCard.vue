@@ -2,7 +2,7 @@
 import { ref, onMounted } from 'vue'
 import type { EventReview } from '@/api/types/interaction'
 import type { Event } from '@/api/types/events'
-import RatingStars from './RatingStars.vue'
+import RatingStars from './ratings/RatingStars.vue'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 

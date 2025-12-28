@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted } from 'vue'
 import type { EventReview } from '@/api/types/interaction'
 import ReviewCard from '@/components/reviews/ReviewCard.vue'
-import RatingStars from '@/components/reviews/RatingStars.vue'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 import SeeAllButton from '@/components/buttons/basicButtons/SeeAllButton.vue'
+import RatingInfo from '../reviews/ratings/RatingInfo.vue'
+import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
 
 interface Props {
   eventId: string
@@ -17,19 +18,13 @@ const { goToEventReviews } = useNavigation()
 
 const reviews = ref<EventReview[]>([])
 const loading = ref(true)
-
-const previewReviews = computed(() => reviews.value.slice(0, 3))
-
-const averageRating = computed(() => {
-  if (reviews.value.length === 0) return 0
-  const sum = reviews.value.reduce((acc, review) => acc + review.rating, 0)
-  return sum / reviews.value.length
-})
+const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 
 const loadReviews = async () => {
   try {
     loading.value = true
     reviews.value = (await api.interactions.getEventReviews(props.eventId)).items
+    reviewsStatistics.value = await api.interactions.getOrganizationReviews(props.organizationId)
   } catch (error) {
     console.error('Failed to load reviews:', error)
   } finally {
@@ -61,15 +56,16 @@ onMounted(() => {
         <h3 class="section-title">Recensioni</h3>
         <SeeAllButton @click="goToAllReviews" />
       </div>
-      <div class="rating-summary">
-        <RatingStars :rating="averageRating" size="md" :show-number="true" variant="compact" />
-        <span class="review-count">({{ reviews.length }} recensioni)</span>
-      </div>
+      <RatingInfo
+        v-if="reviewsStatistics"
+        :reviews-statistics="reviewsStatistics"
+        class="rating-summary"
+      />
     </div>
 
     <div class="reviews-list">
       <ReviewCard
-        v-for="review in previewReviews"
+        v-for="review in reviews"
         :key="review.id"
         :review="review"
         :show-event-info="false"
@@ -118,27 +114,15 @@ onMounted(() => {
     color: $color-heading-dark;
   }
 }
-
 .rating-summary {
-  display: flex;
-  align-items: center;
-  gap: $spacing-3;
-
+  @media (max-width: $breakpoint-mobile) {
+    flex-direction: row;
+  }
   @media (max-width: $app-min-width) {
     flex-direction: column;
     align-items: flex-start;
   }
 }
-
-.review-count {
-  color: $color-text-secondary;
-  font-size: $font-size-sm;
-
-  @include dark-mode {
-    color: $color-text-dark;
-  }
-}
-
 .reviews-list {
   display: flex;
   flex-direction: column;
