@@ -15,19 +15,10 @@ const props = withDefaults(defineProps<Props>(), {
   icon: '',
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
-
 const slots = useSlots()
 const hasPrependSlot = computed(() => !!slots.prepend)
 
 const showPassword = ref(false)
-
-const localValue = computed({
-  get: () => props.modelValue,
-  set: (value: string | number | null) => emit('update:modelValue', String(value || '')),
-})
 
 const inputType = computed(() => {
   if (props.type === 'password') {
@@ -43,7 +34,8 @@ const togglePasswordVisibility = () => {
 
 <template>
   <q-input
-    v-model="localValue"
+    :model-value="modelValue"
+    v-bind="$attrs"
     :type="inputType"
     lazy-rules="ondemand"
     hide-bottom-space

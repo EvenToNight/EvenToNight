@@ -8,6 +8,7 @@ import RatingStars from './RatingStars.vue'
 import { useI18n } from 'vue-i18n'
 import { required, notEmpty } from '@/components/forms/validationUtils'
 import FormField from '../forms/FormField.vue'
+import FormSelectorField from '../forms/FormSelectorField.vue'
 
 const { t } = useI18n()
 const authStore = useAuthStore()
@@ -85,21 +86,16 @@ const submitReview = async () => {
 
       <q-card-section class="q-pt-none">
         <q-form greedy @submit.prevent="submitReview">
-          <q-select
+          <FormSelectorField
             v-model="selectedEvent"
             :options="eventOptions"
             option-value="id_event"
             option-label="title"
             label="Seleziona evento"
             :rules="[required('Seleziona un evento')]"
-            lazy-rules="ondemand"
-            hide-bottom-space
-            outlined
             use-input
             hide-selected
             fill-input
-            input-debounce="300"
-            class="q-mb-md"
             @filter="filterEvents"
             @input-value="handleInputValue"
           >
@@ -122,7 +118,7 @@ const submitReview = async () => {
                 </q-item-section>
               </q-item>
             </template>
-          </q-select>
+          </FormSelectorField>
 
           <div class="rating-input">
             <label>{{ t('userProfile.selectRating') }}</label>

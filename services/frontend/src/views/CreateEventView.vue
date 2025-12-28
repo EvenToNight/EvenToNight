@@ -40,14 +40,6 @@ const collaborators = ref<string[]>([])
 const location = ref<LocationOption | null>(null)
 const poster = ref<File | null>(null)
 
-const titleError = ref('')
-const dateError = ref('')
-const timeError = ref('')
-const descriptionError = ref('')
-const priceError = ref('')
-const locationError = ref('')
-const posterError = ref('')
-
 const handleImageError = (message: string) => {
   $q.notify({
     color: 'negative',
@@ -221,53 +213,6 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
   }
 }
 
-const validateInput = (): boolean => {
-  let isValid = true
-  titleError.value = ''
-  dateError.value = ''
-  timeError.value = ''
-  descriptionError.value = ''
-  priceError.value = ''
-  locationError.value = ''
-  posterError.value = ''
-
-  if (!title.value) {
-    titleError.value = t('eventCreationForm.titleError')
-    isValid = false
-  }
-
-  if (!date.value) {
-    dateError.value = t('eventCreationForm.dateError')
-    isValid = false
-  }
-
-  if (!time.value) {
-    timeError.value = t('eventCreationForm.timeError')
-    isValid = false
-  }
-
-  if (!description.value) {
-    descriptionError.value = t('eventCreationForm.descriptionError')
-    isValid = false
-  }
-
-  if (!price.value) {
-    priceError.value = t('eventCreationForm.priceError')
-    isValid = false
-  }
-
-  if (!location.value?.value) {
-    locationError.value = t('eventCreationForm.locationError')
-    isValid = false
-  }
-
-  if (!poster.value) {
-    posterError.value = t('eventCreationForm.posterError')
-    isValid = false
-  }
-  return isValid
-}
-
 const saveDraft = async () => {
   const eventData: PartialEventData = buildEventData('DRAFT')
   if (isEditMode.value) {
@@ -338,14 +283,6 @@ const handleDelete = async () => {
 }
 
 const onSubmit = async () => {
-  const isValid = validateInput()
-  if (!isValid) {
-    $q.notify({
-      color: 'negative',
-      message: t('eventCreationForm.errorForEventCreation'),
-    })
-    return
-  }
   try {
     const eventData: PartialEventData = buildEventData('PUBLISHED')
     if (isEditMode.value) {
@@ -450,7 +387,6 @@ const onSubmit = async () => {
             multiple
             use-chips
             use-input
-            input-debounce="300"
             emit-value
             map-options
             option-value="value"
@@ -480,7 +416,6 @@ const onSubmit = async () => {
             multiple
             use-chips
             use-input
-            input-debounce="300"
             emit-value
             map-options
             option-value="value"
@@ -515,8 +450,7 @@ const onSubmit = async () => {
             use-input
             fill-input
             hide-selected
-            input-debounce="500"
-            :error="locationError"
+            :rules="[notEmpty(t('eventCreationForm.locationError'))]"
             @filter="filterLocations"
           >
             <template #no-option>
@@ -536,18 +470,24 @@ const onSubmit = async () => {
             </template>
           </FormSelectorField>
 
-          <div>
-            <ImageCropUploadTest
-              v-model="poster"
-              :label="t('eventCreationForm.eventPoster') + ' *'"
-              :button-label="t('eventCreationForm.uploadPoster')"
-              :max-size="5000000"
-              @error="handleImageError"
-            />
-            <div v-if="posterError" class="error-message">
-              {{ posterError }}
-            </div>
-          </div>
+          <q-field
+            :model-value="poster"
+            :rules="[notEmpty(t('eventCreationForm.posterError'))]"
+            lazy-rules="ondemand"
+            hide-bottom-space
+            borderless
+            class="q-my-md"
+          >
+            <template #control>
+              <ImageCropUploadTest
+                v-model="poster"
+                :label="t('eventCreationForm.eventPoster') + ' *'"
+                :button-label="t('eventCreationForm.uploadPoster')"
+                :max-size="5000000"
+                @error="handleImageError"
+              />
+            </template>
+          </q-field>
           <div class="form-actions">
             <div class="action-buttons">
               <Button

@@ -14,13 +14,13 @@ const { t } = useI18n()
   <q-select
     :model-value="modelValue"
     v-bind="$attrs"
-    :error="!!error"
-    :error-message="error"
+    lazy-rules="ondemand"
     outlined
     hide-bottom-space
     popup-content-class="tags-dropdown-popup"
     virtual-scroll-slice-size="5"
-    class="q-mb-md"
+    input-debounce="300"
+    class="q-my-md"
   >
     <template #option="scope">
       <slot name="option" v-bind="scope" />
