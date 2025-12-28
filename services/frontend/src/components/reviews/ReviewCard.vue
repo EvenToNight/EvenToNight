@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, inject } from 'vue'
+import { useQuasar } from 'quasar'
 import type { EventReview } from '@/api/types/interaction'
 import type { Event } from '@/api/types/events'
 import RatingStars from './ratings/RatingStars.vue'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
+import { useAuthStore } from '@/stores/auth'
 
 interface Props {
   review: EventReview
@@ -16,6 +18,13 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const { goToUserProfile, goToEventDetails } = useNavigation()
+const authStore = useAuthStore()
+const $q = useQuasar()
+const deleteReview = inject<((reviewId: string) => void) | undefined>('deleteReview')
+
+const isOwnReview = computed(() => {
+  return authStore.user?.id === props.review.userId
+})
 
 const userName = ref<string>('Loading...')
 const userAvatar = ref<string | null>(null)
@@ -51,6 +60,35 @@ const handleEventClick = () => {
   }
 }
 
+const handleDelete = () => {
+  $q.dialog({
+    title: 'Conferma eliminazione',
+    message: 'Sei sicuro di voler eliminare questa recensione?',
+    cancel: {
+      flat: true,
+      textColor: 'black',
+      label: 'Annulla',
+    },
+    ok: {
+      color: 'negative',
+      textColor: 'black',
+      label: 'Elimina',
+      focus: false,
+    },
+  }).onOk(async () => {
+    try {
+      await api.interactions.deleteEventReview(props.review.eventId, props.review.id)
+      deleteReview?.(props.review.id)
+    } catch (error) {
+      console.error('Failed to delete review:', error)
+      $q.notify({
+        type: 'negative',
+        message: "Errore durante l'eliminazione della recensione",
+      })
+    }
+  })
+}
+
 onMounted(() => {
   loadUserInfo()
   loadEventInfo()
@@ -70,6 +108,18 @@ onMounted(() => {
           <RatingStars :rating="review.rating" size="sm" variant="compact" />
         </div>
       </div>
+      <q-btn v-if="isOwnReview" flat round dense icon="more_vert" class="review-menu-btn">
+        <q-menu>
+          <q-list>
+            <q-item v-close-popup clickable @click="handleDelete">
+              <q-item-section avatar>
+                <q-icon name="delete" color="negative" />
+              </q-item-section>
+              <q-item-section>Elimina</q-item-section>
+            </q-item>
+          </q-list>
+        </q-menu>
+      </q-btn>
     </div>
 
     <div class="review-body">
@@ -101,11 +151,23 @@ onMounted(() => {
 }
 
 .review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: $spacing-3;
 }
 
 .user-info {
   gap: $spacing-3;
+}
+
+.review-menu-btn {
+  opacity: 0.3;
+  transition: opacity $transition-base;
+
+  &:hover {
+    opacity: 1;
+  }
 }
 
 .user-avatar {

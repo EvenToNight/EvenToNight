@@ -262,8 +262,8 @@ const handleDelete = async () => {
       color: 'negative',
       textColor: 'black',
       label: t('eventCreationForm.deleteEvent'),
+      focus: false,
     },
-    persistent: true,
   }).onOk(async () => {
     try {
       await api.events.deleteEvent(eventId.value)

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, provide } from 'vue'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
 import type { EventReview, OrganizationReviewsStatistics } from '@/api/types/interaction'
@@ -72,6 +72,13 @@ const goToOrganizationProfile = () => {
   }
 }
 
+const handleDeleteReview = (reviewId: string) => {
+  console.log('review deleted', reviewId)
+  // allReviews.value = allReviews.value.filter((review) => review.id !== reviewId)
+}
+
+provide('deleteReview', handleDeleteReview)
+
 onMounted(() => {
   loadReviews()
   loadOrganizationInfo()
@@ -111,7 +118,11 @@ onMounted(() => {
             </div>
           </div>
         </div>
-        <ReviewsList :reviews="reviews" :loading="loading" />
+        <ReviewsList
+          :reviews="reviews"
+          :loading="loading"
+          @delete="() => console.log('review deleted')"
+        />
       </div>
     </div>
     <SubmitReviewDialog

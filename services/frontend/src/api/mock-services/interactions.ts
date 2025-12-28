@@ -141,4 +141,15 @@ export const mockInteractionsApi: InteractionAPI = {
       ratingDistribution,
     }
   },
+  async deleteEventReview(_eventId: EventID, reviewId: string): Promise<void> {
+    const reviewIndex = mockEventReviews.findIndex((review) => review.id === reviewId)
+    if (reviewIndex === -1) {
+      throw {
+        message: `Review ${reviewId} not found`,
+        code: 'REVIEW_NOT_FOUND',
+        status: 404,
+      }
+    }
+    return
+  },
 }
