@@ -3,14 +3,17 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 interface Props {
   onClick: () => void
+  variant?: 'default' | 'minimal'
 }
-defineProps<Props>()
+withDefaults(defineProps<Props>(), {
+  variant: 'default',
+})
 </script>
 
 <template>
-  <span class="see-all-link" @click="onClick">
+  <span class="see-all-link" :data-variant="variant" @click="onClick">
     <span class="see-all-text">{{ t('cards.slider.seeAll') }}</span>
-    <q-icon name="arrow_forward" size="18px" class="see-all-arrow" />
+    <q-icon v-if="variant === 'default'" name="arrow_forward" size="18px" class="see-all-arrow" />
   </span>
 </template>
 
@@ -21,11 +24,11 @@ defineProps<Props>()
   cursor: pointer;
   font-size: $font-size-sm;
   font-weight: $font-weight-medium;
-  transition:
-    transform $transition-base,
-    gap $transition-base;
+  transition: all $transition-base;
   transform-origin: left center;
+}
 
+.see-all-link[data-variant='default'] {
   &:hover {
     transform: scale(1.05);
     gap: $spacing-3;
@@ -36,6 +39,12 @@ defineProps<Props>()
 
   &:active {
     transform: scale(0.95);
+  }
+}
+
+.see-all-link[data-variant='minimal'] {
+  &:hover {
+    text-decoration: underline;
   }
 }
 </style>
