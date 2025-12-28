@@ -124,7 +124,6 @@ const submitReview = async () => {
             <label>{{ t('userProfile.selectRating') }}</label>
             <RatingStars
               v-model:rating="rating"
-              size="lg"
               :show-number="true"
               :editable="true"
               variant="compact"

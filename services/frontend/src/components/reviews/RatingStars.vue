@@ -8,6 +8,7 @@ type StarType = 'filled' | 'half' | 'empty'
 interface Props {
   rating: number
   showNumber?: boolean
+  size?: 'sm' | 'md' | 'lg'
   variant?: 'default' | 'compact'
   editable?: boolean
 }
@@ -15,6 +16,7 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   showNumber: true,
   editable: false,
+  size: 'md',
   variant: 'default',
 })
 
@@ -74,20 +76,37 @@ const getStarColor = (type: StarType) => {
   if (type === 'filled' || type === 'half') return 'warning'
   return $q.dark.isActive ? 'grey-8' : 'grey-5'
 }
+
+const ratingNumberClass = computed(() => {
+  if (props.size === 'sm') return { fontSize: '2rem', lineHeight: 1 }
+  if (props.size === 'lg') return { fontSize: '7rem', lineHeight: 1 }
+  return { fontSize: '5rem', lineHeight: 1 }
+})
+
+const starIconClass = computed(() => {
+  if (props.size === 'sm') return 'text-body1'
+  if (props.size === 'lg') return 'text-h4'
+  return 'text-h5'
+})
+
+const compactRatingClass = computed(() => {
+  if (props.size === 'sm') return 'text-overline'
+  if (props.size === 'lg') return 'text-subtitle1'
+  return 'text-subtitle2'
+})
 </script>
 
 <template>
   <div
-    class="q-gutter-y-xs"
     :class="[
-      props.variant === 'default' ? 'flex column items-center' : 'flex items-center q-gutter-x-xs',
+      props.variant === 'default' ? 'flex column items-center q-gutter-y-xs' : 'flex items-center',
     ]"
   >
     <span
       v-if="showNumber && props.variant === 'default'"
       class="text-weight-light"
       :class="$q.dark.isActive ? 'text-grey-3' : 'text-grey-9'"
-      :style="{ fontSize: '5rem', lineHeight: 1 }"
+      :style="ratingNumberClass"
     >
       {{ formattedRating }}
     </span>
@@ -97,7 +116,7 @@ const getStarColor = (type: StarType) => {
         v-for="star in stars"
         :key="star.index"
         :name="star.type === 'filled' ? 'star' : star.type === 'half' ? 'star_half' : 'star_border'"
-        :class="['text-h5', props.editable ? 'cursor-pointer star-hover' : '']"
+        :class="[starIconClass, props.editable ? 'cursor-pointer star-hover' : '']"
         :color="getStarColor(star.type)"
         @click="handleStarClick(star.index)"
         @mouseenter="handleStarHover(star.index)"
@@ -106,8 +125,8 @@ const getStarColor = (type: StarType) => {
 
     <span
       v-if="showNumber && props.variant === 'compact'"
-      class="text-weight-bold"
-      :class="['text-subtitle2', $q.dark.isActive ? 'text-grey-5' : 'text-grey-7']"
+      class="text-weight-bold q-ml-sm"
+      :class="[compactRatingClass, $q.dark.isActive ? 'text-grey-5' : 'text-grey-7']"
     >
       {{ formattedRating }}/{{ maxRating }}
     </span>

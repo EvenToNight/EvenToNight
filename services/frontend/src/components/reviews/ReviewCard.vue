@@ -60,20 +60,24 @@ onMounted(() => {
 <template>
   <div class="review-card">
     <div class="review-header">
-      <div class="user-info">
-        <q-avatar size="40px" class="user-avatar" @click="handleUserClick">
+      <div class="user-info flex items-center">
+        <q-avatar size="40px" class="user-avatar cursor-pointer" @click="handleUserClick">
           <img v-if="userAvatar" :src="userAvatar" :alt="userName" />
           <q-icon v-else name="person" />
         </q-avatar>
-        <div class="user-details">
-          <span class="user-name" @click="handleUserClick">{{ userName }}</span>
+        <div class="user-details flex column items-start">
+          <span class="user-name cursor-pointer" @click="handleUserClick">{{ userName }}</span>
           <RatingStars :rating="review.rating" size="sm" variant="compact" />
         </div>
       </div>
     </div>
 
     <div class="review-body">
-      <div v-if="showEventInfo && eventInfo" class="event-info" @click="handleEventClick">
+      <div
+        v-if="showEventInfo && eventInfo"
+        class="event-info flex items-center cursor-pointer"
+        @click="handleEventClick"
+      >
         <q-icon name="event" class="event-icon" />
         <span class="event-title">{{ eventInfo.title }}</span>
       </div>
@@ -101,14 +105,11 @@ onMounted(() => {
 }
 
 .user-info {
-  display: flex;
-  align-items: center;
   gap: $spacing-3;
 }
 
 .user-avatar {
   background: $color-primary-light;
-  cursor: pointer;
   transition: transform $transition-base;
 
   &:hover {
@@ -131,8 +132,6 @@ onMounted(() => {
 }
 
 .user-details {
-  display: flex;
-  flex-direction: column;
   gap: $spacing-1;
 }
 
@@ -140,7 +139,6 @@ onMounted(() => {
   font-weight: 600;
   font-size: $font-size-base;
   color: $color-text-primary;
-  cursor: pointer;
   transition: all $transition-base;
 
   &:hover {
@@ -157,12 +155,9 @@ onMounted(() => {
 }
 
 .event-info {
-  display: flex;
-  align-items: center;
   gap: $spacing-2;
   color: $color-primary;
   margin-bottom: $spacing-3;
-  cursor: pointer;
   transition: all $transition-base;
 
   .event-icon {
