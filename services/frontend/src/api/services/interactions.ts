@@ -1,5 +1,5 @@
 import type {
-  GetEventInteractionsResponse,
+  GetEventLikesResponse,
   GetReviewResponse,
   GetReviewWithStatisticsResponse,
   InteractionAPI,
@@ -12,14 +12,27 @@ import type { PaginatedRequest } from '../interfaces/commons'
 import { evaluatePagination, buildQueryParams } from '../utils'
 
 export const createInteractionsApi = (interactionsClient: ApiClient): InteractionAPI => ({
-  async getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse> {
-    return interactionsClient.get<GetEventInteractionsResponse>(`/events/${eventId}`)
+  async getEventLikes(eventId: EventID): Promise<GetEventLikesResponse> {
+    return interactionsClient.get<GetEventLikesResponse>(`/events/${eventId}/likes`)
+  },
+  async userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean> {
+    //TODO implement proper endpoint to check if user likes event
+    return interactionsClient
+      .get<boolean>(`/events/${eventId}/likes/${userId}`)
+      .then((_response) => true)
+      .catch((error) => {
+        if (error.status === 404) {
+          console.log('Like not found - returning false to catch 404')
+          return false
+        }
+        throw error
+      })
   },
   async likeEvent(eventId: EventID, userId: UserID): Promise<void> {
-    return interactionsClient.post<void>(`/events/${eventId}/interactions/likes`, { userId })
+    return interactionsClient.post<void>(`/events/${eventId}/likes`, { userId })
   },
   async unlikeEvent(eventId: EventID, userId: UserID): Promise<void> {
-    return interactionsClient.delete<void>(`/events/${eventId}/interactions/likes/${userId}`)
+    return interactionsClient.delete<void>(`/events/${eventId}/likes/${userId}`)
   },
   async followUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
     return interactionsClient.post<void>(`/users/${targetUserId}/interactions/followers`, {

@@ -22,6 +22,7 @@ const authStore = useAuthStore()
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
 const upcomingEvents = ref<Event[]>([])
+const eventLikes = ref<Record<string, boolean>>({})
 
 const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
   if (!authStore.isAuthenticated || !authStore.user) {
@@ -36,6 +37,8 @@ const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
     } else {
       await api.interactions.unlikeEvent(eventId, authStore.user.id)
     }
+    // Update local state
+    eventLikes.value[eventId] = isFavorite
   } catch (error) {
     console.error('Failed to toggle favorite:', error)
   }
@@ -57,6 +60,21 @@ onMounted(async () => {
     const feedResponse = await api.feed.getUpcomingEvents()
     const eventsResponse = await api.events.getEventsByIds(feedResponse.items)
     upcomingEvents.value = eventsResponse.events
+
+    // Load like status for each event in parallel
+    if (authStore.user?.id) {
+      const userId = authStore.user.id
+      const likePromises = upcomingEvents.value.map(async (event) => {
+        try {
+          const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
+          eventLikes.value[event.eventId] = isLiked
+        } catch (error) {
+          console.error(`Failed to load like status for event ${event.eventId}:`, error)
+          eventLikes.value[event.eventId] = false
+        }
+      })
+      await Promise.all(likePromises)
+    }
   } catch (error) {
     console.error('Failed to load upcoming events:', error)
   }
@@ -98,7 +116,7 @@ onMounted(async () => {
             v-for="event in upcomingEvents"
             :key="event.eventId"
             :event="event"
-            :favorite="false"
+            :favorite="eventLikes[event.eventId] ?? false"
             @favorite-toggle="handleFavoriteToggle(event.eventId, $event)"
             @auth-required="emit('auth-required')"
           />

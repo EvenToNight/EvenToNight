@@ -18,12 +18,11 @@ export type GetReviewWithStatisticsResponse = PaginatedResponseWithStatistics<
   OrganizationReviewsStatistics
 >
 
-export interface GetEventInteractionsResponse {
-  likes: UserID[]
-}
+export type GetEventLikesResponse = PaginatedResponseWithTotalCount<UserID>
 
 export interface InteractionAPI {
-  getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse>
+  getEventLikes(eventId: EventID): Promise<GetEventLikesResponse>
+  userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean>
   likeEvent(eventId: EventID, userId: UserID): Promise<void>
   unlikeEvent(eventId: EventID, userId: UserID): Promise<void>
   followUser(targetUserId: UserID, currentUserId: UserID): Promise<void>

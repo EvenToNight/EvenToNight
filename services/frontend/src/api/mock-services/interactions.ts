@@ -1,5 +1,5 @@
 import type {
-  GetEventInteractionsResponse,
+  GetEventLikesResponse,
   GetReviewResponse,
   GetReviewWithStatisticsResponse,
   InteractionAPI,
@@ -42,8 +42,14 @@ const findUserInteraction = (userId: UserID) => {
 }
 
 export const mockInteractionsApi: InteractionAPI = {
-  async getEventInteractions(eventId: EventID): Promise<GetEventInteractionsResponse> {
-    return findInteractionByEventId(eventId)
+  async getEventLikes(eventId: EventID): Promise<GetEventLikesResponse> {
+    //TODO implement likes retrival
+    findInteractionByEventId(eventId)
+    return { items: [], limit: 0, offset: 0, hasMore: false, totalItems: 0 }
+  },
+  async userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean> {
+    const interaction = findInteractionByEventId(eventId)
+    return interaction.likes.includes(userId)
   },
   async likeEvent(eventId: EventID, userId: UserID): Promise<void> {
     const interaction = findInteractionByEventId(eventId)

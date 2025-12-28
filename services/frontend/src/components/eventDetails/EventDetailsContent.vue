@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { Event } from '@/api/types/events'
-import EventDetailsBodyHeader from './EventDetailsHeader.vue'
-import EventDetailsBodyInfo from './EventInfo.vue'
-import EventDetailsOrganizationInfo from './OrganizationInfo.vue'
+import EventDetailsHeader from './EventDetailsHeader.vue'
+import EventInfo from './EventInfo.vue'
+import OrganizationInfo from './OrganizationInfo.vue'
 import EventReviewsPreview from './EventReviewsPreview.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 
@@ -21,13 +21,13 @@ const { t } = useI18n()
 <template>
   <div class="content-wrapper">
     <div class="info-box">
-      <EventDetailsBodyHeader
+      <EventDetailsHeader
         :event="event"
         :isAuthRequired="isAuthRequired"
         @update:is-auth-required="emit('update:isAuthRequired', $event)"
       />
-      <EventDetailsBodyInfo :event="event" />
-      <EventDetailsOrganizationInfo :event="event" />
+      <EventInfo :event="event" />
+      <OrganizationInfo :event="event" />
       <Button
         v-if="event.status === 'PUBLISHED'"
         variant="primary"
