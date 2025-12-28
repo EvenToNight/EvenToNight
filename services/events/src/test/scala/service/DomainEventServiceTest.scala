@@ -13,11 +13,11 @@ import scala.compiletime.uninitialized
 
 class FailingEventRepository extends EventRepository:
   override def save(event: Event): Either[Throwable, Unit]   = Left(new RuntimeException("Database connection failed"))
-  override def findById(id_event: String): Option[Event]     = None
+  override def findById(eventId: String): Option[Event]      = None
   override def update(event: Event): Either[Throwable, Unit] = Left(new RuntimeException("Database connection failed"))
   override def findAllPublished(): Either[Throwable, List[Event]] =
     Left(new RuntimeException("Database connection failed"))
-  override def delete(id_event: String): Either[Throwable, Unit] =
+  override def delete(eventId: String): Either[Throwable, Unit] =
     Left(new RuntimeException("Database connection failed"))
 
   override def findByFilters(
@@ -52,7 +52,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       title: Option[String] = Some("Test Event"),
       description: Option[String] = Some("Test Description"),
       poster: Option[String] = Some("test-poster.jpg"),
-      tags: Option[List[EventTag]] = Some(List(EventTag.VenueType.Bar)),
+      tags: Option[List[EventTag]] = Some(List(EventTag.Venue.Bar)),
       location: Option[Location] = Some(Location.create(
         country = Some("Test Country"),
         country_code = Some("TC"),
@@ -66,13 +66,13 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       price: Option[Double] = Some(15.0),
       date: Option[LocalDateTime] = Some(LocalDateTime.of(2025, 12, 31, 20, 0)),
       status: EventStatus = EventStatus.DRAFT,
-      id_creator: String = "creator-123",
-      id_collaborators: Option[List[String]] = None
+      creatorId: String = "creator-123",
+      collaboratorIds: Option[List[String]] = None
   ): CreateEventCommand =
-    CreateEventCommand(title, description, poster, tags, location, date, price, status, id_creator, id_collaborators)
+    CreateEventCommand(title, description, poster, tags, location, date, price, status, creatorId, collaboratorIds)
 
   private def validUpdateEventCommand(
-      id_event: String,
+      eventId: String,
       title: Option[String],
       description: Option[String] = None,
       tags: Option[List[EventTag]] = None,
@@ -80,10 +80,10 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       date: Option[LocalDateTime] = None,
       price: Option[Double] = None,
       status: EventStatus = EventStatus.DRAFT,
-      id_collaborators: Option[List[String]] = None
+      collaboratorIds: Option[List[String]] = None
   ): UpdateEventCommand =
     UpdateEventCommand(
-      id_event,
+      eventId,
       title,
       description,
       tags,
@@ -91,7 +91,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       date,
       price,
       status,
-      id_collaborators
+      collaboratorIds
     )
 
   "DomainEventService" should "be instantiated correctly" in:
@@ -118,12 +118,12 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     val createCmd    = validCreateEventCommand()
     val createResult = service.execCommand(createCmd)
     createResult.isRight shouldBe true
-    val id_event = createResult.fold(
+    val eventId = createResult.fold(
       _ => fail("Failed to create event"),
       identity
     )
     val updateCmd = validUpdateEventCommand(
-      id_event = id_event,
+      eventId = eventId,
       title = Some("Updated Event Title"),
       price = Some(25.0)
     )
@@ -132,7 +132,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
 
   it should "fail when updating a non-existent event" in:
     val updateCmd = validUpdateEventCommand(
-      id_event = "non-existent-event-id",
+      eventId = "non-existent-event-id",
       title = Some("Updated Event Title")
     )
     val updateResult = service.execCommand(updateCmd)
@@ -145,7 +145,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     val failingRepo    = new FailingEventRepository()
     val failingService = new DomainEventService(failingRepo, publisher)
     val updateCmd = validUpdateEventCommand(
-      id_event = "some-event-id",
+      eventId = "some-event-id",
       title = Some("Updated Event Title")
     )
     val updateResult = failingService.execCommand(updateCmd)
@@ -158,11 +158,11 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     val createCmd    = validCreateEventCommand()
     val createResult = service.execCommand(createCmd)
     createResult.isRight shouldBe true
-    val id_event = createResult.fold(
+    val eventId = createResult.fold(
       _ => fail("Failed to create event"),
       identity
     )
-    val deleteCmd    = DeleteEventCommand(id_event)
+    val deleteCmd    = DeleteEventCommand(eventId)
     val deleteResult = service.execCommand(deleteCmd)
     deleteResult.isRight shouldBe true
 
@@ -170,14 +170,14 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     val createCmd    = validCreateEventCommand(status = EventStatus.PUBLISHED)
     val createResult = service.execCommand(createCmd)
     createResult.isRight shouldBe true
-    val id_event = createResult.fold(
+    val eventId = createResult.fold(
       _ => fail("Failed to create event"),
       identity
     )
-    val deleteCmd    = DeleteEventCommand(id_event)
+    val deleteCmd    = DeleteEventCommand(eventId)
     val deleteResult = service.execCommand(deleteCmd)
     deleteResult.isRight shouldBe true
-    val fetchedEvent = repo.findById(id_event)
+    val fetchedEvent = repo.findById(eventId)
     fetchedEvent match
       case Some(event) => event.status shouldBe EventStatus.CANCELLED
       case None        => fail("Event should exist after deletion")
@@ -186,14 +186,14 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     val createCmd    = validCreateEventCommand(status = EventStatus.DRAFT)
     val createResult = service.execCommand(createCmd)
     createResult.isRight shouldBe true
-    val id_event = createResult.fold(
+    val eventId = createResult.fold(
       _ => fail("Failed to create event"),
       identity
     )
-    val deleteCmd    = DeleteEventCommand(id_event)
+    val deleteCmd    = DeleteEventCommand(eventId)
     val deleteResult = service.execCommand(deleteCmd)
     deleteResult.isRight shouldBe true
-    val fetchedEvent = repo.findById(id_event)
+    val fetchedEvent = repo.findById(eventId)
     fetchedEvent match
       case Some(_) => fail("Event should be deleted from the database")
       case None    => succeed

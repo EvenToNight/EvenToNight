@@ -106,7 +106,7 @@ const submitReview = async () => {
       updateReview?.(props.existingReview.eventId, props.existingReview.userId)
     } else {
       // Create new review
-      await api.interactions.createEventReview(selectedEvent.value!.id_event, reviewData)
+      await api.interactions.createEventReview(selectedEvent.value!.eventId, reviewData)
     }
 
     isOpen.value = false

@@ -46,7 +46,7 @@ const displayValue = computed({
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
   if (!query) {
     update(() => {
-      const found = eventOptions.value.find((e) => e.id_event === selectedEventId.value)
+      const found = eventOptions.value.find((e) => e.eventId === selectedEventId.value)
       eventOptions.value = found ? [found] : []
       hasSearched.value = false
     })

@@ -1,35 +1,119 @@
 asyncapi: "2.5.0"
+
 info:
-  title: EvenToNight - Async API
+  title: EvenToNight - Events Async API
   version: "1.0.0"
-  description: API for rabbitmq
+  description: |
+    AsyncAPI specification for domain events published on RabbitMQ
+    by the Events service.
+
+servers:
+  rabbitmq:
+    url: amqp://localhost:5672
+    protocol: amqp
+    description: RabbitMQ broker
 
 channels:
-  user-created:
+  event.published:
+    description: Event emitted when an event is published
     subscribe:
-      summary: User Created Event
-      description: Event triggered when a new user is created.
-      operationId: onUserCreated
+      operationId: onEventPublished
       message:
-        contentType: application/json
-        payload:
-          $ref: "#/components/schemas/UserCreatedEvent"
-          
+        $ref: "#/components/messages/EventPublishedMessage"
+
+  event.updated:
+    description: Event emitted when an event is updated
+    subscribe:
+      operationId: onEventUpdated
+      message:
+        $ref: "#/components/messages/EventUpdatedMessage"
+
+  event.deleted:
+    description: Event emitted when an event is deleted
+    subscribe:
+      operationId: onEventDeleted
+      message:
+        $ref: "#/components/messages/EventDeletedMessage"
+
 components:
+  messages:
+    EventPublishedMessage:
+      name: EventPublished
+      title: Event Published
+      contentType: application/json
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventPublished"
+
+    EventUpdatedMessage:
+      name: EventUpdated
+      title: Event Updated
+      contentType: application/json
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventUpdated"
+
+    EventDeletedMessage:
+      name: EventDeleted
+      title: Event Deleted
+      contentType: application/json
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventDeleted"
+
   schemas:
-    UserCreatedEvent:
+    EventHeaders:
       type: object
       properties:
-        username:
+        event-type:
           type: string
-        email:
+          description: Routing key of the event
+          example: event.published
+        producer:
           type: string
-          nullable: true
-        description:
+          example: events-service
+        schema:
           type: string
-          nullable: true
-        profilePicture:
+          example: "1"
+      required:
+        - event-type
+
+    EventPublished:
+      type: object
+      properties:
+        eventId:
           type: string
+        creatorId:
+          type: string
+        collaboratorIds:
+          type: array
+          items:
+            type: string
           nullable: true
       required:
-        - username
+        - eventId
+        - creatorId
+
+    EventUpdated:
+      type: object
+      properties:
+        eventId:
+          type: string
+        collaboratorIds:
+          type: array
+          items:
+            type: string
+          nullable: true
+      required:
+        - eventId
+
+    EventDeleted:
+      type: object
+      properties:
+        eventId:
+          type: string
+      required:
+        - eventId

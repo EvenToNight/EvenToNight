@@ -49,9 +49,9 @@ paths:
                     - `date` (string, ISO 8601 format): Event date and time (e.g., "2026-07-15T20:00:00")
                     - `price` (number): Event ticket price
                     - `status` (string): Event status, must be "DRAFT" or "PUBLISHED"
-                    - `id_creator` (string): ID of the event creator
-                    - `id_collaborators` (List of strings): IDs of collaborators. Optional
-                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","id_creator":"user-123","id_collaborators":["user-456"]}'
+                    - `creatorId` (string): ID of the event creator
+                    - `collaboratorIds` (List of strings): IDs of collaborators. Optional
+                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","creatorId":"user-123","collaboratorIds":["user-456"]}'
                 poster:
                   type: string
                   format: binary
@@ -67,7 +67,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  id_event:
+                  eventId:
                     type: string
                     description: Unique identifier of the created event
                     example: "evt_789xyz"
@@ -120,7 +120,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        id_event:
+                        eventId:
                           type: string
                           description: Event ID
                         title:
@@ -189,10 +189,10 @@ paths:
                           type: string
                           format: date-time
                           description: Event creation timestamp
-                        id_creator:
+                        creatorId:
                           type: string
                           description: ID of the event creator
-                        id_collaborators:
+                        collaboratorIds:
                           type: array
                           items:
                             type: string
@@ -211,8 +211,8 @@ paths:
                       address: "Via Arena 1"
                     tags: ["MUSIC"]
                     posterUrl: "http://media:9020/posters/evt123.jpg"
-                    id_creator: "user456"
-                    id_collaborators: ["org789"]
+                    creatorId: "user456"
+                    collaboratorIds: ["org789"]
                 limit: null
                 offset: 0
                 hasMore: false        
@@ -406,10 +406,10 @@ paths:
                         posterUrl:
                           type: string
                           description: Event poster URL
-                        id_creator:
+                        creatorId:
                           type: string
                           description: ID of the event creator
-                        id_collaborators:
+                        collaboratorIds:
                           type: array
                           items:
                             type: string
@@ -437,7 +437,7 @@ paths:
                         location:
                           name: "Arena"
                           city: "Bologna"
-                        tags: ["MUSIC"]
+                        tags: ["Concert"]
                     limit: 10
                     offset: 0
                     hasMore: true
@@ -490,7 +490,7 @@ paths:
       tags:
         - Event Query API
   
-  /{id_event}/poster:
+  /{eventId}/poster:
     post:
       summary: Update event poster
       description: Updates the poster image for a specific event. The event must exist before updating its poster.
@@ -499,7 +499,7 @@ paths:
           description: Events service (local development)
       parameters:
         - in: path
-          name: id_event
+          name: eventId
           required: true
           schema:
             type: string
@@ -555,7 +555,7 @@ paths:
       tags:
         - Event Query API
 
-  /{id_event}:
+  /{eventId}:
     get:
       summary: Get event details by ID
       description: Retrieves detailed information about a specific event.
@@ -565,7 +565,7 @@ paths:
         - url: https://events.eventonight.site
           description: Events service (production)
       parameters:
-        - name: id_event
+        - name: eventId
           in: path
           required: true
           description: The ID of the event to retrieve
@@ -580,7 +580,7 @@ paths:
               schema:
                 type: object
                 properties:
-                  id_event:
+                  eventId:
                     type: string
                     description: Event ID
                   title:
@@ -641,17 +641,17 @@ paths:
                     type: string
                     format: date-time
                     description: Event creation timestamp
-                  id_creator:
+                  creatorId:
                     type: string
                     description: ID of the event creator
-                  id_collaborators:
+                  collaboratorIds:
                     type: array
                     items:
                       type: string
                     description: IDs of the collaborators (if any)
                     nullable: true
               example:
-                id_event: "event-uuid-123"
+                eventId: "event-uuid-123"
                 title: "Summer Music Festival"
                 description: "An amazing summer music festival"
                 poster: "poster-123.jpg"
@@ -672,8 +672,8 @@ paths:
                 date: "2026-07-15T20:00:00"
                 status: "DRAFT"
                 instant: "2026-11-22T10:00:00Z"
-                id_creator: "user-123"
-                id_collaborators: []
+                creatorId: "user-123"
+                collaboratorIds: []
         '404':
           description: Event not found
           content:
@@ -695,14 +695,14 @@ paths:
         Old event will be overwritten with the new provided data.
         All fields are optional.
 
-        If status is updated to "PUBLISHED", all field are required except `id_collaborators` and `poster`.
+        If status is updated to "PUBLISHED", all field are required except `collaboratorIds` and `poster`.
         
-        **Note:** To update the poster, use the separate `POST /poster/{id_event}` endpoint.
+        **Note:** To update the poster, use the separate `POST /poster/{eventId}` endpoint.
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
       parameters:
-        - name: id_event
+        - name: eventId
           in: path
           required: true
           description: The ID of the event to update
@@ -736,7 +736,7 @@ paths:
                 - `date` (string, ISO 8601 format): Event date and time
                 - `price` (number): Event ticket price
                 - `status` (string): Event status ("DRAFT", "PUBLISHED", or "CANCELLED")
-                - `id_collaborators` (array of strings): IDs of collaborators
+                - `collaboratorIds` (array of strings): IDs of collaborators
               properties:
                 title:
                   type: string
@@ -791,7 +791,7 @@ paths:
                   enum: [DRAFT, PUBLISHED, CANCELLED]
                   description: Event status (optional)
                   example: "PUBLISHED"
-                id_collaborators:
+                collaboratorIds:
                   type: array
                   items:
                     type: string
@@ -870,7 +870,7 @@ paths:
         - url: http://localhost:9010
           description: Events service (local development)
       parameters:
-        - name: id_event
+        - name: eventId
           in: path
           required: true
           description: The ID of the event to delete
@@ -934,8 +934,8 @@ paths:
                       description: List of tags for the category
               example: |
                 [
-                  {"category": "TypeOfEvent", "tags": ["Party", "Live Music"]},
-                  {"category": "VenueType", "tags": ["Club", "Bar"]}
+                  {"category": "EventType", "tags": ["Party", "Live Music"]},
+                  {"category": "Venue", "tags": ["Club", "Bar"]}
                 ]
       tags: 
         - Event Tag Routes   
@@ -956,10 +956,10 @@ paths:
           schema:
             type: string
             enum:
-              - TypeOfEvent
-              - VenueType
-              - MusicGenre
-              - Theme
+              - EventType
+              - Venue
+              - MusicStyle
+              - Special
               - Target
               - Extra
           description: The category of tags to retrieve.

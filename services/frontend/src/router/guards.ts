@@ -81,7 +81,7 @@ export const requireEventCreator = async (
 
   try {
     const event = await api.events.getEventById(eventId)
-    if (event.id_creator !== authStore.user?.id) {
+    if (event.creatorId !== authStore.user?.id) {
       const locale = getLocale(to)
       next({ name: FORBIDDEN_ROUTE_NAME, params: { locale } })
     } else {
@@ -112,7 +112,7 @@ export const requireNotDraft = async (
     const event = await api.events.getEventById(eventId)
     if (event.status === 'DRAFT') {
       const locale = getLocale(to)
-      if (authStore.user?.id === event.id_creator) {
+      if (authStore.user?.id === event.creatorId) {
         next({ name: EDIT_EVENT_ROUTE_NAME, params: { locale, id: eventId } })
       } else {
         next({ name: HOME_ROUTE_NAME, params: { locale } })

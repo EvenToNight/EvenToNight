@@ -37,8 +37,8 @@ const { t } = useI18n()
       />
       <EventReviewsPreview
         v-else-if="event.status === 'COMPLETED'"
-        :eventId="event.id_event"
-        :organizationId="event.id_creator"
+        :eventId="event.eventId"
+        :organizationId="event.creatorId"
       />
     </div>
   </div>

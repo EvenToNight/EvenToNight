@@ -13,9 +13,9 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
   private val mediaServiceUrl = "http://media:9020"
   private val host            = sys.env.getOrElse("HOST", "localhost")
 
-  @cask.get("/:id_event")
-  def getEvent(id_event: String): cask.Response[ujson.Value] =
-    val command = GetEventCommand(id_event)
+  @cask.get("/:eventId")
+  def getEvent(eventId: String): cask.Response[ujson.Value] =
+    val command = GetEventCommand(eventId)
     eventService.handleCommand(command) match
       case Right(e: Event) =>
         cask.Response(e.toJson, statusCode = 200)
@@ -107,18 +107,18 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
           statusCode = 404
         )
 
-  @cask.postForm("/:id_event/poster")
-  def updateEventPoster(id_event: String, poster: cask.FormFile): cask.Response[ujson.Value] =
-    eventService.handleCommand(GetEventCommand(id_event)) match
+  @cask.postForm("/:eventId/poster")
+  def updateEventPoster(eventId: String, poster: cask.FormFile): cask.Response[ujson.Value] =
+    eventService.handleCommand(GetEventCommand(eventId)) match
       case Left(value) =>
         cask.Response(
           Obj("error" -> s"$value"),
           statusCode = 404
         )
       case _ =>
-        val posterUrl = Utils.uploadPosterToMediaService(id_event, Some(poster), mediaServiceUrl)
+        val posterUrl = Utils.uploadPosterToMediaService(eventId, Some(poster), mediaServiceUrl)
         val updateCommand = UpdateEventPosterCommand(
-          id_event = id_event,
+          eventId = eventId,
           posterUrl = s"http://media.$host/$posterUrl"
         )
         eventService.handleCommand(updateCommand) match

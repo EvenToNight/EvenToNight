@@ -85,7 +85,7 @@ export const mockInteractionsApi: InteractionAPI = {
     return { ...getPaginatedItems(reviews, pagination), totalItems: reviews.length }
   },
   async createEventReview(eventId: EventID, review: EventReviewData): Promise<void> {
-    if (!mockEvents.find((event) => event.id_event === eventId)) {
+    if (!mockEvents.find((event) => event.eventId === eventId)) {
       throw {
         message: `Event ${eventId} not found`,
         code: 'EVENT_NOT_FOUND',
@@ -139,8 +139,8 @@ export const mockInteractionsApi: InteractionAPI = {
     organizationId: UserID,
     pagination?: PaginatedRequest
   ): Promise<GetReviewWithStatisticsResponse> {
-    const organizationEvents = mockEvents.filter((event) => event.id_creator === organizationId)
-    const eventIds = organizationEvents.map((event) => event.id_event)
+    const organizationEvents = mockEvents.filter((event) => event.creatorId === organizationId)
+    const eventIds = organizationEvents.map((event) => event.eventId)
     const reviews = mockEventReviews.filter((review) => eventIds.includes(review.eventId))
     const averageRating =
       reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length || 0

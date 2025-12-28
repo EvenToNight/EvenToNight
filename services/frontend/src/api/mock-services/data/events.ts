@@ -10,7 +10,7 @@ import {
 
 export const mockEvents: Event[] = [
   {
-    id_event: '1',
+    eventId: '1',
     title: 'Techno vibes',
     description:
       'Join us for an unforgettable night of electronic music featuring top DJs from around the world. Experience the best techno vibes in one of the most iconic venues. The night will feature multiple stages with different music styles, from deep house to hard techno.',
@@ -20,11 +20,11 @@ export const mockEvents: Event[] = [
     date: new Date(2024, 11, 8, 23, 0),
     price: 25,
     status: 'COMPLETED',
-    id_creator: 'organization_1',
-    id_collaborators: ['organization_2', 'organization_3'],
+    creatorId: 'organization_1',
+    collaboratorIds: ['organization_2', 'organization_3'],
   },
   {
-    id_event: '2',
+    eventId: '2',
     title: 'House Music Night',
     description:
       "Experience the finest house music in London's legendary Fabric nightclub. Featuring international DJs and the best sound system in the UK. Get ready for a night of deep grooves and unforgettable beats.",
@@ -34,11 +34,11 @@ export const mockEvents: Event[] = [
     date: new Date(2024, 11, 15, 22, 0),
     price: 20,
     status: 'PUBLISHED',
-    id_creator: 'organization_2',
-    id_collaborators: [],
+    creatorId: 'organization_2',
+    collaboratorIds: [],
   },
   {
-    id_event: '3',
+    eventId: '3',
     title: 'Electronic Dreams',
     description:
       "Step into the legendary Berghain for a night of pure electronic music. One of the world's most famous techno clubs brings you an exceptional lineup of underground artists. Experience techno at its finest.",
@@ -48,11 +48,11 @@ export const mockEvents: Event[] = [
     date: new Date(2024, 11, 22, 0, 0),
     price: 18,
     status: 'PUBLISHED',
-    id_creator: 'organization_3',
-    id_collaborators: ['organization_1'],
+    creatorId: 'organization_3',
+    collaboratorIds: ['organization_1'],
   },
   {
-    id_event: '4',
+    eventId: '4',
     title: 'Summer Festival 2024',
     description:
       'The biggest summer festival of the year featuring over 50 artists across 5 stages. From sunset to sunrise, enjoy electronic music in a beautiful outdoor setting with camping options available.',
@@ -62,11 +62,11 @@ export const mockEvents: Event[] = [
     date: new Date(2025, 5, 8, 18, 0),
     price: 85,
     status: 'PUBLISHED',
-    id_creator: 'organization_2',
-    id_collaborators: [],
+    creatorId: 'organization_2',
+    collaboratorIds: [],
   },
   {
-    id_event: '5',
+    eventId: '5',
     title: 'Deep House Sessions',
     description:
       "Immerse yourself in the smooth sounds of deep house at Berlin's Watergate. Located by the river with stunning views, this venue offers an intimate setting for true house music lovers.",
@@ -76,11 +76,11 @@ export const mockEvents: Event[] = [
     date: new Date(2024, 11, 28, 23, 30),
     price: 15,
     status: 'PUBLISHED',
-    id_creator: 'organization_1',
-    id_collaborators: [],
+    creatorId: 'organization_1',
+    collaboratorIds: [],
   },
   {
-    id_event: '6',
+    eventId: '6',
     title: 'Minimal Techno Night',
     description: '',
     poster: 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
@@ -89,7 +89,7 @@ export const mockEvents: Event[] = [
     date: new Date(2025, 6, 5, 0, 0),
     price: 0,
     status: 'DRAFT',
-    id_creator: 'organization_1',
-    id_collaborators: [],
+    creatorId: 'organization_1',
+    collaboratorIds: [],
   },
 ]

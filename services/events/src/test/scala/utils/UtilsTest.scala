@@ -84,19 +84,19 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     location shouldBe None
 
   "Utils.uploadPosterToMediaService" should "return default URL when FormFile has no filePath" in:
-    val id_event            = "test-event-123"
+    val eventId             = "test-event-123"
     val formFileWithoutPath = FormFile("test.jpg", None, new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithoutPath), "http://media-service")
+    val result = Utils.uploadPosterToMediaService(eventId, Some(formFileWithoutPath), "http://media-service")
 
     result shouldBe "events/default.jpg"
 
   it should "return default URL when file cannot be read" in:
-    val id_event            = "test-event-456"
+    val eventId             = "test-event-456"
     val nonExistentPath     = Paths.get("/non/existent/file.jpg")
     val formFileWithBadPath = FormFile("test.jpg", Some(nonExistentPath), new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithBadPath), "http://media-service")
+    val result = Utils.uploadPosterToMediaService(eventId, Some(formFileWithBadPath), "http://media-service")
 
     result shouldBe "events/default.jpg"
 
@@ -104,12 +104,12 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val tempFile = Files.createTempFile("test-poster", ".jpg")
     Files.write(tempFile, "test image data".getBytes)
 
-    val id_event              = "test-event-789"
+    val eventId               = "test-event-789"
     val formFileWithValidPath = FormFile("test.jpg", Some(tempFile), new HeaderMap())
 
     val invalidMediaServiceUrl = "http://non-existent-service:9999"
 
-    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithValidPath), invalidMediaServiceUrl)
+    val result = Utils.uploadPosterToMediaService(eventId, Some(formFileWithValidPath), invalidMediaServiceUrl)
 
     result shouldBe "events/default.jpg"
 
@@ -117,10 +117,10 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val tempFile = Files.createTempFile("test-poster", ".jpg")
     Files.write(tempFile, "test image data".getBytes)
 
-    val id_event              = "test-event-success"
+    val eventId               = "test-event-success"
     val formFileWithValidPath = FormFile("test.jpg", Some(tempFile), new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithValidPath), "http://localhost:8080")
+    val result = Utils.uploadPosterToMediaService(eventId, Some(formFileWithValidPath), "http://localhost:8080")
 
     result shouldBe "events/default.jpg"
 
@@ -128,19 +128,19 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val tempFile = Files.createTempFile("test-poster", ".jpg")
     Files.write(tempFile, "test image data".getBytes)
 
-    val id_event              = "test-event-malformed"
+    val eventId               = "test-event-malformed"
     val formFileWithValidPath = FormFile("test.jpg", Some(tempFile), new HeaderMap())
 
     val result =
-      Utils.uploadPosterToMediaService(id_event, Some(formFileWithValidPath), "http://httpbin.org/status/500")
+      Utils.uploadPosterToMediaService(eventId, Some(formFileWithValidPath), "http://httpbin.org/status/500")
 
     result shouldBe "events/default.jpg"
 
   it should "generate correct default URL format" in:
-    val id_event            = "special-event-#123"
+    val eventId             = "special-event-#123"
     val formFileWithoutPath = FormFile("test.jpg", None, new HeaderMap())
 
-    val result = Utils.uploadPosterToMediaService(id_event, Some(formFileWithoutPath), "http://media-service")
+    val result = Utils.uploadPosterToMediaService(eventId, Some(formFileWithoutPath), "http://media-service")
 
     result shouldBe "events/default.jpg"
 
@@ -148,7 +148,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val validJson = """{
       "title": "Sample Event",
       "description": "This is a sample event.",
-      "tags": ["Bar", "Indie"],
+      "tags": ["Bar", "Rock"],
       "location": {
         "country": "USA",
         "country_code": "US",
@@ -162,21 +162,21 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "date": "2025-11-15T19:30:00",
       "price": 20.0,
       "status": "DRAFT",
-      "id_creator": "creator-001",
-      "id_collaborators": ["collab-001"]
+      "creatorId": "creator-001",
+      "collaboratorIds": ["collab-001"]
     }"""
 
     val command = Utils.getCreateCommandFromJson(validJson)
 
     command.title shouldBe Some("Sample Event")
     command.description shouldBe Some("This is a sample event.")
-    command.tags.get should contain allElementsOf List(EventTag.VenueType.Bar, EventTag.MusicGenre.Indie)
+    command.tags.get should contain allElementsOf List(EventTag.Venue.Bar, EventTag.MusicStyle.Rock)
     command.location.get.country shouldBe Some("USA")
     command.date shouldBe Some(java.time.LocalDateTime.parse("2025-11-15T19:30:00"))
     command.price shouldBe Some(20.0)
     command.status shouldBe EventStatus.DRAFT
-    command.id_creator shouldBe "creator-001"
-    command.id_collaborators shouldBe Some(List("collab-001"))
+    command.creatorId shouldBe "creator-001"
+    command.collaboratorIds shouldBe Some(List("collab-001"))
 
   it should "handle JSON with missing optional fields" in:
     val partialJson = """{
@@ -196,18 +196,18 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "date": "2025-12-01T10:00:00",
       "price": 0.0,
       "status": "PUBLISHED",
-      "id_creator": "creator-002"
+      "creatorId": "creator-002"
     }"""
     val command     = Utils.getCreateCommandFromJson(partialJson)
     command.title shouldBe Some("Partial Event")
     command.description shouldBe Some("This event has missing optional fields.")
-    command.tags.get should contain(EventTag.TypeOfEvent.Concert)
+    command.tags.get should contain(EventTag.EventType.Concert)
     command.location.get.country shouldBe Some("UK")
     command.date shouldBe Some(java.time.LocalDateTime.parse("2025-12-01T" + "10:00:00"))
     command.price shouldBe Some(0.0)
     command.status shouldBe EventStatus.PUBLISHED
-    command.id_creator shouldBe "creator-002"
-    command.id_collaborators shouldBe None
+    command.creatorId shouldBe "creator-002"
+    command.collaboratorIds shouldBe None
 
   it should "throw on invalid JSON for CreateEventCommand" in:
     val invalidJson = "{ invalid json structure"
@@ -244,20 +244,20 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "date": "2026-01-20T18:00:00",
       "price": 30.0,
       "status": "CANCELLED",
-      "id_collaborators": ["collab-002"]
+      "collaboratorIds": ["collab-002"]
     }"""
 
     val command = Utils.getUpdateCommandFromJson("event-123", validJson)
 
-    command.id_event shouldBe "event-123"
+    command.eventId shouldBe "event-123"
     command.title shouldBe Some("Updated Event Title")
     command.description shouldBe Some("Updated description.")
-    command.tags.getOrElse(List()) should contain allElementsOf List(EventTag.VenueType.Club, EventTag.MusicGenre.Rock)
+    command.tags.getOrElse(List()) should contain allElementsOf List(EventTag.Venue.Club, EventTag.MusicStyle.Rock)
     command.location.map(_.country).flatten shouldBe Some("Canada")
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-01-20T18:00:00"))
     command.price shouldBe Some(30.0)
     command.status shouldBe EventStatus.CANCELLED
-    command.id_collaborators shouldBe Some(List("collab-002"))
+    command.collaboratorIds shouldBe Some(List("collab-002"))
 
   it should "handle JSON with missing optional fields" in:
     val partialJson = """{
@@ -267,15 +267,15 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       "status": "DRAFT"
     }"""
     val command     = Utils.getUpdateCommandFromJson("event-456", partialJson)
-    command.id_event shouldBe "event-456"
+    command.eventId shouldBe "event-456"
     command.title shouldBe Some("Partially Updated Title")
     command.description shouldBe None
-    command.tags.get should contain(EventTag.TypeOfEvent.Concert)
+    command.tags.get should contain(EventTag.EventType.Concert)
     command.location shouldBe None
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-02-10" + "T12:00:00"))
     command.price shouldBe None
     command.status shouldBe EventStatus.DRAFT
-    command.id_collaborators shouldBe None
+    command.collaboratorIds shouldBe None
 
   it should "throw on invalid JSON for UpdateEventCommand" in:
     val invalidJson = "{ invalid json structure"
@@ -300,14 +300,14 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       title = Some("Past Event"),
       description = Some("This event is in the past."),
       poster = Some("past.jpg"),
-      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      tags = Some(List(EventTag.EventType.Concert)),
       location = None,
       date = Some(java.time.LocalDateTime.now().minusDays(5)),
       price = Some(10.0),
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
-      id_creator = "creator-past",
-      id_collaborators = None
+      creatorId = "creator-past",
+      collaboratorIds = None
     )
 
     val updatedEvent = Utils.updateEventIfPastDate(pastEvent)
@@ -320,14 +320,14 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       title = Some("Future Event"),
       description = Some("This event is in the future."),
       poster = Some("future.jpg"),
-      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      tags = Some(List(EventTag.EventType.Concert)),
       location = None,
       date = Some(java.time.LocalDateTime.now().plusDays(10)),
       price = Some(15.0),
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
-      id_creator = "creator-future",
-      id_collaborators = None
+      creatorId = "creator-future",
+      collaboratorIds = None
     )
     val updatedEvent = Utils.updateEventIfPastDate(futureEvent)
     updatedEvent.status shouldBe EventStatus.PUBLISHED
@@ -338,14 +338,14 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       title = Some("Completed Event"),
       description = Some("This event is already completed."),
       poster = Some("completed.jpg"),
-      tags = Some(List(EventTag.TypeOfEvent.Party)),
+      tags = Some(List(EventTag.EventType.Party)),
       location = None,
       date = Some(java.time.LocalDateTime.now().minusDays(15)),
       price = Some(20.0),
       status = EventStatus.COMPLETED,
       instant = java.time.Instant.now(),
-      id_creator = "creator-completed",
-      id_collaborators = None
+      creatorId = "creator-completed",
+      collaboratorIds = None
     )
     val updatedEvent = Utils.updateEventIfPastDate(completedEvent)
     updatedEvent.status shouldBe EventStatus.COMPLETED
@@ -369,8 +369,8 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     )
     commands.title shouldBe Some("Music Fest")
     commands.tags.getOrElse(List()) should contain allElementsOf List(
-      EventTag.TypeOfEvent.Concert,
-      EventTag.MusicGenre.Rock
+      EventTag.EventType.Concert,
+      EventTag.MusicStyle.Rock
     )
     commands.status shouldBe Some(EventStatus.PUBLISHED)
     commands.startDate shouldBe Some(java.time.LocalDateTime.parse("2025-10-01T00:00:00"))
@@ -405,8 +405,8 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.offset shouldBe Some(5)
     commands.title shouldBe Some("Music Fest")
     commands.tags.getOrElse(List()) should contain allElementsOf List(
-      EventTag.TypeOfEvent.Concert,
-      EventTag.MusicGenre.Rock
+      EventTag.EventType.Concert,
+      EventTag.MusicStyle.Rock
     )
     commands.status shouldBe Some(EventStatus.PUBLISHED)
     commands.startDate shouldBe None
@@ -494,28 +494,28 @@ class UtilsTest extends AnyFlatSpec with Matchers:
         title = Some("Event One"),
         description = Some("First event"),
         poster = Some("event1.jpg"),
-        tags = Some(List(EventTag.TypeOfEvent.Concert)),
+        tags = Some(List(EventTag.EventType.Concert)),
         location = None,
         date = Some(java.time.LocalDateTime.now().plusDays(1)),
         price = Some(10.0),
         status = EventStatus.PUBLISHED,
         instant = java.time.Instant.now(),
-        id_creator = "creator-1",
-        id_collaborators = None
+        creatorId = "creator-1",
+        collaboratorIds = None
       ),
       Event(
         _id = "event-2",
         title = Some("Event Two"),
         description = Some("Second event"),
         poster = Some("event2.jpg"),
-        tags = Some(List(EventTag.TypeOfEvent.Party)),
+        tags = Some(List(EventTag.EventType.Party)),
         location = None,
         date = Some(java.time.LocalDateTime.now().plusDays(2)),
         price = Some(15.0),
         status = EventStatus.PUBLISHED,
         instant = java.time.Instant.now(),
-        id_creator = "creator-2",
-        id_collaborators = None
+        creatorId = "creator-2",
+        collaboratorIds = None
       )
     )
 

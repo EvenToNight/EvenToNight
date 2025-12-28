@@ -56,10 +56,10 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
       <div class="events-grid">
         <EventCard
           v-for="item in events"
-          :key="item.event.id_event"
+          :key="item.event.eventId"
           :event="item.event"
           :isFavorite="item.isFavorite"
-          @favorite-toggle="emit('favorite-toggle', item.event.id_event, $event)"
+          @favorite-toggle="emit('favorite-toggle', item.event.eventId, $event)"
           @auth-required="emit('auth-required')"
         />
       </div>

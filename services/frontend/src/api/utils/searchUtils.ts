@@ -67,7 +67,7 @@ const processEventSearchResults = async (
     if (relevance > 0) {
       return {
         type: 'event',
-        id: event.id_event,
+        id: event.eventId,
         title: event.title,
         location: event.location.name || event.location.city,
         date: new Date(event.date),

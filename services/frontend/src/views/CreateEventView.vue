@@ -102,7 +102,7 @@ const loadEvent = async () => {
     description.value = event.description ?? ''
     price.value = String(event.price ?? '')
     tags.value = event.tags ?? []
-    collaborators.value = event.id_collaborators ?? []
+    collaborators.value = event.collaboratorIds ?? []
     if (event.location) {
       location.value = {
         label: buildLocationDisplayName(event.location),
@@ -237,7 +237,7 @@ const saveDraft = async () => {
       message: t('eventCreationForm.successForEventPublication'),
     })
   }
-  goToUserProfile(eventData.id_creator)
+  goToUserProfile(eventData.creatorId)
 }
 
 const buildEventData = (status: CreationEventStatus): PartialEventData => {
@@ -250,8 +250,8 @@ const buildEventData = (status: CreationEventStatus): PartialEventData => {
     date: date.value && time.value ? new Date(`${date.value}T${time.value}`) : undefined,
     price: Number(price.value) || undefined,
     status: status,
-    id_creator: currentUserId!,
-    id_collaborators: collaborators.value.length > 0 ? collaborators.value : undefined,
+    creatorId: currentUserId!,
+    collaboratorIds: collaborators.value.length > 0 ? collaborators.value : undefined,
   }
 }
 
@@ -305,7 +305,7 @@ const onSubmit = async () => {
         color: 'positive',
         message: t('eventCreationForm.successForEventPublication'),
       })
-      goToEventDetails(response.id_event)
+      goToEventDetails(response.eventId)
     }
   } catch (error) {
     console.error('Failed to save event:', error)

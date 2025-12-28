@@ -51,7 +51,7 @@ const formatDate = (date: Date) => {
 <template>
   <div
     class="event-card"
-    @click="isDraft ? goToEditEvent(event.id_event) : goToEventDetails(event.id_event)"
+    @click="isDraft ? goToEditEvent(event.eventId) : goToEventDetails(event.eventId)"
   >
     <div class="event-image-container">
       <img

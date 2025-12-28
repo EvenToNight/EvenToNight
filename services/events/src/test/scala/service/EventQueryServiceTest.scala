@@ -23,7 +23,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       title = Some("Sample Event"),
       description = Some("This is a sample event."),
       poster = Some("sample_poster.png"),
-      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      tags = Some(List(EventTag.EventType.Concert)),
       location = Some(Location.create(
         country = Some("Test Country"),
         country_code = Some("TC"),
@@ -37,21 +37,21 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       price = Some(15.0),
       date = Some(LocalDateTime.now().plusDays(1)),
       status = EventStatus.PUBLISHED,
-      id_creator = "creator123",
-      id_collaborators = None
+      creatorId = "creator123",
+      collaboratorIds = None
     )
 
-  private def validGetEventCommand(id_event: String): GetEventCommand =
-    GetEventCommand(id_event)
+  private def validGetEventCommand(eventId: String): GetEventCommand =
+    GetEventCommand(eventId)
 
   private def validGetAllEventsCommand(): GetAllEventsCommand =
     GetAllEventsCommand()
 
   private def validUpdateEventPosterCommand(
-      id_event: String,
+      eventId: String,
       posterUrl: String
   ): UpdateEventPosterCommand =
-    UpdateEventPosterCommand(id_event, posterUrl)
+    UpdateEventPosterCommand(eventId, posterUrl)
 
   "EventQueryService" should "be instantiated correctly" in:
     service.`should`(be(a[EventQueryService]))
@@ -95,12 +95,12 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
   "execCommand(updateEventPosterCommand)" should "update event poster successfully for existing event" in:
     val event = createEvent()
     repo.save(event)
-    val updateCmd    = validUpdateEventPosterCommand(id_event = event._id, posterUrl = "new-poster.jpg")
+    val updateCmd    = validUpdateEventPosterCommand(eventId = event._id, posterUrl = "new-poster.jpg")
     val updateResult = service.execCommand(updateCmd)
     updateResult.isRight shouldBe true
 
   it should "fail to update event poster for non-existing event" in:
-    val updateCmd    = validUpdateEventPosterCommand(id_event = "nonexistent-id", posterUrl = "new-poster.jpg")
+    val updateCmd    = validUpdateEventPosterCommand(eventId = "nonexistent-id", posterUrl = "new-poster.jpg")
     val updateResult = service.execCommand(updateCmd)
     updateResult.isLeft shouldBe true
     updateResult match
@@ -108,9 +108,9 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       case Right(_)    => fail("Update should have failed for non-existing event")
 
   "execCommand(getFilteredEventsCommand)" should "retrieve events based on filters" in:
-    val event1 = createEvent().copy(title = Some("Rock Concert"), tags = Some(List(EventTag.TypeOfEvent.Concert)))
-    val event2 = createEvent().copy(title = Some("Disco"), tags = Some(List(EventTag.TypeOfEvent.Party)))
-    val event3 = createEvent().copy(title = Some("Jazz Night"), tags = Some(List(EventTag.TypeOfEvent.Concert)))
+    val event1 = createEvent().copy(title = Some("Rock Concert"), tags = Some(List(EventTag.EventType.Concert)))
+    val event2 = createEvent().copy(title = Some("Disco"), tags = Some(List(EventTag.EventType.Party)))
+    val event3 = createEvent().copy(title = Some("Jazz Night"), tags = Some(List(EventTag.EventType.Concert)))
 
     repo.save(event1)
     repo.save(event2)
@@ -121,7 +121,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       offset = Some(0),
       status = Some(EventStatus.PUBLISHED),
       title = None,
-      tags = Some(List(EventTag.TypeOfEvent.Concert)),
+      tags = Some(List(EventTag.EventType.Concert)),
       startDate = None,
       endDate = None,
       id_organization = None,

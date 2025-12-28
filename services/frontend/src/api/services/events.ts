@@ -15,13 +15,11 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async getTags(): Promise<GetTagResponse> {
     return eventsClient.get<GetTagResponse>('/tags')
   },
-  async getEventById(id_event: EventID): Promise<GetEventByIdResponse> {
-    return eventsClient.get<GetEventByIdResponse>(`/${id_event}`)
+  async getEventById(eventId: EventID): Promise<GetEventByIdResponse> {
+    return eventsClient.get<GetEventByIdResponse>(`/${eventId}`)
   },
-  async getEventsByIds(id_events: EventID[]): Promise<EventsDataResponse> {
-    const eventsResponses = await Promise.all(
-      id_events.map((id_event) => this.getEventById(id_event))
-    )
+  async getEventsByIds(eventIds: EventID[]): Promise<EventsDataResponse> {
+    const eventsResponses = await Promise.all(eventIds.map((eventId) => this.getEventById(eventId)))
     return { events: eventsResponses }
   },
   async createEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
@@ -38,7 +36,7 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     formData.append('event', JSON.stringify(backendEventData))
     return eventsClient.post<PublishEventResponse>('/', formData)
   },
-  async updateEventData(id_event: EventID, eventData: PartialEventData): Promise<void> {
+  async updateEventData(eventId: EventID, eventData: PartialEventData): Promise<void> {
     const { poster, date, ...rest } = eventData
     const backendEventData = {
       ...rest,
@@ -47,15 +45,15 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     console.log('createEvent backendEventData1', date?.toISOString())
 
     console.log('updateEventData backendEventData', backendEventData)
-    await eventsClient.put(`/${id_event}`, backendEventData)
+    await eventsClient.put(`/${eventId}`, backendEventData)
   },
-  async updateEventPoster(id_event: EventID, poster: File): Promise<void> {
+  async updateEventPoster(eventId: EventID, poster: File): Promise<void> {
     const formData = new FormData()
     formData.append('poster', poster)
-    await eventsClient.post(`/${id_event}/poster`, formData)
+    await eventsClient.post(`/${eventId}/poster`, formData)
   },
-  async deleteEvent(id_event: EventID): Promise<void> {
-    await eventsClient.delete(`/${id_event}`)
+  async deleteEvent(eventId: EventID): Promise<void> {
+    await eventsClient.delete(`/${eventId}`)
   },
   async searchEvents(params: {
     title?: string

@@ -8,10 +8,10 @@ class EventTagRoutes extends Routes:
   @cask.get("/tags")
   def getTags(): cask.Response[ujson.Value] =
     val tags = List(
-      ("TypeOfEvent", EventTag.TypeOfEvents),
-      ("VenueType", EventTag.VenueTypes),
-      ("MusicGenre", EventTag.MusicGenres),
-      ("Theme", EventTag.Themes),
+      ("EventType", EventTag.EventTypes),
+      ("Venue", EventTag.Venues),
+      ("MusicStyle", EventTag.MusicStyles),
+      ("Special", EventTag.Specials),
       ("Target", EventTag.Targets),
       ("Extra", EventTag.Extras)
     )
@@ -31,13 +31,13 @@ class EventTagRoutes extends Routes:
   @cask.get("/tags/:category")
   def getTagsByCategory(category: String): cask.Response[ujson.Value] =
     val tagList = category match
-      case "TypeOfEvent" => EventTag.TypeOfEvents
-      case "VenueType"   => EventTag.VenueTypes
-      case "MusicGenre"  => EventTag.MusicGenres
-      case "Theme"       => EventTag.Themes
-      case "Target"      => EventTag.Targets
-      case "Extra"       => EventTag.Extras
-      case _             => List.empty
+      case "EventType"  => EventTag.EventTypes
+      case "Venue"      => EventTag.Venues
+      case "MusicStyle" => EventTag.MusicStyles
+      case "Special"    => EventTag.Specials
+      case "Target"     => EventTag.Targets
+      case "Extra"      => EventTag.Extras
+      case _            => List.empty
     cask.Response(
       Arr.from(tagList),
       statusCode = 200

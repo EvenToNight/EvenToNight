@@ -35,7 +35,7 @@ object Utils:
       case Success(location) => Some(location)
       case Failure(_)        => println("Failed to parse location JSON"); None
 
-  def uploadPosterToMediaService(id_event: String, posterOpt: Option[cask.FormFile], mediaServiceUrl: String): String =
+  def uploadPosterToMediaService(eventId: String, posterOpt: Option[cask.FormFile], mediaServiceUrl: String): String =
     def defaultUrl = "events/default.jpg"
     posterOpt match
       case None => defaultUrl
@@ -46,7 +46,7 @@ object Utils:
             fileBytes <- Try(Files.readAllBytes(path)).toEither
             response <- Try {
               requests.post(
-                s"$mediaServiceUrl/events/$id_event",
+                s"$mediaServiceUrl/events/$eventId",
                 data = requests.MultiPart(
                   requests.MultiItem(
                     name = "file",
@@ -75,8 +75,8 @@ object Utils:
       case None    => None
     val price: Option[Double] = eventData.obj.get("price").map(_.num)
     val status                = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
-    val id_creator            = eventData("id_creator").str
-    val id_collaborators      = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
+    val creatorId             = eventData("creatorId").str
+    val collaboratorIds       = eventData.obj.get("collaboratorIds").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
     CreateEventCommand(
       title = title,
@@ -86,24 +86,24 @@ object Utils:
       date = date,
       price = price,
       status = status,
-      id_creator = id_creator,
-      id_collaborators = id_collaborators
+      creatorId = creatorId,
+      collaboratorIds = collaboratorIds
     )
 
-  def getUpdateCommandFromJson(id_event: String, newEvent: String): UpdateEventCommand =
+  def getUpdateCommandFromJson(eventId: String, newEvent: String): UpdateEventCommand =
     val eventData = ujson.read(newEvent)
 
-    val title            = eventData.obj.get("title").map(_.str).filter(_.nonEmpty)
-    val description      = eventData.obj.get("description").map(_.str).filter(_.nonEmpty)
-    val tags             = eventData.obj.get("tags").map(t => validateTagList(t.toString())).flatten
-    val location         = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString())).flatten
-    val date             = eventData.obj.get("date").map(d => LocalDateTime.parse(d.str))
-    val price            = eventData.obj.get("price").map(_.num)
-    val status           = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
-    val id_collaborators = eventData.obj.get("id_collaborators").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
+    val title           = eventData.obj.get("title").map(_.str).filter(_.nonEmpty)
+    val description     = eventData.obj.get("description").map(_.str).filter(_.nonEmpty)
+    val tags            = eventData.obj.get("tags").map(t => validateTagList(t.toString())).flatten
+    val location        = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString())).flatten
+    val date            = eventData.obj.get("date").map(d => LocalDateTime.parse(d.str))
+    val price           = eventData.obj.get("price").map(_.num)
+    val status          = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
+    val collaboratorIds = eventData.obj.get("collaboratorIds").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
     UpdateEventCommand(
-      id_event = id_event,
+      eventId = eventId,
       title = title,
       description = description,
       tags = tags,
@@ -111,7 +111,7 @@ object Utils:
       date = date,
       price = price,
       status = status,
-      id_collaborators = id_collaborators
+      collaboratorIds = collaboratorIds
     )
 
   private def pastDate(eventDate: LocalDateTime): Boolean =

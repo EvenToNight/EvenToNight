@@ -31,14 +31,14 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
           )
         case Right(_) =>
           eventService.handleCommand(command) match
-            case Right(id_event: String) =>
-              val posterUrl = Utils.uploadPosterToMediaService(id_event, posterOpt, mediaServiceUrl)
+            case Right(eventId: String) =>
+              val posterUrl = Utils.uploadPosterToMediaService(eventId, posterOpt, mediaServiceUrl)
               val updateCommand =
-                UpdateEventPosterCommand(id_event = id_event, posterUrl = s"http://media.$host/$posterUrl")
+                UpdateEventPosterCommand(eventId = eventId, posterUrl = s"http://media.$host/$posterUrl")
               eventService.handleCommand(updateCommand) match
                 case Right(_) =>
                   cask.Response(
-                    Obj("id_event" -> id_event),
+                    Obj("eventId" -> eventId),
                     statusCode = 201
                   )
                 case Left(error) =>
@@ -68,11 +68,11 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
           statusCode = 400
         )
 
-  @cask.put("/:id_event/")
-  def updateEvent(id_event: String, request: cask.Request): cask.Response[ujson.Value] =
+  @cask.put("/:eventId/")
+  def updateEvent(eventId: String, request: cask.Request): cask.Response[ujson.Value] =
     try
       val event   = request.text()
-      val command = Utils.getUpdateCommandFromJson(id_event, event)
+      val command = Utils.getUpdateCommandFromJson(eventId, event)
 
       eventService.handleCommand(command) match
         case Right(_) =>
@@ -97,9 +97,9 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
           statusCode = 400
         )
 
-  @cask.delete("/:id_event/")
-  def deleteEvent(id_event: String): cask.Response[ujson.Value] =
-    eventService.handleCommand(DeleteEventCommand(id_event)) match
+  @cask.delete("/:eventId/")
+  def deleteEvent(eventId: String): cask.Response[ujson.Value] =
+    eventService.handleCommand(DeleteEventCommand(eventId)) match
       case Right(_) =>
         cask.Response(
           Obj("message" -> "Event deleted successfully"),
