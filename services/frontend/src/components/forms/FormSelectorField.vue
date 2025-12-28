@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useSlots, computed } from 'vue'
 
 interface Props {
   modelValue: any
@@ -8,6 +9,9 @@ interface Props {
 
 defineProps<Props>()
 const { t } = useI18n()
+const slots = useSlots()
+
+const hasOptionSlot = computed(() => !!slots.option)
 </script>
 
 <template>
@@ -22,7 +26,7 @@ const { t } = useI18n()
     input-debounce="300"
     class="q-my-md"
   >
-    <template #option="scope">
+    <template v-if="hasOptionSlot" #option="scope">
       <slot name="option" v-bind="scope" />
     </template>
     <template #no-option>
