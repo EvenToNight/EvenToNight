@@ -3,6 +3,7 @@ import type { EventID } from '../types/events'
 import type {
   EventReview,
   EventReviewData,
+  UpdateEventReviewData,
   OrganizationReviewsStatistics,
 } from '../types/interaction'
 import type {
@@ -29,6 +30,7 @@ export interface InteractionAPI {
   unfollowUser(targetUserId: UserID, currentUserId: UserID): Promise<void>
   getEventReviews(eventId: EventID, pagination?: PaginatedRequest): Promise<GetReviewResponse>
   createEventReview(eventId: EventID, review: EventReviewData): Promise<void>
+  updateEventReview(eventId: EventID, userId: UserID, review: UpdateEventReviewData): Promise<void>
   getOrganizationReviews(
     organizationId: UserID,
     pagination?: PaginatedRequest

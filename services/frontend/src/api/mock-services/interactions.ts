@@ -5,7 +5,7 @@ import type {
   InteractionAPI,
 } from '../interfaces/interactions'
 import type { EventID } from '../types/events'
-import type { EventReviewData } from '../types/interaction'
+import type { EventReviewData, UpdateEventReviewData } from '../types/interaction'
 import type { UserID } from '../types/users'
 import { mockEvents } from './data/events'
 import { mockUsers } from './data/members'
@@ -115,6 +115,24 @@ export const mockInteractionsApi: InteractionAPI = {
         }
       }
     }
+    return
+  },
+  async updateEventReview(
+    eventId: EventID,
+    userId: UserID,
+    review: UpdateEventReviewData
+  ): Promise<void> {
+    const reviewIndex = mockEventReviews.findIndex(
+      (r) => r.eventId === eventId && r.userId === userId
+    )
+    if (reviewIndex === -1) {
+      throw {
+        message: `Review for event ${eventId} by user ${userId} not found`,
+        code: 'REVIEW_NOT_FOUND',
+        status: 404,
+      }
+    }
+    console.log('Updated review:', { eventId, userId, review })
     return
   },
   async getOrganizationReviews(

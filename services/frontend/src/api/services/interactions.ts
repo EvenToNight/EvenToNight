@@ -7,7 +7,7 @@ import type {
 import type { EventID } from '../types/events'
 import type { ApiClient } from '../client'
 import type { UserID } from '../types/users'
-import type { EventReviewData } from '../types/interaction'
+import type { EventReviewData, UpdateEventReviewData } from '../types/interaction'
 import type { PaginatedRequest } from '../interfaces/commons'
 import { evaluatePagination, buildQueryParams } from '../utils'
 
@@ -41,6 +41,13 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
   },
   async createEventReview(eventId: EventID, review: EventReviewData): Promise<void> {
     return interactionsClient.post<void>(`/events/${eventId}/reviews`, review)
+  },
+  async updateEventReview(
+    eventId: EventID,
+    userId: UserID,
+    review: UpdateEventReviewData
+  ): Promise<void> {
+    return interactionsClient.put<void>(`/events/${eventId}/reviews/${userId}`, review)
   },
   async getOrganizationReviews(
     organizationId: UserID,

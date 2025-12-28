@@ -14,7 +14,7 @@ import type { Tag } from '@/api/types/events'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useI18n } from 'vue-i18n'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
-import { notEmpty } from '@/components/forms/validationUtils'
+import { notEmpty, required } from '@/components/forms/validationUtils'
 const { t } = useI18n()
 const $q = useQuasar()
 
@@ -213,6 +213,12 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
   }
 }
 
+const handleLocationInputValue = (val: string) => {
+  if (!val || val.trim() === '') {
+    location.value = null
+  }
+}
+
 const saveDraft = async () => {
   const eventData: PartialEventData = buildEventData('DRAFT')
   if (isEditMode.value) {
@@ -262,8 +268,8 @@ const handleDelete = async () => {
       color: 'negative',
       textColor: 'black',
       label: t('eventCreationForm.deleteEvent'),
-      focus: false,
     },
+    focus: 'none',
   }).onOk(async () => {
     try {
       await api.events.deleteEvent(eventId.value)
@@ -450,8 +456,10 @@ const onSubmit = async () => {
             use-input
             fill-input
             hide-selected
-            :rules="[notEmpty(t('eventCreationForm.locationError'))]"
+            clearable
+            :rules="[required(t('eventCreationForm.locationError'))]"
             @filter="filterLocations"
+            @input-value="handleLocationInputValue"
           >
             <template #no-option>
               <q-item>
@@ -472,7 +480,7 @@ const onSubmit = async () => {
 
           <q-field
             :model-value="poster"
-            :rules="[notEmpty(t('eventCreationForm.posterError'))]"
+            :rules="[required(t('eventCreationForm.posterError'))]"
             lazy-rules="ondemand"
             hide-bottom-space
             borderless

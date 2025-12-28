@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch, inject } from 'vue'
 import { api } from '@/api'
-import type { Event } from '@/api/types/events'
+import type { Event, EventID } from '@/api/types/events'
 import { useAuthStore } from '@/stores/auth'
-import type { Rating } from '@/api/types/interaction'
+import type { Rating, EventReview } from '@/api/types/interaction'
 import RatingStars from './ratings/RatingStars.vue'
 import { useI18n } from 'vue-i18n'
 import { required, notEmpty } from '@/components/forms/validationUtils'
@@ -15,19 +15,47 @@ const authStore = useAuthStore()
 
 interface Props {
   creatorId: string
-  selectedEvent?: Event
+  selectedEventId?: EventID
+  existingReview?: EventReview
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  selectedEventId: undefined,
+  existingReview: undefined,
+})
 const isOpen = defineModel<boolean>('isOpen', { required: true })
 
-const selectedEvent = ref<Event | null>(props.selectedEvent ?? null)
+const selectedEvent = ref<Event | null>(null)
+const updateReview = inject<((eventId: string, userId: string) => void) | undefined>(
+  'updateReview',
+  undefined
+)
+// Watch for selectedEventId prop changes and load the event
+watch(
+  () => props.selectedEventId,
+  async (eventId) => {
+    if (!eventId) {
+      selectedEvent.value = null
+      return
+    }
+
+    try {
+      const event = await api.events.getEventById(eventId)
+      selectedEvent.value = event
+      eventOptions.value = [event]
+    } catch (error) {
+      console.error('Failed to load event:', error)
+      selectedEvent.value = null
+    }
+  },
+  { immediate: true }
+)
 const eventOptions = ref<Event[]>([])
 const hasSearched = ref(false)
 
-const rating = ref<Rating>(5)
-
-const reviewDescription = ref('')
+const rating = ref<Rating>(props.existingReview?.rating ?? 5)
+const reviewTitle = ref(props.existingReview?.title ?? '')
+const reviewDescription = ref(props.existingReview?.comment ?? '')
 
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
   update(() => {
@@ -55,20 +83,32 @@ const handleInputValue = (val: string) => {
   }
 }
 
-const reviewTitle = ref('')
-
 const submittingReview = ref(false)
 const submitReview = async () => {
   submittingReview.value = true
   try {
-    await api.interactions.createEventReview(selectedEvent.value!.id_event, {
+    const reviewData = {
       userId: authStore.user!.id,
       organizationId: props.creatorId,
       collaboratorsId: [],
-      rating: 5,
-      title: 'TITLE',
-      comment: 'COMMENT',
-    })
+      rating: rating.value,
+      title: reviewTitle.value,
+      comment: reviewDescription.value,
+    }
+
+    if (props.existingReview) {
+      // Update existing review
+      await api.interactions.updateEventReview(
+        props.existingReview.eventId,
+        props.existingReview.userId,
+        reviewData
+      )
+      updateReview?.(props.existingReview.eventId, props.existingReview.userId)
+    } else {
+      // Create new review
+      await api.interactions.createEventReview(selectedEvent.value!.id_event, reviewData)
+    }
+
     isOpen.value = false
   } catch (error) {
     console.error('Failed to submit review:', error)
@@ -93,6 +133,7 @@ const submitReview = async () => {
             option-label="title"
             label="Seleziona evento"
             :rules="[required('Seleziona un evento')]"
+            :disable="!!existingReview"
             use-input
             hide-selected
             fill-input

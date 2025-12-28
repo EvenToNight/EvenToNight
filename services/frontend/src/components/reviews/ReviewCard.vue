@@ -4,6 +4,7 @@ import { useQuasar } from 'quasar'
 import type { EventReview } from '@/api/types/interaction'
 import type { Event } from '@/api/types/events'
 import RatingStars from './ratings/RatingStars.vue'
+import SubmitReviewDialog from './SubmitReviewDialog.vue'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
@@ -20,6 +21,7 @@ const props = withDefaults(defineProps<Props>(), {
 const { goToUserProfile, goToEventDetails } = useNavigation()
 const authStore = useAuthStore()
 const $q = useQuasar()
+
 const deleteReview = inject<((eventId: string, userId: string) => void) | undefined>(
   'deleteReview',
   undefined
@@ -32,6 +34,7 @@ const isOwnReview = computed(() => {
 const userName = ref<string>('Loading...')
 const userAvatar = ref<string | null>(null)
 const eventInfo = ref<Event | null>(null)
+const showEditDialog = ref(false)
 
 const loadUserInfo = async () => {
   try {
@@ -76,8 +79,8 @@ const handleDelete = () => {
       color: 'negative',
       textColor: 'black',
       label: 'Elimina',
-      focus: false,
     },
+    focus: 'none',
   }).onOk(async () => {
     try {
       await api.interactions.deleteEventReview(props.review.eventId, props.review.userId)
@@ -114,6 +117,12 @@ onMounted(() => {
       <q-btn v-if="isOwnReview" flat round dense icon="more_vert" class="review-menu-btn">
         <q-menu>
           <q-list>
+            <q-item v-close-popup clickable @click="showEditDialog = true">
+              <q-item-section avatar>
+                <q-icon name="edit" />
+              </q-item-section>
+              <q-item-section>Modifica</q-item-section>
+            </q-item>
             <q-item v-close-popup clickable @click="handleDelete">
               <q-item-section avatar>
                 <q-icon name="delete" color="negative" />
@@ -137,6 +146,13 @@ onMounted(() => {
       <h3 class="review-title">{{ review.title }}</h3>
       <p class="review-description">{{ review.comment }}</p>
     </div>
+
+    <SubmitReviewDialog
+      v-model:isOpen="showEditDialog"
+      :creator-id="review.organizationId"
+      :selected-event-id="review.eventId"
+      :existing-review="review"
+    />
   </div>
 </template>
 

@@ -15,7 +15,7 @@ const { query, params, goToUserProfile } = useNavigation()
 const organizationId = computed(() => params.organizationId as string)
 const tempEventId = ref<EventID | null>((query.eventId as EventID) || null)
 const tempSelectedRating = ref<Rating | null>(null)
-const allReviews = ref<EventReview[]>([])
+const reviews = ref<EventReview[]>([])
 const loading = ref(true)
 const organizationName = ref<string>('')
 const organizationAvatar = ref<string>('')
@@ -23,27 +23,11 @@ const organizationAvatar = ref<string>('')
 const showReviewDialog = ref(false)
 const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 
-const reviews = computed(() => {
-  let filtered = allReviews.value
-
-  // Filter by event if selected
-  if (tempEventId.value) {
-    filtered = filtered.filter((review) => review.eventId === tempEventId.value)
-  }
-
-  // Filter by rating if selected
-  if (tempSelectedRating.value) {
-    filtered = filtered.filter((review) => review.rating === tempSelectedRating.value)
-  }
-
-  return filtered
-})
-
 const loadReviews = async () => {
   loading.value = true
   try {
     const response = await api.interactions.getOrganizationReviews(organizationId.value)
-    allReviews.value = response.items
+    reviews.value = response.items
     reviewsStatistics.value = {
       averageRating: response.averageRating,
       totalReviews: response.totalReviews,
@@ -55,7 +39,6 @@ const loadReviews = async () => {
     loading.value = false
   }
 }
-
 const loadOrganizationInfo = async () => {
   try {
     const response = await api.users.getUserById(organizationId.value)
@@ -66,18 +49,15 @@ const loadOrganizationInfo = async () => {
   }
 }
 
-const goToOrganizationProfile = () => {
-  if (organizationId.value) {
-    goToUserProfile(organizationId.value)
-  }
-}
-
-const handleDeleteReview = (eventId: string, userId: string) => {
+const handleUpdateReview = async (eventId: string, userId: string) => {
   console.log('review deleted', eventId, userId)
+  await loadReviews()
+  console.log('reviews reloaded')
   // allReviews.value = allReviews.value.filter((review) => review.id !== reviewId)
 }
 
-provide('deleteReview', handleDeleteReview)
+provide('deleteReview', handleUpdateReview)
+provide('updateReview', handleUpdateReview)
 
 onMounted(() => {
   loadReviews()
@@ -93,11 +73,15 @@ onMounted(() => {
         <div class="header-section">
           <div class="title-row">
             <div v-if="organizationId" class="organization-info">
-              <q-avatar size="40px" class="organization-avatar" @click="goToOrganizationProfile">
+              <q-avatar
+                size="40px"
+                class="organization-avatar"
+                @click="goToUserProfile(organizationId)"
+              >
                 <img v-if="organizationAvatar" :src="organizationAvatar" :alt="organizationName" />
                 <q-icon v-else name="business" />
               </q-avatar>
-              <span class="organization-name" @click="goToOrganizationProfile">{{
+              <span class="organization-name" @click="goToUserProfile(organizationId)">{{
                 organizationName
               }}</span>
             </div>
@@ -129,6 +113,7 @@ onMounted(() => {
       v-if="organizationId"
       v-model:isOpen="showReviewDialog"
       :creator-id="organizationId"
+      :selected-event-id="tempEventId ?? undefined"
     />
   </div>
 </template>
