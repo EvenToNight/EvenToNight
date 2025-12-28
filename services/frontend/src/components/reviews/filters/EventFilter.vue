@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed } from 'vue'
 import type { Event, EventID } from '@/api/types/events'
 import { api } from '@/api'
 import type { UserID } from '@/api/types/users'
 
 interface Props {
-  selectedEventId: EventID | null
   organizationId: UserID
 }
 
@@ -13,53 +12,23 @@ const props = defineProps<Props>()
 const hasSearched = ref(false)
 const hasFocus = ref(false)
 
-const emit = defineEmits<{
-  'update:selectedEventId': [selectedEventId: EventID | null]
-}>()
-
-const selectedEventId = ref<EventID | null>(props.selectedEventId)
+const selectedEventId = defineModel<EventID | null>('selectedEventId', { required: true })
 const eventOptions = ref<Event[]>([])
-
-watch(selectedEventId, (newValue) => {
-  emit('update:selectedEventId', newValue)
-})
 
 const displayValue = computed({
   get(): EventID | null | undefined {
-    if (hasFocus.value && selectedEventId.value === null) {
-      return undefined
+    if (selectedEventId.value === null) {
+      if (hasFocus.value) {
+        return undefined
+      } else {
+        return 'Tutti gli eventi'
+      }
     }
     return selectedEventId.value
   },
   set(value: EventID | null | undefined) {
     selectedEventId.value = value ?? null
   },
-})
-
-const focusGained = () => {
-  hasFocus.value = true
-}
-
-const focusLost = () => {
-  hasFocus.value = false
-  if (!selectedEventId.value) {
-    selectedEventId.value = null
-  }
-}
-
-const allEventOptions = computed(() => {
-  const options: Array<{ title: string; id_event: string | null; poster?: string }> = []
-
-  if (!hasFocus.value) {
-    options.push({ title: 'Tutti gli eventi', id_event: null })
-  }
-
-  eventOptions.value.forEach((event) => {
-    if (event) {
-      options.push({ title: event.title, id_event: event.id_event, poster: event.poster })
-    }
-  })
-  return options
 })
 
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
@@ -85,7 +54,7 @@ const filterEvents = (query: string, update: (callback: () => void) => void) => 
 <template>
   <q-select
     v-model="displayValue"
-    :options="allEventOptions"
+    :options="eventOptions"
     option-value="id_event"
     option-label="title"
     label="Filtra per evento"
@@ -97,8 +66,8 @@ const filterEvents = (query: string, update: (callback: () => void) => void) => 
     emit-value
     input-debounce="300"
     :clearable="selectedEventId !== null"
-    @focus="focusGained"
-    @blur="focusLost"
+    @focus="hasFocus = true"
+    @blur="hasFocus = false"
     @filter="filterEvents"
   >
     <template #option="scope">
