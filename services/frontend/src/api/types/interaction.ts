@@ -26,7 +26,6 @@ export interface EventReviewData {
   comment: string
 }
 export interface EventReview extends EventReviewData {
-  id: string
   eventId: EventID
 }
 

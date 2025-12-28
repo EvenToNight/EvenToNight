@@ -53,7 +53,7 @@ onMounted(() => {
     <div class="reviews-list">
       <ReviewCard
         v-for="review in reviews"
-        :key="review.id"
+        :key="review.eventId + '-' + review.userId"
         :review="review"
         :show-event-info="false"
       />

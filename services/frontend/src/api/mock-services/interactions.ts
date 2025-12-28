@@ -141,11 +141,13 @@ export const mockInteractionsApi: InteractionAPI = {
       ratingDistribution,
     }
   },
-  async deleteEventReview(_eventId: EventID, reviewId: string): Promise<void> {
-    const reviewIndex = mockEventReviews.findIndex((review) => review.id === reviewId)
+  async deleteEventReview(eventId: EventID, userId: UserID): Promise<void> {
+    const reviewIndex = mockEventReviews.findIndex(
+      (review) => review.eventId === eventId && review.userId === userId
+    )
     if (reviewIndex === -1) {
       throw {
-        message: `Review ${reviewId} not found`,
+        message: `Review for event ${eventId} by user ${userId} not found`,
         code: 'REVIEW_NOT_FOUND',
         status: 404,
       }

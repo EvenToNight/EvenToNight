@@ -25,7 +25,11 @@ withDefaults(defineProps<Props>(), {
     </div>
 
     <div v-else class="reviews-container">
-      <ReviewCard v-for="review in reviews" :key="review.id" :review="review" />
+      <ReviewCard
+        v-for="review in reviews"
+        :key="review.eventId + '-' + review.userId"
+        :review="review"
+      />
     </div>
   </div>
 </template>

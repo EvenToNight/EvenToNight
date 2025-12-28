@@ -50,7 +50,7 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
       `/organizations/${organizationId}/reviews${buildQueryParams({ ...evaluatePagination(pagination) })}`
     )
   },
-  async deleteEventReview(eventId: EventID, reviewId: string): Promise<void> {
-    return interactionsClient.delete<void>(`/events/${eventId}/reviews/${reviewId}`)
+  async deleteEventReview(eventId: EventID, userId: UserID): Promise<void> {
+    return interactionsClient.delete<void>(`/events/${eventId}/reviews/${userId}`)
   },
 })

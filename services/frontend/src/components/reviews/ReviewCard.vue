@@ -20,7 +20,10 @@ const props = withDefaults(defineProps<Props>(), {
 const { goToUserProfile, goToEventDetails } = useNavigation()
 const authStore = useAuthStore()
 const $q = useQuasar()
-const deleteReview = inject<((reviewId: string) => void) | undefined>('deleteReview', undefined)
+const deleteReview = inject<((eventId: string, userId: string) => void) | undefined>(
+  'deleteReview',
+  undefined
+)
 
 const isOwnReview = computed(() => {
   return authStore.user?.id === props.review.userId
@@ -77,8 +80,8 @@ const handleDelete = () => {
     },
   }).onOk(async () => {
     try {
-      await api.interactions.deleteEventReview(props.review.eventId, props.review.id)
-      deleteReview?.(props.review.id)
+      await api.interactions.deleteEventReview(props.review.eventId, props.review.userId)
+      deleteReview?.(props.review.eventId, props.review.userId)
     } catch (error) {
       console.error('Failed to delete review:', error)
       $q.notify({

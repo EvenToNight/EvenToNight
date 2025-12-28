@@ -33,5 +33,5 @@ export interface InteractionAPI {
     organizationId: UserID,
     pagination?: PaginatedRequest
   ): Promise<GetReviewWithStatisticsResponse>
-  deleteEventReview(eventId: EventID, reviewId: string): Promise<void>
+  deleteEventReview(eventId: EventID, userId: UserID): Promise<void>
 }

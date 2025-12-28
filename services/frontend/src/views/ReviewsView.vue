@@ -72,8 +72,8 @@ const goToOrganizationProfile = () => {
   }
 }
 
-const handleDeleteReview = (reviewId: string) => {
-  console.log('review deleted', reviewId)
+const handleDeleteReview = (eventId: string, userId: string) => {
+  console.log('review deleted', eventId, userId)
   // allReviews.value = allReviews.value.filter((review) => review.id !== reviewId)
 }
 
