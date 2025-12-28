@@ -20,7 +20,7 @@ const props = withDefaults(defineProps<Props>(), {
 const { goToUserProfile, goToEventDetails } = useNavigation()
 const authStore = useAuthStore()
 const $q = useQuasar()
-const deleteReview = inject<((reviewId: string) => void) | undefined>('deleteReview')
+const deleteReview = inject<((reviewId: string) => void) | undefined>('deleteReview', undefined)
 
 const isOwnReview = computed(() => {
   return authStore.user?.id === props.review.userId
