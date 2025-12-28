@@ -4,11 +4,11 @@ import TicketsTab from './tabs/TicketsTab.vue'
 import EventsTab from './tabs/EventsTab.vue'
 import ReviewsTab from './tabs/ReviewsTab.vue'
 import type { User } from '@/api/types/users'
-import { useAuthStore } from '@/stores/auth'
 import { computed, onMounted, ref } from 'vue'
 import { api } from '@/api'
 import type { Event, EventStatus } from '@/api/types/events'
 import { useI18n } from 'vue-i18n'
+import { useIsOwnProfile } from '@/composables/useProfile'
 
 interface Props {
   user: User
@@ -16,11 +16,8 @@ interface Props {
 
 const props = defineProps<Props>()
 const { t } = useI18n()
-const authStore = useAuthStore()
 
-const isOwnProfile = computed(() => {
-  return authStore.isAuthenticated && authStore.user?.id === props.user.id
-})
+const isOwnProfile = useIsOwnProfile(computed(() => props.user.id))
 const isOrganization = computed(() => {
   return props.user.role === 'organization'
 })

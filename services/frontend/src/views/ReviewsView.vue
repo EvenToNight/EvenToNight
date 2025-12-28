@@ -20,6 +20,8 @@ const loading = ref(true)
 const organizationName = ref<string>('')
 const organizationAvatar = ref<string>('')
 
+// TODO: show leave a review button if: user is Logged in (bait if user is not logged? mh sus) and is NOT own profile
+// AND user has participated in at least one event of the organization
 const showReviewDialog = ref(false)
 const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 

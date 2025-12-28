@@ -20,6 +20,7 @@ export type GetReviewWithStatisticsResponse = PaginatedResponseWithStatistics<
 
 export type GetEventLikesResponse = PaginatedResponseWithTotalCount<UserID>
 
+//TODO: find way to get user following status and if user participated to event
 export interface InteractionAPI {
   getEventLikes(eventId: EventID): Promise<GetEventLikesResponse>
   userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean>

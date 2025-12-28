@@ -72,6 +72,7 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
     //TODO: decide how to retrieve statistics from backend
     response.averageRating = 0
     response.ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+    response.totalReviews = 0
     return response
   },
   async deleteEventReview(eventId: EventID, userId: UserID): Promise<void> {
