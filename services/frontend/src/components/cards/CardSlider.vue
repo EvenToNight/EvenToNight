@@ -3,6 +3,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
+import SeeAllButton from '../buttons/basicButtons/SeeAllButton.vue'
 
 interface Props {
   title: string
@@ -74,10 +75,7 @@ onMounted(() => {
   <div class="card-slider">
     <div class="slider-header">
       <h2 class="slider-title">{{ title }}</h2>
-      <span class="see-all-link" @click="handleSeeAll">
-        <span class="see-all-text">{{ t('cards.slider.seeAll') }}</span>
-        <q-icon name="arrow_forward" size="18px" class="see-all-arrow" />
-      </span>
+      <see-all-button @click="handleSeeAll" />
     </div>
 
     <div class="cards-container-wrapper">
@@ -124,30 +122,6 @@ onMounted(() => {
 
   @media (max-width: $breakpoint-mobile) {
     font-size: $font-size-2xl;
-  }
-}
-
-.see-all-link {
-  @include flex-center;
-  gap: $spacing-2;
-  cursor: pointer;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  transition:
-    transform $transition-base,
-    gap $transition-base;
-  transform-origin: left center;
-
-  &:hover {
-    transform: scale(1.05);
-    gap: $spacing-3;
-    .see-all-arrow {
-      transform: scale(1.05);
-    }
-  }
-
-  &:active {
-    transform: scale(0.95);
   }
 }
 

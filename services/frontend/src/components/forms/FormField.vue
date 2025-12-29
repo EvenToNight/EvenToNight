@@ -1,29 +1,20 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useSlots } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 export type FormFieldType = 'text' | 'email' | 'password' | 'date' | 'time' | 'textarea' | 'number'
 
 interface Props {
   modelValue: string
-  label: string
   type?: FormFieldType
-  error?: string
   icon?: string
 }
 
 const props = withDefaults(defineProps<Props>(), {
   type: 'text',
-  error: '',
   icon: '',
 })
 
-const emit = defineEmits<{
-  'update:modelValue': [value: string]
-}>()
-
-const { t } = useI18n()
 const slots = useSlots()
 const hasPrependSlot = computed(() => !!slots.prepend)
 
@@ -36,41 +27,21 @@ const inputType = computed(() => {
   return props.type
 })
 
-const rules = computed(() => {
-  if (props.type === 'email') {
-    return [
-      (val: string) => {
-        if (!val) return true
-        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        return emailPattern.test(val) || t('auth.form.emailFormatError')
-      },
-    ]
-  }
-  return undefined
-})
-
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
-}
-
-const handleInput = (value: string | number | null) => {
-  emit('update:modelValue', String(value || ''))
 }
 </script>
 
 <template>
   <q-input
     :model-value="modelValue"
+    v-bind="$attrs"
     :type="inputType"
-    :label="label"
-    :error="!!error"
-    :error-message="error"
-    :rules="rules"
-    lazy-rules
+    lazy-rules="ondemand"
     hide-bottom-space
+    input-debounce="300"
     outlined
-    class="form-field q-mb-md"
-    @update:model-value="handleInput"
+    class="form-field q-my-md"
   >
     <template v-if="icon || hasPrependSlot" #prepend>
       <q-icon v-if="icon" :name="icon" />

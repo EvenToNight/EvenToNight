@@ -14,7 +14,7 @@ import type { Tag } from '@/api/types/events'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useI18n } from 'vue-i18n'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
-
+import { notEmpty, required } from '@/components/forms/validationUtils'
 const { t } = useI18n()
 const $q = useQuasar()
 
@@ -39,14 +39,6 @@ const tags = ref<string[]>([])
 const collaborators = ref<string[]>([])
 const location = ref<LocationOption | null>(null)
 const poster = ref<File | null>(null)
-
-const titleError = ref('')
-const dateError = ref('')
-const timeError = ref('')
-const descriptionError = ref('')
-const priceError = ref('')
-const locationError = ref('')
-const posterError = ref('')
 
 const handleImageError = (message: string) => {
   $q.notify({
@@ -194,12 +186,7 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
 
   try {
     const response = await fetch(
-      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`,
-      {
-        headers: {
-          'User-Agent': 'EvenToNight',
-        },
-      }
+      `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(val)}&addressdetails=1&limit=5`
     )
     const data = await response.json()
     update(() => {
@@ -226,51 +213,10 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
   }
 }
 
-const validateInput = (): boolean => {
-  let isValid = true
-  titleError.value = ''
-  dateError.value = ''
-  timeError.value = ''
-  descriptionError.value = ''
-  priceError.value = ''
-  locationError.value = ''
-  posterError.value = ''
-
-  if (!title.value) {
-    titleError.value = t('eventCreationForm.titleError')
-    isValid = false
+const handleLocationInputValue = (val: string) => {
+  if (!val || val.trim() === '') {
+    location.value = null
   }
-
-  if (!date.value) {
-    dateError.value = t('eventCreationForm.dateError')
-    isValid = false
-  }
-
-  if (!time.value) {
-    timeError.value = t('eventCreationForm.timeError')
-    isValid = false
-  }
-
-  if (!description.value) {
-    descriptionError.value = t('eventCreationForm.descriptionError')
-    isValid = false
-  }
-
-  if (!price.value) {
-    priceError.value = t('eventCreationForm.priceError')
-    isValid = false
-  }
-
-  if (!location.value?.value) {
-    locationError.value = t('eventCreationForm.locationError')
-    isValid = false
-  }
-
-  if (!poster.value) {
-    posterError.value = t('eventCreationForm.posterError')
-    isValid = false
-  }
-  return isValid
 }
 
 const saveDraft = async () => {
@@ -323,7 +269,7 @@ const handleDelete = async () => {
       textColor: 'black',
       label: t('eventCreationForm.deleteEvent'),
     },
-    persistent: true,
+    focus: 'none',
   }).onOk(async () => {
     try {
       await api.events.deleteEvent(eventId.value)
@@ -343,14 +289,6 @@ const handleDelete = async () => {
 }
 
 const onSubmit = async () => {
-  const isValid = validateInput()
-  if (!isValid) {
-    $q.notify({
-      color: 'negative',
-      message: t('eventCreationForm.errorForEventCreation'),
-    })
-    return
-  }
   try {
     const eventData: PartialEventData = buildEventData('PUBLISHED')
     if (isEditMode.value) {
@@ -393,19 +331,19 @@ const onSubmit = async () => {
           }}
         </h1>
 
-        <q-form class="form-container" @submit="onSubmit">
+        <q-form class="form-container" greedy @submit.prevent="onSubmit">
           <FormField
             v-model="title"
             type="text"
             :label="t('eventCreationForm.eventTitle') + ' *'"
-            :error="titleError"
+            :rules="[notEmpty(t('eventCreationForm.titleError'))]"
           />
           <FormField
             ref="dateInput"
             v-model="date"
             type="date"
             :label="t('eventCreationForm.date') + ' *'"
-            :error="dateError"
+            :rules="[notEmpty(t('eventCreationForm.dateError'))]"
           >
             <template #prepend>
               <q-icon
@@ -421,7 +359,7 @@ const onSubmit = async () => {
             v-model="time"
             type="time"
             :label="t('eventCreationForm.time') + ' *'"
-            :error="timeError"
+            :rules="[notEmpty(t('eventCreationForm.timeError'))]"
           >
             <template #prepend>
               <q-icon
@@ -436,7 +374,7 @@ const onSubmit = async () => {
             v-model="description"
             type="textarea"
             :label="t('eventCreationForm.description')"
-            :error="descriptionError"
+            :rules="[notEmpty(t('eventCreationForm.descriptionError'))]"
             rows="4"
           />
 
@@ -444,7 +382,7 @@ const onSubmit = async () => {
             v-model="price"
             type="number"
             :label="t('eventCreationForm.price') + ' (€)'"
-            :error="priceError"
+            :rules="[notEmpty(t('eventCreationForm.priceError'))]"
             prefix="€"
           />
 
@@ -455,7 +393,6 @@ const onSubmit = async () => {
             multiple
             use-chips
             use-input
-            input-debounce="300"
             emit-value
             map-options
             option-value="value"
@@ -485,7 +422,6 @@ const onSubmit = async () => {
             multiple
             use-chips
             use-input
-            input-debounce="300"
             emit-value
             map-options
             option-value="value"
@@ -520,9 +456,10 @@ const onSubmit = async () => {
             use-input
             fill-input
             hide-selected
-            input-debounce="500"
-            :error="locationError"
+            clearable
+            :rules="[required(t('eventCreationForm.locationError'))]"
             @filter="filterLocations"
+            @input-value="handleLocationInputValue"
           >
             <template #no-option>
               <q-item>
@@ -541,18 +478,24 @@ const onSubmit = async () => {
             </template>
           </FormSelectorField>
 
-          <div>
-            <ImageCropUploadTest
-              v-model="poster"
-              :label="t('eventCreationForm.eventPoster') + ' *'"
-              :button-label="t('eventCreationForm.uploadPoster')"
-              :max-size="5000000"
-              @error="handleImageError"
-            />
-            <div v-if="posterError" class="error-message">
-              {{ posterError }}
-            </div>
-          </div>
+          <q-field
+            :model-value="poster"
+            :rules="[required(t('eventCreationForm.posterError'))]"
+            lazy-rules="ondemand"
+            hide-bottom-space
+            borderless
+            class="q-my-md"
+          >
+            <template #control>
+              <ImageCropUploadTest
+                v-model="poster"
+                :label="t('eventCreationForm.eventPoster') + ' *'"
+                :button-label="t('eventCreationForm.uploadPoster')"
+                :max-size="5000000"
+                @error="handleImageError"
+              />
+            </template>
+          </q-field>
           <div class="form-actions">
             <div class="action-buttons">
               <Button

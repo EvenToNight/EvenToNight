@@ -2,12 +2,13 @@
 import TabView, { type Tab } from '@/components/navigation/TabView.vue'
 import TicketsTab from './tabs/TicketsTab.vue'
 import EventsTab from './tabs/EventsTab.vue'
+import ReviewsTab from './tabs/ReviewsTab.vue'
 import type { User } from '@/api/types/users'
-import { useAuthStore } from '@/stores/auth'
 import { computed, onMounted, ref } from 'vue'
 import { api } from '@/api'
 import type { Event, EventStatus } from '@/api/types/events'
 import { useI18n } from 'vue-i18n'
+import { useIsOwnProfile } from '@/composables/useProfile'
 
 interface Props {
   user: User
@@ -15,11 +16,8 @@ interface Props {
 
 const props = defineProps<Props>()
 const { t } = useI18n()
-const authStore = useAuthStore()
 
-const isOwnProfile = computed(() => {
-  return authStore.isAuthenticated && authStore.user?.id === props.user.id
-})
+const isOwnProfile = useIsOwnProfile(computed(() => props.user.id))
 const isOrganization = computed(() => {
   return props.user.role === 'organization'
 })
@@ -39,24 +37,34 @@ const handleTabChange = (tabId: string) => {
 
 onMounted(async () => {
   try {
-    const [publishedResponse, draftResponse] = await Promise.all([
-      api.events.searchEvents({
+    if (isOrganization.value) {
+      const [publishedResponse, draftResponse] = await Promise.all([
+        api.events.searchEvents({
+          id_organization: props.user.id,
+          status: 'PUBLISHED',
+          pagination: { limit: EVENTS_PER_PAGE },
+        }),
+        api.events.searchEvents({
+          id_organization: props.user.id,
+          status: 'DRAFT',
+          pagination: { limit: EVENTS_PER_PAGE },
+        }),
+      ])
+      organizationEvents.value = publishedResponse.items
+      organizationDraftedEvents.value = draftResponse.items
+      hasMorePublished.value = publishedResponse.hasMore
+      hasMoreDraft.value = draftResponse.hasMore
+    } else {
+      const publishedResponse = await api.events.searchEvents({
         id_organization: props.user.id,
         status: 'PUBLISHED',
         pagination: { limit: EVENTS_PER_PAGE },
-      }),
-      api.events.searchEvents({
-        id_organization: props.user.id,
-        status: 'DRAFT',
-        pagination: { limit: EVENTS_PER_PAGE },
-      }),
-    ])
-    organizationEvents.value = publishedResponse.items
-    organizationDraftedEvents.value = draftResponse.items
-    hasMorePublished.value = publishedResponse.hasMore
-    hasMoreDraft.value = draftResponse.hasMore
+      })
+      organizationEvents.value = publishedResponse.items
+      hasMorePublished.value = publishedResponse.hasMore
+    }
   } catch (error) {
-    console.error('Failed to fetch events for user:', error)
+    console.error('Failed to fetch data for user:', error)
   }
 })
 
@@ -130,6 +138,18 @@ const tabs = computed<Tab[]>(() => {
         onLoadMore: loadMoreDraft,
         emptyText: t('userProfile.noDraftedEvents'),
         emptyIconName: 'edit_note',
+      },
+    })
+  }
+
+  if (isOrganization.value) {
+    baseTabs.push({
+      id: 'reviews',
+      label: t('userProfile.reviews'),
+      icon: 'star',
+      component: ReviewsTab,
+      props: {
+        organizationId: props.user.id,
       },
     })
   }

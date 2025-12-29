@@ -4,13 +4,13 @@ import { mediaApi } from './services/media'
 import { mockFeedApi } from './mock-services/feed'
 import { createFeedApi } from './services/feed'
 import { mockInteractionsApi } from './mock-services/interactions'
-// import { createInteractionsApi } from './services/interactions'
+import { createInteractionsApi } from './services/interactions'
 import { mockUsersApi } from './mock-services/users'
 // import { createUsersApi } from './services/users'
 import {
   createEventsClient,
+  createInteractionsClient,
   // createFeedClient,
-  // createInteractionsClient,
   // createUsersClient,
 } from './client'
 
@@ -21,12 +21,11 @@ export const api = {
   events: useRealApi ? createEventsApi(createEventsClient()) : mockEventsApi,
   media: mediaApi,
   feed: useRealApi ? createFeedApi(createEventsClient()) : mockFeedApi,
-  interactions: mockInteractionsApi,
+  interactions: useRealApi
+    ? createInteractionsApi(createInteractionsClient())
+    : mockInteractionsApi,
   users: mockUsersApi,
   // media: useMockApi ? mockMediaApi : createMediaApi(createMediaClient()),
   // feed: useMockApi ? mockFeedApi : createFeedApi(createFeedClient()),
-  // interactions: useMockApi
-  //   ? mockInteractionsApi
-  //   : createInteractionsApi(createInteractionsClient()),
   // users: useMockApi ? mockUsersApi : createUsersApi(createUsersClient()),
 }

@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
 import type { User } from '@/api/types/users'
+import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
+import RatingInfo from '@/components/reviews/ratings/RatingInfo.vue'
 import { computed } from 'vue'
 import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
@@ -13,6 +15,7 @@ const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 interface Props {
   user: User
   isFollowing: boolean
+  reviewsStatistics?: OrganizationReviewsStatistics | null
 }
 
 const props = defineProps<Props>()
@@ -73,6 +76,9 @@ const handleCreateEvent = () => {
         <div class="user-info">
           <h1 class="user-name">{{ user.name }}</h1>
           <UserInfo :user="user" />
+          <template v-if="isOrganization && reviewsStatistics">
+            <RatingInfo :reviews-statistics="reviewsStatistics" />
+          </template>
           <ProfileActions
             :is-own-profile="isOwnProfile"
             :is-organization="isOrganization"
@@ -97,6 +103,9 @@ const handleCreateEvent = () => {
               @follow-toggle="handleFollowToggle"
             />
           </div>
+          <template v-if="isOrganization && reviewsStatistics">
+            <RatingInfo :reviews-statistics="reviewsStatistics" />
+          </template>
           <UserInfo :user="user" />
         </div>
       </template>
@@ -114,6 +123,9 @@ const handleCreateEvent = () => {
 
   @include dark-mode {
     background: $color-background-dark;
+  }
+  @media (max-width: $breakpoint-mobile) {
+    margin: 0 $spacing-4;
   }
 }
 
@@ -153,10 +165,13 @@ const handleCreateEvent = () => {
 .user-info {
   @include flex-column;
   flex: 1;
-  gap: $spacing-2;
+  margin-top: $spacing-2;
+  gap: $spacing-1;
 
   @media (max-width: $breakpoint-mobile) {
     @include flex-center;
+    margin-top: 0;
+    gap: $spacing-2;
   }
 }
 

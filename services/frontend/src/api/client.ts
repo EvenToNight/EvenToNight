@@ -1,4 +1,13 @@
 import type { ApiError } from './interfaces/commons'
+const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}[T:]\d{2}:\d{2}(:\d{2})?(\.\d{3})?(Z)?$/
+
+function dateReviver(_key: string, value: unknown): unknown {
+  if (typeof value === 'string' && ISO_DATE_REGEX.test(value)) {
+    const dateString = value.endsWith('Z') ? value : `${value}Z` //if not specified, treat as UTC
+    return new Date(dateString)
+  }
+  return value
+}
 
 const getServiceUrl = (service: string): string => {
   const host = import.meta.env.VITE_HOST
@@ -76,7 +85,9 @@ export class ApiClient {
     return (await this.request(endpoint, options)).blob()
   }
   private async requestJson<T>(endpoint: string, options: RequestInit): Promise<T> {
-    return (await this.request(endpoint, options)).json() as T
+    const response = await this.request(endpoint, options)
+    const text = await response.text()
+    return JSON.parse(text, dateReviver) as T
   }
   private async request(
     endpoint: string,

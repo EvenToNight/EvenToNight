@@ -7,6 +7,7 @@ import BaseAuthForm from './BaseAuthForm.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import FormField from '@/components/forms/FormField.vue'
 import { useNavigation } from '@/router/utils'
+import { isEmail, notEmpty } from '@/components/forms/validationUtils'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
@@ -15,27 +16,6 @@ const { goToHome, goToRegister, goToRedirect } = useNavigation()
 
 const email = ref('')
 const password = ref('')
-
-const emailError = ref('')
-const passwordError = ref('')
-
-const validateInput = (): boolean => {
-  let isValid = true
-  emailError.value = ''
-  passwordError.value = ''
-
-  if (!email.value) {
-    emailError.value = t('auth.form.emailError')
-    isValid = false
-  }
-
-  if (!password.value) {
-    passwordError.value = t('auth.form.passwordError')
-    isValid = false
-  }
-
-  return isValid
-}
 
 const onSuccessfulLogin = () => {
   $q.notify({
@@ -55,7 +35,6 @@ const onFailedLogin = (errorMsg?: string) => {
 }
 
 const handleLogin = async () => {
-  if (!validateInput()) return
   const result = await authStore.login(email.value, password.value)
   if (result.success) {
     onSuccessfulLogin()
@@ -79,7 +58,7 @@ const handleLogin = async () => {
         type="email"
         :label="t('auth.form.emailLabel') + ' *'"
         icon="mail"
-        :error="emailError"
+        :rules="[isEmail(t('auth.form.emailError'))]"
       />
 
       <FormField
@@ -87,7 +66,7 @@ const handleLogin = async () => {
         type="password"
         :label="t('auth.form.passwordLabel') + ' *'"
         icon="lock"
-        :error="passwordError"
+        :rules="[notEmpty(t('auth.form.passwordError'))]"
       />
     </template>
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import EventDetailsHeader from '@/components/eventDetails/EventDetailsHeader.vue'
-import EventDetailsBody from '@/components/eventDetails/EventDetailsBody.vue'
+import NavigationWithParallaxEffect from '@/layouts/NavigationWithParallaxEffect.vue'
+import EventDetailsContent from '@/components/eventDetails/EventDetailsContent.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
@@ -30,8 +30,9 @@ onMounted(async () => {
 <template>
   <div v-if="event" class="event-details-view">
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
-    <EventDetailsHeader :posterLink="event.poster" :title="event.title" />
-    <EventDetailsBody v-model:isAuthRequired="showAuthDialog" :event="event" />
+    <NavigationWithParallaxEffect :posterLink="event.poster" :title="event.title">
+      <EventDetailsContent v-model:isAuthRequired="showAuthDialog" :event="event" />
+    </NavigationWithParallaxEffect>
   </div>
 </template>
 

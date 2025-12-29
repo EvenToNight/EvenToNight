@@ -9,6 +9,7 @@ export const HOME_ROUTE_NAME = 'home'
 export const LOGIN_ROUTE_NAME = 'login'
 export const REGISTER_ROUTE_NAME = 'register'
 export const EVENT_DETAILS_ROUTE_NAME = 'event-details'
+export const EVENT_REVIEWS_ROUTE_NAME = 'event-reviews'
 export const EXPLORE_ROUTE_NAME = 'explore'
 export const USER_PROFILE_ROUTE_NAME = 'user-profile'
 export const CREATE_EVENT_ROUTE_NAME = 'create-event'
@@ -75,6 +76,11 @@ const router = createRouter({
           name: EVENT_DETAILS_ROUTE_NAME,
           component: () => import('../views/EventDetailsView.vue'),
           beforeEnter: requireNotDraft,
+        },
+        {
+          path: 'organization/:organizationId/reviews',
+          name: EVENT_REVIEWS_ROUTE_NAME,
+          component: () => import('../views/ReviewsView.vue'),
         },
         {
           path: 'explore',

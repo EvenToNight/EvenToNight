@@ -13,3 +13,26 @@ export interface UserInteraction {
   followers: UserID[]
   following: UserID[]
 }
+
+export const RATING_VALUES = [1, 2, 3, 4, 5] as const
+export type Rating = (typeof RATING_VALUES)[number]
+
+export interface UpdateEventReviewData {
+  organizationId: UserID
+  collaboratorsId: UserID[]
+  rating: Rating
+  title: string
+  comment: string
+}
+export interface EventReviewData extends UpdateEventReviewData {
+  userId: UserID
+}
+export interface EventReview extends EventReviewData {
+  eventId: EventID
+}
+
+export interface OrganizationReviewsStatistics {
+  averageRating: number
+  totalReviews: number
+  ratingDistribution: Record<Rating, number>
+}

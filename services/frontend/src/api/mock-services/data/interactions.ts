@@ -1,4 +1,4 @@
-import type { EventInteraction, UserInteraction } from '../../types/interaction'
+import type { EventInteraction, EventReview, UserInteraction } from '../../types/interaction'
 
 export const mockEventInteractions: EventInteraction[] = [
   {
@@ -70,5 +70,44 @@ export const mockUserInteractions: UserInteraction[] = [
     userId: 'organization_3',
     followers: [],
     following: ['organization_1'],
+  },
+]
+
+export const mockEventReviews: EventReview[] = [
+  {
+    eventId: '1',
+    organizationId: 'organization_1',
+    collaboratorsId: ['organization_2', 'organization_3'],
+    userId: 'member_1',
+    rating: 4,
+    title: 'Great event title!1',
+    comment: 'Great event!1',
+  },
+  {
+    eventId: '1',
+    organizationId: 'organization_1',
+    collaboratorsId: ['organization_2', 'organization_3'],
+    userId: 'member_2',
+    rating: 4,
+    title: 'Great event title!2',
+    comment: 'Great event!2',
+  },
+  {
+    eventId: '1',
+    organizationId: 'organization_1',
+    collaboratorsId: ['organization_2', 'organization_3'],
+    userId: 'member_3',
+    rating: 2,
+    title: 'Great event title!3',
+    comment: 'Great event!3',
+  },
+  {
+    eventId: '1',
+    organizationId: 'organization_1',
+    collaboratorsId: ['organization_2', 'organization_3'],
+    userId: 'member_4',
+    rating: 4,
+    title: 'Great event title!4',
+    comment: 'Great event!4',
   },
 ]
