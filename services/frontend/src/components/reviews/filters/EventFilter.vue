@@ -71,7 +71,7 @@ onMounted(() => {
   <q-select
     v-model="displayValue"
     :options="eventOptions"
-    option-value="id_event"
+    option-value="eventId"
     option-label="title"
     label="Filtra per evento"
     outlined

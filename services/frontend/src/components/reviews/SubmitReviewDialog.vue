@@ -129,7 +129,7 @@ const submitReview = async () => {
           <FormSelectorField
             v-model="selectedEvent"
             :options="eventOptions"
-            option-value="id_event"
+            option-value="eventId"
             option-label="title"
             label="Seleziona evento"
             :rules="[required('Seleziona un evento')]"
