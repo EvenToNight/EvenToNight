@@ -68,3 +68,8 @@ tasks.register("formatAndLintPreCommit") {
     description = "Formats and lints the codebase for pre-commit hook."
     dependsOn("formatAndLint")
 }
+
+tasks.named("check") {
+    dependsOn("checkStyle")
+    dependsOn("runCoverage")
+}
