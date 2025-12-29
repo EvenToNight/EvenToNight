@@ -49,7 +49,7 @@ export const mockEventsApi: EventAPI = {
   async searchEvents(params: {
     title?: string
     pagination?: PaginatedRequest
-    id_organization?: UserID
+    organizationId?: UserID
     status?: EventStatus
   }): Promise<PaginatedResponse<Event>> {
     const lowerTitle = (params.title ?? '').toLowerCase().trim()
@@ -62,9 +62,9 @@ export const mockEventsApi: EventAPI = {
       })
       .filter((event) => {
         return (
-          !params.id_organization ||
-          event.creatorId === params.id_organization ||
-          event.collaboratorIds.includes(params.id_organization)
+          !params.organizationId ||
+          event.creatorId === params.organizationId ||
+          event.collaboratorIds.includes(params.organizationId)
         )
       })
     return getPaginatedItems(events, params.pagination)

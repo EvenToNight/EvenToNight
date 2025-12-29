@@ -64,7 +64,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       tags = Some(List(EventTag.EventType.Concert)),
       startDate = Some(baseDate),
       endDate = Some(baseDate.plusDays(10)),
-      id_organization = Some("org-456"),
+      organizationId = Some("org-456"),
       city = Some("Sample City"),
       location_name = Some("Sample Venue"),
       priceRange = Some((10.0, 50.0)),
@@ -194,6 +194,6 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     command.tags shouldBe Some(List(EventTag.EventType.Concert))
     command.startDate shouldBe Some(baseDate)
     command.endDate shouldBe Some(baseDate.plusDays(10))
-    command.id_organization shouldBe Some("org-456")
+    command.organizationId shouldBe Some("org-456")
     command.city shouldBe Some("Sample City")
     command.location_name shouldBe Some("Sample Venue")

@@ -42,7 +42,7 @@ const handleInputValue = (val: string) => {
     v-model="modelValue"
     :options="eventOptions"
     v-bind="$attrs"
-    option-value="id_event"
+    option-value="eventId"
     option-label="title"
     use-input
     hide-selected

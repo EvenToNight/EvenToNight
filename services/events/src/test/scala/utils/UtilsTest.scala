@@ -359,7 +359,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       tags = Some(List("Concert", "Rock")),
       startDate = Some("2025-10-01T00:00:00"),
       endDate = Some("2025-12-31T23:59:59"),
-      id_organization = Some("123"),
+      organizationId = Some("123"),
       city = Some("New York"),
       location_name = Some("Madison Square Garden"),
       priceMin = Some(10.0),
@@ -375,7 +375,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.status shouldBe Some(EventStatus.PUBLISHED)
     commands.startDate shouldBe Some(java.time.LocalDateTime.parse("2025-10-01T00:00:00"))
     commands.endDate shouldBe Some(java.time.LocalDateTime.parse("2025-12-31T23:59:59"))
-    commands.id_organization shouldBe Some("123")
+    commands.organizationId shouldBe Some("123")
     commands.city shouldBe Some("New York")
     commands.location_name shouldBe Some("Madison Square Garden")
     commands.limit shouldBe Some(2)
@@ -393,7 +393,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       tags = Some(List("Concert", "Rock")),
       startDate = None,
       endDate = None,
-      id_organization = Some("123"),
+      organizationId = Some("123"),
       city = None,
       location_name = Some("Madison Square Garden"),
       priceMin = None,
@@ -411,7 +411,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.status shouldBe Some(EventStatus.PUBLISHED)
     commands.startDate shouldBe None
     commands.endDate shouldBe None
-    commands.id_organization shouldBe Some("123")
+    commands.organizationId shouldBe Some("123")
     commands.city shouldBe None
     commands.location_name shouldBe Some("Madison Square Garden")
     commands.priceRange shouldBe None
@@ -427,7 +427,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       tags = None,
       startDate = None,
       endDate = None,
-      id_organization = None,
+      organizationId = None,
       city = None,
       location_name = None,
       priceMin = None,
@@ -442,7 +442,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.status shouldBe Some(EventStatus.PUBLISHED)
     commands.startDate shouldBe None
     commands.endDate shouldBe None
-    commands.id_organization shouldBe None
+    commands.organizationId shouldBe None
     commands.city shouldBe None
     commands.location_name shouldBe None
     commands.priceRange shouldBe None
@@ -458,7 +458,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       tags = None,
       startDate = None,
       endDate = None,
-      id_organization = None,
+      organizationId = None,
       city = None,
       location_name = None,
       priceMin = Some(20.0),
@@ -477,7 +477,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       tags = None,
       startDate = None,
       endDate = None,
-      id_organization = None,
+      organizationId = None,
       city = None,
       location_name = None,
       priceMin = None,

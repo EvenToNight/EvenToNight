@@ -124,7 +124,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       tags = Some(List(EventTag.EventType.Concert)),
       startDate = None,
       endDate = None,
-      id_organization = None,
+      organizationId = None,
       city = None,
       location_name = None,
       priceRange = None,

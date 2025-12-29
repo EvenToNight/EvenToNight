@@ -307,7 +307,7 @@ paths:
           schema:
             type: string
             format: date-time
-        - name: id_organization
+        - name: organizationId
           in: query
           description: Filter by organization ID (search in both creators and collaborators)
           required: false
