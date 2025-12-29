@@ -59,7 +59,6 @@ onMounted(() => {
         v-for="review in reviews"
         :key="review.eventId + '-' + review.userId"
         :review="review"
-        :show-event-info="false"
       />
     </div>
     <SeeAllButton class="view-more-btn" variant="minimal" @click="goToAllReviews" />
