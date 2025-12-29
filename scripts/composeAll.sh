@@ -48,8 +48,8 @@ NOTES:
   - Requires Bash and Docker installed.
   - Changes directory to the project root before execution.
 '
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
 
@@ -65,7 +65,7 @@ FILTERED_ARGS=()
 SKIP_NEXT=false
 SKIP_TYPE=""
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
       sed -n '/^: \x27$/,/^'\''$/p' "$0" | sed '1d;$d'
       exit 0
 fi
@@ -106,14 +106,14 @@ if [[ "$HAS_CUSTOM_PATH" == false ]]; then
 fi
 
 FILE_PATTERNS=("docker-compose.yaml")
-$USE_DEV && FILE_PATTERNS+=("docker-compose-dev.yaml")
+$USE_DEV && FILE_PATTERNS+=("docker-compose-dev.yaml") || true
 
 EXCLUDE_PATTERNS=""
-for exclude in "${EXCLUDE_PATHS[@]}"; do
-    EXCLUDE_PATTERNS+=$exclude"|"
-done
-if [[ ! -z "$EXCLUDE_PATTERNS" ]]; then
-    EXCLUDE_PATTERNS=${EXCLUDE_PATTERNS%?} 
+if [[ ${#EXCLUDE_PATHS[@]} -gt 0 ]]; then
+    for exclude in "${EXCLUDE_PATHS[@]}"; do
+        EXCLUDE_PATTERNS+=$exclude"|"
+    done
+    EXCLUDE_PATTERNS=${EXCLUDE_PATTERNS%?}
 fi
 
 COMPOSE_FILES=""
@@ -121,7 +121,7 @@ for path in "${SEARCH_PATHS[@]}"; do
     for pattern in "${FILE_PATTERNS[@]}"; do
         FOUND_FILES=$(find "$path" -name "$pattern" -print)
         if [[ ! -z "$EXCLUDE_PATTERNS" ]]; then
-            FILES_TO_USE=$(echo -e "$FOUND_FILES" | grep -vE "$EXCLUDE_PATTERNS")
+            FILES_TO_USE=$(echo -e "$FOUND_FILES" | grep -vE "$EXCLUDE_PATTERNS" || true)
         else
             FILES_TO_USE="$FOUND_FILES"
         fi
