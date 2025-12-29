@@ -1,3 +1,9 @@
+## [1.11.1](https://github.com/EvenToNight/EvenToNight/compare/v1.11.0...v1.11.1) (2025-12-29)
+
+### Bug Fixes
+
+* **date:** add date reviver interceptor in API client ([afdf612](https://github.com/EvenToNight/EvenToNight/commit/afdf6122c153569c5191190722c8ddeee48311ae))
+
 ## [1.11.0](https://github.com/EvenToNight/EvenToNight/compare/v1.10.0...v1.11.0) (2025-12-29)
 
 ### Features
