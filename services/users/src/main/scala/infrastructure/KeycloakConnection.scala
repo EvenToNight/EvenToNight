@@ -13,17 +13,11 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
   val realm       = "eventonight"
   val clientId    = "users-service"
 
-  def getAccessToken() =
+  private def requestAccessToken(form: Map[String, String]): Either[String, String] =
     val tokenUrl = s"$keycloakUrl/realms/$realm/protocol/openid-connect/token"
     val request = basicRequest
       .post(uri"$tokenUrl")
-      .body(
-        Map(
-          "grant_type"    -> "client_credentials",
-          "client_id"     -> clientId,
-          "client_secret" -> clientSecret
-        )
-      )
+      .body(form)
       .header("Content-Type", "application/x-www-form-urlencoded")
 
     val response = request.send(backend)
@@ -33,8 +27,17 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
       token <- json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
     yield token
 
+  def getClientAccessToken(): Either[String, String] =
+    requestAccessToken(
+      Map(
+        "grant_type"    -> "client_credentials",
+        "client_id"     -> clientId,
+        "client_secret" -> clientSecret
+      )
+    )
+
   def createUser(username: String, email: String, password: String): Either[String, (String, String)] =
-    getAccessToken().flatMap(token =>
+    getClientAccessToken().flatMap(token =>
       val userId = UUID.randomUUID().toString()
       val jsonBody = s"""
           {
@@ -73,7 +76,7 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
     )
 
   def deleteUser(userId: String): Either[String, Unit] =
-    getAccessToken().flatMap(token =>
+    getClientAccessToken().flatMap(token =>
       val request = basicRequest
         .delete(uri"$keycloakUrl/admin/realms/$realm/users/$userId")
         .header("Authorization", s"Bearer $token")
@@ -86,7 +89,7 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
     )
 
   def getRoles(): Either[String, String] =
-    getAccessToken() match
+    getClientAccessToken() match
       case Left(err) => Left(s"Cannot get access token: $err")
       case Right(token) =>
         val request = basicRequest
@@ -105,7 +108,7 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
             Left(s"Failed to fetch roles: ${other.code} ${response.body}")
 
   def assignRoleToUser(keycloakId: String, roleId: String, roleName: String): Either[String, Unit] =
-    getAccessToken() match
+    getClientAccessToken() match
       case Left(err) => Left(s"Cannot get access token: $err")
       case Right(token) =>
         val body = List(Json.obj(
@@ -127,25 +130,12 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
             Left(s"Failed to assign role '$roleName' to user '$keycloakId': ${other.code} ${response.body}")
 
   def loginUser(usernameOrEmail: String, password: String): Either[String, String] =
-    val tokenUrl = s"$keycloakUrl/realms/$realm/protocol/openid-connect/token"
-
-    val request = basicRequest
-      .post(uri"$tokenUrl")
-      .body(
-        Map(
-          "grant_type"    -> "password",
-          "client_id"     -> clientId,
-          "client_secret" -> clientSecret,
-          "username"      -> usernameOrEmail,
-          "password"      -> password
-        )
+    requestAccessToken(
+      Map(
+        "grant_type"    -> "password",
+        "client_id"     -> clientId,
+        "client_secret" -> clientSecret,
+        "username"      -> usernameOrEmail,
+        "password"      -> password
       )
-      .header("Content-Type", "application/x-www-form-urlencoded")
-
-    val response = request.send(backend)
-
-    for
-      body  <- response.body.left.map(err => s"Keycloak error: $err")
-      json  <- parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}")
-      token <- json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
-    yield token
+    )

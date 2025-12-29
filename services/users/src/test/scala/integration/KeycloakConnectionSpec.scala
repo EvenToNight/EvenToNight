@@ -26,15 +26,15 @@ class KeycloakConnectionSpec extends AnyFlatSpec with Matchers with BeforeAndAft
     )
     createdUserIds = List()
 
-  "getAccessToken" should "retrieve an access token from Keycloak" in:
-    val tokenResult = connection.getAccessToken()
+  "getClientAccessToken" should "retrieve an access token from Keycloak" in:
+    val tokenResult = connection.getClientAccessToken()
     tokenResult.isRight shouldBe true
     val token = tokenResult.value
     token.split("\\.").length shouldBe 3
 
   it should "fail to retrieve an access token with invalid credentials" in:
     val invalidConnection = new KeycloakConnection(backend, "invalidSecret")
-    val tokenResult       = invalidConnection.getAccessToken()
+    val tokenResult       = invalidConnection.getClientAccessToken()
     tokenResult.isLeft shouldBe true
 
   "createUser" should "create a new user in Keycloak" in:

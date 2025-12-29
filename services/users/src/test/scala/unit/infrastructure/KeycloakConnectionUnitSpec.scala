@@ -57,19 +57,19 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     headers = List(Header("Location", s"/admin/realms/eventonight/users/$testKeycloakId"))
   )
 
-  "getAccessToken" should "return Right(access_token) when Keycloak returns valid JSON with access_token" in:
+  "getClientAccessToken" should "return Right(access_token) when Keycloak returns valid JSON with access_token" in:
     val connectionStub = stubbedConnectionWithResponse("""{"access_token": "test_token"}""")
-    val token          = connectionStub.getAccessToken()
+    val token          = connectionStub.getClientAccessToken()
     token shouldBe Right("test_token")
 
   it should "return Left when a connection error occurs" in:
     val connectionStub = stubbedConnectionWithError("Internal Server Error")
-    val token          = connectionStub.getAccessToken()
+    val token          = connectionStub.getClientAccessToken()
     token.left.value should include("Keycloak error")
 
   it should "return Left when Keycloak returns invalid JSON" in:
     val connectionStub = stubbedConnectionWithResponse("")
-    val token          = connectionStub.getAccessToken()
+    val token          = connectionStub.getClientAccessToken()
     token.left.value should include("Invalid JSON")
 
   it should "return Left when access_token is missing in a valid JSON" in:
@@ -77,7 +77,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
       stubbedConnectionWithResponse(
         """{"error": "invalid_client","error_description": "Client credentials are invalid"}"""
       )
-    val token = connectionStub.getAccessToken()
+    val token = connectionStub.getClientAccessToken()
     token.left.value should include("Missing access_token")
 
   "createUser" should "return Right(keycloakId, userId) when Keycloak returns 201 with Location header" in:
@@ -87,7 +87,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     keycloakId shouldBe testKeycloakId
     noException shouldBe thrownBy(UUID.fromString(userId))
 
-  it should "return Left when getAccessToken fails" in:
+  it should "return Left when getClientAccessToken fails" in:
     val connectionStub = stubbedConnectionWithError("Internal Server Error")
     val result         = connectionStub.createUser(username, email, password)
     result.isLeft shouldBe true
@@ -156,7 +156,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     result.isLeft shouldBe true
     result.left.value should include("Failed to delete user")
 
-  it should "return Left when getAccessToken fails" in:
+  it should "return Left when getClientAccessToken fails" in:
     val connectionStub = stubbedConnectionWithError("Internal Server Error")
     val result         = connectionStub.deleteUser(testKeycloakId)
     result.isLeft shouldBe true
