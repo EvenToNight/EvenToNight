@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, FilterQuery } from 'mongoose';
 import { Review } from '../schemas/review.schema';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
@@ -114,7 +114,7 @@ export class ReviewService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Review>> {
-    let filter: any;
+    let filter: FilterQuery<Review>;
     if (role === 'owner') {
       filter = { organizationId };
     } else if (role === 'collaborator') {

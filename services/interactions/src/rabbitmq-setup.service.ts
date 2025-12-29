@@ -1,9 +1,9 @@
 import * as amqp from 'amqplib';
 
+/* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access */
 export class RabbitMqSetupService {
   async setup(rabbitmqUrl: string) {
     const connection = await amqp.connect(rabbitmqUrl);
-
     const channel = await connection.createChannel();
 
     const exchange = 'events';

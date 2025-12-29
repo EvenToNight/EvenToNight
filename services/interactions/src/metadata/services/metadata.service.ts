@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Event } from '../schemas/event.schema';
 import { User } from '../schemas/user.schema';
-import { EventPublishedDto } from '../dto/event-published.dto';
+// Event payloads come from the bus; accept unknown here to avoid unsafe any
 
 @Injectable()
 export class MetadataService {
@@ -12,9 +12,10 @@ export class MetadataService {
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
-  async handleEventPublished(payload: EventPublishedDto): Promise<void> {
+  handleEventPublished(payload: unknown): Promise<void> {
     // publish event handling logic here
     console.log('Handling event published in MetadataService:', payload);
+    return Promise.resolve();
   }
 
   // TODO: Implement checks eventschema for real validation
