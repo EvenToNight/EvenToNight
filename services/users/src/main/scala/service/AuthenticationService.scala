@@ -17,3 +17,6 @@ class AuthenticationService(kc: KeycloakConnection):
       roleId <- roleIds.get(registration.userType).toRight(s"Role '${registration.userType}' not initialized")
       _      <- kc.assignRoleToUser(keycloakId, roleId, registration.userType)
     yield (keycloakId, userId)
+
+  def login(usernameOrEmail: String, password: String): Either[String, String] =
+    kc.loginUser(usernameOrEmail, password)
