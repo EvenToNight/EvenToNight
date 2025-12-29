@@ -1,3 +1,15 @@
+## [1.11.0](https://github.com/EvenToNight/EvenToNight/compare/v1.10.0...v1.11.0) (2025-12-29)
+
+### Features
+
+* **Dockerfile-search:** match all files named Dockerfile* and add check for HEAD commit ([2a9e6ac](https://github.com/EvenToNight/EvenToNight/commit/2a9e6ac65d8b15b72d36eb98b438ed33e3075c5f))
+
+### Bug Fixes
+
+* **Dockerfile-search:** change commit sha selection in pull-request context ([6893176](https://github.com/EvenToNight/EvenToNight/commit/68931761be54fad3f441e11a954ec7643db50992))
+* **Dockerfile-search:** correctly split multiple dockerfiles under same folder ([2dd0b59](https://github.com/EvenToNight/EvenToNight/commit/2dd0b59be1ff4f41e2ca03eac470b81fe37324ef))
+* **Dockerfile-search:** search dockerfiles under /infrastructures/sub-fodler/ and services/sub-folder/ ([b4476d2](https://github.com/EvenToNight/EvenToNight/commit/b4476d2fba953729456c89ca96202d8ba8c34b1e))
+
 ## [1.10.0](https://github.com/EvenToNight/EvenToNight/compare/v1.9.0...v1.10.0) (2025-12-20)
 
 ### Features
