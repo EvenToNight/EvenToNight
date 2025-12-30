@@ -24,7 +24,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedUserResponseDto'
+                $ref: '#/components/schemas/ListsPaginatedResponseDto'
         '400':
           description: Bad Request
           content:
@@ -173,7 +173,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedResponseDto'
+                $ref: '#/components/schemas/UserPaginatedResponseDto'
         '400':
           description: Bad Request
           content:
@@ -269,7 +269,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedResponseDto'
+                $ref: '#/components/schemas/UserPaginatedResponseDto'
         '400':
           description: Bad Request
           content:
@@ -320,7 +320,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedResponseDto'
+                $ref: '#/components/schemas/EventPaginatedResponseDto'
         '400':
           description: Bad Request
           content:
@@ -370,7 +370,58 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedResponseDto'
+                $ref: '#/components/schemas/ReviewsPaginatedResponseDto'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+      tags:
+        - Users
+
+  /users/{userId}/participants:
+    get:
+      summary: Get events a user is participating in
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: A paginated list of events the user is participating in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventPaginatedResponseDto'
         '400':
           description: Bad Request
           content:
@@ -480,7 +531,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedResponseDto'
+                $ref: '#/components/schemas/UserPaginatedResponseDto'
         '400':
           description: Bad Request
           content:
@@ -655,7 +706,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedResponseDto'
+                $ref: '#/components/schemas/ReviewsPaginatedResponseDto'
         '400':
           description: Bad Request
           content:
@@ -669,57 +720,6 @@ paths:
                     type: integer
       tags:
         - Events
-
-  /users/{userId}/participants:
-    get:
-      summary: Get events a user is participating in
-      servers:
-        - url: http://localhost:9030
-          description: Local server
-        - url: https://interactions.eventonight.site
-          description: Production server
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-          example: user123
-        - name: offset
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 0
-            default: 0
-        - name: limit
-          in: query
-          required: false
-          schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-      responses:
-        '200':
-          description: A paginated list of events the user is participating in
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PaginatedResponseDto'
-        '400':
-          description: Bad Request
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  message:
-                    type: string
-                  statusCode:
-                    type: integer
-      tags:
-        - Users
 
   /events/{eventId}/participants:
     get:
@@ -757,7 +757,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedResponseDto'
+                $ref: '#/components/schemas/UserPaginatedResponseDto'
         '400':
           description: Bad Request
           content:
@@ -933,7 +933,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedResponseDto'
+                $ref: '#/components/schemas/ReviewsPaginatedResponseDto'
         '400':
           description: Bad Request
           content:
@@ -958,7 +958,7 @@ components:
       required:
         - followedId
     
-    PaginatedResponseDto:
+    UserPaginatedResponseDto:
       type: object
       description: Paginated response containing follow relationships
       properties:
@@ -968,7 +968,7 @@ components:
           items:
             type: string
             description: ID of the user who is following
-            example: user123
+            example: user123, user456, user789
         limit:
           type: integer 
           description: Maximum number of items per page
@@ -984,7 +984,41 @@ components:
         totalItems:
           type: integer
           description: Total number of items available
-          example: 42
+          example: 3
+      required:
+        - items
+        - limit
+        - offset
+        - hasMore
+        - totalItems
+
+    EventPaginatedResponseDto:
+      type: object
+      description: Paginated response containing events
+      properties:
+        items:
+          type: array
+          description: Array of event IDs
+          items:
+            type: string
+            description: ID of the event
+            example: event123, event456, event789
+        limit:
+          type: integer 
+          description: Maximum number of items per page
+          example: 20
+        offset:
+          type: integer 
+          description: Number of items skipped
+          example: 0
+        hasMore:
+          type: boolean 
+          description: Whether there are more items available
+          example: false
+        totalItems:
+          type: integer
+          description: Total number of items available
+          example: 3
       required:
         - items
         - limit
@@ -992,7 +1026,7 @@ components:
         - hasMore
         - totalItems
     
-    PaginatedUserResponseDto:
+    ListsPaginatedResponseDto:
       type: object
       description: Paginated response containing followers and following user IDs
       properties:
@@ -1002,28 +1036,105 @@ components:
           items:
             type: string
             description: ID of the user who is following
-            example: user123
+            example: user123, user789, user456
         totalFollowers:
           type: integer
           description: Total number of followers
-          example: 42
+          example: 3
         following:
           type: array
           description: Array of followed user IDs
           items:
             type: string
             description: ID of the user being followed
-            example: user456
+            example: user456, user789
         totalFollowing:
           type: integer
           description: Total number of following
-          example: 27
+          example: 2
       required:
         - followers
         - totalFollowers
         - following
         - totalFollowing
     
+    ReviewsPaginatedResponseDto:
+      type: object
+      description: Paginated response containing reviews
+      properties:
+        items:
+          type: array
+          description: Array of review
+          items:
+            type: object
+            properties:
+              _id:
+                type: string
+                description: ID of the review
+                example: review123
+              eventId:
+                type: string
+                description: ID of the event being reviewed
+                example: event123
+              userId:
+                type: string
+                description: ID of the user who made the review
+                example: user123
+              organizationId:
+                type: string
+                description: ID of the organization being reviewed
+                example: org456
+              collaboratorIds:
+                type: array
+                description: IDs of collaborators associated with the review
+                items:
+                  type: string
+                  example: collab789
+              rating:
+                type: integer
+                description: Rating given in the review
+                example: 5
+              title:
+                type: string
+                description: Title of the review
+                example: "Amazing Event!"
+              comment:
+                type: string
+                description: Comment of the review
+                example: "Had a fantastic time at this event."
+              createdAt:
+                type: string
+                format: date-time
+                description: Timestamp when the review was created
+                example: "2024-01-01T12:00:00Z"
+              updatedAt:
+                type: string
+                format: date-time
+                description: Timestamp when the review was last updated
+                example: "2024-01-02T15:30:00Z"
+        limit:
+          type: integer 
+          description: Maximum number of items per page
+          example: 20
+        offset:
+          type: integer 
+          description: Number of items skipped
+          example: 0
+        hasMore:
+          type: boolean 
+          description: Whether there are more items available
+          example: false
+        totalItems:
+          type: integer
+          description: Total number of items available
+          example: 1
+      required:
+        - items
+        - limit
+        - offset
+        - hasMore
+        - totalItems
+
     Follow:
       type: object
       description: Follow relationship entity
