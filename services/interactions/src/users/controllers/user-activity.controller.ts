@@ -30,7 +30,7 @@ export class UserActivityController {
     return this.reviewService.getUserReviews(userId, limit, offset);
   }
 
-  @Get('participants')
+  @Get('participations')
   async getUserParticipations(
     @Param('userId') userId: string,
     @Query() paginatedQuery: PaginatedQueryDto,

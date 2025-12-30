@@ -385,7 +385,7 @@ paths:
       tags:
         - Users
 
-  /users/{userId}/participants:
+  /users/{userId}/participations:
     get:
       summary: Get events a user is participating in
       servers:
