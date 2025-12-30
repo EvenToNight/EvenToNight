@@ -1,7 +1,6 @@
 package middleware
 
-import io.undertow.server.HttpHandler
-import io.undertow.server.HttpServerExchange
+import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.HttpString
 
 class CorsHandler(next: HttpHandler) extends HttpHandler:
