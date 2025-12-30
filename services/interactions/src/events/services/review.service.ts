@@ -10,6 +10,7 @@ import { CreateReviewDto } from '../dto/create-review.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
 import { UpdateReviewDto } from '../dto/update-review.dto';
 import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
+import { ReviewStatsDto } from '../dto/review-stats.dto';
 
 @Injectable()
 export class ReviewService {
@@ -73,22 +74,8 @@ export class ReviewService {
     eventId: string,
     limit?: number,
     offset?: number,
-  ): Promise<PaginatedResponseDto<Review>> {
-    const query = this.reviewModel.find({ eventId });
-    if (offset !== undefined) {
-      query.skip(offset);
-    }
-    if (limit !== undefined) {
-      query.limit(limit);
-    }
-    query.sort({ createdAt: -1 });
-
-    const [items, total] = await Promise.all([
-      query.exec(),
-      this.reviewModel.countDocuments({ eventId }),
-    ]);
-
-    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
+  ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
+    return this.getReviewsWithStats({ eventId }, limit, offset);
   }
 
   async getUserReviews(userId: string, limit?: number, offset?: number) {
@@ -139,5 +126,83 @@ export class ReviewService {
     ]);
 
     return new PaginatedResponseDto(items, total, limit || total, offset || 0);
+  }
+
+  private async getReviewsWithStats(
+    filter: Record<string, any>,
+    limit?: number,
+    offset?: number,
+  ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
+    const query = this.reviewModel.find(filter);
+
+    if (offset !== undefined) {
+      query.skip(offset);
+    }
+
+    if (limit !== undefined) {
+      query.limit(limit);
+    }
+
+    query.sort({ createdAt: -1 });
+
+    const [items, total, stats] = await Promise.all([
+      query.exec(),
+      this.reviewModel.countDocuments(filter),
+      this.calculateRatingStats(filter),
+    ]);
+
+    return {
+      ...new PaginatedResponseDto(items, total, limit || total, offset || 0),
+      ...stats,
+    };
+  }
+
+  private async calculateRatingStats(
+    filter: Record<string, any>,
+  ): Promise<ReviewStatsDto> {
+    const result = await this.reviewModel.aggregate([
+      { $match: filter },
+      {
+        $facet: {
+          stats: [
+            {
+              $group: {
+                _id: null,
+                averageRating: { $avg: '$rating' },
+              },
+            },
+          ],
+          distribution: [
+            {
+              $group: {
+                _id: '$rating',
+                count: { $sum: 1 },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    const ratingDistribution: Record<number, number> = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    };
+
+    if (result[0]?.distribution) {
+      result[0].distribution.forEach((item: { _id: number; count: number }) => {
+        ratingDistribution[item._id] = item.count;
+      });
+    }
+
+    const averageRating = result[0]?.stats[0]?.averageRating || 0;
+
+    return {
+      averageRating: Math.round(averageRating * 100) / 100,
+      ratingDistribution,
+    };
   }
 }
