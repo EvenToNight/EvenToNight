@@ -7,12 +7,11 @@ import {
   Validate,
   ValidatorConstraint,
   ValidatorConstraintInterface,
-  ValidationArguments,
 } from 'class-validator';
 
 @ValidatorConstraint({ name: 'isRatingDistribution', async: false })
 class IsRatingDistributionConstraint implements ValidatorConstraintInterface {
-  validate(value: any, _args: ValidationArguments) {
+  validate(value: any) {
     if (typeof value !== 'object' || value === null) return false;
     return Object.keys(value).every((k) => {
       if (!/^\d+$/.test(k)) return false;
@@ -21,7 +20,7 @@ class IsRatingDistributionConstraint implements ValidatorConstraintInterface {
     });
   }
 
-  defaultMessage(_args: ValidationArguments) {
+  defaultMessage() {
     return 'ratingDistribution must be an object with numeric keys and non-negative numeric values';
   }
 }
