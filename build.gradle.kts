@@ -33,6 +33,16 @@ tasks.register<ExecTask>("checkEnvSetup") {
     bashCommand("./scripts/checkEnvSetup.sh")
 }
 
+tasks.named("checkEnvSetup") {
+    mustRunAfter("updateEnvFile")
+}
+
+tasks.register("updateAndCheckEnvSetup") {
+    description = "Update the .env file and check if it is properly set up."
+    group = "setup"
+    dependsOn("updateEnvFile", "checkEnvSetup")    
+}
+
 gradle.projectsEvaluated {
     tasks.configureEach {
         if (group == "docker") {
@@ -70,6 +80,12 @@ tasks.register<ExecTask>("teardownUsersEnvironment") {
     group = "docker"
     dependsOn("teardownDevEnvironment")
     dependsOn("teardownKeycloak")
+}
+
+tasks.register<ExecTask>("teardownFrontendEnvironment") {
+    description = "Tear down the Docker frontend environment."
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_FRONTEND_ENVIRONMENT)
 }
 
 tasks.register<ExecTask>("setupTestEnvironment") {
@@ -117,6 +133,16 @@ tasks.register<ExecTask>("setupUsersEnvironment") {
     group = "docker"
     dependsOn("setupDevEnvironment")
     dependsOn("setupKeycloak")
+}
+
+tasks.register<ExecTask>("setupFrontendEnvironment") {
+    description = "Set up the Docker frontend environment."
+    group = "docker"
+    bashCommands(DockerCommands.TEARDOWN_FRONTEND_ENVIRONMENT).onFailure { code ->
+        println("${RED}Teardown failed with exit code ${code}.${RESET}")
+    }
+    println("💬 Setting up the frontend environment...")
+    bashCommands(DockerCommands.SETUP_FRONTEND_ENVIRONMENT)
 }
 
 tasks.register("saveStagedFiles") {

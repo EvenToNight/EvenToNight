@@ -16,6 +16,11 @@ OPTIONS
         This option can be repeated to search in multiple directories.
         Default: current directory(.)
 
+    -eP, --exclude-path <PATH>
+        Specify one or more paths to exclude from the search.
+        This option can be repeated to exclude multiple directories.
+        Default: none
+
     --project-name <NAME>
         Set the Docker Compose project name.
         Default: eventonight
@@ -43,8 +48,8 @@ NOTES:
   - Requires Bash and Docker installed.
   - Changes directory to the project root before execution.
 '
-#!/bin/bash
-set -e
+#!/usr/bin/env bash
+set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
 
@@ -53,13 +58,14 @@ PROJECT_NAME="eventonight"
 USE_DEV=false
 HAS_CUSTOM_PATH=false
 SEARCH_PATHS=()
+EXCLUDE_PATHS=()
 
 # Parse arguments
 FILTERED_ARGS=()
 SKIP_NEXT=false
 SKIP_TYPE=""
 
-if [[ "$1" == "--help" || "$1" == "-h" ]]; then
+if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
       sed -n '/^: \x27$/,/^'\''$/p' "$0" | sed '1d;$d'
       exit 0
 fi
@@ -71,6 +77,8 @@ for arg in "$@"; do
         elif [[ "$SKIP_TYPE" == "path" ]]; then
             HAS_CUSTOM_PATH=true
             SEARCH_PATHS+=("$arg")
+        elif [[ "$SKIP_TYPE" == "exclude-path" ]]; then
+            EXCLUDE_PATHS+=("$arg")
         fi
         SKIP_NEXT=false
         SKIP_TYPE=""
@@ -85,6 +93,9 @@ for arg in "$@"; do
     elif [[ "$arg" == "-p" || "$arg" == "--path" ]]; then
         SKIP_NEXT=true
         SKIP_TYPE="path"
+    elif [[ "$arg" == "-eP" || "$arg" == "--exclude-path" ]]; then
+        SKIP_NEXT=true
+        SKIP_TYPE="exclude-path"
     else
         FILTERED_ARGS+=("$arg")
     fi
@@ -94,14 +105,28 @@ if [[ "$HAS_CUSTOM_PATH" == false ]]; then
     SEARCH_PATHS=(".")
 fi
 
+FILE_PATTERNS=("docker-compose.yaml")
+$USE_DEV && FILE_PATTERNS+=("docker-compose-dev.yaml") || true
+
+EXCLUDE_PATTERNS=""
+if [[ ${#EXCLUDE_PATHS[@]} -gt 0 ]]; then
+    for exclude in "${EXCLUDE_PATHS[@]}"; do
+        EXCLUDE_PATTERNS+=$exclude"|"
+    done
+    EXCLUDE_PATTERNS=${EXCLUDE_PATTERNS%?}
+fi
+
 COMPOSE_FILES=""
 for path in "${SEARCH_PATHS[@]}"; do
-    FILES=$(find "$path" -name "docker-compose.yaml" -print)
-    COMPOSE_FILES="$COMPOSE_FILES $FILES"
-    if [[ "$USE_DEV" == true ]]; then
-        DEV_FILES=$(find "$path" -name "docker-compose-dev.yaml" -print)
-        COMPOSE_FILES="$COMPOSE_FILES $DEV_FILES"
-    fi
+    for pattern in "${FILE_PATTERNS[@]}"; do
+        FOUND_FILES=$(find "$path" -name "$pattern" -print)
+        if [[ ! -z "$EXCLUDE_PATTERNS" ]]; then
+            FILES_TO_USE=$(echo -e "$FOUND_FILES" | grep -vE "$EXCLUDE_PATTERNS" || true)
+        else
+            FILES_TO_USE="$FOUND_FILES"
+        fi
+        COMPOSE_FILES="$COMPOSE_FILES $FILES_TO_USE"
+    done
 done
 
 COMPOSE_ARGS=()

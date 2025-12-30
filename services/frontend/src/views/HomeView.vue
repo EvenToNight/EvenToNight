@@ -1,9 +1,17 @@
 <script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
+import { ref } from 'vue'
+import NavigationPageView from '@/layouts/NavigationWithSearch.vue'
+import HomeViewContent from '@/components/home/HomeViewContent.vue'
+import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
+
+const showAuthDialog = ref(false)
 </script>
 
 <template>
-  <main>
-    <TheWelcome />
-  </main>
+  <div>
+    <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
+    <NavigationPageView>
+      <HomeViewContent @auth-required="showAuthDialog = true" />
+    </NavigationPageView>
+  </div>
 </template>

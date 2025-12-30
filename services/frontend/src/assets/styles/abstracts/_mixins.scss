@@ -1,0 +1,287 @@
+// =============================================================================
+// Mixins - Reusable SCSS Utilities
+// =============================================================================
+
+@use 'variables' as *;
+
+// -----------------------------------------------------------------------------
+// Responsive Breakpoints
+// -----------------------------------------------------------------------------
+@mixin respond-to($breakpoint) {
+  @if $breakpoint == 'xs' {
+    @media (min-width: $breakpoint-xs) { @content; }
+  }
+  @else if $breakpoint == 'sm' {
+    @media (min-width: $breakpoint-sm) { @content; }
+  }
+  @else if $breakpoint == 'md' {
+    @media (min-width: $breakpoint-md) { @content; }
+  }
+  @else if $breakpoint == 'lg' {
+    @media (min-width: $breakpoint-lg) { @content; }
+  }
+  @else if $breakpoint == 'xl' {
+    @media (min-width: $breakpoint-xl) { @content; }
+  }
+  @else if $breakpoint == '2xl' {
+    @media (min-width: $breakpoint-2xl) { @content; }
+  }
+  @else {
+    @media (min-width: $breakpoint) { @content; }
+  }
+}
+
+// Usage:
+// .element {
+//   width: 100%;
+//   @include respond-to('md') {
+//     width: 50%;
+//   }
+// }
+
+// -----------------------------------------------------------------------------
+// Flexbox Utilities
+// -----------------------------------------------------------------------------
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+@mixin flex-column-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-wrap-center {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-end {
+  display: flex;
+  justify-content: flex-end;
+}
+// -----------------------------------------------------------------------------
+// Typography
+// -----------------------------------------------------------------------------
+@mixin heading($size: 'xl', $weight: $font-weight-bold) {
+  font-family: $font-family-heading;
+  font-weight: $weight;
+  line-height: $line-height-tight;
+  color: $color-heading;
+
+  @if $size == 'xs' {
+    font-size: $font-size-lg;
+  }
+  @else if $size == 'sm' {
+    font-size: $font-size-xl;
+  }
+  @else if $size == 'md' {
+    font-size: $font-size-2xl;
+  }
+  @else if $size == 'lg' {
+    font-size: $font-size-3xl;
+  }
+  @else if $size == 'xl' {
+    font-size: $font-size-4xl;
+  }
+  @else if $size == '2xl' {
+    font-size: $font-size-5xl;
+  }
+}
+
+@mixin text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin line-clamp($lines: 2) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+// -----------------------------------------------------------------------------
+// Positioning
+// -----------------------------------------------------------------------------
+@mixin absolute-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@mixin absolute-fill {
+  position: absolute;
+  border-radius: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+@mixin fixed-fill {
+  position: fixed;
+  border-radius: 0;
+  width: 100%;
+  height: 100%;
+  max-width: 100vw;
+  max-height: 100vh;
+}
+
+// -----------------------------------------------------------------------------
+// Visual Effects
+// -----------------------------------------------------------------------------
+@mixin card($padding: $spacing-card, $radius: $radius-lg, $shadow: $shadow-md) {
+  padding: $padding;
+  border-radius: $radius;
+  box-shadow: $shadow;
+  background-color: $color-background;
+}
+
+@mixin button-reset {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+}
+
+@mixin list-reset {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+// -----------------------------------------------------------------------------
+// Transitions
+// -----------------------------------------------------------------------------
+@mixin transition($property: all, $duration: $transition-base, $timing: ease-in-out) {
+  transition: $property $duration $timing;
+}
+
+@mixin hover-lift {
+  transition: transform $transition-base, box-shadow $transition-base;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: $shadow-lg;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Scrollbar Styling
+// -----------------------------------------------------------------------------
+@mixin custom-scrollbar($width: 8px, $track-color: $color-gray-100, $thumb-color: $color-gray-400) {
+  &::-webkit-scrollbar {
+    width: $width;
+    height: $width;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: $track-color;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: $thumb-color;
+    border-radius: $radius-full;
+
+    &:hover {
+      background: darken($thumb-color, 10%);
+    }
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Dark Mode (Quasar-based)
+// -----------------------------------------------------------------------------
+@mixin light-mode {
+  body.body--light & {
+    @content;
+  }
+}
+
+@mixin dark-mode {
+  body.body--dark & {
+    @content;
+  }
+}
+
+// Usage:
+// .element {
+//   background: white;
+//   color: black;
+//
+//   @include dark-mode {
+//     background: #121212;
+//     color: white;
+//   }
+// }
+
+// -----------------------------------------------------------------------------
+// Container
+// -----------------------------------------------------------------------------
+@mixin container($max-width: $breakpoint-xl, $padding: $spacing-container) {
+  width: 100%;
+  max-width: $max-width;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: $padding;
+  padding-right: $padding;
+}
+
+// -----------------------------------------------------------------------------
+// Aspect Ratio
+// -----------------------------------------------------------------------------
+@mixin aspect-ratio($width: 16, $height: 9) {
+  position: relative;
+
+  &::before {
+    content: '';
+    display: block;
+    padding-bottom: percentage($height / $width);
+  }
+
+  > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+// -----------------------------------------------------------------------------
+// Focus States
+// -----------------------------------------------------------------------------
+@mixin focus-ring($color: $color-primary, $width: 3px, $offset: 2px) {
+  outline: $width solid rgba($color, 0.5);
+  outline-offset: $offset;
+}
+
+@mixin focus-visible {
+  &:focus-visible {
+    @include focus-ring;
+  }
+}

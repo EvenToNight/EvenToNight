@@ -12,6 +12,8 @@ node {
 
 tasks.named("build") {
     dependsOn("npmInstall")
+    dependsOn("checkStyle")
+    dependsOn("buildFrontend")
 }
 
 tasks.register<NpmTask>("runDev"){
@@ -29,6 +31,17 @@ tasks.register<NpmTask>("formatAndLint"){
     npmCommand.set(listOf("run","lint:fix"))
 }
 
+tasks.register<NpmTask>("typeCheck"){
+    dependsOn("npmInstall")
+    npmCommand.set(listOf("run","type-check"))
+}
+
+tasks.register<NpmTask>("buildFrontend"){
+    dependsOn("npmInstall")
+    npmCommand.set(listOf("run","build"))
+}
+
 tasks.register("formatAndLintPreCommit"){
     dependsOn("formatAndLint")
+    dependsOn("typeCheck")
 }

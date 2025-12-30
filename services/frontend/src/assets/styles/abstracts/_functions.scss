@@ -1,0 +1,87 @@
+// =============================================================================
+// SCSS Functions - Utility Functions
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Color Functions
+// -----------------------------------------------------------------------------
+
+// Convert hex to rgba with opacity
+@function rgba-from-hex($color, $opacity) {
+  @return rgba($color, $opacity);
+}
+
+// Get color with opacity
+@function color-alpha($color, $alpha: 1) {
+  @return rgba($color, $alpha);
+}
+
+// -----------------------------------------------------------------------------
+// Spacing Functions
+// -----------------------------------------------------------------------------
+
+// Get spacing value by multiplier
+@function spacing($multiplier) {
+  @return $spacing-4 * $multiplier; // Base unit is 1rem (16px)
+}
+
+// Usage:
+// padding: spacing(2); // Returns 2rem (32px)
+// margin: spacing(0.5); // Returns 0.5rem (8px)
+
+// -----------------------------------------------------------------------------
+// Size Functions
+// -----------------------------------------------------------------------------
+
+// Convert px to rem
+@function rem($pixels, $base: 16) {
+  @return #{$pixels / $base}rem;
+}
+
+// Convert px to em
+@function em($pixels, $base: 16) {
+  @return #{$pixels / $base}em;
+}
+
+// Usage:
+// font-size: rem(18); // Returns 1.125rem
+// padding: rem(24); // Returns 1.5rem
+
+// -----------------------------------------------------------------------------
+// String Functions
+// -----------------------------------------------------------------------------
+
+// Replace substring in a string
+@function str-replace($string, $search, $replace: '') {
+  $index: str-index($string, $search);
+
+  @if $index {
+    @return str-slice($string, 1, $index - 1) + $replace +
+            str-replace(str-slice($string, $index + str-length($search)), $search, $replace);
+  }
+
+  @return $string;
+}
+
+// -----------------------------------------------------------------------------
+// Map Functions
+// -----------------------------------------------------------------------------
+
+// Deep get for nested maps
+@function map-deep-get($map, $keys...) {
+  @each $key in $keys {
+    $map: map-get($map, $key);
+  }
+  @return $map;
+}
+
+// Usage with nested maps:
+// $theme: (
+//   colors: (
+//     primary: (
+//       base: #3b82f6,
+//       dark: #2563eb
+//     )
+//   )
+// );
+// color: map-deep-get($theme, colors, primary, base);

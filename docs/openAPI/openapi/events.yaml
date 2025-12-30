@@ -2,22 +2,918 @@ openapi: 3.0.1
 info:
   title: EvenToNight - Events API
   version: 1.0.0
-servers:
-  - url: http://localhost:9010
-    description: Events service (local development)
-  - url: https://events.eventonight.site
-    description: Events service (production)
 paths:
-  /events/draft:
+  /:
+    post:
+      summary: Create a new event
+      description: >
+        Creates a new event with the provided information.  
+        The payload must be multipart/form-data, containing a JSON string in the `event` field  
+        and optionally a `poster` file if the event is in DRAFT status.
+        If the event status is DRAFT, the poster is optional, and also all the fields in 'event' JSON are optional.
+        If the event status is not DRAFT, both the event data and the poster file are required.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - event
+                - poster
+              properties:
+                event:
+                  type: string
+                  description: |
+                    If the event status is DRAFT, all the field are optional.
+                    JSON string containing event data with the following structure:
+                    - `title` (string): Event title.
+                    - `description` (string): Event description
+                    - `tags` (array of strings): List of event tags. In case of wrong tag, that tag is ignored
+                    - `location` (object): Event location (required). Required fields:
+                      - name (string): Location or venue name. Optional
+                      - country (string)
+                      - country_code (string)
+                      - state (string). Optional
+                      - province (string). Optional
+                      - city (string). Optional
+                      - road (string)
+                      - postcode (string)
+                      - house_number (string). Optional
+                      - lat (number): Decimal degrees (latitude), e.g. 40.785091
+                      - lon (number): Decimal degrees (longitude), e.g. -73.968285
+                      - link (string): Optional URL or external reference
+                    - `date` (string, ISO 8601 format): Event date and time (e.g., "2026-07-15T20:00:00")
+                    - `price` (number): Event ticket price
+                    - `status` (string): Event status, must be "DRAFT" or "PUBLISHED"
+                    - `creatorId` (string): ID of the event creator
+                    - `collaboratorIds` (List of strings): IDs of collaborators. Optional
+                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","creatorId":"user-123","collaboratorIds":["user-456"]}'
+                poster:
+                  type: string
+                  format: binary
+                  description: |
+                    Event poster image file
+                    If the event status is DRAFT, the poster is optional.
+
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eventId:
+                    type: string
+                    description: Unique identifier of the created event
+                    example: "evt_789xyz"
+        '207':
+          description: Partial success - event created but poster upload failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message about the poster upload failure
+                    example: "Event created but poster upload failed: Connection refused"
+        '400':
+          description: Bad request - validation error, invalid JSON, or command processing error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message describing what went wrong
+                    examples:
+                      - "Invalid JSON format: expected } got , at index 45"
+                      - "Invalid request: Missing required field 'title'"
+                      - "Event validation failed: Invalid date format"
+      tags:
+        - Event Command API
+
     get:
-      summary: Create a draft event
+      summary: Get all public events
+      description: Retrieves a list of all published events.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
       responses:
         '200':
-          description: OK
+          description: Successfully retrieved all events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        eventId:
+                          type: string
+                          description: Event ID
+                        title:
+                          type: string
+                          description: Event title
+                        description:
+                          type: string
+                          description: Event description
+                        poster:
+                          type: string
+                          description: Event poster URL
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          description: List of event tags
+                        location:
+                          type: object
+                          description: Event location object
+                          properties:
+                            name:
+                              type: string
+                              description: Location or venue name. May be empty string ("") if unknown.
+                            country:
+                              type: string
+                            country_code:
+                              type: string
+                            state:
+                              type: string
+                              description: May be empty string ("") if not provided.
+                            province:
+                              type: string
+                              description: May be empty string ("") if not provided.
+                            city:
+                              type: string
+                              description: May be empty string ("") if not provided.
+                            road:
+                              type: string
+                            postcode:
+                              type: string
+                            house_number:
+                              type: string
+                              description: May be empty string ("") if not provided.
+                            lat:
+                              type: number
+                              description: Latitude in decimal degrees
+                            lon:
+                              type: number
+                              description: Longitude in decimal degrees
+                            link:
+                              type: string
+                              description: Optional URL or reference; may be empty string ("") if not provided.
+                        date:
+                          type: string
+                          format: date-time
+                          description: Event date and time
+                        price:
+                          type: number
+                          format: double
+                          description: Event ticket price  
+                        status:
+                          type: string
+                          enum: [PUBLISHED]
+                          description: Event status
+                        instant:
+                          type: string
+                          format: date-time
+                          description: Event creation timestamp
+                        creatorId:
+                          type: string
+                          description: ID of the event creator
+                        collaboratorIds:
+                          type: array
+                          items:
+                            type: string
+                          description: IDs of the collaborators (if any)
+                          nullable: true
+              example:
+                events:
+                  - _id: "evt123"
+                    title: "Summer Concert"
+                    description: "Amazing outdoor concert"
+                    status: "PUBLISHED"
+                    date: "2025-07-15T20:00:00"
+                    location:
+                      name: "Arena"
+                      city: "Bologna"
+                      address: "Via Arena 1"
+                    tags: ["MUSIC"]
+                    posterUrl: "http://media:9020/posters/evt123.jpg"
+                    creatorId: "user456"
+                    collaboratorIds: ["org789"]
+                limit: null
+                offset: 0
+                hasMore: false        
+        '404':
+          description: Could not retrieve events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Could not retrieve events: Database connection failed"    
+      tags:
+        - Event Query API
+
+  /search:
+    get:
+      summary: Search and filter events
+      description: |
+        Search events with various filters and pagination support
+        **Sorting behavior:**
+        - Results are sorted by the specified `sortBy` field first
+        - If multiple events have the same value for the primary sort field, they are sorted by date (ascending) as a secondary criterion
+        - Default sorting: by date (ascending)
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
+      parameters:
+        - name: limit
+          in: query
+          description: Maximum number of events to return (max 20, default 10)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 20
+            default: 10
+          example: 10
+        - name: offset
+          in: query
+          description: Number of events to skip for pagination
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 0
+          example: 0
+        - name: status
+          in: query
+          description: Filter by event status
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, PUBLISHED, CANCELLED, COMPLETED]
+          example: PUBLISHED
+        - name: title
+          in: query
+          description: Filter by event title (case-insensitive partial match)
+          required: false
+          schema:
+            type: string
+        - name: tags
+          in: query
+          description: Filter by tags (can be repeated for multiple tags)
+          required: false
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: true
+          examples:
+            single:
+              summary: Single tag
+            multiple:
+              summary: Multiple tags
+        - name: startDate
+          in: query
+          description: Filter events starting from this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: endDate
+          in: query
+          description: Filter events up to this date (ISO 8601 format)
+          required: false
+          schema:
+            type: string
+            format: date-time
+        - name: id_organization
+          in: query
+          description: Filter by organization ID (search in both creators and collaborators)
+          required: false
+          schema:
+            type: string
+        - name: city
+          in: query
+          description: Filter by city name (case-insensitive partial match)
+          required: false
+          schema:
+            type: string
+          example: Milano
+        - name: location_name
+          in: query
+          description: Filter by location name (case-insensitive partial match)
+          required: false
+          schema:
+            type: string
+        - name: priceMin
+          in: query
+          description: Minimum price filter. If not provided when priceMax is set, it defaults to 0.0.
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 10.0
+        - name: priceMax
+          in: query
+          description: Maximum price filter. If not provided when priceMin is set, it defaults to Double.MaxValue.
+          required: false
+          schema:
+            type: number
+            format: double
+          example: 50.0
+        - name: sortBy
+          in: query
+          description: Field to sort results by. Secondary sort is always by date (ascending).
+          required: false
+          schema:
+            type: string
+            enum: [date, price, title, instant]
+            default: date
+          example: price
+        - name: sortOrder
+          in: query
+          description: Sort order for the primary sort field
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+          example: asc
+      responses:
+        '200':
+          description: Successfully retrieved filtered events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  events:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                          description: Event ID
+                        title:
+                          type: string
+                          description: Event title
+                        description:
+                          type: string
+                          description: Event description
+                        status:
+                          type: string
+                          enum: [DRAFT, PUBLISHED, CANCELLED, COMPLETED]
+                          description: Event status
+                        date:
+                          type: string
+                          format: date-time
+                          description: Event date and time
+                        location:
+                          type: object
+                          description: Event location object
+                          properties:
+                            name:
+                              type: string
+                            city:
+                              type: string
+                        tags:
+                          type: array
+                          items:
+                            type: string
+                          description: List of event tags
+                        posterUrl:
+                          type: string
+                          description: Event poster URL
+                        creatorId:
+                          type: string
+                          description: ID of the event creator
+                        collaboratorIds:
+                          type: array
+                          items:
+                            type: string
+                          description: IDs of the collaborators (if any)
+                          nullable: true
+                  limit:
+                    type: integer
+                    description: Applied limit for this query
+                    nullable: true
+                  offset:
+                    type: integer
+                    description: Applied offset for this query
+                  hasMore:
+                    type: boolean
+                    description: Indicates if more events are available beyond the current result set
+              examples:
+                with_results:
+                  summary: Successful search with results
+                  value:
+                    events:
+                      - _id: "evt123"
+                        title: "Summer Concert"
+                        status: "PUBLISHED"
+                        date: "2025-07-15T20:00:00"
+                        location:
+                          name: "Arena"
+                          city: "Bologna"
+                        tags: ["Concert"]
+                    limit: 10
+                    offset: 0
+                    hasMore: true
+                no_results:
+                  summary: No events found
+                  value:
+                    events: []
+                    limit: 10
+                    offset: 0
+                    hasMore: false
+                paginated:
+                  summary: Second page of results
+                  value:
+                    events:
+                      - _id: "evt456"
+                        title: "Art Exhibition"
+                        status: "PUBLISHED"
+                    limit: 10
+                    offset: 10
+                    hasMore: false
+        '400':
+          description: Invalid request parameters or validation error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                validation_error:
+                  summary: Validation error
+                  value:
+                    error: "Could not retrieve events: Limit must be positive"
+                invalid_status:
+                  summary: Invalid status value
+                  value:
+                    error: "Could not retrieve events: Invalid status value"
+        '404':
+          description: Error retrieving events
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              example:
+                error: "Error"
+      tags:
+        - Event Query API
+  
+  /{eventId}/poster:
+    post:
+      summary: Update event poster
+      description: Updates the poster image for a specific event. The event must exist before updating its poster.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+          description: The ID of the event to update the poster for
+          example: "evt_789xyz"
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - poster
+              properties:
+                poster:
+                  type: string
+                  format: binary
+                  description: New event poster image file
+      responses:
+        '200':
+          description: Event poster updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Poster updated successfully"
+        '400':
+          description: Bad request - poster upload or update failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Failed to update poster: Invalid file format"
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Event not found"
+      tags:
+        - Event Query API
+
+  /{eventId}:
+    get:
+      summary: Get event details by ID
+      description: Retrieves detailed information about a specific event.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: The ID of the event to retrieve
+          schema:
+            type: string
+            example: "event-uuid-123"
+      responses:
+        '200':
+          description: Event details retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  eventId:
+                    type: string
+                    description: Event ID
+                  title:
+                    type: string
+                    description: Event title
+                  description:
+                    type: string
+                    description: Event description
+                  poster:
+                    type: string
+                    description: Event poster filename
+                  tags:
+                    type: array
+                    items:
+                      type: string
+                    description: List of event tags
+                  location:
+                    type: object
+                    description: Event location object
+                    properties:
+                      name:
+                        type: string
+                      country:
+                        type: string
+                      country_code:
+                        type: string
+                      state:
+                        type: string
+                      province:
+                        type: string
+                      city:
+                        type: string
+                      road:
+                        type: string
+                      postcode:
+                        type: string
+                      house_number:
+                        type: string
+                      lat:
+                        type: number
+                      lon:
+                        type: number
+                      link:
+                        type: string
+                  date:
+                    type: string
+                    format: date-time
+                    description: Event date and time
+                  price:
+                    type: number
+                    format: double
+                    description: Event ticket price
+                  status:
+                    type: string
+                    enum: [DRAFT, PUBLISHED, CANCELLED]
+                    description: Event status
+                  instant:
+                    type: string
+                    format: date-time
+                    description: Event creation timestamp
+                  creatorId:
+                    type: string
+                    description: ID of the event creator
+                  collaboratorIds:
+                    type: array
+                    items:
+                      type: string
+                    description: IDs of the collaborators (if any)
+                    nullable: true
+              example:
+                eventId: "event-uuid-123"
+                title: "Summer Music Festival"
+                description: "An amazing summer music festival"
+                poster: "poster-123.jpg"
+                tags: ["Concert", "Festival", "Live Music"]
+                location:
+                  name: "Central Park"
+                  country: "United States"
+                  country_code: "US"
+                  state: "New York"
+                  province: "NY"
+                  city: "New York"
+                  road: "5th Ave"
+                  postcode: "10022"
+                  house_number: "1"
+                  lat: 40.785091
+                  lon: -73.968285
+                  link: "https://maps.example.com/?q=central+park"
+                date: "2026-07-15T20:00:00"
+                status: "DRAFT"
+                instant: "2026-11-22T10:00:00Z"
+                creatorId: "user-123"
+                collaboratorIds: []
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Event not found"  
+      tags:
+        - Event Query API 
+
+    put:
+      summary: Update event details
+      description: |
+        Updates an existing event with the provided information.
+        Old event will be overwritten with the new provided data.
+        All fields are optional.
+
+        If status is updated to "PUBLISHED", all field are required except `collaboratorIds` and `poster`.
+        
+        **Note:** To update the poster, use the separate `POST /poster/{eventId}` endpoint.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: The ID of the event to update
+          schema:
+            type: string
+            example: "event-uuid-123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: |
+                **All fields are optional.** Include only the fields you want to update:
+                - `title` (string): Event title
+                - `description` (string): Event description
+                - `tags` (array of strings): Complete list of event tags (replaces existing tags)
+                - `location` (object): Event location with fields matching the `Location` model:
+                  - `name` (string)
+                  - `country` (string)
+                  - `country_code` (string)
+                  - `state` (string)
+                  - `province` (string)
+                  - `city` (string)
+                  - `road` (string)
+                  - `postcode` (string)
+                  - `house_number` (string)
+                  - `lat` (number)
+                  - `lon` (number)
+                  - `link` (string)
+                - `date` (string, ISO 8601 format): Event date and time
+                - `price` (number): Event ticket price
+                - `status` (string): Event status ("DRAFT", "PUBLISHED", or "CANCELLED")
+                - `collaboratorIds` (array of strings): IDs of collaborators
+              properties:
+                title:
+                  type: string
+                  description: Event title (optional)
+                  example: "Updated Summer Music Festival"
+                description:
+                  type: string
+                  description: Event description (optional)
+                  example: "An amazing updated summer music festival"
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  description: List of event tags - replaces existing tags completely (optional)
+                  example: ["Concert", "Festival", "Live Music", "Outdoor"]
+                location:
+                  type: object
+                  description: Event location object (optional)
+                  properties:
+                    address:
+                      type: string
+                      example: "Central Park"
+                    city:
+                      type: string
+                      example: "New York"
+                    province:
+                      type: string
+                      example: "NY"
+                    country:
+                      type: string
+                      example: "USA"
+                    latitude:
+                      type: number
+                      format: double
+                      example: 40.785091
+                    longitude:
+                      type: number
+                      format: double
+                      example: -73.968285
+                date:
+                  type: string
+                  format: date-time
+                  description: Event date and time (optional)
+                  example: "2026-07-20T20:00:00"
+                price:
+                  type: number
+                  format: double
+                  description: Event ticket price (optional)
+                  example: 30.00
+                status:
+                  type: string
+                  enum: [DRAFT, PUBLISHED, CANCELLED]
+                  description: Event status (optional)
+                  example: "PUBLISHED"
+                collaboratorIds:
+                  type: array
+                  items:
+                    type: string
+                  description: IDs of collaborators (optional)
+                  example: ["user-789"]
+            examples:
+              updateTitle:
+                summary: Update only title
+                value:
+                  title: "New Event Title"
+                  status: "DRAFT"
+              updateMultipleFields:
+                summary: Update multiple fields
+                value:
+                  title: "Updated Summer Music Festival"
+                  description: "An amazing updated summer music festival"
+                  price: 30.00
+                  status: "DRAFT"
+              updateComplete:
+                summary: Update all fields
+                value:
+                  title: "Updated Summer Music Festival"
+                  description: "An amazing updated summer music festival"
+                  tags: ["Concert", "Festival", "Live Music", "Outdoor"]
+                  location:
+                    name: "Central Park"
+                    country: "United States"
+                    country_code: "US"
+                    state: "New York"
+                    province: "NY"
+                    city: "New York"
+                    road: "5th Ave"
+                    postcode: "10022"
+                    house_number: "1"
+                    lat: 40.785091
+                    lon: -73.968285
+                    link: "https://maps.example.com/?q=central+park"
+                  date: "2026-07-20T20:00:00"
+                  price: 30.00
+                  status: "PUBLISHED"
+      responses:
+        '200':
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Event updated successfully"
+        '400':
+          description: Bad request - validation error, invalid JSON, or command processing error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message describing what went wrong
+                    examples:
+                      - "Invalid JSON format: expected } got , at index 45"
+                      - "Invalid request: Missing event ID"
+                      - "Event not found"
+                      - "Event validation failed: Invalid status value"
+      tags:
+        - Event Command API
+    delete:
+      summary: Delete an event by ID
+      description: |
+        Deletes the specified event. If the event status is "DRAFT", it will be removed permanently. 
+        For other statuses, the event will be marked as "CANCELLED".
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: The ID of the event to delete
+          schema:
+            type: string
+            example: "event-uuid-123"
+      responses:
+        '200':
+          description: Event deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Event deleted successfully"
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Event not found"
+      tags:
+        - Event Command API
+  
+
+
   /tags:
     get:
       summary: Get available event tags grouped by category
       description: Returns a list of tag categories and their tags used by the Events service.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
       responses:
         '200':
           description: A JSON array of tag categories
@@ -38,7 +934,43 @@ paths:
                       description: List of tags for the category
               example: |
                 [
-                  {"category": "TypeOfEvent", "tags": ["Party", "Live Music"]},
-                  {"category": "VenueType", "tags": ["Club", "Bar"]}
+                  {"category": "EventType", "tags": ["Party", "Live Music"]},
+                  {"category": "Venue", "tags": ["Club", "Bar"]}
                 ]
+      tags: 
+        - Event Tag Routes   
   
+  /tags/{category}:
+    get:
+      summary: Get tags by category
+      description: Returns the list of tags associated with the specified category.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+        - url: https://events.eventonight.site
+          description: Events service (production)
+      parameters:
+        - in: path
+          name: category
+          required: true
+          schema:
+            type: string
+            enum:
+              - EventType
+              - Venue
+              - MusicStyle
+              - Special
+              - Target
+              - Extra
+          description: The category of tags to retrieve.
+      responses:
+        '200':
+          description: List of tags for the given category.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+      tags:
+        - Event Tag Routes

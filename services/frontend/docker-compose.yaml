@@ -2,15 +2,16 @@ services:
   frontend:
     image: ghcr.io/eventonight/eventonight/frontend:latest
     networks:
-      - eventonight-network
-    environment:
-      - PORT=${FRONTEND_SERVICE_PORT}
+      - eventonight-network  
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`${HOST}`)"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=${FRONTEND_SERVICE_PORT}"
     restart: unless-stopped
+    environment:
+        - VITE_HOST=${HOST}
+        - PORT=${FRONTEND_SERVICE_PORT}
 
 networks:
   eventonight-network:

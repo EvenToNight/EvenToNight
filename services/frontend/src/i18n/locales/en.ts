@@ -1,0 +1,237 @@
+export default {
+  date: 'Date',
+  time: 'Time',
+  location: 'Location',
+  price: 'Price',
+  download: 'Download',
+  profile: 'Profile',
+
+  users: {
+    organizations: 'Organizations',
+    members: 'Users',
+  },
+
+  brand: {
+    appName: 'EvenToNight', //[ignorei18n]
+    logo: 'Logo',
+  },
+
+  auth: {
+    login: 'Sign Up',
+    register: 'Sign In',
+    logout: 'Logout',
+    notLoggedIn: 'Oops! Not logged in',
+    loginRequired: 'You need to be logged in to perform this action',
+    form: {
+      emailLabel: 'Email',
+      emailError: 'Email is required',
+      emailFormatError: 'Please enter a valid email address',
+      passwordLabel: 'Password',
+      passwordError: 'Password is required',
+    },
+    loginForm: {
+      successfulLogin: 'Login successful!',
+      failedLogin: 'Login failed',
+      switchToRegister: 'Need an account? Register',
+    },
+    registerForm: {
+      nameLabel: 'Name',
+      nameError: 'Name is required',
+      confirmPasswordLabel: 'Confirm Password',
+      emptyConfirmPasswordError: 'Please confirm your password',
+      passwordMismatchError: 'Passwords do not match',
+      isOrganizationLabel: "I'm registering as an organization",
+      successfulRegistration: 'Registration successful!',
+      failedRegistration: 'Registration failed',
+      switchToLogin: 'Already have an account? Login',
+    },
+  },
+
+  cards: {
+    slider: {
+      seeAll: 'See All',
+      scrollLeftAriaLabel: 'Scroll Left',
+      scrollRightAriaLabel: 'Scroll Right',
+    },
+    eventCard: {
+      loadingPoster: 'Loading...',
+      favoriteButtonAriaLabel: 'Toggle Favorite',
+      posterAlt: 'Event Poster',
+      draftMissingTitle: 'Untitled Event',
+    },
+    ticketCard: {
+      ticket: 'Ticket',
+    },
+  },
+
+  event: {
+    draft: 'Draft',
+  },
+
+  eventDetails: {
+    buyTickets: 'Buy Tickets',
+    about: 'About this event',
+    organizer: 'Organized by',
+    collaborators: 'In collaboration with',
+    editEvent: 'Edit',
+  },
+
+  footer: {
+    about: 'About',
+    events: 'Events',
+    contact: 'Contact',
+    privacy: 'Privacy Policy',
+    copyright: 'All rights reserved.',
+  },
+
+  search: {
+    baseHint: 'Search...',
+    searchingText: 'Searching...',
+    noResultsText: 'No results found',
+  },
+
+  userProfile: {
+    editProfile: 'Edit Profile',
+    createEvent: 'Create Event',
+    followers: 'Followers',
+    following: 'Following',
+    follow: 'Follow',
+    myTickets: 'My Tickets',
+    myEvents: 'My Events',
+    events: 'Events',
+    noEventCreated: 'You have not created any events yet.',
+    noEventCreatedExternal: 'This organization has not created any events yet.',
+    noEventJoined: 'You have not attended any events yet.',
+    noEventJoinedExternal: 'This user has not attended any events yet.',
+    noTickets: 'No tickets yet',
+    draftedEvents: 'Drafted Events',
+    noDraftedEvents: 'You have no drafted events.',
+    reviews: 'Reviews',
+    noReviews: 'No reviews yet.',
+    userAvatarAlt: 'User Avatar',
+    leaveReview: 'Leave a review',
+    selectEvent: 'Select event',
+    selectRating: 'Select rating:',
+    reviewTitle: 'Title',
+    reviewTitlePlaceholder: 'Give your review a title...',
+    reviewDescription: 'Description',
+    reviewDescriptionPlaceholder: 'Write your review...',
+    cancel: 'Cancel',
+    submit: 'Submit',
+    noEventFound: 'No event found',
+  },
+
+  eventCreationForm: {
+    createNewEvent: 'Create New Event',
+    editEvent: 'Edit Event',
+    eventTitle: 'Event Title',
+    titleError: 'Title is required',
+    date: 'Date',
+    dateError: 'Date is required',
+    time: 'Time',
+    timeError: 'Time is required',
+    description: 'Description',
+    descriptionError: 'Description is required',
+    price: 'Price',
+    priceError: 'Price is required',
+    tags: 'Tags',
+    collaborators: 'Collaborators',
+    collaboratorAvatarAlt: 'Collaborator Avatar',
+    location: 'Location',
+    locationError: 'Location is required',
+    eventPoster: 'Event Poster',
+    posterError: 'Poster is required',
+    uploadPoster: 'Upload Poster',
+    cancel: 'Cancel',
+    deleteEvent: 'Delete',
+    deleteEventConfirm: 'Are you sure you want to delete this event? This action cannot be undone.',
+    saveDraft: 'Save Draft',
+    publishEvent: 'Publish Event',
+    updateEvent: 'Update Event',
+    locationNoOptionHint: 'Type at least 3 characters to search',
+    successForEventPublication: 'Event published successfully!',
+    successForEventUpdate: 'Event updated successfully!',
+    successForEventDeletion: 'Event deleted successfully!',
+    errorForEventCreation: 'Please fill all required fields',
+    errorForEventPublication: 'Failed to create event. Please try again.',
+    errorForEventUpdate: 'Failed to update event. Please try again.',
+    errorForEventDeletion: 'Failed to delete event. Please try again.',
+    errorForEventLoad: 'Failed to load event. Please try again.',
+  },
+
+  theme: {
+    light_mode: 'Light Mode',
+    dark_mode: 'Dark Mode',
+  },
+
+  home: {
+    hero: {
+      title: 'Find the event for you',
+    },
+    sections: {
+      upcomingEvents: 'Upcoming Events',
+    },
+  },
+  explore: {
+    title: 'Explore',
+    subtitile: 'Find events, organizers, or connect with your friends',
+    events: {
+      title: 'Events',
+      emptySearch: 'No events found',
+      emptySearchText: 'Search events by name',
+    },
+    organizations: {
+      title: 'Organizations',
+      emptySearch: 'No organizations found',
+      emptySearchText: 'Search organizations by name',
+    },
+    users: {
+      title: 'Users',
+      emptySearch: 'No users found',
+      emptySearchText: 'Search users by name',
+    },
+  },
+
+  filters: {
+    filters: 'Filters',
+    cancel: 'Cancel',
+    delete: 'Clear',
+    apply: 'Apply',
+    dateFilters: {
+      date: 'Date',
+      selectPeriod: 'Select Period',
+      today: 'Today',
+      thisWeek: 'This Week',
+      thisMonth: 'This Month',
+    },
+    feedFilters: {
+      others: 'Others',
+      upcoming: 'Upcoming',
+      popular: 'Popular',
+      nearby: 'Nearby',
+      forYou: 'For You',
+      new: 'New',
+    },
+    priceFilters: {
+      price: 'Price',
+      selectPrice: 'Select Price Range',
+      minPrice: 'Minimum Price',
+      maxPrice: 'Maximum Price',
+      customize: 'Customize',
+      free: 'Free',
+      paid: 'Paid',
+      from: 'From',
+      to: 'To',
+    },
+    sortFilters: {
+      sort: 'Sort By',
+      date_asc: 'Ascenting Date',
+      date_desc: 'Descending Date',
+      price_asc: 'Ascenting Price',
+      price_desc: 'Descending Price',
+    },
+    TagFilters: {
+      tags: 'Tags',
+    },
+  },
+}

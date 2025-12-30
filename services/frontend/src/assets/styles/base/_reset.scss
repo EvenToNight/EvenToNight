@@ -1,0 +1,170 @@
+// =============================================================================
+// Reset & Base Styles
+// =============================================================================
+
+@use '../abstracts' as *;
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px; // Base font size for rem calculations
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  min-height: 100vh;
+  font-family: $font-family-base;
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-normal;
+  color: $color-text-primary;
+  background-color: $color-background;
+  transition: color $transition-base, background-color $transition-base;
+
+  @include dark-mode {
+    color: $color-text-dark;
+    background-color: $color-background-dark;
+  }
+}
+
+// Typography
+h1, h2, h3, h4, h5, h6 {
+  font-family: $font-family-heading;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-tight;
+  color: $color-heading;
+
+  @include dark-mode {
+    color: $color-heading-dark;
+  }
+}
+
+h1 { font-size: $font-size-4xl; }
+h2 { font-size: $font-size-3xl; }
+h3 { font-size: $font-size-2xl; }
+h4 { font-size: $font-size-xl; }
+h5 { font-size: $font-size-lg; }
+h6 { font-size: $font-size-base; }
+
+p {
+  margin-bottom: $spacing-4;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Links
+a {
+  color: $color-primary;
+  text-decoration: none;
+  transition: color $transition-base;
+
+  &:hover {
+    color: $color-primary-dark;
+  }
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Lists
+ul, ol {
+  padding-left: $spacing-6;
+  margin-bottom: $spacing-4;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// Images
+img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+// Buttons
+button {
+  cursor: pointer;
+  font-family: inherit;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Form elements
+input,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+  line-height: inherit;
+
+  &:focus-visible {
+    @include focus-ring;
+  }
+}
+
+// Code
+code,
+pre {
+  font-family: $font-family-mono;
+}
+
+code {
+  padding: $spacing-1 $spacing-2;
+  background-color: $color-gray-100;
+  border-radius: $radius-base;
+  font-size: 0.9em;
+
+  @include dark-mode {
+    background-color: $color-gray-800;
+  }
+}
+
+pre {
+  padding: $spacing-4;
+  background-color: $color-gray-100;
+  border-radius: $radius-lg;
+  overflow-x: auto;
+
+  @include dark-mode {
+    background-color: $color-gray-800;
+  }
+
+  code {
+    padding: 0;
+    background-color: transparent;
+  }
+}
+
+// Tables
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+// Accessibility
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

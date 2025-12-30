@@ -13,7 +13,7 @@ plugins {
 }
 
 gitHooks{
-    preCommit { tasks("formatAndLintPreCommit", "checkEnvSetup") }
+    preCommit { tasks("formatAndLintPreCommit", "updateAndCheckEnvSetup") }
     commitMsg { conventionalCommits() }
     createHooks(true)
 }
@@ -22,3 +22,4 @@ include("services:users")
 include("services:events")
 include("services:frontend")
 include("services:media")
+include("services:interactions")

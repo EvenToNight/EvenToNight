@@ -1,0 +1,63 @@
+// =============================================================================
+// Quasar Framework - Variables Override
+// =============================================================================
+// This file maps our custom SCSS variables to Quasar's brand colors
+
+@use 'abstracts/variables' as *;
+
+// -----------------------------------------------------------------------------
+// Quasar Brand Colors
+// -----------------------------------------------------------------------------
+$primary: $color-primary;
+$secondary: $color-secondary;
+$accent: $color-accent;
+
+$positive: $color-success;
+$negative: $color-error;
+$info: $color-info;
+$warning: $color-warning;
+
+// -----------------------------------------------------------------------------
+// Quasar Dark Mode Colors
+// -----------------------------------------------------------------------------
+$dark: $color-background-dark;
+$dark-page: $color-background-dark;
+
+// -----------------------------------------------------------------------------
+// Typography
+// -----------------------------------------------------------------------------
+$typography-font-family: $font-family-base;
+$h1-size: $font-size-4xl;
+$h2-size: $font-size-3xl;
+$h3-size: $font-size-2xl;
+$h4-size: $font-size-xl;
+$h5-size: $font-size-lg;
+$h6-size: $font-size-base;
+
+// -----------------------------------------------------------------------------
+// Spacing
+// -----------------------------------------------------------------------------
+$space-base: $spacing-4;
+$space-x-base: $spacing-4;
+$space-y-base: $spacing-4;
+
+// -----------------------------------------------------------------------------
+// Border Radius
+// -----------------------------------------------------------------------------
+$generic-border-radius: 4px;
+$button-border-radius: 6px;
+$input-border-radius: 6px;
+
+// -----------------------------------------------------------------------------
+// Shadows
+// -----------------------------------------------------------------------------
+$shadow-1: $shadow-sm;
+$shadow-2: $shadow-base;
+$shadow-3: $shadow-md;
+$shadow-4: $shadow-lg;
+$shadow-5: $shadow-xl;
+
+// -----------------------------------------------------------------------------
+// Transitions
+// -----------------------------------------------------------------------------
+$transition-duration: 250ms;

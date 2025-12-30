@@ -1,0 +1,114 @@
+package controller.routes
+
+import cask.Routes
+import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventPosterCommand}
+import domain.models.EventStatus
+import service.EventService
+import ujson.Obj
+import utils.Utils
+
+class DomainEventRoutes(eventService: EventService) extends Routes:
+
+  private val mediaServiceUrl = "http://media:9020"
+  private val host            = sys.env.getOrElse("HOST", "localhost")
+
+  @cask.postForm("/")
+  def createEvent(poster: cask.FormFile = null, event: String): cask.Response[ujson.Value] =
+    try
+      val command: CreateEventCommand = Utils.getCreateCommandFromJson(event)
+      val posterOpt                   = Option(poster)
+      val posterValidation = (command.status, posterOpt) match
+        case (status, None) if status != EventStatus.DRAFT =>
+          Left("Poster is required for events with status other than DRAFT")
+        case _ =>
+          Right(())
+
+      posterValidation match
+        case Left(error) =>
+          cask.Response(
+            Obj("error" -> error),
+            statusCode = 400
+          )
+        case Right(_) =>
+          eventService.handleCommand(command) match
+            case Right(eventId: String) =>
+              val posterUrl = Utils.uploadPosterToMediaService(eventId, posterOpt, mediaServiceUrl)
+              val updateCommand =
+                UpdateEventPosterCommand(eventId = eventId, posterUrl = s"http://media.$host/$posterUrl")
+              eventService.handleCommand(updateCommand) match
+                case Right(_) =>
+                  cask.Response(
+                    Obj("eventId" -> eventId),
+                    statusCode = 201
+                  )
+                case Left(error) =>
+                  cask.Response(
+                    Obj("error" -> s"Event created but poster upload failed: $error"),
+                    statusCode = 207
+                  )
+            case Left(value) =>
+              cask.Response(
+                Obj("error" -> value),
+                statusCode = 400
+              )
+            case _ =>
+              cask.Response(
+                Obj("error" -> "Unknown error occurred during event creation"),
+                statusCode = 500
+              )
+    catch
+      case e: ujson.ParseException =>
+        cask.Response(
+          Obj("error" -> s"Invalid JSON format: ${e.getMessage}"),
+          statusCode = 400
+        )
+      case e: Exception =>
+        cask.Response(
+          Obj("error" -> s"Invalid request: ${e.getMessage}"),
+          statusCode = 400
+        )
+
+  @cask.put("/:eventId/")
+  def updateEvent(eventId: String, request: cask.Request): cask.Response[ujson.Value] =
+    try
+      val event   = request.text()
+      val command = Utils.getUpdateCommandFromJson(eventId, event)
+
+      eventService.handleCommand(command) match
+        case Right(_) =>
+          cask.Response(
+            Obj("message" -> "Event updated successfully"),
+            statusCode = 200
+          )
+        case Left(value) =>
+          cask.Response(
+            Obj("error" -> value),
+            statusCode = 400
+          )
+    catch
+      case e: ujson.ParseException =>
+        cask.Response(
+          Obj("error" -> s"Invalid JSON format: ${e.getMessage}"),
+          statusCode = 400
+        )
+      case e: Exception =>
+        cask.Response(
+          Obj("error" -> s"Invalid request: ${e.getMessage}"),
+          statusCode = 400
+        )
+
+  @cask.delete("/:eventId/")
+  def deleteEvent(eventId: String): cask.Response[ujson.Value] =
+    eventService.handleCommand(DeleteEventCommand(eventId)) match
+      case Right(_) =>
+        cask.Response(
+          Obj("message" -> "Event deleted successfully"),
+          statusCode = 200
+        )
+      case Left(value) =>
+        cask.Response(
+          Obj("error" -> value),
+          statusCode = 400
+        )
+
+  initialize()

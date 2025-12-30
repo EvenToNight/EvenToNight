@@ -24,7 +24,7 @@ app.get("/*", async (req, res) => {
 
   } catch (err) {
     try {
-      const type = req.path.split("/")[1] || "";
+      const type = decodeURIComponent(req.path).split("/")[1] || "";
       const defaultKey = returnDefault(type);
 
       await getImagesFromBucket(s3, bucketName, defaultKey, res);

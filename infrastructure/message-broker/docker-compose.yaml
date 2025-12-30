@@ -6,6 +6,9 @@ services:
       - eventonight-network
     ports:
       - '5672:5672'
+    environment:
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-admin}
     healthcheck:
       test: [ 'CMD', 'rabbitmq-diagnostics', 'status' ]
       interval: 2s
