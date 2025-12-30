@@ -3,10 +3,8 @@ package controller
 import cask.Request
 import cask.Response
 import infrastructure.RabbitConnection._
-import model.registration.RegistrationRequest
-import model.registration.UserIdResponse
-import model.registration.UserRegistration.fromRegistrationRequest
-import model.registration.UserRegistration.validateRegistrationRequest
+import model.registration.TokenResponse
+import model.registration.UserRegistration._
 import service.AuthenticationService
 import service.UserService
 import upickle.default._
@@ -23,17 +21,22 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
 
   @cask.post("/register")
   def register(req: Request): Response[String] =
-    val registrationReq = read[RegistrationRequest](req.text())
-    validateRegistrationRequest(registrationReq) match
-      case Left(err) => Response(s"Invalid registration request: $err", 400)
-      case Right(_) =>
-        authService.createUserWithRole(registrationReq) match
-          case Left(err) => Response(s"Failed to create user: $err", 500)
-          case Right(keycloakId, userId) =>
-            val registeredUser = fromRegistrationRequest(registrationReq, keycloakId)
-            userService.insertUser(registeredUser, userId)
-            val jsonResponse = UserIdResponse(userId)
-            Response(write(jsonResponse), 201)
+    parseInput(req) match
+      case Left(err) => Response(err, 400)
+      case Right(inputReq) =>
+        validateRegistrationRequest(inputReq) match
+          case Left(err) => Response(err, 400)
+          case Right(validReq) =>
+            authService.createUserWithRole(validReq) match
+              case Left(err) => Response(s"Failed to create user: $err", 500)
+              case Right(keycloakId, userId) =>
+                val registeredUser = fromValidRegistration(validReq, keycloakId)
+                userService.insertUser(registeredUser, userId)
+
+                authService.login(validReq.username, validReq.password) match
+                  case Left(err) => Response(s"User created but login failed: $err", 500)
+                  case Right(token) =>
+                    Response(write(TokenResponse(token)), 201)
 
   initialize()
 }
