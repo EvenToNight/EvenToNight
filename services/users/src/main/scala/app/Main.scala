@@ -4,10 +4,13 @@ import controller.UserRoutes
 import infrastructure.MongoConnection.client
 import infrastructure.RabbitConnection._
 import infrastructure.Wiring._
+import io.undertow.server.HttpHandler
+import middleware.CorsHandler
 
 object Main extends cask.MainRoutes {
-  override def port: Int                   = 9000 // Use your desired port here
+  override def port: Int                   = sys.env.getOrElse("PORT", "9000").toInt
   override def host: String                = "0.0.0.0"
+  override def defaultHandler: HttpHandler = new CorsHandler(super.defaultHandler)
   override def allRoutes: Seq[cask.Routes] = Seq(new UserRoutes(userService, authService))
 
   sys.addShutdownHook {
