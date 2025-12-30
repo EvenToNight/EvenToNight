@@ -1,10 +1,17 @@
 package repository
 
 import com.mongodb.client.MongoCollection
+import com.mongodb.client.model.Filters
 import model.UserReferences
+import org.bson.types.ObjectId
+
+import java.util.ArrayList
+import scala.jdk.CollectionConverters._
 
 trait AccountProfileRepository[A, P]:
   def insert(account: A, profile: P, userId: String): String
+  def getAll(): List[(A, P)]
+  def findById(userId: String): Option[(A, P)]
 
 class MongoAccountProfileRepository[A, P](
     referencesColl: MongoCollection[UserReferences],
@@ -16,3 +23,25 @@ class MongoAccountProfileRepository[A, P](
     val profileId = profilesColl.insertOne(profile).getInsertedId().asObjectId().getValue().toHexString()
     referencesColl.insertOne(UserReferences(userId, accountId, profileId))
     userId
+
+  override def getAll(): List[(A, P)] =
+    val references = referencesColl.find().into(new ArrayList[UserReferences]()).asScala.toList
+    references.flatMap(reference =>
+      val accountOpt = Option(accountsColl.find(Filters.eq("_id", ObjectId(reference.accountId))).first())
+      val profileOpt = Option(profilesColl.find(Filters.eq("_id", ObjectId(reference.profileId))).first())
+      for
+        account <- accountOpt
+        profile <- profileOpt
+      yield (account, profile)
+    )
+
+  override def findById(userId: String): Option[(A, P)] =
+    val referenceOpt = Option(referencesColl.find(Filters.eq("_id", userId)).first())
+    referenceOpt.flatMap(reference =>
+      val accountOpt = Option(accountsColl.find(Filters.eq("_id", ObjectId(reference.accountId))).first())
+      val profileOpt = Option(profilesColl.find(Filters.eq("_id", ObjectId(reference.profileId))).first())
+      for
+        account <- accountOpt
+        profile <- profileOpt
+      yield (account, profile)
+    )
