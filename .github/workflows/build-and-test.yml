@@ -25,6 +25,7 @@ jobs:
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: |
+            services/users/build/reports/jacoco/test/jacocoTestReport.xml
             services/events/build/reports/jacoco/test/jacocoTestReport.xml
             services/media/coverage/lcov.info
             services/interactions/coverage/lcov.info

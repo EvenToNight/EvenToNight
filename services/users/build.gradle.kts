@@ -8,10 +8,15 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
     id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
     id("io.github.cosmicsilence.scalafix") version "0.2.5"
+    jacoco
 }
 
 scalafmt {
     configFilePath = ".scalafmt.conf"
+}
+
+jacoco {
+    toolVersion = "0.8.12" 
 }
 
 tasks.matching { it.name.contains("Scalafmt", ignoreCase = true) }.configureEach {
@@ -73,6 +78,7 @@ tasks.test {
             events("passed", "skipped", "failed")
         }
     }
+    finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.register("formatAndLintPreCommit") {
@@ -120,5 +126,24 @@ tasks {
 
     named("startScripts") {
         dependsOn(shadowJar)
+    }
+}
+
+tasks.jacocoTestReport {
+    dependsOn(tasks.test)
+    reports {
+        xml.required.set(true)
+        html.required.set(true)
+    }
+}
+
+tasks.register("runCoverage") {
+    description = "Run coverage analysis for Users service"
+    group = "verification"
+    dependsOn("jacocoTestReport")
+    
+    doLast {
+        println("Users service coverage completed!")
+        println("Report available at: build/reports/jacoco/test/jacocoTestReport.xml")
     }
 }
