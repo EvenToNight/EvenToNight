@@ -15,6 +15,10 @@ jobs:
       - name: Build and Check
         uses: DanySK/build-check-deploy-gradle-action@4.0.17
         with:
+          pre-build-command: |
+            echo "POSTGRES_PASSWORD=testpostgrespassword" >> .env
+            echo "KEYCLOAK_ADMIN_PASSWORD=testkeycloakadminpassword" >> .env
+            echo "USERS_SERVICE_SECRET=testusersservicesecret" >> .env
           build-command: ./gradlew clean build --parallel --no-configuration-cache
           java-distribution: temurin
           java-version: '21'
