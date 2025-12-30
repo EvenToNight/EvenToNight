@@ -1128,12 +1128,30 @@ components:
           type: integer
           description: Total number of items available
           example: 1
+        averageRating:
+          type: number
+          format: float
+          description: Average rating of the reviews in the current page
+          example: 5
+        ratingDistribution:
+          type: object
+          description: Distribution of ratings in the current page
+          additionalProperties:
+            type: integer
+          example:
+            "5": 1
+            "4": 0
+            "3": 0
+            "2": 0
+            "1": 0
       required:
         - items
         - limit
         - offset
         - hasMore
         - totalItems
+        - averageRating
+        - ratingDistribution
 
     Follow:
       type: object

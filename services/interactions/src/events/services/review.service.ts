@@ -4,7 +4,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, FilterQuery } from 'mongoose';
+import { Model } from 'mongoose';
 import { Review } from '../schemas/review.schema';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
@@ -79,20 +79,7 @@ export class ReviewService {
   }
 
   async getUserReviews(userId: string, limit?: number, offset?: number) {
-    const query = this.reviewModel.find({ userId });
-    if (offset !== undefined) {
-      query.skip(offset);
-    }
-    if (limit !== undefined) {
-      query.limit(limit);
-    }
-    query.sort({ createdAt: -1 });
-
-    const [items, total] = await Promise.all([
-      query.exec(),
-      this.reviewModel.countDocuments({ userId }),
-    ]);
-    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
+    return this.getReviewsWithStats({ userId }, limit, offset);
   }
 
   async getOrganizationReviews(
@@ -101,31 +88,17 @@ export class ReviewService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Review>> {
-    let filter: FilterQuery<Review>;
-    if (role === 'owner') {
-      filter = { organizationId };
-    } else if (role === 'collaborator') {
-      filter = { collaboratorIds: organizationId };
-    } else {
-      filter = {
-        $or: [{ organizationId }, { collaboratorIds: organizationId }],
-      };
-    }
-
-    const query = this.reviewModel.find(filter);
-    if (offset !== undefined) {
-      query.skip(offset);
-    }
-    if (limit !== undefined) {
-      query.limit(limit);
-    }
-    query.sort({ createdAt: -1 });
-    const [items, total] = await Promise.all([
-      query.exec(),
-      this.reviewModel.countDocuments(filter),
-    ]);
-
-    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
+    return this.getReviewsWithStats(
+      role === 'owner'
+        ? { organizationId }
+        : role === 'collaborator'
+          ? { collaboratorIds: organizationId }
+          : {
+              $or: [{ organizationId }, { collaboratorIds: organizationId }],
+            },
+      limit,
+      offset,
+    );
   }
 
   private async getReviewsWithStats(
