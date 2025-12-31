@@ -23,8 +23,13 @@ object MongoConnection:
       new UserReferencesCodec
     )
   )
+
+  val mongoHost: String = sys.env.getOrElse("MONGO_HOST", "localhost")
+  val mongoPort: String = "27017"
+  val mongoUri: String  = s"mongodb://$mongoHost:$mongoPort"
+
   private val settings = MongoClientSettings.builder().codecRegistry(pojoCodecRegistry).applyConnectionString(
-    new com.mongodb.ConnectionString("mongodb://localhost:27017")
+    new com.mongodb.ConnectionString(mongoUri)
   ).build()
   val client: MongoClient = MongoClients.create(settings)
 
