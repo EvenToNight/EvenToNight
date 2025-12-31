@@ -17,7 +17,7 @@ services:
       start_period: 30s
 
   keycloak:
-    image: ghcr.io/eventonight/eventonight/keycloak:latest
+    image: ghcr.io/eventonight/eventonight/authentication-keycloak:latest
     environment:
       KC_DB: postgres
       KC_DB_URL_HOST: postgres-keycloak
@@ -52,7 +52,7 @@ services:
       start_period: 600s
 
   keycloak-provision:
-    image: ghcr.io/eventonight/eventonight/keycloak-provision:latest
+    image: ghcr.io/eventonight/eventonight/authentication-keycloak-provision:latest
     environment:
       KEYCLOAK_ADMIN: ${KEYCLOAK_ADMIN}
       KEYCLOAK_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
