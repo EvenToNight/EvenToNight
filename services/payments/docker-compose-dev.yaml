@@ -1,0 +1,22 @@
+services:
+  payments:
+    build:
+      context: ../..
+      dockerfile: ./services/payments/Dockerfile
+    ports:
+      - "${PAYMENTS_SERVICE_PORT}:${PAYMENTS_SERVICE_PORT}"
+    environment:
+      - NODE_ENV=development
+
+  mongo-payments-express:
+    image: mongo-express:1.0.2-20-alpine3.19
+    restart: unless-stopped
+    networks:
+      - payments-network
+    ports:
+      - '${MONGO_EXPRESS_PAYMENTS_PORT}:8081'
+    environment:
+      ME_CONFIG_MONGODB_SERVER: 'mongo-payments'
+    depends_on:
+      mongo-payments:
+        condition: service_healthy
