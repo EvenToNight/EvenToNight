@@ -1,23 +1,22 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { Cropper, RectangleStencil } from 'vue-advanced-cropper'
-import Button from '../buttons/basicButtons/Button.vue'
+import { Cropper, CircleStencil } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
 
 const $q = useQuasar()
 
 interface Props {
   modelValue?: File | null
-  label?: string
-  buttonLabel?: string
+  previewUrl?: string
+  defaultIcon?: string
   maxSize?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   modelValue: null,
-  label: 'Event Image',
-  buttonLabel: 'Upload Image',
+  previewUrl: undefined,
+  defaultIcon: 'person',
   maxSize: 5000000, // 5MB default
 })
 
@@ -32,15 +31,13 @@ const selectedImage = ref<string>('')
 const fileInput = ref<HTMLInputElement | null>(null)
 const cropperRef = ref<InstanceType<typeof Cropper> | null>(null)
 
-// Watch for external changes to modelValue (e.g., when loading an existing event)
+// Watch for external changes to modelValue
 watch(
   () => props.modelValue,
   (newFile) => {
     if (newFile && !croppedImage.value) {
-      // Create preview URL for the file
       croppedImage.value = URL.createObjectURL(newFile)
     } else if (!newFile && croppedImage.value) {
-      // Clean up when file is removed
       URL.revokeObjectURL(croppedImage.value)
       croppedImage.value = null
     }
@@ -99,7 +96,7 @@ const cropImage = async () => {
     })
 
     // Create File from blob
-    const file = new File([blob], 'event-poster.jpg', { type: 'image/jpeg' })
+    const file = new File([blob], 'avatar.jpg', { type: 'image/jpeg' })
 
     // Create preview URL
     croppedImage.value = URL.createObjectURL(blob)
@@ -112,18 +109,6 @@ const cropImage = async () => {
   }
 }
 
-const removeImage = () => {
-  if (croppedImage.value) {
-    URL.revokeObjectURL(croppedImage.value)
-  }
-  croppedImage.value = null
-  selectedImage.value = ''
-  emit('update:modelValue', null)
-  if (fileInput.value) {
-    fileInput.value.value = ''
-  }
-}
-
 const closeCropper = () => {
   showCropper.value = false
   selectedImage.value = ''
@@ -131,47 +116,40 @@ const closeCropper = () => {
     fileInput.value.value = ''
   }
 }
+
+// Expose methods for parent components
+defineExpose({
+  triggerFileInput,
+})
 </script>
 
 <template>
-  <div class="image-crop-upload">
-    <label v-if="label" class="field-label">{{ label }}</label>
-
-    <div v-if="croppedImage" class="image-preview-container">
-      <img :src="croppedImage" alt="Cropped preview" class="preview-image" />
-      <q-btn
-        icon="close"
-        round
-        dense
-        color="negative"
-        class="remove-image-btn"
-        @click="removeImage"
-      />
+  <div class="avatar-crop-upload">
+    <div class="avatar-preview-container" @click="triggerFileInput">
+      <div v-if="croppedImage || previewUrl" class="avatar-preview">
+        <img :src="croppedImage || previewUrl" alt="Avatar preview" class="avatar-image" />
+        <div class="avatar-overlay">
+          <q-icon name="photo_camera" size="32px" color="white" />
+        </div>
+      </div>
+      <div v-else class="avatar-placeholder">
+        <q-icon :name="defaultIcon" size="48px" />
+        <div class="overlay-text">Change Photo</div>
+      </div>
     </div>
 
-    <div v-else class="upload-button-container">
-      <Button
-        :label="buttonLabel"
-        :icon="'add_photo_alternate'"
-        outline
-        variant="primary"
-        size="sm"
-        class="outline-btn-fix upload-trigger-btn"
-        @click="triggerFileInput"
-      />
-      <input
-        ref="fileInput"
-        type="file"
-        accept="image/*"
-        style="display: none"
-        @change="onFileSelect"
-      />
-    </div>
+    <input
+      ref="fileInput"
+      type="file"
+      accept="image/*"
+      style="display: none"
+      @change="onFileSelect"
+    />
 
     <q-dialog v-model="showCropper" persistent :maximized="$q.screen.lt.md">
       <q-card class="cropper-dialog">
         <q-card-section class="row items-center q-pb-none dialog-header">
-          <div class="text-h6">Crop Image</div>
+          <div class="text-h6">Crop Photo</div>
           <q-space />
           <q-btn icon="close" flat round dense @click="closeCropper" />
         </q-card-section>
@@ -182,17 +160,15 @@ const closeCropper = () => {
               ref="cropperRef"
               class="cropper"
               :src="selectedImage"
-              :stencil-component="RectangleStencil"
+              :stencil-component="CircleStencil"
               :stencil-props="{
                 aspectRatio: 1,
                 movable: false,
                 resizable: false,
-                handlers: {},
-                lines: {},
               }"
               :stencil-size="{
-                width: 320,
-                height: 320,
+                width: 280,
+                height: 280,
               }"
               image-restriction="stencil"
             />
@@ -201,7 +177,7 @@ const closeCropper = () => {
 
         <q-card-actions align="right" class="dialog-actions">
           <q-btn flat label="Cancel" @click="closeCropper" />
-          <q-btn color="primary" label="Crop & Save" @click="cropImage" />
+          <q-btn color="primary" label="Save" @click="cropImage" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -209,58 +185,82 @@ const closeCropper = () => {
 </template>
 
 <style lang="scss" scoped>
-.image-crop-upload {
+.avatar-crop-upload {
   width: 100%;
-}
-
-.field-label {
-  display: block;
-  font-size: 0.875rem;
-  font-weight: 600;
-  margin-bottom: $spacing-2;
-  opacity: 0.8;
-}
-
-.upload-button-container {
   display: flex;
   justify-content: center;
 }
 
-.upload-trigger-btn {
-  min-width: 160px;
+.avatar-preview-container {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  cursor: pointer;
 }
 
-.image-preview-container {
-  position: relative;
-  width: 200px;
-  height: 200px;
-  aspect-ratio: 1; // Square ratio matching EventCard
-  border-radius: 24px; // Rounded corners matching EventCard
+.avatar-preview,
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
   overflow: hidden;
-  background: rgba(0, 0, 0, 0.05);
-  margin: 0 auto;
+  position: relative;
+  background: $color-gray-100;
 
   @include dark-mode {
-    background: rgba(255, 255, 255, 0.05);
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    width: 150px;
-    height: 150px;
+    background: rgba($color-white, 0.05);
   }
 }
 
-.preview-image {
+.avatar-image {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.remove-image-btn {
+.avatar-overlay {
   position: absolute;
-  top: $spacing-2;
-  right: $spacing-2;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  inset: 0;
+  background: rgba($color-black, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity $transition-base;
+
+  .avatar-preview:hover & {
+    opacity: 1;
+  }
+}
+
+.avatar-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-2;
+  color: $color-gray-500;
+  transition: all $transition-base;
+
+  &:hover {
+    background: $color-gray-200;
+    color: $color-primary;
+
+    @include dark-mode {
+      background: rgba($color-white, 0.1);
+    }
+  }
+
+  @include dark-mode {
+    color: $color-gray-400;
+  }
+}
+
+.overlay-text {
+  font-size: $font-size-xs;
+  font-weight: $font-weight-medium;
+  text-align: center;
+  padding: 0 $spacing-2;
 }
 
 .cropper-dialog {
@@ -269,10 +269,9 @@ const closeCropper = () => {
   max-width: 100vw;
   max-height: 100vh;
 
-  // Modal style for desktop
   @media (min-width: $breakpoint-mobile) {
     width: 90vw;
-    max-width: 900px;
+    max-width: 700px;
     height: auto;
     max-height: 90vh;
     border-radius: 16px;
@@ -294,7 +293,6 @@ const closeCropper = () => {
   justify-content: center;
   padding: $spacing-4;
 
-  // Better height for desktop modal
   @media (min-width: $breakpoint-mobile) {
     height: auto;
     min-height: 400px;
@@ -305,9 +303,9 @@ const closeCropper = () => {
 .cropper-wrapper {
   width: 100%;
   height: 100%;
-  max-width: 800px;
+  max-width: 600px;
   max-height: 600px;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 1;
 
   @media (max-width: $breakpoint-mobile) {
     max-width: 95vw;
@@ -318,18 +316,6 @@ const closeCropper = () => {
 .cropper {
   width: 100%;
   height: 100%;
-
-  // Hide stencil handlers (resize corners)
-  :deep(.vue-handler),
-  :deep(.vue-line-handler),
-  :deep(.vue-corner-handler) {
-    display: none !important;
-  }
-
-  // Round the stencil corners to match EventCard
-  :deep(.vue-rectangle-stencil__preview) {
-    border-radius: 24px;
-  }
 }
 
 .dialog-actions {
