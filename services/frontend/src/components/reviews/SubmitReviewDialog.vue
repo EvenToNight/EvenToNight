@@ -231,7 +231,12 @@ const submitReview = async () => {
   width: calc(100% - #{$spacing-4 * 2});
   border-radius: $radius-2xl;
   @media (max-width: $app-min-width) {
-    @include absolute-fill;
+    position: absolute;
+    border-radius: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100vw;
+    max-height: 100vh;
   }
 }
 </style>
