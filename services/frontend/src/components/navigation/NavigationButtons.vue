@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { inject, type Ref, ref } from 'vue'
 import { useNavigation } from '@/router/utils'
 import AppBrand from '../common/AppBrand.vue'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
@@ -9,10 +10,15 @@ const { goBack, goToHome } = useNavigation()
 
 interface Props {
   variant?: 'solid' | 'floating'
+  showHomeButton?: boolean
 }
 withDefaults(defineProps<Props>(), {
   variant: 'solid',
+  showHomeButton: true,
 })
+
+// Inject scroll state - whether the page header is hidden
+const showNavbarCustomContent = inject<Ref<boolean>>('showNavbarCustomContent', ref(false))
 </script>
 
 <template>
@@ -23,14 +29,19 @@ withDefaults(defineProps<Props>(), {
     </nav>
   </template>
   <template v-else>
-    <nav class="navigation-bar">
+    <nav class="navigation-bar" :class="{ 'show-custom-content': showNavbarCustomContent }">
       <div class="nav-left">
         <q-btn flat round icon="arrow_back" class="nav-btn" @click="goBack" />
+        <transition name="fade-slide">
+          <div v-if="showNavbarCustomContent" class="custom-content">
+            <slot name="left-custom-content" />
+          </div>
+        </transition>
       </div>
       <div class="nav-center">
-        <AppBrand />
+        <AppBrand v-if="!showNavbarCustomContent" />
       </div>
-      <div class="nav-right">
+      <div v-if="showHomeButton" class="nav-right">
         <q-btn flat round icon="home" class="nav-btn" @click="() => goToHome()" />
       </div>
     </nav>
@@ -70,10 +81,13 @@ withDefaults(defineProps<Props>(), {
 .nav-right {
   flex: 1;
   display: flex;
+  align-items: center;
 }
 
 .nav-left {
   justify-content: flex-start;
+  gap: $spacing-3;
+  overflow: hidden;
 }
 
 .nav-right {
@@ -95,14 +109,43 @@ withDefaults(defineProps<Props>(), {
   left: 50%;
   transform: translateX(-50%);
   display: none;
+  align-items: center;
 
   :deep(.brand-logo) {
     display: none;
   }
 }
 
+.custom-content {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  min-width: 0;
+  flex: 1;
+}
+
+// Fade slide transition
+.fade-slide-enter-active,
+.fade-slide-leave-active {
+  transition: all 0.3s ease;
+}
+
+.fade-slide-enter-from {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+.fade-slide-leave-to {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
 @media (min-width: $breakpoint-mobile) {
   .nav-center {
+    display: flex;
+  }
+
+  .navigation-bar.show-custom-content .nav-right {
     display: flex;
   }
 

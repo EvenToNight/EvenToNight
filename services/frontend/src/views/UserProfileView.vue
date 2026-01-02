@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted, provide, computed, nextTick } from 'vue'
 import { api } from '@/api'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import type { User } from '@/api/types/users'
@@ -15,10 +15,40 @@ const isFollowing = ref(false)
 const showAuthDialog = ref(false)
 const user = ref<User | null>(null)
 const reviewsStatistics = ref<OrganizationReviewsStatistics | null>(null)
+const profileHeaderRef = ref<HTMLElement | null>(null)
+const showNavbarCustomContent = ref(false)
+provide('showNavbarCustomContent', showNavbarCustomContent)
+
+let observer: IntersectionObserver | null = null
 
 onMounted(async () => {
   await loadUser()
+  setupScrollObserver()
 })
+
+onUnmounted(() => {
+  if (observer) {
+    observer.disconnect()
+  }
+})
+
+const setupScrollObserver = async () => {
+  // Wait for next tick to ensure DOM is ready
+  await nextTick()
+  if (!profileHeaderRef.value) return
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        showNavbarCustomContent.value = !entry.isIntersecting
+      })
+    },
+    {
+      threshold: 0,
+      rootMargin: `-${NAVBAR_HEIGHT_CSS} 0px 0px 0px`,
+    }
+  )
+  observer.observe(profileHeaderRef.value)
+}
 
 const loadUser = async () => {
   try {
@@ -47,20 +77,37 @@ const loadUser = async () => {
     user.value = null
   }
 }
+
+const defaultIcon = computed(() => {
+  if (!user.value) return 'person'
+  return user.value.role === 'organization' ? 'business' : 'person'
+})
 </script>
 
 <template>
-  <NavigationButtons />
+  <NavigationButtons>
+    <template #left-custom-content>
+      <div v-if="user" class="navbar-user-info">
+        <q-avatar size="32px">
+          <img v-if="user.avatarUrl" :src="user.avatarUrl" :alt="user.name" class="navbar-avatar" />
+          <q-icon v-else :name="defaultIcon" size="24px" />
+        </q-avatar>
+        <span class="navbar-user-name">{{ user.name }}</span>
+      </div>
+    </template>
+  </NavigationButtons>
 
   <div class="user-profile">
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
     <template v-if="user">
-      <ProfileHeader
-        v-model:is-following="isFollowing"
-        :user="user"
-        :reviews-statistics="reviewsStatistics"
-        @auth-required="showAuthDialog = true"
-      />
+      <div ref="profileHeaderRef">
+        <ProfileHeader
+          v-model:is-following="isFollowing"
+          :user="user"
+          :reviews-statistics="reviewsStatistics"
+          @auth-required="showAuthDialog = true"
+        />
+      </div>
       <div class="profile-container">
         <ProfileBody :user="user" />
       </div>
@@ -69,14 +116,38 @@ const loadUser = async () => {
 </template>
 
 <style lang="scss" scoped>
+.navbar-user-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  min-width: 0;
+  flex: 1;
+  color: $color-text-primary;
+
+  @include dark-mode {
+    color: $color-text-dark;
+  }
+}
+
+.navbar-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.navbar-user-name {
+  @include text-truncate;
+  font-weight: $font-weight-semibold;
+  font-size: $font-size-base;
+}
+
 .user-profile {
   min-height: 100vh;
   background: var(--q-background);
   position: relative;
   margin-top: calc(-1 * v-bind(NAVBAR_HEIGHT_CSS));
   padding-top: calc(v-bind(NAVBAR_HEIGHT_CSS) + #{$spacing-6});
-  // padding-top: $spacing-6;
-  //padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
 
   background: #f5f5f5;
 
