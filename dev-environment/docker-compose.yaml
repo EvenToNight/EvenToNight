@@ -7,11 +7,11 @@ services:
     ports:
       - '5672:5672'
     healthcheck:
-      test: [ 'CMD', 'rabbitmq-diagnostics', 'status' ]
-      interval: 2s
-      timeout: 3s
-      retries: 100
-      start_period: 10s
+      test: [ 'CMD', 'rabbitmqctl', 'await_startup' ]
+      interval: 5s
+      timeout: 5s
+      retries: 1000
+      start_period: 500s
 
   mongo:
     image: mongo
@@ -24,8 +24,8 @@ services:
       test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
       interval: 2s
       timeout: 3s
-      retries: 10
-      start_period: 0s
+      retries: 1000
+      start_period: 500s
 
 networks:
   dev-network:

@@ -1,3 +1,31 @@
+## [1.12.0](https://github.com/EvenToNight/EvenToNight/compare/v1.11.1...v1.12.0) (2025-12-31)
+
+### Features
+
+* **keycloak:** add createUser method in KeycloakConnection ([2b49fe0](https://github.com/EvenToNight/EvenToNight/commit/2b49fe05fa826ce2f339eeb0fd210ab6480955b6))
+* **keycloak:** add deleteUser method and integration tests for KeycloakConnection ([ba3897e](https://github.com/EvenToNight/EvenToNight/commit/ba3897e214afc61646a1d349ca6054a06f66dff9))
+* **keycloak:** add Keycloak setup with custom realm ([dfc9f1c](https://github.com/EvenToNight/EvenToNight/commit/dfc9f1cbc355bd46e44df050155bcb9ab16b0b88))
+* **keycloak:** create 'users-service' client in 'eventonight' realm with configurable secret ([45e28ed](https://github.com/EvenToNight/EvenToNight/commit/45e28ed3636d55170c537cc647670a8aa068ddc6))
+* **keycloak:** switch from dev mode to simulated production mode ([aef2c64](https://github.com/EvenToNight/EvenToNight/commit/aef2c644360cd28b184cf45f3bbb7f3f9c908f94))
+* **provisioning:** assign manage-users role to 'users-service' service account ([0af77e2](https://github.com/EvenToNight/EvenToNight/commit/0af77e235247f2b673e2c3fd673a5920f36c75af))
+* **register:** add /register route and authentication service wiring ([7b95e9c](https://github.com/EvenToNight/EvenToNight/commit/7b95e9c93c6e73b7b6a2d3346b0c1c04259eb338))
+* **registration:** add registration models, default profiles and upickle dependency ([daece15](https://github.com/EvenToNight/EvenToNight/commit/daece158ac70d92bd187e4b5790458ad10e55320))
+* **users:** add Member model classes ([13f9a98](https://github.com/EvenToNight/EvenToNight/commit/13f9a98dced51c0eebf6473de96f3f6083e9df49))
+* **users:** add MongoConnection object and custom codecs for MemberAccount and MemberProfile ([3479962](https://github.com/EvenToNight/EvenToNight/commit/3479962439acf93b01cc099f6a12d5db5a62f3af))
+* **users:** add Organization model classes ([3c3f777](https://github.com/EvenToNight/EvenToNight/commit/3c3f7779723dde2fd3aeeca0752c131ea1279458))
+* **users:** add RabbitConnection, Wiring and UserRoutes objects ([f048e43](https://github.com/EvenToNight/EvenToNight/commit/f048e4302edd249b4ef6dc66f2f3be3f632641e1))
+* **users:** add UserService and MemberRepository classes ([60fed9a](https://github.com/EvenToNight/EvenToNight/commit/60fed9a52c54348740f2f42e03f35323d172ed35))
+* **users:** extend UserService to handle inserting organizations in MongoDB ([945cf04](https://github.com/EvenToNight/EvenToNight/commit/945cf0467ae1e3c4a062c8869b3e69e615fd2d01))
+* **users:** implement /login, /:userId and / ([655090f](https://github.com/EvenToNight/EvenToNight/commit/655090ff9efda67bac974b04472bd41f285e72da))
+* **users:** implement Keycloak password grant ([16427a6](https://github.com/EvenToNight/EvenToNight/commit/16427a6cbd07ad981539cfb82600a431235343e6))
+* **users:** retrieve access token from Keycloak using users-service client credentials ([b8f2dc7](https://github.com/EvenToNight/EvenToNight/commit/b8f2dc737909e42edda2622a1659fd831cdc9c6d))
+* **users:** return access token with generated userId on registration ([755b641](https://github.com/EvenToNight/EvenToNight/commit/755b6415284bcd48319e18fcb953a09911ce7b67))
+
+### Bug Fixes
+
+* **keycloak:** update configuration to make Keycloak run on CI ([a8d4daf](https://github.com/EvenToNight/EvenToNight/commit/a8d4daf01a3a72aacc532d001d280c812b20eff6))
+* **mongo-connection:** use MONGOHOST from sys.env if present ([874cce6](https://github.com/EvenToNight/EvenToNight/commit/874cce65fa31406b121baf0a875b0e2661276b67))
+
 ## [1.11.1](https://github.com/EvenToNight/EvenToNight/compare/v1.11.0...v1.11.1) (2025-12-29)
 
 ### Bug Fixes

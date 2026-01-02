@@ -1,0 +1,12 @@
+services:
+    keycloak:
+      build:
+        context: .
+        dockerfile: ./infrastructure/authentication/Dockerfile-keycloak
+
+    keycloak-provision:
+      build:
+        context: .
+        dockerfile: ./infrastructure/authentication/Dockerfile-keycloak-provision
+      environment:
+        USERS_SERVICE_SECRET: "supersecret"

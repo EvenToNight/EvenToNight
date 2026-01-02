@@ -7,7 +7,12 @@ services:
     environment:
       - PORT=${USERS_SERVICE_PORT}
       - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
       - MONGO_HOST=mongo-users
+      - USERS_SERVICE_SECRET=${USERS_SERVICE_SECRET}
+      - KEYCLOAK_URL=http://keycloak:8080
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.users.rule=Host(`users.${HOST}`)"
@@ -19,6 +24,8 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      keycloak-provision:
+        condition: service_completed_successfully
 
   mongo-users:
     image: mongo
