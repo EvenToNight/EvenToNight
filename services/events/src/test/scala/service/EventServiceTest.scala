@@ -47,7 +47,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
         link = Some("http://example.com/location")
       )),
       price: Option[Double] = Some(15.0),
-      date: Option[LocalDateTime] = Some(LocalDateTime.of(2025, 12, 31, 20, 0)),
+      date: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(10)),
       status: EventStatus = EventStatus.DRAFT,
       creatorId: String = "creator-123",
       collaboratorIds: Option[List[String]] = None
