@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, provide, computed, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
 import { api } from '@/api'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import type { User } from '@/api/types/users'
@@ -17,8 +17,6 @@ const user = ref<User | null>(null)
 const reviewsStatistics = ref<OrganizationReviewsStatistics | null>(null)
 const profileHeaderRef = ref<HTMLElement | null>(null)
 const showNavbarCustomContent = ref(false)
-provide('showNavbarCustomContent', showNavbarCustomContent)
-
 let observer: IntersectionObserver | null = null
 
 onMounted(async () => {
@@ -87,7 +85,7 @@ const defaultIcon = computed(() => {
 <template>
   <NavigationButtons>
     <template #left-custom-content>
-      <div v-if="user" class="navbar-user-info">
+      <div v-if="user && showNavbarCustomContent" class="navbar-user-info">
         <q-avatar size="32px">
           <img v-if="user.avatarUrl" :src="user.avatarUrl" :alt="user.name" class="navbar-avatar" />
           <q-icon v-else :name="defaultIcon" size="24px" />

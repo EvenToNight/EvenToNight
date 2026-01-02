@@ -183,7 +183,7 @@ const getCurrentTabComponent = (): Tab => {
 
 .explore-tab-header-inner {
   display: flex;
-  justify-content: center;
+  justify-content: safe center;
   gap: $spacing-8;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -201,7 +201,6 @@ const getCurrentTabComponent = (): Tab => {
     padding: 0 $spacing-4;
   }
   @media (max-width: $app-min-width) {
-    justify-content: flex-start;
     gap: $spacing-4;
   }
 }

@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { inject, type Ref, ref } from 'vue'
 import { useNavigation } from '@/router/utils'
 import AppBrand from '../common/AppBrand.vue'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
@@ -16,9 +15,6 @@ withDefaults(defineProps<Props>(), {
   variant: 'solid',
   showHomeButton: true,
 })
-
-// Inject scroll state - whether the page header is hidden
-const showNavbarCustomContent = inject<Ref<boolean>>('showNavbarCustomContent', ref(false))
 </script>
 
 <template>
@@ -29,17 +25,17 @@ const showNavbarCustomContent = inject<Ref<boolean>>('showNavbarCustomContent', 
     </nav>
   </template>
   <template v-else>
-    <nav class="navigation-bar" :class="{ 'show-custom-content': showNavbarCustomContent }">
+    <nav class="navigation-bar" :class="{ 'show-custom-content': $slots['left-custom-content'] }">
       <div class="nav-left">
         <q-btn flat round icon="arrow_back" class="nav-btn" @click="goBack" />
         <transition name="fade-slide">
-          <div v-if="showNavbarCustomContent" class="custom-content">
+          <div v-if="$slots['left-custom-content']" class="custom-content">
             <slot name="left-custom-content" />
           </div>
         </transition>
       </div>
       <div class="nav-center">
-        <AppBrand v-if="!showNavbarCustomContent" />
+        <AppBrand v-if="!$slots['left-custom-content']" />
       </div>
       <div v-if="showHomeButton" class="nav-right">
         <q-btn flat round icon="home" class="nav-btn" @click="() => goToHome()" />
