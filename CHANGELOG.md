@@ -1,3 +1,9 @@
+## [1.12.1](https://github.com/EvenToNight/EvenToNight/compare/v1.12.0...v1.12.1) (2026-01-02)
+
+### Bug Fixes
+
+* **date:** fix date error in event tests ([7bd2bc8](https://github.com/EvenToNight/EvenToNight/commit/7bd2bc83ba5424815a0f4ada1ffccddb9d353f12))
+
 ## [1.12.0](https://github.com/EvenToNight/EvenToNight/compare/v1.11.1...v1.12.0) (2025-12-31)
 
 ### Features
