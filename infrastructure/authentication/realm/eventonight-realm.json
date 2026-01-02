@@ -1,0 +1,11 @@
+{
+  "realm": "eventonight",
+  "enabled": true,
+  "registrationAllowed": true,
+  "roles": {
+    "realm": [
+      { "name": "member" },
+      { "name": "organization" }
+    ]
+  }
+}

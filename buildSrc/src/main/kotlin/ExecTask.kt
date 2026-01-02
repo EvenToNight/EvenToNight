@@ -52,7 +52,7 @@ abstract class ExecTask : DefaultTask() {
                 errorOutput = System.err
                 isIgnoreExitValue = true
                 if (isWindows) {
-                    commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c \"$command\"")
+                    commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c \'$command\'")
                 } else {
                     commandLine("bash", "-c", command)
                 }

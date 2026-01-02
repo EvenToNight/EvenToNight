@@ -11,10 +11,10 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-admin}
     healthcheck:
       test: [ 'CMD', 'rabbitmq-diagnostics', 'status' ]
-      interval: 2s
-      timeout: 3s
+      interval: 5s
+      timeout: 5s
       retries: 100
-      start_period: 60s
+      start_period: 200s
 
 networks:
   eventonight-network:

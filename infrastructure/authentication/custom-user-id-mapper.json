@@ -1,0 +1,15 @@
+{
+  "name": "custom-user-id-mapper",
+  "protocol": "openid-connect",
+  "protocolMapper": "oidc-usermodel-attribute-mapper",
+  "consentRequired": false,
+  "config": {
+    "user.attribute": "custom_user_id",
+    "claim.name": "user_id",
+    "jsonType.label": "String",
+    "id.token.claim": "true",
+    "access.token.claim": "true",
+    "userinfo.token.claim": "true",
+    "multivalued": "false"
+  }
+}
