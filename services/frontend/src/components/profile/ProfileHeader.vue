@@ -25,6 +25,7 @@ const emit = defineEmits<{
   editProfile: []
   createEvent: []
   authRequired: []
+  openSettings: []
 }>()
 
 const $q = useQuasar()
@@ -32,9 +33,7 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 
 const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
-const isOwnProfile = computed(() => {
-  return authStore.isAuthenticated && authStore.user?.id === props.user.id
-})
+const isOwnProfile = computed(() => authStore.isOwnProfile(props.user.id))
 const isOrganization = computed(() => {
   return props.user.role === 'organization'
 })
@@ -57,6 +56,10 @@ const handleEditProfile = () => {
 
 const handleCreateEvent = () => {
   emit('createEvent')
+}
+
+const handleOpenSettings = () => {
+  emit('openSettings')
 }
 </script>
 <template>
@@ -86,6 +89,7 @@ const handleCreateEvent = () => {
             @edit-profile="handleEditProfile"
             @create-event="handleCreateEvent"
             @follow-toggle="handleFollowToggle"
+            @open-settings="handleOpenSettings"
           />
         </div>
       </template>
@@ -101,6 +105,7 @@ const handleCreateEvent = () => {
               @edit-profile="handleEditProfile"
               @create-event="handleCreateEvent"
               @follow-toggle="handleFollowToggle"
+              @open-settings="handleOpenSettings"
             />
           </div>
           <template v-if="isOrganization && reviewsStatistics">

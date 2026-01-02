@@ -3,7 +3,13 @@ import Home from '../views/HomeView.vue'
 import PlaceHolderView from '../views/PlaceHolderView.vue'
 import LocaleWrapper from '../views/LocaleWrapper.vue'
 import i18n, { SUPPORTED_LOCALES, DEFAULT_LOCALE, type Locale } from '../i18n'
-import { requireGuest, requireRole, requireEventCreator, requireNotDraft } from './guards'
+import {
+  requireGuest,
+  requireRole,
+  requireEventCreator,
+  requireNotDraft,
+  requireAuth,
+} from './guards'
 
 export const HOME_ROUTE_NAME = 'home'
 export const LOGIN_ROUTE_NAME = 'login'
@@ -14,6 +20,7 @@ export const EXPLORE_ROUTE_NAME = 'explore'
 export const USER_PROFILE_ROUTE_NAME = 'user-profile'
 export const CREATE_EVENT_ROUTE_NAME = 'create-event'
 export const EDIT_EVENT_ROUTE_NAME = 'edit-event'
+export const SETTINGS_ROUTE_NAME = 'settings'
 export const FORBIDDEN_ROUTE_NAME = 'forbidden'
 
 const getInitialLocale = (): string => {
@@ -91,6 +98,12 @@ const router = createRouter({
           path: 'users/:id',
           name: USER_PROFILE_ROUTE_NAME,
           component: () => import('../views/UserProfileView.vue'),
+        },
+        {
+          path: 'settings',
+          name: SETTINGS_ROUTE_NAME,
+          component: () => import('../views/SettingsView.vue'),
+          beforeEnter: requireAuth,
         },
         {
           path: 'create-event',

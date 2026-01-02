@@ -8,7 +8,7 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from '@/api'
 import type { Event, EventStatus } from '@/api/types/events'
 import { useI18n } from 'vue-i18n'
-import { useIsOwnProfile } from '@/composables/useProfile'
+import { useAuthStore } from '@/stores/auth'
 
 interface Props {
   user: User
@@ -16,8 +16,9 @@ interface Props {
 
 const props = defineProps<Props>()
 const { t } = useI18n()
+const authStore = useAuthStore()
 
-const isOwnProfile = useIsOwnProfile(computed(() => props.user.id))
+const isOwnProfile = computed(() => authStore.isOwnProfile(props.user.id))
 const isOrganization = computed(() => {
   return props.user.role === 'organization'
 })

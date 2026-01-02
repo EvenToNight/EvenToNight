@@ -1,6 +1,6 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import type { User } from '@/api/types/users'
+import type { User, UserID } from '@/api/types/users'
 import { api } from '@/api'
 import { useI18n } from 'vue-i18n'
 
@@ -151,6 +151,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const isOwnProfile = (userId: UserID): boolean => {
+    return isAuthenticated.value && user.value?.id === userId
+  }
+
   return {
     token,
     user,
@@ -164,5 +168,6 @@ export const useAuthStore = defineStore('auth', () => {
     initializeAuth,
     setupAutoRefresh,
     clearAuth,
+    isOwnProfile,
   }
 })

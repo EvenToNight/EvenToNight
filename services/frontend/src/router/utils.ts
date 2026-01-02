@@ -11,6 +11,7 @@ import {
   EDIT_EVENT_ROUTE_NAME,
   USER_PROFILE_ROUTE_NAME,
   EXPLORE_ROUTE_NAME,
+  SETTINGS_ROUTE_NAME,
 } from '@/router'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
 
@@ -151,6 +152,14 @@ export const useNavigation = () => {
     }
   }
 
+  const goToSettings = (swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(SETTINGS_ROUTE_NAME)
+    } else {
+      pushWithLocale(SETTINGS_ROUTE_NAME)
+    }
+  }
+
   const changeLocale = (newLocale: string) => {
     router.push({
       name: route.name as string,
@@ -178,6 +187,7 @@ export const useNavigation = () => {
     goToCreateEvent,
     goToEditEvent,
     goToUserProfile,
+    goToSettings,
     changeLocale,
   }
 }
