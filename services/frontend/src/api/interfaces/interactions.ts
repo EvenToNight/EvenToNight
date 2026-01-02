@@ -19,6 +19,7 @@ export type GetReviewWithStatisticsResponse = PaginatedResponseWithStatistics<
 >
 
 export type GetEventLikesResponse = PaginatedResponseWithTotalCount<UserID>
+export type GetUserLikedEventsResponse = PaginatedResponseWithTotalCount<EventID>
 
 //TODO: find way to get user following status and if user participated to event
 export interface InteractionAPI {
@@ -36,4 +37,9 @@ export interface InteractionAPI {
     pagination?: PaginatedRequest
   ): Promise<GetReviewWithStatisticsResponse>
   deleteEventReview(eventId: EventID, userId: UserID): Promise<void>
+  getUserReviews(userId: UserID, pagination?: PaginatedRequest): Promise<GetReviewResponse>
+  getUserLikedEvents(
+    userId: UserID,
+    pagination?: PaginatedRequest
+  ): Promise<GetUserLikedEventsResponse>
 }

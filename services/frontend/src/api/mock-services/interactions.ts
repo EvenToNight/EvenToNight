@@ -2,6 +2,7 @@ import type {
   GetEventLikesResponse,
   GetReviewResponse,
   GetReviewWithStatisticsResponse,
+  GetUserLikedEventsResponse,
   InteractionAPI,
 } from '../interfaces/interactions'
 import type { EventID } from '../types/events'
@@ -177,5 +178,18 @@ export const mockInteractionsApi: InteractionAPI = {
       }
     }
     return
+  },
+  async getUserReviews(userId: UserID, pagination?: PaginatedRequest): Promise<GetReviewResponse> {
+    const reviews = mockEventReviews.filter((review) => review.userId === userId)
+    return { ...getPaginatedItems(reviews, pagination), totalItems: reviews.length }
+  },
+  async getUserLikedEvents(
+    userId: UserID,
+    pagination?: PaginatedRequest
+  ): Promise<GetUserLikedEventsResponse> {
+    const likedEventIds: EventID[] = mockEventInteractions
+      .filter((interaction) => interaction.likes.includes(userId))
+      .map((interaction) => interaction.eventId)
+    return { ...getPaginatedItems(likedEventIds, pagination), totalItems: likedEventIds.length }
   },
 }

@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
+import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
@@ -44,6 +45,7 @@ defineExpose({
 </script>
 
 <template>
+  <NavigationButtons v-if="!(isMobile && showContent)" />
   <div class="two-column-layout">
     <div v-show="!isMobile || !showContent" class="sidebar" :class="{ 'mobile-full': isMobile }">
       <div v-if="sidebarTitle" class="sidebar-header">

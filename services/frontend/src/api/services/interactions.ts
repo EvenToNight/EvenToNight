@@ -2,6 +2,7 @@ import type {
   GetEventLikesResponse,
   GetReviewResponse,
   GetReviewWithStatisticsResponse,
+  GetUserLikedEventsResponse,
   InteractionAPI,
 } from '../interfaces/interactions'
 import type { EventID } from '../types/events'
@@ -77,5 +78,18 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
   },
   async deleteEventReview(eventId: EventID, userId: UserID): Promise<void> {
     return interactionsClient.delete<void>(`/events/${eventId}/reviews/${userId}`)
+  },
+  async getUserReviews(userId: UserID, pagination?: PaginatedRequest): Promise<GetReviewResponse> {
+    return interactionsClient.get<GetReviewResponse>(
+      `/users/${userId}/reviews${buildQueryParams({ ...evaluatePagination(pagination) })}`
+    )
+  },
+  async getUserLikedEvents(
+    userId: UserID,
+    pagination?: PaginatedRequest
+  ): Promise<GetUserLikedEventsResponse> {
+    return interactionsClient.get<GetUserLikedEventsResponse>(
+      `/users/${userId}/likes${buildQueryParams({ ...evaluatePagination(pagination) })}`
+    )
   },
 })
