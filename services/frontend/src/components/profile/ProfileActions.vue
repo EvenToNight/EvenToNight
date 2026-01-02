@@ -65,6 +65,6 @@ const handleFollowToggle = () => {
 .profile-actions {
   display: flex;
   gap: $spacing-2;
-  align-items: center;
+  align-items: stretch;
 }
 </style>
