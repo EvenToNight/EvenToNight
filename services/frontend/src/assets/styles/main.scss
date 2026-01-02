@@ -47,6 +47,15 @@ body.body--light {
   h1, h2, h3, h4, h5, h6, p, div, a {
     color: $color-black;
   }
+
+  // // Chat support component CSS variables
+  // --q-background: #{$color-white};
+  // --q-text-primary: #{$color-black};
+  // --q-text-secondary: #{$color-text-secondary};
+  // --q-separator-color: #{$color-border};
+  // --q-hover-color: #{$color-gray-100};
+  // --q-selected-color: #{$color-gray-200};
+  // --q-input-background: #{$color-gray-100};
 }
 
 body.body--dark {
@@ -56,6 +65,15 @@ body.body--dark {
   h1, h2, h3, h4, h5, h6, p, div {
     color: $color-white;
   }
+
+//   // Chat support component CSS variables
+//   --q-background: #202c33;
+//   --q-text-primary: #e9edef;
+//   --q-text-secondary: #8696a0;
+//   --q-separator-color: #2a3942;
+//   --q-hover-color: #2a3942;
+//   --q-selected-color: #2a3942;
+//   --q-input-background: #2a3942;
 }
 
 #app {

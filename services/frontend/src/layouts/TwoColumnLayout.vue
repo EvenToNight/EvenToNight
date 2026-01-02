@@ -89,6 +89,7 @@ defineExpose({
 .sidebar {
   width: 340px;
   min-width: 340px;
+  height: 100vh;
   background: $color-white;
   border-right: 1px solid $color-gray-200;
   display: flex;

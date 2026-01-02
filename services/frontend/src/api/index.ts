@@ -13,6 +13,7 @@ import {
   // createFeedClient,
   // createUsersClient,
 } from './client'
+import { mockSupportApi } from './mock-services/support'
 
 const useRealApi: boolean = import.meta.env.VITE_USE_MOCK_API === 'false'
 console.log('Using real API:', useRealApi)
@@ -25,6 +26,7 @@ export const api = {
     ? createInteractionsApi(createInteractionsClient())
     : mockInteractionsApi,
   users: mockUsersApi,
+  support: mockSupportApi,
   // media: useMockApi ? mockMediaApi : createMediaApi(createMediaClient()),
   // feed: useMockApi ? mockFeedApi : createFeedApi(createFeedClient()),
   // users: useMockApi ? mockUsersApi : createUsersApi(createUsersClient()),

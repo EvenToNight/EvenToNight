@@ -12,6 +12,7 @@ export const mockConversations: Conversation[] = [
     memberAvatar: 'https://i.pravatar.cc/150?img=1',
     lastMessage: 'Ci sono posti limitati!',
     lastMessageTime: new Date('2025-11-24T18:30:00'),
+    lastMessageSenderId: 'organization_1',
     unreadCount: 2,
     messages: [
       {
@@ -56,6 +57,7 @@ export const mockConversations: Conversation[] = [
     memberAvatar: 'https://i.pravatar.cc/150?img=1',
     lastMessage: 'Ok perfetto',
     lastMessageTime: new Date('2025-11-23T15:45:00'),
+    lastMessageSenderId: 'member_1',
     unreadCount: 0,
     messages: [
       {
@@ -100,6 +102,7 @@ export const mockConversations: Conversation[] = [
     memberAvatar: 'https://i.pravatar.cc/150?img=1',
     lastMessage: 'Ti aspettiamo!',
     lastMessageTime: new Date('2025-11-21T20:00:00'),
+    lastMessageSenderId: 'organization_3',
     unreadCount: 1,
     messages: [
       {

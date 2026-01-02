@@ -22,6 +22,7 @@ export const CREATE_EVENT_ROUTE_NAME = 'create-event'
 export const EDIT_EVENT_ROUTE_NAME = 'edit-event'
 export const SETTINGS_ROUTE_NAME = 'settings'
 export const EDIT_PROFILE_ROUTE_NAME = 'edit-profile'
+export const SUPPORT_ROUTE_NAME = 'support'
 export const FORBIDDEN_ROUTE_NAME = 'forbidden'
 
 const getInitialLocale = (): string => {
@@ -123,6 +124,11 @@ const router = createRouter({
           name: EDIT_EVENT_ROUTE_NAME,
           component: () => import('../views/CreateEventView.vue'),
           beforeEnter: requireEventCreator,
+        },
+        {
+          path: 'support',
+          name: SUPPORT_ROUTE_NAME,
+          component: () => import('../views/SupportView.vue'),
         },
         {
           path: 'forbidden',
