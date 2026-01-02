@@ -21,6 +21,7 @@ export const USER_PROFILE_ROUTE_NAME = 'user-profile'
 export const CREATE_EVENT_ROUTE_NAME = 'create-event'
 export const EDIT_EVENT_ROUTE_NAME = 'edit-event'
 export const SETTINGS_ROUTE_NAME = 'settings'
+export const EDIT_PROFILE_ROUTE_NAME = 'edit-profile'
 export const FORBIDDEN_ROUTE_NAME = 'forbidden'
 
 const getInitialLocale = (): string => {
@@ -103,6 +104,12 @@ const router = createRouter({
           path: 'settings',
           name: SETTINGS_ROUTE_NAME,
           component: () => import('../views/SettingsView.vue'),
+          beforeEnter: requireAuth,
+        },
+        {
+          path: 'profile/edit',
+          name: EDIT_PROFILE_ROUTE_NAME,
+          component: () => import('../views/EditProfileView.vue'),
           beforeEnter: requireAuth,
         },
         {

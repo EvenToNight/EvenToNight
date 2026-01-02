@@ -4,7 +4,7 @@ import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const { goToCreateEvent, goToSettings } = useNavigation()
+const { goToCreateEvent, goToEditProfile, goToSettings } = useNavigation()
 
 interface Props {
   isOwnProfile: boolean
@@ -15,18 +15,14 @@ interface Props {
 defineProps<Props>()
 
 const emit = defineEmits<{
-  editProfile: []
-  createEvent: []
   followToggle: []
-  openSettings: []
 }>()
 
 const handleEditProfile = () => {
-  emit('editProfile')
+  goToEditProfile()
 }
 
 const handleCreateEvent = () => {
-  emit('createEvent')
   goToCreateEvent()
 }
 
@@ -35,7 +31,6 @@ const handleFollowToggle = () => {
 }
 
 const handleOpenSettings = () => {
-  emit('openSettings')
   goToSettings()
 }
 </script>
