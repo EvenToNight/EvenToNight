@@ -159,19 +159,5 @@ const tabs = computed<Tab[]>(() => {
 </script>
 
 <template>
-  <div class="profile-body">
-    <TabView :variant="'profile'" :tabs="tabs" @update:activeTab="handleTabChange" />
-  </div>
+  <TabView :variant="'explore'" :tabs="tabs" @update:activeTab="handleTabChange" />
 </template>
-
-<style lang="scss" scoped>
-.profile-body {
-  background: $color-white;
-  border-radius: $radius-2xl;
-  box-shadow: $shadow-base;
-
-  @include dark-mode {
-    background: $color-background-dark;
-  }
-}
-</style>

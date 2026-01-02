@@ -88,7 +88,7 @@ const formatDate = (date: Date) => {
 
 <style scoped lang="scss">
 .event-card {
-  background: rgba(0, 0, 0, 0.02);
+  background: $color-white;
   border-radius: $radius-xl;
   overflow: hidden;
   cursor: pointer;
