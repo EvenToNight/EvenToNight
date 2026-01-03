@@ -4,6 +4,7 @@ import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
+import { useSlots } from 'vue'
 
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
@@ -29,7 +30,8 @@ const handleItemClick = () => {
     showContent.value = true
   }
 }
-
+const slots = useSlots()
+const hasMobileTitleSlot = computed(() => !!slots['mobile-title'])
 const handleBack = () => {
   showContent.value = false
   emit('back')
@@ -68,7 +70,7 @@ const mainStyle = computed(() => {
     </div>
 
     <div v-show="!isMobile || showContent" class="content" :class="{ 'mobile-full': isMobile }">
-      <div v-if="isMobile && showContent" class="mobile-header">
+      <div v-if="hasMobileTitleSlot && isMobile && showContent" class="mobile-header">
         <q-btn flat round dense icon="arrow_back" class="back-button" @click="handleBack" />
         <slot name="mobile-title" />
       </div>
