@@ -74,6 +74,7 @@ export default {
     organizer: 'Organizzato da',
     collaborators: 'In collaborazione con',
     editEvent: 'Modifica',
+    freePrice: 'Gratis',
   },
 
   footer: {
