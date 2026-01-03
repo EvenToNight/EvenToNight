@@ -66,7 +66,6 @@ const tabs = computed<Tab[]>(() => [
 }
 
 .settings-container {
-  max-width: 1200px;
   margin: 0 auto;
   height: calc(100vh - v-bind(NAVBAR_HEIGHT_CSS));
 
