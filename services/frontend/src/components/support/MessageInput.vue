@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useQuasar } from 'quasar'
 import EmojiPicker, { type EmojiExt } from 'vue3-emoji-picker'
 import 'vue3-emoji-picker/css'
 
 const emit = defineEmits<{
   sendMessage: [content: string]
 }>()
+
+const $q = useQuasar()
+const pickerTheme = computed(() => ($q.dark.isActive ? 'dark' : 'light'))
 
 const messageText = ref('')
 const inputRef = ref<HTMLTextAreaElement>()
@@ -43,8 +47,10 @@ function adjustHeight() {
     <q-btn flat round icon="emoji_emotions" color="grey-7" class="emoji-btn">
       <q-menu anchor="top left" self="bottom left" :offset="[0, 8]" class="emoji-menu">
         <EmojiPicker
+          :key="pickerTheme"
           :native="true"
           :disable-skin-tones="true"
+          :theme="pickerTheme"
           class="custom-emoji-picker"
           @select="onSelectEmoji"
         />
