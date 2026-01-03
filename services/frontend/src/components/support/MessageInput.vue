@@ -153,11 +153,11 @@ function adjustHeight() {
 // Light mode
 .body--light {
   .message-input {
-    background-color: #f0f2f5;
+    background-color: #ffffff;
     border-top-color: #e4e6eb;
 
     .input-wrapper {
-      background-color: #ffffff;
+      background-color: #f0f2f5;
     }
 
     .text-input {
@@ -173,7 +173,7 @@ function adjustHeight() {
 // Dark mode support
 .body--dark {
   .message-input {
-    background-color: #202124;
+    background-color: #1d1d1d;
     border-top-color: #2a3942;
 
     .input-wrapper {
