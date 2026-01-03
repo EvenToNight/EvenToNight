@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
+import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
@@ -73,7 +74,7 @@ defineExpose({
 .two-column-layout {
   display: flex;
   height: 100%;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - v-bind(NAVBAR_HEIGHT_CSS));
   gap: 0;
   background: #f5f5f5;
 
@@ -89,7 +90,7 @@ defineExpose({
 .sidebar {
   width: 340px;
   min-width: 340px;
-  height: 100vh;
+  min-height: calc(100vh - v-bind(NAVBAR_HEIGHT_CSS));
   background: $color-white;
   border-right: 1px solid $color-gray-200;
   display: flex;
@@ -133,6 +134,7 @@ defineExpose({
   flex: 1;
   display: flex;
   flex-direction: column;
+  height: calc(100vh - v-bind(NAVBAR_HEIGHT_CSS));
   overflow: hidden;
   background: $color-white;
 
