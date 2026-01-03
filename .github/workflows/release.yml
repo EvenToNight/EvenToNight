@@ -233,11 +233,28 @@ jobs:
 
             # pull or clone fresh
             if ! git -C "$DEST_DIR" pull; then
-              echo "Pull failed, removing directory and cloning fresh..."
-              rm -rf "$DEST_DIR"
+              echo "Pull failed..."
+              # Backup .env if exists
+              if [ -f "$DEST_DIR/.env" ]; then
+                echo "Backing up .env..."
+                cp "$DEST_DIR/.env" ".env"
+                echo ".env backed up."
+              fi
+              if [ -d "$DEST_DIR" ]; then
+                echo "Removing existing project directory..."
+                rm -rf "$DEST_DIR"
+                echo "Project directory removed."
+              fi
+              echo "Cloning fresh repository..."
               git clone "$REPO_URL" "$DEST_DIR"
+              # Restore .env
+              if [ -f ".env" ]; then
+                echo "Restoring .env..."
+                mv ".env" "$DEST_DIR/.env"
+                echo ".env restored."
+              fi
             fi
-            
+          
             cd "$DEST_DIR"
             # check environment
             ./scripts/updateLocalEnv.sh
