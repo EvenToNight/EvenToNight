@@ -5,6 +5,8 @@ export interface Message {
   id: string
   senderId: UserID
   content: string
+  //   isRead: boolean
+  //   isSent: boolean
   timestamp: Date
 }
 

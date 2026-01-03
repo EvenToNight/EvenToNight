@@ -22,4 +22,8 @@ export const createSupportApi = (supportClient: ApiClient): SupportAPI => ({
       `conversations/${conversationId}/messages${buildQueryParams({ ...evaluatePagination(pagination) })}`
     )
   },
+
+  async sendMessage(conversationId: string, message: Message): Promise<void> {
+    return supportClient.post<void>(`conversations/${conversationId}/messages`, message)
+  },
 })

@@ -28,4 +28,11 @@ export const mockSupportApi: SupportAPI = {
     }
     return getPaginatedItems(messages, pagination)
   },
+  async sendMessage(conversationId: string, message: Message): Promise<void> {
+    if (!mockMessages[conversationId]) {
+      mockMessages[conversationId] = []
+    }
+    mockMessages[conversationId].push(message)
+    return
+  },
 }
