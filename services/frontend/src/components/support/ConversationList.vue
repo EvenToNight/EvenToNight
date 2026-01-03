@@ -165,6 +165,7 @@ watch(searchQuery, (newQuery) => {
           v-for="org in organizationSearchResults"
           :key="`org-${org.id}`"
           clickable
+          :active="selectedConversationId === org.id"
           class="conversation-item organization-result"
           @click="emit('selectConversation', org.id, true)"
         >
@@ -240,7 +241,9 @@ watch(searchQuery, (newQuery) => {
   }
 
   &.q-item--active {
-    background-color: var(--q-selected-color);
+    background-color: rgba(var(--q-primary-rgb), 0.15) !important;
+    border-left: 3px solid var(--q-primary);
+    padding-left: 13px;
   }
 
   .conversation-name {
@@ -261,7 +264,11 @@ watch(searchQuery, (newQuery) => {
   }
 
   .unread-badge {
+    color: white;
     margin-top: 4px;
+    border-radius: 50% !important;
+    min-width: 20px;
+    min-height: 20px;
   }
 }
 

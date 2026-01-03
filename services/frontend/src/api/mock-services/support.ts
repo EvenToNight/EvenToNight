@@ -18,7 +18,7 @@ export const mockSupportApi: SupportAPI = {
     conversationId: string,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<Message>> {
-    const messages = mockMessages[conversationId]?.reverse()
+    const messages = mockMessages[conversationId]
     if (!messages) {
       throw {
         message: `Conversation with id ${conversationId} not found`,
@@ -26,7 +26,7 @@ export const mockSupportApi: SupportAPI = {
         status: 404,
       }
     }
-    const { items, ...rest } = getPaginatedItems(messages, pagination)
+    const { items, ...rest } = getPaginatedItems([...messages].reverse(), pagination)
     return {
       ...rest,
       items: items.reverse(),
