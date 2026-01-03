@@ -136,6 +136,12 @@ watch(
       <ChatHeader :conversation="conversation" :show-back-button="isMobile" @back="emit('back')" />
 
       <div ref="messagesContainer" class="messages-container">
+        <div v-if="!messages || messages.length === 0" class="empty-messages">
+          <q-icon name="chat" size="80px" color="grey-4" />
+          <p>Nessun messaggio ancora</p>
+          <span>Inizia la conversazione scrivendo un messaggio</span>
+        </div>
+
         <div v-for="(message, index) in messages" :key="message.id" class="message-wrapper">
           <div v-if="shouldShowDateSeparator(index)" class="date-separator">
             <span>{{ formatDateSeparator(message.timestamp) }}</span>
@@ -215,6 +221,28 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.empty-messages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--q-text-secondary);
+  text-align: center;
+
+  p {
+    margin: 16px 0 8px;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--q-text-primary);
+  }
+
+  span {
+    font-size: 14px;
+    color: var(--q-text-secondary);
+  }
 }
 
 .message-wrapper {

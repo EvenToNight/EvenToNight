@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
 import ConversationList from '@/components/support/ConversationList.vue'
 import type { Conversation, Message } from '@/api/types/support'
+import type { User } from '@/api/types/users'
 import MessageInput from '@/components/support/MessageInput.vue'
 import ChatArea from '@/components/support/ChatArea.vue'
 
@@ -16,9 +17,32 @@ const loading = ref(false)
 const loadingMoreMessages = ref(false)
 const hasMoreMessages = ref(true)
 const messagesLimit = 50
+const searchResults = ref<User[]>([])
+const selectedOrganization = ref<User | undefined>()
+const isNewConversation = ref(false)
 
 const selectedConversation = computed<Conversation | undefined>(() => {
   return conversations.value.find((c) => c.id === selectedConversationId.value)
+})
+
+const displayConversation = computed<Conversation | undefined>(() => {
+  if (isNewConversation.value && selectedOrganization.value) {
+    // Create temporary conversation object for display purposes
+    return {
+      id: selectedOrganization.value.id,
+      organizationId: selectedOrganization.value.id,
+      organizationName: selectedOrganization.value.name,
+      organizationAvatar: selectedOrganization.value.avatarUrl || '',
+      memberId: authStore.user?.id || '',
+      memberName: authStore.user?.name || '',
+      memberAvatar: authStore.user?.avatarUrl || '',
+      lastMessage: '',
+      lastMessageTime: new Date(),
+      lastMessageSenderId: '',
+      unreadCount: 0,
+    } as Conversation
+  }
+  return selectedConversation.value
 })
 
 onMounted(async () => {
@@ -38,11 +62,20 @@ async function loadConversations() {
   }
 }
 
-async function handleSelectConversation(conversationId: string) {
+async function handleSelectConversation(conversationId: string, isNewOrg = false) {
   try {
     loading.value = true
     hasMoreMessages.value = true
     selectedMessages.value = []
+    isNewConversation.value = isNewOrg
+
+    if (isNewOrg) {
+      // Find the organization in search results
+      selectedOrganization.value = searchResults.value.find((org) => org.id === conversationId)
+      selectedConversationId.value = conversationId
+      loading.value = false
+      return
+    }
 
     const response = await api.support.getConversationMessages(conversationId, {
       limit: messagesLimit,
@@ -51,6 +84,7 @@ async function handleSelectConversation(conversationId: string) {
 
     selectedMessages.value = response.items
     hasMoreMessages.value = response.hasMore
+    selectedOrganization.value = undefined
 
     const conversation = conversations.value.find((c) => c.id === conversationId)
     if (conversation) {
@@ -64,10 +98,38 @@ async function handleSelectConversation(conversationId: string) {
   }
 }
 
-function handleNewConversation() {}
+async function handleSearchOrganizations(query: string) {
+  if (!query.trim()) {
+    searchResults.value = []
+    return
+  }
+
+  try {
+    const response = await api.users.searchUsers({
+      name: query,
+      role: 'organization',
+      pagination: { limit: 10, offset: 0 },
+    })
+
+    // Filter out organizations that already have conversations
+    const conversationOrgIds = new Set(
+      conversations.value.map((c) =>
+        authStore.user?.id === c.memberId ? c.organizationId : c.memberId
+      )
+    )
+
+    searchResults.value = response.items.filter((org) => !conversationOrgIds.has(org.id))
+  } catch (error) {
+    console.error('Failed to search organizations:', error)
+    searchResults.value = []
+  }
+}
 
 function handleBackToList() {
   selectedConversationId.value = undefined
+  selectedOrganization.value = undefined
+  isNewConversation.value = false
+  selectedMessages.value = []
 }
 
 async function handleLoadMoreMessages() {
@@ -104,6 +166,28 @@ async function handleSendMessage(content: string) {
       timestamp: new Date(),
     }
 
+    // If this is a new conversation with an organization, create it first
+    if (isNewConversation.value && selectedOrganization.value) {
+      const newConv: Conversation = {
+        id: crypto.randomUUID(),
+        organizationId: selectedOrganization.value.id,
+        organizationName: selectedOrganization.value.name,
+        organizationAvatar: selectedOrganization.value.avatarUrl || '',
+        memberId: authStore.user.id,
+        memberName: authStore.user.name,
+        memberAvatar: authStore.user.avatarUrl || '',
+        lastMessage: content.trim(),
+        lastMessageTime: newMessage.timestamp,
+        lastMessageSenderId: newMessage.senderId,
+        unreadCount: 0,
+      }
+
+      conversations.value.unshift(newConv)
+      selectedConversationId.value = newConv.id
+      isNewConversation.value = false
+      selectedOrganization.value = undefined
+    }
+
     await api.support.sendMessage(selectedConversationId.value, newMessage)
     selectedMessages.value.push(newMessage)
 
@@ -126,19 +210,23 @@ async function handleSendMessage(content: string) {
       <ConversationList
         :conversations="conversations"
         :selected-conversation-id="selectedConversationId"
+        :organization-search-results="searchResults"
         @select-conversation="handleSelectConversation"
-        @new-conversation="handleNewConversation"
+        @search="handleSearchOrganizations"
       />
     </template>
     <template #content>
       <div class="chat-content">
         <ChatArea
-          :conversation="selectedConversation"
+          :conversation="displayConversation"
           :messages="selectedMessages"
           @back="handleBackToList"
           @load-more="handleLoadMoreMessages"
         />
-        <MessageInput v-if="selectedConversationId" @send-message="handleSendMessage" />
+        <MessageInput
+          v-if="selectedConversationId || isNewConversation"
+          @send-message="handleSendMessage"
+        />
       </div>
     </template>
   </TwoColumnLayout>

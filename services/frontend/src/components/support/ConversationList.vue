@@ -1,22 +1,24 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed, watch } from 'vue'
 import type { Conversation } from '@/api/types/support'
+import type { User } from '@/api/types/users'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 
 interface Props {
   conversations: Conversation[]
   selectedConversationId?: string
+  organizationSearchResults?: User[]
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const { locale } = useNavigation()
 const authStore = useAuthStore()
 
 const emit = defineEmits<{
-  selectConversation: [conversationId: string]
-  newConversation: []
+  selectConversation: [conversationId: string, isNewOrganization?: boolean]
+  search: [query: string]
 }>()
 
 const searchQuery = ref('')
@@ -54,15 +56,30 @@ function formatTime(date: Date): string {
     })
   }
 }
+
+const filteredConversations = computed(() => {
+  if (!searchQuery.value.trim()) {
+    return props.conversations
+  }
+
+  const query = searchQuery.value.toLowerCase().trim()
+  return props.conversations.filter((conversation) => {
+    const name = getConversationName(conversation).toLowerCase()
+    const lastMessage = conversation.lastMessage.toLowerCase()
+    return name.includes(query) || lastMessage.includes(query)
+  })
+})
+
+// Watch search query and emit to parent
+watch(searchQuery, (newQuery) => {
+  emit('search', newQuery)
+})
 </script>
 
 <template>
   <div class="conversation-list">
     <div class="conversation-list-header">
       <h1 class="title">Chat</h1>
-      <q-btn round flat icon="add_circle_outline" color="primary" @click="emit('newConversation')">
-        <q-tooltip>Nuova conversazione</q-tooltip>
-      </q-btn>
     </div>
 
     <div class="search-box">
@@ -80,8 +97,23 @@ function formatTime(date: Date): string {
     </div>
 
     <q-list class="conversations">
+      <!-- Show conversations header only if there are also search results -->
+      <q-item-label
+        v-if="
+          searchQuery.trim() &&
+          filteredConversations.length > 0 &&
+          organizationSearchResults &&
+          organizationSearchResults.length > 0
+        "
+        header
+        class="search-section-header"
+      >
+        Conversazioni
+      </q-item-label>
+
+      <!-- Show filtered conversations -->
       <q-item
-        v-for="conversation in conversations"
+        v-for="conversation in filteredConversations"
         :key="conversation.id"
         clickable
         :active="selectedConversationId === conversation.id"
@@ -121,6 +153,36 @@ function formatTime(date: Date): string {
           />
         </q-item-section>
       </q-item>
+
+      <!-- Show search results (organizations) after conversations if search is active -->
+      <template
+        v-if="
+          searchQuery.trim() && organizationSearchResults && organizationSearchResults.length > 0
+        "
+      >
+        <q-item-label header class="search-section-header">Organizzazioni</q-item-label>
+        <q-item
+          v-for="org in organizationSearchResults"
+          :key="`org-${org.id}`"
+          clickable
+          class="conversation-item organization-result"
+          @click="emit('selectConversation', org.id, true)"
+        >
+          <q-item-section avatar>
+            <q-avatar>
+              <img v-if="org.avatarUrl" :src="org.avatarUrl" :alt="org.name" class="avatar-image" />
+              <q-icon v-else name="business" size="md" />
+            </q-avatar>
+          </q-item-section>
+
+          <q-item-section>
+            <q-item-label class="conversation-name">{{ org.name }}</q-item-label>
+            <q-item-label caption lines="1" class="last-message">
+              {{ org.bio || 'Inizia una conversazione' }}
+            </q-item-label>
+          </q-item-section>
+        </q-item>
+      </template>
     </q-list>
   </div>
 </template>
@@ -211,5 +273,22 @@ function formatTime(date: Date): string {
 
 :deep(.q-field__control) {
   border-radius: 20px;
+}
+
+.search-section-header {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--q-text-secondary);
+  text-transform: uppercase;
+  padding: 12px 16px 8px;
+  background-color: var(--q-background);
+}
+
+.organization-result {
+  background-color: rgba(var(--q-primary-rgb), 0.05);
+
+  &:hover {
+    background-color: rgba(var(--q-primary-rgb), 0.1);
+  }
 }
 </style>
