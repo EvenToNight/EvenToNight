@@ -2,7 +2,7 @@ import type { SupportAPI } from '../interfaces/support'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { Conversation, Message } from '../types/support'
 import { getPaginatedItems } from '../utils/requestUtils'
-import { mockConversations } from './data/support'
+import { mockConversations, mockMessages } from './data/support'
 
 export const mockSupportApi: SupportAPI = {
   async getConversations(
@@ -18,17 +18,14 @@ export const mockSupportApi: SupportAPI = {
     conversationId: string,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<Message>> {
-    const conversation = mockConversations.find(
-      (conversation) => conversation.id === conversationId
-    )
-    if (!conversation) {
+    const messages = mockMessages[conversationId]
+    if (!messages) {
       throw {
         message: `Conversation with id ${conversationId} not found`,
         code: 'CONVERSATION_NOT_FOUND',
         status: 404,
       }
     }
-    conversation.unreadCount = 0
-    return getPaginatedItems(conversation.messages, pagination)
+    return getPaginatedItems(messages, pagination)
   },
 }

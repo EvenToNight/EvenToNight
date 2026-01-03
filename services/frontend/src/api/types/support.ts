@@ -1,5 +1,6 @@
 import type { UserID } from './users'
 
+export type ConversationID = string
 export interface Message {
   id: string
   senderId: UserID
@@ -7,8 +8,10 @@ export interface Message {
   timestamp: Date
 }
 
+export type ConversationMessages = Record<ConversationID, Message[]>
+
 export interface Conversation {
-  id: string
+  id: ConversationID
   organizationId: UserID
   organizationName: string
   organizationAvatar: string
@@ -19,5 +22,4 @@ export interface Conversation {
   lastMessageTime: Date
   lastMessageSenderId: UserID
   unreadCount: number
-  messages: Message[]
 }

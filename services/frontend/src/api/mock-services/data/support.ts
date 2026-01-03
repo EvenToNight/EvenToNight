@@ -1,4 +1,4 @@
-import type { Conversation } from '@/api/types/support'
+import type { Conversation, ConversationMessages } from '@/api/types/support'
 
 export const mockConversations: Conversation[] = [
   {
@@ -14,38 +14,6 @@ export const mockConversations: Conversation[] = [
     lastMessageTime: new Date('2025-11-24T18:30:00'),
     lastMessageSenderId: 'organization_1',
     unreadCount: 2,
-    messages: [
-      {
-        id: 'm1',
-        senderId: 'member_1',
-        content: "Ciao, vorrei informazioni sull'evento di sabato",
-        timestamp: new Date('2025-11-24T17:00:00'),
-      },
-      {
-        id: 'm2',
-        senderId: 'organization_1',
-        content: "Certo! L'evento inizia alle 22:00 e l'ingresso costa 15€",
-        timestamp: new Date('2025-11-24T17:15:00'),
-      },
-      {
-        id: 'm3',
-        senderId: 'member_1',
-        content: 'Perfetto, grazie! È necessaria la prenotazione?',
-        timestamp: new Date('2025-11-24T17:20:00'),
-      },
-      {
-        id: 'm4',
-        senderId: 'organization_1',
-        content: "Sì, ti consiglio di prenotare tramite l'app",
-        timestamp: new Date('2025-11-24T18:00:00'),
-      },
-      {
-        id: 'm5',
-        senderId: 'organization_1',
-        content: 'Ci sono posti limitati!',
-        timestamp: new Date('2025-11-24T18:30:00'),
-      },
-    ],
   },
   {
     id: '2',
@@ -59,38 +27,6 @@ export const mockConversations: Conversation[] = [
     lastMessageTime: new Date('2025-11-23T15:45:00'),
     lastMessageSenderId: 'member_1',
     unreadCount: 0,
-    messages: [
-      {
-        id: 'm6',
-        senderId: 'member_1',
-        content: 'Buongiorno, ho un problema con il mio biglietto',
-        timestamp: new Date('2025-11-23T14:00:00'),
-      },
-      {
-        id: 'm7',
-        senderId: 'organization_2',
-        content: 'Mi dispiace, di cosa si tratta?',
-        timestamp: new Date('2025-11-23T14:30:00'),
-      },
-      {
-        id: 'm8',
-        senderId: 'member_1',
-        content: 'Non riesco a visualizzare il QR code',
-        timestamp: new Date('2025-11-23T14:35:00'),
-      },
-      {
-        id: 'm9',
-        senderId: 'organization_2',
-        content: 'Prova a ricaricare la pagina. Se il problema persiste te lo invio via email',
-        timestamp: new Date('2025-11-23T15:00:00'),
-      },
-      {
-        id: 'm10',
-        senderId: 'member_1',
-        content: 'Ok perfetto',
-        timestamp: new Date('2025-11-23T15:45:00'),
-      },
-    ],
   },
   {
     id: '3',
@@ -104,31 +40,98 @@ export const mockConversations: Conversation[] = [
     lastMessageTime: new Date('2025-11-21T20:00:00'),
     lastMessageSenderId: 'organization_3',
     unreadCount: 1,
-    messages: [
-      {
-        id: 'm11',
-        senderId: 'member_1',
-        content: "Ciao! Ci sono ancora posti disponibili per l'evento di venerdì?",
-        timestamp: new Date('2025-11-21T19:00:00'),
-      },
-      {
-        id: 'm12',
-        senderId: 'organization_3',
-        content: 'Sì! Abbiamo ancora circa 20 posti',
-        timestamp: new Date('2025-11-21T19:30:00'),
-      },
-      {
-        id: 'm13',
-        senderId: 'member_1',
-        content: 'Perfetto, ne prenoto 2',
-        timestamp: new Date('2025-11-21T19:35:00'),
-      },
-      {
-        id: 'm14',
-        senderId: 'organization_3',
-        content: 'Ti aspettiamo!',
-        timestamp: new Date('2025-11-21T20:00:00'),
-      },
-    ],
   },
 ]
+
+export const mockMessages: ConversationMessages = {
+  '1': [
+    {
+      id: 'm1',
+      senderId: 'member_1',
+      content: "Ciao, vorrei informazioni sull'evento di sabato",
+      timestamp: new Date('2025-11-24T17:00:00'),
+    },
+    {
+      id: 'm2',
+      senderId: 'organization_1',
+      content: "Certo! L'evento inizia alle 22:00 e l'ingresso costa 15€",
+      timestamp: new Date('2025-11-24T17:15:00'),
+    },
+    {
+      id: 'm3',
+      senderId: 'member_1',
+      content: 'Perfetto, grazie! È necessaria la prenotazione?',
+      timestamp: new Date('2025-11-24T17:20:00'),
+    },
+    {
+      id: 'm4',
+      senderId: 'organization_1',
+      content: "Sì, ti consiglio di prenotare tramite l'app",
+      timestamp: new Date('2025-11-24T18:00:00'),
+    },
+    {
+      id: 'm5',
+      senderId: 'organization_1',
+      content: 'Ci sono posti limitati!',
+      timestamp: new Date('2025-11-24T18:30:00'),
+    },
+  ],
+  '2': [
+    {
+      id: 'm6',
+      senderId: 'member_1',
+      content: 'Buongiorno, ho un problema con il mio biglietto',
+      timestamp: new Date('2025-11-23T14:00:00'),
+    },
+    {
+      id: 'm7',
+      senderId: 'organization_2',
+      content: 'Mi dispiace, di cosa si tratta?',
+      timestamp: new Date('2025-11-23T14:30:00'),
+    },
+    {
+      id: 'm8',
+      senderId: 'member_1',
+      content: 'Non riesco a visualizzare il QR code',
+      timestamp: new Date('2025-11-23T14:35:00'),
+    },
+    {
+      id: 'm9',
+      senderId: 'organization_2',
+      content: 'Prova a ricaricare la pagina. Se il problema persiste te lo invio via email',
+      timestamp: new Date('2025-11-23T15:00:00'),
+    },
+    {
+      id: 'm10',
+      senderId: 'member_1',
+      content: 'Ok perfetto',
+      timestamp: new Date('2025-11-23T15:45:00'),
+    },
+  ],
+  '3': [
+    {
+      id: 'm11',
+      senderId: 'member_1',
+      content: "Ciao! Ci sono ancora posti disponibili per l'evento di venerdì?",
+      timestamp: new Date('2025-11-21T19:00:00'),
+    },
+    {
+      id: 'm12',
+      senderId: 'organization_3',
+      content: 'Sì! Abbiamo ancora circa 20 posti',
+      timestamp: new Date('2025-11-21T19:30:00'),
+    },
+    {
+      id: 'm13',
+      senderId: 'member_1',
+      content: 'Perfetto, ne prenoto 2',
+      timestamp: new Date('2025-11-21T19:35:00'),
+    },
+    {
+      id: 'm14',
+      senderId: 'organization_3',
+      content: 'Ti aspettiamo!',
+      timestamp: new Date('2025-11-21T20:00:00'),
+    },
+  ],
+}
