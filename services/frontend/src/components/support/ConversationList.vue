@@ -144,6 +144,7 @@ function formatTime(date: Date): string {
   color: white;
 
   .title {
+    color: white;
     margin: 0;
     line-height: 1.2;
     font-size: 20px;

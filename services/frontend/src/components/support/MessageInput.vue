@@ -119,9 +119,7 @@ function adjustHeight() {
     }
   }
 
-  .emoji-btn,
-  .attach-btn,
-  .mic-btn {
+  .emoji-btn {
     flex-shrink: 0;
   }
 
@@ -131,14 +129,43 @@ function adjustHeight() {
   }
 }
 
+// Light mode
+.body--light {
+  .message-input {
+    background-color: #f0f2f5;
+    border-top-color: #e4e6eb;
+
+    .input-wrapper {
+      background-color: #ffffff;
+    }
+
+    .text-input {
+      color: #050505;
+
+      &::placeholder {
+        color: #8696a0;
+      }
+    }
+  }
+}
+
 // Dark mode support
 .body--dark {
   .message-input {
-    background-color: #202c33;
+    background-color: #202124;
     border-top-color: #2a3942;
 
     .input-wrapper {
-      background-color: #2a3942;
+      background-color: #2d2d2d;
+      border: 1px solid #5a5a5a;
+    }
+
+    .text-input {
+      color: #e8e8e8;
+
+      &::placeholder {
+        color: #9ca3af;
+      }
     }
   }
 }
