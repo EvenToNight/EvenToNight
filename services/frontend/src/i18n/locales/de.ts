@@ -70,10 +70,11 @@ export default {
 
   eventDetails: {
     buyTickets: 'Kaufen Sie Tickets',
-    about: 'Über diese Veranstaltung',
+    about: 'Um',
     organizer: 'Organisiert von',
-    collaborators: 'In Zusammenarbeit mit',
-    editEvent: 'Bearbeiten',
+    collaborators: 'Mitarbeiter',
+    editEvent: 'Ereignis bearbeiten',
+    freePrice: 'Frei',
   },
 
   footer: {
@@ -106,7 +107,19 @@ export default {
     noTickets: 'Noch keine Tickets',
     draftedEvents: 'Entworfene Ereignisse',
     noDraftedEvents: 'Sie haben keine geplanten Ereignisse.',
+    reviews: 'Reviews',
+    noReviews: 'No reviews yet.',
     userAvatarAlt: 'Benutzer-Avatar',
+    leaveReview: 'Leave a review',
+    selectEvent: 'Select event',
+    selectRating: 'Select rating:',
+    reviewTitle: 'Title',
+    reviewTitlePlaceholder: 'Give your review a title...',
+    reviewDescription: 'Description',
+    reviewDescriptionPlaceholder: 'Write your review...',
+    cancel: 'Stornieren',
+    submit: 'Submit',
+    noEventFound: 'No event found',
   },
 
   eventCreationForm: {
@@ -132,8 +145,7 @@ export default {
     uploadPoster: 'Poster hochladen',
     cancel: 'Stornieren',
     deleteEvent: 'Löschen',
-    deleteEventConfirm:
-      'Sind Sie sicher, dass Sie dieses Ereignis löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+    deleteEventConfirm: 'Are you sure you want to delete this event? This action cannot be undone.',
     saveDraft: 'Entwurf speichern',
     publishEvent: 'Veranstaltung veröffentlichen',
     updateEvent: 'Ereignis aktualisieren',
@@ -142,10 +154,8 @@ export default {
     successForEventUpdate: 'Veranstaltung erfolgreich aktualisiert!',
     successForEventDeletion: 'Veranstaltung erfolgreich gelöscht!',
     errorForEventCreation: 'Bitte füllen Sie alle erforderlichen Felder aus',
-    errorForEventPublication:
-      'Ereignis konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
-    errorForEventUpdate:
-      'Das Ereignis konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.',
+    errorForEventPublication: 'Failed to create event. Please try again.',
+    errorForEventUpdate: 'Failed to update event. Please try again.',
     errorForEventDeletion: 'Ereignis konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
     errorForEventLoad: 'Ereignis konnte nicht geladen werden. Bitte versuchen Sie es erneut.',
   },
@@ -157,25 +167,24 @@ export default {
 
   home: {
     hero: {
-      title: 'Finden Sie die Veranstaltung für Sie',
+      title: 'Benutzer',
     },
     sections: {
       upcomingEvents: 'Kommende Veranstaltungen',
     },
   },
   explore: {
-    title: 'Erkunden',
-    subtitile:
-      'Finden Sie Veranstaltungen, Organisatoren oder vernetzen Sie sich mit Ihren Freunden',
+    title: 'Benutzer',
+    subtitile: 'Find events, organizers, or connect with your friends',
     events: {
-      title: 'Veranstaltungen',
-      emptySearch: 'Keine Veranstaltungen gefunden',
-      emptySearchText: 'Suchen Sie nach Ereignissen nach Namen',
+      title: 'Benutzer',
+      emptySearch: 'Keine Benutzer gefunden',
+      emptySearchText: 'Suchen Sie Benutzer nach Namen',
     },
     organizations: {
-      title: 'Organisationen',
-      emptySearch: 'Keine Organisationen gefunden',
-      emptySearchText: 'Suchen Sie nach Organisationen nach Namen',
+      title: 'Benutzer',
+      emptySearch: 'Keine Benutzer gefunden',
+      emptySearchText: 'Suchen Sie Benutzer nach Namen',
     },
     users: {
       title: 'Benutzer',

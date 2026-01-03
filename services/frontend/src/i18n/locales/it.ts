@@ -70,11 +70,11 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acquista i biglietti',
-    about: 'A proposito di questo evento',
+    about: 'Chi siamo',
     organizer: 'Organizzato da',
-    collaborators: 'In collaborazione con',
-    editEvent: 'Modifica',
-    freePrice: 'Gratis',
+    collaborators: 'Collaboratori',
+    editEvent: 'Modifica evento',
+    freePrice: 'Gratuito',
   },
 
   footer: {
@@ -117,7 +117,7 @@ export default {
     reviewTitlePlaceholder: 'Dai un titolo alla tua recensione...',
     reviewDescription: 'Descrizione',
     reviewDescriptionPlaceholder: 'Scrivi la tua recensione...',
-    cancel: 'Annulla',
+    cancel: 'Cancella',
     submit: 'Invia',
     noEventFound: 'Nessun evento trovato',
   },
@@ -143,10 +143,9 @@ export default {
     eventPoster: "Locandina dell'evento",
     posterError: 'Il manifesto è obbligatorio',
     uploadPoster: 'Carica poster',
-    cancel: 'Cancellare',
+    cancel: 'Cancella',
     deleteEvent: 'Eliminare',
-    deleteEventConfirm:
-      'Sei sicuro di voler eliminare questo evento? Questa azione non può essere annullata.',
+    deleteEventConfirm: 'Are you sure you want to delete this event? This action cannot be undone.',
     saveDraft: 'Salva bozza',
     publishEvent: 'Pubblica evento',
     updateEvent: 'Aggiorna evento',
@@ -168,24 +167,24 @@ export default {
 
   home: {
     hero: {
-      title: "Trova l'evento che fa per te",
+      title: 'Utenti',
     },
     sections: {
       upcomingEvents: 'Prossimi eventi',
     },
   },
   explore: {
-    title: 'Esplora',
+    title: 'Utenti',
     subtitile: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
     events: {
-      title: 'Eventi',
-      emptySearch: 'Nessun evento trovato',
-      emptySearchText: 'Cerca eventi per nome',
+      title: 'Utenti',
+      emptySearch: 'Nessun utente trovato',
+      emptySearchText: 'Cerca gli utenti per nome',
     },
     organizations: {
-      title: 'Organizzazioni',
-      emptySearch: 'Nessuna organizzazione trovata',
-      emptySearchText: 'Cerca organizzazioni per nome',
+      title: 'Utenti',
+      emptySearch: 'Nessun utente trovato',
+      emptySearchText: 'Cerca gli utenti per nome',
     },
     users: {
       title: 'Utenti',

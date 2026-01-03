@@ -70,10 +70,11 @@ export default {
 
   eventDetails: {
     buyTickets: 'Acheter des billets',
-    about: 'À propos de cet événement',
+    about: 'À propos',
     organizer: 'Organisé par',
-    collaborators: 'En collaboration avec',
-    editEvent: 'Modifier',
+    collaborators: 'Collaborateurs',
+    editEvent: "Modifier l'événement",
+    freePrice: 'Gratuit',
   },
 
   footer: {
@@ -106,7 +107,19 @@ export default {
     noTickets: 'Pas encore de billets',
     draftedEvents: 'Événements rédigés',
     noDraftedEvents: 'Vous n’avez aucun événement rédigé.',
+    reviews: 'Reviews',
+    noReviews: 'No reviews yet.',
     userAvatarAlt: "Avatar de l'utilisateur",
+    leaveReview: 'Leave a review',
+    selectEvent: 'Select event',
+    selectRating: 'Select rating:',
+    reviewTitle: 'Title',
+    reviewTitlePlaceholder: 'Give your review a title...',
+    reviewDescription: 'Description',
+    reviewDescriptionPlaceholder: 'Write your review...',
+    cancel: 'Annuler',
+    submit: 'Submit',
+    noEventFound: 'No event found',
   },
 
   eventCreationForm: {
@@ -132,8 +145,7 @@ export default {
     uploadPoster: "Télécharger l'affiche",
     cancel: 'Annuler',
     deleteEvent: 'Supprimer',
-    deleteEventConfirm:
-      'Êtes-vous sûr de vouloir supprimer cet événement ? Cette action ne peut pas être annulée.',
+    deleteEventConfirm: 'Are you sure you want to delete this event? This action cannot be undone.',
     saveDraft: 'Enregistrer le brouillon',
     publishEvent: 'Publier un événement',
     updateEvent: 'Événement de mise à jour',
@@ -155,24 +167,24 @@ export default {
 
   home: {
     hero: {
-      title: "Trouvez l'événement qui vous convient",
+      title: 'Utilisateurs',
     },
     sections: {
       upcomingEvents: 'Événements à venir',
     },
   },
   explore: {
-    title: 'Explorer',
+    title: 'Utilisateurs',
     subtitile: 'Trouvez des événements, des organisateurs ou connectez-vous avec vos amis',
     events: {
-      title: 'Événements',
-      emptySearch: 'Aucun événement trouvé',
-      emptySearchText: 'Rechercher des événements par nom',
+      title: 'Utilisateurs',
+      emptySearch: 'Aucun utilisateur trouvé',
+      emptySearchText: 'Rechercher des utilisateurs par nom',
     },
     organizations: {
-      title: 'Organisations',
-      emptySearch: 'Aucune organisation trouvée',
-      emptySearchText: 'Rechercher des organisations par nom',
+      title: 'Utilisateurs',
+      emptySearch: 'Aucun utilisateur trouvé',
+      emptySearchText: 'Rechercher des utilisateurs par nom',
     },
     users: {
       title: 'Utilisateurs',

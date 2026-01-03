@@ -70,10 +70,11 @@ export default {
 
   eventDetails: {
     buyTickets: 'Comprar Entradas',
-    about: 'Acerca de este evento',
+    about: 'Acerca de',
     organizer: 'Organizado por',
-    collaborators: 'En colaboración con',
-    editEvent: 'Editar',
+    collaborators: 'Colaboradores',
+    editEvent: 'Editar evento',
+    freePrice: 'Gratis',
   },
 
   footer: {
@@ -106,7 +107,19 @@ export default {
     noTickets: 'Aún no hay entradas',
     draftedEvents: 'Eventos redactados',
     noDraftedEvents: 'No tienes eventos redactados.',
+    reviews: 'Reviews',
+    noReviews: 'No reviews yet.',
     userAvatarAlt: 'Avatar de usuario',
+    leaveReview: 'Leave a review',
+    selectEvent: 'Select event',
+    selectRating: 'Select rating:',
+    reviewTitle: 'Title',
+    reviewTitlePlaceholder: 'Give your review a title...',
+    reviewDescription: 'Description',
+    reviewDescriptionPlaceholder: 'Write your review...',
+    cancel: 'Cancelar',
+    submit: 'Submit',
+    noEventFound: 'No event found',
   },
 
   eventCreationForm: {
@@ -132,8 +145,7 @@ export default {
     uploadPoster: 'Subir cartel',
     cancel: 'Cancelar',
     deleteEvent: 'Borrar',
-    deleteEventConfirm:
-      '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.',
+    deleteEventConfirm: 'Are you sure you want to delete this event? This action cannot be undone.',
     saveDraft: 'Guardar borrador',
     publishEvent: 'Publicar evento',
     updateEvent: 'Evento de actualización',
@@ -155,24 +167,24 @@ export default {
 
   home: {
     hero: {
-      title: 'Encuentra el evento para ti',
+      title: 'Usuarios',
     },
     sections: {
       upcomingEvents: 'Próximos eventos',
     },
   },
   explore: {
-    title: 'Explorar',
+    title: 'Usuarios',
     subtitile: 'Encuentra eventos, organizadores o conéctate con tus amigos',
     events: {
-      title: 'Eventos',
-      emptySearch: 'No se encontraron eventos',
-      emptySearchText: 'Buscar eventos por nombre',
+      title: 'Usuarios',
+      emptySearch: 'No se encontraron usuarios',
+      emptySearchText: 'Buscar usuarios por nombre',
     },
     organizations: {
-      title: 'Organizaciones',
-      emptySearch: 'No se encontraron organizaciones',
-      emptySearchText: 'Buscar organizaciones por nombre',
+      title: 'Usuarios',
+      emptySearch: 'No se encontraron usuarios',
+      emptySearchText: 'Buscar usuarios por nombre',
     },
     users: {
       title: 'Usuarios',
