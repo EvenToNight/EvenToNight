@@ -6,12 +6,20 @@ import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
 import ConversationList from '@/components/support/ConversationList.vue'
 import type { Conversation, Message } from '@/api/types/support'
 import MessageInput from '@/components/support/MessageInput.vue'
+import ChatArea from '@/components/support/ChatArea.vue'
 
 const authStore = useAuthStore()
 const conversations = ref<Conversation[]>([])
 const selectedConversationId = ref<string>()
 const selectedMessages = ref<Message[]>([])
 const loading = ref(false)
+const loadingMoreMessages = ref(false)
+const hasMoreMessages = ref(true)
+const messagesLimit = 50
+
+const selectedConversation = computed<Conversation | undefined>(() => {
+  return conversations.value.find((c) => c.id === selectedConversationId.value)
+})
 
 onMounted(async () => {
   await loadConversations()
@@ -31,19 +39,85 @@ async function loadConversations() {
 }
 
 async function handleSelectConversation(conversationId: string) {
-  selectedMessages.value = (await api.support.getConversationMessages(conversationId)).items
-  const conversation = conversations.value.find(
-    (conversation) => conversation.id === conversationId
-  )
-  if (conversation) {
-    conversation.unreadCount = 0
+  try {
+    loading.value = true
+    hasMoreMessages.value = true
+    selectedMessages.value = []
+
+    const response = await api.support.getConversationMessages(conversationId, {
+      limit: messagesLimit,
+      offset: 0,
+    })
+
+    selectedMessages.value = response.items
+    hasMoreMessages.value = response.hasMore
+
+    const conversation = conversations.value.find((c) => c.id === conversationId)
+    if (conversation) {
+      conversation.unreadCount = 0
+    }
+    selectedConversationId.value = conversationId
+  } catch (error) {
+    console.error('Failed to load conversation messages:', error)
+  } finally {
+    loading.value = false
   }
-  selectedConversationId.value = conversationId
 }
 
 function handleNewConversation() {}
 
-function handleSendMessage(_content: string) {}
+function handleBackToList() {
+  selectedConversationId.value = undefined
+}
+
+async function handleLoadMoreMessages() {
+  if (!selectedConversationId.value || loadingMoreMessages.value || !hasMoreMessages.value) {
+    return
+  }
+
+  try {
+    loadingMoreMessages.value = true
+    const response = await api.support.getConversationMessages(selectedConversationId.value, {
+      limit: messagesLimit,
+      offset: selectedMessages.value.length,
+    })
+
+    // Prepend older messages to the beginning
+    selectedMessages.value = [...response.items, ...selectedMessages.value]
+    hasMoreMessages.value = response.hasMore
+  } catch (error) {
+    console.error('Failed to load more messages:', error)
+  } finally {
+    loadingMoreMessages.value = false
+  }
+}
+
+async function handleSendMessage(content: string) {
+  if (!selectedConversationId.value || !authStore.user?.id) return
+  if (!content.trim()) return
+
+  try {
+    const newMessage: Message = {
+      id: crypto.randomUUID(),
+      senderId: authStore.user.id,
+      content: content.trim(),
+      timestamp: new Date(),
+    }
+
+    await api.support.sendMessage(selectedConversationId.value, newMessage)
+    selectedMessages.value.push(newMessage)
+
+    // Update conversation's last message in the list
+    const conversation = conversations.value.find((c) => c.id === selectedConversationId.value)
+    if (conversation) {
+      conversation.lastMessage = content.trim()
+      conversation.lastMessageTime = newMessage.timestamp
+      conversation.lastMessageSenderId = newMessage.senderId
+    }
+  } catch (error) {
+    console.error('Failed to send message:', error)
+  }
+}
 </script>
 
 <template>
@@ -58,14 +132,14 @@ function handleSendMessage(_content: string) {}
     </template>
     <template #content>
       <div class="chat-content">
+        <ChatArea
+          :conversation="selectedConversation"
+          :messages="selectedMessages"
+          @back="handleBackToList"
+          @load-more="handleLoadMoreMessages"
+        />
         <MessageInput v-if="selectedConversationId" @send-message="handleSendMessage" />
       </div>
-    </template>
-
-    <template #mobile-title>
-      <h3 v-if="selectedConversationId" class="mobile-conversation-title">
-        {{ conversations.find((c) => c.id === selectedConversationId)?.organizationName }}
-      </h3>
     </template>
   </TwoColumnLayout>
 </template>
