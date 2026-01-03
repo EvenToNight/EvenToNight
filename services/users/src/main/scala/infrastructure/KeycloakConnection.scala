@@ -9,9 +9,9 @@ import sttp.model.StatusCode
 import java.util.UUID
 
 class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: String):
-  val keycloakUrl = sys.env.getOrElse("KEYCLOAK_URL", "http://localhost:8082")
-  val realm       = "eventonight"
-  val clientId    = "users-service"
+  private val keycloakUrl = sys.env.getOrElse("KEYCLOAK_URL", "http://localhost:8082")
+  private val realm       = "eventonight"
+  private val clientId    = "users-service"
 
   private def requestAccessToken(form: Map[String, String]): Either[String, String] =
     val tokenUrl = s"$keycloakUrl/realms/$realm/protocol/openid-connect/token"
@@ -19,13 +19,27 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
       .post(uri"$tokenUrl")
       .body(form)
       .header("Content-Type", "application/x-www-form-urlencoded")
+      .response(asStringAlways)
 
     val response = request.send(backend)
-    for
-      body  <- response.body.left.map(err => s"Keycloak error: $err")
-      json  <- parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}")
-      token <- json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
-    yield token
+    val body     = response.body
+
+    response.code match
+      case StatusCode.Ok =>
+        for
+          json  <- parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}")
+          token <- json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
+        yield token
+      case StatusCode.BadRequest =>
+        parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}").flatMap(json =>
+          json.hcursor.get[String]("error") match
+            case Right("invalid_grant") => Left("Invalid credentials")
+            case Right(other)           => Left(s"Keycloak error: $other")
+            case Left(_)                => Left(s"Keycloak error: $body")
+        )
+      case StatusCode.Unauthorized => Left(s"Invalid credentials: $body")
+      case StatusCode.Forbidden    => Left(s"Client not allowed: $body")
+      case other                   => Left(s"Unexpected Keycloak status: $other")
 
   def getClientAccessToken(): Either[String, String] =
     requestAccessToken(

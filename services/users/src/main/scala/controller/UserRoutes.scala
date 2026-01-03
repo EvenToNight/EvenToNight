@@ -2,6 +2,7 @@ package controller
 
 import cask.Request
 import cask.Response
+import model.LoginValidation._
 import model.UsersConversions.asJson
 import model.registration.TokenResponse
 import model.registration.UserRegistration._
@@ -32,13 +33,17 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
 
   @cask.post("/login")
   def login(req: Request): Response[String] =
-    parseInput(req) match
+    parseLoginRequest(req) match
       case Left(err) => Response(err, 400)
       case Right(loginReq) =>
-        authService.login(loginReq.username.getOrElse(""), loginReq.password.getOrElse("")) match
-          case Left(err) => Response(s"Login failed: $err", 401)
-          case Right(token) =>
-            Response(write(TokenResponse(token)), 200)
+        validateLoginRequest(loginReq) match
+          case Left(err) => Response(err, 400)
+          case Right(validLoginReq) =>
+            authService.login(validLoginReq.usernameOrEmail, validLoginReq.password) match
+              case Left("Invalid credentials") => Response("Login failed: invalid credentials", 401)
+              case Left("Client not allowed")  => Response("Login failed: client not allowed", 403)
+              case Left(err)                   => Response(s"Login failed: $err", 500)
+              case Right(token)                => Response(write(TokenResponse(token)), 200)
 
   @cask.get("/:userId")
   def getUser(userId: String): Response[Value] =
