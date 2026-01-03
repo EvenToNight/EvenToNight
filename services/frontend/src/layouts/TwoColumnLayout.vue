@@ -43,11 +43,21 @@ defineExpose({
     showContent.value = false
   },
 })
+
+const mainStyle = computed(() => {
+  const height =
+    isMobile.value && showContent.value ? '100dvh' : `calc(100dvh - ${NAVBAR_HEIGHT_CSS})`
+
+  return {
+    height,
+    minHeight: height,
+  }
+})
 </script>
 
 <template>
   <NavigationButtons v-if="!(isMobile && showContent)" />
-  <div class="two-column-layout">
+  <div class="two-column-layout" :style="mainStyle">
     <div v-show="!isMobile || !showContent" class="sidebar" :class="{ 'mobile-full': isMobile }">
       <div v-if="sidebarTitle" class="sidebar-header">
         <h2 class="sidebar-title">{{ sidebarTitle }}</h2>
@@ -73,8 +83,6 @@ defineExpose({
 <style lang="scss" scoped>
 .two-column-layout {
   display: flex;
-  height: 100%;
-  min-height: calc(100vh - v-bind(NAVBAR_HEIGHT_CSS));
   gap: 0;
   background: #f5f5f5;
 
@@ -134,7 +142,7 @@ defineExpose({
   flex: 1;
   display: flex;
   flex-direction: column;
-  height: calc(100vh - v-bind(NAVBAR_HEIGHT_CSS));
+  height: 100%;
   overflow: hidden;
   background: $color-white;
 
@@ -151,16 +159,17 @@ defineExpose({
   display: flex;
   align-items: center;
   gap: $spacing-3;
-  padding: $spacing-3;
-  border-bottom: 1px solid $color-gray-200;
+  padding: $spacing-3 $spacing-4;
   background: $color-white;
   position: sticky;
   top: 0;
-  z-index: 10;
+  z-index: 20;
+  box-shadow: $shadow-sm;
 
   @include dark-mode {
-    background: $color-background-dark;
-    border-bottom-color: rgba($color-white, 0.1);
+    background: $color-background-dark-soft;
+    border-bottom: 1px solid rgba($color-white, 0.05);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   }
 }
 
