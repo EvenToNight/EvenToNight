@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
 import ConversationList from '@/components/support/ConversationList.vue'
-import type { Conversation } from '@/api/types/support'
+import type { Conversation, Message } from '@/api/types/support'
+import MessageInput from '@/components/support/MessageInput.vue'
 
 const authStore = useAuthStore()
 const conversations = ref<Conversation[]>([])
 const selectedConversationId = ref<string>()
+const selectedMessages = ref<Message[]>([])
 const loading = ref(false)
 
 onMounted(async () => {
@@ -29,7 +31,7 @@ async function loadConversations() {
 }
 
 async function handleSelectConversation(conversationId: string) {
-  await api.support.getConversationMessages(conversationId)
+  selectedMessages.value = (await api.support.getConversationMessages(conversationId)).items
   const conversation = conversations.value.find(
     (conversation) => conversation.id === conversationId
   )
@@ -40,6 +42,8 @@ async function handleSelectConversation(conversationId: string) {
 }
 
 function handleNewConversation() {}
+
+function handleSendMessage(_content: string) {}
 </script>
 
 <template>
@@ -52,5 +56,41 @@ function handleNewConversation() {}
         @new-conversation="handleNewConversation"
       />
     </template>
+    <template #content>
+      <div class="chat-content">
+        <MessageInput v-if="selectedConversationId" @send-message="handleSendMessage" />
+      </div>
+    </template>
+
+    <template #mobile-title>
+      <h3 v-if="selectedConversationId" class="mobile-conversation-title">
+        {{ conversations.find((c) => c.id === selectedConversationId)?.organizationName }}
+      </h3>
+    </template>
   </TwoColumnLayout>
 </template>
+<style scoped lang="scss">
+.chat-content {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+.no-chat-selected {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: $spacing-6;
+  background-color: var(--q-background);
+  border-top: 1px solid var(--q-separator-color);
+  min-height: 62px;
+
+  p {
+    margin: 0;
+    color: var(--q-text-secondary);
+    font-size: $font-size-sm;
+    text-align: center;
+  }
+}
+</style>
