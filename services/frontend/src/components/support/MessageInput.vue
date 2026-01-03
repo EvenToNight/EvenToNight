@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import EmojiPicker, { type EmojiExt } from 'vue3-emoji-picker'
+import 'vue3-emoji-picker/css'
 
 const emit = defineEmits<{
   sendMessage: [content: string]
@@ -14,6 +16,11 @@ function sendMessage() {
     messageText.value = ''
     adjustHeight()
   }
+}
+
+function onSelectEmoji(emoji: EmojiExt) {
+  messageText.value += emoji.i
+  adjustHeight()
 }
 
 function handleKeyPress(event: KeyboardEvent) {
@@ -34,6 +41,14 @@ function adjustHeight() {
 <template>
   <div class="message-input">
     <q-btn flat round icon="emoji_emotions" color="grey-7" class="emoji-btn">
+      <q-menu anchor="top left" self="bottom left" :offset="[0, 8]" class="emoji-menu">
+        <EmojiPicker
+          :native="true"
+          :disable-skin-tones="true"
+          class="custom-emoji-picker"
+          @select="onSelectEmoji"
+        />
+      </q-menu>
       <q-tooltip>Emoji</q-tooltip>
     </q-btn>
 
@@ -168,5 +183,33 @@ function adjustHeight() {
       }
     }
   }
+}
+</style>
+
+<style lang="scss">
+// Global styles for vue3-emoji-picker (q-menu teleports)
+.v3-emoji-picker {
+  border: none !important;
+  box-shadow: none !important;
+  width: 320px !important;
+  height: 400px !important;
+
+  .v3-footer,
+  .v3-separator,
+  .v3-spacing,
+  .v3-footer-left,
+  .v3-footer-right {
+    display: none !important;
+  }
+
+  .v3-body {
+    padding-bottom: 8px;
+  }
+}
+
+.emoji-menu {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
 }
 </style>
