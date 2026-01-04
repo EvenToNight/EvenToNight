@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed } from 'vue'
 import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
@@ -9,6 +9,8 @@ import type { User } from '@/api/types/users'
 import MessageInput from '@/components/support/MessageInput.vue'
 import ChatArea from '@/components/support/ChatArea.vue'
 import { useNavigation } from '@/router/utils'
+import type { SupportWebSocket } from '@/api/mock-services/supportWebSocket'
+import { isNewMessageEvent } from '@/api/mock-services/supportWebSocket'
 
 const { query, removeQuery } = useNavigation()
 const authStore = useAuthStore()
@@ -22,6 +24,8 @@ const messagesLimit = 50
 const searchResults = ref<User[]>([])
 const selectedOrganization = ref<User | undefined>()
 const isNewConversation = ref(false)
+const websocket = ref<SupportWebSocket | null>(null)
+const twoColumnLayout = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
 
 const selectedConversation = computed<Conversation | undefined>(() => {
   return conversations.value.find((c) => c.id === selectedConversationId.value)
@@ -52,6 +56,29 @@ onMounted(async () => {
   const organizationId = query.organizationId as string | undefined
   if (organizationId) {
     await loadOrganizationConversation(organizationId)
+  }
+
+  // Initialize WebSocket for real-time updates
+  if (authStore.user?.id) {
+    console.log('[SupportView] Initializing WebSocket for user:', authStore.user.id)
+    websocket.value = api.support.createWebSocket(authStore.user.id)
+    websocket.value.connect()
+
+    // Listen for new messages from other tabs
+    websocket.value.on((event) => {
+      console.log('[SupportView] WebSocket event received:', event)
+      if (isNewMessageEvent(event)) {
+        console.log('[SupportView] Handling new message event')
+        handleWebSocketNewMessage(event)
+      }
+    })
+  }
+})
+
+onUnmounted(() => {
+  // Disconnect WebSocket when component is destroyed
+  if (websocket.value) {
+    websocket.value.disconnect()
   }
 })
 
@@ -99,6 +126,8 @@ async function handleSelectConversation(conversationId: string, isNewOrg = false
       selectedOrganization.value = searchResults.value.find((org) => org.id === conversationId)
       selectedConversationId.value = conversationId
       loading.value = false
+      // Show content in mobile
+      twoColumnLayout.value?.showContent()
       return
     }
 
@@ -116,6 +145,9 @@ async function handleSelectConversation(conversationId: string, isNewOrg = false
       conversation.unreadCount = 0
     }
     selectedConversationId.value = conversationId
+
+    // Show content in mobile
+    twoColumnLayout.value?.showContent()
   } catch (error) {
     console.error('Failed to load conversation messages:', error)
   } finally {
@@ -155,6 +187,8 @@ function handleBackToList() {
   selectedOrganization.value = undefined
   isNewConversation.value = false
   selectedMessages.value = []
+  // Show sidebar in mobile
+  twoColumnLayout.value?.showSidebar()
 }
 
 async function handleLoadMoreMessages() {
@@ -216,21 +250,77 @@ async function handleSendMessage(content: string) {
     await api.support.sendMessage(selectedConversationId.value, newMessage)
     selectedMessages.value.push(newMessage)
 
-    // Update conversation's last message in the list
-    const conversation = conversations.value.find((c) => c.id === selectedConversationId.value)
-    if (conversation) {
-      conversation.lastMessage = content.trim()
-      conversation.lastMessageTime = newMessage.timestamp
-      conversation.lastMessageSenderId = newMessage.senderId
+    // Update conversation's last message in the list and move to top
+    const conversationIndex = conversations.value.findIndex(
+      (c) => c.id === selectedConversationId.value
+    )
+    if (conversationIndex !== -1) {
+      const conversation = conversations.value[conversationIndex]
+      if (conversation) {
+        conversation.lastMessage = content.trim()
+        conversation.lastMessageTime = newMessage.timestamp
+        conversation.lastMessageSenderId = newMessage.senderId
+
+        // Move conversation to top of list
+        conversations.value.splice(conversationIndex, 1)
+        conversations.value.unshift(conversation)
+      }
     }
   } catch (error) {
     console.error('Failed to send message:', error)
   }
 }
+
+function handleWebSocketNewMessage(event: import('@/api/types/support').NewMessageEvent) {
+  console.log('[SupportView] handleWebSocketNewMessage called:', event)
+  const { message, conversation: updatedConversation } = event.data
+
+  // Check if the message is from the current user (sent from another tab)
+  const isOwnMessage = message.senderId === authStore.user?.id
+  console.log('[SupportView] Message is from current user:', isOwnMessage)
+
+  // Update or add conversation in the list
+  const existingConversationIndex = conversations.value.findIndex(
+    (c) => c.id === event.conversationId
+  )
+  console.log('[SupportView] Existing conversation index:', existingConversationIndex)
+
+  if (existingConversationIndex !== -1) {
+    // Update existing conversation
+    const conv = conversations.value[existingConversationIndex]
+    if (conv) {
+      conv.lastMessage = updatedConversation.lastMessage
+      conv.lastMessageTime = updatedConversation.lastMessageTime
+      conv.lastMessageSenderId = updatedConversation.lastMessageSenderId
+
+      // Increment unread count only if it's not the currently selected conversation
+      // and the message is not from the current user
+      if (selectedConversationId.value !== event.conversationId && !isOwnMessage) {
+        conv.unreadCount++
+      }
+
+      // Move conversation to top of list
+      conversations.value.splice(existingConversationIndex, 1)
+      conversations.value.unshift(conv)
+    }
+  } else {
+    // Add new conversation to list (if it doesn't exist)
+    conversations.value.unshift(updatedConversation)
+  }
+
+  // If this message belongs to the currently selected conversation, add it to messages
+  if (selectedConversationId.value === event.conversationId) {
+    // Check if message already exists (to avoid duplicates)
+    const messageExists = selectedMessages.value.some((m) => m.id === message.id)
+    if (!messageExists) {
+      selectedMessages.value.push(message)
+    }
+  }
+}
 </script>
 
 <template>
-  <TwoColumnLayout>
+  <TwoColumnLayout ref="twoColumnLayout">
     <template #sidebar>
       <ConversationList
         :conversations="conversations"

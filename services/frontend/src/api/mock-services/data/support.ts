@@ -1,6 +1,7 @@
 import type { Conversation, ConversationMessages } from '@/api/types/support'
+import { loadConversations, loadMessages } from '../storage/supportStorage'
 
-export const mockConversations: Conversation[] = [
+const defaultConversations: Conversation[] = [
   {
     id: '1',
     organizationId: 'organization_1',
@@ -43,7 +44,7 @@ export const mockConversations: Conversation[] = [
   },
 ]
 
-export const mockMessages: ConversationMessages = {
+const defaultMessages: ConversationMessages = {
   '1': [
     {
       id: 'm1',
@@ -224,4 +225,22 @@ export const mockMessages: ConversationMessages = {
       timestamp: new Date('2025-11-21T20:00:00'),
     },
   ],
+}
+
+// Export data loaded from localStorage (or defaults if not found)
+export let mockConversations = loadConversations(defaultConversations)
+export let mockMessages = loadMessages(defaultMessages)
+
+// Listen for storage changes from other tabs
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (event) => {
+    if (event.key === 'mock-support-messages' && event.newValue) {
+      console.log('[SupportData] Messages updated in another tab, reloading...')
+      mockMessages = loadMessages(defaultMessages)
+    }
+    if (event.key === 'mock-support-conversations' && event.newValue) {
+      console.log('[SupportData] Conversations updated in another tab, reloading...')
+      mockConversations = loadConversations(defaultConversations)
+    }
+  })
 }

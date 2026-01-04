@@ -25,3 +25,35 @@ export interface Conversation {
   lastMessageSenderId: UserID
   unreadCount: number
 }
+
+export type SupportWebSocketEventType = 'new_message' | 'message_read' | 'typing'
+
+export interface SupportWebSocketEvent {
+  type: SupportWebSocketEventType
+  conversationId: ConversationID
+  data: unknown
+}
+
+export interface NewMessageEvent extends SupportWebSocketEvent {
+  type: 'new_message'
+  data: {
+    message: Message
+    conversation: Conversation
+  }
+}
+
+export interface MessageReadEvent extends SupportWebSocketEvent {
+  type: 'message_read'
+  data: {
+    messageId: string
+    readBy: UserID
+  }
+}
+
+export interface TypingEvent extends SupportWebSocketEvent {
+  type: 'typing'
+  data: {
+    userId: UserID
+    isTyping: boolean
+  }
+}
