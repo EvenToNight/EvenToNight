@@ -90,4 +90,9 @@ export class FollowService {
       $or: [{ followerId: userId }, { followedId: userId }],
     });
   }
+
+  async isFollowing(followerId: string, followedId: string): Promise<boolean> {
+    const follow = await this.followModel.findOne({ followerId, followedId });
+    return !!follow;
+  }
 }

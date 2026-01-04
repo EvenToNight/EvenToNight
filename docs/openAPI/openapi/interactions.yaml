@@ -189,6 +189,44 @@ paths:
         - Users
 
   /users/{userId}/following/{followedId}:
+    get:
+      summary: Check if a user is following another user
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the follower user
+          schema:
+            type: string
+          example: user123
+        - name: followedId
+          in: path
+          required: true
+          description: ID of the followed user
+          schema:
+            type: string
+          example: user456
+      responses:
+        '200':
+          description: Follow status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isFollowing:
+                    type: boolean
+                    description: Indicates if userId is following followedId
+              example:
+                isFollowing: true
+      tags:
+        - Users
+
     delete:
       summary: Unfollow a user
       description: Remove a follow relationship between two users
