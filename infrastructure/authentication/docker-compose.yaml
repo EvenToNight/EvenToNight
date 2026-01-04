@@ -25,7 +25,9 @@ services:
       KC_DB_PASSWORD: ${POSTGRES_PASSWORD}
       KC_DB_SCHEMA: public
       KC_HTTP_ENABLED: "true"
-      KC_HOSTNAME: ${KC_HOSTNAME}
+      KC_HOSTNAME: auth.${KC_HOSTNAME}
+      KC_HOSTNAME_STRICT: "false"
+      KC_PROXY: edge
       KC_LOGLEVEL: INFO
       KC_METRICS_ENABLED: "true"
       KC_BOOTSTRAP_ADMIN_USERNAME: ${KEYCLOAK_ADMIN}
@@ -34,7 +36,8 @@ services:
       - "traefik.enable=true"
       - "traefik.http.routers.auth.rule=Host(`auth.${HOST}`)"
       - "traefik.http.routers.auth.entrypoints=web"
-      - "traefik.http.services.auth.loadbalancer.server.port=8080"  
+      - "traefik.http.services.auth.loadbalancer.server.port=8080"
+      - "traefik.http.routers.auth.service=auth"  
 
     ports:
       - "${KEYCLOAK_PORT}:8080"
