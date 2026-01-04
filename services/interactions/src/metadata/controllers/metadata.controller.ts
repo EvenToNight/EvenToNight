@@ -21,6 +21,8 @@ export class MetadataController {
 
     if (routingKey === 'event.published') {
       await this.metadataService.handleEventPublished(payload);
+    } else if (routingKey === 'user.registered') {
+      await this.metadataService.handleUserRegistered(payload);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment

@@ -44,6 +44,31 @@ export class MetadataService {
     this.logger.log(`Event ${data.eventId} stored`);
   }
 
+  async handleUserRegistered(payload: unknown): Promise<void> {
+    console.log('Handling user registered in MetadataService:', payload);
+
+    const wrapper = payload as {
+      UserRegistered?: { userId: string; role: string };
+    };
+    const data = wrapper.UserRegistered;
+    if (!data || !data.userId) {
+      this.logger.error('Invalid payload for UserRegistered event', payload);
+      return;
+    }
+
+    await this.userModel.updateOne(
+      { userId: data.userId },
+      {
+        $setOnInsert: {
+          userId: data.userId,
+          role: data.role,
+        },
+      },
+      { upsert: true },
+    );
+    this.logger.log(`User ${data.userId} (${data.role}) stored`);
+  }
+
   // TODO: Implement checks eventschema for real validation
   validateEvent(
     eventId: string,
