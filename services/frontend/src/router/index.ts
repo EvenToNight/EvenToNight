@@ -154,6 +154,19 @@ router.beforeEach((to, _from, next) => {
     return next(`/${DEFAULT_LOCALE}${pathWithoutLocale}`)
   }
 
+  const savedLocale = localStorage.getItem('user-locale')
+  if (savedLocale && locale && locale !== savedLocale && SUPPORTED_LOCALES.includes(savedLocale)) {
+    return next({
+      name: to.name as string,
+      params: {
+        ...to.params,
+        locale: savedLocale,
+      },
+      query: to.query,
+      replace: true,
+    })
+  }
+
   if (locale && i18n.global.locale.value !== locale) {
     i18n.global.locale.value = locale as Locale
     localStorage.setItem('user-locale', locale)

@@ -3,9 +3,10 @@ import { ref, computed } from 'vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
 import MyReviewsTab from '@/components/settings/tabs/MyReviewsTab.vue'
+import LanguageTab from '@/components/settings/tabs/LanguageTab.vue'
 import type { Tab } from '@/components/navigation/TabView.vue'
 
-const activeTabId = ref('reviews')
+const activeTabId = ref('language')
 
 const activeTab = computed(() => {
   return tabs.value.find((tab) => tab.id === activeTabId.value) ?? tabs.value[0]!
@@ -16,6 +17,12 @@ const selectTab = (tabId: string) => {
 }
 
 const tabs = computed<Tab[]>(() => [
+  {
+    id: 'language',
+    label: 'Language',
+    icon: 'language',
+    component: LanguageTab,
+  },
   {
     id: 'reviews',
     label: 'My Reviews',
