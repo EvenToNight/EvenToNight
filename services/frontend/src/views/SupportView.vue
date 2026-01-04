@@ -8,7 +8,9 @@ import type { Conversation, Message } from '@/api/types/support'
 import type { User } from '@/api/types/users'
 import MessageInput from '@/components/support/MessageInput.vue'
 import ChatArea from '@/components/support/ChatArea.vue'
+import { useNavigation } from '@/router/utils'
 
+const { query, removeQuery } = useNavigation()
 const authStore = useAuthStore()
 const conversations = ref<Conversation[]>([])
 const selectedConversationId = ref<string>()
@@ -47,7 +49,30 @@ const displayConversation = computed<Conversation | undefined>(() => {
 
 onMounted(async () => {
   await loadConversations()
+  const organizationId = query.organizationId as string | undefined
+  if (organizationId) {
+    await loadOrganizationConversation(organizationId)
+  }
 })
+
+async function loadOrganizationConversation(organizationId: string) {
+  //TODO seach usign API
+  const existingConversation = conversations.value.find((c) => c.organizationId === organizationId)
+  if (existingConversation) {
+    await handleSelectConversation(existingConversation.id)
+  } else {
+    try {
+      const org = await api.users.getUserById(organizationId)
+      selectedOrganization.value = org
+      selectedConversationId.value = organizationId
+      isNewConversation.value = true
+      selectedMessages.value = []
+    } catch (error) {
+      console.error('Failed to load organization:', error)
+    }
+  }
+  removeQuery('organizationId')
+}
 
 async function loadConversations() {
   if (!authStore.user?.id) return

@@ -116,6 +116,7 @@ const handleAvatarChange = async (file: File | null) => {
             :is-own-profile="isOwnProfile"
             :is-organization="isOrganization"
             :is-following="isFollowing"
+            :user-id="user.id"
             @follow-toggle="handleFollowToggle"
           />
         </div>
@@ -129,6 +130,7 @@ const handleAvatarChange = async (file: File | null) => {
               :is-own-profile="isOwnProfile"
               :is-organization="isOrganization"
               :is-following="isFollowing"
+              :user-id="user.id"
               @follow-toggle="handleFollowToggle"
             />
           </div>

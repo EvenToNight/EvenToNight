@@ -10,10 +10,10 @@ export const mockConversations: Conversation[] = [
     memberId: 'member_1',
     memberName: 'Alex Johnson',
     memberAvatar: 'https://i.pravatar.cc/150?img=1',
-    lastMessage: 'Ci sono posti limitati!',
+    lastMessage: 'Grazie, a presto!',
     lastMessageTime: new Date('2025-11-24T18:30:00'),
     lastMessageSenderId: 'organization_1',
-    unreadCount: 2,
+    unreadCount: 0,
   },
   {
     id: '2',
@@ -36,10 +36,10 @@ export const mockConversations: Conversation[] = [
     memberId: 'member_1',
     memberName: 'Alex Johnson',
     memberAvatar: 'https://i.pravatar.cc/150?img=1',
-    lastMessage: 'Grazie, a presto!',
+    lastMessage: 'Ti aspettiamo!',
     lastMessageTime: new Date('2025-11-21T20:00:00'),
-    lastMessageSenderId: 'member_1',
-    unreadCount: 0,
+    lastMessageSenderId: 'organization_3',
+    unreadCount: 1,
   },
 ]
 

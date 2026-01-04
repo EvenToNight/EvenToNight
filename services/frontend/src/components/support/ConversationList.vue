@@ -148,7 +148,7 @@ watch(searchQuery, (newQuery) => {
             v-if="conversation.unreadCount > 0"
             color="primary"
             rounded
-            :label="conversation.unreadCount"
+            :label="conversation.unreadCount > 999 ? '999+' : conversation.unreadCount"
             class="unread-badge"
           />
         </q-item-section>
@@ -266,9 +266,7 @@ watch(searchQuery, (newQuery) => {
   .unread-badge {
     color: white;
     margin-top: 4px;
-    border-radius: 50% !important;
-    min-width: 20px;
-    min-height: 20px;
+    border-radius: 12px;
   }
 }
 

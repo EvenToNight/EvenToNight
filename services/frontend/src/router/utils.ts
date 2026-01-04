@@ -13,6 +13,7 @@ import {
   EXPLORE_ROUTE_NAME,
   SETTINGS_ROUTE_NAME,
   EDIT_PROFILE_ROUTE_NAME,
+  SUPPORT_ROUTE_NAME,
 } from '@/router'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
 
@@ -61,6 +62,16 @@ export const useNavigation = () => {
       query: {
         ...additionalQuery,
       },
+    })
+  }
+
+  const removeQuery = (key: string) => {
+    const newQuery = { ...route.query }
+    delete newQuery[key]
+    router.replace({
+      name: route.name as string,
+      params: route.params,
+      query: newQuery,
     })
   }
 
@@ -169,6 +180,14 @@ export const useNavigation = () => {
     }
   }
 
+  const goToSupport = (organizationId?: string, swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(SUPPORT_ROUTE_NAME, undefined, { organizationId })
+    } else {
+      pushWithLocale(SUPPORT_ROUTE_NAME, undefined, { organizationId })
+    }
+  }
+
   const changeLocale = (newLocale: string) => {
     router.push({
       name: route.name as string,
@@ -198,6 +217,8 @@ export const useNavigation = () => {
     goToUserProfile,
     goToSettings,
     goToEditProfile,
+    goToSupport,
     changeLocale,
+    removeQuery,
   }
 }

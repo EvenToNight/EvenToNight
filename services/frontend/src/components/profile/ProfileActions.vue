@@ -4,15 +4,16 @@ import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const { goToCreateEvent, goToEditProfile, goToSettings } = useNavigation()
+const { goToCreateEvent, goToEditProfile, goToSettings, goToSupport } = useNavigation()
 
 interface Props {
   isOwnProfile: boolean
   isOrganization: boolean
   isFollowing: boolean
+  userId: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
   followToggle: []
@@ -33,6 +34,10 @@ const handleFollowToggle = () => {
 const handleOpenSettings = () => {
   goToSettings()
 }
+
+const handleOpenSupport = () => {
+  goToSupport(props.userId)
+}
 </script>
 
 <template>
@@ -51,6 +56,7 @@ const handleOpenSettings = () => {
         variant="primary"
         @click="handleCreateEvent"
       />
+      <Button label="Chats" icon="chat" variant="secondary" @click="handleOpenSupport" />
       <Button icon="settings" variant="secondary" @click="handleOpenSettings" />
     </template>
     <template v-else>
@@ -58,6 +64,13 @@ const handleOpenSettings = () => {
         :label="isFollowing ? t('userProfile.following') : t('userProfile.follow')"
         :variant="isFollowing ? 'secondary' : 'primary'"
         @click="handleFollowToggle"
+      />
+      <Button
+        v-if="isOrganization"
+        label="Send a message"
+        icon="send"
+        variant="secondary"
+        @click="handleOpenSupport"
       />
     </template>
   </div>
