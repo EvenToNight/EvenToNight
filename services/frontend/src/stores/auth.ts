@@ -3,10 +3,12 @@ import { defineStore } from 'pinia'
 import type { User, UserID } from '@/api/types/users'
 import { api } from '@/api'
 import { useI18n } from 'vue-i18n'
+import { jwtDecode } from 'jwt-decode'
+import type { AccessToken, LoginResponse } from '@/api/interfaces/users'
 
-interface AuthToken {
-  accessToken: string
-  expiresAt: number
+interface DecodedToken {
+  user_id: UserID
+  exp: number
 }
 
 // Access token in sessionStorage as fallback (lost when the tab is closed)
@@ -16,22 +18,23 @@ const USER_SESSION_KEY = 'user_session'
 
 export const useAuthStore = defineStore('auth', () => {
   const { t } = useI18n()
-  const token = ref<AuthToken | null>(null)
+  const token = ref<AccessToken | null>(null)
+  const decodedToken = ref<DecodedToken | null>(null)
   const user = ref<User | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
-    if (!token.value) return false
-    return token.value.expiresAt > Date.now()
+    if (!decodedToken.value) return false
+    return decodedToken.value.exp > Date.now() / 1000
   })
-  const accessToken = computed(() => token.value?.accessToken || null)
+  const accessToken = computed(() => token.value || null)
 
-  const setTokens = (authTokens: any) => {
-    token.value = {
-      accessToken: authTokens.accessToken,
-      expiresAt: Date.now() + authTokens.expiresIn * 1000,
-    }
-    sessionStorage.setItem(ACCESS_TOKEN_SESSION_KEY, token.value.accessToken)
-    sessionStorage.setItem(TOKEN_EXPIRY_SESSION_KEY, token.value.expiresAt.toString())
+  const setTokens = (authToken: LoginResponse) => {
+    console.log('Auth token:', authToken)
+    decodedToken.value = jwtDecode<DecodedToken>(authToken.token)
+    console.log('Decoded token:', { ...decodedToken.value })
+    token.value = authToken.token
+    sessionStorage.setItem(ACCESS_TOKEN_SESSION_KEY, token.value)
+    sessionStorage.setItem(TOKEN_EXPIRY_SESSION_KEY, decodedToken.value!.exp.toString())
   }
 
   const setUser = (authUser: User) => {
@@ -39,11 +42,12 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(authUser))
   }
 
-  const setAuthData = (authData: any) => {
+  const setAuthData = async (authData: LoginResponse) => {
     setTokens(authData)
-    if (authData.user) {
-      setUser(authData.user)
-    }
+    console.log('Fetching user with ID:', decodedToken.value!.user_id)
+    const user: User = await api.users.getUserById(decodedToken.value!.user_id)
+    console.log('Fetched user:', user)
+    setUser(user)
   }
 
   const clearAuth = () => {
@@ -55,14 +59,21 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const register = async (
-    name: string,
+    username: string,
     email: string,
     password: string,
     isOrganization: boolean
   ) => {
     isLoading.value = true
     try {
-      setAuthData(await api.users.register({ name, email, password, isOrganization }))
+      setAuthData(
+        await api.users.register({
+          username,
+          email,
+          password,
+          role: isOrganization ? 'organization' : 'member',
+        })
+      )
       return { success: true }
     } catch (error) {
       return {
@@ -74,10 +85,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const login = async (email: string, password: string) => {
+  const login = async (username: string, password: string) => {
     isLoading.value = true
     try {
-      setAuthData(await api.users.login({ email, password }))
+      setAuthData(await api.users.login({ username, password }))
       return { success: true }
     } catch (error) {
       return {
@@ -102,7 +113,7 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshAccessToken = async (): Promise<boolean> => {
     try {
       // refreshToken is sent automatically via httpOnly cookie
-      setAuthData(await api.users.refreshToken())
+      // setAuthData(await api.users.refreshToken())
       return true
     } catch {
       clearAuth()
@@ -111,34 +122,30 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const initializeAuth = () => {
-    const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
-    const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
-    const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
-    const expiresAt = storedExpiry ? parseInt(storedExpiry, 10) : 0
-
-    if (storedAccessToken && expiresAt > Date.now()) {
-      token.value = {
-        accessToken: storedAccessToken,
-        expiresAt,
-      }
-      if (storedUser) {
-        try {
-          user.value = JSON.parse(storedUser)
-        } catch (error) {
-          console.error('Failed to parse stored user:', error)
-          refreshAccessToken()
-        }
-      }
-    } else {
-      refreshAccessToken()
-    }
+    // const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
+    // const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
+    // const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
+    // const expiresAt = storedExpiry ? parseInt(storedExpiry, 10) : 0
+    // if (storedAccessToken && expiresAt > Date.now() / 1000) {
+    //   setTokens({ token: storedAccessToken })
+    //   if (storedUser) {
+    //     try {
+    //       user.value = JSON.parse(storedUser)
+    //     } catch (error) {
+    //       console.error('Failed to parse stored user:', error)
+    //       refreshAccessToken()
+    //     }
+    //   }
+    // } else {
+    //   refreshAccessToken()
+    // }
   }
 
   const setupAutoRefresh = () => {
     if (!token.value) return
 
-    const timeUntilExpiry = token.value.expiresAt - Date.now()
-    const refreshTime = timeUntilExpiry - 5 * 60 * 1000 // Refresh 5 minutes before expiry
+    const timeUntilExpiry = decodedToken.value!.exp - Date.now() / 1000
+    const refreshTime = timeUntilExpiry - 5 * 60
 
     if (refreshTime > 0) {
       setTimeout(() => {

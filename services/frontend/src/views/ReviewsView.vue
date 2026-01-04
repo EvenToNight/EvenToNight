@@ -43,9 +43,9 @@ const loadReviews = async () => {
 }
 const loadOrganizationInfo = async () => {
   try {
-    const response = await api.users.getUserById(organizationId.value)
-    organizationName.value = response.user.name
-    organizationAvatar.value = response.user.avatarUrl || ''
+    const user = await api.users.getUserById(organizationId.value)
+    organizationName.value = user.name
+    organizationAvatar.value = user.avatarUrl || ''
   } catch (error) {
     console.error('Failed to load organization:', error)
   }

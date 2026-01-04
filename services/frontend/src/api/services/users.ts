@@ -1,12 +1,10 @@
 import type {
-  GetUserByIdResponse,
   UsersAPI,
   LoginRequest,
   LoginResponse,
   RefreshTokenResponse,
   LogoutResponse,
-  RegisterResponse,
-  RegisterRequest,
+  RegistrationRequest,
 } from '../interfaces/users'
 import type { User, UserID } from '../types/users'
 import type { ApiClient } from '../client'
@@ -14,24 +12,25 @@ import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 
 export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
-  async getUserById(id: UserID): Promise<GetUserByIdResponse> {
-    return usersClient.get<GetUserByIdResponse>(`/users/${id}`)
+  async getUserById(id: UserID): Promise<User> {
+    return usersClient.get<User>(`/${id}`)
   },
 
-  async register(data: RegisterRequest): Promise<RegisterResponse> {
-    return usersClient.post<RegisterResponse>('/auth/register', data, { credentials: true })
+  async register(data: RegistrationRequest): Promise<LoginResponse> {
+    const body = { userType: data.role, ...data }
+    return usersClient.post<LoginResponse>('/register', body)
   },
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    return usersClient.post<LoginResponse>('/auth/login', credentials, { credentials: true })
+    return usersClient.post<LoginResponse>('/login', credentials)
   },
 
   async logout(): Promise<LogoutResponse> {
-    return usersClient.post<LogoutResponse>('/auth/logout', undefined, { credentials: true })
+    return usersClient.post<LogoutResponse>('/logout', undefined, { credentials: true })
   },
 
   async refreshToken(): Promise<RefreshTokenResponse> {
-    return usersClient.post<RefreshTokenResponse>('/auth/refresh', undefined, { credentials: true })
+    return usersClient.post<RefreshTokenResponse>('/refresh', undefined, { credentials: true })
   },
 
   async searchUsers(params: {

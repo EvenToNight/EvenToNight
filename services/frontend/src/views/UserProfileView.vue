@@ -51,8 +51,7 @@ const setupScrollObserver = async () => {
 const loadUser = async () => {
   try {
     const userId = params.id as string
-    const response = await api.users.getUserById(userId)
-    user.value = response.user
+    user.value = await api.users.getUserById(userId)
     // TODO: Load following status from API
     isFollowing.value = false
 

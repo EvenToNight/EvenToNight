@@ -29,5 +29,5 @@ export const api = {
   support: mockSupportApi,
   // media: useMockApi ? mockMediaApi : createMediaApi(createMediaClient()),
   // feed: useMockApi ? mockFeedApi : createFeedApi(createFeedClient()),
-  // users: useMockApi ? mockUsersApi : createUsersApi(createUsersClient()),
+  // users: useRealApi ? createUsersApi(createUsersClient()) : mockUsersApi,
 }

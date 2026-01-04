@@ -38,9 +38,9 @@ const showEditDialog = ref(false)
 
 const loadUserInfo = async () => {
   try {
-    const response = await api.users.getUserById(props.review.userId)
-    userName.value = response.user.name
-    userAvatar.value = response.user.avatarUrl || null
+    const user = await api.users.getUserById(props.review.userId)
+    userName.value = user.name
+    userAvatar.value = user.avatarUrl || null
   } catch (error) {
     console.error('Failed to load user info:', error)
     userName.value = 'Unknown User'

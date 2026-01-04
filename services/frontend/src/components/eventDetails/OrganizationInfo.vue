@@ -17,8 +17,7 @@ const collaborators = ref<User[]>([])
 
 const loadOrganizer = async (userId: UserID) => {
   try {
-    const response = await api.users.getUserById(userId)
-    organizer.value = response.user
+    organizer.value = await api.users.getUserById(userId)
   } catch (error) {
     console.error('Failed to load organizer:', error)
     organizer.value = null
@@ -28,8 +27,7 @@ const loadOrganizer = async (userId: UserID) => {
 const loadCollaborators = async (userIds: UserID[]) => {
   try {
     const promises = userIds.map((userId) => api.users.getUserById(userId))
-    const responses = await Promise.all(promises)
-    collaborators.value = responses.map((response) => response.user)
+    collaborators.value = await Promise.all(promises)
   } catch (error) {
     console.error('Failed to load collaborators:', error)
     collaborators.value = []

@@ -1,32 +1,21 @@
 import type { User, UserID, UserRole } from '../types/users'
 import type { PaginatedRequest, PaginatedResponse } from './commons'
 
-export interface GetUserByIdResponse {
-  user: User
-}
-
-export interface RegisterRequest {
-  name: string
+export interface RegistrationRequest {
+  username: string
   email: string
   password: string
-  isOrganization: boolean
+  role: UserRole
 }
-
-export interface RegisterResponse {
-  accessToken: string
-  expiresIn: number
-  user: User
-}
-
 export interface LoginRequest {
-  email: string
+  username: string
   password: string
 }
+
+export type AccessToken = string
 
 export interface LoginResponse {
-  accessToken: string
-  expiresIn: number
-  user: User
+  token: AccessToken
 }
 
 export interface RefreshTokenResponse {
@@ -40,8 +29,8 @@ export interface LogoutResponse {
 }
 
 export interface UsersAPI {
-  getUserById(id: UserID): Promise<GetUserByIdResponse>
-  register(data: RegisterRequest): Promise<RegisterResponse>
+  getUserById(id: UserID): Promise<User>
+  register(data: RegistrationRequest): Promise<LoginResponse>
   login(credentials: LoginRequest): Promise<LoginResponse>
   logout(): Promise<LogoutResponse>
   refreshToken(): Promise<RefreshTokenResponse>
