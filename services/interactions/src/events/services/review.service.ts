@@ -178,4 +178,12 @@ export class ReviewService {
       ratingDistribution,
     };
   }
+
+  async hasUserReviewedEvent(
+    userId: string,
+    eventId: string,
+  ): Promise<boolean> {
+    const review = await this.reviewModel.findOne({ userId, eventId });
+    return !!review;
+  }
 }

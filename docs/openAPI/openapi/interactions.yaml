@@ -461,6 +461,43 @@ paths:
       tags:
         - Users
 
+  /users/{userId}/reviews/{eventId}:
+    get:
+      summary: Check if a user has reviewed an event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: event123
+      responses:
+        '200':
+          description: Review status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hasReviewed:
+                    type: boolean
+                    description: Indicates if the user has reviewed the event
+              example:
+                hasReviewed: true
+      tags:
+        - Users
+
   /users/{userId}/participations:
     get:
       summary: Get events a user is participating in

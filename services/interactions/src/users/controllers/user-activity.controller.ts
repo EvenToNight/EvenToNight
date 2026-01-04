@@ -39,6 +39,18 @@ export class UserActivityController {
     return this.reviewService.getUserReviews(userId, limit, offset);
   }
 
+  @Get('reviews/:eventId')
+  async hasUserReviewedEvent(
+    @Param('userId') userId: string,
+    @Param('eventId') eventId: string,
+  ) {
+    const hasReviewed = await this.reviewService.hasUserReviewedEvent(
+      userId,
+      eventId,
+    );
+    return { hasReviewed };
+  }
+
   @Get('participations')
   async getUserParticipations(
     @Param('userId') userId: string,
