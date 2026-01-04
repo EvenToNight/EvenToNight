@@ -549,6 +549,43 @@ paths:
       tags:
         - Users
 
+  /users/{userId}/participations/{eventId}:
+    get:
+      summary: Check if a user is participating in an event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: event123
+      responses:
+        '200':
+          description: Participation status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  isParticipating:
+                    type: boolean
+                    description: Indicates if the user is participating in the event
+              example:
+                isParticipating: true
+      tags:
+        - Users
+
   /events/{eventId}/likes:
     post:
       summary: Like an event

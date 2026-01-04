@@ -73,4 +73,12 @@ export class ParticipationService {
     });
     return !!participation;
   }
+
+  async hasUserParticipated(userId: string, eventId: string): Promise<boolean> {
+    const participation = await this.participationModel.findOne({
+      userId,
+      eventId,
+    });
+    return !!participation;
+  }
 }

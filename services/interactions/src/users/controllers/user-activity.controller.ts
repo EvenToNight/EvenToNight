@@ -63,4 +63,16 @@ export class UserActivityController {
       offset,
     );
   }
+
+  @Get('participations/:eventId')
+  async hasUserParticipated(
+    @Param('userId') userId: string,
+    @Param('eventId') eventId: string,
+  ) {
+    const hasParticipated = await this.participationService.hasUserParticipated(
+      userId,
+      eventId,
+    );
+    return { hasParticipated };
+  }
 }
