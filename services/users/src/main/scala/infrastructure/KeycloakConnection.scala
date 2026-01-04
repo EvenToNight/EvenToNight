@@ -13,7 +13,7 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
   private val realm       = "eventonight"
   private val clientId    = "users-service"
 
-  private def requestAccessToken(form: Map[String, String]): Either[String, String] =
+  def requestAccessToken(form: Map[String, String]): Either[String, String] =
     val tokenUrl = s"$keycloakUrl/realms/$realm/protocol/openid-connect/token"
     val request = basicRequest
       .post(uri"$tokenUrl")

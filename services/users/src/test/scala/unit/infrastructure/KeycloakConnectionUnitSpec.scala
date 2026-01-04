@@ -15,21 +15,16 @@ import sttp.model.StatusCode
 import java.util.UUID
 
 class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
-  private val tokenPath      = List("realms", "eventonight", "protocol", "openid-connect", "token")
-  private val testSecret     = "test-secret"
-  private val createUserPath = List("admin", "realms", "eventonight", "users")
-  private val testKeycloakId = "3c4d5e6f-7a8b-9c0d-1e2f-3456789abcde"
+  private val tokenPath                      = List("realms", "eventonight", "protocol", "openid-connect", "token")
+  private val testSecret                     = "test-secret"
+  private val createUserPath                 = List("admin", "realms", "eventonight", "users")
+  private val dummyForm: Map[String, String] = Map.empty
+  private val testKeycloakId                 = "3c4d5e6f-7a8b-9c0d-1e2f-3456789abcde"
 
-  private def stubbedConnectionWithResponse(responseBody: String) =
+  private def stubbedConnectionWithStatusCodeAndBody(code: StatusCode, body: String) =
     val backendStub = SttpBackendStub.synchronous
       .whenRequestMatches(_.uri.path == tokenPath)
-      .thenRespond(responseBody)
-    new KeycloakConnection(backendStub, testSecret)
-
-  private def stubbedConnectionWithError(errMsg: String) =
-    val backendStub = SttpBackendStub.synchronous
-      .whenRequestMatches(_.uri.path == tokenPath)
-      .thenRespond(Left(errMsg))
+      .thenRespond(Response(body, code))
     new KeycloakConnection(backendStub, testSecret)
 
   private def stubbedCreateUserConnectionWithResponse(response: Response[String]) =
@@ -57,28 +52,72 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     headers = List(Header("Location", s"/admin/realms/eventonight/users/$testKeycloakId"))
   )
 
-  "getClientAccessToken" should "return Right(access_token) when Keycloak returns valid JSON with access_token" in:
-    val connectionStub = stubbedConnectionWithResponse("""{"access_token": "test_token"}""")
+  "requestAccessToken" should "return Right(access_token) when Keycloak returns valid JSON with access_token" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"access_token": "test_token"}""")
+    val token = connectionStub.requestAccessToken(
+      Map(
+        "grant_type"    -> "client_credentials",
+        "client_id"     -> "users-service",
+        "client_secret" -> testSecret
+      )
+    )
+    token shouldBe Right("test_token")
+
+  it should "return Left when Keycloak returns 200 with invalid JSON" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, "")
+    val token          = connectionStub.requestAccessToken(dummyForm)
+    token.left.value should include("Invalid JSON")
+
+  it should "return Left when Keycloak returns 200 with access_token missing in a valid JSON" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"some_field": "some_value"}""")
+    val token          = connectionStub.requestAccessToken(dummyForm)
+    token.left.value should include("Missing access_token")
+
+  it should "return Left when Keycloak returns 400 with invalid JSON" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, "")
+    val token          = connectionStub.requestAccessToken(dummyForm)
+    token.left.value should include("Invalid JSON")
+
+  it should "return Left when Keycloak returns 400 with invalid_grant error" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, """{"error": "invalid_grant"}""")
+    val token          = connectionStub.requestAccessToken(dummyForm)
+    token.left.value should include("Invalid credentials")
+
+  it should "return Left when Keycloak returns 400 with other error" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, """{"error": "other_error"}""")
+    val token          = connectionStub.requestAccessToken(dummyForm)
+    token.left.value should include("Keycloak error")
+
+  it should "return Left when Keycloak returns 400 with JSON missing error field" in:
+    val connectionStub =
+      stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, """{"some_field": "some_value"}""")
+    val token = connectionStub.requestAccessToken(dummyForm)
+    token.left.value should include("Keycloak error")
+
+  it should "return Left when Keycloak returns 401 Unauthorized" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Unauthorized, "Unauthorized access")
+    val token          = connectionStub.requestAccessToken(dummyForm)
+    token.left.value should include("Invalid credentials")
+
+  it should "return Left when Keycloak returns 403 Forbidden" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Forbidden, "Forbidden access")
+    val token          = connectionStub.requestAccessToken(dummyForm)
+    token.left.value should include("Client not allowed")
+
+  it should "return Left for unexpected Keycloak status" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadGateway, "Bad Gateway")
+    val token          = connectionStub.requestAccessToken(dummyForm)
+    token.left.value should include("Unexpected Keycloak status")
+
+  "getClientAccessToken" should "return Right(access_token) when Keycloak returns valid token" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"access_token": "test_token"}""")
     val token          = connectionStub.getClientAccessToken()
     token shouldBe Right("test_token")
 
-  it should "return Left when a connection error occurs" in:
-    val connectionStub = stubbedConnectionWithError("Internal Server Error")
-    val token          = connectionStub.getClientAccessToken()
-    token.left.value should include("Keycloak error")
-
-  it should "return Left when Keycloak returns invalid JSON" in:
-    val connectionStub = stubbedConnectionWithResponse("")
+  it should "propagate errors from requestAccessToken" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, "")
     val token          = connectionStub.getClientAccessToken()
     token.left.value should include("Invalid JSON")
-
-  it should "return Left when access_token is missing in a valid JSON" in:
-    val connectionStub =
-      stubbedConnectionWithResponse(
-        """{"error": "invalid_client","error_description": "Client credentials are invalid"}"""
-      )
-    val token = connectionStub.getClientAccessToken()
-    token.left.value should include("Missing access_token")
 
   "createUser" should "return Right(keycloakId, userId) when Keycloak returns 201 with Location header" in:
     val connectionStub       = stubbedCreateUserConnectionWithResponse(successResponse)
@@ -87,11 +126,11 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     keycloakId shouldBe testKeycloakId
     noException shouldBe thrownBy(UUID.fromString(userId))
 
-  it should "return Left when getClientAccessToken fails" in:
-    val connectionStub = stubbedConnectionWithError("Internal Server Error")
+  it should "propagate errors from getClientAccessToken" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Forbidden, "Forbidden access")
     val result         = connectionStub.createUser(username, email, password)
     result.isLeft shouldBe true
-    result.left.value should include("Keycloak error")
+    result.left.value should include("Client not allowed")
 
   it should "return Left when Location header is missing" in:
     val responseWithoutLocation = Response(
@@ -156,8 +195,8 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     result.isLeft shouldBe true
     result.left.value should include("Failed to delete user")
 
-  it should "return Left when getClientAccessToken fails" in:
-    val connectionStub = stubbedConnectionWithError("Internal Server Error")
+  it should "propagate errors from getClientAccessToken" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Forbidden, "Forbidden access")
     val result         = connectionStub.deleteUser(testKeycloakId)
     result.isLeft shouldBe true
-    result.left.value should include("Keycloak error")
+    result.left.value should include("Client not allowed")
