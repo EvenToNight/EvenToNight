@@ -76,6 +76,7 @@ export const useAuthStore = defineStore('auth', () => {
       )
       return { success: true }
     } catch (error) {
+      console.log('Registration error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : t('auth.registerForm.failedRegistration'),
@@ -91,6 +92,7 @@ export const useAuthStore = defineStore('auth', () => {
       setAuthData(await api.users.login({ username, password }))
       return { success: true }
     } catch (error) {
+      console.log('Login error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : t('auth.loginForm.failedLogin'),

@@ -14,6 +14,7 @@ export interface LoginRequest {
 
 export type AccessToken = string
 
+//TODO: add refresh token expiry(?) and user
 export interface LoginResponse {
   token: AccessToken
 }
