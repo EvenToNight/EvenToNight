@@ -190,4 +190,8 @@ export class ReviewService {
   async deleteEvent(eventId: string): Promise<void> {
     await this.reviewModel.deleteMany({ eventId });
   }
+
+  async deleteUser(userId: string): Promise<void> {
+    await this.reviewModel.deleteMany({ userId });
+  }
 }

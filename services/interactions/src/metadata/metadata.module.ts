@@ -5,6 +5,7 @@ import { User, UserSchema } from './schemas/user.schema';
 import { MetadataService } from './services/metadata.service';
 import { MetadataController } from './controllers/metadata.controller';
 import { EventModule } from 'src/events/event.module';
+import { UserModule } from 'src/users/user.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { EventModule } from 'src/events/event.module';
       { name: User.name, schema: UserSchema },
     ]),
     forwardRef(() => EventModule),
+    forwardRef(() => UserModule),
   ],
   controllers: [MetadataController],
   providers: [MetadataService],

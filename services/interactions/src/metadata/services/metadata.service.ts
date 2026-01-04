@@ -6,6 +6,7 @@ import { User } from '../schemas/user.schema';
 import { LikeService } from '../../events/services/like.service';
 import { ReviewService } from '../../events/services/review.service';
 import { ParticipationService } from '../../events/services/participation.service';
+import { FollowService } from '../../users/services/follow.service';
 
 interface EventPublishedPayload {
   eventId: string;
@@ -26,6 +27,8 @@ export class MetadataService {
     private readonly reviewService: ReviewService,
     @Inject(forwardRef(() => ParticipationService))
     private readonly participationService: ParticipationService,
+    @Inject(forwardRef(() => FollowService))
+    private readonly followService: FollowService,
   ) {}
 
   async handleEventPublished(payload: unknown): Promise<void> {
@@ -95,6 +98,26 @@ export class MetadataService {
       this.likeService.deleteEvent(data.eventId),
       this.reviewService.deleteEvent(data.eventId),
       this.participationService.deleteEvent(data.eventId),
+    ]);
+  }
+
+  async handleUserDeleted(payload: unknown): Promise<void> {
+    console.log('Handling user deleted in MetadataService:', payload);
+
+    const wrapper = payload as { UserDeleted?: { userId: string } };
+    const data = wrapper.UserDeleted;
+    if (!data || !data.userId) {
+      this.logger.error('Invalid payload for UserDeleted event', payload);
+      return;
+    }
+
+    await this.userModel.deleteOne({ userId: data.userId });
+    this.logger.log(`User ${data.userId} deleted`);
+    await Promise.all([
+      this.likeService.deleteUser(data.userId),
+      this.reviewService.deleteUser(data.userId),
+      this.participationService.deleteUser(data.userId),
+      this.followService.deleteUser(data.userId),
     ]);
   }
 

@@ -74,4 +74,8 @@ export class LikeService {
   async deleteEvent(eventId: string): Promise<void> {
     await this.likeModel.deleteMany({ eventId });
   }
+
+  async deleteUser(userId: string): Promise<void> {
+    await this.likeModel.deleteMany({ userId });
+  }
 }

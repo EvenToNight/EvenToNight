@@ -13,5 +13,6 @@ import { EventModule } from 'src/events/event.module';
   ],
   controllers: [FollowController, UserActivityController],
   providers: [FollowService],
+  exports: [FollowService],
 })
 export class UserModule {}

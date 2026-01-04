@@ -91,4 +91,8 @@ export class ParticipationService {
   async deleteEvent(eventId: string): Promise<void> {
     await this.participationModel.deleteMany({ eventId });
   }
+
+  async deleteUser(userId: string): Promise<void> {
+    await this.participationModel.deleteMany({ userId });
+  }
 }

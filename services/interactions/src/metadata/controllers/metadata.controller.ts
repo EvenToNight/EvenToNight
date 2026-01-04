@@ -25,6 +25,8 @@ export class MetadataController {
       await this.metadataService.handleUserRegistered(payload);
     } else if (routingKey === 'event.deleted') {
       await this.metadataService.handleEventDeleted(payload);
+    } else if (routingKey === 'user.deleted') {
+      await this.metadataService.handleUserDeleted(payload);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
