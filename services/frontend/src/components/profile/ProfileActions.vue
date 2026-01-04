@@ -49,6 +49,7 @@ const handleOpenSupport = () => {
         variant="secondary"
         @click="handleEditProfile"
       />
+      <Button label="Chats" icon="chat" variant="secondary" @click="handleOpenSupport" />
       <Button
         v-if="isOrganization"
         :label="t('userProfile.createEvent')"
@@ -56,21 +57,20 @@ const handleOpenSupport = () => {
         variant="primary"
         @click="handleCreateEvent"
       />
-      <Button label="Chats" icon="chat" variant="secondary" @click="handleOpenSupport" />
       <Button icon="settings" variant="secondary" @click="handleOpenSettings" />
     </template>
     <template v-else>
-      <Button
-        :label="isFollowing ? t('userProfile.following') : t('userProfile.follow')"
-        :variant="isFollowing ? 'secondary' : 'primary'"
-        @click="handleFollowToggle"
-      />
       <Button
         v-if="isOrganization"
         label="Send a message"
         icon="send"
         variant="secondary"
         @click="handleOpenSupport"
+      />
+      <Button
+        :label="isFollowing ? t('userProfile.following') : t('userProfile.follow')"
+        :variant="isFollowing ? 'secondary' : 'primary'"
+        @click="handleFollowToggle"
       />
     </template>
   </div>

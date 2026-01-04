@@ -83,8 +83,8 @@ const defaultIcon = computed(() => {
 
 <template>
   <NavigationButtons>
-    <template #left-custom-content>
-      <div v-if="user && showNavbarCustomContent" class="navbar-user-info">
+    <template v-if="user && showNavbarCustomContent" #left-custom-content>
+      <div class="navbar-user-info">
         <q-avatar size="32px">
           <img v-if="user.avatarUrl" :src="user.avatarUrl" :alt="user.name" class="navbar-avatar" />
           <q-icon v-else :name="defaultIcon" size="24px" />
