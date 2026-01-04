@@ -70,4 +70,8 @@ export class LikeService {
     const like = await this.likeModel.findOne({ userId, eventId });
     return !!like;
   }
+
+  async deleteEvent(eventId: string): Promise<void> {
+    await this.likeModel.deleteMany({ eventId });
+  }
 }

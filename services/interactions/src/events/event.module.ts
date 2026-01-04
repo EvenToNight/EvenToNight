@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { Like, LikeSchema } from './schemas/like.schema';
 import { LikeService } from './services/like.service';
@@ -23,7 +23,7 @@ import { ParticipationConsumer } from './controllers/participant.consumer';
       { name: Review.name, schema: ReviewSchema },
       { name: Participation.name, schema: ParticipationSchema },
     ]),
-    MetadataModule,
+    forwardRef(() => MetadataModule),
   ],
   controllers: [
     LikeController,

@@ -1,4 +1,9 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Participation } from '../schemas/participation.schema';
@@ -10,6 +15,7 @@ export class ParticipationService {
   constructor(
     @InjectModel(Participation.name)
     private participationModel: Model<Participation>,
+    @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
   ) {}
 
@@ -80,5 +86,9 @@ export class ParticipationService {
       eventId,
     });
     return !!participation;
+  }
+
+  async deleteEvent(eventId: string): Promise<void> {
+    await this.participationModel.deleteMany({ eventId });
   }
 }

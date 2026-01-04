@@ -1,8 +1,11 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Event } from '../schemas/event.schema';
 import { User } from '../schemas/user.schema';
+import { LikeService } from '../../events/services/like.service';
+import { ReviewService } from '../../events/services/review.service';
+import { ParticipationService } from '../../events/services/participation.service';
 
 interface EventPublishedPayload {
   eventId: string;
@@ -17,6 +20,12 @@ export class MetadataService {
   constructor(
     @InjectModel(Event.name) private eventModel: Model<Event>,
     @InjectModel(User.name) private userModel: Model<User>,
+    @Inject(forwardRef(() => LikeService))
+    private readonly likeService: LikeService,
+    @Inject(forwardRef(() => ReviewService))
+    private readonly reviewService: ReviewService,
+    @Inject(forwardRef(() => ParticipationService))
+    private readonly participationService: ParticipationService,
   ) {}
 
   async handleEventPublished(payload: unknown): Promise<void> {
@@ -82,9 +91,11 @@ export class MetadataService {
     await this.eventModel.deleteOne({ eventId: data.eventId });
     this.logger.log(`Event ${data.eventId} deleted`);
 
-    // delete all reviews related to the deleted event
-    // delete all like related to the deleted event
-    // delete all participations related to the deleted event
+    await Promise.all([
+      this.likeService.deleteEvent(data.eventId),
+      this.reviewService.deleteEvent(data.eventId),
+      this.participationService.deleteEvent(data.eventId),
+    ]);
   }
 
   // TODO: Implement checks eventschema for real validation

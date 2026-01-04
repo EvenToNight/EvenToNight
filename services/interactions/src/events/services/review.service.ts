@@ -186,4 +186,8 @@ export class ReviewService {
     const review = await this.reviewModel.findOne({ userId, eventId });
     return !!review;
   }
+
+  async deleteEvent(eventId: string): Promise<void> {
+    await this.reviewModel.deleteMany({ eventId });
+  }
 }
