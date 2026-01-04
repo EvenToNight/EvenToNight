@@ -69,6 +69,24 @@ export class MetadataService {
     this.logger.log(`User ${data.userId} (${data.role}) stored`);
   }
 
+  async handleEventDeleted(payload: unknown): Promise<void> {
+    console.log('Handling event deleted in MetadataService:', payload);
+
+    const wrapper = payload as { EventDeleted?: { eventId: string } };
+    const data = wrapper.EventDeleted;
+    if (!data || !data.eventId) {
+      this.logger.error('Invalid payload for EventDeleted event', payload);
+      return;
+    }
+
+    await this.eventModel.deleteOne({ eventId: data.eventId });
+    this.logger.log(`Event ${data.eventId} deleted`);
+
+    // delete all reviews related to the deleted event
+    // delete all like related to the deleted event
+    // delete all participations related to the deleted event
+  }
+
   // TODO: Implement checks eventschema for real validation
   validateEvent(
     eventId: string,

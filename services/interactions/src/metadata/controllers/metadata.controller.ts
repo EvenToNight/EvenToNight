@@ -23,6 +23,8 @@ export class MetadataController {
       await this.metadataService.handleEventPublished(payload);
     } else if (routingKey === 'user.registered') {
       await this.metadataService.handleUserRegistered(payload);
+    } else if (routingKey === 'event.deleted') {
+      await this.metadataService.handleEventDeleted(payload);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
