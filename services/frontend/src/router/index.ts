@@ -129,6 +129,7 @@ const router = createRouter({
           path: 'support',
           name: SUPPORT_ROUTE_NAME,
           component: () => import('../views/SupportView.vue'),
+          beforeEnter: requireAuth,
         },
         {
           path: 'forbidden',
