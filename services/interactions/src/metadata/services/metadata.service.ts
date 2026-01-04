@@ -13,7 +13,6 @@ export class MetadataService {
   ) {}
 
   handleEventPublished(payload: unknown): Promise<void> {
-    // publish event handling logic here
     console.log('Handling event published in MetadataService:', payload);
     return Promise.resolve();
   }
@@ -21,11 +20,11 @@ export class MetadataService {
   // TODO: Implement checks eventschema for real validation
   validateEvent(
     eventId: string,
-    organizationId: string,
+    creatorId: string,
     collaboratorIds: string[] | undefined,
   ): void {
     void eventId;
-    void organizationId;
+    void creatorId;
     void collaboratorIds;
   }
 

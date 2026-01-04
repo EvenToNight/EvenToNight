@@ -10,8 +10,8 @@ describe('EventSchema', () => {
     expect(eventPath.options?.unique).toBe(true);
   });
 
-  it('defines organizationId as required and indexed', () => {
-    const orgPath = EventSchema.path('organizationId') as {
+  it('defines creatorId as required and indexed', () => {
+    const orgPath = EventSchema.path('creatorId') as {
       options?: { required?: boolean; index?: boolean };
     };
     expect(orgPath).toBeDefined();

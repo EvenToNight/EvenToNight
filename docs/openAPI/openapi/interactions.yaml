@@ -765,7 +765,7 @@ paths:
               properties:
                 userId:
                   type: string
-                organizationId:
+                creatorId:
                   type: string
                 collaboratorIds:
                   type: array
@@ -779,12 +779,12 @@ paths:
                   type: string
               required:
                 - userId
-                - organizationId
+                - creatorId
                 - rating
                 - title
             example:
               userId: user123
-              organizationId: org456
+              creatorId: org456
               collaboratorIds: [collab789]
               rating: 5
               title: "Amazing Event!"
@@ -1060,7 +1060,7 @@ paths:
           required: false
           schema:
             type: string
-            enum: [owner, collaborator, all]
+            enum: [creator, collaborator, all]
             default: all
         - name: offset
           in: query
@@ -1230,7 +1230,7 @@ components:
                 type: string
                 description: ID of the user who made the review
                 example: user123
-              organizationId:
+              creatorId:
                 type: string
                 description: ID of the organization being reviewed
                 example: org456

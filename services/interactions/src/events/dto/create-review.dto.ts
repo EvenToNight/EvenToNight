@@ -15,7 +15,7 @@ export class CreateReviewDto {
 
   @IsString()
   @IsNotEmpty()
-  organizationId: string;
+  creatorId: string;
 
   @IsArray()
   @IsString({ each: true })

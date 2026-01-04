@@ -26,7 +26,7 @@ export class ReviewService {
     this.metadataService.validateUser(createReviewDto.userId);
     this.metadataService.validateEvent(
       eventId,
-      createReviewDto.organizationId,
+      createReviewDto.creatorId,
       createReviewDto.collaboratorIds,
     );
 
@@ -84,12 +84,12 @@ export class ReviewService {
 
   async getOrganizationReviews(
     organizationId: string,
-    role: 'owner' | 'collaborator' | 'all' = 'all',
+    role: 'creator' | 'collaborator' | 'all' = 'all',
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Review>> {
     return this.getReviewsWithStats(
-      role === 'owner'
+      role === 'creator'
         ? { organizationId }
         : role === 'collaborator'
           ? { collaboratorIds: organizationId }
