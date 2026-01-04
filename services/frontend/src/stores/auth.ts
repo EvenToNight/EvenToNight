@@ -164,6 +164,25 @@ export const useAuthStore = defineStore('auth', () => {
     return isAuthenticated.value && user.value?.id === userId
   }
 
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    if (!user.value?.id) {
+      throw new Error('User not authenticated')
+    }
+
+    isLoading.value = true
+    try {
+      await api.users.changePassword(user.value.id, {
+        currentPassword,
+        newPassword,
+      })
+    } catch (error) {
+      console.log('Change password error:', error)
+      throw error instanceof Error ? error : new Error('Failed to change password')
+    } finally {
+      isLoading.value = false
+    }
+  }
+
   return {
     token,
     user,
@@ -178,5 +197,6 @@ export const useAuthStore = defineStore('auth', () => {
     setupAutoRefresh,
     clearAuth,
     isOwnProfile,
+    changePassword,
   }
 })

@@ -4,6 +4,7 @@ import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
 import MyReviewsTab from '@/components/settings/tabs/MyReviewsTab.vue'
 import LanguageTab from '@/components/settings/tabs/LanguageTab.vue'
+import ChangePasswordTab from '@/components/settings/tabs/ChangePasswordTab.vue'
 import type { Tab } from '@/components/navigation/TabView.vue'
 
 const activeTabId = ref('language')
@@ -22,6 +23,12 @@ const tabs = computed<Tab[]>(() => [
     label: 'Language',
     icon: 'language',
     component: LanguageTab,
+  },
+  {
+    id: 'change-password',
+    label: 'Change Password',
+    icon: 'lock',
+    component: ChangePasswordTab,
   },
   {
     id: 'reviews',

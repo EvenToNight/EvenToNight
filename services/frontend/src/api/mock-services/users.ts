@@ -5,6 +5,7 @@ import type {
   RefreshTokenResponse,
   LogoutResponse,
   RegistrationRequest,
+  ChangePasswordRequest,
 } from '../interfaces/users'
 import type { ApiError, PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import { mockOrganizations } from './data/organizations'
@@ -85,6 +86,19 @@ export const mockUsersApi: UsersAPI = {
       expiresIn: 900,
       user: getMockUser(currentLoggedInUsername),
     }
+  },
+
+  async changePassword(userId: UserID, _data: ChangePasswordRequest): Promise<void> {
+    const user = [...mockOrganizations, ...mockUsers].find((u) => u.id === userId)
+    if (!user) {
+      throw {
+        message: 'User not found',
+        status: 404,
+      } as ApiError
+    }
+
+    //TODO: evaluate save and validate current password
+    return
   },
 
   async searchUsers(params: {

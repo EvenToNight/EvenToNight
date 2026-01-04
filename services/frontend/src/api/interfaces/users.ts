@@ -12,6 +12,11 @@ export interface LoginRequest {
   password: string
 }
 
+export interface ChangePasswordRequest {
+  currentPassword: string
+  newPassword: string
+}
+
 export type AccessToken = string
 
 //TODO: add refresh token expiry(?) and user
@@ -35,6 +40,7 @@ export interface UsersAPI {
   login(credentials: LoginRequest): Promise<LoginResponse>
   logout(): Promise<LogoutResponse>
   refreshToken(): Promise<RefreshTokenResponse>
+  changePassword(userId: UserID, data: ChangePasswordRequest): Promise<void>
   searchUsers(params: {
     name?: string
     pagination?: PaginatedRequest

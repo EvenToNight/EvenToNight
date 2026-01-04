@@ -5,6 +5,7 @@ import type {
   RefreshTokenResponse,
   LogoutResponse,
   RegistrationRequest,
+  ChangePasswordRequest,
 } from '../interfaces/users'
 import type { User, UserID } from '../types/users'
 import type { ApiClient } from '../client'
@@ -31,6 +32,10 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
 
   async refreshToken(): Promise<RefreshTokenResponse> {
     return usersClient.post<RefreshTokenResponse>('/refresh', undefined, { credentials: true })
+  },
+
+  async changePassword(userId: UserID, data: ChangePasswordRequest): Promise<void> {
+    return usersClient.post<void>(`/${userId}/change-password`, data)
   },
 
   async searchUsers(params: {
