@@ -19,7 +19,7 @@ class RabbitEventPublisher(
     port: Int = 5672,
     username: String = "guest",
     password: String = "guest",
-    exchangeName: String = "events"
+    exchangeName: String = "eventonight"
 ) extends EventPublisher:
 
   private val factory = new ConnectionFactory()

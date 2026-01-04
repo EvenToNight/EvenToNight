@@ -6,7 +6,7 @@ import { MetadataModule } from './metadata/metadata.module';
 @Module({
   imports: [
     MongooseModule.forRoot(
-      `mongodb://${process.env.MONGO_HOST}:27017/interactions`,
+      `mongodb://${process.env.MONGO_HOST}:27017/eventonight`,
     ),
     InteractionsModule,
     MetadataModule,

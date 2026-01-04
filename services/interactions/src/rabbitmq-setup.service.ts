@@ -6,7 +6,7 @@ export class RabbitMqSetupService {
     const connection = await amqp.connect(rabbitmqUrl);
     const channel = await connection.createChannel();
 
-    const exchange = 'events';
+    const exchange = 'eventonight';
     const queue = 'interactions_queue';
     const routingKeys = ['event.published'];
 
