@@ -65,4 +65,9 @@ export class LikeService {
       offset ?? 0,
     );
   }
+
+  async hasUserLikedEvent(userId: string, eventId: string): Promise<boolean> {
+    const like = await this.likeModel.findOne({ userId, eventId });
+    return !!like;
+  }
 }

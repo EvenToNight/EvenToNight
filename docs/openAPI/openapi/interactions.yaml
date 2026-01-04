@@ -372,6 +372,44 @@ paths:
                     type: integer
       tags:
         - Users
+
+  /users/{userId}/likes/{eventId}:
+    get:
+      summary: Check if a user has liked an event
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: user123
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: event123
+      responses:
+        '200':
+          description: Like status retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  hasLiked:
+                    type: boolean
+                    description: Indicates if the user has liked the event
+              example:
+                hasLiked: true
+      tags:
+        - Users
+
   /users/{userId}/reviews:
     get:
       summary: Get reviews made by a user

@@ -21,6 +21,15 @@ export class UserActivityController {
     return this.likeService.getUserLikes(userId, limit, offset);
   }
 
+  @Get('likes/:eventId')
+  async hasUserLikedEvent(
+    @Param('userId') userId: string,
+    @Param('eventId') eventId: string,
+  ) {
+    const hasLiked = await this.likeService.hasUserLikedEvent(userId, eventId);
+    return { hasLiked };
+  }
+
   @Get('reviews')
   async getUserReviews(
     @Param('userId') userId: string,
