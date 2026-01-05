@@ -20,7 +20,7 @@ export class ParticipationService {
   ) {}
 
   async participate(eventId: string, userId: string): Promise<Participation> {
-    this.metadataService.checkEventCompleted(eventId);
+    await this.metadataService.validateParticipationAllowed(eventId, userId);
     const existing = await this.participationModel.findOne({ eventId, userId });
     if (existing) {
       throw new ConflictException('Already purchased ticket for this event');

@@ -133,6 +133,15 @@ export class MetadataService {
     await this.validateMember(userId);
   }
 
+  async validateParticipationAllowed(
+    eventId: string,
+    userId: string,
+  ): Promise<void> {
+    await this.validateEventExistence(eventId);
+    await this.validateUserExistence(userId);
+    await this.validateMember(userId);
+  }
+
   async validateEventExistence(eventId: string): Promise<void> {
     const event = await this.eventModel.findOne({ eventId });
     if (!event) {
@@ -156,9 +165,5 @@ export class MetadataService {
   // TODO: check if user is an organization
   async validateOrganization(userId: string): Promise<void> {
     void userId;
-  }
-
-  checkEventCompleted(eventId: string): void {
-    void eventId;
   }
 }
