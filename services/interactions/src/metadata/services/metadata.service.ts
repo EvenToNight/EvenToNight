@@ -129,36 +129,44 @@ export class MetadataService {
   }
 
   async validateLikeAllowed(eventId: string, userId: string): Promise<void> {
-    await this.validateEventExistence(eventId);
-    await this.validateUserExistence(userId);
+    await Promise.all([
+      this.validateEventExistence(eventId),
+      this.validateUserExistence(userId),
+    ]);
   }
 
   async validateParticipationAllowed(
     eventId: string,
     userId: string,
   ): Promise<void> {
-    await this.validateEventExistence(eventId);
-    await this.validateUserExistence(userId);
+    await Promise.all([
+      this.validateEventExistence(eventId),
+      this.validateUserExistence(userId),
+    ]);
   }
 
   async validateFollowAllowed(
     followerId: string,
     followeeId: string,
   ): Promise<void> {
-    await this.validateUserExistence(followerId);
-    await this.validateUserExistence(followeeId);
+    await Promise.all([
+      this.validateUserExistence(followerId),
+      this.validateUserExistence(followeeId),
+    ]);
   }
 
   async validateReviewAllowed(
     eventId: string,
     createReviewDto: CreateReviewDto,
   ): Promise<void> {
-    await this.validateEventExistence(eventId);
-    await this.validateUserExistence(createReviewDto.userId);
-    await this.validateCreator(eventId, createReviewDto.creatorId);
-    await this.validateCollaborators(eventId, createReviewDto.collaboratorIds);
-    /* MOCK VALIDATION - Uncomment for real validation */
-    // await this.hasParticipated(eventId, createReviewDto.userId);
+    await Promise.all([
+      this.validateEventExistence(eventId),
+      this.validateUserExistence(createReviewDto.userId),
+      this.validateCreator(eventId, createReviewDto.creatorId),
+      this.validateCollaborators(eventId, createReviewDto.collaboratorIds),
+      /* MOCK VALIDATION - Uncomment for real validation */
+      // this.hasParticipated(eventId, createReviewDto.userId);
+    ]);
   }
 
   private async validateEventExistence(eventId: string): Promise<void> {
@@ -169,12 +177,13 @@ export class MetadataService {
   }
 
   private async validateUserExistence(userId: string): Promise<void> {
-    userId;
     /* MOCK VALIDATION - Uncomment for real validation */
     // const user = await this.userModel.findOne({ userId });
     // if (!user) {
     //   throw new NotFoundException(`User with ID ${userId} not found`);
     // }
+    console.log(`Mock validation: assuming user with ID ${userId} exists`);
+    await Promise.resolve();
   }
 
   private async validateCreator(
