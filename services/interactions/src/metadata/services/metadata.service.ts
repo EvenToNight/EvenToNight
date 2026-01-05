@@ -1,4 +1,10 @@
-import { Injectable, Logger, Inject, forwardRef } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  Inject,
+  forwardRef,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Event } from '../schemas/event.schema';
@@ -121,19 +127,34 @@ export class MetadataService {
     ]);
   }
 
-  // TODO: Implement checks eventschema for real validation
-  validateEvent(
-    eventId: string,
-    creatorId: string,
-    collaboratorIds: string[] | undefined,
-  ): void {
-    void eventId;
-    void creatorId;
-    void collaboratorIds;
+  async validateLikeAllowed(eventId: string, userId: string): Promise<void> {
+    await this.validateEventExistence(eventId);
+    await this.validateUserExistence(userId);
+    await this.validateMember(userId);
   }
 
-  // TODO: Implement checks userschema for real validation
-  validateUser(userId: string): void {
+  async validateEventExistence(eventId: string): Promise<void> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+  }
+
+  async validateUserExistence(userId: string): Promise<void> {
+    const user = await this.userModel.findOne({ userId });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+  }
+
+  // TODO: check if user is a member
+  // For now, in interactions service, there isn't difference between members and organizations
+  async validateMember(userId: string): Promise<void> {
+    void userId;
+  }
+
+  // TODO: check if user is an organization
+  async validateOrganization(userId: string): Promise<void> {
     void userId;
   }
 

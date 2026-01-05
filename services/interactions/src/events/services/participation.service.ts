@@ -20,7 +20,6 @@ export class ParticipationService {
   ) {}
 
   async participate(eventId: string, userId: string): Promise<Participation> {
-    this.metadataService.validateUser(userId);
     this.metadataService.checkEventCompleted(eventId);
     const existing = await this.participationModel.findOne({ eventId, userId });
     if (existing) {

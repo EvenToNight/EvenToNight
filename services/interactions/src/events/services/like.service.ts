@@ -2,17 +2,26 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  forwardRef,
+  Inject,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Like } from '../schemas/like.schema';
 import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
+import { MetadataService } from 'src/metadata/services/metadata.service';
 
 @Injectable()
 export class LikeService {
-  constructor(@InjectModel(Like.name) private likeModel: Model<Like>) {}
+  constructor(
+    @InjectModel(Like.name) private likeModel: Model<Like>,
+    @Inject(forwardRef(() => MetadataService))
+    private readonly metadataService: MetadataService,
+  ) {}
 
   async likeEvent(eventId: string, userId: string): Promise<Like> {
+    await this.metadataService.validateLikeAllowed(eventId, userId);
+
     const existing = await this.likeModel.findOne({ eventId, userId });
     if (existing) {
       throw new ConflictException('Already liked this event');

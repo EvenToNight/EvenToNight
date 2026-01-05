@@ -2,6 +2,8 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -16,6 +18,7 @@ import { ReviewStatsDto } from '../dto/review-stats.dto';
 export class ReviewService {
   constructor(
     @InjectModel(Review.name) private reviewModel: Model<Review>,
+    @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
   ) {}
 
@@ -23,13 +26,6 @@ export class ReviewService {
     eventId: string,
     createReviewDto: CreateReviewDto,
   ): Promise<Review> {
-    this.metadataService.validateUser(createReviewDto.userId);
-    this.metadataService.validateEvent(
-      eventId,
-      createReviewDto.creatorId,
-      createReviewDto.collaboratorIds,
-    );
-
     const existing = await this.reviewModel.findOne({
       eventId,
       userId: createReviewDto.userId,
