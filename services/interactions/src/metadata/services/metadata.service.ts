@@ -131,7 +131,6 @@ export class MetadataService {
   async validateLikeAllowed(eventId: string, userId: string): Promise<void> {
     await this.validateEventExistence(eventId);
     await this.validateUserExistence(userId);
-    await this.validateMember(userId);
   }
 
   async validateParticipationAllowed(
@@ -140,7 +139,6 @@ export class MetadataService {
   ): Promise<void> {
     await this.validateEventExistence(eventId);
     await this.validateUserExistence(userId);
-    await this.validateMember(userId);
   }
 
   async validateFollowAllowed(
@@ -157,11 +155,6 @@ export class MetadataService {
   ): Promise<void> {
     await this.validateEventExistence(eventId);
     await this.validateUserExistence(createReviewDto.userId);
-    await this.validateMember(createReviewDto.userId);
-    await this.validateOrganization(createReviewDto.creatorId);
-    createReviewDto.collaboratorIds?.forEach(async (collabId) => {
-      await this.validateOrganization(collabId);
-    });
     await this.validateCreator(eventId, createReviewDto.creatorId);
     await this.validateCollaborators(eventId, createReviewDto.collaboratorIds);
     await this.hasParticipated(eventId, createReviewDto.userId);
@@ -179,17 +172,6 @@ export class MetadataService {
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
-  }
-
-  // TODO: check if user is a member
-  // For now, in interactions service, there isn't difference between members and organizations
-  private async validateMember(userId: string): Promise<void> {
-    void userId;
-  }
-
-  // TODO: check if user is an organization
-  private async validateOrganization(userId: string): Promise<void> {
-    void userId;
   }
 
   private async validateCreator(
