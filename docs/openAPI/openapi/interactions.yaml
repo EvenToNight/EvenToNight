@@ -136,6 +136,16 @@ paths:
                     statusCode: 409
                     message: Cannot follow yourself
                     error: Conflict
+        '404':
+          description: Not Found - User does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: User not found
+                error: Not Found
       tags:
          - Users
     get:
@@ -644,6 +654,16 @@ paths:
                 statusCode: 409
                 message: User has already liked this event
                 error: Conflict
+        '404':
+          description: Not Found - Event or User does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Event or User not found
+                error: Not Found
       tags:
          - Events
     get:
@@ -819,6 +839,16 @@ paths:
                 statusCode: 409
                 message: User has already reviewed this event
                 error: Conflict
+        '404':
+          description: Not Found - Event or User does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Event or User not found
+                error: Not Found
       tags:
          - Events
     get:
