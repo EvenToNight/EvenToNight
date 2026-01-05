@@ -13,6 +13,7 @@ import { LikeService } from '../../events/services/like.service';
 import { ReviewService } from '../../events/services/review.service';
 import { ParticipationService } from '../../events/services/participation.service';
 import { FollowService } from '../../users/services/follow.service';
+import { CreateReviewDto } from 'src/events/dto/create-review.dto';
 
 interface EventPublishedPayload {
   eventId: string;
@@ -150,6 +151,22 @@ export class MetadataService {
     await this.validateUserExistence(followeeId);
   }
 
+  async validateReviewAllowed(
+    eventId: string,
+    createReviewDto: CreateReviewDto,
+  ): Promise<void> {
+    await this.validateEventExistence(eventId);
+    await this.validateUserExistence(createReviewDto.userId);
+    await this.validateMember(createReviewDto.userId);
+    await this.validateOrganization(createReviewDto.creatorId);
+    createReviewDto.collaboratorIds?.forEach(async (collabId) => {
+      await this.validateOrganization(collabId);
+    });
+    await this.validateCreator(eventId, createReviewDto.creatorId);
+    await this.validateCollaborators(eventId, createReviewDto.collaboratorIds);
+    await this.hasParticipated(eventId, createReviewDto.userId);
+  }
+
   private async validateEventExistence(eventId: string): Promise<void> {
     const event = await this.eventModel.findOne({ eventId });
     if (!event) {
@@ -173,5 +190,51 @@ export class MetadataService {
   // TODO: check if user is an organization
   private async validateOrganization(userId: string): Promise<void> {
     void userId;
+  }
+
+  private async validateCreator(
+    eventId: string,
+    creatorId: string,
+  ): Promise<void> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (event?.creatorId !== creatorId) {
+      throw new NotFoundException(
+        `Creator with ID ${creatorId} is not associated with event ${eventId}`,
+      );
+    }
+  }
+
+  private async validateCollaborators(
+    eventId: string,
+    collaboratorIds?: string[],
+  ): Promise<void> {
+    if (!collaboratorIds || collaboratorIds.length === 0) {
+      return;
+    }
+
+    const event = await this.eventModel.findOne({ eventId });
+    const eventCollaborators = event?.collaboratorIds || [];
+    for (const collabId of collaboratorIds) {
+      if (!eventCollaborators.includes(collabId)) {
+        throw new NotFoundException(
+          `Collaborator with ID ${collabId} is not associated with event ${eventId}`,
+        );
+      }
+    }
+  }
+
+  private async hasParticipated(
+    eventId: string,
+    userId: string,
+  ): Promise<void> {
+    const hasTicket = await this.participationService.hasUserParticipated(
+      eventId,
+      userId,
+    );
+    if (!hasTicket) {
+      throw new NotFoundException(
+        `User with ID ${userId} has not participated in event ${eventId}`,
+      );
+    }
   }
 }

@@ -26,6 +26,7 @@ export class ReviewService {
     eventId: string,
     createReviewDto: CreateReviewDto,
   ): Promise<Review> {
+    await this.metadataService.validateReviewAllowed(eventId, createReviewDto);
     const existing = await this.reviewModel.findOne({
       eventId,
       userId: createReviewDto.userId,

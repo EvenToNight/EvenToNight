@@ -71,14 +71,6 @@ export class ParticipationService {
     return new PaginatedResponseDto(items, total, limit || total, offset || 0);
   }
 
-  async hasTicket(eventId: string, userId: string): Promise<boolean> {
-    const participation = await this.participationModel.findOne({
-      eventId,
-      userId,
-    });
-    return !!participation;
-  }
-
   async hasUserParticipated(userId: string, eventId: string): Promise<boolean> {
     const participation = await this.participationModel.findOne({
       userId,
