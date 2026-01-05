@@ -221,11 +221,11 @@ export class MetadataService {
     eventId: string,
     userId: string,
   ): Promise<void> {
-    const hasTicket = await this.participationService.hasUserParticipated(
-      eventId,
+    const hasParticipated = await this.participationService.hasUserParticipated(
       userId,
+      eventId,
     );
-    if (!hasTicket) {
+    if (!hasParticipated) {
       throw new NotFoundException(
         `User with ID ${userId} has not participated in event ${eventId}`,
       );

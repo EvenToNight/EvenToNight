@@ -87,11 +87,14 @@ export class ReviewService {
   ): Promise<PaginatedResponseDto<Review>> {
     return this.getReviewsWithStats(
       role === 'creator'
-        ? { organizationId }
+        ? { creatorId: organizationId }
         : role === 'collaborator'
           ? { collaboratorIds: organizationId }
           : {
-              $or: [{ organizationId }, { collaboratorIds: organizationId }],
+              $or: [
+                { creatorId: organizationId },
+                { collaboratorIds: organizationId },
+              ],
             },
       limit,
       offset,

@@ -588,11 +588,11 @@ paths:
               schema:
                 type: object
                 properties:
-                  isParticipating:
+                  hasParticipated:
                     type: boolean
-                    description: Indicates if the user is participating in the event
+                    description: Indicates if the user has participated in the event
               example:
-                isParticipating: true
+                hasParticipated: true
       tags:
         - Users
 
