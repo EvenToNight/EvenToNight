@@ -13,6 +13,7 @@ export class RabbitMqSetupService {
       'user.registered',
       'event.deleted',
       'user.deleted',
+      'participation.created',
     ];
 
     await channel.assertExchange(exchange, 'topic', {
