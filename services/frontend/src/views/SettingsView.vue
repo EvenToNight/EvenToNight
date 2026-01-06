@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
 import MyReviewsTab from '@/components/settings/tabs/MyReviewsTab.vue'
+import MyLikesTab from '@/components/settings/tabs/MyLikesTab.vue'
 import LanguageTab from '@/components/settings/tabs/LanguageTab.vue'
 import ChangePasswordTab from '@/components/settings/tabs/ChangePasswordTab.vue'
 import type { Tab } from '@/components/navigation/TabView.vue'
@@ -35,6 +36,12 @@ const tabs = computed<Tab[]>(() => [
     label: 'My Reviews',
     icon: 'rate_review',
     component: MyReviewsTab,
+  },
+  {
+    id: 'likes',
+    label: 'My Likes',
+    icon: 'favorite',
+    component: MyLikesTab,
   },
 ])
 </script>
