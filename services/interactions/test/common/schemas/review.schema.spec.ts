@@ -1,14 +1,14 @@
 import { ReviewSchema } from '../../../src/events/schemas/review.schema';
 
 describe('ReviewSchema', () => {
-  it('defines eventId, userId and organizationId as required and indexed', () => {
+  it('defines eventId, userId and creatorId as required and indexed', () => {
     const eventPath = ReviewSchema.path('eventId') as {
       options?: { required?: boolean; index?: boolean };
     };
     const userPath = ReviewSchema.path('userId') as {
       options?: { required?: boolean; index?: boolean };
     };
-    const orgPath = ReviewSchema.path('organizationId') as {
+    const orgPath = ReviewSchema.path('creatorId') as {
       options?: { required?: boolean; index?: boolean };
     };
 
@@ -16,13 +16,13 @@ describe('ReviewSchema', () => {
     expect(userPath).toBeDefined();
     expect(orgPath).toBeDefined();
 
-    expect(eventPath.options.required).toBe(true);
-    expect(userPath.options.required).toBe(true);
-    expect(orgPath.options.required).toBe(true);
+    expect(eventPath.options!.required).toBe(true);
+    expect(userPath.options!.required).toBe(true);
+    expect(orgPath.options!.required).toBe(true);
 
-    expect(eventPath.options.index).toBe(true);
-    expect(userPath.options.index).toBe(true);
-    expect(orgPath.options.index).toBe(true);
+    expect(eventPath.options!.index).toBe(true);
+    expect(userPath.options!.index).toBe(true);
+    expect(orgPath.options!.index).toBe(true);
   });
 
   it('defines collaboratorIds as array of strings and indexed', () => {

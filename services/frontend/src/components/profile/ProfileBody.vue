@@ -37,32 +37,22 @@ const handleTabChange = (tabId: string) => {
 
 onMounted(async () => {
   try {
-    if (isOrganization.value) {
-      const [publishedResponse, draftResponse] = await Promise.all([
-        api.events.searchEvents({
-          id_organization: props.user.id,
-          status: 'PUBLISHED',
-          pagination: { limit: EVENTS_PER_PAGE },
-        }),
-        api.events.searchEvents({
-          id_organization: props.user.id,
-          status: 'DRAFT',
-          pagination: { limit: EVENTS_PER_PAGE },
-        }),
-      ])
-      organizationEvents.value = publishedResponse.items
-      organizationDraftedEvents.value = draftResponse.items
-      hasMorePublished.value = publishedResponse.hasMore
-      hasMoreDraft.value = draftResponse.hasMore
-    } else {
-      const publishedResponse = await api.events.searchEvents({
-        id_organization: props.user.id,
+    const [publishedResponse, draftResponse] = await Promise.all([
+      api.events.searchEvents({
+        organizationId: props.user.id,
         status: 'PUBLISHED',
         pagination: { limit: EVENTS_PER_PAGE },
-      })
-      organizationEvents.value = publishedResponse.items
-      hasMorePublished.value = publishedResponse.hasMore
-    }
+      }),
+      api.events.searchEvents({
+        organizationId: props.user.id,
+        status: 'DRAFT',
+        pagination: { limit: EVENTS_PER_PAGE },
+      }),
+    ])
+    organizationEvents.value = publishedResponse.items
+    organizationDraftedEvents.value = draftResponse.items
+    hasMorePublished.value = publishedResponse.hasMore
+    hasMoreDraft.value = draftResponse.hasMore
   } catch (error) {
     console.error('Failed to fetch data for user:', error)
   }
@@ -76,7 +66,7 @@ const createLoadMoreFunction = (
   return async () => {
     try {
       const response = await api.events.searchEvents({
-        id_organization: props.user.id,
+        organizationId: props.user.id,
         status,
         pagination: {
           limit: EVENTS_PER_PAGE,

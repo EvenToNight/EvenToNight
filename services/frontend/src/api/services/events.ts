@@ -58,7 +58,7 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async searchEvents(params: {
     title?: string
     pagination?: PaginatedRequest
-    id_organization?: UserID
+    organizationId?: UserID
     status?: EventStatus
   }): Promise<PaginatedResponse<Event>> {
     const { pagination = { ...evaluatePagination(params.pagination) }, ...rest } = params

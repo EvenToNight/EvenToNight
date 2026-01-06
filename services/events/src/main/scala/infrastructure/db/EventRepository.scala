@@ -25,7 +25,7 @@ trait EventRepository:
       tags: Option[List[String]] = None,
       startDate: Option[String] = None,
       endDate: Option[String] = None,
-      id_organization: Option[String] = None,
+      organizationId: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None,
       priceRange: Option[(Double, Double)] = None,
@@ -114,7 +114,7 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       tags: Option[List[String]] = None,
       startDate: Option[String] = None,
       endDate: Option[String] = None,
-      id_organization: Option[String] = None,
+      organizationId: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None,
       priceRange: Option[(Double, Double)] = None,
@@ -124,7 +124,7 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
     Try {
 
       val combinedFilter =
-        buildFilterQuery(status, title, tags, startDate, endDate, id_organization, city, location_name, priceRange)
+        buildFilterQuery(status, title, tags, startDate, endDate, organizationId, city, location_name, priceRange)
 
       val sortField     = sortBy.getOrElse("date")
       val sortDirection = if sortOrder.contains("desc") then -1 else 1
@@ -156,7 +156,7 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       tags: Option[List[String]],
       startDate: Option[String],
       endDate: Option[String],
-      id_organization: Option[String],
+      organizationId: Option[String],
       city: Option[String],
       location_name: Option[String],
       priceRange: Option[(Double, Double)]
@@ -165,7 +165,7 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
 
     status.foreach(s => filters += Filters.eq("status", s.toString))
     title.foreach(t => filters += Filters.regex("title", escapeRegex(t), "i"))
-    id_organization.foreach { org =>
+    organizationId.foreach { org =>
       filters += Filters.or(
         Filters.eq("creatorId", org),
         Filters.eq("collaboratorIds", org)

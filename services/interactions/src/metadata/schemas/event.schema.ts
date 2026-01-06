@@ -7,7 +7,7 @@ export class Event extends Document {
   eventId: string;
 
   @Prop({ required: true, index: true })
-  organizationId: string;
+  creatorId: string;
 
   @Prop({ type: [String], default: [] })
   collaboratorIds: string[];

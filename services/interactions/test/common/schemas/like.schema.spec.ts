@@ -12,11 +12,11 @@ describe('LikeSchema', () => {
     expect(eventPath).toBeDefined();
     expect(userPath).toBeDefined();
 
-    expect(eventPath.options.required).toBe(true);
-    expect(userPath.options.required).toBe(true);
+    expect(eventPath.options!.required).toBe(true);
+    expect(userPath.options!.required).toBe(true);
 
-    expect(eventPath.options.index).toBe(true);
-    expect(userPath.options.index).toBe(true);
+    expect(eventPath.options!.index).toBe(true);
+    expect(userPath.options!.index).toBe(true);
   });
 
   it('defines a unique compound index on eventId and userId', () => {

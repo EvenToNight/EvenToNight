@@ -1,16 +1,37 @@
 import { Controller } from '@nestjs/common';
-import { EventPattern, Payload } from '@nestjs/microservices';
+import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MetadataService } from '../services/metadata.service';
+import { RmqContext, Ctx } from '@nestjs/microservices';
 
-// controller to handle rabbit communication for metadata updates
 @Controller()
 export class MetadataController {
   constructor(private readonly metadataService: MetadataService) {}
 
-  // Test connection to RabbitMQ
-  @EventPattern('test.ping')
-  handleTestPing(@Payload() data: unknown) {
-    console.log('🎉 TEST MESSAGE RECEIVED:', data);
-    return { status: 'ok', receivedAt: new Date(), data };
+  @MessagePattern()
+  async handleEvent(@Payload() payload: unknown, @Ctx() context: RmqContext) {
+    const msg: unknown = context.getMessage();
+
+    let routingKey: string | undefined;
+    if (typeof msg === 'object' && msg !== null && 'fields' in msg) {
+      const m = msg as { fields?: { routingKey?: string } };
+      routingKey = m.fields?.routingKey;
+    }
+
+    console.log('📥 Message received:', routingKey);
+
+    if (routingKey === 'event.published') {
+      await this.metadataService.handleEventPublished(payload);
+    } else if (routingKey === 'user.registered') {
+      await this.metadataService.handleUserRegistered(payload);
+    } else if (routingKey === 'event.deleted') {
+      await this.metadataService.handleEventDeleted(payload);
+    } else if (routingKey === 'user.deleted') {
+      await this.metadataService.handleUserDeleted(payload);
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const channel = context.getChannelRef();
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
+    channel.ack(msg as any);
   }
 }

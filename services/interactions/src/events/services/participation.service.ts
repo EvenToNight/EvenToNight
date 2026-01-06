@@ -1,4 +1,9 @@
-import { Injectable, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  ConflictException,
+  Inject,
+  forwardRef,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Participation } from '../schemas/participation.schema';
@@ -10,12 +15,12 @@ export class ParticipationService {
   constructor(
     @InjectModel(Participation.name)
     private participationModel: Model<Participation>,
+    @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
   ) {}
 
   async participate(eventId: string, userId: string): Promise<Participation> {
-    this.metadataService.validateUser(userId);
-    this.metadataService.checkEventCompleted(eventId);
+    await this.metadataService.validateParticipationAllowed(eventId, userId);
     const existing = await this.participationModel.findOne({ eventId, userId });
     if (existing) {
       throw new ConflictException('Already purchased ticket for this event');
@@ -66,11 +71,19 @@ export class ParticipationService {
     return new PaginatedResponseDto(items, total, limit || total, offset || 0);
   }
 
-  async hasTicket(eventId: string, userId: string): Promise<boolean> {
+  async hasUserParticipated(userId: string, eventId: string): Promise<boolean> {
     const participation = await this.participationModel.findOne({
-      eventId,
       userId,
+      eventId,
     });
     return !!participation;
+  }
+
+  async deleteEvent(eventId: string): Promise<void> {
+    await this.participationModel.deleteMany({ eventId });
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await this.participationModel.deleteMany({ userId });
   }
 }

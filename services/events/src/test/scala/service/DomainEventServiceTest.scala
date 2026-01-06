@@ -28,7 +28,7 @@ class FailingEventRepository extends EventRepository:
       tags: Option[List[String]],
       startDate: Option[String],
       endDate: Option[String],
-      id_organization: Option[String],
+      organizationId: Option[String],
       city: Option[String],
       location_name: Option[String],
       priceRange: Option[(Double, Double)],

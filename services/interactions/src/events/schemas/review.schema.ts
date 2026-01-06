@@ -10,7 +10,7 @@ export class Review extends Document {
   userId: string;
 
   @Prop({ required: true, index: true })
-  organizationId: string;
+  creatorId: string;
 
   @Prop({ type: [String], index: true })
   collaboratorIds?: string[];

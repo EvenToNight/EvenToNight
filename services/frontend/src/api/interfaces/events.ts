@@ -26,7 +26,7 @@ export interface EventsQueryParams {
   tags?: Tag[]
   startDate?: string
   endDate?: string
-  id_organization?: UserID
+  organizationId?: UserID
   city?: string
   location_name?: string
   priceMin?: number
