@@ -26,7 +26,26 @@ const genderOptions = [
 ]
 
 const maxTags = 5
-const canSelectMoreTags = computed(() => selectedTags.value.length < maxTags)
+
+// Flatten tags with category labels for the select
+const tagOptions = computed(() => {
+  return availableTags.value.flatMap((category) =>
+    category.tags.map((tag) => ({
+      label: `${tag} (${category.category})`,
+      value: tag,
+      category: category.category,
+    }))
+  )
+})
+
+const filterTags = (val: string, update: (fn: () => void) => void) => {
+  update(() => {
+    if (val === '') {
+      return
+    }
+    // Filter is handled by q-select
+  })
+}
 
 onMounted(async () => {
   try {
@@ -56,21 +75,6 @@ const handleThemeToggle = (value: boolean) => {
   $q.dark.set(value)
   isDarkMode.value = value
   localStorage.setItem('theme', value ? 'dark' : 'light')
-}
-
-const handleTagToggle = (tag: Tag) => {
-  const index = selectedTags.value.indexOf(tag)
-  if (index > -1) {
-    // Remove tag
-    selectedTags.value.splice(index, 1)
-  } else if (canSelectMoreTags.value) {
-    // Add tag if we haven't reached the limit
-    selectedTags.value.push(tag)
-  }
-}
-
-const isTagSelected = (tag: Tag) => {
-  return selectedTags.value.includes(tag)
 }
 
 const handleSave = async () => {
@@ -202,27 +206,31 @@ const handleDeleteProfile = () => {
             Select up to {{ maxTags }} tags that match your interests
           </p>
 
-          <div class="tags-container">
-            <div v-for="category in availableTags" :key="category.category" class="tag-category">
-              <h4 class="category-title">{{ category.category }}</h4>
-              <div class="tags-list">
-                <q-chip
-                  v-for="tag in category.tags"
-                  :key="tag"
-                  :selected="isTagSelected(tag)"
-                  clickable
-                  :color="isTagSelected(tag) ? 'primary' : 'grey-4'"
-                  :text-color="isTagSelected(tag) ? 'white' : 'dark'"
-                  :disable="!isTagSelected(tag) && !canSelectMoreTags"
-                  @click="handleTagToggle(tag)"
-                >
-                  {{ tag }}
-                </q-chip>
-              </div>
-            </div>
+          <div class="form-field">
+            <q-select
+              v-model="selectedTags"
+              :options="tagOptions"
+              multiple
+              outlined
+              dense
+              use-chips
+              use-input
+              input-debounce="0"
+              :max-values="maxTags"
+              option-value="value"
+              option-label="label"
+              emit-value
+              map-options
+              :hint="`${selectedTags.length} / ${maxTags} tags selected`"
+              @filter="filterTags"
+            >
+              <template #no-option>
+                <q-item>
+                  <q-item-section class="text-grey"> No results </q-item-section>
+                </q-item>
+              </template>
+            </q-select>
           </div>
-
-          <div class="selected-count">{{ selectedTags.length }} / {{ maxTags }} tags selected</div>
         </section>
 
         <!-- Notifications Section -->
@@ -357,48 +365,6 @@ const handleDeleteProfile = () => {
 
 .toggle-icon {
   color: $color-gray-600;
-
-  @include dark-mode {
-    color: $color-gray-400;
-  }
-}
-
-.tags-container {
-  margin-top: $spacing-4;
-}
-
-.tag-category {
-  margin-bottom: $spacing-6;
-
-  &:last-child {
-    margin-bottom: 0;
-  }
-}
-
-.category-title {
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  color: $color-gray-700;
-  margin: 0 0 $spacing-3 0;
-  text-transform: capitalize;
-
-  @include dark-mode {
-    color: $color-gray-300;
-  }
-}
-
-.tags-list {
-  display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-2;
-}
-
-.selected-count {
-  margin-top: $spacing-4;
-  font-size: $font-size-sm;
-  color: $color-gray-600;
-  text-align: center;
-  font-weight: $font-weight-medium;
 
   @include dark-mode {
     color: $color-gray-400;
