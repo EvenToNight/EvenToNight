@@ -5,14 +5,17 @@ export default {
   price: 'Preis',
   download: 'Herunterladen',
   profile: 'Profil',
+
   users: {
     organizations: 'Organisationen',
     members: 'Benutzer',
   },
+
   brand: {
     appName: 'EvenToNight', //[ignorei18n]
     logo: 'Logo',
   },
+
   auth: {
     login: 'Melden Sie sich an',
     register: 'Anmelden',
@@ -43,6 +46,7 @@ export default {
       switchToLogin: 'Sie haben bereits ein Konto? Login',
     },
   },
+
   cards: {
     slider: {
       seeAll: 'Alle anzeigen',
@@ -59,9 +63,11 @@ export default {
       ticket: 'Ticket',
     },
   },
+
   event: {
     draft: 'Entwurf',
   },
+
   eventDetails: {
     buyTickets: 'Kaufen Sie Tickets',
     about: 'Über diese Veranstaltung',
@@ -70,6 +76,7 @@ export default {
     editEvent: 'Bearbeiten',
     freePrice: 'Frei',
   },
+
   footer: {
     about: 'Um',
     events: 'Veranstaltungen',
@@ -77,11 +84,13 @@ export default {
     privacy: 'Datenschutzrichtlinie',
     copyright: 'Alle Rechte vorbehalten.',
   },
+
   search: {
     baseHint: 'Suchen...',
     searchingText: 'Suche...',
     noResultsText: 'Keine Ergebnisse gefunden',
   },
+
   userProfile: {
     editProfile: 'Profil bearbeiten',
     createEvent: 'Ereignis erstellen',
@@ -112,6 +121,7 @@ export default {
     submit: 'Einreichen',
     noEventFound: 'Keine Veranstaltung gefunden',
   },
+
   eventCreationForm: {
     createNewEvent: 'Neues Ereignis erstellen',
     editEvent: 'Ereignis bearbeiten',
@@ -152,10 +162,12 @@ export default {
     errorForEventDeletion: 'Ereignis konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
     errorForEventLoad: 'Ereignis konnte nicht geladen werden. Bitte versuchen Sie es erneut.',
   },
+
   theme: {
     light_mode: 'Lichtmodus',
     dark_mode: 'Dunkler Modus',
   },
+
   home: {
     hero: {
       title: 'Finden Sie die Veranstaltung für Sie',
@@ -184,6 +196,7 @@ export default {
       emptySearchText: 'Suchen Sie Benutzer nach Namen',
     },
   },
+
   filters: {
     filters: 'Filter',
     cancel: 'Stornieren',

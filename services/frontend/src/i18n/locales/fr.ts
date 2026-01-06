@@ -5,14 +5,17 @@ export default {
   price: 'Prix',
   download: 'Télécharger',
   profile: 'Profil',
+
   users: {
     organizations: 'Organisations',
     members: 'Utilisateurs',
   },
+
   brand: {
     appName: 'EvenToNight', //[ignorei18n]
     logo: 'Logo',
   },
+
   auth: {
     login: "S'inscrire",
     register: 'Se connecter',
@@ -43,6 +46,7 @@ export default {
       switchToLogin: 'Vous avez déjà un compte ? Se connecter',
     },
   },
+
   cards: {
     slider: {
       seeAll: 'Tout afficher',
@@ -59,9 +63,11 @@ export default {
       ticket: 'Billet',
     },
   },
+
   event: {
     draft: 'Brouillon',
   },
+
   eventDetails: {
     buyTickets: 'Acheter des billets',
     about: 'À propos de cet événement',
@@ -70,6 +76,7 @@ export default {
     editEvent: 'Modifier',
     freePrice: 'Gratuit',
   },
+
   footer: {
     about: 'À propos',
     events: 'Événements',
@@ -77,11 +84,13 @@ export default {
     privacy: 'politique de confidentialité',
     copyright: 'Tous droits réservés.',
   },
+
   search: {
     baseHint: 'Recherche...',
     searchingText: 'Recherche...',
     noResultsText: 'Aucun résultat trouvé',
   },
+
   userProfile: {
     editProfile: 'Modifier le profil',
     createEvent: 'Créer un événement',
@@ -112,6 +121,7 @@ export default {
     submit: 'Soumettre',
     noEventFound: 'Aucun événement trouvé',
   },
+
   eventCreationForm: {
     createNewEvent: 'Créer un nouvel événement',
     editEvent: "Modifier l'événement",
@@ -150,10 +160,12 @@ export default {
     errorForEventDeletion: "Échec de la suppression de l'événement. Veuillez réessayer.",
     errorForEventLoad: "Échec du chargement de l'événement. Veuillez réessayer.",
   },
+
   theme: {
     light_mode: 'Mode lumière',
     dark_mode: 'Mode sombre',
   },
+
   home: {
     hero: {
       title: "Trouvez l'événement pour vous",
@@ -181,6 +193,7 @@ export default {
       emptySearchText: 'Rechercher des utilisateurs par nom',
     },
   },
+
   filters: {
     filters: 'Filtres',
     cancel: 'Annuler',

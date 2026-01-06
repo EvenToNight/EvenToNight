@@ -5,14 +5,17 @@ export default {
   price: 'Prezzo',
   download: 'Scaricamento',
   profile: 'Profilo',
+
   users: {
     organizations: 'Organizzazioni',
     members: 'Utenti',
   },
+
   brand: {
     appName: 'EvenToNight', //[ignorei18n]
     logo: 'Logo',
   },
+
   auth: {
     login: 'Iscrizione',
     register: 'Registrazione',
@@ -43,6 +46,7 @@ export default {
       switchToLogin: 'Hai già un account? Login',
     },
   },
+
   cards: {
     slider: {
       seeAll: 'Vedi tutto',
@@ -59,9 +63,11 @@ export default {
       ticket: 'Biglietto',
     },
   },
+
   event: {
     draft: 'Bozza',
   },
+
   eventDetails: {
     buyTickets: 'Acquista i biglietti',
     about: 'A proposito di questo evento',
@@ -70,6 +76,7 @@ export default {
     editEvent: 'Modificare',
     freePrice: 'Gratuito',
   },
+
   footer: {
     about: 'Di',
     events: 'Eventi',
@@ -77,11 +84,13 @@ export default {
     privacy: 'politica sulla riservatezza',
     copyright: 'Tutti i diritti riservati.',
   },
+
   search: {
     baseHint: 'Ricerca...',
     searchingText: 'Ricerca...',
     noResultsText: 'Nessun risultato trovato',
   },
+
   userProfile: {
     editProfile: 'Modifica profilo',
     createEvent: 'Crea evento',
@@ -112,6 +121,7 @@ export default {
     submit: 'Invia',
     noEventFound: 'Nessun evento trovato',
   },
+
   eventCreationForm: {
     createNewEvent: 'Crea nuovo evento',
     editEvent: 'Modifica evento',
@@ -150,10 +160,12 @@ export default {
     errorForEventDeletion: "Impossibile eliminare l'evento. Per favore riprova.",
     errorForEventLoad: "Impossibile caricare l'evento. Per favore riprova.",
   },
+
   theme: {
     light_mode: 'Modalità luce',
     dark_mode: 'Modalità oscura',
   },
+
   home: {
     hero: {
       title: "Trova l'evento che fa per te",
@@ -181,6 +193,7 @@ export default {
       emptySearchText: 'Cerca gli utenti per nome',
     },
   },
+
   filters: {
     filters: 'Filtri',
     cancel: 'Cancellare',
