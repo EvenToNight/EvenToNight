@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from '@/api'
 import type { Tag } from '@/api/types/events'
 import type { TagCategory } from '@/api/interfaces/events'
+import FormField from '@/components/forms/FormField.vue'
+import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 
 const $q = useQuasar()
 
@@ -13,11 +15,15 @@ const gender = ref<'male' | 'female' | 'other' | null>(null)
 const notificationsEnabled = ref(true)
 const selectedTags = ref<Tag[]>([])
 const isDarkMode = ref($q.dark.isActive)
+const showTagsWarning = ref(false)
 
 // Available options
-const availableTags = ref<TagCategory[]>([])
+const tagCategories = ref<TagCategory[]>([])
+const tagOptions = ref<any[]>([])
 const loading = ref(true)
 const saving = ref(false)
+
+const dateInput = ref<InstanceType<typeof FormField> | null>(null)
 
 const genderOptions = [
   { label: 'Male', value: 'male' },
@@ -27,30 +33,93 @@ const genderOptions = [
 
 const maxTags = 5
 
-// Flatten tags with category labels for the select
-const tagOptions = computed(() => {
-  return availableTags.value.flatMap((category) =>
-    category.tags.map((tag) => ({
-      label: `${tag} (${category.category})`,
-      value: tag,
-      category: category.category,
-    }))
-  )
+let warningTimeout: ReturnType<typeof setTimeout> | null = null
+
+// Watch per mostrare il warning quando si prova ad aggiungere un tag oltre il limite
+watch(selectedTags, (newVal, oldVal) => {
+  // Se prova ad aggiungere un tag quando è già al massimo
+  if (oldVal.length === maxTags && newVal.length > maxTags) {
+    // Limita manualmente a maxTags
+    selectedTags.value = newVal.slice(0, maxTags)
+
+    // Mostra il warning
+    showTagsWarning.value = true
+
+    // Nascondi il warning dopo 3 secondi
+    if (warningTimeout) clearTimeout(warningTimeout)
+    warningTimeout = setTimeout(() => {
+      showTagsWarning.value = false
+    }, 3000)
+  }
+
+  // Nascondi il warning se rimuove un tag
+  if (newVal.length < maxTags) {
+    showTagsWarning.value = false
+    if (warningTimeout) clearTimeout(warningTimeout)
+  }
 })
+
+const buildOptionsFromCategories = (category: string, tags: Tag[]) => {
+  const options: any[] = []
+
+  options.push({
+    label: category,
+    value: category,
+    disable: true,
+    header: true,
+  })
+  tags.forEach((tag: string) => {
+    options.push({
+      label: tag,
+      value: tag,
+    })
+  })
+
+  return options
+}
+
+const loadTags = async () => {
+  try {
+    const tagResponse = await api.events.getTags()
+    const options: any[] = []
+    tagResponse.forEach((tagCategory) => {
+      options.push(...buildOptionsFromCategories(tagCategory.category, tagCategory.tags))
+    })
+    tagOptions.value = options
+    tagCategories.value = tagResponse
+  } catch (error) {
+    console.error('Failed to load tags:', error)
+  }
+}
 
 const filterTags = (val: string, update: (fn: () => void) => void) => {
   update(() => {
     if (val === '') {
-      return
+      tagOptions.value = tagCategories.value.flatMap((cat) =>
+        buildOptionsFromCategories(cat.category, cat.tags)
+      )
+    } else {
+      const query = val.toLowerCase()
+      const options: any[] = []
+
+      tagCategories.value.forEach((tagCategory) => {
+        const matchingTags = tagCategory.tags.filter(
+          (tag: string) => tag.toLowerCase().indexOf(query) > -1
+        )
+
+        if (matchingTags.length > 0) {
+          options.push(...buildOptionsFromCategories(tagCategory.category, matchingTags))
+        }
+      })
+      tagOptions.value = options
     }
-    // Filter is handled by q-select
   })
 }
 
 onMounted(async () => {
   try {
     // Load available tags
-    availableTags.value = await api.events.getTags()
+    await loadTags()
 
     // Load user preferences from localStorage or user profile
     isDarkMode.value = $q.dark.isActive
@@ -155,29 +224,30 @@ const handleDeleteProfile = () => {
         <section class="settings-section">
           <h3 class="section-title">Profile Information</h3>
 
-          <div class="form-field">
-            <label class="field-label">Birth Date</label>
-            <q-input
-              v-model="birthDate"
-              type="date"
-              outlined
-              dense
-              :max="new Date().toISOString().split('T')[0]"
-            />
-          </div>
+          <FormField
+            ref="dateInput"
+            v-model="birthDate"
+            type="date"
+            label="Birth Date"
+            :max="new Date().toISOString().split('T')[0]"
+          >
+            <template #prepend>
+              <q-icon
+                name="event"
+                class="cursor-pointer"
+                @click="(dateInput as any)?.$el.querySelector('input').showPicker()"
+              />
+            </template>
+          </FormField>
 
-          <div class="form-field">
-            <label class="field-label">Gender</label>
-            <q-select
-              v-model="gender"
-              :options="genderOptions"
-              outlined
-              dense
-              emit-value
-              map-options
-              clearable
-            />
-          </div>
+          <FormSelectorField
+            v-model="gender"
+            label="Gender"
+            :options="genderOptions"
+            emit-value
+            map-options
+            clearable
+          />
         </section>
 
         <!-- Appearance Section -->
@@ -206,31 +276,45 @@ const handleDeleteProfile = () => {
             Select up to {{ maxTags }} tags that match your interests
           </p>
 
-          <div class="form-field">
-            <q-select
-              v-model="selectedTags"
-              :options="tagOptions"
-              multiple
-              outlined
-              dense
-              use-chips
-              use-input
-              input-debounce="0"
-              :max-values="maxTags"
-              option-value="value"
-              option-label="label"
-              emit-value
-              map-options
-              :hint="`${selectedTags.length} / ${maxTags} tags selected`"
-              @filter="filterTags"
-            >
-              <template #no-option>
-                <q-item>
-                  <q-item-section class="text-grey"> No results </q-item-section>
-                </q-item>
+          <FormSelectorField
+            v-model="selectedTags"
+            :options="tagOptions"
+            label="Tags"
+            multiple
+            use-chips
+            use-input
+            emit-value
+            map-options
+            option-value="value"
+            option-label="label"
+            :hint="`${selectedTags.length} / ${maxTags} tags selected`"
+            @filter="filterTags"
+          >
+            <template #option="scope">
+              <q-item v-if="scope.opt.header" class="category-header" :disable="scope.opt.disable">
+                <q-item-section>
+                  <q-item-label class="text-weight-bold">{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+              </q-item>
+              <q-item v-else v-bind="scope.itemProps" :class="{ 'selected-tag': scope.selected }">
+                <q-item-section>
+                  <q-item-label>{{ scope.opt.label }}</q-item-label>
+                </q-item-section>
+                <q-item-section v-if="scope.selected" side>
+                  <q-icon name="check" color="primary" />
+                </q-item-section>
+              </q-item>
+            </template>
+          </FormSelectorField>
+
+          <transition name="fade">
+            <q-banner v-if="showTagsWarning" class="tags-warning-banner" dense rounded>
+              <template #avatar>
+                <q-icon name="warning" color="warning" />
               </template>
-            </q-select>
-          </div>
+              You can only select up to {{ maxTags }} tags
+            </q-banner>
+          </transition>
         </section>
 
         <!-- Notifications Section -->
@@ -282,6 +366,10 @@ const handleDeleteProfile = () => {
   @media (max-width: $breakpoint-mobile) {
     padding: $spacing-4;
   }
+
+  :deep(input[type='date']::-webkit-calendar-picker-indicator) {
+    display: none;
+  }
 }
 
 .settings-sections {
@@ -328,18 +416,6 @@ const handleDeleteProfile = () => {
 
   &:last-child {
     margin-bottom: 0;
-  }
-}
-
-.field-label {
-  display: block;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
-  color: $color-text-primary;
-  margin-bottom: $spacing-2;
-
-  @include dark-mode {
-    color: $color-text-dark;
   }
 }
 
@@ -391,5 +467,46 @@ const handleDeleteProfile = () => {
 
 .danger-title {
   color: $color-error;
+}
+
+// Tag styles (same as CreateEventView)
+:deep(.category-header) {
+  background: rgba($color-primary, 0.05);
+  font-weight: $font-weight-semibold;
+  cursor: default;
+
+  @include dark-mode {
+    background: rgba($color-primary, 0.1);
+  }
+}
+
+:deep(.selected-tag) {
+  background: rgba($color-primary, 0.08);
+
+  @include dark-mode {
+    background: rgba($color-primary, 0.12);
+  }
+}
+
+.tags-warning-banner {
+  margin-top: $spacing-4;
+  background: rgba($color-warning, 0.1);
+  border: 1px solid rgba($color-warning, 0.3);
+
+  @include dark-mode {
+    background: rgba($color-warning, 0.15);
+    border-color: rgba($color-warning, 0.4);
+  }
+}
+
+// Fade transition for warning banner
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.3s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
