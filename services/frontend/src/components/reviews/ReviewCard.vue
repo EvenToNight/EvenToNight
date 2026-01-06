@@ -149,7 +149,7 @@ onMounted(() => {
 
     <SubmitReviewDialog
       v-model:isOpen="showEditDialog"
-      :creator-id="review.organizationId"
+      :creator-id="review.creatorId"
       :selected-event-id="review.eventId"
       :existing-review="review"
     />

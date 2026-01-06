@@ -43,6 +43,7 @@ const displayValue = computed({
   },
 })
 
+//TODO: search completed event
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
   if (!query) {
     update(() => {

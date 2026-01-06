@@ -9,11 +9,11 @@ import type {
 import type {
   PaginatedRequest,
   PaginatedResponseWithTotalCount,
-  PaginatedResponseWithStatistics,
+  ExtendedPaginatedResponse,
 } from './commons'
 
 export type GetReviewResponse = PaginatedResponseWithTotalCount<EventReview>
-export type GetReviewWithStatisticsResponse = PaginatedResponseWithStatistics<
+export type GetReviewWithStatisticsResponse = ExtendedPaginatedResponse<
   EventReview,
   OrganizationReviewsStatistics
 >

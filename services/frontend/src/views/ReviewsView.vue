@@ -14,6 +14,11 @@ import type { Rating } from '@/api/types/interaction'
 const { query, params, goToUserProfile } = useNavigation()
 const organizationId = computed(() => params.organizationId as string)
 const tempEventId = ref<EventID | null>((query.eventId as EventID) || null)
+//TODO: missing endpoint for checking if user has partecipated in any event of the organization
+const canUserLeaveReview = ref(false)
+
+//TODO: missing endpoint for retriving user's review to show in dialog for editing (when clicking on modify ok the review is alreay loaded), evaluate moving inside dialog
+const tempReview = ref<EventReview | null>(null)
 const tempSelectedRating = ref<Rating | null>(null)
 const reviews = ref<EventReview[]>([])
 const loading = ref(true)
@@ -97,7 +102,7 @@ onMounted(() => {
             v-model:selectedRating="tempSelectedRating"
             :organizationId="organizationId"
           />
-          <div class="add-review-section">
+          <div v-if="canUserLeaveReview" class="add-review-section">
             <div class="event-info" @click="showReviewDialog = true">
               <q-icon name="rate_review" class="event-icon" />
               <span class="event-title">Lascia una recensione</span>
@@ -116,6 +121,7 @@ onMounted(() => {
       v-model:isOpen="showReviewDialog"
       :creator-id="organizationId"
       :selected-event-id="tempEventId ?? undefined"
+      :existing-review="tempReview ?? undefined"
     />
   </div>
 </template>

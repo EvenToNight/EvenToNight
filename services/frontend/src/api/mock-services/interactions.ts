@@ -108,9 +108,9 @@ export const mockInteractionsApi: InteractionAPI = {
         status: 404,
       }
     }
-    if (!mockOrganizations.find((org) => org.id === review.organizationId)) {
+    if (!mockOrganizations.find((org) => org.id === review.creatorId)) {
       throw {
-        message: `Organization ${review.organizationId} not found`,
+        message: `Organization ${review.creatorId} not found`,
         code: 'ORGANIZATION_NOT_FOUND',
         status: 404,
       }
