@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { User } from '@/api/types/users'
 import { useI18n } from 'vue-i18n'
+import type { UserInteractionsInfo } from '@/api/types/interaction'
 
 interface Props {
   user: User
+  userInteractionsInfo: UserInteractionsInfo
 }
 
 defineProps<Props>()
@@ -14,12 +16,12 @@ const { t } = useI18n()
   <div class="user-info">
     <div class="network-info-row">
       <div class="stat-item">
-        <span class="stat-value">{{ user.followers.toString() }}</span>
+        <span class="stat-value">{{ userInteractionsInfo.followers.toString() }}</span>
         <span class="stat-label">{{ t('userProfile.followers') }}</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
-        <span class="stat-value">{{ user.following.toString() }}</span>
+        <span class="stat-value">{{ userInteractionsInfo.following.toString() }}</span>
         <span class="stat-label">{{ t('userProfile.following') }}</span>
       </div>
     </div>

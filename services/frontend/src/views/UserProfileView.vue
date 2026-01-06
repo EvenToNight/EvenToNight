@@ -11,10 +11,9 @@ import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 
 const { params } = useNavigation()
-const isFollowing = ref(false)
 const showAuthDialog = ref(false)
 const user = ref<User | null>(null)
-const reviewsStatistics = ref<OrganizationReviewsStatistics | null>(null)
+const reviewsStatistics = ref<OrganizationReviewsStatistics | undefined>(undefined)
 const profileHeaderRef = ref<HTMLElement | null>(null)
 const showNavbarCustomContent = ref(false)
 let observer: IntersectionObserver | null = null
@@ -52,8 +51,6 @@ const loadUser = async () => {
   try {
     const userId = params.id as string
     user.value = await api.users.getUserById(userId)
-    // TODO: Load following status from API
-    isFollowing.value = false
 
     // Load reviews statistics if organization
     if (user.value.role === 'organization') {
@@ -99,7 +96,6 @@ const defaultIcon = computed(() => {
     <template v-if="user">
       <div ref="profileHeaderRef">
         <ProfileHeader
-          v-model:is-following="isFollowing"
           :user="user"
           :reviews-statistics="reviewsStatistics"
           @auth-required="showAuthDialog = true"

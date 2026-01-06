@@ -1,5 +1,5 @@
 import type {
-  GetEventLikesResponse,
+  GetUserInfoResponse,
   GetReviewResponse,
   GetReviewWithStatisticsResponse,
   GetUserLikedEventsResponse,
@@ -46,7 +46,7 @@ export const mockInteractionsApi: InteractionAPI = {
   async getEventLikes(
     eventId: EventID,
     pagination?: PaginatedRequest
-  ): Promise<GetEventLikesResponse> {
+  ): Promise<GetUserInfoResponse> {
     const likes = findInteractionByEventId(eventId).likes
     return { ...getPaginatedItems(likes, pagination), totalItems: likes.length }
   },
@@ -64,7 +64,11 @@ export const mockInteractionsApi: InteractionAPI = {
     const interaction = findInteractionByEventId(eventId)
     interaction.likes = interaction.likes.filter((id) => id !== userId)
   },
-  async followUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
+  async isFollowing(currentUserId: UserID, targetUserId: UserID): Promise<boolean> {
+    const currentUserInteraction = findUserInteraction(currentUserId)
+    return currentUserInteraction.following.includes(targetUserId)
+  },
+  async followUser(currentUserId: UserID, targetUserId: UserID): Promise<void> {
     const currentUserInteraction = findUserInteraction(currentUserId)
     const targetUserInteraction = findUserInteraction(targetUserId)
 
@@ -75,7 +79,7 @@ export const mockInteractionsApi: InteractionAPI = {
       targetUserInteraction.followers.push(currentUserId)
     }
   },
-  async unfollowUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
+  async unfollowUser(currentUserId: UserID, targetUserId: UserID): Promise<void> {
     const currentUserInteraction = findUserInteraction(currentUserId)
     const targetUserInteraction = findUserInteraction(targetUserId)
 
@@ -85,6 +89,20 @@ export const mockInteractionsApi: InteractionAPI = {
     targetUserInteraction.followers = targetUserInteraction.followers.filter(
       (id) => id !== currentUserId
     )
+  },
+  async following(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse> {
+    const userInteraction = findUserInteraction(userId)
+    return {
+      ...getPaginatedItems(userInteraction.following, pagination),
+      totalItems: userInteraction.following.length,
+    }
+  },
+  async followers(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse> {
+    const userInteraction = findUserInteraction(userId)
+    return {
+      ...getPaginatedItems(userInteraction.followers, pagination),
+      totalItems: userInteraction.followers.length,
+    }
   },
   async getEventReviews(
     eventId: EventID,

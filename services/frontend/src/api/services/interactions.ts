@@ -1,5 +1,5 @@
 import type {
-  GetEventLikesResponse,
+  GetUserInfoResponse,
   GetReviewResponse,
   GetReviewWithStatisticsResponse,
   GetUserLikedEventsResponse,
@@ -13,8 +13,8 @@ import type { PaginatedRequest } from '../interfaces/commons'
 import { evaluatePagination, buildQueryParams } from '../utils'
 
 export const createInteractionsApi = (interactionsClient: ApiClient): InteractionAPI => ({
-  async getEventLikes(eventId: EventID): Promise<GetEventLikesResponse> {
-    return interactionsClient.get<GetEventLikesResponse>(`/events/${eventId}/likes`)
+  async getEventLikes(eventId: EventID): Promise<GetUserInfoResponse> {
+    return interactionsClient.get<GetUserInfoResponse>(`/events/${eventId}/likes`)
   },
   async userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean> {
     return interactionsClient
@@ -27,14 +27,27 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
   async unlikeEvent(eventId: EventID, userId: UserID): Promise<void> {
     return interactionsClient.delete<void>(`/events/${eventId}/likes/${userId}`)
   },
-  async followUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
-    return interactionsClient.post<void>(`/users/${targetUserId}/interactions/followers`, {
-      userId: currentUserId,
+  async isFollowing(currentUserId: UserID, targetUserId: UserID): Promise<boolean> {
+    return interactionsClient
+      .get<{ isFollowing: boolean }>(`/users/${currentUserId}/following/${targetUserId}`)
+      .then((response) => response.isFollowing)
+  },
+  async followUser(currentUserId: UserID, targetUserId: UserID): Promise<void> {
+    return interactionsClient.post<void>(`/users/${currentUserId}/following`, {
+      followedId: targetUserId,
     })
   },
-  async unfollowUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
-    return interactionsClient.delete<void>(
-      `/users/${targetUserId}/interactions/followers/${currentUserId}`
+  async unfollowUser(currentUserId: UserID, targetUserId: UserID): Promise<void> {
+    return interactionsClient.delete<void>(`/users/${currentUserId}/following/${targetUserId}`)
+  },
+  async following(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse> {
+    return interactionsClient.get<GetUserInfoResponse>(
+      `/users/${userId}/following${buildQueryParams({ ...evaluatePagination(pagination) })}`
+    )
+  },
+  async followers(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse> {
+    return interactionsClient.get<GetUserInfoResponse>(
+      `/users/${userId}/followers${buildQueryParams({ ...evaluatePagination(pagination) })}`
     )
   },
   async getEventReviews(

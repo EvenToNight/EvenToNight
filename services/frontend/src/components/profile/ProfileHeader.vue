@@ -1,28 +1,33 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
 import type { User } from '@/api/types/users'
-import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
+import type { UserInteractionsInfo, OrganizationReviewsStatistics } from '@/api/types/interaction'
 import RatingInfo from '@/components/reviews/ratings/RatingInfo.vue'
-import { computed, ref } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import UserInfo from './UserInfo.vue'
 import ProfileActions from './ProfileActions.vue'
 import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
 import { useI18n } from 'vue-i18n'
+import { api } from '@/api'
 
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 interface Props {
   user: User
-  isFollowing: boolean
-  reviewsStatistics?: OrganizationReviewsStatistics | null
+  reviewsStatistics?: OrganizationReviewsStatistics
 }
 
 const props = defineProps<Props>()
+const isFollowing = ref(false)
+
+const userInteractionsInfo = ref<UserInteractionsInfo>({
+  followers: 0,
+  following: 0,
+})
 
 const emit = defineEmits<{
-  'update:isFollowing': [value: boolean]
   authRequired: []
 }>()
 
@@ -43,12 +48,50 @@ const defaultIcon = computed(() => {
   return isOrganization.value ? 'business' : 'person'
 })
 
-const handleFollowToggle = () => {
-  if (!authStore.isAuthenticated) {
+//TODO: handle loading
+onMounted(async () => {
+  if (authStore.isAuthenticated && !isOwnProfile.value && authStore.user?.id) {
+    try {
+      isFollowing.value = await api.interactions.isFollowing(authStore.user.id, props.user.id)
+    } catch (error) {
+      console.error('Failed to load following status:', error)
+    }
+  }
+  const [followers, following] = await Promise.all([
+    api.interactions.followers(props.user.id),
+    api.interactions.following(props.user.id),
+  ])
+
+  const userInteractionsInfoResponse = {
+    followers: followers.totalItems,
+    following: following.totalItems,
+  }
+  userInteractionsInfo.value = userInteractionsInfoResponse
+})
+
+const handleFollowToggle = async () => {
+  if (!authStore.isAuthenticated || !authStore.user?.id) {
     emit('authRequired')
     return
   }
-  emit('update:isFollowing', !props.isFollowing)
+
+  try {
+    if (isFollowing.value) {
+      await api.interactions.unfollowUser(authStore.user.id, props.user.id)
+      isFollowing.value = false
+      userInteractionsInfo.value.followers -= 1
+    } else {
+      await api.interactions.followUser(authStore.user.id, props.user.id)
+      isFollowing.value = true
+      userInteractionsInfo.value.followers += 1
+    }
+  } catch (error) {
+    console.error('Failed to toggle follow:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to update follow status',
+    })
+  }
 }
 
 const handleAvatarClick = () => {
@@ -108,7 +151,7 @@ const handleAvatarChange = async (file: File | null) => {
       <template v-if="isMobile">
         <div class="user-info">
           <h1 class="user-name">{{ user.name }}</h1>
-          <UserInfo :user="user" />
+          <UserInfo :user="user" :user-interactions-info="userInteractionsInfo" />
           <template v-if="isOrganization && reviewsStatistics">
             <RatingInfo :reviews-statistics="reviewsStatistics" />
           </template>
@@ -137,7 +180,7 @@ const handleAvatarChange = async (file: File | null) => {
           <template v-if="isOrganization && reviewsStatistics">
             <RatingInfo :reviews-statistics="reviewsStatistics" />
           </template>
-          <UserInfo :user="user" />
+          <UserInfo :user="user" :user-interactions-info="userInteractionsInfo" />
         </div>
       </template>
     </div>
