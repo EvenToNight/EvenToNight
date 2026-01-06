@@ -1,0 +1,41 @@
+services:
+  chat:
+    image: ghcr.io/eventonight/eventonight/chat:latest
+    networks:
+      - eventonight-network
+      - chat-network
+    environment:
+      - PORT=${CHAT_SERVICE_PORT}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - MONGO_HOST=mongo-chat
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.chat.rule=Host(`chat.${HOST}`)"
+      - "traefik.http.routers.chat.entrypoints=web"
+      - "traefik.http.services.chat.loadbalancer.server.port=${CHAT_SERVICE_PORT}"
+    restart: unless-stopped
+    depends_on:
+      mongo-chat:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  mongo-chat:
+    image: mongo
+    restart: unless-stopped
+    networks:
+      - chat-network
+    healthcheck:
+      test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+networks:
+  eventonight-network:
+    driver: bridge
+  chat-network:
+    driver: bridge
