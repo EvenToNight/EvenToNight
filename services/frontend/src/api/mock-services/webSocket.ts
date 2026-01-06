@@ -1,13 +1,8 @@
-import type {
-  SupportWebSocketEvent,
-  NewMessageEvent,
-  MessageReadEvent,
-  TypingEvent,
-} from '../types/support'
+import type { WebSocketEvent, NewMessageEvent } from '../types/notification'
 
-type EventCallback = (event: SupportWebSocketEvent) => void
+type EventCallback = (event: WebSocketEvent) => void
 
-export class SupportWebSocket {
+export class WebSocket {
   private channel: BroadcastChannel | null = null
   private listeners: Set<EventCallback> = new Set()
   private isConnected = false
@@ -34,7 +29,7 @@ export class SupportWebSocket {
 
     this.channel.onmessage = (event) => {
       console.log('[WebSocket] Received message:', event.data)
-      const wsEvent = event.data as SupportWebSocketEvent
+      const wsEvent = event.data as WebSocketEvent
       this.notifyListeners(wsEvent)
     }
 
@@ -60,7 +55,7 @@ export class SupportWebSocket {
   }
 
   // Emit event to all other tabs
-  emit(event: SupportWebSocketEvent): void {
+  emit(event: WebSocketEvent): void {
     if (!this.channel) {
       console.warn('[WebSocket] Cannot emit - WebSocket not connected')
       return
@@ -69,7 +64,7 @@ export class SupportWebSocket {
     this.channel.postMessage(event)
   }
 
-  private notifyListeners(event: SupportWebSocketEvent): void {
+  private notifyListeners(event: WebSocketEvent): void {
     this.listeners.forEach((callback) => {
       try {
         callback(event)
@@ -85,19 +80,11 @@ export class SupportWebSocket {
 }
 
 // Factory function to create WebSocket instances
-export function createSupportWebSocket(userId: string): SupportWebSocket {
-  return new SupportWebSocket(userId)
+export function createWebSocket(userId: string): WebSocket {
+  return new WebSocket(userId)
 }
 
 // Type guards for event types
-export function isNewMessageEvent(event: SupportWebSocketEvent): event is NewMessageEvent {
+export function isNewMessageEvent(event: WebSocketEvent): event is NewMessageEvent {
   return event.type === 'new_message'
-}
-
-export function isMessageReadEvent(event: SupportWebSocketEvent): event is MessageReadEvent {
-  return event.type === 'message_read'
-}
-
-export function isTypingEvent(event: SupportWebSocketEvent): event is TypingEvent {
-  return event.type === 'typing'
 }

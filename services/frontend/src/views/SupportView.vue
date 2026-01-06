@@ -9,8 +9,8 @@ import type { User } from '@/api/types/users'
 import MessageInput from '@/components/support/MessageInput.vue'
 import ChatArea from '@/components/support/ChatArea.vue'
 import { useNavigation } from '@/router/utils'
-import type { SupportWebSocket } from '@/api/mock-services/supportWebSocket'
-import { isNewMessageEvent } from '@/api/mock-services/supportWebSocket'
+import type { WebSocket } from '@/api/mock-services/webSocket'
+import { isNewMessageEvent } from '@/api/mock-services/webSocket'
 
 const { query, removeQuery } = useNavigation()
 const authStore = useAuthStore()
@@ -24,7 +24,7 @@ const messagesLimit = 50
 const searchResults = ref<User[]>([])
 const selectedOrganization = ref<User | undefined>()
 const isNewConversation = ref(false)
-const websocket = ref<SupportWebSocket | null>(null)
+const websocket = ref<WebSocket | null>(null)
 const twoColumnLayout = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
 
 const selectedConversation = computed<Conversation | undefined>(() => {
@@ -61,7 +61,7 @@ onMounted(async () => {
   // Initialize WebSocket for real-time updates
   if (authStore.user?.id) {
     console.log('[SupportView] Initializing WebSocket for user:', authStore.user.id)
-    websocket.value = api.support.createWebSocket(authStore.user.id)
+    websocket.value = api.notification.createWebSocket(authStore.user.id)
     websocket.value.connect()
 
     // Listen for new messages from other tabs
@@ -271,7 +271,7 @@ async function handleSendMessage(content: string) {
   }
 }
 
-function handleWebSocketNewMessage(event: import('@/api/types/support').NewMessageEvent) {
+function handleWebSocketNewMessage(event: import('@/api/types/notification').NewMessageEvent) {
   console.log('[SupportView] handleWebSocketNewMessage called:', event)
   const { message, conversation: updatedConversation } = event.data
 

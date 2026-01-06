@@ -1,13 +1,11 @@
 import type { SupportAPI } from '../interfaces/support'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
-import type { Conversation, Message, NewMessageEvent } from '../types/support'
+import type { Conversation, Message } from '../types/support'
+import type { NewMessageEvent } from '../types/notification'
 import { getPaginatedItems } from '../utils/requestUtils'
 import { mockConversations, mockMessages } from './data/support'
-import { createSupportWebSocket, type SupportWebSocket } from './supportWebSocket'
 import { saveConversations, saveMessages } from './storage/supportStorage'
-
-// Store active WebSocket connections
-const activeWebSockets = new Map<string, SupportWebSocket>()
+import { activeWebSockets } from './notification'
 
 export const mockSupportApi: SupportAPI = {
   async getConversations(
@@ -74,20 +72,5 @@ export const mockSupportApi: SupportAPI = {
     }
 
     return
-  },
-
-  createWebSocket(userId: string): SupportWebSocket {
-    console.log('[MockAPI] createWebSocket called for userId:', userId)
-    // Reuse existing WebSocket if available
-    let ws = activeWebSockets.get(userId)
-    if (!ws) {
-      console.log('[MockAPI] Creating new WebSocket for userId:', userId)
-      ws = createSupportWebSocket(userId)
-      activeWebSockets.set(userId, ws)
-    } else {
-      console.log('[MockAPI] Reusing existing WebSocket for userId:', userId)
-    }
-    console.log('[MockAPI] Total active WebSockets:', activeWebSockets.size)
-    return ws
   },
 }
