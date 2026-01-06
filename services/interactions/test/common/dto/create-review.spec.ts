@@ -6,7 +6,7 @@ describe('CreateReviewDto', () => {
   it('validates successfully with all fields', async () => {
     const dto = plainToInstance(CreateReviewDto, {
       userId: 'user1',
-      organizationId: 'org1',
+      creatorId: 'org1',
       collaboratorIds: ['c1', 'c2'],
       rating: 5,
       title: 'Great event',
@@ -20,7 +20,7 @@ describe('CreateReviewDto', () => {
   it('validates when optional fields are omitted', async () => {
     const dto = plainToInstance(CreateReviewDto, {
       userId: 'user1',
-      organizationId: 'org1',
+      creatorId: 'org1',
       rating: 3,
       title: 'OK',
     });
@@ -31,7 +31,7 @@ describe('CreateReviewDto', () => {
 
   it('fails when required fields are missing', async () => {
     const dto = plainToInstance(CreateReviewDto, {
-      organizationId: 'org1',
+      creatorId: 'org1',
       rating: 4,
       title: 'Title',
     });
@@ -43,13 +43,13 @@ describe('CreateReviewDto', () => {
   it('fails when rating is out of range or not integer', async () => {
     const dtoHigh = plainToInstance(CreateReviewDto, {
       userId: 'u',
-      organizationId: 'o',
+      creatorId: 'o',
       rating: 6,
       title: 't',
     });
     const dtoFloat = plainToInstance(CreateReviewDto, {
       userId: 'u',
-      organizationId: 'o',
+      creatorId: 'o',
       rating: 3.5,
       title: 't',
     });
@@ -63,7 +63,7 @@ describe('CreateReviewDto', () => {
   it('fails when collaboratorIds is not array of strings', async () => {
     const dtoNotArray = plainToInstance(CreateReviewDto, {
       userId: 'u',
-      organizationId: 'o',
+      creatorId: 'o',
       collaboratorIds: 'not-array',
       rating: 4,
       title: 't',
@@ -71,7 +71,7 @@ describe('CreateReviewDto', () => {
 
     const dtoNonString = plainToInstance(CreateReviewDto, {
       userId: 'u',
-      organizationId: 'o',
+      creatorId: 'o',
       collaboratorIds: [1, 2],
       rating: 4,
       title: 't',

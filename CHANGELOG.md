@@ -1,3 +1,10 @@
+## [1.13.0](https://github.com/EvenToNight/EvenToNight/compare/v1.12.1...v1.13.0) (2026-01-06)
+
+### Features
+
+* **create-event:** implement create event communication with rabbit ([8333a4c](https://github.com/EvenToNight/EvenToNight/commit/8333a4cbdd201ee2e700ce01adc7cf15df031227))
+* **follow:** add route to check if a user follow another user ([da8c624](https://github.com/EvenToNight/EvenToNight/commit/da8c624a948e2dbc377c4fbc58ddd4f49df7f573))
+
 ## [1.12.1](https://github.com/EvenToNight/EvenToNight/compare/v1.12.0...v1.12.1) (2026-01-02)
 
 ### Bug Fixes

@@ -30,7 +30,7 @@ class EventQueryService(repo: EventRepository):
       tags = cmd.tags.map(_.map(_.displayName)),
       startDate = cmd.startDate.map(_.toString()),
       endDate = cmd.endDate.map(_.toString()),
-      id_organization = cmd.id_organization,
+      organizationId = cmd.organizationId,
       city = cmd.city,
       location_name = cmd.location_name,
       priceRange = cmd.priceRange,

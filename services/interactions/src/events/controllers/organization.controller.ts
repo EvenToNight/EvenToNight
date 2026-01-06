@@ -9,7 +9,7 @@ export class OrganizationController {
   @Get('reviews')
   async getOrganizationReviews(
     @Param('organizationId') organizationId: string,
-    @Query('role') role: 'owner' | 'collaborator' | 'all' = 'all',
+    @Query('role') role: 'creator' | 'collaborator' | 'all' = 'all',
     @Query() paginatedQuery: PaginatedQueryDto,
   ) {
     const { limit, offset } = paginatedQuery;

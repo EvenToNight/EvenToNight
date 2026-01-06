@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Follow } from '../schemas/follow.schema';
 import { Model } from 'mongoose';
@@ -6,12 +6,19 @@ import { ConflictException } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
 import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
 import { PaginatedUserResponseDto } from '../dto/paginated-user-response.dto';
+import { MetadataService } from 'src/metadata/services/metadata.service';
 
 @Injectable()
 export class FollowService {
-  constructor(@InjectModel(Follow.name) private followModel: Model<Follow>) {}
+  constructor(
+    @InjectModel(Follow.name) private followModel: Model<Follow>,
+    @Inject(forwardRef(() => MetadataService))
+    private readonly metadataService: MetadataService,
+  ) {}
 
   async follow(followerId: string, followedId: string): Promise<Follow> {
+    await this.metadataService.validateFollowAllowed(followerId, followedId);
+
     if (followerId === followedId) {
       throw new ConflictException('Cannot follow yourself');
     }
@@ -89,5 +96,10 @@ export class FollowService {
     await this.followModel.deleteMany({
       $or: [{ followerId: userId }, { followedId: userId }],
     });
+  }
+
+  async isFollowing(followerId: string, followedId: string): Promise<boolean> {
+    const follow = await this.followModel.findOne({ followerId, followedId });
+    return !!follow;
   }
 }

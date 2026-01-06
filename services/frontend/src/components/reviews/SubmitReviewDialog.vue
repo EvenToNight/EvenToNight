@@ -65,7 +65,7 @@ const filterEvents = (query: string, update: (callback: () => void) => void) => 
     } else {
       hasSearched.value = true
       api.events
-        .searchEvents({ id_organization: props.creatorId, status: 'PUBLISHED', title: query })
+        .searchEvents({ organizationId: props.creatorId, status: 'PUBLISHED', title: query })
         .then((response) => {
           eventOptions.value = response.items
         })
