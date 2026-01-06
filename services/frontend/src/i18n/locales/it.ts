@@ -1,9 +1,9 @@
 export default {
   date: 'Data',
-  time: 'Tempo',
+  time: 'Orario',
   location: 'Posizione',
   price: 'Prezzo',
-  download: 'Scaricamento',
+  download: 'Scarica',
   profile: 'Profilo',
 
   users: {
@@ -17,22 +17,22 @@ export default {
   },
 
   auth: {
-    login: 'Iscrizione',
-    register: 'Registrazione',
+    login: 'Accedi',
+    register: 'Registrati',
     logout: 'Esci',
-    notLoggedIn: "Ops! Non effettuato l'accesso",
+    notLoggedIn: "Ops! Non hai effettuato l'accesso",
     loginRequired: "È necessario effettuare l'accesso per eseguire questa azione",
     form: {
       emailLabel: 'E-mail',
       emailError: "L'e-mail è obbligatoria",
       emailFormatError: 'Si prega di inserire un indirizzo email valido',
       passwordLabel: 'Password',
-      passwordError: 'È richiesta la password',
+      passwordError: 'La password è obbligatoria',
     },
     loginForm: {
       successfulLogin: 'Accesso riuscito!',
       failedLogin: 'Accesso non riuscito',
-      switchToRegister: 'Hai bisogno di un account? Registro',
+      switchToRegister: 'Non hai un account? Registrati',
     },
     registerForm: {
       nameLabel: 'Nome',
@@ -43,7 +43,7 @@ export default {
       isOrganizationLabel: 'Mi sto registrando come organizzazione',
       successfulRegistration: 'Registrazione riuscita!',
       failedRegistration: 'La registrazione non è riuscita',
-      switchToLogin: 'Hai già un account? Login',
+      switchToLogin: 'Hai già un account? Accedi',
     },
   },
 
@@ -55,7 +55,7 @@ export default {
     },
     eventCard: {
       loadingPoster: 'Caricamento...',
-      favoriteButtonAriaLabel: 'Attiva/disattiva preferiti',
+      favoriteButtonAriaLabel: 'metti/togli dai preferiti',
       posterAlt: "Locandina dell'evento",
       draftMissingTitle: 'Evento senza titolo',
     },
@@ -73,12 +73,12 @@ export default {
     about: 'A proposito di questo evento',
     organizer: 'Organizzato da',
     collaborators: 'In collaborazione con',
-    editEvent: 'Modificare',
-    freePrice: 'Gratuito',
+    editEvent: 'Modifica',
+    freePrice: 'Gratis',
   },
 
   footer: {
-    about: 'Di',
+    about: 'Chi siamo',
     events: 'Eventi',
     contact: 'Contatto',
     privacy: 'politica sulla riservatezza',
@@ -94,9 +94,9 @@ export default {
   userProfile: {
     editProfile: 'Modifica profilo',
     createEvent: 'Crea evento',
-    followers: 'Seguaci',
-    following: 'Seguente',
-    follow: 'Seguire',
+    followers: 'Follower',
+    following: 'Seguiti',
+    follow: 'Segui',
     myTickets: 'I miei biglietti',
     myEvents: 'I miei eventi',
     events: 'Eventi',
@@ -104,20 +104,20 @@ export default {
     noEventCreatedExternal: 'Questa organizzazione non ha ancora creato alcun evento.',
     noEventJoined: 'Non hai ancora partecipato a nessun evento.',
     noEventJoinedExternal: 'Questo utente non ha ancora partecipato ad alcun evento.',
-    noTickets: 'Nessun biglietto ancora',
-    draftedEvents: 'Eventi redatti',
+    noTickets: 'Nessun biglietto disponibile',
+    draftedEvents: 'Bozze',
     noDraftedEvents: 'Non hai eventi in bozza.',
     reviews: 'Recensioni',
     noReviews: 'Nessuna recensione ancora.',
     userAvatarAlt: "Avatar dell'utente",
     leaveReview: 'Lascia una recensione',
-    selectEvent: 'Seleziona evento',
-    selectRating: 'Seleziona valutazione:',
+    selectEvent: 'Seleziona un evento',
+    selectRating: 'Seleziona una valutazione:',
     reviewTitle: 'Titolo',
     reviewTitlePlaceholder: 'Dai un titolo alla tua recensione...',
     reviewDescription: 'Descrizione',
     reviewDescriptionPlaceholder: 'Scrivi la tua recensione...',
-    cancel: 'Cancellare',
+    cancel: 'Annulla',
     submit: 'Invia',
     noEventFound: 'Nessun evento trovato',
   },
@@ -129,8 +129,8 @@ export default {
     titleError: 'Il titolo è obbligatorio',
     date: 'Data',
     dateError: 'La data è obbligatoria',
-    time: 'Tempo',
-    timeError: 'È necessario tempo',
+    time: 'Orario',
+    timeError: "L'orario è obbligatorio",
     description: 'Descrizione',
     descriptionError: 'La descrizione è obbligatoria',
     price: 'Prezzo',
@@ -141,10 +141,10 @@ export default {
     location: 'Posizione',
     locationError: 'La posizione è obbligatoria',
     eventPoster: "Locandina dell'evento",
-    posterError: 'Il manifesto è obbligatorio',
-    uploadPoster: 'Carica poster',
-    cancel: 'Cancellare',
-    deleteEvent: 'Eliminare',
+    posterError: 'La locandina è obbligatorio',
+    uploadPoster: 'Carica locandina',
+    cancel: 'Annulla',
+    deleteEvent: 'Elimina',
     deleteEventConfirm:
       'Sei sicuro di voler eliminare questo evento? Questa azione non può essere annullata.',
     saveDraft: 'Salva bozza',
@@ -162,8 +162,8 @@ export default {
   },
 
   theme: {
-    light_mode: 'Modalità luce',
-    dark_mode: 'Modalità oscura',
+    light_mode: 'Modalità chiara',
+    dark_mode: 'Modalità scura',
   },
 
   home: {
@@ -175,7 +175,7 @@ export default {
     },
   },
   explore: {
-    title: 'Esplorare',
+    title: 'Esplora',
     subtitile: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
     events: {
       title: 'Eventi',
@@ -196,9 +196,9 @@ export default {
 
   filters: {
     filters: 'Filtri',
-    cancel: 'Cancellare',
-    delete: 'Chiaro',
-    apply: 'Fare domanda a',
+    cancel: 'Annulla',
+    delete: 'Cancella',
+    apply: 'Applica',
     dateFilters: {
       date: 'Data',
       selectPeriod: 'Seleziona Periodo',
@@ -209,10 +209,10 @@ export default {
     feedFilters: {
       others: 'Altri',
       upcoming: 'Prossimamente',
-      popular: 'Popolare',
+      popular: 'Popolari',
       nearby: 'Nelle vicinanze',
       forYou: 'Per te',
-      new: 'Nuovo',
+      new: 'Nuovi',
     },
     priceFilters: {
       price: 'Prezzo',
@@ -221,15 +221,15 @@ export default {
       maxPrice: 'Prezzo massimo',
       customize: 'Personalizza',
       free: 'Gratuito',
-      paid: 'Pagato',
+      paid: 'A pagamento',
       from: 'Da',
       to: 'A',
     },
     sortFilters: {
       sort: 'Ordina per',
-      date_asc: 'Data di ascesa',
-      date_desc: 'Data discendente',
-      price_asc: 'Prezzo ascendente',
+      date_asc: 'Data di crescente',
+      date_desc: 'Data decrescente',
+      price_asc: 'Prezzo crescente',
       price_desc: 'Prezzo decrescente',
     },
     TagFilters: {
