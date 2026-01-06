@@ -17,17 +17,9 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
     return interactionsClient.get<GetEventLikesResponse>(`/events/${eventId}/likes`)
   },
   async userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean> {
-    //TODO implement proper endpoint to check if user likes event
     return interactionsClient
-      .get<boolean>(`/events/${eventId}/likes/${userId}`)
-      .then((_response) => true)
-      .catch((error) => {
-        if (error.status === 404) {
-          console.log('Like not found - returning false to catch 404')
-          return false
-        }
-        throw error
-      })
+      .get<{ hasLiked: boolean }>(`/users/${userId}/likes/${eventId}`)
+      .then((response) => response.hasLiked)
   },
   async likeEvent(eventId: EventID, userId: UserID): Promise<void> {
     return interactionsClient.post<void>(`/events/${eventId}/likes`, { userId })

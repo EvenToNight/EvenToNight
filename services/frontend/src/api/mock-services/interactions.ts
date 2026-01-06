@@ -43,10 +43,12 @@ const findUserInteraction = (userId: UserID) => {
 }
 
 export const mockInteractionsApi: InteractionAPI = {
-  async getEventLikes(eventId: EventID): Promise<GetEventLikesResponse> {
-    //TODO implement likes retrival
-    findInteractionByEventId(eventId)
-    return { items: [], limit: 0, offset: 0, hasMore: false, totalItems: 0 }
+  async getEventLikes(
+    eventId: EventID,
+    pagination?: PaginatedRequest
+  ): Promise<GetEventLikesResponse> {
+    const likes = findInteractionByEventId(eventId).likes
+    return { ...getPaginatedItems(likes, pagination), totalItems: likes.length }
   },
   async userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean> {
     const interaction = findInteractionByEventId(eventId)

@@ -30,7 +30,6 @@ const loadInteractions = async () => {
   try {
     const likes = await api.interactions.getEventLikes(props.event.eventId)
     likesCount.value = likes.totalItems
-    // TODO: missing endpoint - evaluate approach
     if (authStore.user?.id) {
       isFavorite.value = await api.interactions.userLikesEvent(
         props.event.eventId,
