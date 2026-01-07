@@ -1,3 +1,4 @@
+import 'reflect-metadata';
 import { validate } from 'class-validator';
 import { plainToClass } from 'class-transformer';
 import { GetMessagesQueryDto } from '../../src/conversations/dto/get-messages-query.dto';
