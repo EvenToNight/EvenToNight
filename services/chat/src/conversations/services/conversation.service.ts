@@ -3,6 +3,8 @@ import { Conversation } from '../schemas/conversation.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ParticipantRole } from '../schemas/participant.schema';
+import { SendMessageDto } from '../dto/send-message.dto';
+import { Message } from '../schemas/message.schema';
 
 @Injectable()
 export class ConversationService {
@@ -11,6 +13,8 @@ export class ConversationService {
     private readonly conversationModel: Model<any>,
     @InjectModel('Participant')
     private readonly participantModel: Model<any>,
+    @InjectModel(Message.name)
+    private readonly messageModel: Model<any>,
   ) {}
 
   private async findOrCreateConversation(
@@ -53,5 +57,48 @@ export class ConversationService {
     }
 
     return conversation;
+  }
+
+  async sendMessage(
+    organizationId: string,
+    memberId: string,
+    dto: SendMessageDto,
+  ): Promise<Message> {
+    if (dto.senderId !== organizationId && dto.senderId !== memberId) {
+      throw new BadRequestException(
+        'Sender must be either organization or member',
+      );
+    }
+
+    const conversation = await this.findOrCreateConversation(
+      organizationId,
+      memberId,
+    );
+
+    const message = new this.messageModel({
+      conversationId: conversation._id,
+      senderId: dto.senderId,
+      content: dto.content,
+    });
+    const savedMessage = await message.save();
+
+    conversation.updatedAt = new Date();
+    await conversation.save();
+
+    await this.participantModel.updateOne(
+      {
+        conversationId: conversation._id,
+        userId: { $ne: dto.senderId },
+      },
+      {
+        $inc: { unreadCount: 1 },
+      },
+    );
+
+    console.log(`✅ Message sent in conversation ${conversation._id}`);
+
+    // TODO: Publish event to rabbitmq
+
+    return savedMessage;
   }
 }
