@@ -1,10 +1,13 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { MongooseModule } from '@nestjs/mongoose';
+import { ProvaModule } from './prova/prova.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [
+    MongooseModule.forRoot(
+      `mongodb://${process.env.MONGO_HOST}:27017/eventonight`,
+    ),
+    ProvaModule,
+  ],
 })
 export class AppModule {}
