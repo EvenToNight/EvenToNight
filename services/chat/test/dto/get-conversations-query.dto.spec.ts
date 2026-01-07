@@ -75,7 +75,7 @@ describe('GetConversationsQueryDto', () => {
     expect(errors.length).toBeGreaterThan(0);
   });
 
-  it('should transform string numbers to integers', async () => {
+  it('should transform string numbers to integers', () => {
     const plain = { limit: '25', offset: '100' };
     const dto = plainToClass(GetConversationsQueryDto, plain);
 

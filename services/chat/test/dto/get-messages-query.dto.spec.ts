@@ -50,7 +50,7 @@ describe('GetMessagesQueryDto', () => {
     expect(errors[0].property).toBe('offset');
   });
 
-  it('should transform string numbers to integers', async () => {
+  it('should transform string numbers to integers', () => {
     const plain = { limit: '50', offset: '200' };
     const dto = plainToClass(GetMessagesQueryDto, plain);
 
