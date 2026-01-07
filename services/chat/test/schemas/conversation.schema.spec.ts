@@ -18,6 +18,7 @@ describe('ConversationSchema', () => {
       Conversation.name,
       ConversationSchema,
     );
+    await conversationModel.createIndexes();
   });
 
   afterAll(async () => {
