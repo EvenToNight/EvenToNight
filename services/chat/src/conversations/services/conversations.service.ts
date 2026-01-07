@@ -5,6 +5,9 @@ import { Model } from 'mongoose';
 import { ParticipantRole } from '../schemas/participant.schema';
 import { SendMessageDto } from '../dto/send-message.dto';
 import { Message, MessageDocument } from '../schemas/message.schema';
+import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
+import { ConversationListResponse } from '../dto/conversation-list.response';
+import { ConversationListItemDTO } from '../dto/conversation-list-item.dto';
 
 @Injectable()
 export class ConversationsService {
@@ -100,5 +103,79 @@ export class ConversationsService {
     // TODO: Publish event to rabbitmq
 
     return savedMessage;
+  }
+
+  async getUserConversations(
+    userId: string,
+    query: GetConversationsQueryDto,
+  ): Promise<ConversationListResponse> {
+    const { limit = 20, offset = 0 } = query;
+
+    const participants = await this.participantModel
+      .find({ userId })
+      .populate('conversationId')
+      .sort({ 'conversationId.updatedAt': -1 })
+      .skip(offset)
+      .limit(limit + 1)
+      .exec();
+
+    const hasMore = participants.length > limit;
+    const items = participants.slice(0, limit);
+
+    const conversations: ConversationListItemDTO[] = await Promise.all(
+      items.map(async (participant) => {
+        const conversation = participant.conversationId;
+
+        const lastMessage = await this.messageModel
+          .findOne({ conversationId: conversation._id })
+          .sort({ createdAt: -1 })
+          .exec();
+
+        // const [orgInfo, memberInfo] = await Promise.all([
+        //   this.usersService.getUserInfo(conversation.organizationId),
+        //   this.usersService.getUserInfo(conversation.memberId),
+        // ]);
+
+        // TODO: Replace with real user info fetching
+        const orgInfo = {
+          name: 'Org Name',
+          avatar: 'https://via.placeholder.com/150',
+        };
+        const memberInfo = {
+          name: 'Member Name',
+          avatar: 'https://via.placeholder.com/150',
+        };
+
+        return {
+          id: conversation._id.toString(),
+          organizationId: conversation.organizationId,
+          organizationName: orgInfo?.name || 'Unknown Organization',
+          organizationAvatar:
+            orgInfo?.avatar || 'https://via.placeholder.com/150',
+          memberId: conversation.memberId,
+          memberName: memberInfo?.name || 'Unknown Member',
+          memberAvatar: memberInfo?.avatar || 'https://via.placeholder.com/150',
+          lastMessage: lastMessage
+            ? {
+                content: lastMessage.content,
+                senderId: String(lastMessage.senderId),
+                timestamp: lastMessage.createdAt,
+              }
+            : {
+                content: '',
+                senderId: '',
+                timestamp: new Date(0),
+              },
+          unreadCount: participant.unreadCount,
+        };
+      }),
+    );
+
+    return {
+      items: conversations,
+      limit,
+      offset,
+      hasMore,
+    };
   }
 }
