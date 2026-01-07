@@ -8,7 +8,7 @@ import {
 describe('ConversationSchema', () => {
   let mongod: MongoMemoryServer;
   let mongoConnection: Connection;
-  let conversationModel: Model<any>; // ← Cambiato in any
+  let conversationModel: Model<any>;
 
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
