@@ -2,6 +2,7 @@ package controller
 
 import cask.Request
 import cask.Response
+import keycloak.KeycloakJwtVerifier.refreshPublicKeys
 import model.LoginValidation._
 import model.UsersConversions.asJson
 import model.registration.TokenResponse
@@ -56,6 +57,13 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
     userService.getUsers() match
       case Left(err)    => Response(err, 400)
       case Right(users) => Response(users.map(user => user.asJson), 200)
+
+  @cask.get("/publicKeys")
+  def getPublicKeys(): Response[String] =
+    refreshPublicKeys() match
+      case Left(_) => Response("Failed to refresh public keys", 500)
+      case Right(json) =>
+        Response(json.noSpaces, 200)
 
   initialize()
 }

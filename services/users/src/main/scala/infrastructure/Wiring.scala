@@ -17,6 +17,9 @@ import service.AuthenticationService
 import service.UserService
 import sttp.client3.HttpURLConnectionBackend
 
+import java.security.PublicKey
+import scala.collection.concurrent.TrieMap
+
 import MongoConnection._
 
 object Wiring:
@@ -45,3 +48,5 @@ object Wiring:
 
   val kc          = new KeycloakConnection(HttpURLConnectionBackend(), usersServiceSecret)
   val authService = new AuthenticationService(kc)
+
+  val publicKeysCache: TrieMap[String, PublicKey] = TrieMap.empty
