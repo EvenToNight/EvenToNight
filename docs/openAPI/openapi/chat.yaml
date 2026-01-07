@@ -1,0 +1,87 @@
+openapi: 3.0.1
+info:
+  title: EvenToNight - Chat API
+  version: 1.0.0
+paths:
+  /messages/{organizationId}/{memberId}/:
+    post:
+      summary: Send a message to a member in an organization
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "org456"
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageDto'
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponseDto'
+        '400':
+          description: Bad Request
+        '404':
+          description: Organization or Member not found
+  
+components:
+  schemas:
+    SendMessageDto:
+      type: object
+      properties:
+        senderId:
+          type: string
+          description: The ID of the sender
+          example: "user123"
+        content:
+          type: string
+          description: The content of the message
+          example: "Hello, can I get more information about your events?"
+      required:
+        - content
+
+    MessageResponseDto:
+      type: object
+      properties:
+        messageId:
+          type: string
+          description: The unique identifier of the message
+          example: "msg789"
+        organizationId:
+          type: string
+          description: The ID of the organization
+          example: "org456"
+        memberId:
+          type: string
+          description: The ID of the member
+          example: "member321"
+        content:
+          type: string
+          description: The content of the message
+          example: "Hello, can I get more information about your events?"
+        timestamp:
+          type: string
+          format: date-time
+          description: The time when the message was sent
+      required:
+        - messageId
+        - organizationId
+        - memberId
+        - content
+        - timestamp
+    
