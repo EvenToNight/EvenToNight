@@ -12,6 +12,7 @@ class OrganizationAccountCodec extends Codec[OrganizationAccount]:
   override def encode(writer: BsonWriter, value: OrganizationAccount, encoderContext: EncoderContext): Unit =
     writer.writeStartDocument()
     writer.writeString("keycloakId", value.keycloakId)
+    writer.writeString("username", value.username)
     writer.writeString("email", value.email)
     writer.writeEndDocument()
 
@@ -19,8 +20,9 @@ class OrganizationAccountCodec extends Codec[OrganizationAccount]:
     reader.readStartDocument()
     if (reader.readBsonType() == BsonType.OBJECT_ID) then reader.readObjectId()
     val keycloakId = reader.readString("keycloakId")
+    val username   = reader.readString("username")
     val email      = reader.readString("email")
     reader.readEndDocument()
-    OrganizationAccount(keycloakId, email)
+    OrganizationAccount(keycloakId, username, email)
 
   override def getEncoderClass: Class[OrganizationAccount] = classOf[OrganizationAccount]

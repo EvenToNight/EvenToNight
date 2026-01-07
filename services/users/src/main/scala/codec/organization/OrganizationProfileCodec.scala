@@ -11,14 +11,14 @@ import org.bson.codecs.EncoderContext
 class OrganizationProfileCodec extends Codec[OrganizationProfile]:
   override def encode(writer: BsonWriter, value: OrganizationProfile, encoderContext: EncoderContext): Unit =
     writer.writeStartDocument()
-    writer.writeString("nickname", value.nickname)
+    writer.writeString("name", value.name)
     writer.writeEndDocument()
 
   override def decode(reader: BsonReader, decoderContext: DecoderContext): OrganizationProfile =
     reader.readStartDocument()
     if (reader.readBsonType() == BsonType.OBJECT_ID) then reader.readObjectId()
-    val nickname = reader.readString("nickname")
+    val name = reader.readString("name")
     reader.readEndDocument()
-    OrganizationProfile(nickname)
+    OrganizationProfile(name)
 
   override def getEncoderClass: Class[OrganizationProfile] = classOf[OrganizationProfile]

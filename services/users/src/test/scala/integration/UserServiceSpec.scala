@@ -74,10 +74,11 @@ class UserServiceSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
     val account = memberAccountsColl.find(eqFilter("_id", ObjectId(references.accountId))).first()
     account.keycloakId shouldBe member.account.keycloakId
+    account.username shouldBe member.account.username
     account.email shouldBe member.account.email
 
     val profile = memberProfilesColl.find(eqFilter("_id", ObjectId(references.profileId))).first()
-    profile.nickname shouldBe member.profile.nickname
+    profile.name shouldBe member.profile.name
 
   it should "persist an organization's account and profile and their references" in:
     service.insertUser(organization, organizationUserId)
@@ -87,7 +88,8 @@ class UserServiceSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
     val account = orgAccountsColl.find(eqFilter("_id", ObjectId(references.accountId))).first()
     account.keycloakId shouldBe organization.account.keycloakId
+    account.username shouldBe organization.account.username
     account.email shouldBe organization.account.email
 
     val profile = orgProfilesColl.find(eqFilter("_id", ObjectId(references.profileId))).first()
-    profile.nickname shouldBe organization.profile.nickname
+    profile.name shouldBe organization.profile.name

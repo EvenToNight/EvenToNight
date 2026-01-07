@@ -14,7 +14,7 @@ object UsersConversions:
               "email" -> member.account.email
             ),
             "profile" -> Obj(
-              "nickname" -> member.profile.nickname
+              "name" -> member.profile.name
             )
           )
         case org: Organization =>
@@ -24,6 +24,6 @@ object UsersConversions:
               "email" -> org.account.email
             ),
             "profile" -> Obj(
-              "nickname" -> org.profile.nickname
+              "name" -> org.profile.name
             )
           )

@@ -38,10 +38,10 @@ object UserRegistration:
   def fromValidRegistration(valid: ValidRegistration, keycloakId: String): RegisteredUser =
     valid.userType match
       case "member" =>
-        val memberAccount = MemberAccount(keycloakId, valid.email)
-        val memberProfile = MemberProfile.default
+        val memberAccount = MemberAccount(keycloakId, valid.username, valid.email)
+        val memberProfile = MemberProfile(valid.username)
         Member(memberAccount, memberProfile)
       case "organization" =>
-        val organizationAccount = OrganizationAccount(keycloakId, valid.email)
-        val organizationProfile = OrganizationProfile.default
+        val organizationAccount = OrganizationAccount(keycloakId, valid.username, valid.email)
+        val organizationProfile = OrganizationProfile(valid.username)
         Organization(organizationAccount, organizationProfile)
