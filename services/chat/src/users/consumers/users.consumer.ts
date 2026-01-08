@@ -29,4 +29,25 @@ export class UserConsumer {
       console.error('Error caching user:', error);
     }
   }
+
+  @MessagePattern('user.updated')
+  async handleUserUpdated(@Payload() data: any, @Ctx() context: RmqContext) {
+    console.log('Received user.updated event:', data);
+
+    try {
+      const updates: { name?: string; avatar?: string } = {};
+      if (data.name !== undefined) updates.name = data.name;
+      if (data.avatar !== undefined) updates.avatar = data.avatar;
+
+      await this.usersService.updateUser(data.userId, updates);
+
+      console.log('User updated successfully:', data.userId);
+
+      const channel = context.getChannelRef();
+      const originalMsg = context.getMessage();
+      channel.ack(originalMsg);
+    } catch (error) {
+      console.error('Error updating user:', error);
+    }
+  }
 }

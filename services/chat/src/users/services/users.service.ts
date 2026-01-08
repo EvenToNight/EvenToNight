@@ -17,4 +17,15 @@ export class UsersService {
       new: true,
     });
   }
+
+  async updateUser(
+    userId: string,
+    updates: { name?: string; avatar?: string },
+  ): Promise<User | null> {
+    return this.userModel.findOneAndUpdate(
+      { userId },
+      { $set: updates },
+      { new: true },
+    );
+  }
 }
