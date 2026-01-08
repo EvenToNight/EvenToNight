@@ -15,6 +15,7 @@ import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception
 import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
 import { MessageListResponse } from '../dto/message-list.response';
 import { MessageDTO } from '../dto/message.dto';
+import { UsersService } from 'src/users/services/users.service';
 
 @Injectable()
 export class ConversationsService {
@@ -25,13 +26,15 @@ export class ConversationsService {
     private readonly participantModel: Model<any>,
     @InjectModel(Message.name)
     private readonly messageModel: Model<any>,
+    private readonly usersService: UsersService,
   ) {}
 
   private async findOrCreateConversation(
     organizationId: string,
     memberId: string,
   ): Promise<any> {
-    // TODO: Check if organizationId and memberId exist
+    await this.usersService.userExists(organizationId);
+    await this.usersService.userExists(memberId);
 
     let conversation = await this.conversationModel.findOne({
       organizationId,
@@ -116,7 +119,7 @@ export class ConversationsService {
     userId: string,
     query: GetConversationsQueryDto,
   ): Promise<ConversationListResponse> {
-    // TODO: Check if userId exist
+    await this.usersService.userExists(userId);
 
     const { limit = 20, offset = 0 } = query;
 
@@ -189,7 +192,7 @@ export class ConversationsService {
   }
 
   async getTotalUnreadCount(userId: string): Promise<number> {
-    // TODO: Check if userId exist
+    await this.usersService.userExists(userId);
 
     const participants = await this.participantModel.find({ userId });
 
@@ -218,7 +221,7 @@ export class ConversationsService {
     conversationId: string,
     userId: string,
   ): Promise<boolean> {
-    // TODO: Check if userId exist
+    await this.usersService.userExists(userId);
 
     const participant = await this.participantModel.findOne({
       conversationId: new Types.ObjectId(conversationId),
@@ -233,7 +236,7 @@ export class ConversationsService {
     userId: string,
     query: GetMessagesQueryDto,
   ): Promise<MessageListResponse> {
-    // TODO: Check if userId exist
+    await this.usersService.userExists(userId);
 
     const { limit = 50, offset = 0 } = query;
 

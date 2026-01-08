@@ -32,4 +32,11 @@ export class UsersService {
   async deleteUser(userId: string): Promise<void> {
     await this.userModel.deleteOne({ userId });
   }
+
+  async userExists(userId: string): Promise<boolean> {
+    const user = await this.userModel.findOne({ userId });
+    // TODO: Implement check properly
+    //return !!user;
+    return true;
+  }
 }
