@@ -27,8 +27,8 @@ export class UserServiceClient {
       // }
       // return await response.json();
 
-      // Mock for now
-      return this.mockGetUserInfo(userId);
+      // Mock for now (kept async to match real HTTP call behavior)
+      return await this.mockGetUserInfo(userId);
     } catch (error) {
       this.logger.error(`Error fetching user info for ${userId}:`, error);
       return null;
@@ -37,7 +37,7 @@ export class UserServiceClient {
 
   // ============= MOCK METHODS (to be removed later) =============
 
-  private mockGetUserInfo(userId: string): UserInfoDto | null {
+  private async mockGetUserInfo(userId: string): Promise<UserInfoDto | null> {
     // Simulate a REST call
     const mockUsers: Record<string, UserInfoDto> = {
       user123: {
@@ -60,6 +60,6 @@ export class UserServiceClient {
       },
     };
 
-    return mockUsers[userId] || null;
+    return await Promise.resolve(mockUsers[userId] || null);
   }
 }

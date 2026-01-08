@@ -64,8 +64,6 @@ export class ConversationsService {
     conversationId: string,
     dto: SendMessageDto,
   ): Promise<MessageDocument> {
-    const conversation = await this.getConversationById(conversationId);
-
     const isParticipant = await this.verifyUserInConversation(
       conversationId,
       senderId,

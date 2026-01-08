@@ -16,7 +16,6 @@ import { ConversationListResponse } from '../dto/conversation-list.response';
 import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
 import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
 import { MessageListResponse } from '../dto/message-list.response';
-import { MarkAsReadDto } from '../dto/mark-as-read.dto';
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
 
 @Controller('users/:userId')
