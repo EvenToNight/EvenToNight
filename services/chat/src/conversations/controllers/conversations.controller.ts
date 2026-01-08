@@ -1,17 +1,22 @@
-import { Controller, Get } from '@nestjs/common';
-import { Post } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Body,
+  Param,
+  HttpCode,
+  HttpStatus,
+  Query,
+  BadRequestException,
+} from '@nestjs/common';
 import { SendMessageDto } from '../dto/send-message.dto';
-import { Body } from '@nestjs/common';
-import { Param } from '@nestjs/common';
-import { HttpCode } from '@nestjs/common';
-import { HttpStatus } from '@nestjs/common';
 import { ConversationsService } from '../services/conversations.service';
 import { ConversationListResponse } from '../dto/conversation-list.response';
-import { Query } from '@nestjs/common';
 import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
-import { BadRequestException } from '@nestjs/common';
 import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
 import { MessageListResponse } from '../dto/message-list.response';
+import { MarkAsReadDto } from '../dto/mark-as-read.dto';
 
 @Controller('messages')
 export class ConversationsController {
@@ -92,5 +97,17 @@ export class ConversationsController {
     @Query() query: GetMessagesQueryDto,
   ): Promise<MessageListResponse> {
     return this.conversationsService.getMessages(conversationId, userId, query);
+  }
+
+  @Patch(':id/read')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async markAsRead(
+    @Param('id') conversationId: string,
+    @Body() markAsReadDto: MarkAsReadDto,
+  ): Promise<void> {
+    await this.conversationsService.markAsRead(
+      conversationId,
+      markAsReadDto.userId,
+    );
   }
 }
