@@ -3,6 +3,7 @@ package infrastructure
 import io.circe.Json
 import io.circe.parser.parse
 import io.circe.syntax._
+import model.Tokens
 import sttp.client3._
 import sttp.model.StatusCode
 
@@ -17,7 +18,7 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
     try Right(request.send(backend))
     catch case e: Exception => Left(s"Connection error: ${e.getMessage}")
 
-  def requestAccessToken(form: Map[String, String]): Either[String, String] =
+  private def sendTokenRequest(form: Map[String, String]): Either[String, String] =
     val tokenUrl = s"$keycloakUrl/realms/$realm/protocol/openid-connect/token"
     val request = basicRequest
       .post(uri"$tokenUrl")
@@ -29,22 +30,18 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
     responseOrError.flatMap(response =>
       val body = response.body
       response.code match
-        case StatusCode.Ok =>
-          for
-            json <- parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}")
-            token <-
-              json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
-          yield token
-        case StatusCode.BadRequest =>
-          parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}").flatMap(json =>
-            json.hcursor.get[String]("error") match
-              case Right("invalid_grant") => Left("Invalid credentials")
-              case Right(other)           => Left(s"Keycloak error: $other")
-              case Left(_)                => Left(s"Keycloak error: $body")
-          )
+        case StatusCode.Ok           => Right(body)
+        case StatusCode.BadRequest   => Left(s"Bad request: $body")
         case StatusCode.Unauthorized => Left(s"Invalid credentials: $body")
         case StatusCode.Forbidden    => Left(s"Client not allowed: $body")
         case other                   => Left(s"Unexpected Keycloak status: $other")
+    )
+
+  def requestAccessToken(form: Map[String, String]): Either[String, String] =
+    sendTokenRequest(form).flatMap(body =>
+      parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}").flatMap(json =>
+        json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
+      )
     )
 
   def getClientAccessToken(): Either[String, String] =
@@ -157,8 +154,20 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
               Left(s"Failed to assign role '$roleName' to user '$keycloakId': ${other.code} ${response.body}")
         )
 
-  def loginUser(usernameOrEmail: String, password: String): Either[String, String] =
-    requestAccessToken(
+  private def requestUserTokens(form: Map[String, String]): Either[String, Tokens] =
+    sendTokenRequest(form).flatMap(body =>
+      parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}").flatMap(json =>
+        for
+          accessToken <-
+            json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
+          refreshToken <-
+            json.hcursor.get[String]("refresh_token").left.map(err => s"Missing refresh_token: ${err.getMessage}")
+        yield Tokens(accessToken, refreshToken)
+      )
+    )
+
+  def loginUser(usernameOrEmail: String, password: String): Either[String, Tokens] =
+    requestUserTokens(
       Map(
         "grant_type"    -> "password",
         "client_id"     -> clientId,

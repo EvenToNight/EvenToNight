@@ -3,6 +3,7 @@ package service
 import infrastructure.KeycloakConnection
 import keycloak.KeycloakRoles
 import keycloak.KeycloakRoles._
+import model.Tokens
 import model.ValidRegistration
 
 class AuthenticationService(kc: KeycloakConnection):
@@ -18,5 +19,5 @@ class AuthenticationService(kc: KeycloakConnection):
       _      <- kc.assignRoleToUser(keycloakId, roleId, registration.userType)
     yield (keycloakId, userId)
 
-  def login(usernameOrEmail: String, password: String): Either[String, String] =
+  def login(usernameOrEmail: String, password: String): Either[String, Tokens] =
     kc.loginUser(usernameOrEmail, password)

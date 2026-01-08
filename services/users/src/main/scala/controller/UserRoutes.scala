@@ -2,10 +2,11 @@ package controller
 
 import cask.Request
 import cask.Response
+import keycloak.KeycloakJwtVerifier.extractUserId
 import keycloak.KeycloakJwtVerifier.refreshPublicKeys
 import model.LoginValidation._
 import model.UsersConversions.asJson
-import model.registration.TokenResponse
+import model.api.mappers.Mappers.toLoginDTO
 import model.registration.UserRegistration._
 import service.AuthenticationService
 import service.UserService
@@ -29,8 +30,9 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
 
                 authService.login(validReq.username, validReq.password) match
                   case Left(err) => Response(s"User created but login failed: $err", 500)
-                  case Right(token) =>
-                    Response(write(TokenResponse(token)), 201)
+                  case Right(tokens) =>
+                    val dto = registeredUser.toLoginDTO(tokens.accessToken, tokens.refreshToken)
+                    Response(write(dto), 201)
 
   @cask.post("/login")
   def login(req: Request): Response[String] =
@@ -44,7 +46,15 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
               case Left("Invalid credentials") => Response("Login failed: invalid credentials", 401)
               case Left("Client not allowed")  => Response("Login failed: client not allowed", 403)
               case Left(err)                   => Response(s"Login failed: $err", 500)
-              case Right(token)                => Response(write(TokenResponse(token)), 200)
+              case Right(tokens) =>
+                extractUserId(tokens.accessToken) match
+                  case Left(err) => Response(s"Failed to extract userId: $err", 500)
+                  case Right(userId) =>
+                    userService.getUserById(userId) match
+                      case Left(err) => Response(err, 404)
+                      case Right(user) =>
+                        val dto = user.toLoginDTO(tokens.accessToken, tokens.refreshToken)
+                        Response(write(dto), 200)
 
   @cask.get("/:userId")
   def getUser(userId: String): Response[Value] =

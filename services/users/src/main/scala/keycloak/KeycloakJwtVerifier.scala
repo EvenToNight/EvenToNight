@@ -3,11 +3,18 @@ package keycloak
 import infrastructure.Wiring.publicKeysCache
 import io.circe.Json
 import io.circe.parser.decode
+import io.circe.parser.parse
+import pdi.jwt.Jwt
+import pdi.jwt.JwtAlgorithm
+import pdi.jwt.JwtClaim
+import pdi.jwt.exceptions._
 import sttp.client3._
 
 import java.security.KeyFactory
 import java.security.PublicKey
 import java.util.Base64
+import scala.util.Failure
+import scala.util.Success
 import scala.util.Try
 
 object KeycloakJwtVerifier:
@@ -62,4 +69,48 @@ object KeycloakJwtVerifier:
           )
         }
       )
+    )
+
+  private def extractKidFromHeader(accessToken: String): Either[String, String] =
+    accessToken.split("\\.") match
+      case Array(headerB64, _, _) =>
+        Try(new String(Base64.getUrlDecoder.decode(headerB64))).toEither.left.map(_ =>
+          "Invalid JWT header encoding"
+        ).flatMap(headerJson =>
+          parse(headerJson).left.map(_ => "Invalid JWT header JSON").flatMap(json =>
+            json.hcursor.get[String]("kid").left.map(_ => "Missing 'kid' in JWT header")
+          )
+        )
+      case _ => Left("Invalid JWT format")
+
+  private def decodeWithKey(accessToken: String, pk: PublicKey): Either[String, JwtClaim] =
+    Jwt.decode(accessToken, pk, Seq(JwtAlgorithm.RS256)) match
+      case Success(claim) => Right(claim)
+      case Failure(ex) =>
+        ex match
+          case _: JwtValidationException => Left("Signature not verified")
+          case _: JwtExpirationException => Left("Token expired")
+          case _                         => Left("Invalid token")
+
+  def verifyToken(accessToken: String): Either[String, JwtClaim] =
+    extractKidFromHeader(accessToken).flatMap(kid =>
+      publicKeysCache.get(kid) match
+        case Some(pk) => decodeWithKey(accessToken, pk)
+        case None =>
+          refreshPublicKeys().flatMap(_ =>
+            publicKeysCache.get(kid) match
+              case Some(pk) => decodeWithKey(accessToken, pk)
+              case None     => Left("Unauthorized")
+          )
+    )
+
+  def extractUserId(accessToken: String): Either[String, String] =
+    verifyToken(accessToken).flatMap(claim =>
+      parse(claim.content)
+        .left.map(_.getMessage)
+        .flatMap(
+          _.hcursor
+            .get[String]("user_id")
+            .left.map(_ => "Missing 'user_id' claim in token")
+        )
     )
