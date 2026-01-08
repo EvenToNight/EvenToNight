@@ -10,6 +10,8 @@ import { ConversationListResponse } from '../dto/conversation-list.response';
 import { Query } from '@nestjs/common';
 import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
 import { BadRequestException } from '@nestjs/common';
+import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
+import { MessageListResponse } from '../dto/message-list.response';
 
 @Controller('messages')
 export class ConversationsController {
@@ -81,5 +83,14 @@ export class ConversationsController {
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
     };
+  }
+
+  @Get(':userId/:conversationId/messages')
+  async getMessages(
+    @Param('userId') userId: string,
+    @Param('conversationId') conversationId: string,
+    @Query() query: GetMessagesQueryDto,
+  ): Promise<MessageListResponse> {
+    return this.conversationsService.getMessages(conversationId, userId, query);
   }
 }
