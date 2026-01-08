@@ -297,4 +297,27 @@ export class ConversationsService {
       hasMore,
     };
   }
+
+  async markAsRead(conversationId: string, userId: string): Promise<void> {
+    const isParticipant = await this.verifyUserInConversation(
+      conversationId,
+      userId,
+    );
+    if (!isParticipant) {
+      throw new BadRequestException(
+        'User is not a participant of this conversation',
+      );
+    }
+
+    await this.participantModel.updateOne(
+      {
+        conversationId: new Types.ObjectId(conversationId),
+        userId,
+      },
+      {
+        lastReadAt: new Date(),
+        unreadCount: 0,
+      },
+    );
+  }
 }
