@@ -43,4 +43,13 @@ export class ConversationsController {
   ): Promise<ConversationListResponse> {
     return await this.conversationsService.getUserConversations(userId, query);
   }
+
+  @Get(':userId/unread/count')
+  async getUnreadCount(@Param('userId') userId: string) {
+    const count = await this.conversationsService.getTotalUnreadCount(userId);
+
+    return {
+      unreadCount: count,
+    };
+  }
 }
