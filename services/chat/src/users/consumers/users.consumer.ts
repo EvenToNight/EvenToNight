@@ -8,7 +8,7 @@ import {
 import { UsersService } from '../services/users.service';
 
 @Controller()
-export class UserEventsConsumer {
+export class UserConsumer {
   constructor(private readonly usersService: UsersService) {}
 
   @MessagePattern('user.created')
