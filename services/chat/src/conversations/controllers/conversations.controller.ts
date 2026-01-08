@@ -17,10 +17,32 @@ import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
 import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
 import { MessageListResponse } from '../dto/message-list.response';
 import { MarkAsReadDto } from '../dto/mark-as-read.dto';
+import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
 
 @Controller('messages')
 export class ConversationsController {
   constructor(private readonly conversationsService: ConversationsService) {}
+
+  @Post(':userId/conversations')
+  @HttpCode(HttpStatus.CREATED)
+  async createConversation(
+    @Param('userId') userId: string,
+    @Body() dto: CreateConversationMessageDto,
+  ) {
+    const message =
+      await this.conversationsService.createConversationWithMessage(
+        userId,
+        dto,
+      );
+
+    return {
+      id: message._id.toString(),
+      conversationId: message.conversationId.toString(),
+      senderId: message.senderId,
+      content: message.content,
+      createdAt: message.createdAt,
+    };
+  }
 
   @Post(':organizationId/:memberId/')
   @HttpCode(HttpStatus.CREATED)

@@ -16,6 +16,7 @@ import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
 import { MessageListResponse } from '../dto/message-list.response';
 import { MessageDTO } from '../dto/message.dto';
 import { UsersService } from 'src/users/services/users.service';
+import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
 
 @Injectable()
 export class ConversationsService {
@@ -28,6 +29,79 @@ export class ConversationsService {
     private readonly messageModel: Model<any>,
     private readonly usersService: UsersService,
   ) {}
+
+  private async findConversationBetweenUsers(
+    organizationId: string,
+    memberId: string,
+  ): Promise<Conversation | null> {
+    return this.conversationModel.findOne({
+      organizationId,
+      memberId,
+    });
+  }
+
+  async createConversationWithMessage(
+    senderId: string,
+    dto: CreateConversationMessageDto,
+  ): Promise<MessageDocument> {
+    const existingConversation = await this.findConversationBetweenUsers(
+      dto.recipientId,
+      senderId,
+    );
+
+    if (existingConversation) {
+      throw new BadRequestException(
+        'Conversation already exists. Use the existing conversation endpoint.',
+      );
+    }
+
+    const conversation = await this.findOrCreateConversation(
+      dto.recipientId,
+      senderId,
+    );
+
+    const message = await this.createMessage(
+      conversation._id.toString(),
+      senderId,
+      dto.content,
+    );
+
+    return message;
+  }
+
+  private async createMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+  ): Promise<MessageDocument> {
+    const message = new this.messageModel({
+      conversationId: new Types.ObjectId(conversationId),
+      senderId,
+      content,
+    });
+    const savedMessage = await message.save();
+
+    await this.conversationModel.updateOne(
+      { _id: conversationId },
+      { updatedAt: new Date() },
+    );
+
+    await this.participantModel.updateOne(
+      {
+        conversationId: new Types.ObjectId(conversationId),
+        userId: { $ne: senderId },
+      },
+      {
+        $inc: { unreadCount: 1 },
+      },
+    );
+
+    console.log(`✅ Message sent in conversation ${conversationId}`);
+
+    // TODO: Pubblica evento su RabbitMQ per notifiche real-time
+
+    return savedMessage;
+  }
 
   private async findOrCreateConversation(
     organizationId: string,
