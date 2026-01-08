@@ -30,79 +30,6 @@ export class ConversationsService {
     private readonly usersService: UsersService,
   ) {}
 
-  private async findConversationBetweenUsers(
-    organizationId: string,
-    memberId: string,
-  ): Promise<Conversation | null> {
-    return this.conversationModel.findOne({
-      organizationId,
-      memberId,
-    });
-  }
-
-  async createConversationWithMessage(
-    senderId: string,
-    dto: CreateConversationMessageDto,
-  ): Promise<MessageDocument> {
-    const existingConversation = await this.findConversationBetweenUsers(
-      dto.recipientId,
-      senderId,
-    );
-
-    if (existingConversation) {
-      throw new BadRequestException(
-        'Conversation already exists. Use the existing conversation endpoint.',
-      );
-    }
-
-    const conversation = await this.findOrCreateConversation(
-      dto.recipientId,
-      senderId,
-    );
-
-    const message = await this.createMessage(
-      conversation._id.toString(),
-      senderId,
-      dto.content,
-    );
-
-    return message;
-  }
-
-  private async createMessage(
-    conversationId: string,
-    senderId: string,
-    content: string,
-  ): Promise<MessageDocument> {
-    const message = new this.messageModel({
-      conversationId: new Types.ObjectId(conversationId),
-      senderId,
-      content,
-    });
-    const savedMessage = await message.save();
-
-    await this.conversationModel.updateOne(
-      { _id: conversationId },
-      { updatedAt: new Date() },
-    );
-
-    await this.participantModel.updateOne(
-      {
-        conversationId: new Types.ObjectId(conversationId),
-        userId: { $ne: senderId },
-      },
-      {
-        $inc: { unreadCount: 1 },
-      },
-    );
-
-    console.log(`✅ Message sent in conversation ${conversationId}`);
-
-    // TODO: Pubblica evento su RabbitMQ per notifiche real-time
-
-    return savedMessage;
-  }
-
   private async findOrCreateConversation(
     organizationId: string,
     memberId: string,
@@ -146,47 +73,98 @@ export class ConversationsService {
     return conversation;
   }
 
-  async sendMessage(
+  private async findConversationBetweenUsers(
     organizationId: string,
     memberId: string,
-    dto: SendMessageDto,
-  ): Promise<MessageDocument> {
-    if (dto.senderId !== organizationId && dto.senderId !== memberId) {
-      throw new BadRequestException(
-        'Sender must be either organization or member',
-      );
-    }
-
-    const conversation = await this.findOrCreateConversation(
+  ): Promise<Conversation | null> {
+    return this.conversationModel.findOne({
       organizationId,
       memberId,
-    );
+    });
+  }
 
+  private async createMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+  ): Promise<MessageDocument> {
     const message = new this.messageModel({
-      conversationId: conversation._id,
-      senderId: dto.senderId,
-      content: dto.content,
+      conversationId: new Types.ObjectId(conversationId),
+      senderId,
+      content,
     });
     const savedMessage = await message.save();
 
-    conversation.updatedAt = new Date();
-    await conversation.save();
+    await this.conversationModel.updateOne(
+      { _id: conversationId },
+      { updatedAt: new Date() },
+    );
 
     await this.participantModel.updateOne(
       {
-        conversationId: conversation._id,
-        userId: { $ne: dto.senderId },
+        conversationId: new Types.ObjectId(conversationId),
+        userId: { $ne: senderId },
       },
       {
         $inc: { unreadCount: 1 },
       },
     );
 
-    console.log(`✅ Message sent in conversation ${conversation._id}`);
+    console.log(`✅ Message sent in conversation ${conversationId}`);
 
-    // TODO: Publish event to rabbitmq
+    // TODO: Pubblica evento su RabbitMQ per notifiche real-time
 
     return savedMessage;
+  }
+
+  async createConversationWithMessage(
+    senderId: string,
+    dto: CreateConversationMessageDto,
+  ): Promise<MessageDocument> {
+    const existingConversation = await this.findConversationBetweenUsers(
+      dto.recipientId,
+      senderId,
+    );
+
+    if (existingConversation) {
+      throw new BadRequestException(
+        'Conversation already exists. Use the existing conversation endpoint.',
+      );
+    }
+
+    const conversation = await this.findOrCreateConversation(
+      dto.recipientId,
+      senderId,
+    );
+
+    const message = await this.createMessage(
+      conversation._id.toString(),
+      senderId,
+      dto.content,
+    );
+
+    return message;
+  }
+
+  async sendMessageToConversation(
+    senderId: string,
+    conversationId: string,
+    dto: SendMessageDto,
+  ): Promise<MessageDocument> {
+    const conversation = await this.getConversationById(conversationId);
+
+    const isParticipant = await this.verifyUserInConversation(
+      conversationId,
+      senderId,
+    );
+
+    if (!isParticipant) {
+      throw new BadRequestException(
+        'User is not a participant of this conversation',
+      );
+    }
+
+    return this.createMessage(conversationId, senderId, dto.content);
   }
 
   async getUserConversations(

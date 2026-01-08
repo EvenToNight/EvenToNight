@@ -44,16 +44,16 @@ export class ConversationsController {
     };
   }
 
-  @Post(':organizationId/:memberId/')
+  @Post(':userId/conversations/:conversationId/')
   @HttpCode(HttpStatus.CREATED)
   async sendMessage(
-    @Param('organizationId') organizationId: string,
-    @Param('memberId') memberId: string,
+    @Param('userId') userId: string,
+    @Param('conversationId') conversationId: string,
     @Body() sendMessageDto: SendMessageDto,
   ) {
-    const message = await this.conversationsService.sendMessage(
-      organizationId,
-      memberId,
+    const message = await this.conversationsService.sendMessageToConversation(
+      userId,
+      conversationId,
       sendMessageDto,
     );
 
