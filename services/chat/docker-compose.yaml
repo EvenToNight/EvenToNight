@@ -10,6 +10,7 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
       - MONGO_HOST=mongo-chat
+      - USER_SERVICE_URL=https://users.${HOST}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.chat.rule=Host(`chat.${HOST}`)"
