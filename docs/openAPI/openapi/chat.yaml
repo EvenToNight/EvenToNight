@@ -154,6 +154,51 @@ paths:
         '404':
           description: User not found    
 
+  /messages/{userId}/{conversationId}:
+    get:
+      summary: Get specific conversation of a user by ID
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "conv123"
+      responses:
+        '200':
+          description: Conversation details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "conv123"
+                  organizationId:
+                    type: string
+                    example: "org456"
+                  memberId:
+                    type: string
+                    example: "member321"
+                  "createdAt":
+                    type: string
+                    format: date-time
+                  "updatedAt":
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
   
 components:
   schemas:
