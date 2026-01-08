@@ -30,93 +30,6 @@ export class ConversationsService {
     private readonly usersService: UsersService,
   ) {}
 
-  private async findOrCreateConversation(
-    organizationId: string,
-    memberId: string,
-  ): Promise<any> {
-    await this.usersService.userExists(organizationId);
-    await this.usersService.userExists(memberId);
-
-    let conversation = await this.conversationModel.findOne({
-      organizationId,
-      memberId,
-    });
-
-    if (!conversation) {
-      conversation = new this.conversationModel({
-        organizationId,
-        memberId,
-      });
-      const savedConversation = await conversation.save();
-
-      const orgParticipant = new this.participantModel({
-        conversationId: savedConversation._id,
-        userId: organizationId,
-        role: ParticipantRole.ORGANIZATION,
-        unreadCount: 0,
-        lastReadAt: new Date(),
-      });
-
-      const memberParticipant = new this.participantModel({
-        conversationId: savedConversation._id,
-        userId: memberId,
-        role: ParticipantRole.MEMBER,
-        unreadCount: 0,
-        lastReadAt: new Date(),
-      });
-
-      await Promise.all([orgParticipant.save(), memberParticipant.save()]);
-
-      conversation = savedConversation;
-    }
-
-    return conversation;
-  }
-
-  private async findConversationBetweenUsers(
-    organizationId: string,
-    memberId: string,
-  ): Promise<Conversation | null> {
-    return this.conversationModel.findOne({
-      organizationId,
-      memberId,
-    });
-  }
-
-  private async createMessage(
-    conversationId: string,
-    senderId: string,
-    content: string,
-  ): Promise<MessageDocument> {
-    const message = new this.messageModel({
-      conversationId: new Types.ObjectId(conversationId),
-      senderId,
-      content,
-    });
-    const savedMessage = await message.save();
-
-    await this.conversationModel.updateOne(
-      { _id: conversationId },
-      { updatedAt: new Date() },
-    );
-
-    await this.participantModel.updateOne(
-      {
-        conversationId: new Types.ObjectId(conversationId),
-        userId: { $ne: senderId },
-      },
-      {
-        $inc: { unreadCount: 1 },
-      },
-    );
-
-    console.log(`✅ Message sent in conversation ${conversationId}`);
-
-    // TODO: Pubblica evento su RabbitMQ per notifiche real-time
-
-    return savedMessage;
-  }
-
   async createConversationWithMessage(
     senderId: string,
     dto: CreateConversationMessageDto,
@@ -370,5 +283,92 @@ export class ConversationsService {
         unreadCount: 0,
       },
     );
+  }
+
+  private async findOrCreateConversation(
+    organizationId: string,
+    memberId: string,
+  ): Promise<any> {
+    await this.usersService.userExists(organizationId);
+    await this.usersService.userExists(memberId);
+
+    let conversation = await this.conversationModel.findOne({
+      organizationId,
+      memberId,
+    });
+
+    if (!conversation) {
+      conversation = new this.conversationModel({
+        organizationId,
+        memberId,
+      });
+      const savedConversation = await conversation.save();
+
+      const orgParticipant = new this.participantModel({
+        conversationId: savedConversation._id,
+        userId: organizationId,
+        role: ParticipantRole.ORGANIZATION,
+        unreadCount: 0,
+        lastReadAt: new Date(),
+      });
+
+      const memberParticipant = new this.participantModel({
+        conversationId: savedConversation._id,
+        userId: memberId,
+        role: ParticipantRole.MEMBER,
+        unreadCount: 0,
+        lastReadAt: new Date(),
+      });
+
+      await Promise.all([orgParticipant.save(), memberParticipant.save()]);
+
+      conversation = savedConversation;
+    }
+
+    return conversation;
+  }
+
+  private async findConversationBetweenUsers(
+    organizationId: string,
+    memberId: string,
+  ): Promise<Conversation | null> {
+    return this.conversationModel.findOne({
+      organizationId,
+      memberId,
+    });
+  }
+
+  private async createMessage(
+    conversationId: string,
+    senderId: string,
+    content: string,
+  ): Promise<MessageDocument> {
+    const message = new this.messageModel({
+      conversationId: new Types.ObjectId(conversationId),
+      senderId,
+      content,
+    });
+    const savedMessage = await message.save();
+
+    await this.conversationModel.updateOne(
+      { _id: conversationId },
+      { updatedAt: new Date() },
+    );
+
+    await this.participantModel.updateOne(
+      {
+        conversationId: new Types.ObjectId(conversationId),
+        userId: { $ne: senderId },
+      },
+      {
+        $inc: { unreadCount: 1 },
+      },
+    );
+
+    console.log(`✅ Message sent in conversation ${conversationId}`);
+
+    // TODO: Pubblica evento su RabbitMQ per notifiche real-time
+
+    return savedMessage;
   }
 }
