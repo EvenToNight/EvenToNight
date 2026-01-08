@@ -4,7 +4,7 @@ import {
   ConversationDocument,
 } from '../schemas/conversation.schema';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { ParticipantRole } from '../schemas/participant.schema';
 import { SendMessageDto } from '../dto/send-message.dto';
 import { Message, MessageDocument } from '../schemas/message.schema';
@@ -12,7 +12,9 @@ import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
 import { ConversationListResponse } from '../dto/conversation-list.response';
 import { ConversationListItemDTO } from '../dto/conversation-list-item.dto';
 import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
-import { Types } from 'mongoose';
+import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
+import { MessageListResponse } from '../dto/message-list.response';
+import { MessageDTO } from '../dto/message.dto';
 
 @Injectable()
 export class ConversationsService {
@@ -216,11 +218,83 @@ export class ConversationsService {
     conversationId: string,
     userId: string,
   ): Promise<boolean> {
+    // TODO: Check if userId exist
+
     const participant = await this.participantModel.findOne({
       conversationId: new Types.ObjectId(conversationId),
       userId,
     });
 
     return !!participant;
+  }
+
+  async getMessages(
+    conversationId: string,
+    userId: string,
+    query: GetMessagesQueryDto,
+  ): Promise<MessageListResponse> {
+    // TODO: Check if userId exist
+
+    const { limit = 50, offset = 0 } = query;
+
+    const isParticipant = await this.verifyUserInConversation(
+      conversationId,
+      userId,
+    );
+    if (!isParticipant) {
+      throw new BadRequestException(
+        'User is not a participant of this conversation',
+      );
+    }
+
+    const participant = await this.participantModel.findOne({
+      conversationId: new Types.ObjectId(conversationId),
+      userId,
+    });
+
+    const messages = await this.messageModel
+      .find({ conversationId: new Types.ObjectId(conversationId) })
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit + 1)
+      .exec();
+
+    const hasMore = messages.length > limit;
+    const items = messages.slice(0, limit);
+
+    const senderIds = [...new Set(items.map((msg) => msg.senderId))];
+
+    // TODO: Replace with real user info fetching
+    const usersInfo = senderIds.map((id) => ({
+      userId: id,
+      name: 'Username',
+      avatar: 'https://via.placeholder.com/150',
+    }));
+
+    const usersMap = new Map(usersInfo.map((user) => [user.userId, user]));
+
+    const messageDTOs: MessageDTO[] = items.map((message) => {
+      const senderInfo = usersMap.get(message.senderId);
+
+      return {
+        id: message._id.toString(),
+        conversationId: conversationId,
+        sender: {
+          id: message.senderId,
+          name: senderInfo?.name || 'Unknown User',
+          avatar: senderInfo?.avatar || 'https://via.placeholder.com/150',
+        },
+        content: message.content,
+        createdAt: message.createdAt,
+        isRead: message.createdAt <= participant.lastReadAt,
+      };
+    });
+
+    return {
+      items: messageDTOs,
+      limit,
+      offset,
+      hasMore,
+    };
   }
 }
