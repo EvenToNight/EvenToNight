@@ -2,10 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
+import { UserServiceClient } from 'src/integrations/user-service/user-service.client';
 
 @Injectable()
 export class UsersService {
-  constructor(@InjectModel(User.name) private userModel: Model<any>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<any>,
+    private readonly userServiceClient: UserServiceClient,
+  ) {}
 
   async upsertUser(data: {
     userId: string;
@@ -42,14 +46,25 @@ export class UsersService {
   }
 
   async getUserInfo(userId: string): Promise<User | null> {
-    const user = await this.userModel.findOne({ userId });
-    console.log('Retrieving user info for:', userId, user);
-    // TODO: Implement retrieval properly
-    const mockUser: User = {
-      userId,
-      name: 'UserName',
-      avatar: 'http://media.eventonight.site/users/default.png',
-    };
-    return mockUser;
+    let user = await this.userModel.findOne({ userId });
+
+    if (!user || !user.name) {
+      const remoteInfo = await this.userServiceClient.getUserInfo(userId);
+
+      if (remoteInfo) {
+        user = await this.upsertUser({
+          userId: remoteInfo.userId,
+          name: remoteInfo.name,
+          avatar: remoteInfo.avatar,
+        });
+      } else {
+        user = {
+          userId,
+          name: 'UserName',
+          avatar: 'http://media.eventonight.site/users/default.png',
+        };
+      }
+    }
+    return user;
   }
 }
