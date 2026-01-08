@@ -28,4 +28,8 @@ export class UsersService {
       { new: true },
     );
   }
+
+  async deleteUser(userId: string): Promise<void> {
+    await this.userModel.deleteOne({ userId });
+  }
 }

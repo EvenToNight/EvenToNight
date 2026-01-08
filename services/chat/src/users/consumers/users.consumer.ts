@@ -50,4 +50,21 @@ export class UserConsumer {
       console.error('Error updating user:', error);
     }
   }
+
+  @MessagePattern('user.deleted')
+  async handleUserDeleted(@Payload() data: any, @Ctx() context: RmqContext) {
+    console.log('Received user.deleted event:', data);
+
+    try {
+      await this.usersService.deleteUser(data.userId);
+
+      console.log('User deleted successfully:', data.userId);
+
+      const channel = context.getChannelRef();
+      const originalMsg = context.getMessage();
+      channel.ack(originalMsg);
+    } catch (error) {
+      console.error('Error deleting user:', error);
+    }
+  }
 }
