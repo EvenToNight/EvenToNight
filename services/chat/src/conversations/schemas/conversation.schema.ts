@@ -1,7 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-export type ConversationDocument = Conversation & Document;
+export type ConversationDocument = Conversation &
+  Document & { createdAt: Date; updatedAt: Date };
 
 @Schema({ timestamps: true })
 export class Conversation {

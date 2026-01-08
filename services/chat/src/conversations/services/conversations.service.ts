@@ -1,5 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import { Conversation } from '../schemas/conversation.schema';
+import {
+  Conversation,
+  ConversationDocument,
+} from '../schemas/conversation.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { ParticipantRole } from '../schemas/participant.schema';
@@ -193,7 +196,9 @@ export class ConversationsService {
     }, 0);
   }
 
-  async getConversationById(conversationId: string): Promise<Conversation> {
+  async getConversationById(
+    conversationId: string,
+  ): Promise<ConversationDocument> {
     if (!Types.ObjectId.isValid(conversationId)) {
       throw new BadRequestException('Invalid conversation ID');
     }
@@ -205,5 +210,17 @@ export class ConversationsService {
     }
 
     return conversation;
+  }
+
+  async verifyUserInConversation(
+    conversationId: string,
+    userId: string,
+  ): Promise<boolean> {
+    const participant = await this.participantModel.findOne({
+      conversationId: new Types.ObjectId(conversationId),
+      userId,
+    });
+
+    return !!participant;
   }
 }

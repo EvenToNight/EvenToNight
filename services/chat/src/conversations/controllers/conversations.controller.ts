@@ -9,6 +9,7 @@ import { ConversationsService } from '../services/conversations.service';
 import { ConversationListResponse } from '../dto/conversation-list.response';
 import { Query } from '@nestjs/common';
 import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
+import { BadRequestException } from '@nestjs/common';
 
 @Controller('messages')
 export class ConversationsController {
@@ -50,6 +51,35 @@ export class ConversationsController {
 
     return {
       unreadCount: count,
+    };
+  }
+
+  @Get(':userId/:conversationId')
+  async getConversation(
+    @Param('userId') userId: string,
+    @Param('conversationId') conversationId: string,
+  ) {
+    const isParticipant =
+      await this.conversationsService.verifyUserInConversation(
+        conversationId,
+        userId,
+      );
+
+    if (!isParticipant) {
+      throw new BadRequestException(
+        'User is not a participant of this conversation',
+      );
+    }
+
+    const conversation =
+      await this.conversationsService.getConversationById(conversationId);
+
+    return {
+      id: conversation._id.toString(),
+      organizationId: conversation.organizationId,
+      memberId: conversation.memberId,
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
     };
   }
 }
