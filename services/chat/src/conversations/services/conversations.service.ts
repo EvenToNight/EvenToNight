@@ -8,6 +8,8 @@ import { Message, MessageDocument } from '../schemas/message.schema';
 import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
 import { ConversationListResponse } from '../dto/conversation-list.response';
 import { ConversationListItemDTO } from '../dto/conversation-list-item.dto';
+import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class ConversationsService {
@@ -189,5 +191,19 @@ export class ConversationsService {
     return participants.reduce((total, participant) => {
       return total + participant.unreadCount;
     }, 0);
+  }
+
+  async getConversationById(conversationId: string): Promise<Conversation> {
+    if (!Types.ObjectId.isValid(conversationId)) {
+      throw new BadRequestException('Invalid conversation ID');
+    }
+
+    const conversation = await this.conversationModel.findById(conversationId);
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    return conversation;
   }
 }
