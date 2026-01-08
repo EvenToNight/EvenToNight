@@ -19,11 +19,11 @@ import { MessageListResponse } from '../dto/message-list.response';
 import { MarkAsReadDto } from '../dto/mark-as-read.dto';
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
 
-@Controller('messages')
+@Controller('users/:userId')
 export class ConversationsController {
   constructor(private readonly conversationsService: ConversationsService) {}
 
-  @Post(':userId/conversations')
+  @Post('conversations')
   @HttpCode(HttpStatus.CREATED)
   async createConversation(
     @Param('userId') userId: string,
@@ -44,7 +44,7 @@ export class ConversationsController {
     };
   }
 
-  @Post(':userId/conversations/:conversationId/')
+  @Post('conversations/:conversationId/')
   @HttpCode(HttpStatus.CREATED)
   async sendMessage(
     @Param('userId') userId: string,
@@ -66,7 +66,7 @@ export class ConversationsController {
     };
   }
 
-  @Get(':userId')
+  @Get('conversations')
   async getUserConversations(
     @Param('userId') userId: string,
     @Query() query: GetConversationsQueryDto,
@@ -74,7 +74,7 @@ export class ConversationsController {
     return await this.conversationsService.getUserConversations(userId, query);
   }
 
-  @Get(':userId/unread/count')
+  @Get('unread/count')
   async getUnreadCount(@Param('userId') userId: string) {
     const count = await this.conversationsService.getTotalUnreadCount(userId);
 
@@ -83,7 +83,7 @@ export class ConversationsController {
     };
   }
 
-  @Get(':userId/:conversationId')
+  @Get('conversations/:conversationId')
   async getConversation(
     @Param('userId') userId: string,
     @Param('conversationId') conversationId: string,
@@ -112,7 +112,7 @@ export class ConversationsController {
     };
   }
 
-  @Get(':userId/:conversationId/messages')
+  @Get('conversations/:conversationId/messages')
   async getMessages(
     @Param('userId') userId: string,
     @Param('conversationId') conversationId: string,
@@ -121,10 +121,10 @@ export class ConversationsController {
     return this.conversationsService.getMessages(conversationId, userId, query);
   }
 
-  @Patch(':id/read')
+  @Patch('conversations/:conversationId/read')
   @HttpCode(HttpStatus.NO_CONTENT)
   async markAsRead(
-    @Param('id') conversationId: string,
+    @Param('conversationId') conversationId: string,
     @Body() markAsReadDto: MarkAsReadDto,
   ): Promise<void> {
     await this.conversationsService.markAsRead(
