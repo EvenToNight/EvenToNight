@@ -39,6 +39,94 @@ paths:
         '404':
           description: Organization or Member not found
   
+  /messages/{userId}:
+    get:
+      summary: Get conversations for a user
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "conv123"
+                        organizationId:
+                          type: string
+                          example: "org456"
+                        organizationName:
+                          type: string
+                          example: "EventoNight"
+                        organizationAvatar:
+                          type: string
+                          example: "https://example.com/avatar.png"
+                        memberId:
+                          type: string
+                          example: "member321"
+                        memberName:
+                          type: string
+                          example: "John Doe"
+                        memberAvatar:
+                          type: string
+                          example: "https://example.com/member_avatar.png"
+                        lastMessage:
+                          type: object
+                          properties:
+                            content:
+                              type: string
+                              example: "Hello, can I get more information about your events?"
+                            senderId:
+                              type: string
+                              example: "user123"
+                            timestamp:
+                              type: string
+                              format: date-time
+                        unreadCount:
+                          type: integer
+                          example: 5
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+                  hasMore:
+                    type: boolean
+                    example: false
+        '400':
+          description: Bad Request
+        '404':
+          description: User not found
+
+  
 components:
   schemas:
     SendMessageDto:
