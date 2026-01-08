@@ -109,6 +109,8 @@ export class ConversationsService {
     userId: string,
     query: GetConversationsQueryDto,
   ): Promise<ConversationListResponse> {
+    // TODO: Check if userId exist
+
     const { limit = 20, offset = 0 } = query;
 
     const participants = await this.participantModel
