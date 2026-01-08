@@ -124,12 +124,9 @@ export class ConversationsController {
   @Patch('conversations/:conversationId/read')
   @HttpCode(HttpStatus.NO_CONTENT)
   async markAsRead(
+    @Param('userId') userId: string,
     @Param('conversationId') conversationId: string,
-    @Body() markAsReadDto: MarkAsReadDto,
   ): Promise<void> {
-    await this.conversationsService.markAsRead(
-      conversationId,
-      markAsReadDto.userId,
-    );
+    await this.conversationsService.markAsRead(conversationId, userId);
   }
 }

@@ -3,19 +3,13 @@ info:
   title: EvenToNight - Chat API
   version: 1.0.0
 paths:
-  /messages/{organizationId}/{memberId}/:
+  /users/{userId}/conversations:
     post:
-      summary: Send a message to a member in an organization
+      summary: Send first message and create a new conversation with an organization
       servers:
         - url: http://localhost:9040
       parameters:
-        - name: organizationId
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "org456"
-        - name: memberId
+        - name: userId
           in: path
           required: true
           schema:
@@ -26,7 +20,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/SendMessageDto'
+              $ref: '#/components/schemas/CreateConversationMessageDto'
       responses:
         '201':
           description: Message sent successfully
@@ -38,8 +32,6 @@ paths:
           description: Bad Request
         '404':
           description: Organization or Member not found
-  
-  /messages/{userId}:
     get:
       summary: Get conversations for a user
       servers:
@@ -125,10 +117,10 @@ paths:
           description: Bad Request
         '404':
           description: User not found
-
-  /messages/{userId}/unread/count:
-    get:
-      summary: Get total unread message count for a user
+  
+  /users/{userId}/conversations/{conversationId}:
+    post:
+      summary: Send a message in an existing conversation for a user
       servers:
         - url: http://localhost:9040
       parameters:
@@ -138,23 +130,30 @@ paths:
           schema:
             type: string
             example: "user123"
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "conv123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageDto'
       responses:
-        '200':
-          description: Total unread message count
+        '201':
+          description: Message sent successfully
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  unreadCount:
-                    type: integer
-                    example: 15
+                $ref: '#/components/schemas/MessageResponseDto'
         '400':
           description: Bad Request
         '404':
-          description: User not found    
-
-  /messages/{userId}/{conversationId}:
+          description: Conversation not found
+    
     get:
       summary: Get specific conversation of a user by ID
       servers:
@@ -199,8 +198,36 @@ paths:
           description: Bad Request
         '404':
           description: Conversation not found
+
+  /users/{userId}/unread/count:
+    get:
+      summary: Get total unread message count for a user
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+      responses:
+        '200':
+          description: Total unread message count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unreadCount:
+                    type: integer
+                    example: 15
+        '400':
+          description: Bad Request
+        '404':
+          description: User not found    
   
-  /messages/{userId}/{conversationId}/messages:
+  /users/{userId}/conversations/{conversationId}/messages:
     get:
       summary: Get messages in a conversation for a user
       servers:
@@ -290,7 +317,7 @@ paths:
         '404':
           description: Conversation not found
 
-  /messages/{conversationId}/read:
+  /users/{userId}/conversations/{conversationId}/read:
     patch:
       summary: Mark messages in a conversation as read for a user
       servers:
@@ -302,17 +329,13 @@ paths:
           schema:
             type: string
             example: "conv123"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                userId:
-                  type: string
-                  description: The ID of the user marking messages as read
-                  example: "user123"
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: The ID of the user marking messages as read
+            example: "user123"
       responses:
         '204':
           description: Messages marked as read successfully
@@ -323,13 +346,24 @@ paths:
   
 components:
   schemas:
+    CreateConversationMessageDto:
+      type: object
+      properties:
+        recipientId:
+          type: string
+          description: The ID of the organization to start a conversation with
+          example: "org456"
+        content:
+          type: string
+          description: The content of the initial message
+          example: "Hello, can I get more information about your events?"
+      required:
+        - recipientId
+        - content
+
     SendMessageDto:
       type: object
       properties:
-        senderId:
-          type: string
-          description: The ID of the sender
-          example: "user123"
         content:
           type: string
           description: The content of the message
@@ -340,30 +374,30 @@ components:
     MessageResponseDto:
       type: object
       properties:
-        messageId:
+        id:
           type: string
           description: The unique identifier of the message
           example: "msg789"
-        organizationId:
+        conversationId:
           type: string
-          description: The ID of the organization
-          example: "org456"
-        memberId:
+          description: The ID of the conversation
+          example: "conv123"
+        senderId:
           type: string
-          description: The ID of the member
-          example: "member321"
+          description: The ID of the sender
+          example: "user123"
         content:
           type: string
           description: The content of the message
           example: "Hello, can I get more information about your events?"
-        timestamp:
+        createdAt:
           type: string
           format: date-time
           description: The time when the message was sent
       required:
-        - messageId
-        - organizationId
-        - memberId
+        - id
+        - conversationId
+        - senderId
         - content
         - timestamp
     
