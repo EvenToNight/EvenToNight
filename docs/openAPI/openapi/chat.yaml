@@ -126,6 +126,34 @@ paths:
         '404':
           description: User not found
 
+  /messages/{userId}/unread/count:
+    get:
+      summary: Get total unread message count for a user
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+      responses:
+        '200':
+          description: Total unread message count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unreadCount:
+                    type: integer
+                    example: 15
+        '400':
+          description: Bad Request
+        '404':
+          description: User not found    
+
   
 components:
   schemas:
