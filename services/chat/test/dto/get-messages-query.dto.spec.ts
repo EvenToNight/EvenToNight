@@ -9,7 +9,7 @@ describe('GetMessagesQueryDto', () => {
 
     const errors = await validate(dto);
     expect(errors.length).toBe(0);
-    expect(dto.limit).toBe(50); // Default diverso da GetConversationsQueryDto
+    expect(dto.limit).toBe(50);
     expect(dto.offset).toBe(0);
   });
 

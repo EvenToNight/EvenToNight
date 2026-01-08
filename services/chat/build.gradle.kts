@@ -19,7 +19,7 @@ tasks.named("build") {
 
 tasks.register<NpmTask>("checkStyle") {
     group = "verification"
-    description = "Runs lint checks for the interactions project."
+    description = "Runs lint checks for the chat project."
     dependsOn("npmInstall")
     args.set(listOf("run", "lint"))
 }
@@ -53,13 +53,13 @@ tasks.register<NpmTask>("testWithCoverage") {
 }
 
 tasks.register("runCoverage") {
-    description = "Run coverage analysis for Interactions service"
+    description = "Run coverage analysis for Chat service"
     group = "verification"
     dependsOn("testWithCoverage")
 
     doLast {
-        println("✅ Interactions service coverage completed!")
-        println("📋 Report available at: services/interactions/coverage")
+        println("✅ Chat service coverage completed!")
+        println("📋 Report available at: services/chat/coverage")
     }
 }
 

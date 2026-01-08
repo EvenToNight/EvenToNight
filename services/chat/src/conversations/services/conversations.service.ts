@@ -365,7 +365,7 @@ export class ConversationsService {
 
     console.log(`✅ Message sent in conversation ${conversationId}`);
 
-    // TODO: Pubblica evento su RabbitMQ per notifiche real-time
+    // TODO: Publish event to RabbitMQ for real-time notifications
 
     return savedMessage;
   }
