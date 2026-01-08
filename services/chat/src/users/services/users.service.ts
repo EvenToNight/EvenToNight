@@ -35,8 +35,21 @@ export class UsersService {
 
   async userExists(userId: string): Promise<boolean> {
     const user = await this.userModel.findOne({ userId });
+    console.log('Checking if user exists:', userId, !!user);
     // TODO: Implement check properly
     //return !!user;
     return true;
+  }
+
+  async getUserInfo(userId: string): Promise<User | null> {
+    const user = await this.userModel.findOne({ userId });
+    console.log('Retrieving user info for:', userId, user);
+    // TODO: Implement retrieval properly
+    const mockUser: User = {
+      userId,
+      name: 'UserName',
+      avatar: 'http://media.eventonight.site/users/default.png',
+    };
+    return mockUser;
   }
 }

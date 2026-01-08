@@ -143,20 +143,10 @@ export class ConversationsService {
           .sort({ createdAt: -1 })
           .exec();
 
-        // const [orgInfo, memberInfo] = await Promise.all([
-        //   this.usersService.getUserInfo(conversation.organizationId),
-        //   this.usersService.getUserInfo(conversation.memberId),
-        // ]);
-
-        // TODO: Replace with real user info fetching
-        const orgInfo = {
-          name: 'Org Name',
-          avatar: 'https://via.placeholder.com/150',
-        };
-        const memberInfo = {
-          name: 'Member Name',
-          avatar: 'https://via.placeholder.com/150',
-        };
+        const [orgInfo, memberInfo] = await Promise.all([
+          this.usersService.getUserInfo(conversation.organizationId),
+          this.usersService.getUserInfo(conversation.memberId),
+        ]);
 
         return {
           id: conversation._id.toString(),
@@ -267,12 +257,18 @@ export class ConversationsService {
 
     const senderIds = [...new Set(items.map((msg) => msg.senderId))];
 
-    // TODO: Replace with real user info fetching
-    const usersInfo = senderIds.map((id) => ({
-      userId: id,
-      name: 'Username',
-      avatar: 'https://via.placeholder.com/150',
-    }));
+    const usersInfo = await Promise.all(
+      senderIds.map(async (id) => {
+        const user = await this.usersService.getUserInfo(id);
+        return (
+          user || {
+            userId: id,
+            name: 'Unknown User',
+            avatar: 'Unknown Avatar',
+          }
+        );
+      }),
+    );
 
     const usersMap = new Map(usersInfo.map((user) => [user.userId, user]));
 
@@ -285,7 +281,7 @@ export class ConversationsService {
         sender: {
           id: message.senderId,
           name: senderInfo?.name || 'Unknown User',
-          avatar: senderInfo?.avatar || 'https://via.placeholder.com/150',
+          avatar: senderInfo?.avatar || 'Unknown Avatar',
         },
         content: message.content,
         createdAt: message.createdAt,
