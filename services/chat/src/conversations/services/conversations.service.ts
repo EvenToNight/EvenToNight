@@ -180,4 +180,14 @@ export class ConversationsService {
       hasMore,
     };
   }
+
+  async getTotalUnreadCount(userId: string): Promise<number> {
+    // TODO: Check if userId exist
+
+    const participants = await this.participantModel.find({ userId });
+
+    return participants.reduce((total, participant) => {
+      return total + participant.unreadCount;
+    }, 0);
+  }
 }
