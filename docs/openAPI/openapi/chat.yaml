@@ -289,6 +289,37 @@ paths:
           description: Bad Request
         '404':
           description: Conversation not found
+
+  /messages/{conversationId}/read:
+    patch:
+      summary: Mark messages in a conversation as read for a user
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "conv123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                userId:
+                  type: string
+                  description: The ID of the user marking messages as read
+                  example: "user123"
+      responses:
+        '204':
+          description: Messages marked as read successfully
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
   
 components:
   schemas:
