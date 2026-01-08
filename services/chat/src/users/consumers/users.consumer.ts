@@ -26,7 +26,7 @@ export class UserConsumer {
       const originalMsg = context.getMessage();
       channel.ack(originalMsg);
     } catch (error) {
-      console.error('❌ Error caching user:', error);
+      console.error('Error caching user:', error);
     }
   }
 }
