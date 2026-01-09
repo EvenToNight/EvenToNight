@@ -73,7 +73,6 @@ class UserServiceSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     references.profileId should not be empty
 
     val account = memberAccountsColl.find(eqFilter("_id", ObjectId(references.accountId))).first()
-    account.keycloakId shouldBe member.account.keycloakId
     account.username shouldBe member.account.username
     account.email shouldBe member.account.email
 
@@ -87,7 +86,6 @@ class UserServiceSpec extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     references.profileId should not be empty
 
     val account = orgAccountsColl.find(eqFilter("_id", ObjectId(references.accountId))).first()
-    account.keycloakId shouldBe organization.account.keycloakId
     account.username shouldBe organization.account.username
     account.email shouldBe organization.account.email
 

@@ -24,8 +24,8 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
           case Right(validReq) =>
             authService.createUserWithRole(validReq) match
               case Left(err) => Response(s"Failed to create user: $err", 500)
-              case Right(keycloakId, userId) =>
-                val registeredUser = fromValidRegistration(validReq, keycloakId)
+              case Right(userId) =>
+                val registeredUser = fromValidRegistration(validReq)
                 userService.insertUser(registeredUser, userId)
 
                 authService.login(validReq.username, validReq.password) match

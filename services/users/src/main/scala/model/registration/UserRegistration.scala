@@ -35,13 +35,13 @@ object UserRegistration:
       _        <- validateUserType(request)
     yield ValidRegistration(username, email, password, userType)
 
-  def fromValidRegistration(valid: ValidRegistration, keycloakId: String): RegisteredUser =
+  def fromValidRegistration(valid: ValidRegistration): RegisteredUser =
     valid.userType match
       case "member" =>
-        val memberAccount = MemberAccount(keycloakId, valid.username, valid.email)
+        val memberAccount = MemberAccount(valid.username, valid.email)
         val memberProfile = MemberProfile(valid.username)
         Member(memberAccount, memberProfile)
       case "organization" =>
-        val organizationAccount = OrganizationAccount(keycloakId, valid.username, valid.email)
+        val organizationAccount = OrganizationAccount(valid.username, valid.email)
         val organizationProfile = OrganizationProfile(valid.username)
         Organization(organizationAccount, organizationProfile)
