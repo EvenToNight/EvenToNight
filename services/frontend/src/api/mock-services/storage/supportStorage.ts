@@ -61,7 +61,7 @@ export function saveConversations(conversations: Conversation[]): void {
   }
 }
 
-// Reset storage to default data (useful for testing)
+// Reset storage to default data
 export function resetStorage(): void {
   localStorage.removeItem(STORAGE_KEY_MESSAGES)
   localStorage.removeItem(STORAGE_KEY_CONVERSATIONS)

@@ -32,14 +32,9 @@ const genderOptions = [
 
 const maxTags = 5
 
-// Watch per mostrare il warning quando si prova ad aggiungere un tag oltre il limite
 watch(selectedTags, (newVal, oldVal) => {
-  // Se prova ad aggiungere un tag quando è già al massimo
   if (oldVal.length === maxTags && newVal.length > maxTags) {
-    // Limita manualmente a maxTags
     selectedTags.value = newVal.slice(0, maxTags)
-
-    // Mostra il warning come notifica
     $q.notify({
       type: 'warning',
       message: `You can only select up to ${maxTags} tags`,
@@ -108,10 +103,8 @@ const filterTags = (val: string, update: (fn: () => void) => void) => {
 
 onMounted(async () => {
   try {
-    // Load available tags
     await loadTags()
 
-    // Load user preferences from localStorage or user profile
     isDarkMode.value = $q.dark.isActive
     notificationsEnabled.value = localStorage.getItem('notifications-enabled') !== 'false'
 
@@ -488,18 +481,11 @@ const handleDeleteProfile = () => {
 
 <style lang="scss">
 .delete-profile-btn.q-btn--outline {
-  // Default (Light Mode):
-  // We want Red Border (provided by text-negative class on q-btn)
-  // We want Black Text/Icon (overriding the text-negative inheritance)
-
   .q-btn__content,
   .q-icon {
     color: black !important;
   }
 
-  // Dark Mode:
-  // We want Red Border (provided by text-negative class on q-btn)
-  // We want White Text/Icon
   body.body--dark & {
     .q-btn__content,
     .q-icon {

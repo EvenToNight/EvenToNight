@@ -7,14 +7,14 @@ import BaseAuthForm from './BaseAuthForm.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import FormField from '@/components/forms/FormField.vue'
 import { useNavigation } from '@/router/utils'
-import { isEmail, notEmpty } from '@/components/forms/validationUtils'
+import { notEmpty } from '@/components/forms/validationUtils'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
 const { t } = useI18n()
 const { goToHome, goToRegister, goToRedirect } = useNavigation()
 
-const email = ref('')
+const usernameOrEmail = ref('')
 const password = ref('')
 const errorMessage = ref('')
 
@@ -39,7 +39,7 @@ const onFailedLogin = (errorMsg?: string) => {
 
 const handleLogin = async () => {
   errorMessage.value = ''
-  const result = await authStore.login(email.value, password.value)
+  const result = await authStore.login(usernameOrEmail.value, password.value)
   if (result.success) {
     onSuccessfulLogin()
   } else {
@@ -59,11 +59,11 @@ const handleLogin = async () => {
   >
     <template #fields>
       <FormField
-        v-model="email"
-        type="email"
-        :label="t('auth.form.emailLabel') + ' *'"
-        icon="mail"
-        :rules="[isEmail(t('auth.form.emailError'))]"
+        v-model="usernameOrEmail"
+        type="text"
+        label="Username or Email*"
+        icon="person"
+        :rules="[notEmpty('Username or Email is required')]"
       />
 
       <FormField

@@ -125,23 +125,23 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const initializeAuth = () => {
-    // const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
-    // const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
-    // const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
-    // const expiresAt = storedExpiry ? parseInt(storedExpiry, 10) : 0
-    // if (storedAccessToken && expiresAt > Date.now() / 1000) {
-    //   setTokens({ token: storedAccessToken })
-    //   if (storedUser) {
-    //     try {
-    //       user.value = JSON.parse(storedUser)
-    //     } catch (error) {
-    //       console.error('Failed to parse stored user:', error)
-    //       refreshAccessToken()
-    //     }
-    //   }
-    // } else {
-    //   refreshAccessToken()
-    // }
+    const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
+    const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
+    const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
+    const expiresAt = storedExpiry ? parseInt(storedExpiry, 10) : 0
+    if (storedAccessToken && expiresAt > Date.now() / 1000) {
+      setTokens({ token: storedAccessToken })
+      if (storedUser) {
+        try {
+          user.value = JSON.parse(storedUser)
+        } catch (error) {
+          console.error('Failed to parse stored user:', error)
+          refreshAccessToken()
+        }
+      }
+    } else {
+      refreshAccessToken()
+    }
   }
 
   const setupAutoRefresh = () => {
