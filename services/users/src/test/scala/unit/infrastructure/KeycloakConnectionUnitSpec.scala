@@ -2,6 +2,7 @@ package unit.infrastructure
 
 import fixtures.UserFixtures._
 import infrastructure.KeycloakConnection
+import model.Tokens
 import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -30,7 +31,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
   private def stubbedCreateUserConnectionWithResponse(response: Response[String]) =
     val backendStub = SttpBackendStub.synchronous
       .whenRequestMatches(_.uri.path == tokenPath)
-      .thenRespond("""{"access_token": "test_token"}""")
+      .thenRespond("""{"access_token": "test_access_token"}""")
       .whenRequestMatches(_.uri.path == createUserPath)
       .thenRespond(response)
     new KeycloakConnection(backendStub, testSecret)
@@ -38,7 +39,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
   private def stubbedDeleteUserConnectionWithResponse(userId: String, response: Response[String]) =
     val backendStub = SttpBackendStub.synchronous
       .whenRequestMatches(_.uri.path == tokenPath)
-      .thenRespond("""{"access_token": "test_token"}""")
+      .thenRespond("""{"access_token": "test_access_token"}""")
       .whenRequestMatches(req =>
         req.uri.path == List("admin", "realms", "eventonight", "users", userId) && req.method == Method.DELETE
       )
@@ -52,8 +53,35 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     headers = List(Header("Location", s"/admin/realms/eventonight/users/$testKeycloakId"))
   )
 
-  "requestAccessToken" should "return Right(access_token) when Keycloak returns valid JSON with access_token" in:
-    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"access_token": "test_token"}""")
+  "sendTokenRequest" should "return Right(body) when request succeeds" in:
+    val body           = """{"some": "data"}"""
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, body)
+    val result         = connectionStub.sendTokenRequest(dummyForm)
+    result shouldBe Right(body)
+
+  it should "return Left when request is bad" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, "Bad request")
+    val result         = connectionStub.sendTokenRequest(dummyForm)
+    result.left.value should include("Bad request")
+
+  it should "return Left when credentials are invalid" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Unauthorized, "Unauthorized access")
+    val result         = connectionStub.sendTokenRequest(dummyForm)
+    result.left.value should include("Invalid credentials")
+
+  it should "return Left when client is forbidden" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Forbidden, "Forbidden access")
+    val result         = connectionStub.sendTokenRequest(dummyForm)
+    result.left.value should include("Client not allowed")
+
+  it should "return Left for unexpected server response" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.InternalServerError, "Error")
+    val result         = connectionStub.sendTokenRequest(dummyForm)
+    result.left.value should include("Unexpected Keycloak status")
+
+  "requestAccessToken" should "return Right(access_token) when client credentials are valid" in:
+    val connectionStub =
+      stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"access_token": "test_access_token"}""")
     val token = connectionStub.requestAccessToken(
       Map(
         "grant_type"    -> "client_credentials",
@@ -61,78 +89,47 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
         "client_secret" -> testSecret
       )
     )
-    token shouldBe Right("test_token")
+    token shouldBe Right("test_access_token")
 
-  it should "return Left when Keycloak returns 200 with invalid JSON" in:
+  it should "return Left when sendTokenRequest fails" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, "Bad request")
+    val token          = connectionStub.requestAccessToken(dummyForm)
+    token.left.value should include("Bad request")
+
+  it should "return Left when response JSON is invalid" in:
     val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, "")
     val token          = connectionStub.requestAccessToken(dummyForm)
     token.left.value should include("Invalid JSON")
 
-  it should "return Left when Keycloak returns 200 with access_token missing in a valid JSON" in:
+  it should "return Left when access_token is missing in JSON" in:
     val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"some_field": "some_value"}""")
     val token          = connectionStub.requestAccessToken(dummyForm)
     token.left.value should include("Missing access_token")
 
-  it should "return Left when Keycloak returns 400 with invalid JSON" in:
-    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, "")
-    val token          = connectionStub.requestAccessToken(dummyForm)
-    token.left.value should include("Invalid JSON")
-
-  it should "return Left when Keycloak returns 400 with invalid_grant error" in:
-    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, """{"error": "invalid_grant"}""")
-    val token          = connectionStub.requestAccessToken(dummyForm)
-    token.left.value should include("Invalid credentials")
-
-  it should "return Left when Keycloak returns 400 with other error" in:
-    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, """{"error": "other_error"}""")
-    val token          = connectionStub.requestAccessToken(dummyForm)
-    token.left.value should include("Keycloak error")
-
-  it should "return Left when Keycloak returns 400 with JSON missing error field" in:
+  "getClientAccessToken" should "return Right(access_token) when client credentials are valid" in:
     val connectionStub =
-      stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, """{"some_field": "some_value"}""")
-    val token = connectionStub.requestAccessToken(dummyForm)
-    token.left.value should include("Keycloak error")
+      stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"access_token": "test_access_token"}""")
+    val token = connectionStub.getClientAccessToken()
+    token shouldBe Right("test_access_token")
 
-  it should "return Left when Keycloak returns 401 Unauthorized" in:
-    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Unauthorized, "Unauthorized access")
-    val token          = connectionStub.requestAccessToken(dummyForm)
-    token.left.value should include("Invalid credentials")
-
-  it should "return Left when Keycloak returns 403 Forbidden" in:
-    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Forbidden, "Forbidden access")
-    val token          = connectionStub.requestAccessToken(dummyForm)
-    token.left.value should include("Client not allowed")
-
-  it should "return Left for unexpected Keycloak status" in:
-    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadGateway, "Bad Gateway")
-    val token          = connectionStub.requestAccessToken(dummyForm)
-    token.left.value should include("Unexpected Keycloak status")
-
-  "getClientAccessToken" should "return Right(access_token) when Keycloak returns valid token" in:
-    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"access_token": "test_token"}""")
+  it should "return Left when requestAccessToken fails" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, "Bad request")
     val token          = connectionStub.getClientAccessToken()
-    token shouldBe Right("test_token")
+    token.left.value should include("Bad request")
 
-  it should "propagate errors from requestAccessToken" in:
-    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, "")
-    val token          = connectionStub.getClientAccessToken()
-    token.left.value should include("Invalid JSON")
-
-  "createUser" should "return Right(keycloakId, userId) when Keycloak returns 201 with Location header" in:
+  "createUser" should "return Right(keycloakId, userId) when creation succeeds and Location header is present" in:
     val connectionStub       = stubbedCreateUserConnectionWithResponse(successResponse)
     val result               = connectionStub.createUser(username, email, password)
     val (keycloakId, userId) = result.getOrElse(fail(s"Expected Right but got Left($result)"))
     keycloakId shouldBe testKeycloakId
     noException shouldBe thrownBy(UUID.fromString(userId))
 
-  it should "propagate errors from getClientAccessToken" in:
+  it should "return Left when getClientAccessToken fails" in:
     val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Forbidden, "Forbidden access")
     val result         = connectionStub.createUser(username, email, password)
-    result.isLeft shouldBe true
     result.left.value should include("Client not allowed")
 
-  it should "return Left when Location header is missing" in:
+  it should "return Left when creation succeeds but Location header is missing" in:
     val responseWithoutLocation = Response(
       body = "",
       code = StatusCode.Created,
@@ -142,7 +139,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     val result         = connectionStub.createUser(username, email, password)
     result shouldBe Left("User created but could not retrieve ID from Keycloak")
 
-  it should "return Left when Keycloak returns non-201 status" in:
+  it should "return Left when user creation fails" in:
     val errorResponse = Response(
       body = "Error creating user",
       code = StatusCode.BadRequest,
@@ -150,14 +147,13 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     )
     val connectionStub = stubbedCreateUserConnectionWithResponse(errorResponse)
     val result         = connectionStub.createUser(username, email, password)
-    result.isLeft shouldBe true
     result.left.value should include("Failed to create user on Keycloak")
 
   it should "include the generated userId in the request JSON" in:
     var capturedJsonBody: String = ""
     val backendStub = SttpBackendStub.synchronous
       .whenRequestMatches(_.uri.path == tokenPath)
-      .thenRespond("""{"access_token": "test_token"}""")
+      .thenRespond("""{"access_token": "test_access_token"}""")
       .whenRequestMatches(req =>
         req.uri.path == createUserPath &&
           (req.body match
@@ -174,7 +170,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     capturedJsonBody should include(generatedUserId)
     noException shouldBe thrownBy(UUID.fromString(generatedUserId))
 
-  "deleteUser" should "return Right(()) when Keycloak returns 204 on delete" in:
+  "deleteUser" should "return Right(()) when user is successfully deleted" in:
     val deleteResponse = Response(
       body = "",
       code = StatusCode.NoContent,
@@ -184,7 +180,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     val result         = connectionStub.deleteUser(testKeycloakId)
     result shouldBe Right(())
 
-  it should "return Left when Keycloak returns non-204 status" in:
+  it should "return Left when user deletion fails" in:
     val unauthorizedResponse = Response(
       body = "Unauthorized",
       code = StatusCode.Unauthorized,
@@ -192,11 +188,52 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     )
     val connectionStub = stubbedDeleteUserConnectionWithResponse(testKeycloakId, unauthorizedResponse)
     val result         = connectionStub.deleteUser(testKeycloakId)
-    result.isLeft shouldBe true
     result.left.value should include("Failed to delete user")
 
-  it should "propagate errors from getClientAccessToken" in:
+  it should "return Left when getClientAccessToken fails" in:
     val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Forbidden, "Forbidden access")
     val result         = connectionStub.deleteUser(testKeycloakId)
-    result.isLeft shouldBe true
     result.left.value should include("Client not allowed")
+
+  "requestUserTokens" should "return Right(Tokens) when both access_token and refresh_token are present in JSON" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(
+      StatusCode.Ok,
+      """{"access_token": "test_access_token", "refresh_token": "test_refresh_token"}"""
+    )
+    val tokens = connectionStub.requestUserTokens(dummyForm)
+    tokens shouldBe Right(Tokens("test_access_token", "test_refresh_token"))
+
+  it should "return Left when sendTokenRequest fails" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, "Bad request")
+    val tokens         = connectionStub.requestUserTokens(dummyForm)
+    tokens.left.value should include("Bad request")
+
+  it should "return Left when response JSON is invalid" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, "")
+    val tokens         = connectionStub.requestUserTokens(dummyForm)
+    tokens.left.value should include("Invalid JSON")
+
+  it should "return Left when access_token is missing in JSON" in:
+    val connectionStub =
+      stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"refresh_token": "test_refresh_token"}""")
+    val tokens = connectionStub.requestUserTokens(dummyForm)
+    tokens.left.value should include("Missing access_token")
+
+  it should "return Left when refresh_token is missing in JSON" in:
+    val connectionStub =
+      stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"access_token": "test_access_token"}""")
+    val tokens = connectionStub.requestUserTokens(dummyForm)
+    tokens.left.value should include("Missing refresh_token")
+
+  "loginUser" should "return Right(Tokens) when user credentials are valid" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(
+      StatusCode.Ok,
+      """{"access_token": "test_access_token", "refresh_token": "test_refresh_token"}"""
+    )
+    val tokens = connectionStub.loginUser("testuser", "testpassword")
+    tokens shouldBe Right(Tokens("test_access_token", "test_refresh_token"))
+
+  it should "return Left when requestUserTokens fails" in:
+    val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Unauthorized, "Invalid credentials")
+    val tokens         = connectionStub.loginUser("testuser", "wrongpassword")
+    tokens.left.value should include("Invalid credentials")

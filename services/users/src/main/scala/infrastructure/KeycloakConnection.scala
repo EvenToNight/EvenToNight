@@ -18,7 +18,7 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
     try Right(request.send(backend))
     catch case e: Exception => Left(s"Connection error: ${e.getMessage}")
 
-  private def sendTokenRequest(form: Map[String, String]): Either[String, String] =
+  def sendTokenRequest(form: Map[String, String]): Either[String, String] =
     val tokenUrl = s"$keycloakUrl/realms/$realm/protocol/openid-connect/token"
     val request = basicRequest
       .post(uri"$tokenUrl")
@@ -154,7 +154,7 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
               Left(s"Failed to assign role '$roleName' to user '$keycloakId': ${other.code} ${response.body}")
         )
 
-  private def requestUserTokens(form: Map[String, String]): Either[String, Tokens] =
+  def requestUserTokens(form: Map[String, String]): Either[String, Tokens] =
     sendTokenRequest(form).flatMap(body =>
       parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}").flatMap(json =>
         for
