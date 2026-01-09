@@ -229,7 +229,7 @@ paths:
   
   /users/{userId}/conversations/{conversationId}/messages:
     get:
-      summary: Get messages in a conversation for a user
+      summary: Get messages in a conversation for a user, and mark them as read
       servers:
         - url: http://localhost:9040
       parameters:

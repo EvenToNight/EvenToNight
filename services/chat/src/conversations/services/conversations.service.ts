@@ -235,6 +235,13 @@ export class ConversationsService {
 
     const usersMap = new Map(usersInfo.map((user) => [user.userId, user]));
 
+    this.markAsRead(conversationId, userId).catch((err) => {
+      console.error(
+        `Failed to mark messages as read for user ${userId} in conversation ${conversationId}:`,
+        err,
+      );
+    });
+
     const messageDTOs: MessageDTO[] = items.map((message) => {
       const senderInfo = usersMap.get(message.senderId);
 
