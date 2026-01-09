@@ -2,12 +2,16 @@ import { ConversationID, UserID } from '../types';
 
 export interface ConversationListItemDTO {
   id: ConversationID;
-  organizationId: UserID;
-  organizationName: string;
-  organizationAvatar: string;
-  memberId: UserID;
-  memberName: string;
-  memberAvatar: string;
+  organization: {
+    id: UserID;
+    name: string;
+    avatar: string;
+  };
+  member: {
+    id: UserID;
+    name: string;
+    avatar: string;
+  };
   lastMessage: {
     content: string;
     senderId: UserID;

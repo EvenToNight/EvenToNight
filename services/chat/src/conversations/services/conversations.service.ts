@@ -113,13 +113,16 @@ export class ConversationsService {
 
         return {
           id: conversation._id.toString(),
-          organizationId: conversation.organizationId,
-          organizationName: orgInfo?.name || 'Unknown Organization',
-          organizationAvatar:
-            orgInfo?.avatar || 'https://via.placeholder.com/150',
-          memberId: conversation.memberId,
-          memberName: memberInfo?.name || 'Unknown Member',
-          memberAvatar: memberInfo?.avatar || 'https://via.placeholder.com/150',
+          organization: {
+            id: conversation.organizationId,
+            name: orgInfo?.name || 'Unknown Organization',
+            avatar: orgInfo?.avatar || 'https://via.placeholder.com/150',
+          },
+          member: {
+            id: conversation.memberId,
+            name: memberInfo?.name || 'Unknown Member',
+            avatar: memberInfo?.avatar || 'https://via.placeholder.com/150',
+          },
           lastMessage: lastMessage
             ? {
                 content: lastMessage.content,

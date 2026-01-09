@@ -71,24 +71,30 @@ paths:
                         id:
                           type: string
                           example: "conv123"
-                        organizationId:
-                          type: string
-                          example: "org456"
-                        organizationName:
-                          type: string
-                          example: "EventoNight"
-                        organizationAvatar:
-                          type: string
-                          example: "https://example.com/avatar.png"
-                        memberId:
-                          type: string
-                          example: "member321"
-                        memberName:
-                          type: string
-                          example: "John Doe"
-                        memberAvatar:
-                          type: string
-                          example: "https://example.com/member_avatar.png"
+                        organization:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "org456"
+                            name:
+                              type: string
+                              example: "EventoNight"
+                            avatar:
+                              type: string
+                              example: "https://example.com/avatar.png"  
+                        member:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "member321"
+                            name:
+                              type: string
+                              example: "John Doe"
+                            avatar:
+                              type: string
+                              example: "https://example.com/member_avatar.png"
                         lastMessage:
                           type: object
                           properties:
