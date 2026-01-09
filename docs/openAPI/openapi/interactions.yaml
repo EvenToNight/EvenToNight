@@ -1248,10 +1248,6 @@ components:
           items:
             type: object
             properties:
-              _id:
-                type: string
-                description: ID of the review
-                example: review123
               eventId:
                 type: string
                 description: ID of the event being reviewed
@@ -1292,6 +1288,10 @@ components:
                 format: date-time
                 description: Timestamp when the review was last updated
                 example: "2024-01-02T15:30:00Z"
+              id:
+                type: string
+                description: ID of the review
+                example: review123
         limit:
           type: integer 
           description: Maximum number of items per page
