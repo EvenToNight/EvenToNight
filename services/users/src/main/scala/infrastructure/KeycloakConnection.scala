@@ -154,20 +154,31 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
               Left(s"Failed to assign role '$roleName' to user '$keycloakId': ${other.code} ${response.body}")
         )
 
-  def requestUserTokens(form: Map[String, String]): Either[String, Tokens] =
+  def parseTokens(json: Json, fallbackRefresh: Option[String]): Either[String, Tokens] =
+    for
+      accessToken <-
+        json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
+      refreshToken <- json.hcursor.get[String]("refresh_token")
+        .left.map(_ => "Missing refresh_token")
+        .orElse(fallbackRefresh.toRight("Missing refresh_token"))
+    yield Tokens(accessToken, refreshToken)
+
+  def requestUserTokensForLogin(form: Map[String, String]): Either[String, Tokens] =
     sendTokenRequest(form).flatMap(body =>
       parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}").flatMap(json =>
-        for
-          accessToken <-
-            json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
-          refreshToken <-
-            json.hcursor.get[String]("refresh_token").left.map(err => s"Missing refresh_token: ${err.getMessage}")
-        yield Tokens(accessToken, refreshToken)
+        parseTokens(json, None)
+      )
+    )
+
+  def requestUserTokensForRefresh(form: Map[String, String], oldRefreshToken: String): Either[String, Tokens] =
+    sendTokenRequest(form).flatMap(body =>
+      parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}").flatMap(json =>
+        parseTokens(json, Some(oldRefreshToken))
       )
     )
 
   def loginUser(usernameOrEmail: String, password: String): Either[String, Tokens] =
-    requestUserTokens(
+    requestUserTokensForLogin(
       Map(
         "grant_type"    -> "password",
         "client_id"     -> clientId,
@@ -175,4 +186,15 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
         "username"      -> usernameOrEmail,
         "password"      -> password
       )
+    )
+
+  def refreshTokens(refreshToken: String): Either[String, Tokens] =
+    requestUserTokensForRefresh(
+      Map(
+        "grant_type"    -> "refresh_token",
+        "client_id"     -> clientId,
+        "client_secret" -> clientSecret,
+        "refresh_token" -> refreshToken
+      ),
+      refreshToken
     )

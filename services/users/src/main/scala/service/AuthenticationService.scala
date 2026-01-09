@@ -21,3 +21,6 @@ class AuthenticationService(kc: KeycloakConnection):
 
   def login(usernameOrEmail: String, password: String): Either[String, Tokens] =
     kc.loginUser(usernameOrEmail, password)
+
+  def refresh(refreshToken: String): Either[String, Tokens] =
+    kc.refreshTokens(refreshToken)

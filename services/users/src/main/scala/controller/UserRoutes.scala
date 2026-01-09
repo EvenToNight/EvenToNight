@@ -5,6 +5,7 @@ import cask.Response
 import keycloak.KeycloakJwtVerifier.extractUserId
 import keycloak.KeycloakJwtVerifier.refreshPublicKeys
 import model.LoginValidation._
+import model.TokenRefresh.parseRefreshRequest
 import model.UsersConversions.asJson
 import model.api.mappers.Mappers.toLoginDTO
 import model.registration.UserRegistration._
@@ -74,6 +75,16 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
       case Left(_) => Response("Failed to refresh public keys", 500)
       case Right(json) =>
         Response(json.noSpaces, 200)
+
+  @cask.post("/refresh")
+  def refreshTokens(req: Request): Response[String] =
+    parseRefreshRequest(req) match
+      case Left(err) => Response(err, 400)
+      case Right(refreshReq) =>
+        authService.refresh(refreshReq.refreshToken) match
+          case Left(err) => Response(s"Token refresh failed: $err", 401)
+          case Right(tokens) =>
+            Response(write(tokens), 200)
 
   initialize()
 }

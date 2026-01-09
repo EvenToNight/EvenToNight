@@ -195,34 +195,34 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     val result         = connectionStub.deleteUser(testKeycloakId)
     result.left.value should include("Client not allowed")
 
-  "requestUserTokens" should "return Right(Tokens) when both access_token and refresh_token are present in JSON" in:
+  "requestUserTokensForLogin" should "return Right(Tokens) when both access_token and refresh_token are present in JSON" in:
     val connectionStub = stubbedConnectionWithStatusCodeAndBody(
       StatusCode.Ok,
       """{"access_token": "test_access_token", "refresh_token": "test_refresh_token"}"""
     )
-    val tokens = connectionStub.requestUserTokens(dummyForm)
+    val tokens = connectionStub.requestUserTokensForLogin(dummyForm)
     tokens shouldBe Right(Tokens("test_access_token", "test_refresh_token"))
 
   it should "return Left when sendTokenRequest fails" in:
     val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.BadRequest, "Bad request")
-    val tokens         = connectionStub.requestUserTokens(dummyForm)
+    val tokens         = connectionStub.requestUserTokensForLogin(dummyForm)
     tokens.left.value should include("Bad request")
 
   it should "return Left when response JSON is invalid" in:
     val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, "")
-    val tokens         = connectionStub.requestUserTokens(dummyForm)
+    val tokens         = connectionStub.requestUserTokensForLogin(dummyForm)
     tokens.left.value should include("Invalid JSON")
 
   it should "return Left when access_token is missing in JSON" in:
     val connectionStub =
       stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"refresh_token": "test_refresh_token"}""")
-    val tokens = connectionStub.requestUserTokens(dummyForm)
+    val tokens = connectionStub.requestUserTokensForLogin(dummyForm)
     tokens.left.value should include("Missing access_token")
 
   it should "return Left when refresh_token is missing in JSON" in:
     val connectionStub =
       stubbedConnectionWithStatusCodeAndBody(StatusCode.Ok, """{"access_token": "test_access_token"}""")
-    val tokens = connectionStub.requestUserTokens(dummyForm)
+    val tokens = connectionStub.requestUserTokensForLogin(dummyForm)
     tokens.left.value should include("Missing refresh_token")
 
   "loginUser" should "return Right(Tokens) when user credentials are valid" in:
@@ -233,7 +233,7 @@ class KeycloakConnectionUnitSpec extends AnyFlatSpec with Matchers:
     val tokens = connectionStub.loginUser("testuser", "testpassword")
     tokens shouldBe Right(Tokens("test_access_token", "test_refresh_token"))
 
-  it should "return Left when requestUserTokens fails" in:
+  it should "return Left when requestUserTokensForLogin fails" in:
     val connectionStub = stubbedConnectionWithStatusCodeAndBody(StatusCode.Unauthorized, "Invalid credentials")
     val tokens         = connectionStub.loginUser("testuser", "wrongpassword")
     tokens.left.value should include("Invalid credentials")
