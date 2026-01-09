@@ -15,7 +15,6 @@ const gender = ref<'male' | 'female' | 'other' | null>(null)
 const notificationsEnabled = ref(true)
 const selectedTags = ref<Tag[]>([])
 const isDarkMode = ref($q.dark.isActive)
-const showTagsWarning = ref(false)
 
 // Available options
 const tagCategories = ref<TagCategory[]>([])
@@ -33,8 +32,6 @@ const genderOptions = [
 
 const maxTags = 5
 
-let warningTimeout: ReturnType<typeof setTimeout> | null = null
-
 // Watch per mostrare il warning quando si prova ad aggiungere un tag oltre il limite
 watch(selectedTags, (newVal, oldVal) => {
   // Se prova ad aggiungere un tag quando è già al massimo
@@ -42,20 +39,13 @@ watch(selectedTags, (newVal, oldVal) => {
     // Limita manualmente a maxTags
     selectedTags.value = newVal.slice(0, maxTags)
 
-    // Mostra il warning
-    showTagsWarning.value = true
-
-    // Nascondi il warning dopo 3 secondi
-    if (warningTimeout) clearTimeout(warningTimeout)
-    warningTimeout = setTimeout(() => {
-      showTagsWarning.value = false
-    }, 3000)
-  }
-
-  // Nascondi il warning se rimuove un tag
-  if (newVal.length < maxTags) {
-    showTagsWarning.value = false
-    if (warningTimeout) clearTimeout(warningTimeout)
+    // Mostra il warning come notifica
+    $q.notify({
+      type: 'warning',
+      message: `You can only select up to ${maxTags} tags`,
+      icon: 'warning',
+      position: 'top',
+    })
   }
 })
 
@@ -306,15 +296,6 @@ const handleDeleteProfile = () => {
               </q-item>
             </template>
           </FormSelectorField>
-
-          <transition name="fade">
-            <q-banner v-if="showTagsWarning" class="tags-warning-banner" dense rounded>
-              <template #avatar>
-                <q-icon name="warning" color="warning" />
-              </template>
-              You can only select up to {{ maxTags }} tags
-            </q-banner>
-          </transition>
         </section>
 
         <!-- Notifications Section -->
@@ -346,9 +327,10 @@ const handleDeleteProfile = () => {
 
           <q-btn
             label="Delete Profile"
-            color="negative"
-            outline
             icon="delete_forever"
+            outline
+            color="negative"
+            class="delete-profile-btn"
             @click="handleDeleteProfile"
           />
         </section>
@@ -360,15 +342,25 @@ const handleDeleteProfile = () => {
 <style lang="scss" scoped>
 .general-settings-tab {
   padding: $spacing-6;
+  padding-bottom: $spacing-8;
   position: relative;
   min-height: 400px;
 
   @media (max-width: $breakpoint-mobile) {
     padding: $spacing-4;
+    padding-bottom: $spacing-6;
   }
 
   :deep(input[type='date']::-webkit-calendar-picker-indicator) {
     display: none;
+  }
+
+  :deep(input[type='date']) {
+    color-scheme: light;
+
+    @include dark-mode {
+      color-scheme: dark;
+    }
   }
 }
 
@@ -386,6 +378,11 @@ const handleDeleteProfile = () => {
   }
 
   &:last-child {
+    border-bottom: none;
+  }
+
+  &.danger-zone {
+    margin-bottom: 0;
     border-bottom: none;
   }
 }
@@ -455,10 +452,11 @@ const handleDeleteProfile = () => {
 
 .danger-zone {
   margin-top: $spacing-8;
+  margin-bottom: $spacing-8;
   padding: $spacing-6;
-  border: 2px solid $color-error;
   border-radius: $radius-lg;
   background: rgba($color-error, 0.05);
+  box-shadow: 0 0 0 2px $color-error;
 
   @include dark-mode {
     background: rgba($color-error, 0.1);
@@ -469,7 +467,6 @@ const handleDeleteProfile = () => {
   color: $color-error;
 }
 
-// Tag styles (same as CreateEventView)
 :deep(.category-header) {
   background: rgba($color-primary, 0.05);
   font-weight: $font-weight-semibold;
@@ -487,26 +484,27 @@ const handleDeleteProfile = () => {
     background: rgba($color-primary, 0.12);
   }
 }
+</style>
 
-.tags-warning-banner {
-  margin-top: $spacing-4;
-  background: rgba($color-warning, 0.1);
-  border: 1px solid rgba($color-warning, 0.3);
+<style lang="scss">
+.delete-profile-btn.q-btn--outline {
+  // Default (Light Mode):
+  // We want Red Border (provided by text-negative class on q-btn)
+  // We want Black Text/Icon (overriding the text-negative inheritance)
 
-  @include dark-mode {
-    background: rgba($color-warning, 0.15);
-    border-color: rgba($color-warning, 0.4);
+  .q-btn__content,
+  .q-icon {
+    color: black !important;
   }
-}
 
-// Fade transition for warning banner
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
+  // Dark Mode:
+  // We want Red Border (provided by text-negative class on q-btn)
+  // We want White Text/Icon
+  body.body--dark & {
+    .q-btn__content,
+    .q-icon {
+      color: white !important;
+    }
+  }
 }
 </style>

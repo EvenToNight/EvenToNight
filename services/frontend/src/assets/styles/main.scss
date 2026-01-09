@@ -100,21 +100,21 @@ body.body--dark {
   min-height: 300px;
 }
 
-// Force white text and icons on all buttons EXCEPT flat buttons
-body.body--light .q-btn:not(.q-btn--flat),
-body.body--dark .q-btn:not(.q-btn--flat) {
-  .q-btn__content {
-    color: $color-white !important;
+// // Force white text and icons on all buttons EXCEPT flat buttons
+// body.body--light .q-btn:not(.q-btn--flat),
+// body.body--dark .q-btn:not(.q-btn--flat) {
+//   .q-btn__content {
+//     color: $color-white !important;
 
-    span {
-      color: $color-white !important;
-    }
-  }
+//     span {
+//       color: $color-white !important;
+//     }
+//   }
 
-  .q-icon {
-    color: $color-white !important;
-  }
-}
+//   .q-icon {
+//     color: $color-white !important;
+//   }
+// }
 
 // -----------------------------------------------------------------------------
 // 5. Utilities - Helper Classes

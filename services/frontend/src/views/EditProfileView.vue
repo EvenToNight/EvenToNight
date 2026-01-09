@@ -16,18 +16,22 @@ const $q = useQuasar()
 
 const name = ref('')
 const bio = ref('')
+const website = ref('')
 const avatar = ref<File | null>(null)
 const loading = ref(false)
 const currentAvatarUrl = ref<string | undefined>(undefined)
 
+const isOrganization = computed(() => authStore.user?.role === 'organization')
+
 const defaultIcon = computed(() => {
-  return authStore.user?.role === 'organization' ? 'business' : 'person'
+  return isOrganization.value ? 'business' : 'person'
 })
 
 onMounted(() => {
   if (authStore.user) {
     name.value = authStore.user.name || ''
     bio.value = authStore.user.bio || ''
+    website.value = authStore.user.website || ''
     currentAvatarUrl.value = authStore.user.avatarUrl || undefined
   }
 })
@@ -48,6 +52,7 @@ const handleSave = async () => {
     // await api.users.updateProfile(authStore.user.id, {
     //   name: name.value,
     //   bio: bio.value,
+    //   website: website.value,
     //   avatar: avatar.value,
     // })
 
@@ -61,6 +66,7 @@ const handleSave = async () => {
     if (authStore.user) {
       authStore.user.name = name.value
       authStore.user.bio = bio.value
+      authStore.user.website = website.value
     }
 
     // Navigate back to profile
@@ -121,6 +127,13 @@ const handleCancel = () => {
               :rows="4"
               :maxlength="150"
               counter
+            />
+
+            <FormField
+              v-if="isOrganization"
+              v-model="website"
+              :label="'Website'"
+              :placeholder="'https://example.com'"
             />
           </div>
         </div>

@@ -26,6 +26,16 @@ const { t } = useI18n()
       </div>
     </div>
     <p v-if="user.bio" class="user-bio">{{ user.bio }}</p>
+    <a
+      v-if="user.website"
+      :href="user.website"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="user-website"
+    >
+      <q-icon name="language" size="18px" />
+      <span>{{ user.website }}</span>
+    </a>
   </div>
 </template>
 
@@ -86,6 +96,34 @@ const { t } = useI18n()
 
   @include dark-mode {
     color: $color-text-dark;
+  }
+}
+
+.user-website {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  text-decoration: none;
+  transition: opacity $transition-base;
+
+  @media (max-width: $breakpoint-mobile) {
+    justify-content: center;
+  }
+
+  &:hover {
+    opacity: 0.8;
+
+    span {
+      text-decoration: underline;
+    }
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 </style>
