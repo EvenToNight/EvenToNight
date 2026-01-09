@@ -2,14 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { User } from '../schemas/user.schema';
-import { UserServiceClient } from 'src/integrations/user-service/user-service.client';
 
 @Injectable()
 export class UsersService {
-  constructor(
-    @InjectModel(User.name) private userModel: Model<any>,
-    private readonly userServiceClient: UserServiceClient,
-  ) {}
+  constructor(@InjectModel(User.name) private userModel: Model<any>) {}
 
   async upsertUser(data: {
     userId: string;
@@ -46,25 +42,6 @@ export class UsersService {
   }
 
   async getUserInfo(userId: string): Promise<User | null> {
-    let user = await this.userModel.findOne({ userId });
-
-    if (!user || !user.name) {
-      const remoteInfo = await this.userServiceClient.getUserInfo(userId);
-
-      if (remoteInfo) {
-        user = await this.upsertUser({
-          userId: remoteInfo.userId,
-          name: remoteInfo.name,
-          avatar: remoteInfo.avatar,
-        });
-      } else {
-        user = {
-          userId,
-          name: 'UserName',
-          avatar: 'http://media.eventonight.site/users/default.png',
-        };
-      }
-    }
-    return user;
+    return this.userModel.findOne({ userId });
   }
 }

@@ -9,7 +9,6 @@ import {
 import { Participant, ParticipantSchema } from './schemas/participant.schema';
 import { Message, MessageSchema } from './schemas/message.schema';
 import { UsersModule } from 'src/users/users.module';
-import { UserServiceModule } from 'src/integrations/user-service/user-service.module';
 
 @Module({
   imports: [
@@ -19,7 +18,6 @@ import { UserServiceModule } from 'src/integrations/user-service/user-service.mo
       { name: Message.name, schema: MessageSchema },
     ]),
     UsersModule,
-    UserServiceModule,
   ],
   providers: [ConversationsService],
   controllers: [ConversationsController],

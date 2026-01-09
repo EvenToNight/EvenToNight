@@ -39,9 +39,13 @@ export class UserConsumer {
       if (data.name !== undefined) updates.name = data.name;
       if (data.avatar !== undefined) updates.avatar = data.avatar;
 
-      await this.usersService.updateUser(data.userId, updates);
+      const result = await this.usersService.updateUser(data.userId, updates);
 
-      console.log('User updated successfully:', data.userId);
+      if (result) {
+        console.log('✅ User updated successfully:', data.userId);
+      } else {
+        console.warn('⚠️ User not found for update:', data.userId);
+      }
 
       const channel = context.getChannelRef();
       const originalMsg = context.getMessage();
