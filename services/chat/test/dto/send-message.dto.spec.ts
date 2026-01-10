@@ -1,0 +1,61 @@
+import { validate } from 'class-validator';
+import { SendMessageDto } from '../../src/conversations/dto/send-message.dto';
+
+describe('SendMessageDto', () => {
+  it('should validate a valid DTO', async () => {
+    const dto = new SendMessageDto();
+    dto.content = 'Hello, this is a test message';
+
+    const errors = await validate(dto);
+    expect(errors.length).toBe(0);
+  });
+
+  it('should fail without content', async () => {
+    const dto = new SendMessageDto();
+
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].property).toBe('content');
+  });
+
+  it('should fail with empty string content', async () => {
+    const dto = new SendMessageDto();
+    dto.content = '';
+
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+  });
+
+  it('should fail with content exceeding 10000 characters', async () => {
+    const dto = new SendMessageDto();
+    dto.content = 'a'.repeat(10001);
+
+    const errors = await validate(dto);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0].property).toBe('content');
+  });
+
+  it('should pass with content at 10000 characters limit', async () => {
+    const dto = new SendMessageDto();
+    dto.content = 'a'.repeat(10000);
+
+    const errors = await validate(dto);
+    expect(errors.length).toBe(0);
+  });
+
+  it('should accept content with special characters', async () => {
+    const dto = new SendMessageDto();
+    dto.content = 'Hello! 👋 Test <>&"\'';
+
+    const errors = await validate(dto);
+    expect(errors.length).toBe(0);
+  });
+
+  it('should accept multiline content', async () => {
+    const dto = new SendMessageDto();
+    dto.content = 'Line 1\nLine 2\nLine 3';
+
+    const errors = await validate(dto);
+    expect(errors.length).toBe(0);
+  });
+});

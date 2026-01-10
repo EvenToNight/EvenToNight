@@ -1,3 +1,23 @@
+## [1.14.0](https://github.com/EvenToNight/EvenToNight/compare/v1.13.0...v1.14.0) (2026-01-10)
+
+### Features
+
+* **conversation-by-id:** provide api in controller to get single conversation by id ([3e7ce09](https://github.com/EvenToNight/EvenToNight/commit/3e7ce099a255b0da7176b76361af6ae493606ee2))
+* **conversation-messages:** provide api in controller to retrieve messages of a conversation ([1cc1018](https://github.com/EvenToNight/EvenToNight/commit/1cc1018eedebeba1aa2cba17c76390c6c67225b8))
+* **create-conversation:** change api for create new conversation ([25f12fd](https://github.com/EvenToNight/EvenToNight/commit/25f12fd76adc3d7f63cad6c2571300f59b986c90))
+* **read-message:** provide api in controller for reading message ([f413491](https://github.com/EvenToNight/EvenToNight/commit/f41349188dac1e175df01b88485add7dd6a6c4b2))
+* **send-message:** change api to send message ([2f5c534](https://github.com/EvenToNight/EvenToNight/commit/2f5c534ab3f7542aeb153774e6e06ae746b2a694))
+* **unread-count:** provide api in controller to count unread messages ([db7c4db](https://github.com/EvenToNight/EvenToNight/commit/db7c4db0050ad7e380a52aecb2b25a14c9dff0d0))
+* **users-insert:** provide handler for message to insert or update user info ([6996e9e](https://github.com/EvenToNight/EvenToNight/commit/6996e9e8b851342f62cafaedcc4ac9a222710fe6))
+* **users-integration:** update integration with user service using rabbit ([fa5abca](https://github.com/EvenToNight/EvenToNight/commit/fa5abcab36a372f2a8668a49c72b0d9db4e6a65e))
+* **users-service:** create service for comunication with user ([8e457fd](https://github.com/EvenToNight/EvenToNight/commit/8e457fdf837bd0f5c11aace58dec907a63eda9b8))
+* **users-service:** implement logic to integrate users service ([3c1a07c](https://github.com/EvenToNight/EvenToNight/commit/3c1a07cc818233fa4c0a29bd6e70c41b11c27b6b))
+
+### Bug Fixes
+
+* **eslint:** fix error in eslint check ([729679e](https://github.com/EvenToNight/EvenToNight/commit/729679eca17b87d28abfba5c91d8fb080d69f1bb))
+* **test-bug:** fix bug in conversation test ([298705e](https://github.com/EvenToNight/EvenToNight/commit/298705e9a6cc7c0168ba8e8fef5079c65b4090e4))
+
 ## [1.13.0](https://github.com/EvenToNight/EvenToNight/compare/v1.12.1...v1.13.0) (2026-01-06)
 
 ### Features
