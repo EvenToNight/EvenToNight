@@ -14,6 +14,12 @@ export class CheckoutController {
     return this.checkoutService.createCheckout(dto);
   }
 
+  @Post('session/create')
+  async createCheckoutSession(@Body() dto: CreateCheckoutDto) {
+    this.logger.log(`Creating checkout session for user ${dto.userId}`);
+    return this.checkoutService.createCheckoutSession(dto);
+  }
+
   @Post('cancel')
   async cancelCheckout(@Body('reservationId') reservationId: string) {
     this.logger.log(`Cancelling checkout for reservation ${reservationId}`);

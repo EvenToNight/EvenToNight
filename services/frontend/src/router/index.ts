@@ -25,6 +25,7 @@ export const EDIT_PROFILE_ROUTE_NAME = 'edit-profile'
 export const SUPPORT_ROUTE_NAME = 'support'
 export const FORBIDDEN_ROUTE_NAME = 'forbidden'
 export const TICKET_PURCHASE_ROUTE_NAME = 'ticket-purchase'
+export const CHECKOUT_ROUTE_NAME = 'checkout'
 
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')
@@ -91,6 +92,12 @@ const router = createRouter({
           path: 'events/:id/purchase',
           name: TICKET_PURCHASE_ROUTE_NAME,
           component: () => import('../views/TicketPurchaseView.vue'),
+          beforeEnter: requireAuth,
+        },
+        {
+          path: 'checkout/:reservationId',
+          name: CHECKOUT_ROUTE_NAME,
+          component: () => import('../views/CheckoutView.vue'),
           beforeEnter: requireAuth,
         },
         {

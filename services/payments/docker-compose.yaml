@@ -14,11 +14,18 @@ services:
       - STRIPE_PUBLISHABLE_KEY=${STRIPE_PUBLISHABLE_KEY}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
       - RESERVATION_TTL_MINUTES=${RESERVATION_TTL_MINUTES:-10}
+      - USE_TRANSACTIONS=${USE_TRANSACTIONS:-false}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.payments.rule=Host(`payments.${HOST}`)"
       - "traefik.http.routers.payments.entrypoints=web"
+      - "traefik.http.routers.payments.middlewares=payments-cors"
       - "traefik.http.services.payments.loadbalancer.server.port=${PAYMENTS_SERVICE_PORT}"
+      - "traefik.http.middlewares.payments-cors.headers.accesscontrolallowmethods=GET,POST,PUT,DELETE,OPTIONS,PATCH"
+      - "traefik.http.middlewares.payments-cors.headers.accesscontrolalloworiginlist=http://localhost:5173,http://localhost:3000"
+      - "traefik.http.middlewares.payments-cors.headers.accesscontrolallowheaders=Content-Type,Authorization"
+      - "traefik.http.middlewares.payments-cors.headers.accesscontrolallowcredentials=true"
+      - "traefik.http.middlewares.payments-cors.headers.accesscontrolmaxage=100"
     restart: unless-stopped
     depends_on:
       mongo-payments:

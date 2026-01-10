@@ -177,6 +177,55 @@ export class StripeService {
   }
 
   /**
+   * Create a Checkout Session for hosted payment page
+   */
+  async createCheckoutSession(
+    amount: number,
+    currency: string,
+    metadata: Record<string, string>,
+    successUrl: string,
+    cancelUrl: string,
+  ): Promise<Stripe.Checkout.Session> {
+    try {
+      const session = await this.stripe.checkout.sessions.create({
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency,
+              product_data: {
+                name: 'Event Tickets',
+                description: `Reservation ${metadata.reservationId}`,
+              },
+              unit_amount: amount,
+            },
+            quantity: 1,
+          },
+        ],
+        mode: 'payment',
+        success_url: successUrl,
+        cancel_url: cancelUrl,
+        metadata,
+        payment_intent_data: {
+          metadata,
+        },
+      });
+
+      this.logger.log(
+        `Checkout Session created: ${session.id} for ${amount} ${currency}`,
+      );
+
+      return session;
+    } catch (error) {
+      this.logger.error(
+        `Failed to create Checkout Session: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Get Stripe instance for advanced operations
    */
   getStripeInstance(): Stripe {

@@ -7,12 +7,15 @@ import { useQuasar } from 'quasar'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const { params, goBack } = useNavigation()
 const $q = useQuasar()
+const authStore = useAuthStore()
 
 const eventId = computed(() => params.id as string)
 const event = ref<Event | null>(null)
+const ticketCategories = ref<any[]>([])
 const ticketQuantity = ref(1)
 const loading = ref(false)
 const purchasing = ref(false)
@@ -34,6 +37,7 @@ onMounted(async () => {
   try {
     loading.value = true
     event.value = await api.events.getEventById(eventId.value)
+    ticketCategories.value = await api.payments.getEventTickets(eventId.value)
   } catch (error) {
     console.error('Failed to load event:', error)
     $q.notify({
@@ -47,21 +51,47 @@ onMounted(async () => {
 })
 
 const handlePurchase = async () => {
+  if (!authStore.user?.id) {
+    $q.notify({
+      type: 'negative',
+      message: 'Please login to purchase tickets',
+      icon: 'error',
+    })
+    return
+  }
+
+  if (!ticketCategories.value.length) {
+    $q.notify({
+      type: 'negative',
+      message: 'No tickets available for this event',
+      icon: 'error',
+    })
+    return
+  }
+
   purchasing.value = true
   try {
-    // TODO: Implement ticket purchase API
-    // await api.tickets.purchaseTickets(eventId.value, ticketQuantity.value)
+    const response = await api.payments.createCheckoutSession({
+      userId: authStore.user.id,
+      eventId: eventId.value,
+      items: [
+        {
+          categoryId: ticketCategories.value[0].id,
+          quantity: ticketQuantity.value,
+        },
+      ],
+    })
+
+    console.log('Checkout session created:', response)
 
     $q.notify({
       type: 'positive',
-      message: `Successfully purchased ${ticketQuantity.value} ticket${ticketQuantity.value > 1 ? 's' : ''}!`,
+      message: `Successfully reserved ${ticketQuantity.value} ticket${ticketQuantity.value > 1 ? 's' : ''}! Redirecting to payment...`,
       icon: 'check_circle',
     })
 
-    // Navigate back after purchase
-    setTimeout(() => {
-      goBack()
-    }, 1000)
+    // Redirect to Stripe hosted checkout page
+    window.location.href = response.sessionUrl
   } catch (error) {
     console.error('Failed to purchase tickets:', error)
     $q.notify({

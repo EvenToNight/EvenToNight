@@ -1,7 +1,7 @@
 services:
   payments:
     build:
-      context: ../..
+      context: .
       dockerfile: ./services/payments/Dockerfile
     ports:
       - "${PAYMENTS_SERVICE_PORT}:${PAYMENTS_SERVICE_PORT}"

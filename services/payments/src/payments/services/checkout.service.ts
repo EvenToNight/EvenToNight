@@ -198,6 +198,64 @@ export class CheckoutService {
   }
 
   /**
+   * Create checkout session with hosted Stripe page
+   */
+  async createCheckoutSession(dto: CreateCheckoutDto): Promise<{ sessionUrl: string; reservationId: string }> {
+    try {
+      this.logger.log(
+        `Creating checkout session for user ${dto.userId}, event ${dto.eventId}`,
+      );
+
+      // Step 1: Calculate total amount
+      let totalAmount = 0;
+      for (const item of dto.items) {
+        const category = await this.inventoryService.getCategoryById(
+          item.categoryId,
+        );
+        totalAmount += category.price * item.quantity;
+      }
+
+      this.logger.log(`Total amount calculated: ${totalAmount} cents`);
+
+      // Step 2: Create reservation (atomic inventory lock)
+      const reservation = await this.reservationService.createReservation({
+        userId: dto.userId,
+        eventId: dto.eventId,
+        items: dto.items,
+      });
+
+      this.logger.log(`Reservation created: ${reservation._id}`);
+
+      // Step 3: Create Stripe Checkout Session
+      const baseUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+      const session = await this.stripeService.createCheckoutSession(
+        totalAmount,
+        'usd',
+        {
+          reservationId: reservation._id.toString(),
+          userId: dto.userId,
+          eventId: dto.eventId,
+        },
+        `${baseUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+        `${baseUrl}/payment-cancelled?reservation_id=${reservation._id}`,
+      );
+
+      this.logger.log(`Checkout Session created: ${session.id}`);
+
+      return {
+        sessionUrl: session.url!,
+        reservationId: reservation._id.toString(),
+      };
+    } catch (error) {
+      this.logger.error(
+        `Checkout session creation failed: ${error.message}`,
+        error.stack,
+      );
+      throw error;
+    }
+  }
+
+  /**
    * Cancel checkout (user abandons)
    */
   async cancelCheckout(reservationId: string): Promise<void> {
