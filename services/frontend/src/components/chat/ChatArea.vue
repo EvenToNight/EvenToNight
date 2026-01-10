@@ -61,8 +61,8 @@ function shouldShowDateSeparator(index: number): boolean {
   const prevMsg = props.messages[index - 1]
   if (!currentMsg || !prevMsg) return false
 
-  const currentDate = new Date(currentMsg.timestamp)
-  const prevDate = new Date(prevMsg.timestamp)
+  const currentDate = new Date(currentMsg.createdAt)
+  const prevDate = new Date(prevMsg.createdAt)
 
   const currentDay = new Date(
     currentDate.getFullYear(),
@@ -144,7 +144,7 @@ watch(
 
         <div v-for="(message, index) in messages" :key="message.id" class="message-wrapper">
           <div v-if="shouldShowDateSeparator(index)" class="date-separator">
-            <span>{{ formatDateSeparator(message.timestamp) }}</span>
+            <span>{{ formatDateSeparator(message.createdAt) }}</span>
           </div>
 
           <div
@@ -158,7 +158,7 @@ watch(
               {{ message.content }}
             </div>
             <div class="message-time">
-              {{ formatTime(message.timestamp) }}
+              {{ formatTime(message.createdAt) }}
               <q-icon
                 v-if="isFromCurrentUser(message)"
                 name="done_all"

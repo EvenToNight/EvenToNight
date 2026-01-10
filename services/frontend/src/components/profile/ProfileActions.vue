@@ -4,7 +4,7 @@ import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const { goToCreateEvent, goToEditProfile, goToSettings, goToSupport } = useNavigation()
+const { goToCreateEvent, goToEditProfile, goToSettings, goToChat } = useNavigation()
 
 interface Props {
   isOwnProfile: boolean
@@ -35,8 +35,8 @@ const handleOpenSettings = () => {
   goToSettings()
 }
 
-const handleOpenSupport = () => {
-  goToSupport(props.userId)
+const handleOpenChat = () => {
+  goToChat(props.userId)
 }
 </script>
 
@@ -49,7 +49,7 @@ const handleOpenSupport = () => {
         variant="secondary"
         @click="handleEditProfile"
       />
-      <Button label="Chats" icon="chat" variant="secondary" @click="handleOpenSupport" />
+      <Button label="Chats" icon="chat" variant="secondary" @click="handleOpenChat" />
       <Button
         v-if="isOrganization"
         :label="t('userProfile.createEvent')"
@@ -65,7 +65,7 @@ const handleOpenSupport = () => {
         label="Send a message"
         icon="send"
         variant="secondary"
-        @click="handleOpenSupport"
+        @click="handleOpenChat"
       />
       <Button
         :label="isFollowing ? t('userProfile.following') : t('userProfile.follow')"

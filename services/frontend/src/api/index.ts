@@ -13,7 +13,7 @@ import {
   // createFeedClient,
   // createUsersClient,
 } from './client'
-import { mockSupportApi } from './mock-services/chat'
+import { mockChatApi } from './mock-services/chat'
 import { mockNotificationApi } from './mock-services/notification'
 
 const useRealApi: boolean = import.meta.env.VITE_USE_MOCK_API === 'false'
@@ -27,7 +27,7 @@ export const api = {
     ? createInteractionsApi(createInteractionsClient())
     : mockInteractionsApi,
   users: mockUsersApi,
-  support: mockSupportApi,
+  chat: mockChatApi,
   notification: mockNotificationApi,
   // media: useMockApi ? mockMediaApi : createMediaApi(createMediaClient()),
   // feed: useMockApi ? mockFeedApi : createFeedApi(createFeedClient()),

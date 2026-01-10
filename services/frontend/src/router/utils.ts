@@ -13,7 +13,7 @@ import {
   EXPLORE_ROUTE_NAME,
   SETTINGS_ROUTE_NAME,
   EDIT_PROFILE_ROUTE_NAME,
-  SUPPORT_ROUTE_NAME,
+  CHAT_ROUTE_NAME,
 } from '@/router'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
 
@@ -180,11 +180,11 @@ export const useNavigation = () => {
     }
   }
 
-  const goToSupport = (organizationId?: string, swap: boolean = false) => {
+  const goToChat = (organizationId?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(SUPPORT_ROUTE_NAME, undefined, { organizationId })
+      replaceWithLocale(CHAT_ROUTE_NAME, undefined, { organizationId })
     } else {
-      pushWithLocale(SUPPORT_ROUTE_NAME, undefined, { organizationId })
+      pushWithLocale(CHAT_ROUTE_NAME, undefined, { organizationId })
     }
   }
 
@@ -228,7 +228,7 @@ export const useNavigation = () => {
     goToUserProfile,
     goToSettings,
     goToEditProfile,
-    goToSupport,
+    goToChat,
     changeLocale,
     removeQuery,
   }

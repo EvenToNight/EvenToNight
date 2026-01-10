@@ -13,7 +13,7 @@ export function loadMessages(defaultMessages: ConversationMessages): Conversatio
       Object.keys(parsed).forEach((convId) => {
         parsed[convId] = parsed[convId].map((msg: any) => ({
           ...msg,
-          timestamp: new Date(msg.timestamp),
+          createdAt: new Date(msg.createdAt),
         }))
       })
       return parsed
@@ -42,7 +42,10 @@ export function loadConversations(defaultConversations: Conversation[]): Convers
       // Convert date strings back to Date objects
       return parsed.map((conv: any) => ({
         ...conv,
-        lastMessageTime: new Date(conv.lastMessageTime),
+        lastMessage: {
+          ...conv.lastMessage,
+          createdAt: new Date(conv.lastMessage.createdAt),
+        },
       }))
     }
   } catch (error) {
