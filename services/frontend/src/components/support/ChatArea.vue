@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted, onBeforeUnmount, computed } from 'vue'
-import type { Conversation, Message } from '@/api/types/support'
+import type { Conversation, Message } from '@/api/types/chat'
 import ChatHeader from './ChatHeader.vue'
 import { useAuthStore } from '@/stores/auth'
 

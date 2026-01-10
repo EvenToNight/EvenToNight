@@ -13,7 +13,7 @@ import {
   // createFeedClient,
   // createUsersClient,
 } from './client'
-import { mockSupportApi } from './mock-services/support'
+import { mockSupportApi } from './mock-services/chat'
 import { mockNotificationApi } from './mock-services/notification'
 
 const useRealApi: boolean = import.meta.env.VITE_USE_MOCK_API === 'false'

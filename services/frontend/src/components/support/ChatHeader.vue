@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Conversation } from '@/api/types/support'
+import type { Conversation } from '@/api/types/chat'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 
 interface Props {
@@ -30,15 +30,15 @@ const emit = defineEmits<{
     </q-btn>
     <q-avatar size="40px">
       <img
-        v-if="conversation?.organizationAvatar"
-        :src="conversation.organizationAvatar"
-        :alt="conversation.organizationName"
+        v-if="conversation?.organization.avatar"
+        :src="conversation.organization.avatar"
+        :alt="conversation.organization.name"
         style="object-fit: cover"
       />
       <q-icon v-else name="business" size="md" />
     </q-avatar>
     <div class="header-info">
-      <div class="organization-name">{{ conversation?.organizationName }}</div>
+      <div class="organization-name">{{ conversation?.organization.name }}</div>
       <div class="status">Online</div>
     </div>
     <q-space />

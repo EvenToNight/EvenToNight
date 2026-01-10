@@ -1,7 +1,7 @@
-import type { Conversation, ConversationMessages } from '@/api/types/support'
+import type { Conversation, ConversationMessages } from '@/api/types/chat'
 
-const STORAGE_KEY_MESSAGES = 'mock-support-messages'
-const STORAGE_KEY_CONVERSATIONS = 'mock-support-conversations'
+const STORAGE_KEY_MESSAGES = 'mock-chat-messages'
+const STORAGE_KEY_CONVERSATIONS = 'mock-chat-conversations'
 
 // Load data from localStorage or return default data
 export function loadMessages(defaultMessages: ConversationMessages): ConversationMessages {

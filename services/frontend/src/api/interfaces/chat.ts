@@ -1,7 +1,7 @@
 import type { PaginatedRequest, PaginatedResponse } from './commons'
-import type { Conversation, ConversationID, Message } from '@/api/types/support'
+import type { Conversation, ConversationID, Message } from '@/api/types/chat'
 
-export interface SupportAPI {
+export interface ChatAPI {
   getConversations(
     userId: string,
     pagination?: PaginatedRequest

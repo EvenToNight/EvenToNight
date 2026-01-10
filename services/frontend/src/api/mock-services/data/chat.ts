@@ -1,45 +1,69 @@
-import type { Conversation, ConversationMessages } from '@/api/types/support'
-import { loadConversations, loadMessages } from '../storage/supportStorage'
+import type { Conversation, ConversationMessages } from '@/api/types/chat'
+import { loadConversations, loadMessages } from '../storage/chatStorage'
 
 const defaultConversations: Conversation[] = [
   {
     id: '1',
-    organizationId: 'organization_1',
-    organizationName: 'Coccorico Events',
-    organizationAvatar:
-      'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3s2TWG_y1cT4NHdiYO0_MBkrI9wGTAIF_QA&s',
-    memberId: 'member_1',
-    memberName: 'Alex Johnson',
-    memberAvatar: 'https://i.pravatar.cc/150?img=1',
-    lastMessage: 'Grazie, a presto!',
-    lastMessageTime: new Date('2025-11-24T18:30:00'),
-    lastMessageSenderId: 'organization_1',
+    organization: {
+      id: 'organization_1',
+      name: 'Coccorico Events',
+      username: 'coccorico_events',
+      avatar:
+        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3s2TWG_y1cT4NHdiYO0_MBkrI9wGTAIF_QA&s',
+    },
+    member: {
+      id: 'member_1',
+      name: 'Alex Johnson',
+      username: 'alex_johnson',
+      avatar: 'https://i.pravatar.cc/150?img=1',
+    },
+    lastMessage: {
+      senderId: 'organization_1',
+      content: 'Grazie, a presto!',
+      timestamp: new Date('2025-11-24T18:30:00'),
+    },
     unreadCount: 0,
   },
   {
     id: '2',
-    organizationId: 'organization_2',
-    organizationName: 'Riviera Sounds',
-    organizationAvatar: 'https://www.cdclick.it/gfx/Vinyl/12-BLACK.jpg',
-    memberId: 'member_1',
-    memberName: 'Alex Johnson',
-    memberAvatar: 'https://i.pravatar.cc/150?img=1',
-    lastMessage: 'Ok perfetto',
-    lastMessageTime: new Date('2025-11-23T15:45:00'),
-    lastMessageSenderId: 'member_1',
+    organization: {
+      id: 'organization_2',
+      name: 'Riviera Sounds',
+      username: 'riviera_sounds',
+      avatar: 'https://www.cdclick.it/gfx/Vinyl/12-BLACK.jpg',
+    },
+    member: {
+      id: 'member_1',
+      name: 'Alex Johnson',
+      username: 'alex_johnson',
+      avatar: 'https://i.pravatar.cc/150?img=1',
+    },
+    lastMessage: {
+      senderId: 'member_1',
+      content: 'Ok perfetto',
+      timestamp: new Date('2025-11-23T15:45:00'),
+    },
     unreadCount: 0,
   },
   {
     id: '3',
-    organizationId: 'organization_3',
-    organizationName: 'Italy Music Group',
-    organizationAvatar: 'https://cdn.bestmovie.it/wp-content/uploads/2020/11/maradona.jpg',
-    memberId: 'member_1',
-    memberName: 'Alex Johnson',
-    memberAvatar: 'https://i.pravatar.cc/150?img=1',
-    lastMessage: 'Ti aspettiamo!',
-    lastMessageTime: new Date('2025-11-21T20:00:00'),
-    lastMessageSenderId: 'organization_3',
+    organization: {
+      id: 'organization_3',
+      name: 'Italy Music Group',
+      username: 'italy_music_group',
+      avatar: 'https://cdn.bestmovie.it/wp-content/uploads/2020/11/maradona.jpg',
+    },
+    member: {
+      id: 'member_1',
+      name: 'Alex Johnson',
+      username: 'alex_johnson',
+      avatar: 'https://i.pravatar.cc/150?img=1',
+    },
+    lastMessage: {
+      senderId: 'organization_3',
+      content: 'Ti aspettiamo!',
+      timestamp: new Date('2025-11-21T20:00:00'),
+    },
     unreadCount: 1,
   },
 ]

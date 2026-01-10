@@ -1,27 +1,28 @@
 import type { UserID } from './users'
 
 export type ConversationID = string
-export interface Message {
-  id: string
+export interface MessageData {
   senderId: UserID
   content: string
+  timestamp: Date
   //   isRead: boolean
   //   isSent: boolean
-  timestamp: Date
+}
+export interface Message extends MessageData {
+  id: string
 }
 
 export type ConversationMessages = Record<ConversationID, Message[]>
-
+export type User = {
+  id: UserID
+  name: string
+  username: string
+  avatar: string
+}
 export interface Conversation {
   id: ConversationID
-  organizationId: UserID
-  organizationName: string
-  organizationAvatar: string
-  memberId: UserID
-  memberName: string
-  memberAvatar: string
-  lastMessage: string
-  lastMessageTime: Date
-  lastMessageSenderId: UserID
+  organization: User
+  member: User
+  lastMessage: MessageData
   unreadCount: number
 }

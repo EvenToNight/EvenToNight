@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { Conversation } from '@/api/types/support'
+import type { Conversation } from '@/api/types/chat'
 import type { User } from '@/api/types/users'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
@@ -24,17 +24,17 @@ const emit = defineEmits<{
 const searchQuery = ref('')
 
 function getConversationAvatar(conversation: Conversation): string {
-  const isCurrentUserMember = authStore.user?.id === conversation.memberId
-  return isCurrentUserMember ? conversation.organizationAvatar : conversation.memberAvatar
+  const isCurrentUserMember = authStore.user?.id === conversation.member.id
+  return isCurrentUserMember ? conversation.organization.avatar : conversation.member.avatar
 }
 
 function getConversationName(conversation: Conversation): string {
-  const isCurrentUserMember = authStore.user?.id === conversation.memberId
-  return isCurrentUserMember ? conversation.organizationName : conversation.memberName
+  const isCurrentUserMember = authStore.user?.id === conversation.member.id
+  return isCurrentUserMember ? conversation.organization.name : conversation.member.name
 }
 
 function isLastMessageFromMe(conversation: Conversation): boolean {
-  return authStore.user?.id === conversation.lastMessageSenderId
+  return authStore.user?.id === conversation.lastMessage.senderId
 }
 
 function formatTime(date: Date): string {
@@ -65,7 +65,7 @@ const filteredConversations = computed(() => {
   const query = searchQuery.value.toLowerCase().trim()
   return props.conversations.filter((conversation) => {
     const name = getConversationName(conversation).toLowerCase()
-    const lastMessage = conversation.lastMessage.toLowerCase()
+    const lastMessage = conversation.lastMessage.content.toLowerCase()
     return name.includes(query) || lastMessage.includes(query)
   })
 })
@@ -142,7 +142,7 @@ watch(searchQuery, (newQuery) => {
 
         <q-item-section side top>
           <q-item-label caption class="message-time">
-            {{ formatTime(conversation.lastMessageTime) }}
+            {{ formatTime(conversation.lastMessage.timestamp) }}
           </q-item-label>
           <q-badge
             v-if="conversation.unreadCount > 0"

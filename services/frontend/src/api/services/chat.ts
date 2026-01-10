@@ -1,10 +1,10 @@
-import type { SupportAPI } from '../interfaces/support'
+import type { ChatAPI } from '../interfaces/chat'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
-import type { Conversation, Message } from '../types/support'
+import type { Conversation, Message } from '../types/chat'
 import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { ApiClient } from '../client'
 
-export const createSupportApi = (supportClient: ApiClient): SupportAPI => ({
+export const createSupportApi = (supportClient: ApiClient): ChatAPI => ({
   async getConversations(
     userId: string,
     pagination?: PaginatedRequest

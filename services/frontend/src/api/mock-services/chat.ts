@@ -1,19 +1,19 @@
-import type { SupportAPI } from '../interfaces/support'
+import type { ChatAPI } from '../interfaces/chat'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
-import type { Conversation, Message } from '../types/support'
+import type { Conversation, Message } from '../types/chat'
 import type { NewMessageEvent } from '../types/notification'
 import { getPaginatedItems } from '../utils/requestUtils'
-import { mockConversations, mockMessages } from './data/support'
-import { saveConversations, saveMessages } from './storage/supportStorage'
+import { mockConversations, mockMessages } from './data/chat'
+import { saveConversations, saveMessages } from './storage/chatStorage'
 import { activeWebSockets } from './notification'
 
-export const mockSupportApi: SupportAPI = {
+export const mockSupportApi: ChatAPI = {
   async getConversations(
     userId: string,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<Conversation>> {
     const conversations = mockConversations.filter((conversation) => {
-      return conversation.organizationId === userId || conversation.memberId === userId
+      return conversation.organization.id === userId || conversation.member.id === userId
     })
     return getPaginatedItems(conversations, pagination)
   },
@@ -47,9 +47,11 @@ export const mockSupportApi: SupportAPI = {
 
     const conversation = mockConversations.find((c) => c.id === conversationId)
     if (conversation) {
-      conversation.lastMessage = message.content
-      conversation.lastMessageTime = message.timestamp
-      conversation.lastMessageSenderId = message.senderId
+      conversation.lastMessage = {
+        senderId: message.senderId,
+        content: message.content,
+        timestamp: message.timestamp,
+      }
 
       // Save conversations to localStorage
       saveConversations(mockConversations)

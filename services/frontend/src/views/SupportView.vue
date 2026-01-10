@@ -4,7 +4,7 @@ import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
 import ConversationList from '@/components/support/ConversationList.vue'
-import type { Conversation, Message } from '@/api/types/support'
+import type { Conversation, Message } from '@/api/types/chat'
 import type { User } from '@/api/types/users'
 import MessageInput from '@/components/support/MessageInput.vue'
 import ChatArea from '@/components/support/ChatArea.vue'
@@ -36,15 +36,21 @@ const displayConversation = computed<Conversation | undefined>(() => {
     // Create temporary conversation object for display purposes
     return {
       id: selectedOrganization.value.id,
-      organizationId: selectedOrganization.value.id,
-      organizationName: selectedOrganization.value.name,
-      organizationAvatar: selectedOrganization.value.avatarUrl || '',
-      memberId: authStore.user?.id || '',
-      memberName: authStore.user?.name || '',
-      memberAvatar: authStore.user?.avatarUrl || '',
-      lastMessage: '',
-      lastMessageTime: new Date(),
-      lastMessageSenderId: '',
+      organization: {
+        id: selectedOrganization.value.id,
+        name: selectedOrganization.value.name,
+        avatar: selectedOrganization.value.avatarUrl || '',
+      },
+      member: {
+        id: authStore.user?.id || '',
+        name: authStore.user?.name || '',
+        avatar: authStore.user?.avatarUrl || '',
+      },
+      lastMessage: {
+        senderId: '',
+        content: '',
+        timestamp: new Date(),
+      },
       unreadCount: 0,
     } as Conversation
   }
@@ -84,7 +90,7 @@ onUnmounted(() => {
 
 async function loadOrganizationConversation(organizationId: string) {
   //TODO seach usign API
-  const existingConversation = conversations.value.find((c) => c.organizationId === organizationId)
+  const existingConversation = conversations.value.find((c) => c.organization.id === organizationId)
   if (existingConversation) {
     await handleSelectConversation(existingConversation.id)
   } else {
@@ -171,7 +177,7 @@ async function handleSearchOrganizations(query: string) {
     // Filter out organizations that already have conversations
     const conversationOrgIds = new Set(
       conversations.value.map((c) =>
-        authStore.user?.id === c.memberId ? c.organizationId : c.memberId
+        authStore.user?.id === c.member.id ? c.organization.id : c.member.id
       )
     )
 
@@ -229,18 +235,25 @@ async function handleSendMessage(content: string) {
     if (isNewConversation.value && selectedOrganization.value) {
       const newConv: Conversation = {
         id: crypto.randomUUID(),
-        organizationId: selectedOrganization.value.id,
-        organizationName: selectedOrganization.value.name,
-        organizationAvatar: selectedOrganization.value.avatarUrl || '',
-        memberId: authStore.user.id,
-        memberName: authStore.user.name,
-        memberAvatar: authStore.user.avatarUrl || '',
-        lastMessage: content.trim(),
-        lastMessageTime: newMessage.timestamp,
-        lastMessageSenderId: newMessage.senderId,
+        organization: {
+          id: selectedOrganization.value.id,
+          name: selectedOrganization.value.name,
+          username: 'username', // Placeholder, replace with actual username if available
+          avatar: selectedOrganization.value.avatarUrl || '',
+        },
+        member: {
+          id: authStore.user.id,
+          name: authStore.user.name,
+          username: 'username', // Placeholder, replace with actual username if available
+          avatar: authStore.user.avatarUrl || '',
+        },
+        lastMessage: {
+          senderId: newMessage.senderId,
+          content: content.trim(),
+          timestamp: newMessage.timestamp,
+        },
         unreadCount: 0,
       }
-
       conversations.value.unshift(newConv)
       selectedConversationId.value = newConv.id
       isNewConversation.value = false
@@ -257,10 +270,11 @@ async function handleSendMessage(content: string) {
     if (conversationIndex !== -1) {
       const conversation = conversations.value[conversationIndex]
       if (conversation) {
-        conversation.lastMessage = content.trim()
-        conversation.lastMessageTime = newMessage.timestamp
-        conversation.lastMessageSenderId = newMessage.senderId
-
+        conversation.lastMessage = {
+          senderId: newMessage.senderId,
+          content: newMessage.content,
+          timestamp: newMessage.timestamp,
+        }
         // Move conversation to top of list
         conversations.value.splice(conversationIndex, 1)
         conversations.value.unshift(conversation)
@@ -289,9 +303,11 @@ function handleWebSocketNewMessage(event: import('@/api/types/notification').New
     // Update existing conversation
     const conv = conversations.value[existingConversationIndex]
     if (conv) {
-      conv.lastMessage = updatedConversation.lastMessage
-      conv.lastMessageTime = updatedConversation.lastMessageTime
-      conv.lastMessageSenderId = updatedConversation.lastMessageSenderId
+      conv.lastMessage = {
+        senderId: updatedConversation.lastMessage.senderId,
+        content: updatedConversation.lastMessage.content,
+        timestamp: updatedConversation.lastMessage.timestamp,
+      }
 
       // Increment unread count only if it's not the currently selected conversation
       // and the message is not from the current user
