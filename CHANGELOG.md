@@ -1,3 +1,18 @@
+## [1.15.0](https://github.com/EvenToNight/EvenToNight/compare/v1.14.0...v1.15.0) (2026-01-10)
+
+### Features
+
+* **settings:** add change password tab ([71582d4](https://github.com/EvenToNight/EvenToNight/commit/71582d4fa40ea469cfb97c2b2dd67ce81a5d2ed4))
+* **settings:** add preferred language selection ([d167876](https://github.com/EvenToNight/EvenToNight/commit/d167876fe86061ec93269e51086d9effbc0bce23))
+* **support-chat:** add buttons in profile to use support-chat ([84af718](https://github.com/EvenToNight/EvenToNight/commit/84af718b9bf5f94f9c9112cd6f7fe4f9d89e7b41))
+* **support-chat:** implement mocked socket using localstorage and broadcast channel ([27b6a59](https://github.com/EvenToNight/EvenToNight/commit/27b6a5923b39c47d5d586571cce9d43ab1768dd4))
+
+### Bug Fixes
+
+* **DrawerMenu:** fix opening anchor point ([ebdb6ef](https://github.com/EvenToNight/EvenToNight/commit/ebdb6efd9371577ebef56545c6834e3d8a54a290))
+* **layout:** fix content height of TwoColumnLayout ([969b658](https://github.com/EvenToNight/EvenToNight/commit/969b658a1f2bd95ad2ab6bf23b46e3689c7086cc))
+* **users-service:** add USERS_SERVICE_SECRET for dev and fix mongo-users-express network ([51e2c9e](https://github.com/EvenToNight/EvenToNight/commit/51e2c9eb30cb53b340a0ff378198a276add00687))
+
 ## [1.14.0](https://github.com/EvenToNight/EvenToNight/compare/v1.13.0...v1.14.0) (2026-01-10)
 
 ### Features
