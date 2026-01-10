@@ -15,7 +15,7 @@ const { query, params, goToUserProfile } = useNavigation()
 const organizationId = computed(() => params.organizationId as string)
 const tempEventId = ref<EventID | null>((query.eventId as EventID) || null)
 //TODO: missing endpoint for checking if user has partecipated in any event of the organization
-const canUserLeaveReview = ref(false)
+const canUserLeaveReview = ref(true)
 
 //TODO: missing endpoint for retriving user's review to show in dialog for editing (when clicking on modify ok the review is alreay loaded), evaluate moving inside dialog
 const tempReview = ref<EventReview | null>(null)
