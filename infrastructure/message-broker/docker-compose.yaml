@@ -12,7 +12,7 @@ services:
     healthcheck:
       test: [ 'CMD', 'rabbitmq-diagnostics', 'status' ]
       interval: 5s
-      timeout: 5s
+      timeout: 120s
       retries: 100
       start_period: 200s
     volumes:

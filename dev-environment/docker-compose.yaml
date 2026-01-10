@@ -9,7 +9,7 @@ services:
     healthcheck:
       test: [ 'CMD', 'rabbitmqctl', 'await_startup' ]
       interval: 5s
-      timeout: 5s
+      timeout: 120s
       retries: 1000
       start_period: 500s
 
