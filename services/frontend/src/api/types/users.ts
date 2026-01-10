@@ -5,8 +5,9 @@ export type UserRole = 'member' | 'organization'
 export interface User {
   id: UserID
   name: string
+  username: string
   email: string
-  avatarUrl?: string
+  avatar: string
   bio?: string
   website?: string
   role: UserRole

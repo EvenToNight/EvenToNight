@@ -93,7 +93,7 @@ const processUserSearchResults = async (users: User[], query: string): Promise<S
         type: user.role,
         id: user.id,
         name: user.name,
-        avatarUrl: user.avatarUrl,
+        avatarUrl: user.avatar,
         relevance: relevance,
       }
     }

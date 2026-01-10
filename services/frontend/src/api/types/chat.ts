@@ -1,4 +1,4 @@
-import type { UserID } from './users'
+import type { User, UserID } from './users'
 
 export type ConversationID = string
 export interface MessageData {
@@ -13,16 +13,11 @@ export interface Message extends MessageData {
 }
 
 export type ConversationMessages = Record<ConversationID, Message[]>
-export type User = {
-  id: UserID
-  name: string
-  username: string
-  avatar: string
-}
+export type ChatUser = Pick<User, 'id' | 'name' | 'username' | 'avatar'>
 export interface Conversation {
   id: ConversationID
-  organization: User
-  member: User
+  organization: ChatUser
+  member: ChatUser
   lastMessage: MessageData
   unreadCount: number
 }

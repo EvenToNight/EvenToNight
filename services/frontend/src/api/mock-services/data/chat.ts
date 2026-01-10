@@ -7,14 +7,14 @@ const defaultConversations: Conversation[] = [
     organization: {
       id: 'organization_1',
       name: 'Coccorico Events',
-      username: 'coccorico_events',
+      username: 'organization_1',
       avatar:
         'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3s2TWG_y1cT4NHdiYO0_MBkrI9wGTAIF_QA&s',
     },
     member: {
       id: 'member_1',
       name: 'Alex Johnson',
-      username: 'alex_johnson',
+      username: 'member_1',
       avatar: 'https://i.pravatar.cc/150?img=1',
     },
     lastMessage: {
@@ -29,13 +29,13 @@ const defaultConversations: Conversation[] = [
     organization: {
       id: 'organization_2',
       name: 'Riviera Sounds',
-      username: 'riviera_sounds',
+      username: 'organization_2',
       avatar: 'https://www.cdclick.it/gfx/Vinyl/12-BLACK.jpg',
     },
     member: {
       id: 'member_1',
       name: 'Alex Johnson',
-      username: 'alex_johnson',
+      username: 'member_1',
       avatar: 'https://i.pravatar.cc/150?img=1',
     },
     lastMessage: {
@@ -50,13 +50,13 @@ const defaultConversations: Conversation[] = [
     organization: {
       id: 'organization_3',
       name: 'Italy Music Group',
-      username: 'italy_music_group',
+      username: 'organization_3',
       avatar: 'https://cdn.bestmovie.it/wp-content/uploads/2020/11/maradona.jpg',
     },
     member: {
       id: 'member_1',
       name: 'Alex Johnson',
-      username: 'alex_johnson',
+      username: 'member_1',
       avatar: 'https://i.pravatar.cc/150?img=1',
     },
     lastMessage: {

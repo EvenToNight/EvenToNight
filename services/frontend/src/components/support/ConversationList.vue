@@ -171,7 +171,7 @@ watch(searchQuery, (newQuery) => {
         >
           <q-item-section avatar>
             <q-avatar>
-              <img v-if="org.avatarUrl" :src="org.avatarUrl" :alt="org.name" class="avatar-image" />
+              <img v-if="org.avatar" :src="org.avatar" :alt="org.name" class="avatar-image" />
               <q-icon v-else name="business" size="md" />
             </q-avatar>
           </q-item-section>

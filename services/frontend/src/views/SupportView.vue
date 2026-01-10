@@ -39,12 +39,12 @@ const displayConversation = computed<Conversation | undefined>(() => {
       organization: {
         id: selectedOrganization.value.id,
         name: selectedOrganization.value.name,
-        avatar: selectedOrganization.value.avatarUrl || '',
+        avatar: selectedOrganization.value.avatar || '',
       },
       member: {
         id: authStore.user?.id || '',
         name: authStore.user?.name || '',
-        avatar: authStore.user?.avatarUrl || '',
+        avatar: authStore.user?.avatar || '',
       },
       lastMessage: {
         senderId: '',
@@ -239,13 +239,13 @@ async function handleSendMessage(content: string) {
           id: selectedOrganization.value.id,
           name: selectedOrganization.value.name,
           username: 'username', // Placeholder, replace with actual username if available
-          avatar: selectedOrganization.value.avatarUrl || '',
+          avatar: selectedOrganization.value.avatar || '',
         },
         member: {
           id: authStore.user.id,
           name: authStore.user.name,
           username: 'username', // Placeholder, replace with actual username if available
-          avatar: authStore.user.avatarUrl || '',
+          avatar: authStore.user.avatar || '',
         },
         lastMessage: {
           senderId: newMessage.senderId,

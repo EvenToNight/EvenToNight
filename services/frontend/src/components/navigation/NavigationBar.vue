@@ -100,7 +100,7 @@ const goToProfile = () => {
             <q-btn flat round>
               <q-avatar size="40px">
                 <img
-                  :src="authStore.user?.avatarUrl || '/default-avatar.png'"
+                  :src="authStore.user?.avatar || '/default-avatar.png'"
                   :alt="authStore.user?.name"
                 />
               </q-avatar>
@@ -135,7 +135,7 @@ const goToProfile = () => {
         <div class="drawer-user-info">
           <q-avatar size="60px">
             <img
-              :src="authStore.user?.avatarUrl || '/default-avatar.png'"
+              :src="authStore.user?.avatar || '/default-avatar.png'"
               :alt="authStore.user?.name"
             />
           </q-avatar>

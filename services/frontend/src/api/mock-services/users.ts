@@ -8,17 +8,14 @@ import type {
   ChangePasswordRequest,
 } from '../interfaces/users'
 import type { ApiError, PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
-import { mockOrganizations } from './data/organizations'
-import { mockUsers } from './data/members'
 import type { UserID, User, UserRole } from '../types/users'
 import { getPaginatedItems, generateFakeToken, ONE_YEAR } from '../utils'
+import { mockUsers } from './data/users'
 
 let currentLoggedInUsername: string | null = null
 
 const getMockUser = (username: string): User => {
-  const user = [...mockOrganizations, ...mockUsers].find(
-    (u) => u.email === username || u.name === username
-  )
+  const user = mockUsers.data.find((u) => u.email === username || u.name === username)
   if (!user) {
     throw {
       message: 'User not found',
@@ -30,7 +27,7 @@ const getMockUser = (username: string): User => {
 
 export const mockUsersApi: UsersAPI = {
   async getUserById(id: UserID): Promise<User> {
-    const user = [...mockOrganizations, ...mockUsers].find((u) => u.id === id)
+    const user = mockUsers.data.find((u) => u.id === id)
     if (!user) {
       throw {
         message: 'User not found',
@@ -43,9 +40,9 @@ export const mockUsersApi: UsersAPI = {
   async register(data: RegistrationRequest): Promise<LoginResponse> {
     let user: User | undefined
     if (data.role === 'organization') {
-      user = mockOrganizations[0]
+      user = mockUsers.organizations()[0]
     } else {
-      user = mockUsers[0]
+      user = mockUsers.members()[0]
     }
     if (user) {
       return {
@@ -89,7 +86,7 @@ export const mockUsersApi: UsersAPI = {
   },
 
   async changePassword(userId: UserID, _data: ChangePasswordRequest): Promise<void> {
-    const user = [...mockOrganizations, ...mockUsers].find((u) => u.id === userId)
+    const user = mockUsers.data.find((u) => u.id === userId)
     if (!user) {
       throw {
         message: 'User not found',
@@ -107,7 +104,7 @@ export const mockUsersApi: UsersAPI = {
     role?: UserRole
   }): Promise<PaginatedResponse<User>> {
     const lowerName = (params.name ?? '').toLowerCase().trim()
-    const allUsers = [...mockOrganizations, ...mockUsers]
+    const allUsers = mockUsers.data
       .filter((user) => (params.role ? user.role === params.role : true))
       .filter((user) => user.name.toLowerCase().includes(lowerName))
     return getPaginatedItems(allUsers, params.pagination)

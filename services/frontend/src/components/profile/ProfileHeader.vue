@@ -127,7 +127,7 @@ const handleAvatarChange = async (file: File | null) => {
       <AvatarCropUpload
         ref="avatarCropUploadRef"
         v-model="newAvatar"
-        :preview-url="user.avatarUrl"
+        :preview-url="user.avatar"
         :default-icon="defaultIcon"
         @update:model-value="handleAvatarChange"
         @error="handleAvatarError"
@@ -137,8 +137,8 @@ const handleAvatarChange = async (file: File | null) => {
     <div class="profile-header">
       <div class="avatar-container" :class="{ clickable: isOwnProfile }" @click="handleAvatarClick">
         <img
-          v-if="user.avatarUrl"
-          :src="user.avatarUrl"
+          v-if="user.avatar"
+          :src="user.avatar"
           :alt="t('userProfile.userAvatarAlt')"
           class="profile-avatar"
         />

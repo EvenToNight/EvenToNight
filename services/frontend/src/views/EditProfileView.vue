@@ -32,7 +32,7 @@ onMounted(() => {
     name.value = authStore.user.name || ''
     bio.value = authStore.user.bio || ''
     website.value = authStore.user.website || ''
-    currentAvatarUrl.value = authStore.user.avatarUrl || undefined
+    currentAvatarUrl.value = authStore.user.avatar || undefined
   }
 })
 

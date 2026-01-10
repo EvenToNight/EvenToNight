@@ -183,7 +183,7 @@ const organizationsAsSearchResults = computed<SearchResult[]>(() => {
     type: 'organization',
     id: org.id,
     name: org.name,
-    avatarUrl: org.avatarUrl,
+    avatarUrl: org.avatar,
     relevance: 0,
   }))
 })
@@ -193,7 +193,7 @@ const peopleAsSearchResults = computed<SearchResult[]>(() => {
     type: 'member',
     id: person.id,
     name: person.name,
-    avatarUrl: person.avatarUrl,
+    avatarUrl: person.avatar,
     relevance: 0,
   }))
 })
