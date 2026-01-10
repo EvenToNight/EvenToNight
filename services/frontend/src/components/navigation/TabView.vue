@@ -88,8 +88,6 @@ const getCurrentTabComponent = (): Tab => {
   background: $color-background;
   border-radius: $radius-2xl;
   box-shadow: $shadow-base;
-  padding: $spacing-6;
-  margin-bottom: $spacing-6;
 
   @include dark-mode {
     background: $color-background-dark;
@@ -172,7 +170,6 @@ const getCurrentTabComponent = (): Tab => {
   position: sticky;
   top: 64px; // NavigationBar height
   z-index: 10; // Below navbar but above content
-  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(10px);
   padding: $spacing-4 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
@@ -186,7 +183,7 @@ const getCurrentTabComponent = (): Tab => {
 
 .explore-tab-header-inner {
   display: flex;
-  justify-content: center;
+  justify-content: safe center;
   gap: $spacing-8;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
@@ -204,7 +201,6 @@ const getCurrentTabComponent = (): Tab => {
     padding: 0 $spacing-4;
   }
   @media (max-width: $app-min-width) {
-    justify-content: flex-start;
     gap: $spacing-4;
   }
 }
@@ -244,5 +240,6 @@ const getCurrentTabComponent = (): Tab => {
   max-width: $app-max-width;
   width: 100%;
   margin: 0 auto;
+  background: transparent;
 }
 </style>

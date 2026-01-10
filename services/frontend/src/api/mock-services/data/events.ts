@@ -60,7 +60,7 @@ export const mockEvents: Event[] = [
     tags: ['Festival', 'Outdoor', 'Multi-stage'],
     location: event4Location,
     date: new Date(2025, 5, 8, 18, 0),
-    price: 85,
+    price: 0,
     status: 'PUBLISHED',
     creatorId: 'organization_2',
     collaboratorIds: [],

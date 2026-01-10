@@ -11,6 +11,9 @@ import {
   EDIT_EVENT_ROUTE_NAME,
   USER_PROFILE_ROUTE_NAME,
   EXPLORE_ROUTE_NAME,
+  SETTINGS_ROUTE_NAME,
+  EDIT_PROFILE_ROUTE_NAME,
+  SUPPORT_ROUTE_NAME,
 } from '@/router'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
 
@@ -59,6 +62,16 @@ export const useNavigation = () => {
       query: {
         ...additionalQuery,
       },
+    })
+  }
+
+  const removeQuery = (key: string) => {
+    const newQuery = { ...route.query }
+    delete newQuery[key]
+    router.replace({
+      name: route.name as string,
+      params: route.params,
+      query: newQuery,
     })
   }
 
@@ -151,15 +164,50 @@ export const useNavigation = () => {
     }
   }
 
-  const changeLocale = (newLocale: string) => {
-    router.push({
-      name: route.name as string,
-      params: {
-        ...route.params,
-        locale: newLocale,
-      },
-      query: route.query,
-    })
+  const goToSettings = (swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(SETTINGS_ROUTE_NAME)
+    } else {
+      pushWithLocale(SETTINGS_ROUTE_NAME)
+    }
+  }
+
+  const goToEditProfile = (swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(EDIT_PROFILE_ROUTE_NAME)
+    } else {
+      pushWithLocale(EDIT_PROFILE_ROUTE_NAME)
+    }
+  }
+
+  const goToSupport = (organizationId?: string, swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(SUPPORT_ROUTE_NAME, undefined, { organizationId })
+    } else {
+      pushWithLocale(SUPPORT_ROUTE_NAME, undefined, { organizationId })
+    }
+  }
+
+  const changeLocale = (newLocale: string, swap: boolean = false) => {
+    if (swap) {
+      router.replace({
+        name: route.name as string,
+        params: {
+          ...route.params,
+          locale: newLocale,
+        },
+        query: route.query,
+      })
+    } else {
+      router.push({
+        name: route.name as string,
+        params: {
+          ...route.params,
+          locale: newLocale,
+        },
+        query: route.query,
+      })
+    }
   }
 
   return {
@@ -178,6 +226,10 @@ export const useNavigation = () => {
     goToCreateEvent,
     goToEditEvent,
     goToUserProfile,
+    goToSettings,
+    goToEditProfile,
+    goToSupport,
     changeLocale,
+    removeQuery,
   }
 }

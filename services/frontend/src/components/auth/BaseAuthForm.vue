@@ -6,10 +6,12 @@ interface Props {
   title: string
   switchButtonLabel: string
   isLoading?: boolean
+  errorMessage?: string
 }
 
 withDefaults(defineProps<Props>(), {
   isLoading: false,
+  errorMessage: '',
 })
 
 const emit = defineEmits<{
@@ -35,6 +37,13 @@ const handleSwitch = () => {
 
     <q-card-section>
       <q-form greedy @submit.prevent="handleSubmit">
+        <q-banner v-if="errorMessage" class="bg-negative text-white q-mb-md" rounded>
+          <template #avatar>
+            <q-icon name="error" color="white" />
+          </template>
+          {{ errorMessage }}
+        </q-banner>
+
         <slot name="fields" />
         <slot name="submit-button" :is-loading="isLoading" />
         <div class="text-center">
