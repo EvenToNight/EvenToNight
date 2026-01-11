@@ -1,0 +1,320 @@
+openapi: 3.0.1
+info:
+  title: EvenToNight - Payments API
+  version: 1.0.0
+  description: API for managing event ticket types, pricing, and availability
+paths:
+  /events/{eventId}/ticket-types:
+    post:
+      summary: Create a new ticket type for an event
+      description: Define a new ticket type with pricing and quantity for a specific event
+      servers:
+        - url: http://localhost:3000
+          description: Local server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event to create ticket type for
+          schema:
+            type: string
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventTicketTypeDto'
+            example:
+              type: STANDARD
+              description: "General admission ticket"
+              price: 29.99
+              currency: EUR
+              quantity: 100
+      responses:
+        '201':
+          description: Ticket type created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventTicketTypeResponseDto'
+              example:
+                id: ett_123e4567-e89b-12d3-a456-426614174000
+                eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                type: STANDARD
+                description: "General admission ticket"
+                price:
+                  amount: 29.99
+                  currency: EUR
+                availableQuantity: 100
+                soldQuantity: 0
+                totalQuantity: 100
+                isSoldOut: false
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidType:
+                  summary: Invalid ticket type
+                  value:
+                    statusCode: 400
+                    message: ["type must be one of: STANDARD, VIP"]
+                    error: Bad Request
+                invalidPrice:
+                  summary: Invalid price
+                  value:
+                    statusCode: 400
+                    message: ["price must not be less than 0"]
+                    error: Bad Request
+                invalidQuantity:
+                  summary: Invalid quantity
+                  value:
+                    statusCode: 400
+                    message: ["quantity must not be less than 1"]
+                    error: Bad Request
+        '409':
+          description: Conflict - Ticket type already exists for this event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 409
+                message: Ticket type STANDARD already exists for event evt_550e8400-e29b-41d4-a716-446655440000
+                error: Conflict
+      tags:
+        - Event Ticket Types
+
+    get:
+      summary: Get all ticket types for an event
+      description: Retrieve all available ticket types for a specific event
+      servers:
+        - url: http://localhost:3000
+          description: Local server
+        - url: https://payments.eventonight.site
+          description: Production server
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event
+          schema:
+            type: string
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: List of ticket types for the event
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventTicketTypeResponseDto'
+              example:
+                - id: ett_123e4567-e89b-12d3-a456-426614174000
+                  eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                  type: STANDARD
+                  description: "General admission ticket"
+                  price:
+                    amount: 29.99
+                    currency: EUR
+                  availableQuantity: 85
+                  soldQuantity: 15
+                  totalQuantity: 100
+                  isSoldOut: false
+                - id: ett_456e7890-e89b-12d3-a456-426614174111
+                  eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                  type: VIP
+                  description: "VIP access with backstage pass"
+                  price:
+                    amount: 99.99
+                    currency: EUR
+                  availableQuantity: 0
+                  soldQuantity: 20
+                  totalQuantity: 20
+                  isSoldOut: true
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Event Ticket Types
+
+  /ticket-types/{ticketTypeId}:
+    get:
+      summary: Get a specific ticket type by ID
+      description: Retrieve detailed information about a specific ticket type
+      servers:
+        - url: http://localhost:3000
+          description: Local server
+        - url: https://payments.eventonight.site
+          description: Production server
+      parameters:
+        - name: ticketTypeId
+          in: path
+          required: true
+          description: ID of the ticket type
+          schema:
+            type: string
+          example: ett_123e4567-e89b-12d3-a456-426614174000
+      responses:
+        '200':
+          description: Ticket type details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventTicketTypeResponseDto'
+              example:
+                id: ett_123e4567-e89b-12d3-a456-426614174000
+                eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                type: STANDARD
+                description: "General admission ticket"
+                price:
+                  amount: 29.99
+                  currency: EUR
+                availableQuantity: 85
+                soldQuantity: 15
+                totalQuantity: 100
+                isSoldOut: false
+        '404':
+          description: Not Found - Ticket type does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: EventTicketType with id ett_123e4567-e89b-12d3-a456-426614174000 not found
+                error: Not Found
+      tags:
+        - Event Ticket Types
+
+components:
+  schemas:
+    CreateEventTicketTypeDto:
+      type: object
+      description: Data required to create a new event ticket type
+      properties:
+        type:
+          type: string
+          enum: [STANDARD, VIP]
+          description: Type of ticket
+          example: STANDARD
+        description:
+          type: string
+          description: Description of the ticket type
+          example: "General admission ticket"
+        price:
+          type: number
+          format: float
+          minimum: 0
+          description: Price of the ticket
+          example: 29.99
+        currency:
+          type: string
+          description: Currency code (ISO 4217)
+          default: EUR
+          example: EUR
+        quantity:
+          type: integer
+          minimum: 1
+          description: Total quantity of tickets available
+          example: 100
+      required:
+        - type
+        - description
+        - price
+        - quantity
+
+    EventTicketTypeResponseDto:
+      type: object
+      description: Complete ticket type information
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the ticket type (prefixed with 'ett_')
+          example: ett_123e4567-e89b-12d3-a456-426614174000
+        eventId:
+          type: string
+          description: ID of the associated event
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+        type:
+          type: string
+          enum: [STANDARD, VIP]
+          description: Type of ticket
+          example: STANDARD
+        description:
+          type: string
+          description: Description of the ticket type
+          example: "General admission ticket"
+        price:
+          type: object
+          description: Price information
+          properties:
+            amount:
+              type: number
+              format: float
+              description: Price amount
+              example: 29.99
+            currency:
+              type: string
+              description: Currency code (ISO 4217)
+              example: EUR
+          required:
+            - amount
+            - currency
+        availableQuantity:
+          type: integer
+          description: Number of tickets still available for purchase
+          example: 85
+        soldQuantity:
+          type: integer
+          description: Number of tickets already sold
+          example: 15
+        totalQuantity:
+          type: integer
+          description: Total quantity of tickets (available + sold)
+          example: 100
+        isSoldOut:
+          type: boolean
+          description: Whether all tickets are sold out
+          example: false
+      required:
+        - id
+        - eventId
+        - type
+        - description
+        - price
+        - availableQuantity
+        - soldQuantity
+        - totalQuantity
+        - isSoldOut
+
+    ErrorResponse:
+      type: object
+      description: Standard error response
+      properties:
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: Error message or array of validation errors
+          example: "Validation failed"
+        error:
+          type: string
+          description: Error type
+          example: Bad Request
+      required:
+        - statusCode
+        - message
