@@ -360,6 +360,23 @@ export class ConversationsService {
     };
   }
 
+  async getConversationWithMessagesByUsers(
+    organizationId: string,
+    memberId: string,
+    query: GetMessagesQueryDto,
+  ): Promise<MessageListResponse> {
+    const conversation = await this.conversationModel.findOne({
+      organizationId,
+      memberId,
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    return await this.getMessages(conversation._id, memberId, query);
+  }
+
   private async determineRoles(
     userId1: UserID,
     userId2: UserID,
