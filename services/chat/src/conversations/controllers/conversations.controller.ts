@@ -43,7 +43,7 @@ export class ConversationsController {
     };
   }
 
-  @Post('conversations/:conversationId')
+  @Post('conversations/:conversationId/messages')
   @HttpCode(HttpStatus.CREATED)
   async sendMessage(
     @Param('userId') userId: string,

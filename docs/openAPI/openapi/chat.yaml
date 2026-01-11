@@ -125,41 +125,6 @@ paths:
           description: User not found
   
   /users/{userId}/conversations/{conversationId}:
-    post:
-      summary: Send a message in an existing conversation for a user
-      servers:
-        - url: http://localhost:9040
-      parameters:
-        - name: userId
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "user123"
-        - name: conversationId
-          in: path
-          required: true
-          schema:
-            type: string
-            example: "conv123"
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/SendMessageDto'
-      responses:
-        '201':
-          description: Message sent successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/MessageResponseDto'
-        '400':
-          description: Bad Request
-        '404':
-          description: Conversation not found
-    
     get:
       summary: Get specific conversation of a user by ID
       servers:
@@ -252,6 +217,41 @@ paths:
           description: User not found    
   
   /users/{userId}/conversations/{conversationId}/messages:
+    post:
+      summary: Send a message in an existing conversation for a user
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "conv123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageDto'
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponseDto'
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
+    
     get:
       summary: Get messages in a conversation for a user, and mark them as read
       servers:
