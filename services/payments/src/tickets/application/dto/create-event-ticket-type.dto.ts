@@ -20,10 +20,10 @@ export class CreateEventTicketTypeDto {
   })
   type: string;
 
+  //TODO: make optional?
   @IsString()
-  @IsOptional()
   @IsNotEmpty()
-  description?: string;
+  description: string;
 
   @IsNumber()
   @Min(0)
