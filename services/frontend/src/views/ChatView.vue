@@ -156,7 +156,10 @@ async function handleSearch(query: string) {
     // TODO: add query param
     const response = await api.chat.getConversations(authStore.user!.id, {
       pagination: { limit: searchResultLimit },
+      query,
     })
+
+    console.log('Conversations search response:', response)
 
     // Separate conversations from organizations
     const foundConversations: Conversation[] = []
@@ -173,7 +176,7 @@ async function handleSearch(query: string) {
     searchResults.value = foundOrganizations
 
     //TODO temprorary fix to filter out organizations already in conversations
-    if (query.trim() !== '') {
+    if (query.trim() !== '' && response.items.length < searchResultLimit) {
       const tempChatUsersSearch = await api.users.searchUsers({
         name: query,
         pagination: { limit: searchResultLimit - foundConversations.length },
@@ -250,6 +253,16 @@ async function handleSendMessage(content: string) {
       ...response,
       isRead: false,
     })
+
+    // Move new conversation to top of list
+    const conversationIndex = conversations.value.findIndex((c) => c.id === response.conversationId)
+    if (conversationIndex !== -1 && conversationIndex !== 0) {
+      const conversation = conversations.value[conversationIndex]
+      if (conversation) {
+        conversations.value.splice(conversationIndex, 1)
+        conversations.value.unshift(conversation)
+      }
+    }
   } else {
     //send message to existing conversation
     console.log('Conversation before send:', { ...conversations.value })

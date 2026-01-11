@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, watch } from 'vue'
 import type { Conversation, ChatUser } from '@/api/types/chat'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
@@ -10,7 +10,7 @@ interface Props {
   userSearchResults?: ChatUser[]
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const { locale } = useNavigation()
 const authStore = useAuthStore()
@@ -60,18 +60,18 @@ function formatTime(date: Date | undefined): string {
   }
 }
 
-const filteredConversations = computed(() => {
-  if (!searchQuery.value.trim()) {
-    return props.conversations
-  }
+// const filteredConversations = computed(() => {
+//   if (!searchQuery.value.trim()) {
+//     return props.conversations
+//   }
 
-  const query = searchQuery.value.toLowerCase().trim()
-  return props.conversations.filter((conversation) => {
-    const name = getConversationName(conversation).toLowerCase()
-    const lastMessage = conversation.lastMessage.content.toLowerCase()
-    return name.includes(query) || lastMessage.includes(query)
-  })
-})
+//   const query = searchQuery.value.toLowerCase().trim()
+//   return props.conversations.filter((conversation) => {
+//     const name = getConversationName(conversation).toLowerCase()
+//     const lastMessage = conversation.lastMessage.content.toLowerCase()
+//     return name.includes(query) || lastMessage.includes(query)
+//   })
+// })
 
 // Watch search query and emit to parent
 watch(searchQuery, (newQuery) => {
@@ -104,7 +104,7 @@ watch(searchQuery, (newQuery) => {
       <q-item-label
         v-if="
           searchQuery.trim() &&
-          filteredConversations.length > 0 &&
+          conversations.length > 0 &&
           userSearchResults &&
           userSearchResults.length > 0
         "
@@ -116,7 +116,7 @@ watch(searchQuery, (newQuery) => {
 
       <!-- Show filtered conversations -->
       <q-item
-        v-for="conversation in filteredConversations"
+        v-for="conversation in conversations"
         :key="conversation.id"
         clickable
         :active="selectedConversationId === conversation.id"

@@ -85,8 +85,16 @@ export const mockChatApi: ChatAPI = {
       recipientId?: string
     }
   ): Promise<PaginatedResponse<ConversationResponse>> {
-    const users: User[] = params?.query ? searchMockUsersByName(params.query) : []
     let conversations: Conversation[] = getConversationsForUser(userId)
+    if (params?.query) {
+      conversations = conversations.filter((c) => {
+        const otherUser = c.organization.id === userId ? c.member : c.organization
+        return (
+          otherUser.name.toLowerCase().includes(params.query!.toLowerCase()) ||
+          otherUser.username.toLowerCase().includes(params.query!.toLowerCase())
+        )
+      })
+    }
     if (params?.recipientId) {
       conversations = getConversationsForUser(params.recipientId)
     }
@@ -100,6 +108,22 @@ export const mockChatApi: ChatAPI = {
         return c
       }
     })
+
+    const currentUser = mockUsers.data.find((u) => u.id === userId)!
+    if (!currentUser) {
+      throw {
+        message: 'User not found',
+        status: 404,
+      }
+    }
+    const users: User[] = params?.query
+      ? searchMockUsersByName(params.query)
+          .filter((u) => u.role !== currentUser.role)
+          .filter(
+            (u) => !conversations.some((c) => c.organization.id === u.id || c.member.id === u.id)
+          )
+      : []
+
     const results: ConversationResponse[] = [...conversations, ...users]
     return getPaginatedItems(results, params?.pagination)
   },
