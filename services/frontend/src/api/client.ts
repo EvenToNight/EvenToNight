@@ -1,13 +1,5 @@
 import type { ApiError } from './interfaces/commons'
-const ISO_DATE_REGEX = /^\d{4}-\d{2}-\d{2}[T:]\d{2}:\d{2}(:\d{2})?(\.\d{3})?(Z)?$/
-
-function dateReviver(_key: string, value: unknown): unknown {
-  if (typeof value === 'string' && ISO_DATE_REGEX.test(value)) {
-    const dateString = value.endsWith('Z') ? value : `${value}Z` //if not specified, treat as UTC
-    return new Date(dateString)
-  }
-  return value
-}
+import { dateReviver } from '@/api/utils/parsingUtils'
 
 const getServiceUrl = (service: string): string => {
   const host = import.meta.env.VITE_HOST
@@ -153,3 +145,4 @@ export const createUsersClient = () => new ApiClient('users')
 export const createMediaClient = () => new ApiClient('media')
 export const createFeedClient = () => new ApiClient('feed')
 export const createInteractionsClient = () => new ApiClient('interactions')
+export const createChatClient = () => new ApiClient('chat')

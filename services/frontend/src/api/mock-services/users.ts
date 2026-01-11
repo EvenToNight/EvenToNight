@@ -9,7 +9,8 @@ import type {
 } from '../interfaces/users'
 import type { ApiError, PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { UserID, User, UserRole } from '../types/users'
-import { getPaginatedItems, generateFakeToken, ONE_YEAR } from '../utils'
+import { getPaginatedItems } from '@/api/utils/requestUtils'
+import { generateFakeToken, ONE_YEAR } from '@/api/utils/authUtils'
 import { mockUsers } from './data/users'
 
 let currentLoggedInUsername: string | null = null

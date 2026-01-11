@@ -11,7 +11,7 @@ import type { UserID } from '../types/users'
 import { mockEvents } from './data/events'
 import { mockEventInteractions, mockEventReviews, mockUserInteractions } from './data/interactions'
 import type { PaginatedRequest } from '../interfaces/commons'
-import { getPaginatedItems } from '@/api/utils'
+import { getPaginatedItems } from '@/api/utils/requestUtils'
 import type { Rating } from '../types/interaction'
 import { mockUsers } from './data/users'
 
