@@ -34,6 +34,7 @@ jobs:
             services/media/coverage/lcov.info
             services/interactions/coverage/lcov.info
             services/chat/coverage/lcov.info
+            services/payments/coverage/lcov.info
           flags: unittests
           fail_ci_if_error: true
       
