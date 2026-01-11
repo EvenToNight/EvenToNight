@@ -386,13 +386,22 @@ export class ConversationsService {
 
     const finalFilter: any = { userId };
 
-    if (name) {
+    if (name || recipientId) {
+      const partnerQuery: any = {
+        userId: { $ne: userId },
+      };
+
+      if (name) {
+        partnerQuery.userName = { $regex: `^${name}`, $options: 'i' };
+      }
+
+      if (recipientId) {
+        partnerQuery.userId = { $regex: `^${recipientId}`, $options: 'i' };
+      }
+
       const partners = await this.participantModel
-        .find({
-          userName: { $regex: name, $options: 'i' }, // Cerca il nome (case insensitive)
-          userId: { $ne: userId }, // ESCLUDI te stesso (stiamo cercando il partner)
-        })
-        .select('conversationId') // Ci servono solo gli ID delle chat
+        .find(partnerQuery)
+        .select('conversationId')
         .exec();
 
       const conversationIds = partners.map((p) => p.conversationId);
@@ -404,23 +413,10 @@ export class ConversationsService {
       finalFilter.conversationId = { $in: conversationIds };
     }
 
-    if (recipientId) {
-      const conversation = await this.conversationModel.findOne({
-        $or: [
-          { organizationId: userId, memberId: recipientId },
-          { organizationId: recipientId, memberId: userId },
-        ],
-      });
-      if (!conversation) {
-        return { items: [], limit: +limit, offset: +offset, hasMore: false };
-      }
-      finalFilter.conversationId = conversation._id;
-    }
-
     const myParticipants = await this.participantModel
       .find(finalFilter)
-      .populate('conversationId') // Popoliamo per avere i dati della chat (createdAt, ecc)
-      .sort({ lastReadAt: -1 }) // O ordina per conversationId.updatedAt (richiede sort manuale dopo o join)
+      .populate('conversationId')
+      .sort({ updateAt: -1 })
       .skip(Number(offset))
       .limit(Number(limit) + 1)
       .exec();
@@ -433,7 +429,6 @@ export class ConversationsService {
         const conversation = participant.conversationId;
         if (!conversation) return null;
 
-        // Recuperiamo l'ultimo messaggio
         const lastMessage = await this.messageModel
           .findOne({ conversationId: conversation._id })
           .sort({ createdAt: -1 })
