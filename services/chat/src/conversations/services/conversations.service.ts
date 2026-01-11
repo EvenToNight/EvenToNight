@@ -17,6 +17,7 @@ import { CreateConversationMessageDto } from '../dto/create-conversation-message
 import { UserID } from '../types';
 import { ConversationDetailDTO } from '../dto/conversation-details.dto';
 import { UserRole } from 'src/users/schemas/user.schema';
+import { SearchConversationsQueryDto } from '../dto/search-conversation-query.dto';
 
 @Injectable()
 export class ConversationsService {
@@ -375,6 +376,120 @@ export class ConversationsService {
     }
 
     return await this.getMessages(conversation._id, memberId, query);
+  }
+
+  async searchConversationWithFilters(
+    userId: string,
+    query: SearchConversationsQueryDto,
+  ): Promise<ConversationListResponse> {
+    const { limit = 20, offset = 0, name, recipientId } = query;
+
+    const finalFilter: any = { userId };
+
+    if (name) {
+      const partners = await this.participantModel
+        .find({
+          userName: { $regex: name, $options: 'i' }, // Cerca il nome (case insensitive)
+          userId: { $ne: userId }, // ESCLUDI te stesso (stiamo cercando il partner)
+        })
+        .select('conversationId') // Ci servono solo gli ID delle chat
+        .exec();
+
+      const conversationIds = partners.map((p) => p.conversationId);
+
+      if (conversationIds.length === 0) {
+        return { items: [], limit: +limit, offset: +offset, hasMore: false };
+      }
+
+      finalFilter.conversationId = { $in: conversationIds };
+    }
+
+    if (recipientId) {
+      const conversation = await this.conversationModel.findOne({
+        $or: [
+          { organizationId: userId, memberId: recipientId },
+          { organizationId: recipientId, memberId: userId },
+        ],
+      });
+      if (!conversation) {
+        return { items: [], limit: +limit, offset: +offset, hasMore: false };
+      }
+      finalFilter.conversationId = conversation._id;
+    }
+
+    const myParticipants = await this.participantModel
+      .find(finalFilter)
+      .populate('conversationId') // Popoliamo per avere i dati della chat (createdAt, ecc)
+      .sort({ lastReadAt: -1 }) // O ordina per conversationId.updatedAt (richiede sort manuale dopo o join)
+      .skip(Number(offset))
+      .limit(Number(limit) + 1)
+      .exec();
+
+    const hasMore = myParticipants.length > limit;
+    const items = myParticipants.slice(0, Number(limit));
+
+    const conversations = await Promise.all(
+      items.map(async (participant) => {
+        const conversation = participant.conversationId;
+        if (!conversation) return null;
+
+        // Recuperiamo l'ultimo messaggio
+        const lastMessage = await this.messageModel
+          .findOne({ conversationId: conversation._id })
+          .sort({ createdAt: -1 })
+          .select('content senderId createdAt')
+          .exec();
+
+        const partnerParticipant = await this.participantModel
+          .findOne({
+            conversationId: conversation._id,
+            userId: { $ne: userId },
+          })
+          .select('userId userName role')
+          .exec();
+
+        if (!partnerParticipant) return null;
+
+        return {
+          id: conversation._id.toString(),
+          organization:
+            partnerParticipant.role === 'organization'
+              ? {
+                  id: partnerParticipant.userId,
+                  name: partnerParticipant.userName,
+                  avatar: '',
+                }
+              : { id: userId, name: participant.userName, avatar: '' },
+
+          member:
+            partnerParticipant.role === 'member'
+              ? {
+                  id: partnerParticipant.userId,
+                  name: partnerParticipant.userName,
+                  avatar: '',
+                }
+              : { id: userId, name: participant.userName, avatar: '' },
+
+          lastMessage: lastMessage
+            ? {
+                content: lastMessage.content,
+                senderId: lastMessage.senderId.toString(),
+                timestamp: lastMessage.createdAt,
+              }
+            : null,
+          unreadCount: participant.unreadCount,
+        };
+      }),
+    );
+
+    return {
+      items: conversations.filter(
+        (c) => c !== null,
+      ) as ConversationListItemDTO[],
+      limit: Number(limit),
+      offset: Number(offset),
+      hasMore,
+    };
   }
 
   private async determineRoles(
