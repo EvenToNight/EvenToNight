@@ -11,10 +11,6 @@ import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
 export class CreateEventTicketTypeDto {
   @IsString()
   @IsNotEmpty()
-  eventId: string;
-
-  @IsString()
-  @IsNotEmpty()
   @IsIn(TicketType.getAllValues(), {
     message: 'type must be one of: ' + TicketType.getAllValues().join(', '),
   })

@@ -14,9 +14,12 @@ export class CreateEventTicketTypeHandler {
     private readonly repository: EventTicketTypeRepository,
   ) {}
 
-  async handle(dto: CreateEventTicketTypeDto): Promise<EventTicketType> {
+  async handle(
+    eventId: string,
+    dto: CreateEventTicketTypeDto,
+  ): Promise<EventTicketType> {
     const ticketType = EventTicketType.create({
-      eventId: EventId.fromString(dto.eventId),
+      eventId: EventId.fromString(eventId),
       type: TicketType.fromString(dto.type),
       description: dto.description,
       price: Money.fromAmount(dto.price, dto.currency || 'EUR'),
