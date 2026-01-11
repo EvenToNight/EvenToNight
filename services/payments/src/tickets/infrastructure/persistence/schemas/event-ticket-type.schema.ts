@@ -6,8 +6,12 @@ import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
   collection: 'event_ticket_types',
   timestamps: true,
   versionKey: false,
+  _id: false, // Disabilita l'_id automatico
 })
-export class EventTicketTypeDocument extends Document {
+export class EventTicketTypeDocument extends Document<string> {
+  @Prop({ type: String, required: true })
+  declare _id: string;
+
   @Prop({ required: true, index: true })
   eventId: string;
 

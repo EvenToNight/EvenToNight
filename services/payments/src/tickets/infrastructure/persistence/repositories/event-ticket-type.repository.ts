@@ -15,7 +15,11 @@ export class EventTicketTypeRepositoryImpl implements EventTicketTypeRepository 
 
   async save(ticketType: EventTicketType): Promise<EventTicketType> {
     const document = EventTicketTypeMapper.toPersistence(ticketType);
-    const created = new this.model(document);
+    // Passa esplicitamente l'_id per evitare che Mongoose generi un ObjectId
+    const created = new this.model({
+      ...document,
+      _id: ticketType.getId(),
+    });
     const saved = await created.save();
     return EventTicketTypeMapper.toDomain(saved);
   }
