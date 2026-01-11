@@ -36,6 +36,7 @@ dependencies {
     implementation("com.softwaremill.sttp.client3:httpclient-backend_3:3.5.2")
     implementation("io.circe:circe-core_3:0.14.7")
     implementation("io.circe:circe-parser_3:0.14.7")
+    implementation("io.circe:circe-literal_3:0.14.7")
     implementation("com.lihaoyi:cask_3:0.11.3")
     implementation("com.lihaoyi:upickle_3:3.3.1")
     implementation("com.github.jwt-scala:jwt-core_3:11.0.3")

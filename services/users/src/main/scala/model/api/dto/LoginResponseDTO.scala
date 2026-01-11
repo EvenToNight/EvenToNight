@@ -5,7 +5,14 @@ import model.api.dto.ProfileDTO
 import upickle.default.Writer
 import upickle.default.macroW
 
-case class LoginResponseDTO(accessToken: String, refreshToken: String, account: AccountDTO, profile: ProfileDTO)
+case class LoginResponseDTO(
+    accessToken: String,
+    expiresIn: Long,
+    refreshToken: String,
+    refreshExpiresIn: Long,
+    account: AccountDTO,
+    profile: ProfileDTO
+)
 
 object LoginResponseDTO:
   import AccountDTO.given

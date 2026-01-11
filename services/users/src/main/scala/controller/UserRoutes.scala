@@ -31,8 +31,8 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
 
                 authService.login(validReq.username, validReq.password) match
                   case Left(err) => Response(s"User created but login failed: $err", 500)
-                  case Right(tokens) =>
-                    val dto = registeredUser.toLoginDTO(tokens.accessToken, tokens.refreshToken)
+                  case Right(userTokens) =>
+                    val dto = registeredUser.toLoginDTO(userTokens)
                     Response(write(dto), 201)
 
   @cask.post("/login")
@@ -47,14 +47,14 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
               case Left("Invalid credentials") => Response("Login failed: invalid credentials", 401)
               case Left("Client not allowed")  => Response("Login failed: client not allowed", 403)
               case Left(err)                   => Response(s"Login failed: $err", 500)
-              case Right(tokens) =>
-                extractUserId(tokens.accessToken) match
+              case Right(userTokens) =>
+                extractUserId(userTokens.accessToken) match
                   case Left(err) => Response(s"Failed to extract userId: $err", 500)
                   case Right(userId) =>
                     userService.getUserById(userId) match
                       case Left(err) => Response(err, 404)
                       case Right(user) =>
-                        val dto = user.toLoginDTO(tokens.accessToken, tokens.refreshToken)
+                        val dto = user.toLoginDTO(userTokens)
                         Response(write(dto), 200)
 
   @cask.get("/:userId")
@@ -83,8 +83,8 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
       case Right(refreshReq) =>
         authService.refresh(refreshReq.refreshToken) match
           case Left(err) => Response(s"Token refresh failed: $err", 401)
-          case Right(tokens) =>
-            Response(write(tokens), 200)
+          case Right(userTokens) =>
+            Response(write(userTokens), 200)
 
   initialize()
 }

@@ -3,6 +3,7 @@ package model.api.mappers
 import model.Member
 import model.Organization
 import model.RegisteredUser
+import model.UserTokens
 import model.api.dto.AccountDTO
 import model.api.dto.LoginResponseDTO
 import model.api.dto.ProfileDTO
@@ -39,19 +40,23 @@ object Mappers:
       )
 
   extension (user: RegisteredUser)
-    def toLoginDTO(accessToken: String, refreshToken: String): LoginResponseDTO =
+    def toLoginDTO(tokens: UserTokens): LoginResponseDTO =
       user match
         case member: Member =>
           LoginResponseDTO(
-            accessToken = accessToken,
-            refreshToken = refreshToken,
+            accessToken = tokens.accessToken,
+            expiresIn = tokens.expiresIn,
+            refreshToken = tokens.refreshToken,
+            refreshExpiresIn = tokens.refreshExpiresIn,
             account = member.account.toAccountDTO,
             profile = member.profile.toProfileDTO
           )
         case org: Organization =>
           LoginResponseDTO(
-            accessToken = accessToken,
-            refreshToken = refreshToken,
+            accessToken = tokens.accessToken,
+            expiresIn = tokens.expiresIn,
+            refreshToken = tokens.refreshToken,
+            refreshExpiresIn = tokens.refreshExpiresIn,
             account = org.account.toAccountDTO,
             profile = org.profile.toProfileDTO
           )

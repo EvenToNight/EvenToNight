@@ -1,13 +1,14 @@
 package infrastructure
 
 import io.circe.Json
-import io.circe.parser.parse
 import io.circe.syntax._
-import model.Tokens
+import model.UserTokens
 import sttp.client3._
 import sttp.model.StatusCode
 
 import java.util.UUID
+
+import JsonUtils.parseJson
 
 class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: String):
   private val keycloakUrl = sys.env.getOrElse("KEYCLOAK_URL", "http://localhost:8082")
@@ -39,7 +40,7 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
 
   def requestAccessToken(form: Map[String, String]): Either[String, String] =
     sendTokenRequest(form).flatMap(body =>
-      parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}").flatMap(json =>
+      parseJson(body).flatMap(json =>
         json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
       )
     )
@@ -154,30 +155,34 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
               Left(s"Failed to assign role '$roleName' to user '$keycloakId': ${other.code} ${response.body}")
         )
 
-  def parseTokens(json: Json, fallbackRefresh: Option[String]): Either[String, Tokens] =
+  def parseUserTokens(json: Json, fallbackRefresh: Option[String]): Either[String, UserTokens] =
     for
       accessToken <-
         json.hcursor.get[String]("access_token").left.map(err => s"Missing access_token: ${err.getMessage}")
       refreshToken <- json.hcursor.get[String]("refresh_token")
         .left.map(_ => "Missing refresh_token")
         .orElse(fallbackRefresh.toRight("Missing refresh_token"))
-    yield Tokens(accessToken, refreshToken)
+      expiresIn <-
+        json.hcursor.get[Long]("expires_in").left.map(err => s"Missing expires_in: ${err.getMessage}")
+      refreshExpiresIn <-
+        json.hcursor.get[Long]("refresh_expires_in").left.map(err => s"Missing refresh_expires_in: ${err.getMessage}")
+    yield UserTokens(accessToken, expiresIn, refreshToken, refreshExpiresIn)
 
-  def requestUserTokensForLogin(form: Map[String, String]): Either[String, Tokens] =
+  def requestUserTokensForLogin(form: Map[String, String]): Either[String, UserTokens] =
     sendTokenRequest(form).flatMap(body =>
-      parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}").flatMap(json =>
-        parseTokens(json, None)
+      parseJson(body).flatMap(json =>
+        parseUserTokens(json, None)
       )
     )
 
-  def requestUserTokensForRefresh(form: Map[String, String], oldRefreshToken: String): Either[String, Tokens] =
+  def requestUserTokensForRefresh(form: Map[String, String], oldRefreshToken: String): Either[String, UserTokens] =
     sendTokenRequest(form).flatMap(body =>
-      parse(body).left.map(err => s"Invalid JSON: ${err.getMessage}").flatMap(json =>
-        parseTokens(json, Some(oldRefreshToken))
+      parseJson(body).flatMap(json =>
+        parseUserTokens(json, Some(oldRefreshToken))
       )
     )
 
-  def loginUser(usernameOrEmail: String, password: String): Either[String, Tokens] =
+  def loginUser(usernameOrEmail: String, password: String): Either[String, UserTokens] =
     requestUserTokensForLogin(
       Map(
         "grant_type"    -> "password",
@@ -188,7 +193,7 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any], clientSecret: Stri
       )
     )
 
-  def refreshTokens(refreshToken: String): Either[String, Tokens] =
+  def refreshUserTokens(refreshToken: String): Either[String, UserTokens] =
     requestUserTokensForRefresh(
       Map(
         "grant_type"    -> "refresh_token",
