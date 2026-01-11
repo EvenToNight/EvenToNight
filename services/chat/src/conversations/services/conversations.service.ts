@@ -66,6 +66,8 @@ export class ConversationsService {
     conversationId: string,
     dto: SendMessageDto,
   ): Promise<MessageDocument> {
+    await this.conversationExists(conversationId);
+
     const isParticipant = await this.verifyUserInConversation(
       conversationId,
       senderId,
@@ -442,5 +444,19 @@ export class ConversationsService {
     // TODO: Publish event to RabbitMQ for real-time notifications
 
     return savedMessage;
+  }
+
+  private async conversationExists(conversationId: string): Promise<any> {
+    if (!Types.ObjectId.isValid(conversationId)) {
+      throw new BadRequestException('Invalid conversation ID');
+    }
+
+    const conversation = await this.conversationModel.findById(conversationId);
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    return conversation;
   }
 }
