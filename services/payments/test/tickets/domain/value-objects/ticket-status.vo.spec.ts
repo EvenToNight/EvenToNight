@@ -1,6 +1,6 @@
 import { TicketStatus } from '../../../../src/tickets/domain/value-objects/ticket-status.vo';
 
-describe('TicketStatus Value Object', () => {
+describe('TicketStatus', () => {
   describe('fromString', () => {
     it('should create ACTIVE status from string', () => {
       const status = TicketStatus.fromString('ACTIVE');
