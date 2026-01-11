@@ -59,6 +59,7 @@ describe('ParticipantSchema', () => {
       const validParticipant = new participantModel({
         conversationId,
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.MEMBER,
       });
 
@@ -77,6 +78,7 @@ describe('ParticipantSchema', () => {
     it('should fail without conversationId', async () => {
       const invalidParticipant = new participantModel({
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.MEMBER,
       });
 
@@ -86,6 +88,7 @@ describe('ParticipantSchema', () => {
     it('should fail without userId', async () => {
       const invalidParticipant = new participantModel({
         conversationId,
+        userName: 'userName',
         role: ParticipantRole.MEMBER,
       });
 
@@ -95,6 +98,7 @@ describe('ParticipantSchema', () => {
     it('should fail without role', async () => {
       const invalidParticipant = new participantModel({
         conversationId,
+        userName: 'userName',
         userId: 'user123',
       });
 
@@ -105,6 +109,7 @@ describe('ParticipantSchema', () => {
       const invalidParticipant = new participantModel({
         conversationId,
         userId: 'user123',
+        userName: 'userName',
         role: 'invalid_role',
       });
 
@@ -115,6 +120,7 @@ describe('ParticipantSchema', () => {
       const participant = new participantModel({
         conversationId,
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.MEMBER,
       });
 
@@ -126,6 +132,7 @@ describe('ParticipantSchema', () => {
       const participant = new participantModel({
         conversationId,
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.ORGANIZATION,
       });
 
@@ -137,6 +144,7 @@ describe('ParticipantSchema', () => {
       const participant = new participantModel({
         conversationId,
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.MEMBER,
       });
 
@@ -148,6 +156,7 @@ describe('ParticipantSchema', () => {
       const participant = new participantModel({
         conversationId,
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.MEMBER,
         unreadCount: 5,
       });
@@ -162,6 +171,7 @@ describe('ParticipantSchema', () => {
       const participant = new participantModel({
         conversationId,
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.MEMBER,
       });
 
@@ -180,6 +190,7 @@ describe('ParticipantSchema', () => {
       const participant = new participantModel({
         conversationId,
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.MEMBER,
         lastReadAt: customDate,
       });
@@ -227,6 +238,7 @@ describe('ParticipantSchema', () => {
       const participant1 = new participantModel({
         conversationId: saved._id,
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.MEMBER,
       });
       await participant1.save();
@@ -234,6 +246,7 @@ describe('ParticipantSchema', () => {
       const participant2 = new participantModel({
         conversationId: saved._id,
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.ORGANIZATION,
       });
 
@@ -252,6 +265,7 @@ describe('ParticipantSchema', () => {
       const participant = new participantModel({
         conversationId: savedConversation._id,
         userId: 'user123',
+        userName: 'userName',
         role: ParticipantRole.MEMBER,
       });
       await participant.save();

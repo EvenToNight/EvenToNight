@@ -431,17 +431,25 @@ export class ConversationsService {
       });
       const savedConversation = await conversation.save();
 
+      const organizationName: string =
+        (await this.usersService.getUsername(organizationId)) || 'Organization';
+
       const orgParticipant = new this.participantModel({
         conversationId: savedConversation._id,
         userId: organizationId,
+        userName: organizationName,
         role: ParticipantRole.ORGANIZATION,
         unreadCount: 0,
         lastReadAt: new Date(),
       });
 
+      const memberName: string =
+        (await this.usersService.getUsername(memberId)) || 'Member';
+
       const memberParticipant = new this.participantModel({
         conversationId: savedConversation._id,
         userId: memberId,
+        userName: memberName,
         role: ParticipantRole.MEMBER,
         unreadCount: 0,
         lastReadAt: new Date(),

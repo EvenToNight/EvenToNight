@@ -45,4 +45,9 @@ export class UsersService {
   async getUserInfo(userId: string): Promise<User | null> {
     return this.userModel.findOne({ userId });
   }
+
+  async getUsername(userId: string): Promise<string | null> {
+    const user = await this.userModel.findOne({ userId }).select('name').exec();
+    return user ? user.name : null;
+  }
 }
