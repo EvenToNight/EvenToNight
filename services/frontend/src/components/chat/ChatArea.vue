@@ -22,6 +22,13 @@ const autoScroll = ref(true)
 const authStore = useAuthStore()
 
 function isFromCurrentUser(message: Message): boolean {
+  console.log(
+    'Checking message sender:',
+    message.senderId,
+    'Current user ID:',
+    authStore.user?.id,
+    message.content
+  )
   return message.senderId === authStore.user?.id
 }
 
