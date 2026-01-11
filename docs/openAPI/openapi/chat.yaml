@@ -376,6 +376,76 @@ paths:
           description: Conversation not found
       tags:
         - Users  
+
+  /conversations/{organizationId}/{memberId}:
+    get:
+      summary: Get conversation between organization and member
+      description: Retrieves the conversation details between a specific organization and member.
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          description: The ID of the organization
+          schema:
+            type: string
+            example: "org456"
+        - name: memberId
+          in: path
+          required: true
+          description: The ID of the member
+          schema:
+            type: string
+            example: "user123"
+      responses:
+        '200':
+          description: Conversation details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "conv123"
+                  organization:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "org456"
+                      name:
+                        type: string
+                        example: "Organization 1"
+                      avatar:
+                        type: string
+                        example: "https://example.com/avatar.png"  
+                  member:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "member321"
+                      name:
+                        type: string
+                        example: "John Doe"
+                      avatar:
+                        type: string
+                        example: "https://example.com/member_avatar.png"
+                  "createdAt":
+                    type: string
+                    format: date-time
+                  "updatedAt":
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
+      tags:
+        - Conversations
+
 components:
   schemas:
     CreateConversationMessageDto:
