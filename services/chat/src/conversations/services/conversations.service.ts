@@ -382,6 +382,8 @@ export class ConversationsService {
     userId: string,
     query: SearchConversationsQueryDto,
   ): Promise<ConversationListResponse> {
+    await this.usersService.userExists(userId);
+
     const { limit = 20, offset = 0, name, recipientId } = query;
 
     const finalFilter: any = { userId };
