@@ -17,6 +17,7 @@ import { MessageListResponse } from '../dto/message-list.response';
 import { MessageDTO } from '../dto/message.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
+import { UserID } from '../types';
 
 @Injectable()
 export class ConversationsService {
@@ -46,8 +47,8 @@ export class ConversationsService {
     }
 
     const conversation = await this.findOrCreateConversation(
-      dto.recipientId,
       senderId,
+      dto.recipientId,
     );
 
     const message = await this.createMessage(
@@ -293,12 +294,44 @@ export class ConversationsService {
     );
   }
 
+  private async determineRoles(
+    userId1: UserID,
+    userId2: UserID,
+  ): Promise<{ organizationId: string; memberId: string }> {
+    const [user1Info, user2Info] = await Promise.all([
+      this.usersService.getUserInfo(userId1),
+      this.usersService.getUserInfo(userId2),
+    ]);
+
+    if (!user1Info) {
+      throw new BadRequestException(`User ${userId1} does not exist`);
+    }
+    if (!user2Info) {
+      throw new BadRequestException(`User ${userId2} does not exist`);
+    }
+
+    if (user1Info.role === 'organization' && user2Info.role === 'member') {
+      return { organizationId: userId1, memberId: userId2 };
+    } else if (
+      user1Info.role === 'member' &&
+      user2Info.role === 'organization'
+    ) {
+      return { organizationId: userId2, memberId: userId1 };
+    } else {
+      throw new BadRequestException(
+        'Conversation must be between an organization and a member',
+      );
+    }
+  }
+
   private async findOrCreateConversation(
-    organizationId: string,
-    memberId: string,
+    userId1: string,
+    userId2: string,
   ): Promise<any> {
-    await this.usersService.userExists(organizationId);
-    await this.usersService.userExists(memberId);
+    // TODO: implement real roles assignments
+    // const {organizationId, memberId} = await this.determineRoles(userId1, userId2);
+    const organizationId = userId2;
+    const memberId = userId1;
 
     let conversation = await this.conversationModel.findOne({
       organizationId,
