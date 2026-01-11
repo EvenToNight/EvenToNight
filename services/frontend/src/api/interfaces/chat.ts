@@ -40,8 +40,11 @@ export interface ChatAPI {
   //TODO: sync with backend to add search query
   getConversations(
     userId: string,
-    pagination?: PaginatedRequest,
-    query?: string
+    params?: {
+      pagination?: PaginatedRequest
+      query?: string
+      recipientId?: string
+    }
   ): Promise<PaginatedResponse<ConversationResponse>>
   sendMessage(
     senderId: UserID,

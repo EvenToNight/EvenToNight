@@ -3,8 +3,10 @@ import { ref, watch, nextTick, onMounted, onBeforeUnmount, computed } from 'vue'
 import type { Conversation, Message } from '@/api/types/chat'
 import ChatHeader from './ChatHeader.vue'
 import { useAuthStore } from '@/stores/auth'
+import type { ChatUser } from '@/api/types/chat'
 
 const props = defineProps<{
+  selectedChatUser?: ChatUser
   conversation?: Conversation
   messages?: Message[]
 }>()
@@ -126,14 +128,18 @@ watch(
 
 <template>
   <div class="chat-area">
-    <div v-if="!conversation" class="empty-state">
+    <div v-if="!selectedChatUser" class="empty-state">
       <q-icon name="chat_bubble_outline" size="120px" color="grey-5" />
       <h3>Seleziona una conversazione</h3>
       <p>Scegli una chat dalla lista o inizia una nuova conversazione</p>
     </div>
 
     <template v-else>
-      <ChatHeader :conversation="conversation" :show-back-button="isMobile" @back="emit('back')" />
+      <ChatHeader
+        :selected-chat-user="selectedChatUser"
+        :show-back-button="isMobile"
+        @back="emit('back')"
+      />
 
       <div ref="messagesContainer" class="messages-container">
         <div v-if="!messages || messages.length === 0" class="empty-messages">

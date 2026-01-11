@@ -11,7 +11,32 @@ import { mockUsers } from './data/users'
 import type { User, UserID } from '../types/users'
 import type { ConversationID } from '../types/chat'
 import type { UnreadMessageResponse } from '../interfaces/chat'
+import { searchMockUsersByName } from './users'
 
+function emitNewMessageEvent(conversation: Conversation, message: Message) {
+  const event: NewMessageEvent = {
+    type: 'new_message',
+    conversationId: conversation.id,
+    data: {
+      message: { ...message },
+      conversation: { ...conversation },
+    },
+  }
+
+  console.log(
+    '[MockAPI] Emitting new conversation to',
+    activeWebSockets.size,
+    'active WebSocket(s)'
+  )
+  activeWebSockets.forEach((ws) => {
+    ws.emit(event)
+  })
+}
+function getConversationsForUser(userId: UserID): Conversation[] {
+  return mockConversations.filter(
+    (conversation) => conversation.organization.id === userId || conversation.member.id === userId
+  )
+}
 export const mockChatApi: ChatAPI = {
   async startConversation(
     userId: string,
@@ -34,36 +59,49 @@ export const mockChatApi: ChatAPI = {
         content: firstMessage.content,
         createdAt: new Date(),
       },
-      unreadCount: 0,
+      unreadCount: 1,
     }
     mockConversations.push(newConversation)
     saveConversations(mockConversations)
-    return {
+
+    const newMessage: Message = {
       id: crypto.randomUUID(),
       conversationId: newConversation.id,
       ...newConversation.lastMessage,
+      isRead: false,
     }
+
+    mockMessages[newConversation.id] = [newMessage]
+    saveMessages(mockMessages)
+    emitNewMessageEvent(newConversation, newMessage)
+    return { ...newMessage }
   },
 
   async getConversations(
     userId: string,
-    pagination?: PaginatedRequest,
-    query?: string
-  ): Promise<PaginatedResponse<ConversationResponse>> {
-    let users: User[] = []
-    if (query) {
-      users = mockUsers.data.filter((user) => {
-        return (
-          user.name.toLowerCase().includes(query.toLowerCase()) ||
-          user.username.toLowerCase().includes(query.toLowerCase())
-        )
-      })
+    params?: {
+      pagination?: PaginatedRequest
+      query?: string
+      recipientId?: string
     }
-    const conversations: ConversationResponse[] = mockConversations.filter((conversation) => {
-      return conversation.organization.id === userId || conversation.member.id === userId
+  ): Promise<PaginatedResponse<ConversationResponse>> {
+    const users: User[] = params?.query ? searchMockUsersByName(params.query) : []
+    let conversations: Conversation[] = getConversationsForUser(userId)
+    if (params?.recipientId) {
+      conversations = getConversationsForUser(params.recipientId)
+    }
+    // Calculate unreadCount per-user dynamically
+    // If the user sent the last message, they have 0 unread
+    // Otherwise, use the stored unreadCount (which represents messages from the other user)
+    conversations = conversations.map((c) => {
+      if (c.lastMessage.senderId === userId) {
+        return { ...c, unreadCount: 0 }
+      } else {
+        return c
+      }
     })
-
-    return getPaginatedItems(conversations.concat(users), pagination)
+    const results: ConversationResponse[] = [...conversations, ...users]
+    return getPaginatedItems(results, params?.pagination)
   },
 
   async sendMessage(
@@ -71,7 +109,6 @@ export const mockChatApi: ChatAPI = {
     conversationId: ConversationID,
     content: string
   ): Promise<SendMessageAPIResponse> {
-    console.log('[MockAPI] sendMessage called:', { conversationId, content })
     const message: Message = {
       id: crypto.randomUUID(),
       conversationId,
@@ -80,40 +117,20 @@ export const mockChatApi: ChatAPI = {
       createdAt: new Date(),
       isRead: false,
     }
+
     mockMessages[conversationId]!.push(message)
-
-    // Save messages to localStorage
     saveMessages(mockMessages)
-
-    const conversation = mockConversations.find((c) => c.id === conversationId)
-    if (conversation) {
-      conversation.lastMessage = message
-      if (conversation.lastMessage.senderId !== senderId) {
-        conversation.unreadCount = 1
-      } else {
-        conversation.unreadCount++
-      }
-      // Save conversations to localStorage
-      saveConversations(mockConversations)
-
-      // Emit WebSocket event to all connected tabs
-      const event: NewMessageEvent = {
-        type: 'new_message',
-        conversationId,
-        data: {
-          message,
-          conversation,
-        },
-      }
-
-      console.log('[MockAPI] Emitting to', activeWebSockets.size, 'active WebSocket(s)')
-      // Notify all active WebSocket connections
-      activeWebSockets.forEach((ws) => {
-        ws.emit(event)
-      })
+    const conversation = mockConversations.find((c) => c.id === conversationId)!
+    const previousSenderId = conversation.lastMessage.senderId
+    conversation.lastMessage = message
+    if (previousSenderId !== senderId) {
+      conversation.unreadCount = 1
+    } else {
+      conversation.unreadCount += 1
     }
-
-    return message
+    saveConversations(mockConversations)
+    emitNewMessageEvent(conversation, message)
+    return { ...message }
   },
 
   async unreadMessageCountFor(userId: UserID): Promise<UnreadMessageResponse> {
@@ -128,11 +145,13 @@ export const mockChatApi: ChatAPI = {
     }, 0)
     return { unreadCount }
   },
+
   async getConversationMessages(
-    _userId: UserID,
+    userId: UserID,
     conversationId: ConversationID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<Message>> {
+    await this.readConversationMessages(conversationId, userId)
     const messages = mockMessages[conversationId]
     if (!messages) {
       throw {
@@ -149,6 +168,7 @@ export const mockChatApi: ChatAPI = {
   },
 
   async readConversationMessages(conversationId: ConversationID, userId: UserID): Promise<void> {
+    // TODO can be improved, something like change only if read request didn't came from the sender of last message
     const messages = mockMessages[conversationId]
     if (!messages) {
       throw {
@@ -162,10 +182,13 @@ export const mockChatApi: ChatAPI = {
         message.isRead = true
       }
     })
-    const conversation = mockConversations.find((c) => c.id === conversationId)
-    if (conversation) {
-      conversation.unreadCount = 0
-    }
+    const conversation = mockConversations.find((c) => c.id === conversationId)!
+    conversation.unreadCount = messages.reduce((count, message) => {
+      if (!message.isRead) {
+        return count + 1
+      }
+      return count
+    }, 0)
     saveMessages(mockMessages)
     saveConversations(mockConversations)
   },

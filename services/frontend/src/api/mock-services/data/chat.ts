@@ -310,19 +310,5 @@ const defaultMessages: ConversationMessages = {
 }
 
 // Export data loaded from localStorage (or defaults if not found)
-export let mockConversations = loadConversations(defaultConversations)
-export let mockMessages = loadMessages(defaultMessages)
-
-// Listen for storage changes from other tabs
-if (typeof window !== 'undefined') {
-  window.addEventListener('storage', (event) => {
-    if (event.key === 'mock-chat-messages' && event.newValue) {
-      console.log('[SupportData] Messages updated in another tab, reloading...')
-      mockMessages = loadMessages(defaultMessages)
-    }
-    if (event.key === 'mock-chat-conversations' && event.newValue) {
-      console.log('[SupportData] Conversations updated in another tab, reloading...')
-      mockConversations = loadConversations(defaultConversations)
-    }
-  })
-}
+export const mockConversations = loadConversations(defaultConversations)
+export const mockMessages = loadMessages(defaultMessages)

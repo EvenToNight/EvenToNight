@@ -1,159 +1,128 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
 import ConversationList from '@/components/chat/ConversationList.vue'
-import type { Conversation, Message } from '@/api/types/chat'
-import type { User } from '@/api/types/users'
+import type { ChatUser, Conversation, ConversationID, Message } from '@/api/types/chat'
+import type { UserID } from '@/api/types/users'
 import MessageInput from '@/components/chat/MessageInput.vue'
 import ChatArea from '@/components/chat/ChatArea.vue'
 import { useNavigation } from '@/router/utils'
-import type { WebSocket } from '@/api/mock-services/webSocket'
-import { isNewMessageEvent } from '@/api/mock-services/webSocket'
+// import type { WebSocket } from '@/api/mock-services/webSocket'
+// import { isNewMessageEvent } from '@/api/mock-services/webSocket'
+// import type { NewMessageEvent } from '@/api/types/notification'
 
-const { query, removeQuery } = useNavigation()
-const authStore = useAuthStore()
-const conversations = ref<Conversation[]>([])
-const selectedConversationId = ref<string>()
-const selectedMessages = ref<Message[]>([])
-const loading = ref(false)
-const loadingMoreMessages = ref(false)
-const hasMoreMessages = ref(true)
-const messagesLimit = 50
-const searchResults = ref<User[]>([])
-const selectedOrganization = ref<User | undefined>()
-const isNewConversation = ref(false)
-const websocket = ref<WebSocket | null>(null)
 const twoColumnLayout = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
+// const websocket = ref<WebSocket | null>(null)
+const authStore = useAuthStore()
+const { query, removeQuery } = useNavigation()
 
+const conversations = ref<Conversation[]>([])
+const selectedConversationId = ref<ConversationID | undefined>()
 const selectedConversation = computed<Conversation | undefined>(() => {
   return conversations.value.find((c) => c.id === selectedConversationId.value)
 })
+const searchResults = ref<ChatUser[]>([])
+const searchResultLimit = 10
+const selectedChatUser = ref<ChatUser | undefined>()
 
-const displayConversation = computed<Conversation | undefined>(() => {
-  if (isNewConversation.value && selectedOrganization.value) {
-    // Create temporary conversation object for display purposes
-    return {
-      id: selectedOrganization.value.id,
-      organization: {
-        id: selectedOrganization.value.id,
-        name: selectedOrganization.value.name,
-        username: selectedOrganization.value.username,
-        avatar: selectedOrganization.value.avatar || '',
-      },
-      member: {
-        id: authStore.user?.id || '',
-        name: authStore.user?.name || '',
-        username: authStore.user?.username || '',
-        avatar: authStore.user?.avatar || '',
-      },
-      lastMessage: {
-        senderId: '',
-        content: '',
-        createdAt: new Date(),
-      },
-      unreadCount: 0,
-    } as Conversation
-  }
-  return selectedConversation.value
-})
+const loading = ref(false)
+const hasMoreMessages = ref(true)
+const messagesLimit = 50
+const selectedMessages = ref<Message[]>([])
+
+const loadingMoreMessages = ref(false)
 
 onMounted(async () => {
   await loadConversations()
-  const organizationId = query.organizationId as string | undefined
-  if (organizationId) {
-    await loadOrganizationConversation(organizationId)
+  // Check for organizationId in query to start new conversation or load existing one
+  const selectedChatUserId = query.organizationId as string | undefined
+  if (selectedChatUserId) {
+    await loadOrganizationConversation(selectedChatUserId)
   }
 
-  // Initialize WebSocket for real-time updates
-  if (authStore.user?.id) {
-    console.log('[SupportView] Initializing WebSocket for user:', authStore.user.id)
-    websocket.value = api.notification.createWebSocket(authStore.user.id)
-    websocket.value.connect()
-
-    // Listen for new messages from other tabs
-    websocket.value.on((event) => {
-      console.log('[SupportView] WebSocket event received:', event)
-      if (isNewMessageEvent(event)) {
-        console.log('[SupportView] Handling new message event')
-        handleWebSocketNewMessage(event)
-      }
-    })
-  }
+  // // Initialize WebSocket for real-time updates
+  // if (authStore.user?.id) {
+  //   console.log('[SupportView] Initializing WebSocket for user:', authStore.user.id)
+  //   websocket.value = api.notification.createWebSocket(authStore.user.id)
+  //   websocket.value.connect()
+  //   // Listen for new messages from other tabs
+  //   websocket.value.on(async (event) => {
+  //     console.log('[SupportView] WebSocket event received:', event)
+  //     if (isNewMessageEvent(event)) {
+  //       console.log('[SupportView] Handling new message event')
+  //       handleWebSocketNewMessage(event)
+  //     }
+  //   })
+  // }
 })
 
-onUnmounted(() => {
-  // Disconnect WebSocket when component is destroyed
-  if (websocket.value) {
-    websocket.value.disconnect()
-  }
-})
+// onUnmounted(() => {
+//   if (websocket.value) {
+//     websocket.value.disconnect()
+//   }
+// })
 
 async function loadOrganizationConversation(organizationId: string) {
   //TODO seach usign API
-  const existingConversation = conversations.value.find((c) => c.organization.id === organizationId)
-  if (existingConversation) {
-    await handleSelectConversation(existingConversation.id)
+  const existingConversation = (
+    await api.chat.getConversations(authStore.user!.id, {
+      recipientId: organizationId,
+    })
+  ).items
+  if (existingConversation.length !== 0 && 'organization' in existingConversation[0]!) {
+    selectedChatUser.value =
+      authStore.user?.role === 'organization'
+        ? existingConversation[0]!.member
+        : existingConversation[0]!.organization
+    await handleSelectConversation(existingConversation[0]!.id)
   } else {
-    try {
-      const org = await api.users.getUserById(organizationId)
-      selectedOrganization.value = org
-      selectedConversationId.value = organizationId
-      isNewConversation.value = true
-      selectedMessages.value = []
-    } catch (error) {
-      console.error('Failed to load organization:', error)
-    }
+    await loadUser(organizationId)
   }
   removeQuery('organizationId')
 }
 
-async function loadConversations() {
-  if (!authStore.user?.id) return
+async function loadUser(userId: string) {
   try {
     loading.value = true
-    const response = await api.chat.getConversations(authStore.user.id)
-    console.log('Loaded conversations:', response.items)
-    conversations.value = response.items.filter(
-      (item): item is Conversation => 'organization' in item
-    )
+    const user = await api.users.getUserById(userId)
+    selectedChatUser.value = user
   } catch (error) {
-    console.error('Failed to load conversations:', error)
+    console.error('Failed to load user:', error)
   } finally {
     loading.value = false
   }
 }
 
-async function handleSelectConversation(conversationId: string, isNewOrg = false) {
+async function loadConversations() {
+  await handleSearch('')
+  for (const conversation of conversations.value) {
+    console.log('Conversation Loaded:', conversation)
+  }
+}
+
+async function handleSelectConversation(conversationId: string) {
   try {
     loading.value = true
-    hasMoreMessages.value = true
+    hasMoreMessages.value = false
     selectedMessages.value = []
-    isNewConversation.value = isNewOrg
-
-    if (isNewOrg) {
-      // Find the organization in search results
-      selectedOrganization.value = searchResults.value.find((org) => org.id === conversationId)
-      selectedConversationId.value = conversationId
-      loading.value = false
-      // Show content in mobile
-      twoColumnLayout.value?.showContent()
-      return
-    }
-
+    // selectedChatUser.value = undefined
+    console.log('Loading messages for conversation:', conversationId)
     const response = await api.chat.getConversationMessages(authStore.user!.id, conversationId, {
       limit: messagesLimit,
       offset: 0,
     })
+    console.log('Messages loaded:', response.items)
 
     selectedMessages.value = response.items
     hasMoreMessages.value = response.hasMore
-    selectedOrganization.value = undefined
 
     const conversation = conversations.value.find((c) => c.id === conversationId)
     if (conversation) {
       conversation.unreadCount = 0
+      selectedChatUser.value =
+        authStore.user?.role === 'organization' ? conversation.member : conversation.organization
     }
     selectedConversationId.value = conversationId
 
@@ -166,37 +135,71 @@ async function handleSelectConversation(conversationId: string, isNewOrg = false
   }
 }
 
-async function handleSearchOrganizations(query: string) {
-  if (!query.trim()) {
-    searchResults.value = []
-    return
-  }
-
+async function handleSelectNewConversation(chatUserId: UserID) {
   try {
-    const response = await api.users.searchUsers({
-      name: query,
-      role: 'organization',
-      pagination: { limit: 10, offset: 0 },
+    loading.value = true
+    hasMoreMessages.value = false
+    selectedMessages.value = []
+    selectedChatUser.value = searchResults.value.find((user) => user.id === chatUserId)
+    // Show content in mobile
+    twoColumnLayout.value?.showContent()
+  } catch (error) {
+    console.error('Failed to load conversation messages:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleSearch(query: string) {
+  try {
+    loading.value = true
+    // TODO: add query param
+    const response = await api.chat.getConversations(authStore.user!.id, {
+      pagination: { limit: searchResultLimit },
     })
 
-    // Filter out organizations that already have conversations
-    const conversationOrgIds = new Set(
-      conversations.value.map((c) =>
-        authStore.user?.id === c.member.id ? c.organization.id : c.member.id
-      )
-    )
+    // Separate conversations from organizations
+    const foundConversations: Conversation[] = []
+    const foundOrganizations: ChatUser[] = []
+    response.items.forEach((item) => {
+      if ('organization' in item) {
+        foundConversations.push(item)
+      } else {
+        foundOrganizations.push(item)
+      }
+    })
+    // Update conversations list with found conversations
+    conversations.value = foundConversations
+    searchResults.value = foundOrganizations
 
-    searchResults.value = response.items.filter((org) => !conversationOrgIds.has(org.id))
+    //TODO temprorary fix to filter out organizations already in conversations
+    if (query.trim() !== '') {
+      const tempChatUsersSearch = await api.users.searchUsers({
+        name: query,
+        pagination: { limit: searchResultLimit - foundConversations.length },
+        role: authStore.user?.role === 'organization' ? 'member' : 'organization',
+      })
+      const conversationRecipientIds = new Set(
+        foundConversations.map((c) =>
+          authStore.user?.role === 'organization' ? c.member.id : c.organization.id
+        )
+      )
+
+      searchResults.value = tempChatUsersSearch.items.filter(
+        (user) => !conversationRecipientIds.has(user.id)
+      )
+    }
   } catch (error) {
     console.error('Failed to search organizations:', error)
     searchResults.value = []
+  } finally {
+    loading.value = false
   }
 }
 
 function handleBackToList() {
   selectedConversationId.value = undefined
-  selectedOrganization.value = undefined
-  isNewConversation.value = false
+  selectedChatUser.value = undefined
   selectedMessages.value = []
   // Show sidebar in mobile
   twoColumnLayout.value?.showSidebar()
@@ -229,120 +232,179 @@ async function handleLoadMoreMessages() {
 }
 
 async function handleSendMessage(content: string) {
-  if (!authStore.user?.id) return
+  console.log('ayo')
+  console.log('Conversation before before send:', { ...conversations.value })
+
   if (!content.trim()) return
-  if (!selectedConversationId.value && !isNewConversation.value) return
+  if (!selectedConversationId.value) {
+    //create conversation
+    const response = await api.chat.startConversation(authStore.user!.id, {
+      recipientId: selectedChatUser.value!.id,
+      content: content.trim(),
+    })
+    // Reload conversations to get the new one
 
-  try {
-    // If this is a new conversation with an organization, create it first
-    if (isNewConversation.value && selectedOrganization.value) {
-      const response = await api.chat.startConversation(authStore.user.id, {
-        recipientId: selectedOrganization.value.id,
-        content: content.trim(),
-      })
-
-      // Reload conversations to get the new one
-      await loadConversations()
-
-      // Select the new conversation
-      selectedConversationId.value = response.conversationId
-      isNewConversation.value = false
-      selectedOrganization.value = undefined
-
-      // Load messages for the new conversation
-      const messagesResponse = await api.chat.getConversationMessages(
-        authStore.user.id,
-        response.conversationId,
-        {
-          limit: messagesLimit,
-          offset: 0,
-        }
-      )
-      selectedMessages.value = messagesResponse.items
-    } else {
-      // Send message to existing conversation
-      const response = await api.chat.sendMessage(
-        authStore.user.id,
-        selectedConversationId.value!,
-        content.trim()
-      )
-
-      selectedMessages.value.push({
-        ...response,
-        isRead: false,
-      })
-
-      // Update conversation's last message in the list and move to top
-      const conversationIndex = conversations.value.findIndex(
-        (c) => c.id === selectedConversationId.value
-      )
-      if (conversationIndex !== -1) {
-        const conversation = conversations.value[conversationIndex]
-        if (conversation) {
-          conversation.lastMessage = {
-            senderId: response.senderId,
-            content: response.content,
-            createdAt: response.createdAt,
-          }
-          // Move conversation to top of list
-          conversations.value.splice(conversationIndex, 1)
-          conversations.value.unshift(conversation)
-        }
-      }
-    }
-  } catch (error) {
-    console.error('Failed to send message:', error)
-  }
-}
-
-function handleWebSocketNewMessage(event: import('@/api/types/notification').NewMessageEvent) {
-  console.log('[SupportView] handleWebSocketNewMessage called:', event)
-  const { message, conversation: updatedConversation } = event.data
-
-  // Check if the message is from the current user (sent from another tab)
-  const isOwnMessage = message.senderId === authStore.user?.id
-  console.log('[SupportView] Message is from current user:', isOwnMessage)
-
-  // Update or add conversation in the list
-  const existingConversationIndex = conversations.value.findIndex(
-    (c) => c.id === event.conversationId
-  )
-  console.log('[SupportView] Existing conversation index:', existingConversationIndex)
-
-  if (existingConversationIndex !== -1) {
-    // Update existing conversation
-    const conv = conversations.value[existingConversationIndex]
-    if (conv) {
-      conv.lastMessage = {
-        senderId: updatedConversation.lastMessage.senderId,
-        content: updatedConversation.lastMessage.content,
-        createdAt: updatedConversation.lastMessage.createdAt,
-      }
-
-      // Increment unread count only if it's not the currently selected conversation
-      // and the message is not from the current user
-      if (selectedConversationId.value !== event.conversationId && !isOwnMessage) {
-        conv.unreadCount++
-      }
-
-      // Move conversation to top of list
-      conversations.value.splice(existingConversationIndex, 1)
-      conversations.value.unshift(conv)
-    }
+    await loadConversations()
+    selectedConversationId.value = response.conversationId
+    selectedMessages.value.push({
+      ...response,
+      isRead: false,
+    })
   } else {
-    // Add new conversation to list (if it doesn't exist)
-    conversations.value.unshift(updatedConversation)
-  }
+    //send message to existing conversation
+    console.log('Conversation before send:', { ...conversations.value })
 
-  // If this message belongs to the currently selected conversation, add it to messages
-  if (selectedConversationId.value === event.conversationId) {
-    // Check if message already exists (to avoid duplicates)
-    const messageExists = selectedMessages.value.some((m) => m.id === message.id)
-    if (!messageExists) {
-      selectedMessages.value.push(message)
+    console.log('Sending message to existing conversation')
+    const response = await api.chat.sendMessage(
+      authStore.user!.id,
+      selectedConversationId.value!,
+      content.trim()
+    )
+    console.log('Message sent, updating messages and conversation list', response)
+
+    selectedMessages.value.push({
+      ...response,
+      isRead: false,
+    })
+
+    // Update conversation's last message in the list and move to top
+    const conversationIndex = conversations.value.findIndex(
+      (c) => c.id === selectedConversationId.value
+    )
+    if (conversationIndex !== -1) {
+      const conversation = conversations.value[conversationIndex]
+      if (conversation) {
+        console.log('Updating conversation last message and moving to top')
+        conversation.lastMessage = {
+          senderId: response.senderId,
+          content: response.content,
+          createdAt: response.createdAt,
+        }
+        console.log('Conversation before moving:', { ...conversations.value })
+        // Move conversation to top of list
+        conversations.value.splice(conversationIndex, 1)
+        conversations.value.unshift(conversation)
+      }
     }
   }
 }
+
+// try {
+//   // If this is a new conversation with an organization, create it first
+//   if (isNewConversation.value && selectedOrganization.value) {
+//     const response = await api.chat.startConversation(authStore.user.id, {
+//       recipientId: selectedOrganization.value.id,
+//       content: content.trim(),
+//     })
+
+//     // Select the new conversation
+//     selectedConversationId.value = response.conversationId
+
+//     isNewConversation.value = false
+//     selectedOrganization.value = undefined
+
+//     // Load messages for the new conversation
+//     const messagesResponse = await api.chat.getConversationMessages(
+//       authStore.user.id,
+//       response.conversationId,
+//       {
+//         limit: messagesLimit,
+//         offset: 0,
+//       }
+//     )
+//     selectedMessages.value = messagesResponse.items
+//   } else {
+//     // Send message to existing conversation
+//     const response = await api.chat.sendMessage(
+//       authStore.user.id,
+//       selectedConversationId.value!,
+//       content.trim()
+//     )
+
+//     selectedMessages.value.push({
+//       ...response,
+//       isRead: false,
+//     })
+
+//     // Update conversation's last message in the list and move to top
+//     const conversationIndex = conversations.value.findIndex(
+//       (c) => c.id === selectedConversationId.value
+//     )
+//     if (conversationIndex !== -1) {
+//       const conversation = conversations.value[conversationIndex]
+//       if (conversation) {
+//         conversation.lastMessage = {
+//           senderId: response.senderId,
+//           content: response.content,
+//           createdAt: response.createdAt,
+//         }
+//         // Move conversation to top of list
+//         conversations.value.splice(conversationIndex, 1)
+//         conversations.value.unshift(conversation)
+//       }
+//     }
+//   }
+// } catch (error) {
+//   console.error('Failed to send message:', error)
+// }
+// }
+
+// function handleWebSocketNewMessage(event: NewMessageEvent) {
+//   console.log('[SupportView] handleWebSocketNewMessage called:', event)
+//   const { message, conversation: updatedConversation } = event.data
+
+//   // Sync message to localStorage (for cross-tab persistence)
+//   // syncWebSocketMessage(message, updatedConversation, authStore.user?.id)
+
+//   // Check if the message is from the current user (sent from another tab)
+//   const isOwnMessage = message.senderId === authStore.user?.id
+//   console.log('[SupportView] Message is from current user:', isOwnMessage)
+
+//   // Update or add conversation in the list
+//   const existingConversationIndex = conversations.value.findIndex(
+//     (c) => c.id === event.conversationId
+//   )
+//   console.log('[SupportView] Existing conversation index:', existingConversationIndex)
+
+//   if (existingConversationIndex !== -1) {
+//     // Update existing conversation
+//     const conv = conversations.value[existingConversationIndex]
+//     if (conv) {
+//       conversations.value[existingConversationIndex] = updatedConversation
+
+//       // // Increment unread count only if it's not the currently selected conversation
+//       // // and the message is not from the current user
+//       // if (selectedConversationId.value !== event.conversationId && !isOwnMessage) {
+//       //   conversations.value[existingConversationIndex].unreadCount += 1
+//       // }
+
+//       // Move conversation to top of list
+//       conversations.value.splice(existingConversationIndex, 1)
+//       conversations.value.unshift(updatedConversation)
+//     }
+//   } else {
+//     // Add new conversation to list (if it doesn't exist)
+//     conversations.value.unshift(updatedConversation)
+//   }
+//   // If this message belongs to the currently selected conversation, add it to messages
+//   if (selectedConversationId.value === event.conversationId) {
+//     // Check if message already exists (to avoid duplicates)
+//     const messageExists = selectedMessages.value.some((m) => m.id === message.id)
+//     if (!messageExists) {
+//       selectedMessages.value.push(message)
+//     }
+
+//     // Mark messages as read since the conversation is currently open
+//     if (authStore.user?.id) {
+//       // Find the conversation again since it might have moved in the list
+//       const conv = conversations.value.find((c) => c.id === event.conversationId)
+//       if (conv) {
+//         conv.unreadCount = 0
+//       }
+//       api.chat.readConversationMessages(event.conversationId, authStore.user.id)
+//     }
+//   }
+// }
 </script>
 
 <template>
@@ -351,23 +413,22 @@ function handleWebSocketNewMessage(event: import('@/api/types/notification').New
       <ConversationList
         :conversations="conversations"
         :selected-conversation-id="selectedConversationId"
-        :organization-search-results="searchResults"
+        :user-search-results="searchResults"
         @select-conversation="handleSelectConversation"
-        @search="handleSearchOrganizations"
+        @select-chat-user="handleSelectNewConversation"
+        @search="handleSearch"
       />
     </template>
     <template #content>
       <div class="chat-content">
         <ChatArea
-          :conversation="displayConversation"
+          :selected-chat-user="selectedChatUser"
+          :conversation="selectedConversation"
           :messages="selectedMessages"
           @back="handleBackToList"
           @load-more="handleLoadMoreMessages"
         />
-        <MessageInput
-          v-if="selectedConversationId || isNewConversation"
-          @send-message="handleSendMessage"
-        />
+        <MessageInput v-if="selectedChatUser" @send-message="handleSendMessage" />
       </div>
     </template>
   </TwoColumnLayout>

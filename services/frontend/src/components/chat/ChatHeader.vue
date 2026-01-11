@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import type { Conversation } from '@/api/types/chat'
+import type { ChatUser } from '@/api/types/chat'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 
 interface Props {
-  conversation: Conversation
+  selectedChatUser: ChatUser
   showBackButton?: boolean
 }
 
@@ -29,16 +29,10 @@ const emit = defineEmits<{
       <q-tooltip>Indietro</q-tooltip>
     </q-btn>
     <q-avatar size="40px">
-      <img
-        v-if="conversation?.organization.avatar"
-        :src="conversation.organization.avatar"
-        :alt="conversation.organization.name"
-        style="object-fit: cover"
-      />
-      <q-icon v-else name="business" size="md" />
+      <img :src="selectedChatUser.avatar" :alt="selectedChatUser.name" style="object-fit: cover" />
     </q-avatar>
     <div class="header-info">
-      <div class="organization-name">{{ conversation?.organization.name }}</div>
+      <div class="organization-name">{{ selectedChatUser.name }}</div>
       <div class="status">Online</div>
     </div>
     <q-space />

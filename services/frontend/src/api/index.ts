@@ -15,9 +15,8 @@ import {
   // createFeedClient,
   // createUsersClient,
 } from './client'
-import { mockChatApi, syncMessageFromWebSocket } from './mock-services/chat'
+import { mockChatApi } from './mock-services/chat'
 import { mockNotificationApi } from './mock-services/notification'
-import type { Message, Conversation } from './types/chat'
 
 const useRealApi: boolean = import.meta.env.VITE_USE_MOCK_API === 'false'
 console.log('Using real API:', useRealApi)
@@ -35,15 +34,4 @@ export const api = {
   // media: useMockApi ? mockMediaApi : createMediaApi(createMediaClient()),
   // feed: useMockApi ? mockFeedApi : createFeedApi(createFeedClient()),
   // users: useRealApi ? createUsersApi(createUsersClient()) : mockUsersApi,
-}
-
-// Export sync function for WebSocket cross-tab message synchronization
-export function syncWebSocketMessage(
-  message: Message,
-  conversation: Conversation,
-  currentUserId?: string
-) {
-  if (!useRealApi) {
-    syncMessageFromWebSocket(message, conversation, currentUserId)
-  }
 }

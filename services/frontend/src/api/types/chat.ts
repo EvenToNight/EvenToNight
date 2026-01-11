@@ -25,7 +25,7 @@ export interface Message {
 }
 
 export type ConversationMessages = Record<ConversationID, Message[]>
-export type ChatUser = Pick<User, 'id' | 'name' | 'username' | 'avatar'>
+export type ChatUser = Pick<User, 'id' | 'name' | 'username' | 'avatar' | 'bio'>
 export interface Conversation {
   id: ConversationID
   organization: ChatUser

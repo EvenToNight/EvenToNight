@@ -1,14 +1,13 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import type { Conversation } from '@/api/types/chat'
-import type { User } from '@/api/types/users'
+import type { Conversation, ChatUser } from '@/api/types/chat'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 
 interface Props {
   conversations: Conversation[]
   selectedConversationId?: string
-  organizationSearchResults?: User[]
+  userSearchResults?: ChatUser[]
 }
 
 const props = defineProps<Props>()
@@ -17,7 +16,8 @@ const { locale } = useNavigation()
 const authStore = useAuthStore()
 
 const emit = defineEmits<{
-  selectConversation: [conversationId: string, isNewOrganization?: boolean]
+  selectConversation: [conversationId: string]
+  selectChatUser: [userId: string]
   search: [query: string]
 }>()
 
@@ -37,19 +37,22 @@ function isLastMessageFromMe(conversation: Conversation): boolean {
   return authStore.user?.id === conversation.lastMessage.senderId
 }
 
-function formatTime(date: Date): string {
+function formatTime(date: Date | undefined): string {
+  if (!date) return ''
+
+  const dateObj = date instanceof Date ? date : new Date(date)
   const now = new Date()
-  const diff = now.getTime() - date.getTime()
+  const diff = now.getTime() - dateObj.getTime()
   const days = Math.floor(diff / (1000 * 60 * 60 * 24))
 
   if (days === 0) {
-    return date.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
+    return dateObj.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
   } else if (days === 1) {
     return 'Ieri'
   } else if (days < 7) {
-    return date.toLocaleDateString(locale.value, { weekday: 'short' })
+    return dateObj.toLocaleDateString(locale.value, { weekday: 'short' })
   } else {
-    return date.toLocaleDateString(locale.value, {
+    return dateObj.toLocaleDateString(locale.value, {
       day: '2-digit',
       month: '2-digit',
       year: '2-digit',
@@ -102,8 +105,8 @@ watch(searchQuery, (newQuery) => {
         v-if="
           searchQuery.trim() &&
           filteredConversations.length > 0 &&
-          organizationSearchResults &&
-          organizationSearchResults.length > 0
+          userSearchResults &&
+          userSearchResults.length > 0
         "
         header
         class="search-section-header"
@@ -155,31 +158,27 @@ watch(searchQuery, (newQuery) => {
       </q-item>
 
       <!-- Show search results (organizations) after conversations if search is active -->
-      <template
-        v-if="
-          searchQuery.trim() && organizationSearchResults && organizationSearchResults.length > 0
-        "
-      >
+      <template v-if="searchQuery.trim() && userSearchResults && userSearchResults.length > 0">
         <q-item-label header class="search-section-header">Organizzazioni</q-item-label>
         <q-item
-          v-for="org in organizationSearchResults"
-          :key="`org-${org.id}`"
+          v-for="user in userSearchResults"
+          :key="user.id"
           clickable
-          :active="selectedConversationId === org.id"
+          :active="selectedConversationId === user.id"
           class="conversation-item organization-result"
-          @click="emit('selectConversation', org.id, true)"
+          @click="emit('selectChatUser', user.id)"
         >
           <q-item-section avatar>
             <q-avatar>
-              <img v-if="org.avatar" :src="org.avatar" :alt="org.name" class="avatar-image" />
+              <img v-if="user.avatar" :src="user.avatar" :alt="user.name" class="avatar-image" />
               <q-icon v-else name="business" size="md" />
             </q-avatar>
           </q-item-section>
 
           <q-item-section>
-            <q-item-label class="conversation-name">{{ org.name }}</q-item-label>
+            <q-item-label class="conversation-name">{{ user.name }}</q-item-label>
             <q-item-label caption lines="1" class="last-message">
-              {{ org.bio || 'Inizia una conversazione' }}
+              {{ user.bio || 'Inizia una conversazione' }}
             </q-item-label>
           </q-item-section>
         </q-item>

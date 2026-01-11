@@ -10,7 +10,7 @@ import type {
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { ConversationID, FirstMessage, Message } from '../types/chat'
 
-export const createSupportApi = (chatClient: ApiClient): ChatAPI => ({
+export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
   async startConversation(
     userId: string,
     firstMessage: FirstMessage
@@ -19,13 +19,17 @@ export const createSupportApi = (chatClient: ApiClient): ChatAPI => ({
   },
   async getConversations(
     userId: string,
-    pagination?: PaginatedRequest,
-    query?: string
+    params?: {
+      pagination?: PaginatedRequest
+      query?: string
+      recipientId?: string
+    }
   ): Promise<PaginatedResponse<ConversationResponse>> {
     return chatClient.get<PaginatedResponse<ConversationResponse>>(
-      `users/${userId}/conversations${buildQueryParams({
-        ...evaluatePagination(pagination),
-        query,
+      `/users/${userId}/conversations${buildQueryParams({
+        ...evaluatePagination(params?.pagination),
+        // query: params?.query,
+        // recipientId: params?.recipientId,
       })}`
     )
   },

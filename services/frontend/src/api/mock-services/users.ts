@@ -26,6 +26,14 @@ const getMockUser = (username: string): User => {
   return user
 }
 
+export const searchMockUsersByName = (name: string): User[] => {
+  const lowerName = name.toLowerCase().trim()
+  return mockUsers.data.filter(
+    (user) =>
+      user.name.toLowerCase().includes(lowerName) || user.username.toLowerCase().includes(lowerName)
+  )
+}
+
 export const mockUsersApi: UsersAPI = {
   async getUserById(id: UserID): Promise<User> {
     const user = mockUsers.data.find((u) => u.id === id)
