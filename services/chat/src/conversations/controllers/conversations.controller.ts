@@ -17,6 +17,7 @@ import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
 import { MessageListResponse } from '../dto/message-list.response';
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
 import { ConversationDetailDTO } from '../dto/conversation-details.dto';
+import { SearchConversationsQueryDto } from '../dto/search-conversation-query.dto';
 
 @Controller('users/:userId')
 export class ConversationsController {
@@ -41,6 +42,17 @@ export class ConversationsController {
       content: message.content,
       createdAt: message.createdAt,
     };
+  }
+
+  @Get('conversations/search')
+  async searchConversations(
+    @Param('userId') userId: string,
+    @Query() query: SearchConversationsQueryDto,
+  ): Promise<ConversationListResponse> {
+    return this.conversationsService.searchConversationWithFilters(
+      userId,
+      query,
+    );
   }
 
   @Post('conversations/:conversationId/messages')
