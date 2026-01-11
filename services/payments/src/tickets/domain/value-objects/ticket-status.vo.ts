@@ -25,6 +25,26 @@ export class TicketStatus {
     }
   }
 
+  static getAllStatuses(): TicketStatus[] {
+    return [
+      TicketStatus.PENDING_PAYMENT,
+      TicketStatus.ACTIVE,
+      TicketStatus.CANCELLED,
+      TicketStatus.REFUNDED,
+      TicketStatus.PAYMENT_FAILED,
+    ];
+  }
+
+  static getAllValues(): string[] {
+    return [
+      'PENDING_PAYMENT',
+      'ACTIVE',
+      'CANCELLED',
+      'REFUNDED',
+      'PAYMENT_FAILED',
+    ];
+  }
+
   equals(other: TicketStatus): boolean {
     return this.value === other.value;
   }

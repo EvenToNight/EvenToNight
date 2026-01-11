@@ -95,4 +95,30 @@ describe('TicketStatus', () => {
       expect(TicketStatus.ACTIVE.isPaymentFailed()).toBe(false);
     });
   });
+
+  describe('getAllStatuses', () => {
+    it('should return all statuses', () => {
+      const statuses = TicketStatus.getAllStatuses();
+
+      expect(statuses).toContain(TicketStatus.ACTIVE);
+      expect(statuses).toContain(TicketStatus.CANCELLED);
+      expect(statuses).toContain(TicketStatus.REFUNDED);
+      expect(statuses).toContain(TicketStatus.PENDING_PAYMENT);
+      expect(statuses).toContain(TicketStatus.PAYMENT_FAILED);
+    });
+  });
+
+  describe('getAllValues', () => {
+    it('should return all status values', () => {
+      const values = TicketStatus.getAllValues();
+
+      expect(values).toEqual([
+        'PENDING_PAYMENT',
+        'ACTIVE',
+        'CANCELLED',
+        'REFUNDED',
+        'PAYMENT_FAILED',
+      ]);
+    });
+  });
 });
