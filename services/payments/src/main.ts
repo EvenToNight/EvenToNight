@@ -18,4 +18,10 @@ async function bootstrap() {
   await app.listen(port);
   console.log(`Payments service running on port ${port}`);
 }
-bootstrap();
+bootstrap()
+  .then(() => {
+    console.log('Payments service is running...');
+  })
+  .catch((err) => {
+    console.error('Error starting Payments service:', err);
+  });

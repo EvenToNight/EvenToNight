@@ -4,7 +4,7 @@ export class EventTicketTypeResponseDto {
   id: string;
   eventId: string;
   type: string;
-  description: string;
+  description?: string;
   price: {
     amount: number;
     currency: string;

@@ -9,7 +9,7 @@ export interface EventTicketTypeCreateParams {
   id?: string;
   eventId: EventId;
   type: TicketType;
-  description: string;
+  description?: string;
   price: Money;
   availableQuantity: number;
   soldQuantity?: number;
@@ -20,10 +20,10 @@ export class EventTicketType {
     private readonly id: string,
     private readonly eventId: EventId,
     private readonly type: TicketType,
-    private readonly description: string,
     private readonly price: Money,
     private availableQuantity: number,
     private soldQuantity: number,
+    private readonly description?: string,
   ) {
     this.validateInvariants();
   }
@@ -33,10 +33,10 @@ export class EventTicketType {
       params.id || this.generateId(),
       params.eventId,
       params.type,
-      params.description,
       params.price,
       params.availableQuantity,
       params.soldQuantity || 0,
+      params.description,
     );
   }
 
@@ -86,7 +86,7 @@ export class EventTicketType {
     return this.type;
   }
 
-  getDescription(): string {
+  getDescription(): string | undefined {
     return this.description;
   }
 

@@ -19,7 +19,6 @@ RESPONSE=$(curl -s -X POST "$BASE_URL/events/$EVENT_ID/ticket-types" \
   -H "Content-Type: application/json" \
   -d '{
     "type": "STANDARD",
-    "description": "Standard admission ticket",
     "price": 29.99,
     "currency": "EUR",
     "quantity": 100
