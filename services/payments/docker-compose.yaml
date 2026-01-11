@@ -1,0 +1,41 @@
+services:
+  payments:
+    image: ghcr.io/eventonight/eventonight/payments:latest
+    networks:
+      - eventonight-network
+      - payments-network
+    environment:
+      - PORT=${PAYMENTS_SERVICE_PORT}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - MONGO_HOST=mongo-payments
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.payments.rule=Host(`payments.${HOST}`)"
+      - "traefik.http.routers.payments.entrypoints=web"
+      - "traefik.http.services.payments.loadbalancer.server.port=${PAYMENTS_SERVICE_PORT}"
+    restart: unless-stopped
+    depends_on:
+      mongo-payments:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  mongo-payments:
+    image: mongo
+    restart: unless-stopped
+    networks:
+      - payments-network
+    healthcheck:
+      test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+networks:
+  eventonight-network:
+    driver: bridge
+  payments-network:
+    driver: bridge
