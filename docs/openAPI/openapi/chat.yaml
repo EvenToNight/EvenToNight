@@ -79,7 +79,7 @@ paths:
                               example: "org456"
                             name:
                               type: string
-                              example: "EventoNight"
+                              example: "Organization 1"
                             avatar:
                               type: string
                               example: "https://example.com/avatar.png"  
@@ -188,12 +188,30 @@ paths:
                   id:
                     type: string
                     example: "conv123"
-                  organizationId:
-                    type: string
-                    example: "org456"
-                  memberId:
-                    type: string
-                    example: "member321"
+                  organization:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "org456"
+                      name:
+                        type: string
+                        example: "Organization 1"
+                      avatar:
+                        type: string
+                        example: "https://example.com/avatar.png"  
+                  member:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "member321"
+                      name:
+                        type: string
+                        example: "John Doe"
+                      avatar:
+                        type: string
+                        example: "https://example.com/member_avatar.png"
                   "createdAt":
                     type: string
                     format: date-time

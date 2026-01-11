@@ -18,6 +18,7 @@ import { MessageDTO } from '../dto/message.dto';
 import { UsersService } from 'src/users/services/users.service';
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
 import { UserID } from '../types';
+import { ConversationDetailDTO } from '../dto/conversation-details.dto';
 
 @Injectable()
 export class ConversationsService {
@@ -160,7 +161,8 @@ export class ConversationsService {
 
   async getConversationById(
     conversationId: string,
-  ): Promise<ConversationDocument> {
+    userId: string,
+  ): Promise<ConversationDetailDTO> {
     if (!Types.ObjectId.isValid(conversationId)) {
       throw new BadRequestException('Invalid conversation ID');
     }
@@ -171,7 +173,36 @@ export class ConversationsService {
       throw new NotFoundException('Conversation not found');
     }
 
-    return conversation;
+    const isParticipant = await this.verifyUserInConversation(
+      conversationId,
+      userId,
+    );
+    if (!isParticipant) {
+      throw new BadRequestException(
+        'User is not a participant of this conversation',
+      );
+    }
+
+    const [orgInfo, memberInfo] = await Promise.all([
+      this.usersService.getUserInfo(conversation.organizationId),
+      this.usersService.getUserInfo(conversation.memberId),
+    ]);
+
+    return {
+      id: conversation._id.toString(),
+      organization: {
+        id: conversation.organizationId,
+        name: orgInfo?.name || 'Unknown Organization',
+        avatar: orgInfo?.avatar || 'https://via.placeholder.com/150',
+      },
+      member: {
+        id: conversation.memberId,
+        name: memberInfo?.name || 'Unknown Member',
+        avatar: memberInfo?.avatar || 'https://via.placeholder.com/150',
+      },
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
+    };
   }
 
   async verifyUserInConversation(
