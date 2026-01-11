@@ -325,6 +325,48 @@ export class ConversationsService {
     );
   }
 
+  async getConversationByUsers(
+    organizationId: string,
+    memberId: string,
+    requestingUserId: string,
+  ): Promise<ConversationDetailDTO> {
+    if (requestingUserId !== organizationId && requestingUserId !== memberId) {
+      throw new BadRequestException(
+        'You can only view conversations you are part of',
+      );
+    }
+
+    const conversation = await this.conversationModel.findOne({
+      organizationId,
+      memberId,
+    });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    const [orgInfo, memberInfo] = await Promise.all([
+      this.usersService.getUserInfo(organizationId),
+      this.usersService.getUserInfo(memberId),
+    ]);
+
+    return {
+      id: conversation._id.toString(),
+      organization: {
+        id: organizationId,
+        name: orgInfo?.name || 'Unknown Organization',
+        avatar: orgInfo?.avatar || 'https://via.placeholder.com/150',
+      },
+      member: {
+        id: memberId,
+        name: memberInfo?.name || 'Unknown Member',
+        avatar: memberInfo?.avatar || 'https://via.placeholder.com/150',
+      },
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
+    };
+  }
+
   private async determineRoles(
     userId1: UserID,
     userId2: UserID,

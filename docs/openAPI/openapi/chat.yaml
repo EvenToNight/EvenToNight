@@ -32,6 +32,8 @@ paths:
           description: Bad Request
         '404':
           description: Organization or Member not found
+      tags:
+        - Users
     get:
       summary: Get conversations for a user
       servers:
@@ -123,7 +125,8 @@ paths:
           description: Bad Request
         '404':
           description: User not found
-  
+      tags:
+        - Users
   /users/{userId}/conversations/{conversationId}:
     get:
       summary: Get specific conversation of a user by ID
@@ -187,7 +190,8 @@ paths:
           description: Bad Request
         '404':
           description: Conversation not found
-
+      tags:
+        - Users
   /users/{userId}/unread/count:
     get:
       summary: Get total unread message count for a user
@@ -215,7 +219,8 @@ paths:
           description: Bad Request
         '404':
           description: User not found    
-  
+      tags:
+        - Users
   /users/{userId}/conversations/{conversationId}/messages:
     post:
       summary: Send a message in an existing conversation for a user
@@ -251,7 +256,8 @@ paths:
           description: Bad Request
         '404':
           description: Conversation not found
-    
+      tags:
+        - Users
     get:
       summary: Get messages in a conversation for a user, and mark them as read
       servers:
@@ -340,7 +346,8 @@ paths:
           description: Bad Request
         '404':
           description: Conversation not found
-
+      tags:
+        - Users
   /users/{userId}/conversations/{conversationId}/read:
     patch:
       summary: Mark messages in a conversation as read for a user
@@ -367,7 +374,8 @@ paths:
           description: Bad Request
         '404':
           description: Conversation not found
-  
+      tags:
+        - Users  
 components:
   schemas:
     CreateConversationMessageDto:
