@@ -43,6 +43,23 @@ export class Ticket {
     );
   }
 
+  /**
+   * Create a ticket in PENDING_PAYMENT status.
+   * Used in Saga pattern - Phase 1: Reserve inventory before payment
+   */
+  static createPending(params: TicketCreateParams): Ticket {
+    return new Ticket(
+      params.id || this.generateId(),
+      params.eventId,
+      params.userId,
+      params.attendeeName,
+      params.ticketTypeId,
+      params.price,
+      params.purchaseDate || new Date(),
+      TicketStatus.PENDING_PAYMENT,
+    );
+  }
+
   private static generateId(): string {
     return `ticket_${randomUUID()}`;
   }
@@ -59,6 +76,34 @@ export class Ticket {
       throw new InvalidTicketStatusException(this.status.toString(), 'refund');
     }
     this.status = TicketStatus.REFUNDED;
+  }
+
+  /**
+   * Confirm payment and activate ticket.
+   * Used in Saga pattern - Phase 2: Confirm after successful payment
+   */
+  confirmPayment(): void {
+    if (!this.status.isPendingPayment()) {
+      throw new InvalidTicketStatusException(
+        this.status.toString(),
+        'confirm payment',
+      );
+    }
+    this.status = TicketStatus.ACTIVE;
+  }
+
+  /**
+   * Mark payment as failed.
+   * Used in Saga pattern - Compensation: Payment failed, mark ticket
+   */
+  markPaymentFailed(): void {
+    if (!this.status.isPendingPayment()) {
+      throw new InvalidTicketStatusException(
+        this.status.toString(),
+        'mark payment as failed',
+      );
+    }
+    this.status = TicketStatus.PAYMENT_FAILED;
   }
 
   //TODO: evaluate ownership transefer
@@ -133,11 +178,19 @@ export class Ticket {
     return this.status.isActive();
   }
 
+  isPendingPayment(): boolean {
+    return this.status.isPendingPayment();
+  }
+
   isCancelled(): boolean {
     return this.status.isCancelled();
   }
 
   isRefunded(): boolean {
     return this.status.isRefunded();
+  }
+
+  isPaymentFailed(): boolean {
+    return this.status.isPaymentFailed();
   }
 }

@@ -23,6 +23,20 @@ describe('TicketStatus', () => {
       expect(status.toString()).toBe('REFUNDED');
     });
 
+    it('should create PENDING_PAYMENT status from string', () => {
+      const status = TicketStatus.fromString('PENDING_PAYMENT');
+
+      expect(status).toBe(TicketStatus.PENDING_PAYMENT);
+      expect(status.toString()).toBe('PENDING_PAYMENT');
+    });
+
+    it('should create PAYMENT_FAILED status from string', () => {
+      const status = TicketStatus.fromString('PAYMENT_FAILED');
+
+      expect(status).toBe(TicketStatus.PAYMENT_FAILED);
+      expect(status.toString()).toBe('PAYMENT_FAILED');
+    });
+
     it('should throw error for invalid status', () => {
       expect(() => TicketStatus.fromString('INVALID')).toThrow(
         'Invalid TicketStatus: INVALID',
@@ -69,6 +83,16 @@ describe('TicketStatus', () => {
     it('should check if status is refunded', () => {
       expect(TicketStatus.REFUNDED.isRefunded()).toBe(true);
       expect(TicketStatus.ACTIVE.isRefunded()).toBe(false);
+    });
+
+    it('should check if status is pending payment', () => {
+      expect(TicketStatus.PENDING_PAYMENT.isPendingPayment()).toBe(true);
+      expect(TicketStatus.ACTIVE.isPendingPayment()).toBe(false);
+    });
+
+    it('should check if status is payment failed', () => {
+      expect(TicketStatus.PAYMENT_FAILED.isPaymentFailed()).toBe(true);
+      expect(TicketStatus.ACTIVE.isPaymentFailed()).toBe(false);
     });
   });
 });

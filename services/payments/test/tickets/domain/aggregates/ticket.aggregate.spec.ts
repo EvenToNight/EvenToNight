@@ -16,6 +16,16 @@ describe('Ticket Aggregate', () => {
     });
   };
 
+  const createPendingTicket = () => {
+    return Ticket.createPending({
+      eventId: EventId.fromString('event-123'),
+      userId: UserId.fromString('user-456'),
+      attendeeName: 'John Doe',
+      ticketTypeId: 'type-789',
+      price: Money.fromAmount(50, 'EUR'),
+    });
+  };
+
   const createDefaultTicket = () => {
     return Ticket.create({
       id: 'ticket_123',
@@ -43,15 +53,24 @@ describe('Ticket Aggregate', () => {
       expect(ticket.getPurchaseDate().toISOString()).toBe(
         '2024-01-01T00:00:00.000Z',
       );
-      expect(ticket.getStatus().toString()).toBe('ACTIVE');
+      expect(ticket.getStatus()).toBe(TicketStatus.ACTIVE);
+    });
+
+    it('should create a new ticket with PENDING_PAYMENT status', () => {
+      const ticket = createPendingTicket();
+
+      expect(ticket.getId()).toBeDefined();
+      expect(ticket.getAttendeeName()).toBe('John Doe');
+      expect(ticket.getStatus()).toBe(TicketStatus.PENDING_PAYMENT);
+      expect(ticket.isPendingPayment()).toBe(true);
     });
 
     it('should create a new ticket with ACTIVE status by default', () => {
       const ticket = createTicket();
 
       expect(ticket.getId()).toBeDefined();
-      expect(ticket.getStatus().toString()).toBe('ACTIVE');
       expect(ticket.getAttendeeName()).toBe('John Doe');
+      expect(ticket.getStatus()).toBe(TicketStatus.ACTIVE);
       expect(ticket.isActive()).toBe(true);
     });
 
@@ -150,6 +169,44 @@ describe('Ticket Aggregate', () => {
 
       expect(() => ticket.transferTo(' ')).toThrow(
         'Attendee name cannot be empty',
+      );
+    });
+  });
+
+  describe('confirmPayment', () => {
+    it('should confirm payment and activate pending ticket', () => {
+      const ticket = createPendingTicket();
+
+      ticket.confirmPayment();
+
+      expect(ticket.getStatus()).toBe(TicketStatus.ACTIVE);
+      expect(ticket.isActive()).toBe(true);
+    });
+
+    it('should throw error when confirming payment for non-pending ticket', () => {
+      const ticket = createTicket();
+
+      expect(() => ticket.confirmPayment()).toThrow(
+        InvalidTicketStatusException,
+      );
+    });
+  });
+
+  describe('markPaymentFailed', () => {
+    it('should mark payment as failed for pending ticket', () => {
+      const ticket = createPendingTicket();
+
+      ticket.markPaymentFailed();
+
+      expect(ticket.getStatus()).toBe(TicketStatus.PAYMENT_FAILED);
+      expect(ticket.isPaymentFailed()).toBe(true);
+    });
+
+    it('should throw error when marking payment as failed for non-pending ticket', () => {
+      const ticket = createTicket();
+
+      expect(() => ticket.markPaymentFailed()).toThrow(
+        InvalidTicketStatusException,
       );
     });
   });
