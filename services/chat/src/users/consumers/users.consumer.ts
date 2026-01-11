@@ -18,6 +18,7 @@ export class UserConsumer {
     try {
       await this.usersService.upsertUser({
         userId: data.userId,
+        userRole: data.role,
         name: data.name,
         avatar: data.avatar,
       });
