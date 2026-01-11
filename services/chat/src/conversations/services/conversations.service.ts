@@ -328,14 +328,7 @@ export class ConversationsService {
   async getConversationByUsers(
     organizationId: string,
     memberId: string,
-    requestingUserId: string,
   ): Promise<ConversationDetailDTO> {
-    if (requestingUserId !== organizationId && requestingUserId !== memberId) {
-      throw new BadRequestException(
-        'You can only view conversations you are part of',
-      );
-    }
-
     const conversation = await this.conversationModel.findOne({
       organizationId,
       memberId,

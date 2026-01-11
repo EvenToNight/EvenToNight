@@ -9,6 +9,7 @@ import {
 import { Participant, ParticipantSchema } from './schemas/participant.schema';
 import { Message, MessageSchema } from './schemas/message.schema';
 import { UsersModule } from 'src/users/users.module';
+import { ConversationsLookupController } from './controllers/conversations-lookup.controller';
 
 @Module({
   imports: [
@@ -20,6 +21,6 @@ import { UsersModule } from 'src/users/users.module';
     UsersModule,
   ],
   providers: [ConversationsService],
-  controllers: [ConversationsController],
+  controllers: [ConversationsController, ConversationsLookupController],
 })
 export class ConversationsModule {}
