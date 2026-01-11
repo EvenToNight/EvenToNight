@@ -1,8 +1,5 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
-import {
-  Conversation,
-  ConversationDocument,
-} from '../schemas/conversation.schema';
+import { Conversation } from '../schemas/conversation.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ParticipantRole } from '../schemas/participant.schema';
@@ -19,6 +16,7 @@ import { UsersService } from 'src/users/services/users.service';
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
 import { UserID } from '../types';
 import { ConversationDetailDTO } from '../dto/conversation-details.dto';
+import { UserRole } from 'src/users/schemas/user.schema';
 
 @Injectable()
 export class ConversationsService {
@@ -343,11 +341,14 @@ export class ConversationsService {
       throw new BadRequestException(`User ${userId2} does not exist`);
     }
 
-    if (user1Info.role === 'organization' && user2Info.role === 'member') {
+    if (
+      user1Info.role === UserRole.ORGANIZATION &&
+      user2Info.role === UserRole.MEMBER
+    ) {
       return { organizationId: userId1, memberId: userId2 };
     } else if (
-      user1Info.role === 'member' &&
-      user2Info.role === 'organization'
+      user1Info.role === UserRole.MEMBER &&
+      user2Info.role === UserRole.ORGANIZATION
     ) {
       return { organizationId: userId2, memberId: userId1 };
     } else {
