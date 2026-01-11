@@ -446,6 +446,98 @@ paths:
       tags:
         - Conversations
 
+  /conversations/{organizationId}/{memberId}/messages:
+    get:
+      summary: Get messages in a conversation, and mark them as read
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "org123"
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "member123"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of messages in the conversation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: The unique identifier of the message
+                          example: "msg789"
+                        conversationId:
+                          type: string
+                          description: The ID of the conversation
+                          example: "conv123"
+                        sender:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: The ID of the sender
+                              example: "user123"
+                            name:
+                              type: string
+                              description: The name of the sender
+                              example: "John Doe"
+                            avatar:
+                              type: string
+                              description: The avatar URL of the sender
+                              example: "https://example.com/avatar.png"
+                        content:
+                          type: string
+                          example: "Hello, can I get more information about your events?"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: The time when the message was sent
+                        isRead:
+                          type: boolean
+                          description: Whether the message has been read
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+                  hasMore:
+                    type: boolean
+                    example: false
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
+      tags:
+        - Conversations
+
 components:
   schemas:
     CreateConversationMessageDto:
