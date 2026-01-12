@@ -1,33 +1,40 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import { Conversation } from '../schemas/conversation.schema';
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+
+import { Conversation } from '../schemas/conversation.schema';
 import { ParticipantRole } from '../schemas/participant.schema';
-import { SendMessageDto } from '../dto/send-message.dto';
 import { Message, MessageDocument } from '../schemas/message.schema';
+
+import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
+import { SendMessageDto } from '../dto/send-message.dto';
 import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
+import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
+import { SearchConversationsQueryDto } from '../dto/search-conversation-query.dto';
 import { ConversationListResponse } from '../dto/conversation-list.response';
 import { ConversationListItemDTO } from '../dto/conversation-list-item.dto';
-import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
-import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
+import { ConversationDetailDTO } from '../dto/conversation-details.dto';
 import { MessageListResponse } from '../dto/message-list.response';
 import { MessageDTO } from '../dto/message.dto';
-import { UsersService } from 'src/users/services/users.service';
-import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
+
+import { UsersService } from '../../users/services/users.service';
+import { UserRole } from '../../users/schemas/user.schema';
 import { UserID } from '../types';
-import { ConversationDetailDTO } from '../dto/conversation-details.dto';
-import { UserRole } from 'src/users/schemas/user.schema';
-import { SearchConversationsQueryDto } from '../dto/search-conversation-query.dto';
 
 @Injectable()
 export class ConversationsService {
+  private readonly DEFAULT_AVATAR =
+    'https://media.eventonight.site/users/default.jpg';
+
   constructor(
     @InjectModel(Conversation.name)
     private readonly conversationModel: Model<any>,
-    @InjectModel('Participant')
-    private readonly participantModel: Model<any>,
-    @InjectModel(Message.name)
-    private readonly messageModel: Model<any>,
+    @InjectModel('Participant') private readonly participantModel: Model<any>,
+    @InjectModel(Message.name) private readonly messageModel: Model<any>,
     private readonly usersService: UsersService,
   ) {}
 
@@ -35,29 +42,18 @@ export class ConversationsService {
     senderId: string,
     dto: CreateConversationMessageDto,
   ): Promise<MessageDocument> {
-    const existingConversation = await this.findConversationBetweenUsers(
-      dto.recipientId,
-      senderId,
-    );
-
-    if (existingConversation) {
-      throw new BadRequestException(
-        'Conversation already exists. Use the existing conversation endpoint.',
-      );
-    }
+    await this.ensureConversationDoesNotExist(dto.recipientId, senderId);
 
     const conversation = await this.findOrCreateConversation(
       senderId,
       dto.recipientId,
     );
 
-    const message = await this.createMessage(
+    return this.createMessage(
       conversation._id.toString(),
       senderId,
       dto.content,
     );
-
-    return message;
   }
 
   async sendMessageToConversation(
@@ -65,19 +61,8 @@ export class ConversationsService {
     conversationId: string,
     dto: SendMessageDto,
   ): Promise<MessageDocument> {
-    await this.conversationExists(conversationId);
-
-    const isParticipant = await this.verifyUserInConversation(
-      conversationId,
-      senderId,
-    );
-
-    if (!isParticipant) {
-      throw new BadRequestException(
-        'User is not a participant of this conversation',
-      );
-    }
-
+    await this.validateConversationExists(conversationId);
+    await this.validateUserIsParticipant(conversationId, senderId);
     return this.createMessage(conversationId, senderId, dto.content);
   }
 
@@ -85,146 +70,41 @@ export class ConversationsService {
     userId: string,
     query: GetConversationsQueryDto,
   ): Promise<ConversationListResponse> {
-    await this.usersService.userExists(userId);
+    await this.validateUserExists(userId);
 
     const { limit = 20, offset = 0 } = query;
 
-    const participants = await this.participantModel
-      .find({ userId })
-      .populate('conversationId')
-      .sort({ 'conversationId.updatedAt': -1 })
-      .skip(offset)
-      .limit(limit + 1)
-      .exec();
+    const participants = await this.fetchUserParticipants(
+      userId,
+      limit,
+      offset,
+    );
 
     const hasMore = participants.length > limit;
     const items = participants.slice(0, limit);
 
-    const conversations: ConversationListItemDTO[] = await Promise.all(
-      items.map(async (participant) => {
-        const conversation = participant.conversationId;
+    const conversations = await this.buildConversationListItems(items);
 
-        const lastMessage = await this.messageModel
-          .findOne({ conversationId: conversation._id })
-          .sort({ createdAt: -1 })
-          .exec();
-
-        const [orgInfo, memberInfo] = await Promise.all([
-          this.usersService.getUserInfo(conversation.organizationId),
-          this.usersService.getUserInfo(conversation.memberId),
-        ]);
-
-        return {
-          id: conversation._id.toString(),
-          organization: {
-            id: conversation.organizationId,
-            name: orgInfo?.name || 'Unknown Organization',
-            avatar:
-              orgInfo?.avatar ||
-              'https://media.eventonight.site/users/default.jpg',
-          },
-          member: {
-            id: conversation.memberId,
-            name: memberInfo?.name || 'Unknown Member',
-            avatar:
-              memberInfo?.avatar ||
-              'https://media.eventonight.site/users/default.jpg',
-          },
-          lastMessage: lastMessage
-            ? {
-                content: lastMessage.content,
-                senderId: String(lastMessage.senderId),
-                timestamp: lastMessage.createdAt,
-              }
-            : {
-                content: '',
-                senderId: '',
-                timestamp: new Date(0),
-              },
-          unreadCount: participant.unreadCount,
-        };
-      }),
-    );
-
-    return {
-      items: conversations,
-      limit,
-      offset,
-      hasMore,
-    };
+    return { items: conversations, limit, offset, hasMore };
   }
 
   async getTotalUnreadCount(userId: string): Promise<number> {
-    await this.usersService.userExists(userId);
-
+    await this.validateUserExists(userId);
     const participants = await this.participantModel.find({ userId });
-
-    return participants.reduce((total, participant) => {
-      return total + participant.unreadCount;
-    }, 0);
+    return participants.reduce((total, p) => total + p.unreadCount, 0);
   }
 
   async getConversationById(
     conversationId: string,
     userId: string,
   ): Promise<ConversationDetailDTO> {
-    if (!Types.ObjectId.isValid(conversationId)) {
-      throw new BadRequestException('Invalid conversation ID');
-    }
+    this.validateObjectId(conversationId);
 
-    const conversation = await this.conversationModel.findById(conversationId);
+    const conversation = await this.findConversationOrThrow(conversationId);
 
-    if (!conversation) {
-      throw new NotFoundException('Conversation not found');
-    }
+    await this.validateUserIsParticipant(conversationId, userId);
 
-    const isParticipant = await this.verifyUserInConversation(
-      conversationId,
-      userId,
-    );
-    if (!isParticipant) {
-      throw new BadRequestException(
-        'User is not a participant of this conversation',
-      );
-    }
-
-    const [orgInfo, memberInfo] = await Promise.all([
-      this.usersService.getUserInfo(conversation.organizationId),
-      this.usersService.getUserInfo(conversation.memberId),
-    ]);
-
-    return {
-      id: conversation._id.toString(),
-      organization: {
-        id: conversation.organizationId,
-        name: orgInfo?.name || 'Unknown Organization',
-        avatar:
-          orgInfo?.avatar || 'https://media.eventonight.site/users/default.jpg',
-      },
-      member: {
-        id: conversation.memberId,
-        name: memberInfo?.name || 'Unknown Member',
-        avatar:
-          memberInfo?.avatar ||
-          'https://media.eventonight.site/users/default.jpg',
-      },
-      createdAt: conversation.createdAt,
-      updatedAt: conversation.updatedAt,
-    };
-  }
-
-  async verifyUserInConversation(
-    conversationId: string,
-    userId: string,
-  ): Promise<boolean> {
-    await this.usersService.userExists(userId);
-
-    const participant = await this.participantModel.findOne({
-      conversationId: new Types.ObjectId(conversationId),
-      userId,
-    });
-
-    return !!participant;
+    return this.buildConversationDetail(conversation);
   }
 
   async getMessages(
@@ -232,104 +112,32 @@ export class ConversationsService {
     userId: string,
     query: GetMessagesQueryDto,
   ): Promise<MessageListResponse> {
-    await this.usersService.userExists(userId);
-
+    await this.validateUserExists(userId);
+    await this.validateUserIsParticipant(conversationId, userId);
     const { limit = 50, offset = 0 } = query;
+    const participant = await this.findParticipant(conversationId, userId);
 
-    const isParticipant = await this.verifyUserInConversation(
-      conversationId,
-      userId,
-    );
-    if (!isParticipant) {
-      throw new BadRequestException(
-        'User is not a participant of this conversation',
-      );
-    }
-
-    const participant = await this.participantModel.findOne({
-      conversationId: new Types.ObjectId(conversationId),
-      userId,
-    });
-
-    const messages = await this.messageModel
-      .find({ conversationId: new Types.ObjectId(conversationId) })
-      .sort({ createdAt: -1 })
-      .skip(offset)
-      .limit(limit + 1)
-      .exec();
-
+    const messages = await this.fetchMessages(conversationId, limit, offset);
     const hasMore = messages.length > limit;
     const items = messages.slice(0, limit);
 
-    const senderIds = [...new Set(items.map((msg) => msg.senderId))];
-
-    const usersInfo = await Promise.all(
-      senderIds.map(async (id) => {
-        const user = await this.usersService.getUserInfo(id);
-        return (
-          user || {
-            userId: id,
-            name: 'Unknown User',
-            avatar: 'Unknown Avatar',
-          }
-        );
-      }),
+    const messageDTOs = await this.buildMessageDTOs(
+      items,
+      conversationId,
+      participant,
     );
 
-    const usersMap = new Map(usersInfo.map((user) => [user.userId, user]));
+    this.markAsReadAsync(conversationId, userId);
 
-    this.markAsRead(conversationId, userId).catch((err) => {
-      console.error(
-        `Failed to mark messages as read for user ${userId} in conversation ${conversationId}:`,
-        err,
-      );
-    });
-
-    const messageDTOs: MessageDTO[] = items.map((message) => {
-      const senderInfo = usersMap.get(message.senderId);
-
-      return {
-        id: message._id.toString(),
-        conversationId: conversationId,
-        sender: {
-          id: message.senderId,
-          name: senderInfo?.name || 'Unknown User',
-          avatar: senderInfo?.avatar || 'Unknown Avatar',
-        },
-        content: message.content,
-        createdAt: message.createdAt,
-        isRead: message.createdAt <= participant.lastReadAt,
-      };
-    });
-
-    return {
-      items: messageDTOs,
-      limit,
-      offset,
-      hasMore,
-    };
+    return { items: messageDTOs, limit, offset, hasMore };
   }
 
   async markAsRead(conversationId: string, userId: string): Promise<void> {
-    const isParticipant = await this.verifyUserInConversation(
-      conversationId,
-      userId,
-    );
-    if (!isParticipant) {
-      throw new BadRequestException(
-        'User is not a participant of this conversation',
-      );
-    }
+    await this.validateUserIsParticipant(conversationId, userId);
 
     await this.participantModel.updateOne(
-      {
-        conversationId: new Types.ObjectId(conversationId),
-        userId,
-      },
-      {
-        lastReadAt: new Date(),
-        unreadCount: 0,
-      },
+      { conversationId: new Types.ObjectId(conversationId), userId },
+      { lastReadAt: new Date(), unreadCount: 0 },
     );
   }
 
@@ -346,29 +154,7 @@ export class ConversationsService {
       throw new NotFoundException('Conversation not found');
     }
 
-    const [orgInfo, memberInfo] = await Promise.all([
-      this.usersService.getUserInfo(organizationId),
-      this.usersService.getUserInfo(memberId),
-    ]);
-
-    return {
-      id: conversation._id.toString(),
-      organization: {
-        id: organizationId,
-        name: orgInfo?.name || 'Unknown Organization',
-        avatar:
-          orgInfo?.avatar || 'https://media.eventonight.site/users/default.jpg',
-      },
-      member: {
-        id: memberId,
-        name: memberInfo?.name || 'Unknown Member',
-        avatar:
-          memberInfo?.avatar ||
-          'https://media.eventonight.site/users/default.jpg',
-      },
-      createdAt: conversation.createdAt,
-      updatedAt: conversation.updatedAt,
-    };
+    return this.buildConversationDetail(conversation);
   }
 
   async getConversationWithMessagesByUsers(
@@ -385,38 +171,26 @@ export class ConversationsService {
       throw new NotFoundException('Conversation not found');
     }
 
-    return await this.getMessages(conversation._id, memberId, query);
+    return this.getMessages(conversation._id, memberId, query);
   }
 
   async searchConversationWithFilters(
     userId: string,
     query: SearchConversationsQueryDto,
   ): Promise<ConversationListResponse> {
-    await this.usersService.userExists(userId);
+    await this.validateUserExists(userId);
 
     const { limit = 20, offset = 0, name, recipientId } = query;
+    const hasFilters = Boolean(name || recipientId);
 
-    const finalFilter: any = { userId };
+    let conversationIds: Types.ObjectId[] | null = null;
 
-    if (name || recipientId) {
-      const partnerQuery: any = {
-        userId: { $ne: userId },
-      };
-
-      if (name) {
-        partnerQuery.userName = { $regex: `^${name}`, $options: 'i' };
-      }
-
-      if (recipientId) {
-        partnerQuery.userId = { $regex: `^${recipientId}`, $options: 'i' };
-      }
-
-      const partners = await this.participantModel
-        .find(partnerQuery)
-        .select('conversationId')
-        .exec();
-
-      const conversationIds = partners.map((p) => p.conversationId);
+    if (hasFilters) {
+      conversationIds = await this.findFilteredConversationIds(
+        userId,
+        name,
+        recipientId,
+      );
 
       if (conversationIds.length === 0 && offset === 0) {
         return this.getSuggestedUsers(userId, {
@@ -426,126 +200,31 @@ export class ConversationsService {
           recipientId,
         });
       }
-
-      if (conversationIds.length > 0) {
-        finalFilter.conversationId = { $in: conversationIds };
-      }
     }
 
-    const myParticipants = await this.participantModel
-      .find(finalFilter)
-      .populate('conversationId')
-      .sort({ 'conversationId.updatedAt': -1 })
-      .skip(Number(offset))
-      .limit(Number(limit) + 1)
-      .exec();
-
-    const hasMore = myParticipants.length > limit;
-    const items = myParticipants.slice(0, Number(limit));
-
-    const conversations = await Promise.all(
-      items.map(async (participant) => {
-        const conversation = participant.conversationId;
-        if (!conversation) return null;
-
-        const lastMessage = await this.messageModel
-          .findOne({ conversationId: conversation._id })
-          .sort({ createdAt: -1 })
-          .select('content senderId createdAt')
-          .exec();
-
-        const partnerParticipant = await this.participantModel
-          .findOne({
-            conversationId: conversation._id,
-            userId: { $ne: userId },
-          })
-          .select('userId userName role')
-          .exec();
-
-        if (!partnerParticipant) return null;
-
-        const [myUserInfo, partnerUserInfo] = await Promise.all([
-          this.usersService.getUserInfo(userId),
-          this.usersService.getUserInfo(partnerParticipant.userId),
-        ]);
-
-        return {
-          id: conversation._id.toString(),
-          organization:
-            partnerParticipant.role === ParticipantRole.ORGANIZATION
-              ? {
-                  id: partnerParticipant.userId,
-                  name: partnerParticipant.userName,
-                  avatar:
-                    partnerUserInfo?.avatar ||
-                    'https://media.eventonight.site/users/default.jpg',
-                }
-              : {
-                  id: userId,
-                  name: participant.userName,
-                  avatar:
-                    myUserInfo?.avatar ||
-                    'https://media.eventonight.site/users/default.jpg',
-                },
-
-          member:
-            partnerParticipant.role === ParticipantRole.MEMBER
-              ? {
-                  id: partnerParticipant.userId,
-                  name: partnerParticipant.userName,
-                  avatar:
-                    partnerUserInfo?.avatar ||
-                    'https://media.eventonight.site/users/default.jpg',
-                }
-              : {
-                  id: userId,
-                  name: participant.userName,
-                  avatar:
-                    myUserInfo?.avatar ||
-                    'https://media.eventonight.site/users/default.jpg',
-                },
-
-          lastMessage: lastMessage
-            ? {
-                content: lastMessage.content,
-                senderId: lastMessage.senderId.toString(),
-                timestamp: lastMessage.createdAt,
-              }
-            : null,
-          unreadCount: participant.unreadCount,
-        };
-      }),
+    const participants = await this.fetchFilteredParticipants(
+      userId,
+      conversationIds,
+      Number(limit),
+      Number(offset),
     );
 
+    const hasMore = participants.length > Number(limit);
+    const items = participants.slice(0, Number(limit));
+
+    const conversations = await this.buildSearchResults(items, userId);
     const validConversations = conversations.filter(
       (c): c is ConversationListItemDTO => c !== null,
     );
 
-    const remainingSlots = Number(limit) - validConversations.length;
-
-    if (remainingSlots > 0 && offset === 0) {
-      const suggestedResult = await this.getSuggestedUsers(userId, {
-        limit: remainingSlots,
-        offset: 0,
+    if (offset === 0) {
+      await this.addSuggestionsIfNeeded(
+        validConversations,
+        userId,
+        Number(limit),
         name,
         recipientId,
-      });
-
-      const existingPartnerIds = new Set(
-        validConversations.map((c) =>
-          c.organization.id === userId ? c.member.id : c.organization.id,
-        ),
       );
-
-      const newSuggestions = suggestedResult.items.filter((item) => {
-        const partnerId =
-          item.organization.id === userId
-            ? item.member.id
-            : item.organization.id;
-        return !existingPartnerIds.has(partnerId);
-      });
-
-      validConversations.push(...newSuggestions.slice(0, remainingSlots));
     }
 
     return {
@@ -554,6 +233,366 @@ export class ConversationsService {
       offset: Number(offset),
       hasMore: hasMore || validConversations.length === Number(limit),
     };
+  }
+
+  async verifyUserInConversation(
+    conversationId: string,
+    userId: string,
+  ): Promise<boolean> {
+    await this.validateUserExists(userId);
+    const participant = await this.participantModel.findOne({
+      conversationId: new Types.ObjectId(conversationId),
+      userId,
+    });
+    return !!participant;
+  }
+
+  private async validateUserExists(userId: string): Promise<void> {
+    const exists = await this.usersService.userExists(userId);
+    if (!exists) {
+      throw new BadRequestException(`User ${userId} does not exist`);
+    }
+  }
+
+  private validateObjectId(id: string): void {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException('Invalid conversation ID');
+    }
+  }
+
+  private async validateConversationExists(
+    conversationId: string,
+  ): Promise<any> {
+    this.validateObjectId(conversationId);
+    const conversation = await this.conversationModel.findById(conversationId);
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    return conversation;
+  }
+
+  private async validateUserIsParticipant(
+    conversationId: string,
+    userId: string,
+  ): Promise<void> {
+    const isParticipant = await this.verifyUserInConversation(
+      conversationId,
+      userId,
+    );
+    if (!isParticipant) {
+      throw new BadRequestException(
+        'User is not a participant of this conversation',
+      );
+    }
+  }
+
+  private async ensureConversationDoesNotExist(
+    recipientId: string,
+    senderId: string,
+  ): Promise<void> {
+    const existing = await this.findConversationBetweenUsers(
+      recipientId,
+      senderId,
+    );
+    if (existing) {
+      throw new BadRequestException(
+        'Conversation already exists. Use the existing conversation endpoint.',
+      );
+    }
+  }
+
+  private async findConversationOrThrow(conversationId: string): Promise<any> {
+    const conversation = await this.conversationModel.findById(conversationId);
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+    return conversation;
+  }
+
+  private async findParticipant(
+    conversationId: string,
+    userId: string,
+  ): Promise<any> {
+    return this.participantModel.findOne({
+      conversationId: new Types.ObjectId(conversationId),
+      userId,
+    });
+  }
+
+  private async fetchUserParticipants(
+    userId: string,
+    limit: number,
+    offset: number,
+  ): Promise<any[]> {
+    return this.participantModel
+      .find({ userId })
+      .populate('conversationId')
+      .sort({ 'conversationId.updatedAt': -1 })
+      .skip(offset)
+      .limit(limit + 1)
+      .exec();
+  }
+
+  private async fetchMessages(
+    conversationId: string,
+    limit: number,
+    offset: number,
+  ): Promise<any[]> {
+    return this.messageModel
+      .find({ conversationId: new Types.ObjectId(conversationId) })
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit + 1)
+      .exec();
+  }
+
+  private async fetchFilteredParticipants(
+    userId: string,
+    conversationIds: Types.ObjectId[] | null,
+    limit: number,
+    offset: number,
+  ): Promise<any[]> {
+    const filter: any = { userId };
+
+    if (conversationIds) {
+      filter.conversationId = { $in: conversationIds };
+    }
+
+    return this.participantModel
+      .find(filter)
+      .populate('conversationId')
+      .sort({ 'conversationId.updatedAt': -1 })
+      .skip(offset)
+      .limit(limit + 1)
+      .exec();
+  }
+
+  private async findFilteredConversationIds(
+    userId: string,
+    name?: string,
+    recipientId?: string,
+  ): Promise<Types.ObjectId[]> {
+    const partnerQuery: any = { userId: { $ne: userId } };
+
+    if (name) {
+      partnerQuery.userName = { $regex: name, $options: 'i' };
+    }
+
+    if (recipientId) {
+      partnerQuery.userId = { $regex: `^${recipientId}`, $options: 'i' };
+    }
+
+    const partners = await this.participantModel
+      .find(partnerQuery)
+      .select('conversationId')
+      .exec();
+
+    return partners.map((p) => p.conversationId);
+  }
+
+  private async buildConversationListItems(
+    participants: any[],
+  ): Promise<ConversationListItemDTO[]> {
+    return Promise.all(
+      participants.map(async (participant) => {
+        const conversation = participant.conversationId;
+        const lastMessage = await this.findLastMessage(conversation._id);
+        const [orgInfo, memberInfo] = await this.fetchUsersInfo(
+          conversation.organizationId,
+          conversation.memberId,
+        );
+
+        return {
+          id: conversation._id.toString(),
+          organization: this.buildUserInfo(
+            conversation.organizationId,
+            orgInfo,
+          ),
+          member: this.buildUserInfo(conversation.memberId, memberInfo),
+          lastMessage: this.buildLastMessageInfo(lastMessage),
+          unreadCount: participant.unreadCount,
+        };
+      }),
+    );
+  }
+
+  private async buildConversationDetail(
+    conversation: any,
+  ): Promise<ConversationDetailDTO> {
+    const [orgInfo, memberInfo] = await this.fetchUsersInfo(
+      conversation.organizationId,
+      conversation.memberId,
+    );
+
+    return {
+      id: conversation._id.toString(),
+      organization: this.buildUserInfo(conversation.organizationId, orgInfo),
+      member: this.buildUserInfo(conversation.memberId, memberInfo),
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
+    };
+  }
+
+  private async buildMessageDTOs(
+    messages: any[],
+    conversationId: string,
+    participant: any,
+  ): Promise<MessageDTO[]> {
+    const senderIds = [...new Set(messages.map((msg) => msg.senderId))];
+    const usersInfo = await this.fetchMultipleUsersInfo(senderIds);
+    const usersMap = new Map(usersInfo.map((user) => [user.userId, user]));
+
+    return messages.map((message) => {
+      const senderInfo = usersMap.get(message.senderId);
+
+      return {
+        id: message._id.toString(),
+        conversationId,
+        sender: {
+          id: message.senderId,
+          name: senderInfo?.name || 'Unknown User',
+          avatar: senderInfo?.avatar || this.DEFAULT_AVATAR,
+        },
+        content: message.content,
+        createdAt: message.createdAt,
+        isRead: message.createdAt <= participant.lastReadAt,
+      };
+    });
+  }
+
+  private async buildSearchResults(
+    participants: any[],
+    userId: string,
+  ): Promise<(ConversationListItemDTO | null)[]> {
+    return Promise.all(
+      participants.map(async (participant) => {
+        const conversation = participant.conversationId;
+        if (!conversation) return null;
+
+        const lastMessage = await this.findLastMessage(conversation._id);
+        const partnerParticipant = await this.findPartnerParticipant(
+          conversation._id,
+          userId,
+        );
+
+        if (!partnerParticipant) return null;
+
+        const [myUserInfo, partnerUserInfo] = await this.fetchUsersInfo(
+          userId,
+          partnerParticipant.userId,
+        );
+
+        return this.buildSearchResultItem(
+          conversation,
+          participant,
+          partnerParticipant,
+          myUserInfo,
+          partnerUserInfo,
+          lastMessage,
+          userId,
+        );
+      }),
+    );
+  }
+
+  private buildSearchResultItem(
+    conversation: any,
+    participant: any,
+    partnerParticipant: any,
+    myUserInfo: any,
+    partnerUserInfo: any,
+    lastMessage: any,
+    userId: string,
+  ): ConversationListItemDTO {
+    const isPartnerOrganization =
+      partnerParticipant.role === ParticipantRole.ORGANIZATION;
+
+    return {
+      id: conversation._id.toString(),
+      organization: isPartnerOrganization
+        ? {
+            id: partnerParticipant.userId,
+            name: partnerParticipant.userName,
+            avatar: partnerUserInfo?.avatar || this.DEFAULT_AVATAR,
+          }
+        : {
+            id: userId,
+            name: participant.userName,
+            avatar: myUserInfo?.avatar || this.DEFAULT_AVATAR,
+          },
+      member: !isPartnerOrganization
+        ? {
+            id: partnerParticipant.userId,
+            name: partnerParticipant.userName,
+            avatar: partnerUserInfo?.avatar || this.DEFAULT_AVATAR,
+          }
+        : {
+            id: userId,
+            name: participant.userName,
+            avatar: myUserInfo?.avatar || this.DEFAULT_AVATAR,
+          },
+      lastMessage: lastMessage
+        ? {
+            content: lastMessage.content,
+            senderId: lastMessage.senderId.toString(),
+            timestamp: lastMessage.createdAt,
+          }
+        : null,
+      unreadCount: participant.unreadCount,
+    };
+  }
+
+  private async addSuggestionsIfNeeded(
+    conversations: ConversationListItemDTO[],
+    userId: string,
+    limit: number,
+    name?: string,
+    recipientId?: string,
+  ): Promise<void> {
+    const remainingSlots = limit - conversations.length;
+
+    if (remainingSlots <= 0) return;
+
+    const suggestedResult = await this.getSuggestedUsers(userId, {
+      limit: remainingSlots,
+      offset: 0,
+      name,
+      recipientId,
+    });
+
+    const existingPartnerIds = this.extractPartnerIds(conversations, userId);
+    const newSuggestions = this.filterExistingSuggestions(
+      suggestedResult.items,
+      existingPartnerIds,
+      userId,
+    );
+
+    conversations.push(...newSuggestions.slice(0, remainingSlots));
+  }
+
+  private extractPartnerIds(
+    conversations: ConversationListItemDTO[],
+    userId: string,
+  ): Set<string> {
+    return new Set(
+      conversations.map((c) =>
+        c.organization.id === userId ? c.member.id : c.organization.id,
+      ),
+    );
+  }
+
+  private filterExistingSuggestions(
+    items: ConversationListItemDTO[],
+    existingPartnerIds: Set<string>,
+    userId: string,
+  ): ConversationListItemDTO[] {
+    return items.filter((item) => {
+      const partnerId =
+        item.organization.id === userId ? item.member.id : item.organization.id;
+      return !existingPartnerIds.has(partnerId);
+    });
   }
 
   private async getSuggestedUsers(
@@ -573,9 +612,41 @@ export class ConversationsService {
     // }
     const currentRole = currentUser ? currentUser.role : UserRole.MEMBER;
 
-    const targetRole =
-      currentRole === UserRole.MEMBER ? UserRole.ORGANIZATION : UserRole.MEMBER;
+    const targetRole = this.getOppositeRole(currentRole);
 
+    const suggestedUsers = await this.searchTargetUsers(
+      userId,
+      targetRole,
+      options,
+    );
+    const limitedUsers = this.applyPagination(
+      suggestedUsers,
+      options.limit,
+      options.offset,
+    );
+
+    const hasMore = limitedUsers.length > options.limit;
+    const items = limitedUsers.slice(0, options.limit);
+
+    const suggestions = await this.buildSuggestions(items, userId);
+
+    return {
+      items: suggestions,
+      limit: options.limit,
+      offset: options.offset,
+      hasMore,
+    };
+  }
+
+  private getOppositeRole(role: UserRole): UserRole {
+    return role === UserRole.MEMBER ? UserRole.ORGANIZATION : UserRole.MEMBER;
+  }
+
+  private async searchTargetUsers(
+    userId: string,
+    targetRole: UserRole,
+    options: { name?: string; recipientId?: string },
+  ): Promise<any[]> {
     const userQuery: any = {
       userId: { $ne: userId },
       role: targetRole,
@@ -589,72 +660,64 @@ export class ConversationsService {
       userQuery.userId = { $regex: `^${options.recipientId}`, $options: 'i' };
     }
 
-    const suggestedUsers = await this.usersService.searchUsers(userQuery);
+    return this.usersService.searchUsers(userQuery);
+  }
 
-    const limitedUsers = suggestedUsers.slice(
-      options.offset,
-      options.offset + options.limit + 1,
-    );
+  private applyPagination<T>(items: T[], limit: number, offset: number): T[] {
+    return items.slice(offset, offset + limit + 1);
+  }
 
-    const hasMore = limitedUsers.length > options.limit;
-    const items = limitedUsers.slice(0, options.limit);
-
+  private async buildSuggestions(
+    users: any[],
+    userId: string,
+  ): Promise<ConversationListItemDTO[]> {
     const myUserInfo = await this.usersService.getUserInfo(userId);
 
-    const suggestions: ConversationListItemDTO[] = items.map((user) => ({
+    return users.map((user) => ({
       id: '',
-      organization:
-        user.role === UserRole.ORGANIZATION
-          ? {
-              id: user.userId,
-              name: user.name || 'Unknown',
-              avatar:
-                user.avatar ||
-                'https://media.eventonight.site/users/default.jpg',
-            }
-          : {
-              id: userId,
-              name: myUserInfo?.name || 'Unknown',
-              avatar:
-                myUserInfo?.avatar ||
-                'https://media.eventonight.site/users/default.jpg',
-            },
-      member:
-        user.role === UserRole.MEMBER
-          ? {
-              id: user.userId,
-              name: user.name || 'Unknown',
-              avatar:
-                user.avatar ||
-                'https://media.eventonight.site/users/default.jpg',
-            }
-          : {
-              id: userId,
-              name: myUserInfo?.name || 'Unknown',
-              avatar:
-                myUserInfo?.avatar ||
-                'https://media.eventonight.site/users/default.jpg',
-            },
+      organization: this.buildSuggestionUserInfo(
+        user,
+        UserRole.ORGANIZATION,
+        userId,
+        myUserInfo,
+      ),
+      member: this.buildSuggestionUserInfo(
+        user,
+        UserRole.MEMBER,
+        userId,
+        myUserInfo,
+      ),
       lastMessage: null,
       unreadCount: 0,
     }));
+  }
 
-    return {
-      items: suggestions,
-      limit: options.limit,
-      offset: options.offset,
-      hasMore,
-    };
+  private buildSuggestionUserInfo(
+    user: any,
+    roleToMatch: UserRole,
+    currentUserId: string,
+    currentUserInfo: any,
+  ) {
+    const isMatch = user.role === roleToMatch;
+
+    return isMatch
+      ? {
+          id: user.userId,
+          name: user.name || 'Unknown',
+          avatar: user.avatar || this.DEFAULT_AVATAR,
+        }
+      : {
+          id: currentUserId,
+          name: currentUserInfo?.name || 'Unknown',
+          avatar: currentUserInfo?.avatar || this.DEFAULT_AVATAR,
+        };
   }
 
   private async determineRoles(
     userId1: UserID,
     userId2: UserID,
   ): Promise<{ organizationId: string; memberId: string }> {
-    const [user1Info, user2Info] = await Promise.all([
-      this.usersService.getUserInfo(userId1),
-      this.usersService.getUserInfo(userId2),
-    ]);
+    const [user1Info, user2Info] = await this.fetchUsersInfo(userId1, userId2);
 
     if (!user1Info) {
       throw new BadRequestException(`User ${userId1} does not exist`);
@@ -663,21 +726,102 @@ export class ConversationsService {
       throw new BadRequestException(`User ${userId2} does not exist`);
     }
 
-    if (
-      user1Info.role === UserRole.ORGANIZATION &&
-      user2Info.role === UserRole.MEMBER
-    ) {
+    const isUser1Org = user1Info.role === UserRole.ORGANIZATION;
+    const isUser2Org = user2Info.role === UserRole.ORGANIZATION;
+    const isUser1Member = user1Info.role === UserRole.MEMBER;
+    const isUser2Member = user2Info.role === UserRole.MEMBER;
+
+    if (isUser1Org && isUser2Member) {
       return { organizationId: userId1, memberId: userId2 };
-    } else if (
-      user1Info.role === UserRole.MEMBER &&
-      user2Info.role === UserRole.ORGANIZATION
-    ) {
-      return { organizationId: userId2, memberId: userId1 };
-    } else {
-      throw new BadRequestException(
-        'Conversation must be between an organization and a member',
-      );
     }
+
+    if (isUser1Member && isUser2Org) {
+      return { organizationId: userId2, memberId: userId1 };
+    }
+
+    throw new BadRequestException(
+      'Conversation must be between an organization and a member',
+    );
+  }
+
+  private async findLastMessage(conversationId: Types.ObjectId): Promise<any> {
+    return this.messageModel
+      .findOne({ conversationId })
+      .sort({ createdAt: -1 })
+      .select('content senderId createdAt')
+      .exec();
+  }
+
+  private async findPartnerParticipant(
+    conversationId: Types.ObjectId,
+    userId: string,
+  ): Promise<any> {
+    return this.participantModel
+      .findOne({
+        conversationId,
+        userId: { $ne: userId },
+      })
+      .select('userId userName role')
+      .exec();
+  }
+
+  private async fetchUsersInfo(
+    userId1: string,
+    userId2: string,
+  ): Promise<[any, any]> {
+    return Promise.all([
+      this.usersService.getUserInfo(userId1),
+      this.usersService.getUserInfo(userId2),
+    ]);
+  }
+
+  private async fetchMultipleUsersInfo(userIds: string[]): Promise<any[]> {
+    return Promise.all(
+      userIds.map(async (id) => {
+        const user = await this.usersService.getUserInfo(id);
+        return (
+          user || {
+            userId: id,
+            name: 'Unknown User',
+            avatar: this.DEFAULT_AVATAR,
+          }
+        );
+      }),
+    );
+  }
+
+  private buildUserInfo(userId: string, userInfo: any) {
+    return {
+      id: userId,
+      name: userInfo?.name || 'Unknown',
+      avatar: userInfo?.avatar || this.DEFAULT_AVATAR,
+    };
+  }
+
+  private buildLastMessageInfo(lastMessage: any) {
+    return lastMessage
+      ? {
+          content: lastMessage.content,
+          senderId: String(lastMessage.senderId),
+          timestamp: lastMessage.createdAt,
+        }
+      : {
+          content: '',
+          senderId: '',
+          timestamp: new Date(0),
+        };
+  }
+
+  private async markAsReadAsync(
+    conversationId: string,
+    userId: string,
+  ): Promise<void> {
+    await this.markAsRead(conversationId, userId).catch((err) => {
+      console.error(
+        `Failed to mark messages as read for user ${userId} in conversation ${conversationId}:`,
+        err,
+      );
+    });
   }
 
   private async findOrCreateConversation(
@@ -689,58 +833,72 @@ export class ConversationsService {
     const organizationId = userId2;
     const memberId = userId1;
 
-    let conversation = await this.conversationModel.findOne({
+    let conversation = await this.findConversationBetweenUsers(
       organizationId,
       memberId,
-    });
+    );
 
     if (!conversation) {
-      conversation = new this.conversationModel({
-        organizationId,
-        memberId,
-      });
-      const savedConversation = await conversation.save();
-
-      const organizationName: string =
-        (await this.usersService.getUsername(organizationId)) || 'Organization';
-
-      const orgParticipant = new this.participantModel({
-        conversationId: savedConversation._id,
-        userId: organizationId,
-        userName: organizationName,
-        role: ParticipantRole.ORGANIZATION,
-        unreadCount: 0,
-        lastReadAt: new Date(),
-      });
-
-      const memberName: string =
-        (await this.usersService.getUsername(memberId)) || 'Member';
-
-      const memberParticipant = new this.participantModel({
-        conversationId: savedConversation._id,
-        userId: memberId,
-        userName: memberName,
-        role: ParticipantRole.MEMBER,
-        unreadCount: 0,
-        lastReadAt: new Date(),
-      });
-
-      await Promise.all([orgParticipant.save(), memberParticipant.save()]);
-
-      conversation = savedConversation;
+      conversation = await this.createNewConversation(organizationId, memberId);
     }
 
     return conversation;
+  }
+
+  private async createNewConversation(
+    organizationId: string,
+    memberId: string,
+  ): Promise<any> {
+    const conversation = await new this.conversationModel({
+      organizationId,
+      memberId,
+    }).save();
+
+    await this.createParticipantsForConversation(
+      conversation._id,
+      organizationId,
+      memberId,
+    );
+
+    return conversation;
+  }
+
+  private async createParticipantsForConversation(
+    conversationId: Types.ObjectId,
+    organizationId: string,
+    memberId: string,
+  ): Promise<void> {
+    const [orgName, memberName] = await Promise.all([
+      this.usersService.getUsername(organizationId),
+      this.usersService.getUsername(memberId),
+    ]);
+
+    const orgParticipant = new this.participantModel({
+      conversationId,
+      userId: organizationId,
+      userName: orgName || 'Organization',
+      role: ParticipantRole.ORGANIZATION,
+      unreadCount: 0,
+      lastReadAt: new Date(),
+    });
+
+    const memberParticipant = new this.participantModel({
+      conversationId,
+      userId: memberId,
+      userName: memberName || 'Member',
+      role: ParticipantRole.MEMBER,
+      unreadCount: 0,
+      lastReadAt: new Date(),
+    });
+
+    await Promise.all([orgParticipant.save(), memberParticipant.save()]);
   }
 
   private async findConversationBetweenUsers(
     organizationId: string,
     memberId: string,
   ): Promise<Conversation | null> {
-    return this.conversationModel.findOne({
-      organizationId,
-      memberId,
-    });
+    return this.conversationModel.findOne({ organizationId, memberId });
   }
 
   private async createMessage(
@@ -748,46 +906,42 @@ export class ConversationsService {
     senderId: string,
     content: string,
   ): Promise<MessageDocument> {
-    const message = new this.messageModel({
+    const message = await new this.messageModel({
       conversationId: new Types.ObjectId(conversationId),
       senderId,
       content,
-    });
-    const savedMessage = await message.save();
+    }).save();
 
-    await this.conversationModel.updateOne(
-      { _id: conversationId },
-      { updatedAt: new Date() },
-    );
+    await this.updateConversationTimestamp(conversationId);
 
-    await this.participantModel.updateOne(
-      {
-        conversationId: new Types.ObjectId(conversationId),
-        userId: { $ne: senderId },
-      },
-      {
-        $inc: { unreadCount: 1 },
-      },
-    );
+    await this.incrementRecipientUnreadCount(conversationId, senderId);
 
     console.log(`✅ Message sent in conversation ${conversationId}`);
 
     // TODO: Publish event to RabbitMQ for real-time notifications
 
-    return savedMessage;
+    return message;
   }
 
-  private async conversationExists(conversationId: string): Promise<any> {
-    if (!Types.ObjectId.isValid(conversationId)) {
-      throw new BadRequestException('Invalid conversation ID');
-    }
+  private async updateConversationTimestamp(
+    conversationId: string,
+  ): Promise<void> {
+    await this.conversationModel.updateOne(
+      { _id: conversationId },
+      { updatedAt: new Date() },
+    );
+  }
 
-    const conversation = await this.conversationModel.findById(conversationId);
-
-    if (!conversation) {
-      throw new NotFoundException('Conversation not found');
-    }
-
-    return conversation;
+  private async incrementRecipientUnreadCount(
+    conversationId: string,
+    senderId: string,
+  ): Promise<void> {
+    await this.participantModel.updateOne(
+      {
+        conversationId: new Types.ObjectId(conversationId),
+        userId: { $ne: senderId },
+      },
+      { $inc: { unreadCount: 1 } },
+    );
   }
 }
