@@ -1,13 +1,17 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Document } from 'mongoose';
+import { HydratedDocument } from 'mongoose';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 
 @Schema({
   collection: 'tickets',
   timestamps: true,
   versionKey: false,
+  _id: false,
 })
-export class TicketDocument extends Document {
+export class TicketDocument {
+  @Prop({ type: String, required: true })
+  _id: string;
+
   @Prop({ required: true, index: true })
   eventId: string;
 
@@ -43,6 +47,8 @@ export class TicketDocument extends Document {
   })
   status: string;
 }
+
+export type TicketDocumentType = HydratedDocument<TicketDocument>;
 
 export const TicketSchema = SchemaFactory.createForClass(TicketDocument);
 

@@ -1,16 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { Connection, ClientSession } from 'mongoose';
 
 @Injectable()
 export class TransactionManager {
-  constructor(@InjectConnection() private readonly connection: Connection) {}
+  private readonly logger = new Logger(TransactionManager.name);
+  private readonly useTransactions = !!process.env.MONGO_HOST;
+
+  constructor(@InjectConnection() private readonly connection: Connection) {
+    if (!this.useTransactions) {
+      this.logger.warn('⚠️  Transactions are DISABLED.');
+    }
+  }
 
   async executeInTransaction<T>(
     operation: (session: ClientSession) => Promise<T>,
   ): Promise<T> {
-    const session = await this.connection.startSession();
+    if (!this.useTransactions) {
+      return this.withSession(operation);
+    }
 
+    const session = await this.connection.startSession();
     try {
       session.startTransaction({
         readConcern: { level: 'snapshot' },
