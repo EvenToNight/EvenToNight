@@ -25,6 +25,7 @@ export class TransactionManager {
       session.startTransaction({
         readConcern: { level: 'snapshot' },
         writeConcern: { w: 'majority' },
+        readPreference: 'primary',
       });
 
       const result = await operation(session);
