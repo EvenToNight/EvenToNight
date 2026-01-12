@@ -13,7 +13,7 @@ import { EventPublisher } from './event-publisher';
         transport: Transport.RMQ,
         options: {
           urls: [
-            `amqp://${process.env.RABBITMQ_USER || 'admin'}:${process.env.RABBITMQ_PASS || 'admin'}@${process.env.RABBITMQ_HOST || 'localhost'}:5672`,
+            `amqp://${process.env.RABBITMQ_USER || 'guest'}:${process.env.RABBITMQ_PASS || 'guest'}@${process.env.RABBITMQ_HOST || 'localhost'}:5672`,
           ],
           queue: 'payments_queue',
           queueOptions: {

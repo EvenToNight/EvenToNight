@@ -19,8 +19,8 @@ async function bootstrap() {
   app.enableShutdownHooks();
 
   const rabbitmqHost = process.env.RABBITMQ_HOST || 'localhost';
-  const rabbitmqUser = process.env.RABBITMQ_USER || 'admin';
-  const rabbitmqPass = process.env.RABBITMQ_PASS || 'admin';
+  const rabbitmqUser = process.env.RABBITMQ_USER || 'guest';
+  const rabbitmqPass = process.env.RABBITMQ_PASS || 'guest';
   const rabbitmqUrl = `amqp://${rabbitmqUser}:${rabbitmqPass}@${rabbitmqHost}:5672`;
 
   const setupService = new RabbitMqSetupService();
