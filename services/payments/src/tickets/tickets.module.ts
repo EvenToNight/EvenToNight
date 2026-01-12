@@ -20,6 +20,10 @@ import { TICKET_REPOSITORY } from './domain/repositories/ticket.repository.inter
 
 // Handlers
 import { CreateEventTicketTypeHandler } from './application/handlers/create-event-ticket-type.handler';
+import { CreateCheckoutSessionHandler } from './application/handlers/create-checkout-session.handler';
+
+// Events Handlers
+import { BaseCheckoutSessionCompletedHandler } from './application/handlers/base-checkout-session-completed.handler';
 
 // Infrastructure
 import { TransactionManager } from './infrastructure/database/transaction.manager';
@@ -27,6 +31,8 @@ import { EventPublisher } from '../commons/intrastructure/messaging/event-publis
 
 // Controllers
 import { EventTicketTypesController } from './presentation/controllers/event-ticket-types.controller';
+import { CheckoutSessionsController } from './presentation/controllers/checkout-sessions.controller';
+import { MockedCheckoutWebhookController } from './presentation/controllers/mocked-checkout-webhook.controller';
 
 @Module({
   imports: [
@@ -36,7 +42,11 @@ import { EventTicketTypesController } from './presentation/controllers/event-tic
       { name: TicketDocument.name, schema: TicketSchema },
     ]),
   ],
-  controllers: [EventTicketTypesController],
+  controllers: [
+    EventTicketTypesController,
+    CheckoutSessionsController,
+    MockedCheckoutWebhookController,
+  ],
   providers: [
     // Repositories
     {
@@ -50,6 +60,10 @@ import { EventTicketTypesController } from './presentation/controllers/event-tic
 
     // Use Case Handlers
     CreateEventTicketTypeHandler,
+    CreateCheckoutSessionHandler,
+
+    // Event Handlers
+    BaseCheckoutSessionCompletedHandler,
 
     // Infrastructure
     TransactionManager,

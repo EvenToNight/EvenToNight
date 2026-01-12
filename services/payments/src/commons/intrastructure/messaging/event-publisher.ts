@@ -3,8 +3,12 @@ import { EventBus } from '@nestjs/cqrs';
 import { ClientProxy } from '@nestjs/microservices';
 import { CheckoutSessionCompletedEvent } from '../../../tickets/domain/events/checkout-session-completed.event';
 import { CheckoutSessionExpiredEvent } from '../../../tickets/domain/events/checkout-session-expired.event';
+import { BaseCheckoutSessionCompletedEvent } from '../../../tickets/domain/events/base-checkout-session-completed.event';
 
-type DomainEvent = CheckoutSessionCompletedEvent | CheckoutSessionExpiredEvent;
+type DomainEvent =
+  | CheckoutSessionCompletedEvent
+  | CheckoutSessionExpiredEvent
+  | BaseCheckoutSessionCompletedEvent;
 
 /**
  * EventPublisher - Bridge between Domain Events and Infrastructure
