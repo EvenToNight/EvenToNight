@@ -22,16 +22,20 @@
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
-    "@nestjs/microservices": "^11.1.9",
+    "@nestjs/cqrs": "^11.0.3",
+    "@nestjs/microservices": "^11.1.11",
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^11.0.1",
+    "@types/amqplib": "^0.10.8",
+    "@types/stripe": "^8.0.416",
     "amqp-connection-manager": "^5.0.0",
     "amqplib": "^0.10.9",
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.3",
     "mongoose": "^8.20.2",
     "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "rxjs": "^7.8.1",
+    "stripe": "^20.1.2"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
@@ -58,7 +62,7 @@
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
   },
-    "jest": {
+  "jest": {
     "moduleFileExtensions": [
       "js",
       "json",
