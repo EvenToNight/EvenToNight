@@ -10,6 +10,7 @@ import {
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
 import { StripeService } from '../../infrastructure/stripe/stripe.service';
+import { Stripe } from 'stripe';
 
 @Controller('webhooks/stripe')
 export class StripeWebhookController {
@@ -19,7 +20,6 @@ export class StripeWebhookController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  // eslint-disable-next-line @typescript-eslint/require-await
   async handleWebhook(
     @Headers('stripe-signature') signature: string,
     @Req() request: RawBodyRequest<Request>,
@@ -41,6 +41,12 @@ export class StripeWebhookController {
       );
 
       this.logger.log(`Received Stripe webhook: ${event.type}`);
+      const session = event.data.object as Stripe.Checkout.Session;
+      await this.stripeService.expireCheckoutSession(session.id);
+      // https://docs.stripe.com/testing - check card numeber for testing
+      // payment_intent.succeeded - payment_intent.created - checkout.session.completed - mandate.updated - charge.succeeded - charge.updated
+      // payment_intent.payment_failed - charge.failed
+      // payment_intent.canceled - checkout.session.expired
 
       return { received: true };
     } catch (error) {

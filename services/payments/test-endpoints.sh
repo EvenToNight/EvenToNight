@@ -21,7 +21,7 @@ RESPONSE=$(curl -s -X POST "$BASE_URL/events/$EVENT_ID/ticket-types" \
   -H "Content-Type: application/json" \
   -d '{
     "type": "STANDARD",
-    "price": 30,
+    "price": 29.99,
     "currency": "EUR",
     "quantity": 100
   }')
@@ -38,7 +38,7 @@ RESPONSE=$(curl -s -X POST "$BASE_URL/events/$EVENT_ID/ticket-types" \
   -d '{
     "type": "VIP",
     "description": "VIP access with backstage pass",
-    "price": 100,
+    "price": 99.95,
     "currency": "EUR",
     "quantity": 50
   }')

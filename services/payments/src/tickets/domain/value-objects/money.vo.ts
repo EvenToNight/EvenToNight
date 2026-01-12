@@ -11,6 +11,7 @@ export class Money {
     }
   }
 
+  //TODO: to uppercase currency code
   static fromAmount(amount: number, currency: string = 'EUR'): Money {
     return new Money(amount, currency);
   }

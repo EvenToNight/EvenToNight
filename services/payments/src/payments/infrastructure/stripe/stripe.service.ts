@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import { Money } from '../../../tickets/domain/value-objects/money.vo';
 import { StripePaymentException } from '../../domain/exceptions/stripe-payment.exception';
+import codes from 'currency-codes';
 
 export interface CheckoutSessionLineItem {
   productName: string;
@@ -23,7 +24,7 @@ export class StripeService {
   private readonly stripe: Stripe;
   private readonly webhookSecret: string;
   private readonly logger = new Logger(StripeService.name);
-
+  private currentSession: Stripe.Checkout.Session | null = null;
   constructor() {
     const apiKey = process.env.STRIPE_SECRET_KEY;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -52,7 +53,7 @@ export class StripeService {
             name: item.productName,
             description: item.productDescription,
           },
-          unit_amount: item.price.getAmount(),
+          unit_amount: this.toMinorUnits(item.price),
         },
         quantity: item.quantity,
       }));
@@ -80,7 +81,7 @@ export class StripeService {
         // Expire session after 30 minutes
         expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
       });
-
+      this.currentSession = session;
       this.logger.log(
         `Created Stripe checkout session with ${lineItems.length} items: ${session.id}`,
       );
@@ -136,5 +137,11 @@ export class StripeService {
         `Webhook signature verification failed: ${message}`,
       );
     }
+  }
+
+  toMinorUnits(amount: Money): number {
+    const data = codes.code(amount.getCurrency());
+    const factor = Math.pow(10, data?.digits ?? 2);
+    return Math.round(amount.getAmount() * factor);
   }
 }
