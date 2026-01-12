@@ -3,6 +3,23 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import { RabbitMqSetupService } from './rabbitmq-setup.service';
+import * as dotenv from 'dotenv';
+import { join } from 'path';
+
+const envFromRoot: Record<string, string> = {};
+dotenv.config({
+  path: join(__dirname, '..', '..', '..', '.env'),
+  processEnv: envFromRoot,
+});
+if (!process.env.STRIPE_SECRET_KEY && envFromRoot['STRIPE_SECRET_KEY']) {
+  process.env.STRIPE_SECRET_KEY = envFromRoot['STRIPE_SECRET_KEY'];
+}
+if (
+  !process.env.STRIPE_WEBHOOK_SECRET &&
+  envFromRoot['STRIPE_WEBHOOK_SECRET']
+) {
+  process.env.STRIPE_WEBHOOK_SECRET = envFromRoot['STRIPE_WEBHOOK_SECRET'];
+}
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
