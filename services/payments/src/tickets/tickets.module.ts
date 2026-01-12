@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CqrsModule } from '@nestjs/cqrs';
+import { PaymentsModule } from '../payments/payments.module';
 
 // Schemas
 import {
@@ -36,6 +37,7 @@ import { MockedCheckoutWebhookController } from './presentation/controllers/mock
 @Module({
   imports: [
     CqrsModule,
+    PaymentsModule,
     MongooseModule.forFeature([
       { name: EventTicketTypeDocument.name, schema: EventTicketTypeSchema },
       { name: TicketDocument.name, schema: TicketSchema },
