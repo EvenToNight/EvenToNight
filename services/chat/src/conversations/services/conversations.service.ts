@@ -419,7 +419,6 @@ export class ConversationsService {
       const conversationIds = partners.map((p) => p.conversationId);
 
       if (conversationIds.length === 0 && offset === 0) {
-        console.log("Zero conversation, let's go users");
         return this.getSuggestedUsers(userId, {
           limit: Number(limit),
           offset: 0,
@@ -566,7 +565,6 @@ export class ConversationsService {
       recipientId?: string;
     },
   ): Promise<ConversationListResponse> {
-    console.log('GetSuggestedUsers: user id ', userId);
     const currentUser = await this.usersService.getUserInfo(userId);
 
     // TODO: implement check of currentUser

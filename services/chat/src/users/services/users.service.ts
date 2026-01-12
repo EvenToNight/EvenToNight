@@ -52,7 +52,6 @@ export class UsersService {
   }
 
   async searchUsers(query: any): Promise<User[]> {
-    console.log('Search query: ', query);
     return this.userModel.find(query).exec();
   }
 }
