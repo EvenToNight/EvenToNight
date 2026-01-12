@@ -129,7 +129,10 @@ paths:
         - Users
   /users/{userId}/conversations/search:
     get:
-      summary: Search conversation by name or id of recipient 
+      summary: Search conversations or users by name or id of recipient.
+      description:
+        If "id" is null, the returned item is a user with whom you have not yet a conversation.
+        If "id" is not null, the returned item is a conversation with a user.
       servers:
         - url: http://localhost:9040
       parameters:
@@ -163,7 +166,7 @@ paths:
             type: string
       responses:
         '200':
-          description: List of conversations
+          description: List of conversations or users
           content:
             application/json:
               schema:
