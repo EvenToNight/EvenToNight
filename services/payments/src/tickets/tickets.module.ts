@@ -25,6 +25,8 @@ import { CreateCheckoutSessionHandler } from './application/handlers/create-chec
 
 // Events Handlers
 import { BaseCheckoutSessionCompletedHandler } from './application/handlers/base-checkout-session-completed.handler';
+import { CheckoutSessionCompletedHandler } from './application/handlers/checkout-session-completed.handler';
+import { CheckoutSessionExpiredHandler } from './application/handlers/checkout-session-expired.handler';
 
 // Infrastructure
 import { TransactionManager } from './infrastructure/database/transaction.manager';
@@ -65,6 +67,8 @@ import { MockedCheckoutWebhookController } from './presentation/controllers/mock
 
     // Event Handlers
     BaseCheckoutSessionCompletedHandler,
+    CheckoutSessionCompletedHandler,
+    CheckoutSessionExpiredHandler,
 
     // Infrastructure
     TransactionManager,

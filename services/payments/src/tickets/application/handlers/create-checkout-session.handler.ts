@@ -173,7 +173,7 @@ export class CreateCheckoutSessionHandler {
         eventId,
       },
       successUrl: dto.successUrl || 'https://google.com',
-      cancelUrl: dto.cancelUrl || 'https://google.com',
+      cancelUrl: `http://localhost:9050/checkout/cancel?session_id={CHECKOUT_SESSION_ID}&redirect_to=${encodeURIComponent(dto.cancelUrl || 'https://google.com')}`,
     });
 
     const expiresAt = new Date();
