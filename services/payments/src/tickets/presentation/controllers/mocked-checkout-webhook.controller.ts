@@ -10,7 +10,7 @@ import {
 import { EventPublisher } from '../../../commons/intrastructure/messaging/event-publisher';
 import {
   BaseCheckoutSessionCompletedEvent,
-  type BaseCheckoutSessionCompletedEventPayload,
+  BaseCheckoutSessionCompletedEventPayload,
 } from 'src/tickets/domain/events/base-checkout-session-completed.event';
 
 @Controller('dev/checkout-webhook')

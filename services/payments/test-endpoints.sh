@@ -46,10 +46,22 @@ TICKET_TYPE_ID_2=$(echo "$RESPONSE" | jq -r '.id')
 echo -e "${GREEN}✓ Created ticket type: $TICKET_TYPE_ID_2${NC}"
 echo ""
 
-# Test 3: Get all ticket types for event
+# Test 3: Get all ticket types for event and extract IDs
 echo -e "${BLUE}3. Getting all ticket types for event $EVENT_ID${NC}"
-curl -s -X GET "$BASE_URL/events/$EVENT_ID/ticket-types" \
-  -H "Content-Type: application/json" | jq '.'
+ALL_TYPES=$(curl -s -X GET "$BASE_URL/events/$EVENT_ID/ticket-types" \
+  -H "Content-Type: application/json")
+echo "$ALL_TYPES" | jq '.'
+
+# Extract IDs if they weren't set during creation
+if [ "$TICKET_TYPE_ID_1" = "null" ] || [ -z "$TICKET_TYPE_ID_1" ]; then
+  TICKET_TYPE_ID_1=$(echo "$ALL_TYPES" | jq -r '.[] | select(.type == "STANDARD") | .id')
+  echo -e "${BLUE}  → Retrieved STANDARD ticket type ID: $TICKET_TYPE_ID_1${NC}"
+fi
+if [ "$TICKET_TYPE_ID_2" = "null" ] || [ -z "$TICKET_TYPE_ID_2" ]; then
+  TICKET_TYPE_ID_2=$(echo "$ALL_TYPES" | jq -r '.[] | select(.type == "VIP") | .id')
+  echo -e "${BLUE}  → Retrieved VIP ticket type ID: $TICKET_TYPE_ID_2${NC}"
+fi
+
 echo -e "${GREEN}✓ Retrieved ticket types${NC}"
 echo ""
 
@@ -96,6 +108,56 @@ if [ "$HTTP_CODE" = "404" ]; then
 else
   echo -e "${RED}✗ Expected 404, got HTTP $HTTP_CODE${NC}"
 fi
+echo ""
+
+# Test 7: Retrive ticket types for event
+echo -e "${BLUE}7. Retriving ticket types for event${NC}"
+
+# Test 7: Create checkout session
+echo -e "${BLUE}7. Creating checkout session${NC}"
+USER_ID="user_test_123"
+SESSION_RESPONSE=$(curl -s -X POST "$BASE_URL/checkout-sessions" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"userId\": \"$USER_ID\",
+    \"items\": [
+      {
+        \"ticketTypeId\": \"$TICKET_TYPE_ID_1\",
+        \"attendeeName\": \"John Doe\"
+      },
+      {
+        \"ticketTypeId\": \"$TICKET_TYPE_ID_1\",
+        \"attendeeName\": \"Jane Smith\"
+      }
+    ]
+  }")
+
+echo "$SESSION_RESPONSE" | jq '.'
+SESSION_ID=$(echo "$SESSION_RESPONSE" | jq -r '.sessionId')
+TICKET_IDS=$(echo "$SESSION_RESPONSE" | jq -c '.reservedTicketIds')
+echo -e "${GREEN}✓ Created checkout session: $SESSION_ID${NC}"
+echo -e "${GREEN}  Reserved ticket IDs: $TICKET_IDS${NC}"
+echo ""
+
+# Test 8: Simulate successful payment via mock webhook
+echo -e "${BLUE}8. Simulating successful payment (mock webhook)${NC}"
+sleep 7 # Delay to ensure session is ready and processed
+RESPONSE=$(curl -s -X POST "$BASE_URL/dev/checkout-webhook/completed" \
+  -H "Content-Type: application/json" \
+  -d "{
+    \"sessionId\": \"$SESSION_ID\",
+    \"ticketIds\": $TICKET_IDS
+  }")
+
+echo "$RESPONSE" | jq '.'
+echo -e "${GREEN}✓ Mock checkout completed webhook sent${NC}"
+echo ""
+
+# Test 9: Get ticket types again to verify quantity decreased
+echo -e "${BLUE}9. Verifying ticket quantity decreased${NC}"
+curl -s -X GET "$BASE_URL/ticket-types/$TICKET_TYPE_ID_1" \
+  -H "Content-Type: application/json" | jq '.'
+echo -e "${GREEN}✓ Ticket type updated${NC}"
 echo ""
 
 echo -e "${GREEN}===================================="
