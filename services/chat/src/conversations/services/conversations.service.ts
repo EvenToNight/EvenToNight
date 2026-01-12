@@ -418,11 +418,19 @@ export class ConversationsService {
 
       const conversationIds = partners.map((p) => p.conversationId);
 
-      if (conversationIds.length === 0) {
-        return { items: [], limit: +limit, offset: +offset, hasMore: false };
+      if (conversationIds.length === 0 && offset === 0) {
+        console.log("Zero conversation, let's go users");
+        return this.getSuggestedUsers(userId, {
+          limit: Number(limit),
+          offset: 0,
+          name,
+          recipientId,
+        });
       }
 
-      finalFilter.conversationId = { $in: conversationIds };
+      if (conversationIds.length > 0) {
+        finalFilter.conversationId = { $in: conversationIds };
+      }
     }
 
     const myParticipants = await this.participantModel
@@ -510,12 +518,133 @@ export class ConversationsService {
       }),
     );
 
+    const validConversations = conversations.filter(
+      (c): c is ConversationListItemDTO => c !== null,
+    );
+
+    const remainingSlots = Number(limit) - validConversations.length;
+
+    if (remainingSlots > 0 && offset === 0) {
+      const suggestedResult = await this.getSuggestedUsers(userId, {
+        limit: remainingSlots,
+        offset: 0,
+        name,
+        recipientId,
+      });
+
+      const existingPartnerIds = new Set(
+        validConversations.map((c) =>
+          c.organization.id === userId ? c.member.id : c.organization.id,
+        ),
+      );
+
+      const newSuggestions = suggestedResult.items.filter((item) => {
+        const partnerId =
+          item.organization.id === userId
+            ? item.member.id
+            : item.organization.id;
+        return !existingPartnerIds.has(partnerId);
+      });
+
+      validConversations.push(...newSuggestions.slice(0, remainingSlots));
+    }
+
     return {
-      items: conversations.filter(
-        (c) => c !== null,
-      ) as ConversationListItemDTO[],
+      items: validConversations,
       limit: Number(limit),
       offset: Number(offset),
+      hasMore: hasMore || validConversations.length === Number(limit),
+    };
+  }
+
+  private async getSuggestedUsers(
+    userId: string,
+    options: {
+      limit: number;
+      offset: number;
+      name?: string;
+      recipientId?: string;
+    },
+  ): Promise<ConversationListResponse> {
+    console.log('GetSuggestedUsers: user id ', userId);
+    const currentUser = await this.usersService.getUserInfo(userId);
+
+    // TODO: implement check of currentUser
+    // if (!currentUser) {
+    //   return { items: [], limit: options.limit, offset: options.offset, hasMore: false };
+    // }
+    const currentRole = currentUser ? currentUser.role : UserRole.MEMBER;
+
+    const targetRole =
+      currentRole === UserRole.MEMBER ? UserRole.ORGANIZATION : UserRole.MEMBER;
+
+    const userQuery: any = {
+      userId: { $ne: userId },
+      role: targetRole,
+    };
+
+    if (options.name) {
+      userQuery.name = { $regex: options.name, $options: 'i' };
+    }
+
+    if (options.recipientId) {
+      userQuery.userId = { $regex: `^${options.recipientId}`, $options: 'i' };
+    }
+
+    const suggestedUsers = await this.usersService.searchUsers(userQuery);
+
+    const limitedUsers = suggestedUsers.slice(
+      options.offset,
+      options.offset + options.limit + 1,
+    );
+
+    const hasMore = limitedUsers.length > options.limit;
+    const items = limitedUsers.slice(0, options.limit);
+
+    const myUserInfo = await this.usersService.getUserInfo(userId);
+
+    const suggestions: ConversationListItemDTO[] = items.map((user) => ({
+      id: '',
+      organization:
+        user.role === UserRole.ORGANIZATION
+          ? {
+              id: user.userId,
+              name: user.name || 'Unknown',
+              avatar:
+                user.avatar ||
+                'https://media.eventonight.site/users/default.jpg',
+            }
+          : {
+              id: userId,
+              name: myUserInfo?.name || 'Unknown',
+              avatar:
+                myUserInfo?.avatar ||
+                'https://media.eventonight.site/users/default.jpg',
+            },
+      member:
+        user.role === UserRole.MEMBER
+          ? {
+              id: user.userId,
+              name: user.name || 'Unknown',
+              avatar:
+                user.avatar ||
+                'https://media.eventonight.site/users/default.jpg',
+            }
+          : {
+              id: userId,
+              name: myUserInfo?.name || 'Unknown',
+              avatar:
+                myUserInfo?.avatar ||
+                'https://media.eventonight.site/users/default.jpg',
+            },
+      lastMessage: null,
+      unreadCount: 0,
+    }));
+
+    return {
+      items: suggestions,
+      limit: options.limit,
+      offset: options.offset,
       hasMore,
     };
   }

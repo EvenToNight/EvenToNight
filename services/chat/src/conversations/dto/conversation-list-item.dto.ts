@@ -1,7 +1,7 @@
 import { ConversationID, UserID } from '../types';
 
 export interface ConversationListItemDTO {
-  id: ConversationID;
+  id: ConversationID | null;
   organization: {
     id: UserID;
     name: string;
@@ -16,6 +16,6 @@ export interface ConversationListItemDTO {
     content: string;
     senderId: UserID;
     timestamp: Date;
-  };
+  } | null;
   unreadCount: number;
 }

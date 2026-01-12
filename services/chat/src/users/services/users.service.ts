@@ -50,4 +50,9 @@ export class UsersService {
     const user = await this.userModel.findOne({ userId }).select('name').exec();
     return user ? user.name : null;
   }
+
+  async searchUsers(query: any): Promise<User[]> {
+    console.log('Search query: ', query);
+    return this.userModel.find(query).exec();
+  }
 }
