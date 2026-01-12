@@ -14,7 +14,7 @@ services:
     ports:
       - '${MONGO_EXPRESS_PAYMENTS_PORT}:8081'
     environment:
-      ME_CONFIG_MONGODB_SERVER: 'mongo-payments'
+      ME_CONFIG_MONGODB_URL: 'mongodb://mongo-payments:27017/?replicaSet=rs0&directConnection=true'
     depends_on:
       mongo-payments:
         condition: service_healthy

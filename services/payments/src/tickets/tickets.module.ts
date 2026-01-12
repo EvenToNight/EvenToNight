@@ -27,7 +27,6 @@ import { BaseCheckoutSessionCompletedHandler } from './application/handlers/base
 
 // Infrastructure
 import { TransactionManager } from './infrastructure/database/transaction.manager';
-import { EventPublisher } from '../commons/intrastructure/messaging/event-publisher';
 
 // Controllers
 import { EventTicketTypesController } from './presentation/controllers/event-ticket-types.controller';
@@ -67,7 +66,6 @@ import { MockedCheckoutWebhookController } from './presentation/controllers/mock
 
     // Infrastructure
     TransactionManager,
-    EventPublisher,
   ],
   exports: [EVENT_TICKET_TYPE_REPOSITORY],
 })

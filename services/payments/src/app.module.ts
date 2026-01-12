@@ -8,10 +8,17 @@ import { MessagingModule } from './commons/intrastructure/messaging/messaging.mo
 @Module({
   imports: [
     MongooseModule.forRoot(
-      `mongodb://${process.env.MONGO_HOST || 'localhost'}:27017/eventonight-payments`,
+      // Single-node (development): mongodb://localhost:27017/eventonight-payments?replicaSet=rs0
+      // Multi-node (production): mongodb://mongo-payments:27017,mongo-payments-2:27017,mongo-payments-3:27017/eventonight-payments?replicaSet=rs0
+      process.env.MONGO_HOST
+        ? `mongodb://${process.env.MONGO_HOST}:27017/eventonight-payments?replicaSet=rs0`
+        : `mongodb://localhost:27017/eventonight-payments`,
       {
         retryWrites: true,
         w: 'majority',
+        readPreference: 'primaryPreferred', // Read from primary, fallback to secondary
+        directConnection: true,
+        // !process.env.MONGO_REPLICA_SET_HOSTS,
       },
     ),
     MessagingModule,
