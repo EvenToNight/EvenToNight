@@ -1,7 +1,9 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
 BASE_URL="http://localhost:9050"
 EVENT_ID="evt_test_123"
+ENV="${1:-prod}"  # Default to 'prod' if no parameter provided
 
 echo "🚀 Testing Payment Service Endpoints"
 echo "===================================="
@@ -19,7 +21,7 @@ RESPONSE=$(curl -s -X POST "$BASE_URL/events/$EVENT_ID/ticket-types" \
   -H "Content-Type: application/json" \
   -d '{
     "type": "STANDARD",
-    "price": 29.99,
+    "price": 30,
     "currency": "EUR",
     "quantity": 100
   }')
@@ -36,7 +38,7 @@ RESPONSE=$(curl -s -X POST "$BASE_URL/events/$EVENT_ID/ticket-types" \
   -d '{
     "type": "VIP",
     "description": "VIP access with backstage pass",
-    "price": 99.99,
+    "price": 100,
     "currency": "EUR",
     "quantity": 50
   }')
@@ -110,9 +112,6 @@ else
 fi
 echo ""
 
-# Test 7: Retrive ticket types for event
-echo -e "${BLUE}7. Retriving ticket types for event${NC}"
-
 # Test 7: Create checkout session
 echo -e "${BLUE}7. Creating checkout session${NC}"
 USER_ID="user_test_123"
@@ -132,6 +131,7 @@ SESSION_RESPONSE=$(curl -s -X POST "$BASE_URL/checkout-sessions" \
     ]
   }")
 
+echo "$SESSION_RESPONSE"
 echo "$SESSION_RESPONSE" | jq '.'
 SESSION_ID=$(echo "$SESSION_RESPONSE" | jq -r '.sessionId')
 TICKET_IDS=$(echo "$SESSION_RESPONSE" | jq -c '.reservedTicketIds')
@@ -139,19 +139,24 @@ echo -e "${GREEN}✓ Created checkout session: $SESSION_ID${NC}"
 echo -e "${GREEN}  Reserved ticket IDs: $TICKET_IDS${NC}"
 echo ""
 
-# Test 8: Simulate successful payment via mock webhook
-echo -e "${BLUE}8. Simulating successful payment (mock webhook)${NC}"
-sleep 7 # Delay to ensure session is ready and processed
-RESPONSE=$(curl -s -X POST "$BASE_URL/dev/checkout-webhook/completed" \
-  -H "Content-Type: application/json" \
-  -d "{
-    \"sessionId\": \"$SESSION_ID\",
-    \"ticketIds\": $TICKET_IDS
-  }")
+# Test 8: Simulate successful payment via mock webhook (skip in prod)
+if [ "$ENV" != "prod" ]; then
+  echo -e "${BLUE}8. Simulating successful payment (mock webhook)${NC}"
+  sleep 7 # Delay to ensure session is ready and processed
+  RESPONSE=$(curl -s -X POST "$BASE_URL/dev/checkout-webhook/completed" \
+    -H "Content-Type: application/json" \
+    -d "{
+      \"sessionId\": \"$SESSION_ID\",
+      \"ticketIds\": $TICKET_IDS
+    }")
 
-echo "$RESPONSE" | jq '.'
-echo -e "${GREEN}✓ Mock checkout completed webhook sent${NC}"
-echo ""
+  echo "$RESPONSE" | jq '.'
+  echo -e "${GREEN}✓ Mock checkout completed webhook sent${NC}"
+  echo ""
+else
+  echo -e "${BLUE}8. Skipping mock webhook (prod mode)${NC}"
+  echo ""
+fi
 
 # Test 9: Get ticket types again to verify quantity decreased
 echo -e "${BLUE}9. Verifying ticket quantity decreased${NC}"

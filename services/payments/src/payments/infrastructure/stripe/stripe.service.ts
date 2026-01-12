@@ -1,0 +1,140 @@
+import { Injectable, Logger } from '@nestjs/common';
+import Stripe from 'stripe';
+import { Money } from '../../../tickets/domain/value-objects/money.vo';
+import { StripePaymentException } from '../../domain/exceptions/stripe-payment.exception';
+
+export interface CheckoutSessionLineItem {
+  productName: string;
+  productDescription?: string;
+  price: Money;
+  quantity: number;
+}
+
+export interface CreateCheckoutSessionParams {
+  userId: string;
+  lineItems: CheckoutSessionLineItem[];
+  metadata?: Record<string, any>;
+  successUrl: string;
+  cancelUrl: string;
+}
+
+@Injectable()
+export class StripeService {
+  private readonly stripe: Stripe;
+  private readonly webhookSecret: string;
+  private readonly logger = new Logger(StripeService.name);
+
+  constructor() {
+    const apiKey = process.env.STRIPE_SECRET_KEY;
+    const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+    if (!apiKey) {
+      throw new Error('STRIPE_SECRET_KEY environment variable is not set');
+    }
+    if (!webhookSecret) {
+      throw new Error('STRIPE_WEBHOOK_SECRET environment variable is not set');
+    }
+
+    this.stripe = new Stripe(apiKey, {
+      apiVersion: '2025-12-15.clover',
+    });
+    this.webhookSecret = webhookSecret;
+  }
+
+  async createCheckoutSessionWithItems(
+    params: CreateCheckoutSessionParams,
+  ): Promise<Stripe.Checkout.Session> {
+    try {
+      const lineItems = params.lineItems.map((item) => ({
+        price_data: {
+          currency: item.price.getCurrency().toLowerCase(),
+          product_data: {
+            name: item.productName,
+            description: item.productDescription,
+          },
+          unit_amount: item.price.getAmount(),
+        },
+        quantity: item.quantity,
+      }));
+      const session = await this.stripe.checkout.sessions.create({
+        mode: 'payment',
+        line_items: lineItems,
+        metadata: {
+          userId: params.userId,
+          ...params.metadata,
+        },
+        success_url: params.successUrl,
+        cancel_url: params.cancelUrl,
+        // Metodi di pagamento accettati
+        // payment_method_types: ['card'],
+        // // Allow users to enter promo codes
+        // allow_promotion_codes: true,
+        // // Collect billing address for fraud prevention
+        // billing_address_collection: 'required',
+        // // Raccolta numero di telefono
+        // // phone_number_collection: { enabled: true },
+        // // Lingua dell'interfaccia (it, en, fr, de, es, etc.)
+        // locale: 'auto',
+        // Email pre-compilata se disponibile
+        // customer_email: params.customerEmail,
+        // Expire session after 30 minutes
+        expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
+      });
+
+      this.logger.log(
+        `Created Stripe checkout session with ${lineItems.length} items: ${session.id}`,
+      );
+
+      return session;
+    } catch (error) {
+      this.logger.error('Failed to create checkout session with items', error);
+      throw error;
+    }
+  }
+
+  async getCheckoutSession(
+    sessionId: string,
+  ): Promise<Stripe.Checkout.Session> {
+    try {
+      return await this.stripe.checkout.sessions.retrieve(sessionId);
+    } catch (error) {
+      this.logger.error('Failed to retrieve checkout session', error);
+      throw error;
+    }
+  }
+
+  async expireCheckoutSession(
+    sessionId: string,
+  ): Promise<Stripe.Checkout.Session> {
+    try {
+      const session = await this.stripe.checkout.sessions.expire(sessionId);
+      this.logger.log(`Expired checkout session: ${sessionId}`);
+      return session;
+    } catch (error) {
+      this.logger.error('Failed to expire checkout session', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Construct webhook event from raw body and signature
+   */
+  constructWebhookEvent(
+    payload: string | Buffer<ArrayBufferLike>,
+    signature: string,
+  ): Stripe.Event {
+    try {
+      return this.stripe.webhooks.constructEvent(
+        payload,
+        signature,
+        this.webhookSecret,
+      );
+    } catch (error) {
+      this.logger.error('Failed to construct webhook event', error);
+      const message = error instanceof Error ? error.message : 'Unknown error';
+      throw new StripePaymentException(
+        `Webhook signature verification failed: ${message}`,
+      );
+    }
+  }
+}

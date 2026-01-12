@@ -96,3 +96,22 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+
+## Running Modes
+
+### Production Mode
+```bash
+npm run start       # Standard production mode
+npm run start:dev   # Production mode with hot-reload
+```
+In production mode, the service integrates with Stripe for real checkout sessions. Test using:
+- `./test-endpoints.sh` - Tests endpoints creating real checkout sessions link
+- `./local-webhook.sh` - Redirects stripe webhooks to localhost
+
+### Development Mode
+```bash
+npm run start-dev       # Development mode
+npm run start-dev:dev   # Development mode with hot-reload
+```
+In development mode (`NODE_ENV=development`), the service bypasses Stripe integration. The checkout session creation returns a mock webhook URL directly instead of initiating a real Stripe session. Test using:
+- `./test-endpoints.sh dev` - Tests endpoints bypassing checkout sessions

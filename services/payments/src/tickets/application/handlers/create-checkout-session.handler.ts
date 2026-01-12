@@ -13,6 +13,8 @@ import {
 import { EventTicketTypeNotFoundException } from '../../domain/exceptions/event-ticket-type-not-found.exception';
 import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
 import { ClientSession } from 'mongoose';
+import { StripeService } from 'src/payments/infrastructure/stripe/stripe.service';
+import { CheckoutSessionLineItem } from 'src/payments/infrastructure/stripe/stripe.service';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -24,12 +26,14 @@ type LineItemsMap = Map<string, LineItem>;
 
 @Injectable()
 export class CreateCheckoutSessionHandler {
+  private readonly isDev = process.env.NODE_ENV === 'development';
   constructor(
     @Inject(TICKET_REPOSITORY)
     private readonly ticketRepository: TicketRepository,
     @Inject(EVENT_TICKET_TYPE_REPOSITORY)
     private readonly ticketTypeRepository: EventTicketTypeRepository,
     private readonly transactionManager: TransactionManager,
+    private readonly stripeService: StripeService,
   ) {}
 
   private async getTicketTypeWithLock(
@@ -130,19 +134,55 @@ export class CreateCheckoutSessionHandler {
     // ========================================
     const reservedTickets = await this.reserveTickets(dto);
 
-    const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/checkout-webhook/completed`;
+    const lineItems = Array.from(reservedTickets.values()).map((lineItem) => {
+      const ticketType = lineItem.ticketType;
+      return {
+        productName: ticketType.getType().toString(),
+        productDescription: ticketType.getDescription(),
+        price: ticketType.getPrice(),
+        quantity: lineItem.count,
+      } as CheckoutSessionLineItem;
+    });
 
     const ticketIds = Array.from(reservedTickets.values()).flatMap((lineItem) =>
       lineItem.tickets.map((t) => t.getId()),
     );
+    const ticketTypeIds = Array.from(reservedTickets.values()).flatMap(
+      (lineItem) => new Set(lineItem.tickets.map((t) => t.getTicketTypeId())),
+    );
+
+    const eventId = Array.from(reservedTickets.values())[0]
+      .ticketType.getEventId()
+      .toString();
+
+    if (this.isDev) {
+      const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/checkout-webhook/completed`;
+      return {
+        sessionId: 'cs_test_dev_session',
+        redirectUrl: tempWebHook,
+        expiresAt: Date.now() + 3600,
+        reservedTicketIds: ticketIds,
+      };
+    }
+    const session = await this.stripeService.createCheckoutSessionWithItems({
+      userId: dto.userId,
+      lineItems,
+      metadata: {
+        ticketIds: JSON.stringify(ticketIds),
+        ticketTypeIds: JSON.stringify(ticketTypeIds),
+        eventId,
+      },
+      successUrl: dto.successUrl || 'https://google.com',
+      cancelUrl: dto.cancelUrl || 'https://google.com',
+    });
 
     const expiresAt = new Date();
     expiresAt.setFullYear(expiresAt.getFullYear() + 1);
 
     return {
-      sessionId: 'checkoutSession.id',
-      redirectUrl: tempWebHook,
-      expiresAt: Math.floor(expiresAt.getTime() / 1000),
+      sessionId: session.id,
+      redirectUrl: session.url!,
+      expiresAt: session.expires_at,
       reservedTicketIds: ticketIds,
     };
   }
