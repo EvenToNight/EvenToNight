@@ -119,12 +119,16 @@ export class ConversationsService {
           organization: {
             id: conversation.organizationId,
             name: orgInfo?.name || 'Unknown Organization',
-            avatar: orgInfo?.avatar || 'https://via.placeholder.com/150',
+            avatar:
+              orgInfo?.avatar ||
+              'https://media.eventonight.site/users/default.jpg',
           },
           member: {
             id: conversation.memberId,
             name: memberInfo?.name || 'Unknown Member',
-            avatar: memberInfo?.avatar || 'https://via.placeholder.com/150',
+            avatar:
+              memberInfo?.avatar ||
+              'https://media.eventonight.site/users/default.jpg',
           },
           lastMessage: lastMessage
             ? {
@@ -194,12 +198,15 @@ export class ConversationsService {
       organization: {
         id: conversation.organizationId,
         name: orgInfo?.name || 'Unknown Organization',
-        avatar: orgInfo?.avatar || 'https://via.placeholder.com/150',
+        avatar:
+          orgInfo?.avatar || 'https://media.eventonight.site/users/default.jpg',
       },
       member: {
         id: conversation.memberId,
         name: memberInfo?.name || 'Unknown Member',
-        avatar: memberInfo?.avatar || 'https://via.placeholder.com/150',
+        avatar:
+          memberInfo?.avatar ||
+          'https://media.eventonight.site/users/default.jpg',
       },
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
@@ -349,12 +356,15 @@ export class ConversationsService {
       organization: {
         id: organizationId,
         name: orgInfo?.name || 'Unknown Organization',
-        avatar: orgInfo?.avatar || 'https://via.placeholder.com/150',
+        avatar:
+          orgInfo?.avatar || 'https://media.eventonight.site/users/default.jpg',
       },
       member: {
         id: memberId,
         name: memberInfo?.name || 'Unknown Member',
-        avatar: memberInfo?.avatar || 'https://via.placeholder.com/150',
+        avatar:
+          memberInfo?.avatar ||
+          'https://media.eventonight.site/users/default.jpg',
       },
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
@@ -418,7 +428,7 @@ export class ConversationsService {
     const myParticipants = await this.participantModel
       .find(finalFilter)
       .populate('conversationId')
-      .sort({ updateAt: -1 })
+      .sort({ 'conversationId.updatedAt': -1 })
       .skip(Number(offset))
       .limit(Number(limit) + 1)
       .exec();
@@ -447,25 +457,46 @@ export class ConversationsService {
 
         if (!partnerParticipant) return null;
 
+        const [myUserInfo, partnerUserInfo] = await Promise.all([
+          this.usersService.getUserInfo(userId),
+          this.usersService.getUserInfo(partnerParticipant.userId),
+        ]);
+
         return {
           id: conversation._id.toString(),
           organization:
-            partnerParticipant.role === 'organization'
+            partnerParticipant.role === ParticipantRole.ORGANIZATION
               ? {
                   id: partnerParticipant.userId,
                   name: partnerParticipant.userName,
-                  avatar: '',
+                  avatar:
+                    partnerUserInfo?.avatar ||
+                    'https://media.eventonight.site/users/default.jpg',
                 }
-              : { id: userId, name: participant.userName, avatar: '' },
+              : {
+                  id: userId,
+                  name: participant.userName,
+                  avatar:
+                    myUserInfo?.avatar ||
+                    'https://media.eventonight.site/users/default.jpg',
+                },
 
           member:
-            partnerParticipant.role === 'member'
+            partnerParticipant.role === ParticipantRole.MEMBER
               ? {
                   id: partnerParticipant.userId,
                   name: partnerParticipant.userName,
-                  avatar: '',
+                  avatar:
+                    partnerUserInfo?.avatar ||
+                    'https://media.eventonight.site/users/default.jpg',
                 }
-              : { id: userId, name: participant.userName, avatar: '' },
+              : {
+                  id: userId,
+                  name: participant.userName,
+                  avatar:
+                    myUserInfo?.avatar ||
+                    'https://media.eventonight.site/users/default.jpg',
+                },
 
           lastMessage: lastMessage
             ? {
