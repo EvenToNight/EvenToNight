@@ -1,14 +1,14 @@
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { Inject, Logger } from '@nestjs/common';
-import { CheckoutSessionCompletedEvent } from '../../domain/events/checkout-session-completed.event';
+import { BaseCheckoutSessionCompletedEvent } from '../../domain/events/base-checkout-session-completed.event';
 import type { TicketRepository } from '../../domain/repositories/ticket.repository.interface';
 import { TICKET_REPOSITORY } from '../../domain/repositories/ticket.repository.interface';
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
 import { EventPublisher } from '../../../commons/intrastructure/messaging/event-publisher';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 
-@EventsHandler(CheckoutSessionCompletedEvent)
-export class BaseCheckoutSessionCompletedHandler implements IEventHandler<CheckoutSessionCompletedEvent> {
+@EventsHandler(BaseCheckoutSessionCompletedEvent)
+export class BaseCheckoutSessionCompletedHandler implements IEventHandler<BaseCheckoutSessionCompletedEvent> {
   private readonly logger = new Logger(
     BaseCheckoutSessionCompletedHandler.name,
   );
@@ -47,7 +47,7 @@ export class BaseCheckoutSessionCompletedHandler implements IEventHandler<Checko
   // ========================================
   // PHASE 2: Confirm payment for all tickets (TX2)
   // ========================================
-  async handle(event: CheckoutSessionCompletedEvent): Promise<void> {
+  async handle(event: BaseCheckoutSessionCompletedEvent): Promise<void> {
     this.logger.log(
       `Handling checkout session completed: ${event.payload.sessionId}`,
     );

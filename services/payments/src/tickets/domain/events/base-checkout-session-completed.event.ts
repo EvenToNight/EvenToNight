@@ -1,7 +1,16 @@
 import { EventEnvelope } from '../../../commons/domain/events/event-envelope';
+import { IsString, IsArray, ArrayMinSize, IsNotEmpty } from 'class-validator';
 
-export interface BaseCheckoutSessionCompletedEventPayload {
+// TODO: evalute to putt validation in all events payloads
+export class BaseCheckoutSessionCompletedEventPayload {
+  @IsNotEmpty()
+  @IsString()
   sessionId: string;
+
+  @IsNotEmpty()
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
   ticketIds: string[];
 }
 
