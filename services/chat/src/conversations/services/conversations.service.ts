@@ -25,6 +25,7 @@ import { UserRole } from '../../users/schemas/user.schema';
 import { UserID } from '../types';
 import { DataMapperService } from './data-mapper.service';
 import { MessageManagerService } from './message-manager.service';
+import { UserSuggestionService } from './user-suggestion.service';
 
 @Injectable()
 export class ConversationsService {
@@ -39,6 +40,7 @@ export class ConversationsService {
     private readonly usersService: UsersService,
     private readonly dataMapperService: DataMapperService,
     private readonly messageManagerService: MessageManagerService,
+    private readonly userSuggestionService: UserSuggestionService,
   ) {}
 
   async createConversationWithMessage(
@@ -196,7 +198,7 @@ export class ConversationsService {
       );
 
       if (conversationIds.length === 0 && offset === 0) {
-        return this.getSuggestedUsers(userId, {
+        return this.userSuggestionService.getSuggestedUsers(userId, {
           limit: Number(limit),
           offset: 0,
           name,
@@ -421,121 +423,27 @@ export class ConversationsService {
 
     if (remainingSlots <= 0) return;
 
-    const suggestedResult = await this.getSuggestedUsers(userId, {
-      limit: remainingSlots,
-      offset: 0,
-      name,
-      recipientId,
-    });
+    const suggestedResult = await this.userSuggestionService.getSuggestedUsers(
+      userId,
+      {
+        limit: remainingSlots,
+        offset: 0,
+        name,
+        recipientId,
+      },
+    );
 
-    const existingPartnerIds = this.extractPartnerIds(conversations, userId);
-    const newSuggestions = this.filterExistingSuggestions(
+    const existingPartnerIds = this.userSuggestionService.extractPartnerIds(
+      conversations,
+      userId,
+    );
+    const newSuggestions = this.userSuggestionService.filterExistingSuggestions(
       suggestedResult.items,
       existingPartnerIds,
       userId,
     );
 
     conversations.push(...newSuggestions.slice(0, remainingSlots));
-  }
-
-  private extractPartnerIds(
-    conversations: ConversationListItemDTO[],
-    userId: string,
-  ): Set<string> {
-    return new Set(
-      conversations.map((c) =>
-        c.organization.id === userId ? c.member.id : c.organization.id,
-      ),
-    );
-  }
-
-  private filterExistingSuggestions(
-    items: ConversationListItemDTO[],
-    existingPartnerIds: Set<string>,
-    userId: string,
-  ): ConversationListItemDTO[] {
-    return items.filter((item) => {
-      const partnerId =
-        item.organization.id === userId ? item.member.id : item.organization.id;
-      return !existingPartnerIds.has(partnerId);
-    });
-  }
-
-  private async getSuggestedUsers(
-    userId: string,
-    options: {
-      limit: number;
-      offset: number;
-      name?: string;
-      recipientId?: string;
-    },
-  ): Promise<ConversationListResponse> {
-    const currentUser = await this.usersService.getUserInfo(userId);
-
-    // TODO: implement check of currentUser
-    // if (!currentUser) {
-    //   return { items: [], limit: options.limit, offset: options.offset, hasMore: false };
-    // }
-    const currentRole = currentUser ? currentUser.role : UserRole.MEMBER;
-
-    const targetRole = this.getOppositeRole(currentRole);
-
-    const suggestedUsers = await this.searchTargetUsers(
-      userId,
-      targetRole,
-      options,
-    );
-    const limitedUsers = this.applyPagination(
-      suggestedUsers,
-      options.limit,
-      options.offset,
-    );
-
-    const hasMore = limitedUsers.length > options.limit;
-    const items = limitedUsers.slice(0, options.limit);
-
-    const suggestions = await this.dataMapperService.buildSuggestions(
-      items,
-      userId,
-    );
-
-    console.log('Get suggested users', suggestions);
-
-    return {
-      items: suggestions,
-      limit: options.limit,
-      offset: options.offset,
-      hasMore,
-    };
-  }
-
-  private getOppositeRole(role: UserRole): UserRole {
-    return role === UserRole.MEMBER ? UserRole.ORGANIZATION : UserRole.MEMBER;
-  }
-
-  private async searchTargetUsers(
-    userId: string,
-    targetRole: UserRole,
-    options: { name?: string; recipientId?: string },
-  ): Promise<any[]> {
-    const userQuery: any = {
-      userId: { $ne: userId },
-      role: targetRole,
-    };
-
-    if (options.name) {
-      userQuery.name = { $regex: options.name, $options: 'i' };
-    }
-
-    if (options.recipientId) {
-      userQuery.userId = { $regex: `^${options.recipientId}`, $options: 'i' };
-    }
-
-    return this.usersService.searchUsers(userQuery);
-  }
-
-  private applyPagination<T>(items: T[], limit: number, offset: number): T[] {
-    return items.slice(offset, offset + limit + 1);
   }
 
   private async determineRoles(
