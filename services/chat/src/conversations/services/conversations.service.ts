@@ -24,6 +24,7 @@ import { UsersService } from '../../users/services/users.service';
 import { UserRole } from '../../users/schemas/user.schema';
 import { UserID } from '../types';
 import { DataMapperService } from './data-mapper.service';
+import { MessageManagerService } from './message-manager.service';
 
 @Injectable()
 export class ConversationsService {
@@ -37,6 +38,7 @@ export class ConversationsService {
     @InjectModel(Message.name) private readonly messageModel: Model<any>,
     private readonly usersService: UsersService,
     private readonly dataMapperService: DataMapperService,
+    private readonly messageManagerService: MessageManagerService,
   ) {}
 
   async createConversationWithMessage(
@@ -50,7 +52,7 @@ export class ConversationsService {
       dto.recipientId,
     );
 
-    return this.createMessage(
+    return this.messageManagerService.createMessage(
       conversation._id.toString(),
       senderId,
       dto.content,
@@ -64,7 +66,11 @@ export class ConversationsService {
   ): Promise<MessageDocument> {
     await this.validateConversationExists(conversationId);
     await this.validateUserIsParticipant(conversationId, senderId);
-    return this.createMessage(conversationId, senderId, dto.content);
+    return this.messageManagerService.createMessage(
+      conversationId,
+      senderId,
+      dto.content,
+    );
   }
 
   async getUserConversations(
@@ -119,7 +125,11 @@ export class ConversationsService {
     const { limit = 50, offset = 0 } = query;
     const participant = await this.findParticipant(conversationId, userId);
 
-    const messages = await this.fetchMessages(conversationId, limit, offset);
+    const messages = await this.messageManagerService.fetchMessages(
+      conversationId,
+      limit,
+      offset,
+    );
     const hasMore = messages.length > limit;
     const items = messages.slice(0, limit);
 
@@ -129,18 +139,9 @@ export class ConversationsService {
       participant,
     );
 
-    this.markAsReadAsync(conversationId, userId);
+    this.messageManagerService.markAsReadAsync(conversationId, userId);
 
     return { items: messageDTOs, limit, offset, hasMore };
-  }
-
-  async markAsRead(conversationId: string, userId: string): Promise<void> {
-    await this.validateUserIsParticipant(conversationId, userId);
-
-    await this.participantModel.updateOne(
-      { conversationId: new Types.ObjectId(conversationId), userId },
-      { lastReadAt: new Date(), unreadCount: 0 },
-    );
   }
 
   async getConversationByUsers(
@@ -332,19 +333,6 @@ export class ConversationsService {
       .find({ userId })
       .populate('conversationId')
       .sort({ 'conversationId.updatedAt': -1 })
-      .skip(offset)
-      .limit(limit + 1)
-      .exec();
-  }
-
-  private async fetchMessages(
-    conversationId: string,
-    limit: number,
-    offset: number,
-  ): Promise<any[]> {
-    return this.messageModel
-      .find({ conversationId: new Types.ObjectId(conversationId) })
-      .sort({ createdAt: -1 })
       .skip(offset)
       .limit(limit + 1)
       .exec();
@@ -605,18 +593,6 @@ export class ConversationsService {
       .exec();
   }
 
-  private async markAsReadAsync(
-    conversationId: string,
-    userId: string,
-  ): Promise<void> {
-    await this.markAsRead(conversationId, userId).catch((err) => {
-      console.error(
-        `Failed to mark messages as read for user ${userId} in conversation ${conversationId}:`,
-        err,
-      );
-    });
-  }
-
   private async findOrCreateConversation(
     userId1: string,
     userId2: string,
@@ -692,49 +668,5 @@ export class ConversationsService {
     memberId: string,
   ): Promise<Conversation | null> {
     return this.conversationModel.findOne({ organizationId, memberId });
-  }
-
-  private async createMessage(
-    conversationId: string,
-    senderId: string,
-    content: string,
-  ): Promise<MessageDocument> {
-    const message = await new this.messageModel({
-      conversationId: new Types.ObjectId(conversationId),
-      senderId,
-      content,
-    }).save();
-
-    await this.updateConversationTimestamp(conversationId);
-
-    await this.incrementRecipientUnreadCount(conversationId, senderId);
-
-    console.log(`✅ Message sent in conversation ${conversationId}`);
-
-    // TODO: Publish event to RabbitMQ for real-time notifications
-
-    return message;
-  }
-
-  private async updateConversationTimestamp(
-    conversationId: string,
-  ): Promise<void> {
-    await this.conversationModel.updateOne(
-      { _id: conversationId },
-      { updatedAt: new Date() },
-    );
-  }
-
-  private async incrementRecipientUnreadCount(
-    conversationId: string,
-    senderId: string,
-  ): Promise<void> {
-    await this.participantModel.updateOne(
-      {
-        conversationId: new Types.ObjectId(conversationId),
-        userId: { $ne: senderId },
-      },
-      { $inc: { unreadCount: 1 } },
-    );
   }
 }

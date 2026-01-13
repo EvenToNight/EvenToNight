@@ -11,6 +11,7 @@ import { Message, MessageSchema } from './schemas/message.schema';
 import { UsersModule } from 'src/users/users.module';
 import { ConversationsLookupController } from './controllers/conversations-lookup.controller';
 import { DataMapperService } from './services/data-mapper.service';
+import { MessageManagerService } from './services/message-manager.service';
 
 @Module({
   imports: [
@@ -21,7 +22,7 @@ import { DataMapperService } from './services/data-mapper.service';
     ]),
     UsersModule,
   ],
-  providers: [ConversationsService, DataMapperService],
+  providers: [ConversationsService, DataMapperService, MessageManagerService],
   controllers: [ConversationsController, ConversationsLookupController],
 })
 export class ConversationsModule {}
