@@ -13,6 +13,7 @@ import { ConversationsLookupController } from './controllers/conversations-looku
 import { DataMapperService } from './services/data-mapper.service';
 import { MessageManagerService } from './services/message-manager.service';
 import { UserSuggestionService } from './services/user-suggestion.service';
+import { ConversationSearchService } from './services/conversation.search.service';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { UserSuggestionService } from './services/user-suggestion.service';
     DataMapperService,
     MessageManagerService,
     UserSuggestionService,
+    ConversationSearchService,
   ],
   controllers: [ConversationsController, ConversationsLookupController],
 })

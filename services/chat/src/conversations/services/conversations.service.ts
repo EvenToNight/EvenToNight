@@ -26,6 +26,7 @@ import { UserID } from '../types';
 import { DataMapperService } from './data-mapper.service';
 import { MessageManagerService } from './message-manager.service';
 import { UserSuggestionService } from './user-suggestion.service';
+import { ConversationSearchService } from './conversation.search.service';
 
 @Injectable()
 export class ConversationsService {
@@ -41,6 +42,7 @@ export class ConversationsService {
     private readonly dataMapperService: DataMapperService,
     private readonly messageManagerService: MessageManagerService,
     private readonly userSuggestionService: UserSuggestionService,
+    private readonly conversationSearchService: ConversationSearchService,
   ) {}
 
   async createConversationWithMessage(
@@ -191,11 +193,12 @@ export class ConversationsService {
     let conversationIds: Types.ObjectId[] | null = null;
 
     if (hasFilters) {
-      conversationIds = await this.findFilteredConversationIds(
-        userId,
-        name,
-        recipientId,
-      );
+      conversationIds =
+        await this.conversationSearchService.findFilteredConversationIds(
+          userId,
+          name,
+          recipientId,
+        );
 
       if (conversationIds.length === 0 && offset === 0) {
         return this.userSuggestionService.getSuggestedUsers(userId, {
@@ -207,17 +210,19 @@ export class ConversationsService {
       }
     }
 
-    const participants = await this.fetchFilteredParticipants(
-      userId,
-      conversationIds,
-      Number(limit),
-      Number(offset),
-    );
+    const participants =
+      await this.conversationSearchService.fetchFilteredParticipants(
+        userId,
+        conversationIds,
+        Number(limit),
+        Number(offset),
+      );
 
     const hasMore = participants.length > Number(limit);
     const items = participants.slice(0, Number(limit));
 
-    const conversations = await this.buildSearchResults(items, userId);
+    const conversations =
+      await this.conversationSearchService.buildSearchResults(items, userId);
     const validConversations = conversations.filter(
       (c): c is ConversationListItemDTO => c !== null,
     );
@@ -340,78 +345,6 @@ export class ConversationsService {
       .exec();
   }
 
-  private async fetchFilteredParticipants(
-    userId: string,
-    conversationIds: Types.ObjectId[] | null,
-    limit: number,
-    offset: number,
-  ): Promise<any[]> {
-    const filter: any = { userId };
-
-    if (conversationIds) {
-      filter.conversationId = { $in: conversationIds };
-    }
-
-    return this.participantModel
-      .find(filter)
-      .populate('conversationId')
-      .sort({ 'conversationId.updatedAt': -1 })
-      .skip(offset)
-      .limit(limit + 1)
-      .exec();
-  }
-
-  private async findFilteredConversationIds(
-    userId: string,
-    name?: string,
-    recipientId?: string,
-  ): Promise<Types.ObjectId[]> {
-    const partnerQuery: any = { userId: { $ne: userId } };
-
-    if (name) {
-      partnerQuery.userName = { $regex: name, $options: 'i' };
-    }
-
-    if (recipientId) {
-      partnerQuery.userId = { $regex: `^${recipientId}`, $options: 'i' };
-    }
-
-    const partners = await this.participantModel
-      .find(partnerQuery)
-      .select('conversationId')
-      .exec();
-
-    return partners.map((p) => p.conversationId);
-  }
-
-  private async buildSearchResults(
-    participants: any[],
-    userId: string,
-  ): Promise<(ConversationListItemDTO | null)[]> {
-    return Promise.all(
-      participants.map(async (participant) => {
-        const conversation = participant.conversationId;
-        if (!conversation) return null;
-
-        const lastMessage = await this.findLastMessage(conversation._id);
-        const partnerParticipant = await this.findPartnerParticipant(
-          conversation._id,
-          userId,
-        );
-
-        if (!partnerParticipant) return null;
-
-        return this.dataMapperService.buildSearchResultItem(
-          conversation,
-          participant,
-          partnerParticipant,
-          lastMessage,
-          userId,
-        );
-      }),
-    );
-  }
-
   private async addSuggestionsIfNeeded(
     conversations: ConversationListItemDTO[],
     userId: string,
@@ -478,27 +411,6 @@ export class ConversationsService {
     throw new BadRequestException(
       'Conversation must be between an organization and a member',
     );
-  }
-
-  private async findLastMessage(conversationId: Types.ObjectId): Promise<any> {
-    return this.messageModel
-      .findOne({ conversationId })
-      .sort({ createdAt: -1 })
-      .select('content senderId createdAt')
-      .exec();
-  }
-
-  private async findPartnerParticipant(
-    conversationId: Types.ObjectId,
-    userId: string,
-  ): Promise<any> {
-    return this.participantModel
-      .findOne({
-        conversationId,
-        userId: { $ne: userId },
-      })
-      .select('userId userName role')
-      .exec();
   }
 
   private async findOrCreateConversation(
