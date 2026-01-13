@@ -180,4 +180,48 @@ export class ConversationManagerService {
       throw new BadRequestException('Invalid conversation ID');
     }
   }
+
+  async fetchUserParticipants(
+    userId: string,
+    limit: number,
+    offset: number,
+  ): Promise<any[]> {
+    return this.participantModel
+      .find({ userId })
+      .populate('conversationId')
+      .sort({ 'conversationId.updatedAt': -1 })
+      .skip(offset)
+      .limit(limit + 1)
+      .exec();
+  }
+
+  async ensureConversationDoesNotExist(
+    recipientId: string,
+    senderId: string,
+  ): Promise<void> {
+    const existing = await this.findConversationBetweenUsers(
+      recipientId,
+      senderId,
+    );
+    if (existing) {
+      throw new BadRequestException(
+        'Conversation already exists. Use the existing conversation endpoint.',
+      );
+    }
+  }
+
+  async findConversationOrThrow(conversationId: string): Promise<any> {
+    const conversation = await this.conversationModel.findById(conversationId);
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+    return conversation;
+  }
+
+  async findParticipant(conversationId: string, userId: string): Promise<any> {
+    return this.participantModel.findOne({
+      conversationId: new Types.ObjectId(conversationId),
+      userId,
+    });
+  }
 }

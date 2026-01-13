@@ -46,7 +46,10 @@ export class ConversationsService {
     senderId: string,
     dto: CreateConversationMessageDto,
   ): Promise<MessageDocument> {
-    await this.ensureConversationDoesNotExist(dto.recipientId, senderId);
+    await this.conversationManagerService.ensureConversationDoesNotExist(
+      dto.recipientId,
+      senderId,
+    );
 
     const conversation =
       await this.conversationManagerService.findOrCreateConversation(
@@ -88,11 +91,12 @@ export class ConversationsService {
 
     const { limit = 20, offset = 0 } = query;
 
-    const participants = await this.fetchUserParticipants(
-      userId,
-      limit,
-      offset,
-    );
+    const participants =
+      await this.conversationManagerService.fetchUserParticipants(
+        userId,
+        limit,
+        offset,
+      );
 
     const hasMore = participants.length > limit;
     const items = participants.slice(0, limit);
@@ -115,7 +119,10 @@ export class ConversationsService {
   ): Promise<ConversationDetailDTO> {
     this.conversationManagerService.validateObjectId(conversationId);
 
-    const conversation = await this.findConversationOrThrow(conversationId);
+    const conversation =
+      await this.conversationManagerService.findConversationOrThrow(
+        conversationId,
+      );
 
     await this.conversationManagerService.validateUserIsParticipant(
       conversationId,
@@ -136,7 +143,10 @@ export class ConversationsService {
       userId,
     );
     const { limit = 50, offset = 0 } = query;
-    const participant = await this.findParticipant(conversationId, userId);
+    const participant = await this.conversationManagerService.findParticipant(
+      conversationId,
+      userId,
+    );
 
     const messages = await this.messageManagerService.fetchMessages(
       conversationId,
@@ -152,7 +162,7 @@ export class ConversationsService {
       participant,
     );
 
-    this.messageManagerService.markAsReadAsync(conversationId, userId);
+    this.markAsReadAsync(conversationId, userId);
 
     return { items: messageDTOs, limit, offset, hasMore };
   }
@@ -237,7 +247,7 @@ export class ConversationsService {
     );
 
     if (offset === 0) {
-      await this.addSuggestionsIfNeeded(
+      await this.userSuggestionService.addSuggestionsIfNeeded(
         validConversations,
         userId,
         Number(limit),
@@ -254,85 +264,19 @@ export class ConversationsService {
     };
   }
 
-  private async ensureConversationDoesNotExist(
-    recipientId: string,
-    senderId: string,
-  ): Promise<void> {
-    const existing =
-      await this.conversationManagerService.findConversationBetweenUsers(
-        recipientId,
-        senderId,
-      );
-    if (existing) {
-      throw new BadRequestException(
-        'Conversation already exists. Use the existing conversation endpoint.',
-      );
-    }
+  async markAsRead(conversationId: string, userId: string): Promise<void> {
+    await this.participantModel.updateOne(
+      { conversationId: new Types.ObjectId(conversationId), userId },
+      { lastReadAt: new Date(), unreadCount: 0 },
+    );
   }
 
-  private async findConversationOrThrow(conversationId: string): Promise<any> {
-    const conversation = await this.conversationModel.findById(conversationId);
-    if (!conversation) {
-      throw new NotFoundException('Conversation not found');
-    }
-    return conversation;
-  }
-
-  private async findParticipant(
-    conversationId: string,
-    userId: string,
-  ): Promise<any> {
-    return this.participantModel.findOne({
-      conversationId: new Types.ObjectId(conversationId),
-      userId,
+  async markAsReadAsync(conversationId: string, userId: string): Promise<void> {
+    await this.markAsRead(conversationId, userId).catch((err) => {
+      console.error(
+        `Failed to mark messages as read for user ${userId} in conversation ${conversationId}:`,
+        err,
+      );
     });
-  }
-
-  private async fetchUserParticipants(
-    userId: string,
-    limit: number,
-    offset: number,
-  ): Promise<any[]> {
-    return this.participantModel
-      .find({ userId })
-      .populate('conversationId')
-      .sort({ 'conversationId.updatedAt': -1 })
-      .skip(offset)
-      .limit(limit + 1)
-      .exec();
-  }
-
-  private async addSuggestionsIfNeeded(
-    conversations: ConversationListItemDTO[],
-    userId: string,
-    limit: number,
-    name?: string,
-    recipientId?: string,
-  ): Promise<void> {
-    const remainingSlots = limit - conversations.length;
-
-    if (remainingSlots <= 0) return;
-
-    const suggestedResult = await this.userSuggestionService.getSuggestedUsers(
-      userId,
-      {
-        limit: remainingSlots,
-        offset: 0,
-        name,
-        recipientId,
-      },
-    );
-
-    const existingPartnerIds = this.userSuggestionService.extractPartnerIds(
-      conversations,
-      userId,
-    );
-    const newSuggestions = this.userSuggestionService.filterExistingSuggestions(
-      suggestedResult.items,
-      existingPartnerIds,
-      userId,
-    );
-
-    conversations.push(...newSuggestions.slice(0, remainingSlots));
   }
 }

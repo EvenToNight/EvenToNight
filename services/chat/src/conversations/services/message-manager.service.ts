@@ -67,20 +67,4 @@ export class MessageManagerService {
       { $inc: { unreadCount: 1 } },
     );
   }
-
-  async markAsRead(conversationId: string, userId: string): Promise<void> {
-    await this.participantModel.updateOne(
-      { conversationId: new Types.ObjectId(conversationId), userId },
-      { lastReadAt: new Date(), unreadCount: 0 },
-    );
-  }
-
-  async markAsReadAsync(conversationId: string, userId: string): Promise<void> {
-    await this.markAsRead(conversationId, userId).catch((err) => {
-      console.error(
-        `Failed to mark messages as read for user ${userId} in conversation ${conversationId}:`,
-        err,
-      );
-    });
-  }
 }

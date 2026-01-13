@@ -81,7 +81,7 @@ export class UserSuggestionService {
     return this.usersService.searchUsers(userQuery);
   }
 
-  filterExistingSuggestions(
+  private filterExistingSuggestions(
     items: ConversationListItemDTO[],
     existingPartnerIds: Set<string>,
     userId: string,
@@ -93,7 +93,7 @@ export class UserSuggestionService {
     });
   }
 
-  extractPartnerIds(
+  private extractPartnerIds(
     conversations: ConversationListItemDTO[],
     userId: string,
   ): Set<string> {
@@ -110,5 +110,33 @@ export class UserSuggestionService {
 
   private applyPagination<T>(items: T[], limit: number, offset: number): T[] {
     return items.slice(offset, offset + limit + 1);
+  }
+
+  async addSuggestionsIfNeeded(
+    conversations: ConversationListItemDTO[],
+    userId: string,
+    limit: number,
+    name?: string,
+    recipientId?: string,
+  ): Promise<void> {
+    const remainingSlots = limit - conversations.length;
+
+    if (remainingSlots <= 0) return;
+
+    const suggestedResult = await this.getSuggestedUsers(userId, {
+      limit: remainingSlots,
+      offset: 0,
+      name,
+      recipientId,
+    });
+
+    const existingPartnerIds = this.extractPartnerIds(conversations, userId);
+    const newSuggestions = this.filterExistingSuggestions(
+      suggestedResult.items,
+      existingPartnerIds,
+      userId,
+    );
+
+    conversations.push(...newSuggestions.slice(0, remainingSlots));
   }
 }
