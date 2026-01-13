@@ -232,6 +232,8 @@ paths:
           description: Bad Request
         '404':
           description: User not found
+      tags:
+        - Users
         
 
   /users/{userId}/conversations/{conversationId}:
