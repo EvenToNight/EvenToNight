@@ -35,6 +35,8 @@ import { TransactionManager } from './infrastructure/database/transaction.manage
 import { EventTicketTypesController } from './presentation/controllers/event-ticket-types.controller';
 import { CheckoutSessionsController } from './presentation/controllers/checkout-sessions.controller';
 import { MockedCheckoutWebhookController } from './presentation/controllers/mocked-checkout-webhook.controller';
+// import { TicketsController } from './presentation/controllers/tickets.controller';
+import { PdfService } from './application/services/pdf.service';
 
 @Module({
   imports: [
@@ -49,6 +51,7 @@ import { MockedCheckoutWebhookController } from './presentation/controllers/mock
     EventTicketTypesController,
     CheckoutSessionsController,
     MockedCheckoutWebhookController,
+    // TicketsController,
   ],
   providers: [
     // Repositories
@@ -72,6 +75,9 @@ import { MockedCheckoutWebhookController } from './presentation/controllers/mock
 
     // Infrastructure
     TransactionManager,
+
+    // Services
+    PdfService,
   ],
   exports: [EVENT_TICKET_TYPE_REPOSITORY],
 })
