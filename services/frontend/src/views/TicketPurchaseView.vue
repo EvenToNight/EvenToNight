@@ -7,15 +7,18 @@ import { useQuasar } from 'quasar'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const { params, goBack } = useNavigation()
 const $q = useQuasar()
+const authStore = useAuthStore()
 
 const eventId = computed(() => params.id as string)
 const event = ref<Event | null>(null)
 const ticketQuantity = ref(1)
 const loading = ref(false)
 const purchasing = ref(false)
+const ticketTypeId = ref<string | null>(null)
 
 const totalPrice = computed(() => {
   if (!event.value) return 0
@@ -36,6 +39,12 @@ onMounted(async () => {
     event.value = await api.events.getEventById(eventId.value)
     const ticketsAvailable = await api.payments.getEventTicketType(eventId.value)
     console.log('Tickets available:', ticketsAvailable)
+    console.log('Event loaded:', { ...event.value })
+    console.log('User i')
+
+    if (ticketsAvailable.length > 0) {
+      ticketTypeId.value = ticketsAvailable[0]!.id
+    }
   } catch (error) {
     console.error('Failed to load event:', error)
     $q.notify({
@@ -49,29 +58,39 @@ onMounted(async () => {
 })
 
 const handlePurchase = async () => {
-  purchasing.value = true
-  try {
-    // TODO: Implement ticket purchase API
-    // await api.tickets.purchaseTickets(eventId.value, ticketQuantity.value)
-
-    $q.notify({
-      type: 'positive',
-      message: `Successfully purchased ${ticketQuantity.value} ticket${ticketQuantity.value > 1 ? 's' : ''}!`,
-      icon: 'check_circle',
-    })
-
-    // Navigate back after purchase
-    setTimeout(() => {
-      goBack()
-    }, 1000)
-  } catch (error) {
-    console.error('Failed to purchase tickets:', error)
+  if (!authStore.user || !ticketTypeId.value) {
     $q.notify({
       type: 'negative',
-      message: 'Failed to purchase tickets',
+      message: 'Missing required information',
+    })
+    return
+  }
+
+  purchasing.value = true
+  try {
+    // Create items array with the selected quantity
+    const items = Array.from({ length: ticketQuantity.value }, () => ({
+      ticketTypeId: ticketTypeId.value!,
+      attendeeName: authStore.user!.name,
+    }))
+    console.log(window.location.href)
+    // Create checkout session
+    const session = await api.payments.createCheckoutSession({
+      userId: authStore.user.id,
+      items,
+      successUrl: window.location.origin, //`${window.location.origin}/payment-success`,
+      cancelUrl: window.location.href,
+    })
+
+    // Redirect to Stripe checkout
+    window.location.href = session.redirectUrl
+  } catch (error) {
+    console.error('Failed to create checkout session:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to start payment process',
       icon: 'error',
     })
-  } finally {
     purchasing.value = false
   }
 }

@@ -30,11 +30,19 @@ export class CreateCheckoutSessionDto {
   @Type(() => CheckoutTicketItemDto)
   items: CheckoutTicketItemDto[];
 
-  @IsUrl()
+  @IsUrl({
+    protocols: ['http', 'https'],
+    require_protocol: true,
+    require_tld: false,
+  })
   @IsOptional()
   successUrl?: string;
 
-  @IsUrl()
+  @IsUrl({
+    protocols: ['http', 'https'],
+    require_protocol: true,
+    require_tld: false,
+  })
   @IsOptional()
   cancelUrl?: string;
 }
