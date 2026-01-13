@@ -17,13 +17,13 @@ import scala.util.Failure
 import scala.util.Success
 import scala.util.Try
 
-object KeycloakJwtVerifier:
-  private val keycloakBaseUrl = sys.env.getOrElse("KEYCLOAK_URL", "http://localhost:8082")
-  private val realm           = "eventonight"
+import KeycloakConfig.oidcBaseUri
 
+object KeycloakJwtVerifier:
   private def fetchJwks(): Either[String, Json] =
+    val jwksUri = oidcBaseUri.addPath("certs")
     val request = basicRequest
-      .get(uri"$keycloakBaseUrl/realms/$realm/protocol/openid-connect/certs")
+      .get(jwksUri)
       .response(asStringAlways)
 
     Try(request.send(HttpURLConnectionBackend())).toEither.left.map(_.getMessage).flatMap(response =>

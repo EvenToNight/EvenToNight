@@ -3,21 +3,17 @@ package infrastructure.keycloak
 import sttp.client3._
 import sttp.model.StatusCode
 
+import KeycloakConfig.oidcBaseUri
+
 class KeycloakConnection(backend: SttpBackend[Identity, Any]):
-  private val keycloakBaseUrl = sys.env.getOrElse("KEYCLOAK_URL", "http://localhost:8082")
-  private val realm           = "eventonight"
-
-  def baseUrl: String  = keycloakBaseUrl
-  def getRealm: String = realm
-
   def sendRequest[T](request: Request[T, Any]): Either[String, Response[T]] =
     try Right(request.send(backend))
     catch case e: Exception => Left(s"Connection error: ${e.getMessage}")
 
   def sendTokenRequest(form: Map[String, String]): Either[String, String] =
-    val tokenUrl = s"$keycloakBaseUrl/realms/$realm/protocol/openid-connect/token"
+    val tokenUri = oidcBaseUri.addPath("token")
     val request = basicRequest
-      .post(uri"$tokenUrl")
+      .post(tokenUri)
       .body(form)
       .header("Content-Type", "application/x-www-form-urlencoded")
       .response(asStringAlways)

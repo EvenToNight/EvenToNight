@@ -7,9 +7,9 @@ import sttp.model.StatusCode
 
 import java.util.UUID
 
-class KeycloakAdminApi(connection: KeycloakConnection):
-  private val adminRealmUri = uri"${connection.baseUrl}".addPath("admin", "realms", connection.getRealm)
+import KeycloakConfig._
 
+class KeycloakAdminApi(connection: KeycloakConnection):
   def createUser(token: String, username: String, email: String, password: String): Either[String, (String, String)] =
     val userId = UUID.randomUUID().toString()
     val jsonBody = s"""
@@ -30,7 +30,7 @@ class KeycloakAdminApi(connection: KeycloakConnection):
         }
       """
 
-    val createUserUri = adminRealmUri.addPath("users")
+    val createUserUri = adminUsersUri
     val request = basicRequest
       .post(createUserUri)
       .body(jsonBody)
@@ -51,7 +51,7 @@ class KeycloakAdminApi(connection: KeycloakConnection):
     )
 
   def deleteUser(token: String, userId: String): Either[String, Unit] =
-    val deleteUserUri = adminRealmUri.addPath("users", userId)
+    val deleteUserUri = adminUsersUri.addPath(userId)
     val request = basicRequest
       .delete(deleteUserUri)
       .header("Authorization", s"Bearer $token")
@@ -89,7 +89,7 @@ class KeycloakAdminApi(connection: KeycloakConnection):
       "name" -> Json.fromString(roleName)
     )).asJson.noSpaces
 
-    val roleMappingUri = adminRealmUri.addPath("users", keycloakId, "role-mappings", "realm")
+    val roleMappingUri = adminUsersUri.addPath(keycloakId, "role-mappings", "realm")
     val request = basicRequest
       .post(roleMappingUri)
       .header("Authorization", s"Bearer $token")
