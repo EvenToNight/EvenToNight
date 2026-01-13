@@ -10,6 +10,8 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
       - MONGO_HOST=mongo-payments
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.payments.rule=Host(`payments.${HOST}`)"

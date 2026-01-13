@@ -34,6 +34,8 @@ onMounted(async () => {
   try {
     loading.value = true
     event.value = await api.events.getEventById(eventId.value)
+    const ticketsAvailable = await api.payments.getEventTicketType(eventId.value)
+    console.log('Tickets available:', ticketsAvailable)
   } catch (error) {
     console.error('Failed to load event:', error)
     $q.notify({
