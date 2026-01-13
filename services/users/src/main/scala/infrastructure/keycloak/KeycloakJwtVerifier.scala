@@ -1,4 +1,4 @@
-package keycloak
+package infrastructure.keycloak
 
 import infrastructure.Wiring.publicKeysCache
 import io.circe.Json

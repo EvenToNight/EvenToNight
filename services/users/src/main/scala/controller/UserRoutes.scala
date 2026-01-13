@@ -2,8 +2,8 @@ package controller
 
 import cask.Request
 import cask.Response
-import keycloak.KeycloakJwtVerifier.extractUserId
-import keycloak.KeycloakJwtVerifier.refreshPublicKeys
+import infrastructure.keycloak.KeycloakJwtVerifier.extractUserId
+import infrastructure.keycloak.KeycloakJwtVerifier.refreshPublicKeys
 import model.LoginValidation._
 import model.TokenRefresh.parseRefreshRequest
 import model.UsersConversions.asJson

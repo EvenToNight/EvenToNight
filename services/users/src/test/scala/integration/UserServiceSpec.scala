@@ -8,7 +8,7 @@ import fixtures.MemberFixtures.member
 import fixtures.MemberFixtures.memberUserId
 import fixtures.OrganizationFixtures.organization
 import fixtures.OrganizationFixtures.organizationUserId
-import infrastructure.MongoConnection.client
+import infrastructure.mongo.MongoConnection.client
 import model.UserReferences
 import model.member.MemberAccount
 import model.member.MemberProfile

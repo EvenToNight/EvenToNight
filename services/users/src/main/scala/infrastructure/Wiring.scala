@@ -1,7 +1,6 @@
 package infrastructure
 
 import com.mongodb.client.MongoCollection
-import infrastructure.Secret.usersServiceSecret
 import model.UserReferences
 import model.member.MemberAccount
 import model.member.MemberProfile
@@ -20,7 +19,9 @@ import sttp.client3.HttpURLConnectionBackend
 import java.security.PublicKey
 import scala.collection.concurrent.TrieMap
 
-import MongoConnection._
+import keycloak._
+import Secret.usersServiceSecret
+import mongo.MongoConnection._
 
 object Wiring:
   val memberReferencesColl: MongoCollection[UserReferences] =
@@ -46,7 +47,21 @@ object Wiring:
 
   val userService: UserService = new UserService(memberRepository, organizationRepository)
 
-  val kc          = new KeycloakConnection(HttpURLConnectionBackend(), usersServiceSecret)
-  val authService = new AuthenticationService(kc)
+  private val kcConnection: KeycloakConnection     = new KeycloakConnection(HttpURLConnectionBackend())
+  private val kcTokenService: KeycloakTokenService = new KeycloakTokenService(kcConnection)
+  private val usersServiceClientId                 = "users-service"
+  private val kcTokenClient: KeycloakTokenClient =
+    new KeycloakTokenClient(kcTokenService, usersServiceClientId, usersServiceSecret)
+  private val kcAdminApi: KeycloakAdminApi = new KeycloakAdminApi(kcConnection)
+
+  val initializer = new KeycloakRealmInitializer(kcTokenClient, kcAdminApi)
+  val roleIds: Map[String, String] = initializer.initializeRoles() match
+    case Left(err) =>
+      println(s"Failed to initialize member and organization roles: $err")
+      sys.error(s"Keycloak roles init failed: $err")
+    case Right(ids) =>
+      println("Retrieve member and organization roles from Keycloak successfully.")
+      ids
+  val authService: AuthenticationService = new AuthenticationService(kcTokenClient, kcAdminApi, roleIds)
 
   val publicKeysCache: TrieMap[String, PublicKey] = TrieMap.empty

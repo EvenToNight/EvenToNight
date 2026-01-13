@@ -1,15 +1,11 @@
-package keycloak
+package infrastructure.keycloak
 
-import infrastructure.JsonUtils.parseJson
-import infrastructure.KeycloakConnection
+import JsonUtils.parseJson
 
 object KeycloakRoles:
-  private var _roleIds: Map[String, String] = Map.empty
-  def roleIds: Map[String, String]          = _roleIds
-
   private val requiredRoles = Set("member", "organization")
 
-  private def parseAndFilterRoles(jsonStr: String): Either[String, Map[String, String]] =
+  def parseAndFilterRoles(jsonStr: String): Either[String, Map[String, String]] =
     parseJson(jsonStr).flatMap(json =>
       val parsed: Map[String, String] = json.asArray match
         case None => Map.empty
@@ -29,9 +25,3 @@ object KeycloakRoles:
       else
         Right(filtered)
     )
-
-  def initRoles(kc: KeycloakConnection): Either[String, Unit] =
-    for
-      rolesJson     <- kc.getRoles()
-      filteredRoles <- parseAndFilterRoles(rolesJson)
-    yield _roleIds = filteredRoles

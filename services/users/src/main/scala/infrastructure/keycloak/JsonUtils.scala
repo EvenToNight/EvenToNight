@@ -1,4 +1,4 @@
-package infrastructure
+package infrastructure.keycloak
 
 import io.circe.Json
 import io.circe.parser.parse

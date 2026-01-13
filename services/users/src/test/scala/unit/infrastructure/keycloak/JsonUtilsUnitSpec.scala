@@ -1,13 +1,13 @@
-package unit.infrastructure
+package unit.infrastructure.keycloak
 
-import infrastructure.JsonUtils.parseJson
+import infrastructure.keycloak.JsonUtils.parseJson
 import io.circe.Json
 import io.circe.literal._
 import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class JsonUtilsSpec extends AnyFlatSpec with Matchers:
+class JsonUtilsUnitSpec extends AnyFlatSpec with Matchers:
   "parseJson" should "return Right(json) for valid JSON" in:
     val result = parseJson("""{"some_field": "some_value"}""")
     result shouldBe Right(json"""{"some_field": "some_value"}""")

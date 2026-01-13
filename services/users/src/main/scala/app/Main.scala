@@ -1,9 +1,9 @@
 package app
 
 import controller.UserRoutes
-import infrastructure.MongoConnection.client
-import infrastructure.RabbitConnection._
 import infrastructure.Wiring._
+import infrastructure.mongo.MongoConnection.client
+import infrastructure.rabbitmq.RabbitConnection._
 import io.undertow.server.HttpHandler
 import middleware.CorsHandler
 

@@ -1,4 +1,4 @@
-package infrastructure
+package infrastructure.rabbitmq
 
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
