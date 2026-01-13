@@ -10,6 +10,7 @@ import { Participant, ParticipantSchema } from './schemas/participant.schema';
 import { Message, MessageSchema } from './schemas/message.schema';
 import { UsersModule } from 'src/users/users.module';
 import { ConversationsLookupController } from './controllers/conversations-lookup.controller';
+import { DataMapperService } from './services/data-mapper.service';
 
 @Module({
   imports: [
@@ -20,7 +21,7 @@ import { ConversationsLookupController } from './controllers/conversations-looku
     ]),
     UsersModule,
   ],
-  providers: [ConversationsService],
+  providers: [ConversationsService, DataMapperService],
   controllers: [ConversationsController, ConversationsLookupController],
 })
 export class ConversationsModule {}

@@ -19,11 +19,11 @@ import { ConversationListResponse } from '../dto/conversation-list.response';
 import { ConversationListItemDTO } from '../dto/conversation-list-item.dto';
 import { ConversationDetailDTO } from '../dto/conversation-details.dto';
 import { MessageListResponse } from '../dto/message-list.response';
-import { MessageDTO } from '../dto/message.dto';
 
 import { UsersService } from '../../users/services/users.service';
 import { UserRole } from '../../users/schemas/user.schema';
 import { UserID } from '../types';
+import { DataMapperService } from './data-mapper.service';
 
 @Injectable()
 export class ConversationsService {
@@ -36,6 +36,7 @@ export class ConversationsService {
     @InjectModel('Participant') private readonly participantModel: Model<any>,
     @InjectModel(Message.name) private readonly messageModel: Model<any>,
     private readonly usersService: UsersService,
+    private readonly dataMapperService: DataMapperService,
   ) {}
 
   async createConversationWithMessage(
@@ -83,7 +84,8 @@ export class ConversationsService {
     const hasMore = participants.length > limit;
     const items = participants.slice(0, limit);
 
-    const conversations = await this.buildConversationListItems(items);
+    const conversations =
+      await this.dataMapperService.buildConversationListItems(items);
 
     return { items: conversations, limit, offset, hasMore };
   }
@@ -104,7 +106,7 @@ export class ConversationsService {
 
     await this.validateUserIsParticipant(conversationId, userId);
 
-    return this.buildConversationDetail(conversation);
+    return this.dataMapperService.buildConversationDetail(conversation);
   }
 
   async getMessages(
@@ -121,7 +123,7 @@ export class ConversationsService {
     const hasMore = messages.length > limit;
     const items = messages.slice(0, limit);
 
-    const messageDTOs = await this.buildMessageDTOs(
+    const messageDTOs = await this.dataMapperService.buildMessageDTOs(
       items,
       conversationId,
       participant,
@@ -154,7 +156,7 @@ export class ConversationsService {
       throw new NotFoundException('Conversation not found');
     }
 
-    return this.buildConversationDetail(conversation);
+    return this.dataMapperService.buildConversationDetail(conversation);
   }
 
   async getConversationWithMessagesByUsers(
@@ -392,76 +394,6 @@ export class ConversationsService {
     return partners.map((p) => p.conversationId);
   }
 
-  private async buildConversationListItems(
-    participants: any[],
-  ): Promise<ConversationListItemDTO[]> {
-    return Promise.all(
-      participants.map(async (participant) => {
-        const conversation = participant.conversationId;
-        const lastMessage = await this.findLastMessage(conversation._id);
-        const [orgInfo, memberInfo] = await this.fetchUsersInfo(
-          conversation.organizationId,
-          conversation.memberId,
-        );
-
-        return {
-          id: conversation._id.toString(),
-          organization: this.buildUserInfo(
-            conversation.organizationId,
-            orgInfo,
-          ),
-          member: this.buildUserInfo(conversation.memberId, memberInfo),
-          lastMessage: this.buildLastMessageInfo(lastMessage),
-          unreadCount: participant.unreadCount,
-        };
-      }),
-    );
-  }
-
-  private async buildConversationDetail(
-    conversation: any,
-  ): Promise<ConversationDetailDTO> {
-    const [orgInfo, memberInfo] = await this.fetchUsersInfo(
-      conversation.organizationId,
-      conversation.memberId,
-    );
-
-    return {
-      id: conversation._id.toString(),
-      organization: this.buildUserInfo(conversation.organizationId, orgInfo),
-      member: this.buildUserInfo(conversation.memberId, memberInfo),
-      createdAt: conversation.createdAt,
-      updatedAt: conversation.updatedAt,
-    };
-  }
-
-  private async buildMessageDTOs(
-    messages: any[],
-    conversationId: string,
-    participant: any,
-  ): Promise<MessageDTO[]> {
-    const senderIds = [...new Set(messages.map((msg) => msg.senderId))];
-    const usersInfo = await this.fetchMultipleUsersInfo(senderIds);
-    const usersMap = new Map(usersInfo.map((user) => [user.userId, user]));
-
-    return messages.map((message) => {
-      const senderInfo = usersMap.get(message.senderId);
-
-      return {
-        id: message._id.toString(),
-        conversationId,
-        sender: {
-          id: message.senderId,
-          name: senderInfo?.name || 'Unknown User',
-          avatar: senderInfo?.avatar || this.DEFAULT_AVATAR,
-        },
-        content: message.content,
-        createdAt: message.createdAt,
-        isRead: message.createdAt <= participant.lastReadAt,
-      };
-    });
-  }
-
   private async buildSearchResults(
     participants: any[],
     userId: string,
@@ -479,69 +411,15 @@ export class ConversationsService {
 
         if (!partnerParticipant) return null;
 
-        const [myUserInfo, partnerUserInfo] = await this.fetchUsersInfo(
-          userId,
-          partnerParticipant.userId,
-        );
-
-        return this.buildSearchResultItem(
+        return this.dataMapperService.buildSearchResultItem(
           conversation,
           participant,
           partnerParticipant,
-          myUserInfo,
-          partnerUserInfo,
           lastMessage,
           userId,
         );
       }),
     );
-  }
-
-  private buildSearchResultItem(
-    conversation: any,
-    participant: any,
-    partnerParticipant: any,
-    myUserInfo: any,
-    partnerUserInfo: any,
-    lastMessage: any,
-    userId: string,
-  ): ConversationListItemDTO {
-    const isPartnerOrganization =
-      partnerParticipant.role === ParticipantRole.ORGANIZATION;
-
-    return {
-      id: conversation._id.toString(),
-      organization: isPartnerOrganization
-        ? {
-            id: partnerParticipant.userId,
-            name: partnerParticipant.userName,
-            avatar: partnerUserInfo?.avatar || this.DEFAULT_AVATAR,
-          }
-        : {
-            id: userId,
-            name: participant.userName,
-            avatar: myUserInfo?.avatar || this.DEFAULT_AVATAR,
-          },
-      member: !isPartnerOrganization
-        ? {
-            id: partnerParticipant.userId,
-            name: partnerParticipant.userName,
-            avatar: partnerUserInfo?.avatar || this.DEFAULT_AVATAR,
-          }
-        : {
-            id: userId,
-            name: participant.userName,
-            avatar: myUserInfo?.avatar || this.DEFAULT_AVATAR,
-          },
-      lastMessage: lastMessage
-        ? {
-            content: lastMessage.content,
-            senderId: lastMessage.senderId.toString(),
-            timestamp: lastMessage.createdAt,
-          }
-        : null,
-      unreadCount: participant.unreadCount,
-    };
   }
 
   private async addSuggestionsIfNeeded(
@@ -628,7 +506,12 @@ export class ConversationsService {
     const hasMore = limitedUsers.length > options.limit;
     const items = limitedUsers.slice(0, options.limit);
 
-    const suggestions = await this.buildSuggestions(items, userId);
+    const suggestions = await this.dataMapperService.buildSuggestions(
+      items,
+      userId,
+    );
+
+    console.log('Get suggested users', suggestions);
 
     return {
       items: suggestions,
@@ -667,57 +550,14 @@ export class ConversationsService {
     return items.slice(offset, offset + limit + 1);
   }
 
-  private async buildSuggestions(
-    users: any[],
-    userId: string,
-  ): Promise<ConversationListItemDTO[]> {
-    const myUserInfo = await this.usersService.getUserInfo(userId);
-
-    return users.map((user) => ({
-      id: '',
-      organization: this.buildSuggestionUserInfo(
-        user,
-        UserRole.ORGANIZATION,
-        userId,
-        myUserInfo,
-      ),
-      member: this.buildSuggestionUserInfo(
-        user,
-        UserRole.MEMBER,
-        userId,
-        myUserInfo,
-      ),
-      lastMessage: null,
-      unreadCount: 0,
-    }));
-  }
-
-  private buildSuggestionUserInfo(
-    user: any,
-    roleToMatch: UserRole,
-    currentUserId: string,
-    currentUserInfo: any,
-  ) {
-    const isMatch = user.role === roleToMatch;
-
-    return isMatch
-      ? {
-          id: user.userId,
-          name: user.name || 'Unknown',
-          avatar: user.avatar || this.DEFAULT_AVATAR,
-        }
-      : {
-          id: currentUserId,
-          name: currentUserInfo?.name || 'Unknown',
-          avatar: currentUserInfo?.avatar || this.DEFAULT_AVATAR,
-        };
-  }
-
   private async determineRoles(
     userId1: UserID,
     userId2: UserID,
   ): Promise<{ organizationId: string; memberId: string }> {
-    const [user1Info, user2Info] = await this.fetchUsersInfo(userId1, userId2);
+    const [user1Info, user2Info] = await this.dataMapperService.fetchUsersInfo(
+      userId1,
+      userId2,
+    );
 
     if (!user1Info) {
       throw new BadRequestException(`User ${userId1} does not exist`);
@@ -763,53 +603,6 @@ export class ConversationsService {
       })
       .select('userId userName role')
       .exec();
-  }
-
-  private async fetchUsersInfo(
-    userId1: string,
-    userId2: string,
-  ): Promise<[any, any]> {
-    return Promise.all([
-      this.usersService.getUserInfo(userId1),
-      this.usersService.getUserInfo(userId2),
-    ]);
-  }
-
-  private async fetchMultipleUsersInfo(userIds: string[]): Promise<any[]> {
-    return Promise.all(
-      userIds.map(async (id) => {
-        const user = await this.usersService.getUserInfo(id);
-        return (
-          user || {
-            userId: id,
-            name: 'Unknown User',
-            avatar: this.DEFAULT_AVATAR,
-          }
-        );
-      }),
-    );
-  }
-
-  private buildUserInfo(userId: string, userInfo: any) {
-    return {
-      id: userId,
-      name: userInfo?.name || 'Unknown',
-      avatar: userInfo?.avatar || this.DEFAULT_AVATAR,
-    };
-  }
-
-  private buildLastMessageInfo(lastMessage: any) {
-    return lastMessage
-      ? {
-          content: lastMessage.content,
-          senderId: String(lastMessage.senderId),
-          timestamp: lastMessage.createdAt,
-        }
-      : {
-          content: '',
-          senderId: '',
-          timestamp: new Date(0),
-        };
   }
 
   private async markAsReadAsync(
