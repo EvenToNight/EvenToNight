@@ -33,7 +33,7 @@ services:
       - payments-network
     volumes:
       - mongo-payments-data:/data/db
-      - ./services/payments/init-replica-set.sh:/docker-entrypoint-initdb.d/init-replica-set.sh:ro
+      - ./services/payments/scripts/init-replica-set.sh:/docker-entrypoint-initdb.d/init-replica-set.sh:ro
     healthcheck:
       test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
       interval: 2s

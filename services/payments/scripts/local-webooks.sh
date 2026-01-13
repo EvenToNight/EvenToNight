@@ -6,7 +6,7 @@ FORWARD_URL="localhost:9050/webhooks/stripe"
 ENV_KEY="STRIPE_WEBHOOK_SECRET"
 ENV_FILE=".env"
 # ----------------------------------------
-cd "$(dirname "$0")/../.." || exit 1
+cd "$(dirname "$0")/../../.." || exit 1
 
 get_secret() {
   stripe listen --print-secret --forward-to "$FORWARD_URL" 2>/dev/null | grep -oE 'whsec_[a-zA-Z0-9]+'
