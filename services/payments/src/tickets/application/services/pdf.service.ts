@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as PDFKit from 'pdfkit';
 import { toDataURL } from 'qrcode';
+import { SupportedLocale, TICKET_TRANSLATIONS } from './ticket.translations';
 
 export interface TicketPdfData {
   ticketId: string;
@@ -15,21 +16,24 @@ export class PdfService {
   private async addTicketToDocument(
     doc: PDFKit.PDFDocument,
     ticket: TicketPdfData,
+    locale: SupportedLocale,
   ): Promise<void> {
-    doc.fontSize(22).text('EventoNight - Biglietto', { align: 'center' });
+    const t = TICKET_TRANSLATIONS[locale];
+
+    doc.fontSize(22).text(t.title, { align: 'center' });
     doc.moveDown();
 
-    doc.fontSize(12).text(`ID Biglietto: ${ticket.ticketId}`);
-    doc.text(`Evento: ${ticket.eventId}`);
-    doc.text(`Partecipante: ${ticket.attendeeName}`);
+    doc.fontSize(12).text(`${t.ticketId}: ${ticket.ticketId}`);
+    doc.text(`${t.event}: ${ticket.eventId}`);
+    doc.text(`${t.attendee}: ${ticket.attendeeName}`);
     doc.text(
-      `Acquisto: ${
+      `${t.purchase}: ${
         typeof ticket.purchaseDate === 'string'
           ? ticket.purchaseDate
           : ticket.purchaseDate.toLocaleString()
       }`,
     );
-    if (ticket.priceLabel) doc.text(`Prezzo: ${ticket.priceLabel}`);
+    if (ticket.priceLabel) doc.text(`${t.price}: ${ticket.priceLabel}`);
 
     doc.moveDown();
 
@@ -43,7 +47,10 @@ export class PdfService {
     });
   }
 
-  async generateTicketPdf(ticket: TicketPdfData): Promise<Buffer> {
+  async generateTicketPdf(
+    ticket: TicketPdfData,
+    locale: SupportedLocale = 'en',
+  ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const doc = new PDFKit.default({ size: 'A4', margin: 50 });
       const buffers: Uint8Array[] = [];
@@ -52,7 +59,7 @@ export class PdfService {
       doc.on('end', () => resolve(Buffer.concat(buffers)));
       doc.on('error', reject);
 
-      this.addTicketToDocument(doc, ticket)
+      this.addTicketToDocument(doc, ticket, locale)
         .then(() => {
           doc.end();
         })
@@ -60,7 +67,10 @@ export class PdfService {
     });
   }
 
-  async generateTicketsPdf(tickets: TicketPdfData[]): Promise<Buffer> {
+  async generateTicketsPdf(
+    tickets: TicketPdfData[],
+    locale: SupportedLocale = 'en',
+  ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const doc = new PDFKit.default({ size: 'A4', margin: 50 });
       const buffers: Uint8Array[] = [];
@@ -71,7 +81,7 @@ export class PdfService {
 
       const addTicketsSequentially = async () => {
         for (let i = 0; i < tickets.length; i++) {
-          await this.addTicketToDocument(doc, tickets[i]);
+          await this.addTicketToDocument(doc, tickets[i], locale);
           if (i < tickets.length - 1) {
             doc.addPage();
           }
