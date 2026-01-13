@@ -4,7 +4,7 @@ services:
       context: .
       dockerfile: ./services/payments/Dockerfile
     ports:
-      - "${PAYMENTS_SERVICE_PORT}:${PAYMENTS_SERVICE_PORT}" 
+      - "${PAYMENTS_SERVICE_PORT}:${PAYMENTS_SERVICE_PORT}"
 
   mongo-payments-express:
     image: mongo-express:1.0.2-20-alpine3.19

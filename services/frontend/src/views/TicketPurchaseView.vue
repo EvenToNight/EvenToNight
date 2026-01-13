@@ -61,7 +61,7 @@ const handlePurchase = async () => {
   if (!authStore.user || !ticketTypeId.value) {
     $q.notify({
       type: 'negative',
-      message: 'Missing required information',
+      message: 'Missing required information, user not authenticated or ticket type not found',
     })
     return
   }
