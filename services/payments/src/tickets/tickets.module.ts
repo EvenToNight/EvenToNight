@@ -16,6 +16,10 @@ import {
   OrderDocument,
   OrderSchema,
 } from './infrastructure/persistence/schemas/order.schema';
+import {
+  UserDocument,
+  UserSchema,
+} from './infrastructure/persistence/schemas/user.scherma';
 
 // Repositories
 import { EventTicketTypeRepositoryImpl } from './infrastructure/persistence/repositories/event-ticket-type.repository';
@@ -24,6 +28,8 @@ import { TicketRepositoryImpl } from './infrastructure/persistence/repositories/
 import { TICKET_REPOSITORY } from './domain/repositories/ticket.repository.interface';
 import { OrderRepositoryImpl } from './infrastructure/persistence/repositories/order.repository';
 import { ORDER_REPOSITORY } from './domain/repositories/order.repository.interface';
+import { UserRepositoryImpl } from './infrastructure/persistence/repositories/user.repository';
+import { USER_REPOSITORY } from './domain/repositories/user.repository.interface';
 
 // Handlers
 import { CreateEventTicketTypeHandler } from './application/handlers/create-event-ticket-type.handler';
@@ -58,6 +64,7 @@ import { OrderService } from './application/services/order.service';
       { name: EventTicketTypeDocument.name, schema: EventTicketTypeSchema },
       { name: TicketDocument.name, schema: TicketSchema },
       { name: OrderDocument.name, schema: OrderSchema },
+      { name: UserDocument.name, schema: UserSchema },
     ]),
   ],
   controllers: [
@@ -81,6 +88,10 @@ import { OrderService } from './application/services/order.service';
       provide: ORDER_REPOSITORY,
       useClass: OrderRepositoryImpl,
     },
+    {
+      provide: USER_REPOSITORY,
+      useClass: UserRepositoryImpl,
+    },
 
     // Use Case Handlers
     CreateEventTicketTypeHandler,
@@ -100,6 +111,6 @@ import { OrderService } from './application/services/order.service';
     TicketService,
     OrderService,
   ],
-  exports: [EVENT_TICKET_TYPE_REPOSITORY, ORDER_REPOSITORY],
+  exports: [EVENT_TICKET_TYPE_REPOSITORY, ORDER_REPOSITORY, USER_REPOSITORY],
 })
 export class TicketsModule {}

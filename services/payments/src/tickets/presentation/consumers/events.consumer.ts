@@ -9,6 +9,11 @@ interface EventPublishedPayload {
   organizerId: string;
 }
 
+interface UserPayload {
+  id: string;
+  language: string;
+}
+
 /**
  * Events Consumer - Handles events from other microservices via RabbitMQ
  *
@@ -30,5 +35,24 @@ export class EventsConsumer {
 
     const { eventId } = envelope.payload;
     this.logger.log(`New event created: ${title} (${eventId})`);
+  }
+
+  @EventPattern('user.created')
+  @EventPattern('user.updated')
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async handleUserCreatedOrUpdated(
+    @Payload() envelope: EventEnvelope<UserPayload>,
+  ) {
+    this.logger.log(
+      `Received ${envelope.eventType}: ${JSON.stringify(envelope.payload)}`,
+    );
+  }
+
+  @EventPattern('user.deleted')
+  // eslint-disable-next-line @typescript-eslint/require-await
+  async handleUserDeleted(@Payload() envelope: EventEnvelope<UserPayload>) {
+    this.logger.log(
+      `Received user.deleted: ${JSON.stringify(envelope.payload)}`,
+    );
   }
 }
