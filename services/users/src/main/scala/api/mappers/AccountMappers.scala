@@ -9,12 +9,22 @@ object AccountMappers:
     def toAccountDTO: AccountDTO =
       AccountDTO(
         username = account.username,
-        email = account.email
+        email = account.email,
+        darkMode = account.darkMode,
+        language = account.language,
+        gender = account.gender,
+        birthDate = account.birthDate,
+        interests = account.interests
       )
 
   extension (account: OrganizationAccount)
     def toAccountDTO: AccountDTO =
       AccountDTO(
         username = account.username,
-        email = account.email
+        email = account.email,
+        darkMode = account.darkMode,
+        language = account.language,
+        gender = None,
+        birthDate = None,
+        interests = account.interests
       )

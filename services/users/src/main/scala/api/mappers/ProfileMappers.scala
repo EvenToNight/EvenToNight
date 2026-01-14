@@ -8,11 +8,17 @@ object ProfileMappers:
   extension (profile: MemberProfile)
     def toProfileDTO: ProfileDTO =
       ProfileDTO(
-        name = profile.name
+        name = profile.name,
+        avatar = profile.avatar,
+        bio = profile.bio,
+        contacts = None
       )
 
   extension (profile: OrganizationProfile)
     def toProfileDTO: ProfileDTO =
       ProfileDTO(
-        name = profile.name
+        name = profile.name,
+        avatar = profile.avatar,
+        bio = profile.bio,
+        contacts = profile.contacts
       )

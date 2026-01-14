@@ -3,7 +3,17 @@ package api.dto
 import io.circe.Encoder
 import io.circe.generic.semiauto._
 
-case class AccountDTO(username: String, email: String)
+import java.time.Instant
+
+case class AccountDTO(
+    username: String,
+    email: String,
+    darkMode: Boolean,
+    language: String,
+    gender: Option[String],
+    birthDate: Option[Instant],
+    interests: Option[List[String]]
+)
 
 object AccountDTO:
-  given Encoder[AccountDTO] = deriveEncoder
+  given Encoder[AccountDTO] = deriveEncoder[AccountDTO].mapJson(_.dropNullValues)
