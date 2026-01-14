@@ -28,3 +28,19 @@ class KeycloakConnection(backend: SttpBackend[Identity, Any]):
         case StatusCode.Forbidden    => Left(s"Client not allowed: $body")
         case other                   => Left(s"Unexpected Keycloak status: $other")
     )
+
+  def sendLogoutRequest(form: Map[String, String]): Either[String, Unit] =
+    val logoutUri = oidcBaseUri.addPath("logout")
+    val request = basicRequest
+      .post(logoutUri)
+      .body(form)
+      .header("Content-Type", "application/x-www-form-urlencoded")
+      .response(asStringAlways)
+
+    val responseOrError = sendRequest(request)
+    responseOrError.flatMap(response =>
+      response.code match
+        case StatusCode.NoContent  => Right(())
+        case StatusCode.BadRequest => Left("Invalid refresh token")
+        case _                     => Left(s"Failed to revoke refresh token: ${response.body}")
+    )

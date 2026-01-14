@@ -5,6 +5,7 @@ import cask.Response
 import infrastructure.keycloak.KeycloakJwtVerifier.extractUserId
 import infrastructure.keycloak.KeycloakJwtVerifier.refreshPublicKeys
 import model.LoginValidation._
+import model.LogoutRequestParser.parseLogoutRequest
 import model.TokenRefresh.parseRefreshRequest
 import model.UsersConversions.asJson
 import model.api.mappers.Mappers.toLoginDTO
@@ -85,6 +86,15 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
           case Left(err) => Response(s"Token refresh failed: $err", 401)
           case Right(userTokens) =>
             Response(write(userTokens), 200)
+
+  @cask.post("/logout")
+  def logout(req: Request): Response[String] =
+    parseLogoutRequest(req) match
+      case Left(err) => Response(err, 400)
+      case Right(logoutReq) =>
+        authService.logoutLocal(logoutReq.refreshToken) match
+          case Left(err) => Response(s"Logout failed: $err", 500)
+          case Right(_)  => Response("", 204)
 
   initialize()
 }

@@ -33,3 +33,12 @@ class KeycloakTokenClient(tokenService: KeycloakTokenService, clientId: String, 
       ),
       refreshToken
     )
+
+  def revokeRefreshToken(refreshToken: String): Either[String, Unit] =
+    tokenService.requestRefreshTokenRevocation(
+      Map(
+        "client_id"     -> clientId,
+        "client_secret" -> clientSecret,
+        "refresh_token" -> refreshToken
+      )
+    )

@@ -23,3 +23,6 @@ class AuthenticationService(
 
   def refresh(refreshToken: String): Either[String, UserTokens] =
     keycloakTokenClient.refreshUserTokens(refreshToken)
+
+  def logoutLocal(refreshToken: String): Either[String, Unit] =
+    keycloakTokenClient.revokeRefreshToken(refreshToken)

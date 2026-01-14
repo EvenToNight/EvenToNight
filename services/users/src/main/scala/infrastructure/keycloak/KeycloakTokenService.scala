@@ -26,3 +26,6 @@ class KeycloakTokenService(connection: KeycloakConnection):
         parseUserTokens(json, Some(oldRefreshToken))
       )
     )
+
+  def requestRefreshTokenRevocation(form: Map[String, String]): Either[String, Unit] =
+    connection.sendLogoutRequest(form)
