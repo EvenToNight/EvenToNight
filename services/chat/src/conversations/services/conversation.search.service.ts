@@ -65,20 +65,39 @@ export class ConversationSearchService {
     participants: any[],
     userId: string,
   ): Promise<(ConversationListItemDTO | null)[]> {
+    if (participants.length === 0) return [];
+
+    const conversationIds = participants
+      .map((p) => p.conversationId?._id)
+      .filter(Boolean);
+
+    if (conversationIds.length === 0) return [];
+
+    const lastMessages = await this.findLastMessages(conversationIds);
+    const lastMessageMap = new Map(
+      lastMessages.map((msg) => [msg.conversationId.toString(), msg]),
+    );
+
+    const partnerParticipants = await this.findPartnerParticipants(
+      conversationIds,
+      userId,
+    );
+    const partnerMap = new Map(
+      partnerParticipants.map((p) => [p.conversationId.toString(), p]),
+    );
+
     return Promise.all(
       participants.map(async (participant) => {
         const conversation = participant.conversationId;
         if (!conversation) return null;
 
-        const lastMessage = await this.findLastMessage(conversation._id);
-        const partnerParticipant = await this.findPartnerParticipant(
-          conversation._id,
-          userId,
-        );
+        const conversationIdStr = conversation._id.toString();
+        const lastMessage = lastMessageMap.get(conversationIdStr);
+        const partnerParticipant = partnerMap.get(conversationIdStr);
 
         if (!partnerParticipant) return null;
 
-        return this.dataMapperService.buildSearchResultItem(
+        return await this.dataMapperService.buildSearchResultItem(
           conversation,
           participant,
           partnerParticipant,
@@ -89,24 +108,49 @@ export class ConversationSearchService {
     );
   }
 
-  private async findLastMessage(conversationId: Types.ObjectId): Promise<any> {
+  private async findLastMessages(
+    conversationIds: Types.ObjectId[],
+  ): Promise<any[]> {
     return this.messageModel
-      .findOne({ conversationId })
-      .sort({ createdAt: -1 })
-      .select('content senderId createdAt')
+      .aggregate([
+        {
+          $match: { conversationId: { $in: conversationIds } },
+        },
+        {
+          $sort: { createdAt: -1 },
+        },
+        {
+          $group: {
+            _id: '$conversationId',
+            content: { $first: '$content' },
+            senderId: { $first: '$senderId' },
+            createdAt: { $first: '$createdAt' },
+            conversationId: { $first: '$conversationId' },
+          },
+        },
+        {
+          $project: {
+            _id: 0,
+            content: 1,
+            senderId: 1,
+            createdAt: 1,
+            conversationId: 1,
+          },
+        },
+      ])
       .exec();
   }
 
-  private async findPartnerParticipant(
-    conversationId: Types.ObjectId,
+  private async findPartnerParticipants(
+    conversationIds: Types.ObjectId[],
     userId: string,
-  ): Promise<any> {
+  ): Promise<any[]> {
     return this.participantModel
-      .findOne({
-        conversationId,
+      .find({
+        conversationId: { $in: conversationIds },
         userId: { $ne: userId },
       })
-      .select('userId userName role')
+      .select('userId userName role conversationId')
       .exec();
   }
 }

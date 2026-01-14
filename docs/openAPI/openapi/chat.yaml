@@ -180,6 +180,7 @@ paths:
                       properties:
                         id:
                           type: string
+                          nullable: true
                           example: "conv123"
                         organization:
                           type: object
