@@ -5,6 +5,11 @@ import { Ticket } from '../../../domain/aggregates/ticket.aggregate';
 import { TicketRepository } from '../../../domain/repositories/ticket.repository.interface';
 import { TicketMapper } from '../mappers/ticket.mapper';
 import { TicketDocument } from '../schemas/ticket.schema';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/tickets/domain/types/pagination.types';
+import { Pagination } from 'src/tickets/utils/pagination.utils';
 
 @Injectable()
 export class TicketRepositoryImpl implements TicketRepository {
@@ -25,20 +30,38 @@ export class TicketRepositoryImpl implements TicketRepository {
     return document ? TicketMapper.toDomain(document) : null;
   }
 
-  async findByUserId(userId: string): Promise<Ticket[]> {
+  async findByUserId(
+    userId: string,
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResult<Ticket>> {
+    const totalItems = await this.ticketModel.countDocuments({ userId }).exec();
+    pagination = Pagination.parse(pagination?.limit, pagination?.offset);
     const documents = await this.ticketModel
       .find({ userId })
       .sort({ purchaseDate: -1 })
+      .limit(pagination.limit)
+      .skip(pagination.offset)
       .exec();
-    return documents.map((doc) => TicketMapper.toDomain(doc));
+    const items = documents.map((doc) => TicketMapper.toDomain(doc));
+    return Pagination.createResult(items, totalItems, pagination);
   }
 
-  async findByEventId(eventId: string): Promise<Ticket[]> {
+  async findByEventId(
+    eventId: string,
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResult<Ticket>> {
+    const totalItems = await this.ticketModel
+      .countDocuments({ eventId })
+      .exec();
+    pagination = Pagination.parse(pagination?.limit, pagination?.offset);
     const documents = await this.ticketModel
       .find({ eventId })
       .sort({ purchaseDate: -1 })
+      .limit(pagination.limit)
+      .skip(pagination.offset)
       .exec();
-    return documents.map((doc) => TicketMapper.toDomain(doc));
+    const items = documents.map((doc) => TicketMapper.toDomain(doc));
+    return Pagination.createResult(items, totalItems, pagination);
   }
 
   async update(ticket: Ticket): Promise<Ticket> {

@@ -3,6 +3,10 @@ import { Inject } from '@nestjs/common';
 import type { TicketRepository } from 'src/tickets/domain/repositories/ticket.repository.interface';
 import { TICKET_REPOSITORY } from 'src/tickets/domain/repositories/ticket.repository.interface';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/tickets/domain/types/pagination.types';
 
 @Injectable()
 export class TicketService {
@@ -23,5 +27,12 @@ export class TicketService {
 
   findById(id: string): Promise<Ticket | null> {
     return this.ticketRepository.findById(id);
+  }
+
+  findByUserId(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<PaginatedResult<Ticket>> {
+    return this.ticketRepository.findByUserId(userId, pagination);
   }
 }
