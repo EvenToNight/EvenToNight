@@ -1,15 +1,16 @@
-package model.api.dto
+package api.dto
 
-import model.api.dto.AccountDTO
-import model.api.dto.ProfileDTO
-import upickle.default.Writer
-import upickle.default.macroW
+import api.dto.AccountDTO
+import api.dto.ProfileDTO
+import io.circe.Encoder
+import io.circe.generic.semiauto._
 
 case class LoginResponseDTO(
     accessToken: String,
     expiresIn: Long,
     refreshToken: String,
     refreshExpiresIn: Long,
+    role: String,
     account: AccountDTO,
     profile: ProfileDTO
 )
@@ -17,4 +18,4 @@ case class LoginResponseDTO(
 object LoginResponseDTO:
   import AccountDTO.given
   import ProfileDTO.given
-  given Writer[LoginResponseDTO] = macroW
+  given Encoder[LoginResponseDTO] = deriveEncoder

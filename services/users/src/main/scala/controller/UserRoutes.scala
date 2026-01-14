@@ -1,19 +1,18 @@
 package controller
 
+import api.mappers.TokenMappers._
+import api.mappers.UserMappers._
 import cask.Request
 import cask.Response
 import infrastructure.keycloak.KeycloakJwtVerifier.extractUserId
 import infrastructure.keycloak.KeycloakJwtVerifier.refreshPublicKeys
+import io.circe.syntax._
 import model.LoginValidation._
 import model.LogoutRequestParser.parseLogoutRequest
 import model.TokenRefresh.parseRefreshRequest
-import model.UsersConversions.asJson
-import model.api.mappers.Mappers.toLoginDTO
 import model.registration.UserRegistration._
 import service.AuthenticationService
 import service.UserService
-import ujson.Value
-import upickle.default._
 
 class UserRoutes(userService: UserService, authService: AuthenticationService) extends cask.Routes {
   @cask.post("/register")
@@ -33,8 +32,8 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
                 authService.login(validReq.username, validReq.password) match
                   case Left(err) => Response(s"User created but login failed: $err", 500)
                   case Right(userTokens) =>
-                    val dto = registeredUser.toLoginDTO(userTokens)
-                    Response(write(dto), 201)
+                    val dto = registeredUser.toLoginDTO(userTokens, validReq.role)
+                    Response(dto.asJson.spaces2, 201, Seq("Content-Type" -> "application/json"))
 
   @cask.post("/login")
   def login(req: Request): Response[String] =
@@ -54,28 +53,34 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
                   case Right(userId) =>
                     userService.getUserById(userId) match
                       case Left(err) => Response(err, 404)
-                      case Right(user) =>
-                        val dto = user.toLoginDTO(userTokens)
-                        Response(write(dto), 200)
+                      case Right(role, user) =>
+                        val dto = user.toLoginDTO(userTokens, role)
+                        Response(dto.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.get("/:userId")
-  def getUser(userId: String): Response[Value] =
+  def getUser(userId: String): Response[String] =
     userService.getUserById(userId) match
-      case Left(err)   => Response(err, 404)
-      case Right(user) => Response(user.asJson, 200)
+      case Left(err) => Response(err, 404)
+      case Right(role, user) =>
+        val dto = user.toUserDTO(role)
+        Response(dto.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.get("/")
-  def getAllUsers(): Response[Value] =
+  def getAllUsers(): Response[String] =
     userService.getUsers() match
-      case Left(err)    => Response(err, 400)
-      case Right(users) => Response(users.map(user => user.asJson), 200)
+      case Left(err) => Response(err, 400)
+      case Right(users) =>
+        val dtoList = users.map { case (role, user) =>
+          user.toUserDTO(role)
+        }
+        Response(dtoList.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.get("/publicKeys")
   def getPublicKeys(): Response[String] =
     refreshPublicKeys() match
       case Left(_) => Response("Failed to refresh public keys", 500)
       case Right(json) =>
-        Response(json.noSpaces, 200)
+        Response(json.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.post("/refresh")
   def refreshTokens(req: Request): Response[String] =
@@ -85,7 +90,8 @@ class UserRoutes(userService: UserService, authService: AuthenticationService) e
         authService.refresh(refreshReq.refreshToken) match
           case Left(err) => Response(s"Token refresh failed: $err", 401)
           case Right(userTokens) =>
-            Response(write(userTokens), 200)
+            val dto = userTokens.toTokensDTO
+            Response(dto.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.post("/logout")
   def logout(req: Request): Response[String] =

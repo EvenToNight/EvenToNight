@@ -14,8 +14,8 @@ class AuthenticationService(
       accessToken <- keycloakTokenClient.getClientAccessToken()
       (keycloakId, userId) <-
         adminApi.createUser(accessToken, registration.username, registration.email, registration.password)
-      roleId <- roleIds.get(registration.userType).toRight(s"Role '${registration.userType}' not initialized")
-      _      <- adminApi.assignRealmRoleToUser(accessToken, keycloakId, roleId, registration.userType)
+      roleId <- roleIds.get(registration.role).toRight(s"Role '${registration.role}' not initialized")
+      _      <- adminApi.assignRealmRoleToUser(accessToken, keycloakId, roleId, registration.role)
     yield userId
 
   def login(usernameOrEmail: String, password: String): Either[String, UserTokens] =
