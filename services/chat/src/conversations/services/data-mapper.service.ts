@@ -22,27 +22,46 @@ export class DataMapperService {
   async buildConversationListItems(
     participants: any[],
   ): Promise<ConversationListItemDTO[]> {
-    return Promise.all(
-      participants.map(async (participant) => {
-        const conversation = participant.conversationId;
-        const lastMessage = await this.findLastMessage(conversation._id);
-        const [orgInfo, memberInfo] = await this.fetchUsersInfo(
-          conversation.organizationId,
-          conversation.memberId,
-        );
+    const conversationIds = participants.map((p) => p.conversationId._id);
+    const userIdsSet = new Set<string>();
+    participants.forEach((p) => {
+      userIdsSet.add(p.conversationId.organizationId);
+      userIdsSet.add(p.conversationId.memberId);
+    });
+    const userIds = Array.from(userIdsSet);
 
-        return {
-          id: conversation._id.toString(),
-          organization: this.buildUserInfo(
-            conversation.organizationId,
-            orgInfo,
-          ),
-          member: this.buildUserInfo(conversation.memberId, memberInfo),
-          lastMessage: this.buildLastMessageInfo(lastMessage),
-          unreadCount: participant.unreadCount,
-        };
-      }),
+    const lastMessages = await this.messageModel.aggregate([
+      { $match: { conversationId: { $in: conversationIds } } },
+      { $sort: { createdAt: -1 } },
+      {
+        $group: {
+          _id: '$conversationId',
+          content: { $first: '$content' },
+          senderId: { $first: '$senderId' },
+          createdAt: { $first: '$createdAt' },
+        },
+      },
+    ]);
+    const lastMessageMap = new Map(
+      lastMessages.map((msg) => [String(msg._id), msg]),
     );
+
+    const usersInfoArr = await this.fetchMultipleUsersInfo(userIds);
+    const usersInfoMap = new Map(usersInfoArr.map((u) => [u.userId, u]));
+
+    return participants.map((participant) => {
+      const conversation = participant.conversationId;
+      const lastMessage = lastMessageMap.get(String(conversation._id));
+      const orgInfo = usersInfoMap.get(conversation.organizationId);
+      const memberInfo = usersInfoMap.get(conversation.memberId);
+      return {
+        id: conversation._id.toString(),
+        organization: this.buildUserInfo(conversation.organizationId, orgInfo),
+        member: this.buildUserInfo(conversation.memberId, memberInfo),
+        lastMessage: this.buildLastMessageInfo(lastMessage),
+        unreadCount: participant.unreadCount,
+      };
+    });
   }
 
   async buildConversationDetail(
@@ -146,7 +165,7 @@ export class DataMapperService {
     const myUserInfo = await this.usersService.getUserInfo(userId);
 
     return users.map((user) => ({
-      id: '',
+      id: null,
       organization: this.buildSuggestionUserInfo(
         user,
         UserRole.ORGANIZATION,

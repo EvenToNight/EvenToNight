@@ -50,8 +50,6 @@ export class UserSuggestionService {
       userId,
     );
 
-    console.log('Get suggested users', suggestions);
-
     return {
       items: suggestions,
       limit: options.limit,
@@ -75,7 +73,11 @@ export class UserSuggestionService {
     }
 
     if (options.recipientId) {
-      userQuery.userId = { $regex: `^${options.recipientId}`, $options: 'i' };
+      userQuery.userId = {
+        ...userQuery.userId,
+        $regex: `^${options.recipientId}`,
+        $options: 'i',
+      };
     }
 
     return this.usersService.searchUsers(userQuery);

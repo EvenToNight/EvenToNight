@@ -99,6 +99,7 @@ paths:
                               example: "https://example.com/member_avatar.png"
                         lastMessage:
                           type: object
+                          nullable: true
                           properties:
                             content:
                               type: string

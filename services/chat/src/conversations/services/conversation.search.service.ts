@@ -25,7 +25,11 @@ export class ConversationSearchService {
     }
 
     if (recipientId) {
-      partnerQuery.userId = { $regex: `^${recipientId}`, $options: 'i' };
+      partnerQuery.userId = {
+        ...partnerQuery.userId,
+        $regex: `^${recipientId}`,
+        $options: 'i',
+      };
     }
 
     const partners = await this.participantModel

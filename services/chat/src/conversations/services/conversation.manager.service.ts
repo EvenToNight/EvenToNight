@@ -78,7 +78,7 @@ export class ConversationManagerService {
     const orgParticipant = new this.participantModel({
       conversationId,
       userId: organizationId,
-      userName: orgName || 'Organization',
+      userName: orgName || 'Unknown User',
       role: ParticipantRole.ORGANIZATION,
       unreadCount: 0,
       lastReadAt: new Date(),
@@ -87,7 +87,7 @@ export class ConversationManagerService {
     const memberParticipant = new this.participantModel({
       conversationId,
       userId: memberId,
-      userName: memberName || 'Member',
+      userName: memberName || 'Unknown User',
       role: ParticipantRole.MEMBER,
       unreadCount: 0,
       lastReadAt: new Date(),
