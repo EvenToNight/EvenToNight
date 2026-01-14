@@ -12,12 +12,18 @@ import {
   TicketDocument,
   TicketSchema,
 } from './infrastructure/persistence/schemas/ticket.schema';
+import {
+  OrderDocument,
+  OrderSchema,
+} from './infrastructure/persistence/schemas/order.schema';
 
 // Repositories
 import { EventTicketTypeRepositoryImpl } from './infrastructure/persistence/repositories/event-ticket-type.repository';
 import { EVENT_TICKET_TYPE_REPOSITORY } from './domain/repositories/event-ticket-type.repository.interface';
 import { TicketRepositoryImpl } from './infrastructure/persistence/repositories/ticket.repository';
 import { TICKET_REPOSITORY } from './domain/repositories/ticket.repository.interface';
+import { OrderRepositoryImpl } from './infrastructure/persistence/repositories/order.repository';
+import { ORDER_REPOSITORY } from './domain/repositories/order.repository.interface';
 
 // Handlers
 import { CreateEventTicketTypeHandler } from './application/handlers/create-event-ticket-type.handler';
@@ -35,7 +41,8 @@ import { TransactionManager } from './infrastructure/database/transaction.manage
 import { EventTicketTypesController } from './presentation/controllers/event-ticket-types.controller';
 import { CheckoutSessionsController } from './presentation/controllers/checkout-sessions.controller';
 import { MockedCheckoutWebhookController } from './presentation/controllers/mocked-checkout-webhook.controller';
-// import { TicketsController } from './presentation/controllers/tickets.controller';
+import { TicketsController } from './presentation/controllers/tickets.controller';
+import { OrderController } from './presentation/controllers/order-controller';
 import { PdfService } from './application/services/pdf.service';
 
 @Module({
@@ -45,13 +52,15 @@ import { PdfService } from './application/services/pdf.service';
     MongooseModule.forFeature([
       { name: EventTicketTypeDocument.name, schema: EventTicketTypeSchema },
       { name: TicketDocument.name, schema: TicketSchema },
+      { name: OrderDocument.name, schema: OrderSchema },
     ]),
   ],
   controllers: [
     EventTicketTypesController,
     CheckoutSessionsController,
     MockedCheckoutWebhookController,
-    // TicketsController,
+    TicketsController,
+    OrderController,
   ],
   providers: [
     // Repositories
@@ -62,6 +71,10 @@ import { PdfService } from './application/services/pdf.service';
     {
       provide: TICKET_REPOSITORY,
       useClass: TicketRepositoryImpl,
+    },
+    {
+      provide: ORDER_REPOSITORY,
+      useClass: OrderRepositoryImpl,
     },
 
     // Use Case Handlers
@@ -79,6 +92,6 @@ import { PdfService } from './application/services/pdf.service';
     // Services
     PdfService,
   ],
-  exports: [EVENT_TICKET_TYPE_REPOSITORY],
+  exports: [EVENT_TICKET_TYPE_REPOSITORY, ORDER_REPOSITORY],
 })
 export class TicketsModule {}
