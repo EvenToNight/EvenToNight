@@ -1,7 +1,7 @@
 import { ConversationID, UserID } from '../types';
 
-export interface ConversationListItemDTO {
-  id: ConversationID | null;
+export interface ConversationDetailDTO {
+  id: ConversationID;
   organization: {
     id: UserID;
     name: string;
@@ -12,10 +12,6 @@ export interface ConversationListItemDTO {
     name: string;
     avatar: string;
   };
-  lastMessage: {
-    content: string;
-    senderId: UserID;
-    timestamp: Date;
-  } | null;
-  unreadCount: number;
+  createdAt: Date;
+  updatedAt: Date;
 }
