@@ -72,9 +72,9 @@ SESSION_RESPONSE=$(curl -s -X POST "$BASE_URL/checkout-sessions" \
 echo "$SESSION_RESPONSE"
 echo "$SESSION_RESPONSE" | jq '.'
 SESSION_ID=$(echo "$SESSION_RESPONSE" | jq -r '.sessionId')
-TICKET_IDS=$(echo "$SESSION_RESPONSE" | jq -c '.reservedTicketIds')
+ORDER_ID=$(echo "$SESSION_RESPONSE" | jq -r '.orderId')
 echo -e "${GREEN}✓ Created checkout session: $SESSION_ID${NC}"
-echo -e "${GREEN}  Reserved ticket IDs: $TICKET_IDS${NC}"
+echo -e "${GREEN}  Created order ID: $ORDER_ID${NC}"
 echo ""
 
 
@@ -86,21 +86,20 @@ if [ "$ENV" != "prod" ]; then
     -H "Content-Type: application/json" \
     -d "{
       \"sessionId\": \"$SESSION_ID\",
-      \"ticketIds\": $TICKET_IDS
+      \"orderId\": \"$ORDER_ID\"
     }")
 
   echo "$RESPONSE" | jq '.'
   echo -e "${GREEN}✓ Mock checkout completed webhook sent${NC}"
-  # 9. Download ticket PDF
-  FIRST_TICKET_ID=$(echo "$TICKET_IDS" | jq -r '.[0]')
-  if [ -z "$FIRST_TICKET_ID" ] || [ "$FIRST_TICKET_ID" = "null" ]; then
-    echo -e "${RED}No ticket id available to download PDF${NC}"
+  # 9. Download order PDF
+  if [ -z "$ORDER_ID" ] || [ "$ORDER_ID" = "null" ]; then
+    echo -e "${RED}No order id available to download PDF${NC}"
   else
-    OUT_FILE="ticket-${FIRST_TICKET_ID}.pdf"
-    if curl -s -f -H "Accept: application/pdf" -o "$OUT_FILE" "$BASE_URL/tickets/$FIRST_TICKET_ID/pdf"; then
+    OUT_FILE="order-${ORDER_ID}.pdf"
+    if curl -s -f -H "Accept: application/pdf" -o "$OUT_FILE" "$BASE_URL/orders/$ORDER_ID/pdf"; then
       echo -e "${GREEN}✓ Saved PDF to: $OUT_FILE${NC}"
     else
-      echo -e "${RED}✗ Failed to download PDF for ticket: $FIRST_TICKET_ID${NC}"
+      echo -e "${RED}✗ Failed to download PDF for order: $ORDER_ID${NC}"
     fi
   fi
   echo ""

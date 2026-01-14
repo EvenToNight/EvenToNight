@@ -17,4 +17,8 @@ export class OrderService {
     await this.orderRepository.save(order);
     return order;
   }
+
+  async findById(id: string): Promise<Order | null> {
+    return this.orderRepository.findById(id);
+  }
 }

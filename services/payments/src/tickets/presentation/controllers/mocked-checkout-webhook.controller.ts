@@ -34,13 +34,13 @@ export class MockedCheckoutWebhookController {
       );
 
       this.logger.log(
-        `✅ Mock checkout completed event published for ${dto.ticketIds.length} tickets`,
+        `✅ Mock checkout completed event published for order with id ${dto.orderId}`,
       );
 
       return {
         success: true,
         message: 'Mock checkout completed',
-        ticketIds: dto.ticketIds,
+        orderId: dto.orderId,
       };
     } catch (error) {
       this.logger.error('Failed to process mock checkout', error);

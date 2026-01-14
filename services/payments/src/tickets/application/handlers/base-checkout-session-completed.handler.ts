@@ -6,6 +6,7 @@ import { TICKET_REPOSITORY } from '../../domain/repositories/ticket.repository.i
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
 import { EventPublisher } from '../../../commons/intrastructure/messaging/event-publisher';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
+import { OrderService } from '../services/order.service';
 
 @EventsHandler(BaseCheckoutSessionCompletedEvent)
 export class BaseCheckoutSessionCompletedHandler implements IEventHandler<BaseCheckoutSessionCompletedEvent> {
@@ -17,6 +18,7 @@ export class BaseCheckoutSessionCompletedHandler implements IEventHandler<BaseCh
     @Inject(TICKET_REPOSITORY)
     private readonly ticketRepository: TicketRepository,
     private readonly transactionManager: TransactionManager,
+    private readonly orderService: OrderService,
     private readonly eventPublisher: EventPublisher,
   ) {}
 
@@ -51,10 +53,17 @@ export class BaseCheckoutSessionCompletedHandler implements IEventHandler<BaseCh
     this.logger.log(
       `Handling checkout session completed: ${event.payload.sessionId}`,
     );
-    const { ticketIds } = event.payload;
-
+    const { orderId } = event.payload;
+    const order = await this.orderService.findById(orderId);
+    //TODO handle order not found
+    if (!order) {
+      this.logger.warn(`Order ${orderId} not found`);
+      throw new Error(`Order ${orderId} not found`);
+    }
     try {
-      const confirmedTickets = await this.confirmTicketPayment(ticketIds);
+      const confirmedTickets = await this.confirmTicketPayment(
+        order.getTicketIds(),
+      );
       this.logger.log(
         `Successfully confirmed ${confirmedTickets.length} tickets for session ${event.payload.sessionId}`,
       );
