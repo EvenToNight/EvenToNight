@@ -35,13 +35,6 @@ export class TicketsController {
         purchaseDate: ticket.getPurchaseDate(),
         priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
       },
-      {
-        ticketId: ticket.getId(),
-        eventId: ticket.getEventId().toString(),
-        attendeeName: ticket.getAttendeeName(),
-        purchaseDate: ticket.getPurchaseDate(),
-        priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
-      },
     ]);
 
     res.setHeader('Content-Type', 'application/pdf');

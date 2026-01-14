@@ -14,4 +14,14 @@ export class TicketService {
   save(ticket: Ticket): Promise<Ticket> {
     return this.ticketRepository.save(ticket);
   }
+
+  findByIds(ticketIds: string[]): Promise<Ticket[]> {
+    return Promise.all(
+      ticketIds.map((id) => this.ticketRepository.findById(id)),
+    ).then((tickets) => tickets.filter((t): t is Ticket => t !== null));
+  }
+
+  findById(id: string): Promise<Ticket | null> {
+    return this.ticketRepository.findById(id);
+  }
 }

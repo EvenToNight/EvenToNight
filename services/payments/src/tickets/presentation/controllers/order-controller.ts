@@ -1,20 +1,15 @@
 import { Controller, Get, Param, Res, NotFoundException } from '@nestjs/common';
 import type { Response } from 'express';
 import { PdfService } from '../../application/services/pdf.service';
-import { Inject } from '@nestjs/common';
-import { ORDER_REPOSITORY } from 'src/tickets/domain/repositories/order.repository.interface';
-import type { OrderRepository } from 'src/tickets/domain/repositories/order.repository.interface';
-import { TICKET_REPOSITORY } from 'src/tickets/domain/repositories/ticket.repository.interface';
-import type { TicketRepository } from 'src/tickets/domain/repositories/ticket.repository.interface';
+import { TicketService } from 'src/tickets/application/services/ticket.service';
+import { OrderService } from 'src/tickets/application/services/order.service';
 
 @Controller('orders')
 export class OrderController {
   constructor(
     private readonly pdfService: PdfService,
-    @Inject(ORDER_REPOSITORY)
-    private readonly orderRepository: OrderRepository,
-    @Inject(TICKET_REPOSITORY)
-    private readonly ticketRepository: TicketRepository,
+    private readonly orderService: OrderService,
+    private readonly ticketService: TicketService,
   ) {}
 
   /**
@@ -23,26 +18,14 @@ export class OrderController {
    */
   @Get(':orderId/pdf')
   async getOrderPdf(@Param('orderId') orderId: string, @Res() res: Response) {
-    const order = await this.orderRepository.findById(orderId);
+    const order = await this.orderService.findById(orderId);
     if (!order) {
       throw new NotFoundException('Order not found');
     }
-
-    // Recupera tutti i ticket dell'ordine
     const ticketIds = order.getTicketIds();
-    const tickets = await Promise.all(
-      ticketIds.map((id) => this.ticketRepository.findById(id)),
-    );
+    const tickets = await this.ticketService.findByIds(ticketIds);
 
-    // Filtra ticket null (se qualcuno non esiste)
-    const validTickets = tickets.filter((t) => t !== null);
-
-    if (validTickets.length === 0) {
-      throw new NotFoundException('No tickets found for this order');
-    }
-
-    // Prepara i dati per il PDF
-    const ticketPdfData = validTickets.map((ticket) => ({
+    const ticketPdfData = tickets.map((ticket) => ({
       ticketId: ticket.getId(),
       eventId: ticket.getEventId().toString(),
       attendeeName: ticket.getAttendeeName(),
@@ -50,7 +33,6 @@ export class OrderController {
       priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
     }));
 
-    // Genera PDF con tutti i ticket
     const buffer = await this.pdfService.generateTicketsPdf(ticketPdfData);
 
     res.setHeader('Content-Type', 'application/pdf');
