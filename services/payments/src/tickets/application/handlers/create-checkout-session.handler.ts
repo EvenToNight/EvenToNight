@@ -1,10 +1,6 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Ticket } from '../../domain/aggregates/ticket.aggregate';
 import { UserId } from '../../domain/value-objects/user-id.vo';
-import type { TicketRepository } from '../../domain/repositories/ticket.repository.interface';
-import { TICKET_REPOSITORY } from '../../domain/repositories/ticket.repository.interface';
-import type { EventTicketTypeRepository } from '../../domain/repositories/event-ticket-type.repository.interface';
-import { EVENT_TICKET_TYPE_REPOSITORY } from '../../domain/repositories/event-ticket-type.repository.interface';
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
 import {
   CreateCheckoutSessionDto,
@@ -15,6 +11,9 @@ import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type
 import { ClientSession } from 'mongoose';
 import { StripeService } from 'src/payments/infrastructure/stripe/stripe.service';
 import { CheckoutSessionLineItem } from 'src/payments/infrastructure/stripe/stripe.service';
+import { EventTicketTypeService } from '../services/event-ticket-type.service';
+import { TicketService } from '../services/ticket.service';
+import { OrderService } from '../services/order.service';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -28,19 +27,18 @@ type LineItemsMap = Map<string, LineItem>;
 export class CreateCheckoutSessionHandler {
   private readonly isDev = process.env.NODE_ENV === 'development';
   constructor(
-    @Inject(TICKET_REPOSITORY)
-    private readonly ticketRepository: TicketRepository,
-    @Inject(EVENT_TICKET_TYPE_REPOSITORY)
-    private readonly ticketTypeRepository: EventTicketTypeRepository,
     private readonly transactionManager: TransactionManager,
     private readonly stripeService: StripeService,
+    private readonly ticketTypeService: EventTicketTypeService,
+    private readonly ticketService: TicketService,
+    private readonly orderService: OrderService,
   ) {}
 
   private async getTicketTypeWithLock(
     ticketTypeId: string,
     session: ClientSession,
   ): Promise<EventTicketType> {
-    const ticketType = await this.ticketTypeRepository.findByIdWithLock(
+    const ticketType = await this.ticketTypeService.findTicketTypeByIdWithLock(
       ticketTypeId,
       session,
     );
@@ -83,12 +81,12 @@ export class CreateCheckoutSessionHandler {
         }
 
         for (const ticketType of ticketTypeMap.values()) {
-          await this.ticketTypeRepository.update(ticketType);
+          await this.ticketTypeService.update(ticketType);
         }
 
         const savedTickets: Ticket[] = [];
         for (const ticket of tickets) {
-          const saved = await this.ticketRepository.save(ticket);
+          const saved = await this.ticketService.save(ticket);
           savedTickets.push(saved);
         }
 
@@ -155,15 +153,21 @@ export class CreateCheckoutSessionHandler {
       .ticketType.getEventId()
       .toString();
 
+    const order = await this.orderService.createOrder(
+      UserId.fromString(dto.userId),
+      ticketIds,
+    );
+
     if (this.isDev) {
       const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/checkout-webhook/completed`;
       return {
         sessionId: 'cs_test_dev_session',
         redirectUrl: tempWebHook,
         expiresAt: Date.now() + 3600,
-        reservedTicketIds: ticketIds,
+        orderId: order.getId(),
       };
     }
+
     const session = await this.stripeService.createCheckoutSessionWithItems({
       userId: dto.userId,
       lineItems,
@@ -183,7 +187,7 @@ export class CreateCheckoutSessionHandler {
       sessionId: session.id,
       redirectUrl: session.url!,
       expiresAt: session.expires_at,
-      reservedTicketIds: ticketIds,
+      orderId: order.getId(),
     };
   }
 }

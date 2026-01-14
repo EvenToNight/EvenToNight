@@ -24,7 +24,6 @@ export class StripeService {
   private readonly stripe: Stripe;
   private readonly webhookSecret: string;
   private readonly logger = new Logger(StripeService.name);
-  private currentSession: Stripe.Checkout.Session | null = null;
   constructor() {
     const apiKey = process.env.STRIPE_SECRET_KEY;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -81,7 +80,6 @@ export class StripeService {
         // Expire session after 30 minutes
         expires_at: Math.floor(Date.now() / 1000) + 30 * 60,
       });
-      this.currentSession = session;
       this.logger.log(
         `Created Stripe checkout session with ${lineItems.length} items: ${session.id}`,
       );

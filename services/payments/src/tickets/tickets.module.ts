@@ -43,7 +43,12 @@ import { CheckoutSessionsController } from './presentation/controllers/checkout-
 import { MockedCheckoutWebhookController } from './presentation/controllers/mocked-checkout-webhook.controller';
 import { TicketsController } from './presentation/controllers/tickets.controller';
 import { OrderController } from './presentation/controllers/order-controller';
+
+// Services
 import { PdfService } from './application/services/pdf.service';
+import { EventTicketTypeService } from './application/services/event-ticket-type.service';
+import { TicketService } from './application/services/ticket.service';
+import { OrderService } from './application/services/order.service';
 
 @Module({
   imports: [
@@ -91,6 +96,9 @@ import { PdfService } from './application/services/pdf.service';
 
     // Services
     PdfService,
+    EventTicketTypeService,
+    TicketService,
+    OrderService,
   ],
   exports: [EVENT_TICKET_TYPE_REPOSITORY, ORDER_REPOSITORY],
 })

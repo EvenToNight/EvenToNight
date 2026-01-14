@@ -51,5 +51,5 @@ export class CheckoutSessionResponseDto {
   sessionId: string;
   redirectUrl: string;
   expiresAt: number;
-  reservedTicketIds: string[];
+  orderId: string;
 }
