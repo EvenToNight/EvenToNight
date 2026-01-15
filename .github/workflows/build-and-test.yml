@@ -19,6 +19,7 @@ jobs:
             echo "POSTGRES_PASSWORD=testpostgrespassword" >> .env
             echo "KEYCLOAK_ADMIN_PASSWORD=testkeycloakadminpassword" >> .env
             echo "USERS_SERVICE_SECRET=testusersservicesecret" >> .env
+            echo "MINIO_PASSWORD=testminiopassword" >> .env
           build-command: ./gradlew clean build --parallel --no-configuration-cache
           java-distribution: temurin
           java-version: '21'
