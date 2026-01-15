@@ -6,15 +6,21 @@ import cask.Request
 import cask.Response
 import infrastructure.keycloak.KeycloakJwtVerifier.extractUserId
 import infrastructure.keycloak.KeycloakJwtVerifier.refreshPublicKeys
+import infrastructure.rabbitmq.EventPublisher
 import io.circe.syntax._
 import model.LoginValidation._
 import model.LogoutRequestParser.parseLogoutRequest
+import model.Member
+import model.Organization
 import model.TokenRefresh.parseRefreshRequest
+import model.events.UserCreated
 import model.registration.UserRegistration._
 import service.AuthenticationService
 import service.UserService
 
 class AuthRoutes(authService: AuthenticationService, userService: UserService) extends cask.Routes {
+  val eventPublisher = EventPublisher() // Set mock = true to use the mock publisher
+
   @cask.post("/login")
   def login(req: Request): Response[String] =
     parseLoginRequest(req) match
@@ -50,6 +56,30 @@ class AuthRoutes(authService: AuthenticationService, userService: UserService) e
               case Right(userId) =>
                 val registeredUser = fromValidRegistration(validReq)
                 userService.insertUser(registeredUser, userId)
+                registeredUser match {
+                  case m: Member =>
+                    eventPublisher.publish(UserCreated(
+                      id = userId,
+                      username = m.account.username,
+                      name = m.profile.name,
+                      email = m.account.email,
+                      avatar = m.profile.avatar,
+                      bio = m.profile.bio,
+                      interests = m.account.interests,
+                      language = m.account.language
+                    ))
+                  case o: Organization =>
+                    eventPublisher.publish(UserCreated(
+                      id = userId,
+                      username = o.account.username,
+                      name = o.profile.name,
+                      email = o.account.email,
+                      avatar = o.profile.avatar,
+                      bio = o.profile.bio,
+                      interests = o.account.interests,
+                      language = o.account.language
+                    ))
+                }
 
                 authService.login(validReq.username, validReq.password) match
                   case Left(err) => Response(s"User created but login failed: $err", 500)
