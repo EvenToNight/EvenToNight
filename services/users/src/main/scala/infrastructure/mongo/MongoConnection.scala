@@ -1,4 +1,4 @@
-package infrastructure
+package infrastructure.mongo
 
 import codec.UserReferencesCodec
 import codec.member.MemberAccountCodec
