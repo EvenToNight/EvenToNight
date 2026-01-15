@@ -24,6 +24,8 @@ import Secret.usersServiceSecret
 import mongo.MongoConnection._
 
 object Wiring:
+  val mediaHost: String    = sys.env.getOrElse("MEDIA_HOST", "localhost") + ":9020"
+  val mediaBaseUrl: String = sys.env.getOrElse("MEDIA_BASE_URL", "localhost:9020")
   val memberReferencesColl: MongoCollection[UserReferences] =
     membersDB.getCollection("member_references", classOf[UserReferences])
   val organizationReferencesColl: MongoCollection[UserReferences] =
