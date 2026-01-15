@@ -86,6 +86,7 @@ tasks.register<ExecTask>("teardownUsersEnvironment") {
     group = "docker"
     dependsOn("teardownDevEnvironment")
     dependsOn("teardownKeycloak")
+    dependsOn("teardownMediaService")
 }
 
 tasks.register<ExecTask>("teardownFrontendEnvironment") {
