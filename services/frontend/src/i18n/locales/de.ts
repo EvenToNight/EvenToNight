@@ -74,6 +74,7 @@ export default {
     organizer: 'Organisiert von',
     collaborators: 'In Zusammenarbeit mit',
     editEvent: 'Bearbeiten',
+    freePrice: 'Frei',
   },
 
   footer: {
@@ -106,7 +107,19 @@ export default {
     noTickets: 'Noch keine Tickets',
     draftedEvents: 'Entworfene Ereignisse',
     noDraftedEvents: 'Sie haben keine geplanten Ereignisse.',
+    reviews: 'Rezensionen',
+    noReviews: 'Noch keine Bewertungen.',
     userAvatarAlt: 'Benutzer-Avatar',
+    leaveReview: 'Hinterlassen Sie eine Bewertung',
+    selectEvent: 'Ereignis auswählen',
+    selectRating: 'Bewertung auswählen:',
+    reviewTitle: 'Titel',
+    reviewTitlePlaceholder: 'Geben Sie Ihrer Rezension einen Titel...',
+    reviewDescription: 'Beschreibung',
+    reviewDescriptionPlaceholder: 'Schreiben Sie Ihre Bewertung...',
+    cancel: 'Stornieren',
+    submit: 'Einreichen',
+    noEventFound: 'Keine Veranstaltung gefunden',
   },
 
   eventCreationForm: {

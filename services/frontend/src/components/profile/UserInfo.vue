@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import type { User } from '@/api/types/users'
 import { useI18n } from 'vue-i18n'
+import type { UserInteractionsInfo } from '@/api/types/interaction'
 
 interface Props {
   user: User
+  userInteractionsInfo: UserInteractionsInfo
 }
 
 defineProps<Props>()
@@ -14,16 +16,26 @@ const { t } = useI18n()
   <div class="user-info">
     <div class="network-info-row">
       <div class="stat-item">
-        <span class="stat-value">{{ user.followers.toString() }}</span>
+        <span class="stat-value">{{ userInteractionsInfo.followers.toString() }}</span>
         <span class="stat-label">{{ t('userProfile.followers') }}</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item">
-        <span class="stat-value">{{ user.following.toString() }}</span>
+        <span class="stat-value">{{ userInteractionsInfo.following.toString() }}</span>
         <span class="stat-label">{{ t('userProfile.following') }}</span>
       </div>
     </div>
     <p v-if="user.bio" class="user-bio">{{ user.bio }}</p>
+    <a
+      v-if="user.website"
+      :href="user.website"
+      target="_blank"
+      rel="noopener noreferrer"
+      class="user-website"
+    >
+      <q-icon name="language" size="18px" />
+      <span>{{ user.website }}</span>
+    </a>
   </div>
 </template>
 
@@ -84,6 +96,34 @@ const { t } = useI18n()
 
   @include dark-mode {
     color: $color-text-dark;
+  }
+}
+
+.user-website {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  font-size: $font-size-sm;
+  color: $color-primary;
+  text-decoration: none;
+  transition: opacity $transition-base;
+
+  @media (max-width: $breakpoint-mobile) {
+    justify-content: center;
+  }
+
+  &:hover {
+    opacity: 0.8;
+
+    span {
+      text-decoration: underline;
+    }
+  }
+
+  span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 </style>

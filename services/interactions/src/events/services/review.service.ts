@@ -2,6 +2,8 @@ import {
   Injectable,
   ConflictException,
   NotFoundException,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -10,11 +12,13 @@ import { CreateReviewDto } from '../dto/create-review.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
 import { UpdateReviewDto } from '../dto/update-review.dto';
 import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
+import { ReviewStatsDto } from '../dto/review-stats.dto';
 
 @Injectable()
 export class ReviewService {
   constructor(
     @InjectModel(Review.name) private reviewModel: Model<Review>,
+    @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
   ) {}
 
@@ -22,13 +26,7 @@ export class ReviewService {
     eventId: string,
     createReviewDto: CreateReviewDto,
   ): Promise<Review> {
-    this.metadataService.validateUser(createReviewDto.userId);
-    this.metadataService.validateEvent(
-      eventId,
-      createReviewDto.organizationId,
-      createReviewDto.collaboratorIds,
-    );
-
+    await this.metadataService.validateReviewAllowed(eventId, createReviewDto);
     const existing = await this.reviewModel.findOne({
       eventId,
       userId: createReviewDto.userId,
@@ -73,71 +71,127 @@ export class ReviewService {
     eventId: string,
     limit?: number,
     offset?: number,
-  ): Promise<PaginatedResponseDto<Review>> {
-    const query = this.reviewModel.find({ eventId });
-    if (offset !== undefined) {
-      query.skip(offset);
-    }
-    if (limit !== undefined) {
-      query.limit(limit);
-    }
-    query.sort({ createdAt: -1 });
-
-    const [items, total] = await Promise.all([
-      query.exec(),
-      this.reviewModel.countDocuments({ eventId }),
-    ]);
-
-    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
+  ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
+    return this.getReviewsWithStats({ eventId }, limit, offset);
   }
 
   async getUserReviews(userId: string, limit?: number, offset?: number) {
-    const query = this.reviewModel.find({ userId });
-    if (offset !== undefined) {
-      query.skip(offset);
-    }
-    if (limit !== undefined) {
-      query.limit(limit);
-    }
-    query.sort({ createdAt: -1 });
-
-    const [items, total] = await Promise.all([
-      query.exec(),
-      this.reviewModel.countDocuments({ userId }),
-    ]);
-    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
+    return this.getReviewsWithStats({ userId }, limit, offset);
   }
 
   async getOrganizationReviews(
     organizationId: string,
-    role: 'owner' | 'collaborator' | 'all' = 'all',
+    role: 'creator' | 'collaborator' | 'all' = 'all',
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Review>> {
-    let filter: any;
-    if (role === 'owner') {
-      filter = { organizationId };
-    } else if (role === 'collaborator') {
-      filter = { collaboratorIds: organizationId };
-    } else {
-      filter = {
-        $or: [{ organizationId }, { collaboratorIds: organizationId }],
-      };
-    }
+    return this.getReviewsWithStats(
+      role === 'creator'
+        ? { creatorId: organizationId }
+        : role === 'collaborator'
+          ? { collaboratorIds: organizationId }
+          : {
+              $or: [
+                { creatorId: organizationId },
+                { collaboratorIds: organizationId },
+              ],
+            },
+      limit,
+      offset,
+    );
+  }
 
+  private async getReviewsWithStats(
+    filter: Record<string, any>,
+    limit?: number,
+    offset?: number,
+  ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
     const query = this.reviewModel.find(filter);
+
     if (offset !== undefined) {
       query.skip(offset);
     }
+
     if (limit !== undefined) {
       query.limit(limit);
     }
+
     query.sort({ createdAt: -1 });
-    const [items, total] = await Promise.all([
+
+    const [items, total, stats] = await Promise.all([
       query.exec(),
       this.reviewModel.countDocuments(filter),
+      this.calculateRatingStats(filter),
     ]);
 
-    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
+    return {
+      ...new PaginatedResponseDto(items, total, limit || total, offset || 0),
+      ...stats,
+    };
+  }
+
+  private async calculateRatingStats(
+    filter: Record<string, any>,
+  ): Promise<ReviewStatsDto> {
+    const result = await this.reviewModel.aggregate([
+      { $match: filter },
+      {
+        $facet: {
+          stats: [
+            {
+              $group: {
+                _id: null,
+                averageRating: { $avg: '$rating' },
+              },
+            },
+          ],
+          distribution: [
+            {
+              $group: {
+                _id: '$rating',
+                count: { $sum: 1 },
+              },
+            },
+          ],
+        },
+      },
+    ]);
+
+    const ratingDistribution: Record<number, number> = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    };
+
+    if (result[0]?.distribution) {
+      result[0].distribution.forEach((item: { _id: number; count: number }) => {
+        ratingDistribution[item._id] = item.count;
+      });
+    }
+
+    const averageRating = result[0]?.stats[0]?.averageRating || 0;
+
+    return {
+      averageRating: Math.round(averageRating * 100) / 100,
+      ratingDistribution,
+    };
+  }
+
+  async hasUserReviewedEvent(
+    userId: string,
+    eventId: string,
+  ): Promise<boolean> {
+    const review = await this.reviewModel.findOne({ userId, eventId });
+    return !!review;
+  }
+
+  async deleteEvent(eventId: string): Promise<void> {
+    await this.reviewModel.deleteMany({ eventId });
+  }
+
+  async deleteUser(userId: string): Promise<void> {
+    await this.reviewModel.deleteMany({ userId });
   }
 }

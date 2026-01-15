@@ -14,11 +14,16 @@ export interface UserInteraction {
   following: UserID[]
 }
 
+export interface UserInteractionsInfo {
+  following: number
+  followers: number
+}
+
 export const RATING_VALUES = [1, 2, 3, 4, 5] as const
 export type Rating = (typeof RATING_VALUES)[number]
 
 export interface UpdateEventReviewData {
-  organizationId: UserID
+  creatorId: UserID
   collaboratorsId: UserID[]
   rating: Rating
   title: string

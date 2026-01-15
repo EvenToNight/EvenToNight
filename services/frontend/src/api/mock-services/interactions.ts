@@ -1,7 +1,8 @@
 import type {
-  GetEventLikesResponse,
+  GetUserInfoResponse,
   GetReviewResponse,
   GetReviewWithStatisticsResponse,
+  GetUserLikedEventsResponse,
   InteractionAPI,
 } from '../interfaces/interactions'
 import type { EventID } from '../types/events'
@@ -42,10 +43,12 @@ const findUserInteraction = (userId: UserID) => {
 }
 
 export const mockInteractionsApi: InteractionAPI = {
-  async getEventLikes(eventId: EventID): Promise<GetEventLikesResponse> {
-    //TODO implement likes retrival
-    findInteractionByEventId(eventId)
-    return { items: [], limit: 0, offset: 0, hasMore: false, totalItems: 0 }
+  async getEventLikes(
+    eventId: EventID,
+    pagination?: PaginatedRequest
+  ): Promise<GetUserInfoResponse> {
+    const likes = findInteractionByEventId(eventId).likes
+    return { ...getPaginatedItems(likes, pagination), totalItems: likes.length }
   },
   async userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean> {
     const interaction = findInteractionByEventId(eventId)
@@ -61,7 +64,11 @@ export const mockInteractionsApi: InteractionAPI = {
     const interaction = findInteractionByEventId(eventId)
     interaction.likes = interaction.likes.filter((id) => id !== userId)
   },
-  async followUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
+  async isFollowing(currentUserId: UserID, targetUserId: UserID): Promise<boolean> {
+    const currentUserInteraction = findUserInteraction(currentUserId)
+    return currentUserInteraction.following.includes(targetUserId)
+  },
+  async followUser(currentUserId: UserID, targetUserId: UserID): Promise<void> {
     const currentUserInteraction = findUserInteraction(currentUserId)
     const targetUserInteraction = findUserInteraction(targetUserId)
 
@@ -72,7 +79,7 @@ export const mockInteractionsApi: InteractionAPI = {
       targetUserInteraction.followers.push(currentUserId)
     }
   },
-  async unfollowUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
+  async unfollowUser(currentUserId: UserID, targetUserId: UserID): Promise<void> {
     const currentUserInteraction = findUserInteraction(currentUserId)
     const targetUserInteraction = findUserInteraction(targetUserId)
 
@@ -82,6 +89,20 @@ export const mockInteractionsApi: InteractionAPI = {
     targetUserInteraction.followers = targetUserInteraction.followers.filter(
       (id) => id !== currentUserId
     )
+  },
+  async following(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse> {
+    const userInteraction = findUserInteraction(userId)
+    return {
+      ...getPaginatedItems(userInteraction.following, pagination),
+      totalItems: userInteraction.following.length,
+    }
+  },
+  async followers(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse> {
+    const userInteraction = findUserInteraction(userId)
+    return {
+      ...getPaginatedItems(userInteraction.followers, pagination),
+      totalItems: userInteraction.followers.length,
+    }
   },
   async getEventReviews(
     eventId: EventID,
@@ -105,9 +126,9 @@ export const mockInteractionsApi: InteractionAPI = {
         status: 404,
       }
     }
-    if (!mockOrganizations.find((org) => org.id === review.organizationId)) {
+    if (!mockOrganizations.find((org) => org.id === review.creatorId)) {
       throw {
-        message: `Organization ${review.organizationId} not found`,
+        message: `Organization ${review.creatorId} not found`,
         code: 'ORGANIZATION_NOT_FOUND',
         status: 404,
       }
@@ -177,5 +198,18 @@ export const mockInteractionsApi: InteractionAPI = {
       }
     }
     return
+  },
+  async getUserReviews(userId: UserID, pagination?: PaginatedRequest): Promise<GetReviewResponse> {
+    const reviews = mockEventReviews.filter((review) => review.userId === userId)
+    return { ...getPaginatedItems(reviews, pagination), totalItems: reviews.length }
+  },
+  async getUserLikedEvents(
+    userId: UserID,
+    pagination?: PaginatedRequest
+  ): Promise<GetUserLikedEventsResponse> {
+    const likedEventIds: EventID[] = mockEventInteractions
+      .filter((interaction) => interaction.likes.includes(userId))
+      .map((interaction) => interaction.eventId)
+    return { ...getPaginatedItems(likedEventIds, pagination), totalItems: likedEventIds.length }
   },
 }

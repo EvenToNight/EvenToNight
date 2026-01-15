@@ -21,6 +21,15 @@ export class UserActivityController {
     return this.likeService.getUserLikes(userId, limit, offset);
   }
 
+  @Get('likes/:eventId')
+  async hasUserLikedEvent(
+    @Param('userId') userId: string,
+    @Param('eventId') eventId: string,
+  ) {
+    const hasLiked = await this.likeService.hasUserLikedEvent(userId, eventId);
+    return { hasLiked };
+  }
+
   @Get('reviews')
   async getUserReviews(
     @Param('userId') userId: string,
@@ -30,7 +39,19 @@ export class UserActivityController {
     return this.reviewService.getUserReviews(userId, limit, offset);
   }
 
-  @Get('participants')
+  @Get('reviews/:eventId')
+  async hasUserReviewedEvent(
+    @Param('userId') userId: string,
+    @Param('eventId') eventId: string,
+  ) {
+    const hasReviewed = await this.reviewService.hasUserReviewedEvent(
+      userId,
+      eventId,
+    );
+    return { hasReviewed };
+  }
+
+  @Get('participations')
   async getUserParticipations(
     @Param('userId') userId: string,
     @Query() paginatedQuery: PaginatedQueryDto,
@@ -41,5 +62,17 @@ export class UserActivityController {
       limit,
       offset,
     );
+  }
+
+  @Get('participations/:eventId')
+  async hasUserParticipated(
+    @Param('userId') userId: string,
+    @Param('eventId') eventId: string,
+  ) {
+    const hasParticipated = await this.participationService.hasUserParticipated(
+      userId,
+      eventId,
+    );
+    return { hasParticipated };
   }
 }

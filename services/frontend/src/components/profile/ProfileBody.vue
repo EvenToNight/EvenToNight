@@ -8,7 +8,7 @@ import { computed, onMounted, ref } from 'vue'
 import { api } from '@/api'
 import type { Event, EventStatus } from '@/api/types/events'
 import { useI18n } from 'vue-i18n'
-import { useIsOwnProfile } from '@/composables/useProfile'
+import { useAuthStore } from '@/stores/auth'
 
 interface Props {
   user: User
@@ -16,8 +16,9 @@ interface Props {
 
 const props = defineProps<Props>()
 const { t } = useI18n()
+const authStore = useAuthStore()
 
-const isOwnProfile = useIsOwnProfile(computed(() => props.user.id))
+const isOwnProfile = computed(() => authStore.isOwnProfile(props.user.id))
 const isOrganization = computed(() => {
   return props.user.role === 'organization'
 })
@@ -37,32 +38,22 @@ const handleTabChange = (tabId: string) => {
 
 onMounted(async () => {
   try {
-    if (isOrganization.value) {
-      const [publishedResponse, draftResponse] = await Promise.all([
-        api.events.searchEvents({
-          id_organization: props.user.id,
-          status: 'PUBLISHED',
-          pagination: { limit: EVENTS_PER_PAGE },
-        }),
-        api.events.searchEvents({
-          id_organization: props.user.id,
-          status: 'DRAFT',
-          pagination: { limit: EVENTS_PER_PAGE },
-        }),
-      ])
-      organizationEvents.value = publishedResponse.items
-      organizationDraftedEvents.value = draftResponse.items
-      hasMorePublished.value = publishedResponse.hasMore
-      hasMoreDraft.value = draftResponse.hasMore
-    } else {
-      const publishedResponse = await api.events.searchEvents({
-        id_organization: props.user.id,
+    const [publishedResponse, draftResponse] = await Promise.all([
+      api.events.searchEvents({
+        organizationId: props.user.id,
         status: 'PUBLISHED',
         pagination: { limit: EVENTS_PER_PAGE },
-      })
-      organizationEvents.value = publishedResponse.items
-      hasMorePublished.value = publishedResponse.hasMore
-    }
+      }),
+      api.events.searchEvents({
+        organizationId: props.user.id,
+        status: 'DRAFT',
+        pagination: { limit: EVENTS_PER_PAGE },
+      }),
+    ])
+    organizationEvents.value = publishedResponse.items
+    organizationDraftedEvents.value = draftResponse.items
+    hasMorePublished.value = publishedResponse.hasMore
+    hasMoreDraft.value = draftResponse.hasMore
   } catch (error) {
     console.error('Failed to fetch data for user:', error)
   }
@@ -76,7 +67,7 @@ const createLoadMoreFunction = (
   return async () => {
     try {
       const response = await api.events.searchEvents({
-        id_organization: props.user.id,
+        organizationId: props.user.id,
         status,
         pagination: {
           limit: EVENTS_PER_PAGE,
@@ -159,19 +150,5 @@ const tabs = computed<Tab[]>(() => {
 </script>
 
 <template>
-  <div class="profile-body">
-    <TabView :variant="'profile'" :tabs="tabs" @update:activeTab="handleTabChange" />
-  </div>
+  <TabView :variant="'explore'" :tabs="tabs" @update:activeTab="handleTabChange" />
 </template>
-
-<style lang="scss" scoped>
-.profile-body {
-  background: $color-white;
-  border-radius: $radius-2xl;
-  box-shadow: $shadow-base;
-
-  @include dark-mode {
-    background: $color-background-dark;
-  }
-}
-</style>

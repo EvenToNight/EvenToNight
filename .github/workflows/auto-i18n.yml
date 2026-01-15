@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Translate i18n files
-        uses: eventonight/auto-i18n@v1.6.0
+        uses: eventonight/auto-i18n@v1.7.0
         with:
           source: 'en'
           targets: 'it,fr,de,es'

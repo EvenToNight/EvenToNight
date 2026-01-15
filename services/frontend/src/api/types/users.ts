@@ -9,7 +9,5 @@ export interface User {
   avatarUrl?: string
   bio?: string
   website?: string
-  followers: number
-  following: number
   role: UserRole
 }

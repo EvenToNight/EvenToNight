@@ -53,7 +53,7 @@ case class GetFilteredEventsCommand(
     tags: Option[List[EventTag]],
     startDate: Option[LocalDateTime],
     endDate: Option[LocalDateTime],
-    id_organization: Option[String],
+    organizationId: Option[String],
     city: Option[String],
     location_name: Option[String],
     priceRange: Option[(Double, Double)],

@@ -1,7 +1,8 @@
 import type {
-  GetEventLikesResponse,
+  GetUserInfoResponse,
   GetReviewResponse,
   GetReviewWithStatisticsResponse,
+  GetUserLikedEventsResponse,
   InteractionAPI,
 } from '../interfaces/interactions'
 import type { EventID } from '../types/events'
@@ -12,21 +13,13 @@ import type { PaginatedRequest } from '../interfaces/commons'
 import { evaluatePagination, buildQueryParams } from '../utils'
 
 export const createInteractionsApi = (interactionsClient: ApiClient): InteractionAPI => ({
-  async getEventLikes(eventId: EventID): Promise<GetEventLikesResponse> {
-    return interactionsClient.get<GetEventLikesResponse>(`/events/${eventId}/likes`)
+  async getEventLikes(eventId: EventID): Promise<GetUserInfoResponse> {
+    return interactionsClient.get<GetUserInfoResponse>(`/events/${eventId}/likes`)
   },
   async userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean> {
-    //TODO implement proper endpoint to check if user likes event
     return interactionsClient
-      .get<boolean>(`/events/${eventId}/likes/${userId}`)
-      .then((_response) => true)
-      .catch((error) => {
-        if (error.status === 404) {
-          console.log('Like not found - returning false to catch 404')
-          return false
-        }
-        throw error
-      })
+      .get<{ hasLiked: boolean }>(`/users/${userId}/likes/${eventId}`)
+      .then((response) => response.hasLiked)
   },
   async likeEvent(eventId: EventID, userId: UserID): Promise<void> {
     return interactionsClient.post<void>(`/events/${eventId}/likes`, { userId })
@@ -34,14 +27,27 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
   async unlikeEvent(eventId: EventID, userId: UserID): Promise<void> {
     return interactionsClient.delete<void>(`/events/${eventId}/likes/${userId}`)
   },
-  async followUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
-    return interactionsClient.post<void>(`/users/${targetUserId}/interactions/followers`, {
-      userId: currentUserId,
+  async isFollowing(currentUserId: UserID, targetUserId: UserID): Promise<boolean> {
+    return interactionsClient
+      .get<{ isFollowing: boolean }>(`/users/${currentUserId}/following/${targetUserId}`)
+      .then((response) => response.isFollowing)
+  },
+  async followUser(currentUserId: UserID, targetUserId: UserID): Promise<void> {
+    return interactionsClient.post<void>(`/users/${currentUserId}/following`, {
+      followedId: targetUserId,
     })
   },
-  async unfollowUser(targetUserId: UserID, currentUserId: UserID): Promise<void> {
-    return interactionsClient.delete<void>(
-      `/users/${targetUserId}/interactions/followers/${currentUserId}`
+  async unfollowUser(currentUserId: UserID, targetUserId: UserID): Promise<void> {
+    return interactionsClient.delete<void>(`/users/${currentUserId}/following/${targetUserId}`)
+  },
+  async following(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse> {
+    return interactionsClient.get<GetUserInfoResponse>(
+      `/users/${userId}/following${buildQueryParams({ ...evaluatePagination(pagination) })}`
+    )
+  },
+  async followers(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse> {
+    return interactionsClient.get<GetUserInfoResponse>(
+      `/users/${userId}/followers${buildQueryParams({ ...evaluatePagination(pagination) })}`
     )
   },
   async getEventReviews(
@@ -66,16 +72,28 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
     organizationId: UserID,
     pagination?: PaginatedRequest
   ): Promise<GetReviewWithStatisticsResponse> {
-    const response = await interactionsClient.get<GetReviewWithStatisticsResponse>(
+    const response = await interactionsClient.get<
+      GetReviewWithStatisticsResponse & { totalItems: number }
+    >(
       `/organizations/${organizationId}/reviews${buildQueryParams({ ...evaluatePagination(pagination) })}`
     )
-    //TODO: decide how to retrieve statistics from backend
-    response.averageRating = 0
-    response.ratingDistribution = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
-    response.totalReviews = 0
+    response.totalReviews = response.totalItems
     return response
   },
   async deleteEventReview(eventId: EventID, userId: UserID): Promise<void> {
     return interactionsClient.delete<void>(`/events/${eventId}/reviews/${userId}`)
+  },
+  async getUserReviews(userId: UserID, pagination?: PaginatedRequest): Promise<GetReviewResponse> {
+    return interactionsClient.get<GetReviewResponse>(
+      `/users/${userId}/reviews${buildQueryParams({ ...evaluatePagination(pagination) })}`
+    )
+  },
+  async getUserLikedEvents(
+    userId: UserID,
+    pagination?: PaginatedRequest
+  ): Promise<GetUserLikedEventsResponse> {
+    return interactionsClient.get<GetUserLikedEventsResponse>(
+      `/users/${userId}/likes${buildQueryParams({ ...evaluatePagination(pagination) })}`
+    )
   },
 })

@@ -21,7 +21,7 @@ object Main extends App:
     port = rabbitPort,
     username = rabbitUser,
     password = rabbitPass,
-    exchangeName = "events"
+    exchangeName = "eventonight"
   )
 
   val database: MongoEventRepository = MongoEventRepository(mongoUri, "eventonight")

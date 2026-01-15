@@ -1,10 +1,9 @@
 package infrastructure.messaging
 import com.rabbitmq.client.{AMQP, Channel, Connection, ConnectionFactory}
-import domain.events.{DomainEvent, EventDeleted, EventEnvelope, EventPublished, EventUpdated}
+import domain.events.{DomainEvent, EventDeleted, EventPublished, EventUpdated}
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 
-import java.time.Instant
 import scala.compiletime.uninitialized
 import scala.jdk.CollectionConverters.*
 
@@ -20,7 +19,7 @@ class RabbitEventPublisher(
     port: Int = 5672,
     username: String = "guest",
     password: String = "guest",
-    exchangeName: String = "events"
+    exchangeName: String = "eventonight"
 ) extends EventPublisher:
 
   private val factory = new ConnectionFactory()
@@ -46,14 +45,8 @@ class RabbitEventPublisher(
 
   override def publish(event: DomainEvent): Unit =
     try
-      val key = routingKey(event)
-      val envelope = EventEnvelope(
-        eventType = key,
-        occurredAt = Instant.now(),
-        payload = event
-      )
-
-      val body = envelope.asJson.noSpaces.getBytes("UTF-8")
+      val key  = routingKey(event)
+      val body = event.asJson.noSpaces.getBytes("UTF-8")
 
       val props = new AMQP.BasicProperties.Builder()
         .contentType("application/json")
@@ -67,15 +60,9 @@ class RabbitEventPublisher(
         )
         .build()
 
-      channel.basicPublish(
-        exchangeName,
-        key,
-        props,
-        body
-      )
+      channel.basicPublish(exchangeName, key, props, body)
 
-      println(s"[RABBITMQ] Published $key event to exchange '$exchangeName'")
-
+      println(s"[RABBITMQ] Published $key")
     catch
       case e: Exception =>
         println(s"[RABBITMQ] Error publishing event: ${e.getMessage}")

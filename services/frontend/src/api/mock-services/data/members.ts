@@ -7,8 +7,6 @@ export const mockUsers: User[] = [
     email: 'member_1@example.com',
     bio: 'Music enthusiast and event organizer. Love techno and house music.',
     avatarUrl: 'https://i.pravatar.cc/150?img=1',
-    followers: 234,
-    following: 189,
     role: 'member',
   },
   {
@@ -17,8 +15,6 @@ export const mockUsers: User[] = [
     email: 'member_2@example.com',
     bio: 'DJ and producer. Spinning records since 2015. Electronic music lover.',
     avatarUrl: 'https://i.pravatar.cc/150?img=5',
-    followers: 567,
-    following: 234,
     role: 'member',
   },
   {
@@ -27,8 +23,6 @@ export const mockUsers: User[] = [
     email: 'member_3@example.com',
     bio: 'Festival addict. Always on the lookout for the next big event.',
     avatarUrl: 'https://i.pravatar.cc/150?img=12',
-    followers: 123,
-    following: 456,
     role: 'member',
   },
   {
@@ -37,8 +31,6 @@ export const mockUsers: User[] = [
     email: 'member_4@example.com',
     bio: 'Event photographer capturing the best moments of electronic music culture.',
     avatarUrl: 'https://i.pravatar.cc/150?img=9',
-    followers: 890,
-    following: 345,
     role: 'member',
   },
 ]

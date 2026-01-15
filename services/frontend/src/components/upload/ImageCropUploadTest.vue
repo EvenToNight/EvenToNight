@@ -1,78 +1,3 @@
-<template>
-  <div class="image-crop-upload">
-    <label v-if="label" class="field-label">{{ label }}</label>
-
-    <div v-if="croppedImage" class="image-preview-container">
-      <img :src="croppedImage" alt="Cropped preview" class="preview-image" />
-      <q-btn
-        icon="close"
-        round
-        dense
-        color="negative"
-        class="remove-image-btn"
-        @click="removeImage"
-      />
-    </div>
-
-    <div v-else class="upload-button-container">
-      <Button
-        :label="buttonLabel"
-        :icon="'add_photo_alternate'"
-        outline
-        variant="primary"
-        size="sm"
-        class="outline-btn-fix upload-trigger-btn"
-        @click="triggerFileInput"
-      />
-      <input
-        ref="fileInput"
-        type="file"
-        accept="image/*"
-        style="display: none"
-        @change="onFileSelect"
-      />
-    </div>
-
-    <q-dialog v-model="showCropper" persistent :maximized="$q.screen.lt.md">
-      <q-card class="cropper-dialog">
-        <q-card-section class="row items-center q-pb-none dialog-header">
-          <div class="text-h6">Crop Image</div>
-          <q-space />
-          <q-btn icon="close" flat round dense @click="closeCropper" />
-        </q-card-section>
-
-        <q-card-section class="cropper-container">
-          <div class="cropper-wrapper">
-            <Cropper
-              ref="cropperRef"
-              class="cropper"
-              :src="selectedImage"
-              :stencil-component="RectangleStencil"
-              :stencil-props="{
-                aspectRatio: 1,
-                movable: false,
-                resizable: false,
-                handlers: {},
-                lines: {},
-              }"
-              :stencil-size="{
-                width: 320,
-                height: 320,
-              }"
-              image-restriction="stencil"
-            />
-          </div>
-        </q-card-section>
-
-        <q-card-actions align="right" class="dialog-actions">
-          <q-btn flat label="Cancel" @click="closeCropper" />
-          <q-btn color="primary" label="Crop & Save" @click="cropImage" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-  </div>
-</template>
-
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
@@ -207,6 +132,81 @@ const closeCropper = () => {
   }
 }
 </script>
+
+<template>
+  <div class="image-crop-upload">
+    <label v-if="label" class="field-label">{{ label }}</label>
+
+    <div v-if="croppedImage" class="image-preview-container">
+      <img :src="croppedImage" alt="Cropped preview" class="preview-image" />
+      <q-btn
+        icon="close"
+        round
+        dense
+        color="negative"
+        class="remove-image-btn"
+        @click="removeImage"
+      />
+    </div>
+
+    <div v-else class="upload-button-container">
+      <Button
+        :label="buttonLabel"
+        :icon="'add_photo_alternate'"
+        outline
+        variant="primary"
+        size="sm"
+        class="outline-btn-fix upload-trigger-btn"
+        @click="triggerFileInput"
+      />
+      <input
+        ref="fileInput"
+        type="file"
+        accept="image/*"
+        style="display: none"
+        @change="onFileSelect"
+      />
+    </div>
+
+    <q-dialog v-model="showCropper" persistent :maximized="$q.screen.lt.md">
+      <q-card class="cropper-dialog">
+        <q-card-section class="row items-center q-pb-none dialog-header">
+          <div class="text-h6">Crop Image</div>
+          <q-space />
+          <q-btn icon="close" flat round dense @click="closeCropper" />
+        </q-card-section>
+
+        <q-card-section class="cropper-container">
+          <div class="cropper-wrapper">
+            <Cropper
+              ref="cropperRef"
+              class="cropper"
+              :src="selectedImage"
+              :stencil-component="RectangleStencil"
+              :stencil-props="{
+                aspectRatio: 1,
+                movable: false,
+                resizable: false,
+                handlers: {},
+                lines: {},
+              }"
+              :stencil-size="{
+                width: 320,
+                height: 320,
+              }"
+              image-restriction="stencil"
+            />
+          </div>
+        </q-card-section>
+
+        <q-card-actions align="right" class="dialog-actions">
+          <q-btn flat label="Cancel" @click="closeCropper" />
+          <q-btn color="primary" label="Crop & Save" @click="cropImage" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </div>
+</template>
 
 <style lang="scss" scoped>
 .image-crop-upload {

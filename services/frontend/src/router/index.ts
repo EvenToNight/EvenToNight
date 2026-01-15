@@ -3,7 +3,13 @@ import Home from '../views/HomeView.vue'
 import PlaceHolderView from '../views/PlaceHolderView.vue'
 import LocaleWrapper from '../views/LocaleWrapper.vue'
 import i18n, { SUPPORTED_LOCALES, DEFAULT_LOCALE, type Locale } from '../i18n'
-import { requireGuest, requireRole, requireEventCreator, requireNotDraft } from './guards'
+import {
+  requireGuest,
+  requireRole,
+  requireEventCreator,
+  requireNotDraft,
+  requireAuth,
+} from './guards'
 
 export const HOME_ROUTE_NAME = 'home'
 export const LOGIN_ROUTE_NAME = 'login'
@@ -14,6 +20,9 @@ export const EXPLORE_ROUTE_NAME = 'explore'
 export const USER_PROFILE_ROUTE_NAME = 'user-profile'
 export const CREATE_EVENT_ROUTE_NAME = 'create-event'
 export const EDIT_EVENT_ROUTE_NAME = 'edit-event'
+export const SETTINGS_ROUTE_NAME = 'settings'
+export const EDIT_PROFILE_ROUTE_NAME = 'edit-profile'
+export const SUPPORT_ROUTE_NAME = 'support'
 export const FORBIDDEN_ROUTE_NAME = 'forbidden'
 
 const getInitialLocale = (): string => {
@@ -93,6 +102,18 @@ const router = createRouter({
           component: () => import('../views/UserProfileView.vue'),
         },
         {
+          path: 'settings',
+          name: SETTINGS_ROUTE_NAME,
+          component: () => import('../views/SettingsView.vue'),
+          beforeEnter: requireAuth,
+        },
+        {
+          path: 'profile/edit',
+          name: EDIT_PROFILE_ROUTE_NAME,
+          component: () => import('../views/EditProfileView.vue'),
+          beforeEnter: requireAuth,
+        },
+        {
           path: 'create-event',
           name: CREATE_EVENT_ROUTE_NAME,
           component: () => import('../views/CreateEventView.vue'),
@@ -103,6 +124,12 @@ const router = createRouter({
           name: EDIT_EVENT_ROUTE_NAME,
           component: () => import('../views/CreateEventView.vue'),
           beforeEnter: requireEventCreator,
+        },
+        {
+          path: 'support',
+          name: SUPPORT_ROUTE_NAME,
+          component: () => import('../views/SupportView.vue'),
+          beforeEnter: requireAuth,
         },
         {
           path: 'forbidden',
@@ -125,6 +152,19 @@ router.beforeEach((to, _from, next) => {
   if (locale && !SUPPORTED_LOCALES.includes(locale)) {
     const pathWithoutLocale = to.path.substring(locale.length + 1)
     return next(`/${DEFAULT_LOCALE}${pathWithoutLocale}`)
+  }
+
+  const savedLocale = localStorage.getItem('user-locale')
+  if (savedLocale && locale && locale !== savedLocale && SUPPORTED_LOCALES.includes(savedLocale)) {
+    return next({
+      name: to.name as string,
+      params: {
+        ...to.params,
+        locale: savedLocale,
+      },
+      query: to.query,
+      replace: true,
+    })
   }
 
   if (locale && i18n.global.locale.value !== locale) {

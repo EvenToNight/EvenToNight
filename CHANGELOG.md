@@ -1,3 +1,59 @@
+## [1.16.0](https://github.com/EvenToNight/EvenToNight/compare/v1.15.0...v1.16.0) (2026-01-14)
+
+### Features
+
+* **conversation-by-users:** provide api in controller for get conversation between two users ([c9c28bc](https://github.com/EvenToNight/EvenToNight/commit/c9c28bcc61ff4c7a8ca17f8b36fe002eae0a6643))
+* **messages-by-users:** provide api for get messages conversation between two users ([153d596](https://github.com/EvenToNight/EvenToNight/commit/153d596ef7aa99d5021e3d396270296e554196c3))
+* **participant-name:** add userName in participant model ([6d7479f](https://github.com/EvenToNight/EvenToNight/commit/6d7479f728fe287a816cffa704edfea83568bae8))
+* **search-conversation:** provide api for searching conversations ([b6074ae](https://github.com/EvenToNight/EvenToNight/commit/b6074ae2bf6868fef940d33172d217d3c82dcad0))
+* **search-conversation:** search also returns users with whom you can start a conversation ([e7cd8e1](https://github.com/EvenToNight/EvenToNight/commit/e7cd8e151f440746096bd447e71c661cc1fbea36))
+
+### Bug Fixes
+
+* **chat-service:** fix minor bugs after copilot review ([f5818cb](https://github.com/EvenToNight/EvenToNight/commit/f5818cb0e518dcd6d10f4aa43e1469fc3fc522ec))
+
+## [1.15.0](https://github.com/EvenToNight/EvenToNight/compare/v1.14.0...v1.15.0) (2026-01-10)
+
+### Features
+
+* **settings:** add change password tab ([71582d4](https://github.com/EvenToNight/EvenToNight/commit/71582d4fa40ea469cfb97c2b2dd67ce81a5d2ed4))
+* **settings:** add preferred language selection ([d167876](https://github.com/EvenToNight/EvenToNight/commit/d167876fe86061ec93269e51086d9effbc0bce23))
+* **support-chat:** add buttons in profile to use support-chat ([84af718](https://github.com/EvenToNight/EvenToNight/commit/84af718b9bf5f94f9c9112cd6f7fe4f9d89e7b41))
+* **support-chat:** implement mocked socket using localstorage and broadcast channel ([27b6a59](https://github.com/EvenToNight/EvenToNight/commit/27b6a5923b39c47d5d586571cce9d43ab1768dd4))
+
+### Bug Fixes
+
+* **DrawerMenu:** fix opening anchor point ([ebdb6ef](https://github.com/EvenToNight/EvenToNight/commit/ebdb6efd9371577ebef56545c6834e3d8a54a290))
+* **layout:** fix content height of TwoColumnLayout ([969b658](https://github.com/EvenToNight/EvenToNight/commit/969b658a1f2bd95ad2ab6bf23b46e3689c7086cc))
+* **users-service:** add USERS_SERVICE_SECRET for dev and fix mongo-users-express network ([51e2c9e](https://github.com/EvenToNight/EvenToNight/commit/51e2c9eb30cb53b340a0ff378198a276add00687))
+
+## [1.14.0](https://github.com/EvenToNight/EvenToNight/compare/v1.13.0...v1.14.0) (2026-01-10)
+
+### Features
+
+* **conversation-by-id:** provide api in controller to get single conversation by id ([3e7ce09](https://github.com/EvenToNight/EvenToNight/commit/3e7ce099a255b0da7176b76361af6ae493606ee2))
+* **conversation-messages:** provide api in controller to retrieve messages of a conversation ([1cc1018](https://github.com/EvenToNight/EvenToNight/commit/1cc1018eedebeba1aa2cba17c76390c6c67225b8))
+* **create-conversation:** change api for create new conversation ([25f12fd](https://github.com/EvenToNight/EvenToNight/commit/25f12fd76adc3d7f63cad6c2571300f59b986c90))
+* **read-message:** provide api in controller for reading message ([f413491](https://github.com/EvenToNight/EvenToNight/commit/f41349188dac1e175df01b88485add7dd6a6c4b2))
+* **send-message:** change api to send message ([2f5c534](https://github.com/EvenToNight/EvenToNight/commit/2f5c534ab3f7542aeb153774e6e06ae746b2a694))
+* **unread-count:** provide api in controller to count unread messages ([db7c4db](https://github.com/EvenToNight/EvenToNight/commit/db7c4db0050ad7e380a52aecb2b25a14c9dff0d0))
+* **users-insert:** provide handler for message to insert or update user info ([6996e9e](https://github.com/EvenToNight/EvenToNight/commit/6996e9e8b851342f62cafaedcc4ac9a222710fe6))
+* **users-integration:** update integration with user service using rabbit ([fa5abca](https://github.com/EvenToNight/EvenToNight/commit/fa5abcab36a372f2a8668a49c72b0d9db4e6a65e))
+* **users-service:** create service for comunication with user ([8e457fd](https://github.com/EvenToNight/EvenToNight/commit/8e457fdf837bd0f5c11aace58dec907a63eda9b8))
+* **users-service:** implement logic to integrate users service ([3c1a07c](https://github.com/EvenToNight/EvenToNight/commit/3c1a07cc818233fa4c0a29bd6e70c41b11c27b6b))
+
+### Bug Fixes
+
+* **eslint:** fix error in eslint check ([729679e](https://github.com/EvenToNight/EvenToNight/commit/729679eca17b87d28abfba5c91d8fb080d69f1bb))
+* **test-bug:** fix bug in conversation test ([298705e](https://github.com/EvenToNight/EvenToNight/commit/298705e9a6cc7c0168ba8e8fef5079c65b4090e4))
+
+## [1.13.0](https://github.com/EvenToNight/EvenToNight/compare/v1.12.1...v1.13.0) (2026-01-06)
+
+### Features
+
+* **create-event:** implement create event communication with rabbit ([8333a4c](https://github.com/EvenToNight/EvenToNight/commit/8333a4cbdd201ee2e700ce01adc7cf15df031227))
+* **follow:** add route to check if a user follow another user ([da8c624](https://github.com/EvenToNight/EvenToNight/commit/da8c624a948e2dbc377c4fbc58ddd4f49df7f573))
+
 ## [1.12.1](https://github.com/EvenToNight/EvenToNight/compare/v1.12.0...v1.12.1) (2026-01-02)
 
 ### Bug Fixes

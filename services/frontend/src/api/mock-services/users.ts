@@ -1,23 +1,24 @@
 import type {
-  GetUserByIdResponse,
   UsersAPI,
   LoginRequest,
   LoginResponse,
   RefreshTokenResponse,
   LogoutResponse,
-  RegisterResponse,
-  RegisterRequest,
+  RegistrationRequest,
+  ChangePasswordRequest,
 } from '../interfaces/users'
 import type { ApiError, PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import { mockOrganizations } from './data/organizations'
 import { mockUsers } from './data/members'
 import type { UserID, User, UserRole } from '../types/users'
-import { getPaginatedItems } from '../utils/requestUtils'
+import { getPaginatedItems, generateFakeToken, ONE_YEAR } from '../utils'
 
-let currentLoggedInEmail: string | null = null
+let currentLoggedInUsername: string | null = null
 
-const getMockUser = (email: string): User => {
-  const user = [...mockOrganizations, ...mockUsers].find((u) => u.email === email)
+const getMockUser = (username: string): User => {
+  const user = [...mockOrganizations, ...mockUsers].find(
+    (u) => u.email === username || u.name === username
+  )
   if (!user) {
     throw {
       message: 'User not found',
@@ -28,7 +29,7 @@ const getMockUser = (email: string): User => {
 }
 
 export const mockUsersApi: UsersAPI = {
-  async getUserById(id: UserID): Promise<GetUserByIdResponse> {
+  async getUserById(id: UserID): Promise<User> {
     const user = [...mockOrganizations, ...mockUsers].find((u) => u.id === id)
     if (!user) {
       throw {
@@ -36,21 +37,19 @@ export const mockUsersApi: UsersAPI = {
         status: 404,
       } as ApiError
     }
-    return { user }
+    return user
   },
 
-  async register(data: RegisterRequest): Promise<RegisterResponse> {
+  async register(data: RegistrationRequest): Promise<LoginResponse> {
     let user: User | undefined
-    if (data.isOrganization) {
+    if (data.role === 'organization') {
       user = mockOrganizations[0]
     } else {
       user = mockUsers[0]
     }
     if (user) {
       return {
-        accessToken: 'mock_access_token_' + Date.now(),
-        expiresIn: 900,
-        user,
+        token: generateFakeToken(user.id, ONE_YEAR),
       }
     } else {
       throw {
@@ -60,24 +59,22 @@ export const mockUsersApi: UsersAPI = {
     }
   },
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const user = getMockUser(credentials.email)
-    currentLoggedInEmail = credentials.email
+    currentLoggedInUsername = credentials.username
+    const user = getMockUser(credentials.username)
     return {
-      accessToken: 'mock_access_token_' + Date.now(),
-      expiresIn: 900,
-      user,
+      token: generateFakeToken(user.id, ONE_YEAR),
     }
   },
 
   async logout(): Promise<LogoutResponse> {
-    currentLoggedInEmail = null
+    currentLoggedInUsername = null
     return {
       success: true,
     }
   },
 
   async refreshToken(): Promise<RefreshTokenResponse> {
-    if (!currentLoggedInEmail) {
+    if (!currentLoggedInUsername) {
       throw {
         message: 'No refresh token found',
         status: 401,
@@ -87,8 +84,21 @@ export const mockUsersApi: UsersAPI = {
     return {
       accessToken: 'mock_access_token_refreshed_' + Date.now(),
       expiresIn: 900,
-      user: getMockUser(currentLoggedInEmail),
+      user: getMockUser(currentLoggedInUsername),
     }
+  },
+
+  async changePassword(userId: UserID, _data: ChangePasswordRequest): Promise<void> {
+    const user = [...mockOrganizations, ...mockUsers].find((u) => u.id === userId)
+    if (!user) {
+      throw {
+        message: 'User not found',
+        status: 404,
+      } as ApiError
+    }
+
+    //TODO: evaluate save and validate current password
+    return
   },
 
   async searchUsers(params: {

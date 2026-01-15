@@ -27,6 +27,27 @@ export class FollowController {
     };
   }
 
+  @Get('following')
+  async getFollowing(
+    @Param('userId') userId: string,
+    @Query() paginationQuery: PaginatedQueryDto,
+  ) {
+    const { limit, offset } = paginationQuery;
+    return this.followService.getFollowing(userId, limit, offset);
+  }
+
+  @Get('following/:followedId')
+  async isFollowing(
+    @Param('userId') userId: string,
+    @Param('followedId') followedId: string,
+  ) {
+    const isFollowing = await this.followService.isFollowing(
+      userId,
+      followedId,
+    );
+    return { isFollowing };
+  }
+
   @Delete('following/:followedId')
   async remove(
     @Param('userId') userId: string,
@@ -46,15 +67,6 @@ export class FollowController {
   ) {
     const { limit, offset } = paginationQuery;
     return this.followService.getFollowers(userId, limit, offset);
-  }
-
-  @Get('following')
-  async getFollowing(
-    @Param('userId') userId: string,
-    @Query() paginationQuery: PaginatedQueryDto,
-  ) {
-    const { limit, offset } = paginationQuery;
-    return this.followService.getFollowing(userId, limit, offset);
   }
 
   @Get()

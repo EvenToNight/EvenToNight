@@ -15,4 +15,9 @@ providers:
   docker:
     endpoint: "unix:///var/run/docker.sock"
     watch: true
-    exposedByDefault: false     
+    exposedByDefault: false
+serversTransport:
+  forwardingTimeouts:
+    dialTimeout: 10s
+    responseHeaderTimeout: 30s
+    idleConnTimeout: 90s

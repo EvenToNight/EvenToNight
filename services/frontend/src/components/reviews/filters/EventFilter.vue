@@ -43,6 +43,7 @@ const displayValue = computed({
   },
 })
 
+//TODO: search completed event
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
   if (!query) {
     update(() => {
@@ -52,7 +53,7 @@ const filterEvents = (query: string, update: (callback: () => void) => void) => 
     })
   } else {
     api.events
-      .searchEvents({ id_organization: props.organizationId, status: 'PUBLISHED', title: query })
+      .searchEvents({ organizationId: props.organizationId, status: 'PUBLISHED', title: query })
       .then((response) => {
         update(() => {
           hasSearched.value = true
