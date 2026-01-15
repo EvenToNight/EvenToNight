@@ -1,4 +1,4 @@
-package infrastructure
+package infrastructure.rabbitmq
 
 import com.rabbitmq.client.Channel
 import com.rabbitmq.client.Connection
@@ -16,6 +16,5 @@ object RabbitConnection:
   factory.setPassword(rabbitPass)
   val connection: Connection = factory.newConnection()
   val channel: Channel       = connection.createChannel()
-
-  val queueName = "testQueue"
-  channel.queueDeclare(queueName, false, false, false, null)
+  val exchangeName: String   = "eventonight"
+  channel.exchangeDeclare(exchangeName, "topic", true)

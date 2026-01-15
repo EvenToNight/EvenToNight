@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { User } from '../schemas/user.schema';
+import { User, UserRole } from '../schemas/user.schema';
 
 @Injectable()
 export class UsersService {
@@ -9,8 +9,9 @@ export class UsersService {
 
   async upsertUser(data: {
     userId: string;
-    name?: string;
-    avatar?: string;
+    userRole: UserRole;
+    name: string;
+    avatar: string;
   }): Promise<User> {
     return this.userModel.findOneAndUpdate({ userId: data.userId }, data, {
       upsert: true,
@@ -43,5 +44,14 @@ export class UsersService {
 
   async getUserInfo(userId: string): Promise<User | null> {
     return this.userModel.findOne({ userId });
+  }
+
+  async getUsername(userId: string): Promise<string | null> {
+    const user = await this.userModel.findOne({ userId }).select('name').exec();
+    return user ? user.name : null;
+  }
+
+  async searchUsers(query: any): Promise<User[]> {
+    return this.userModel.find(query).exec();
   }
 }

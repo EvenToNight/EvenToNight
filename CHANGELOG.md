@@ -1,3 +1,30 @@
+## [1.17.0](https://github.com/EvenToNight/EvenToNight/compare/v1.16.0...v1.17.0) (2026-01-15)
+
+### Features
+
+* **message:** send user.created  message on user registration ([5ccce7e](https://github.com/EvenToNight/EvenToNight/commit/5ccce7e633f87469e989db06c23cff3f49af0ae9))
+* **users:** add Keycloak JWKS caching and implement /publicKeys endpoint ([bf5c2ec](https://github.com/EvenToNight/EvenToNight/commit/bf5c2ec4bae8e42938e557b48b07bdd40f6ac3b2))
+* **users:** implement /logout endpoint ([ed66fca](https://github.com/EvenToNight/EvenToNight/commit/ed66fca548adf07011a55c607ba3567d85a8c78e))
+* **users:** implement /refresh endpoint ([adc49d4](https://github.com/EvenToNight/EvenToNight/commit/adc49d41f6b819498b4b818a43b5b20cad8b8587))
+
+### Bug Fixes
+
+* **media-service:** fix bug in media service ([77f0573](https://github.com/EvenToNight/EvenToNight/commit/77f05734607373dd60e41e5ecf7a658048396685))
+
+## [1.16.0](https://github.com/EvenToNight/EvenToNight/compare/v1.15.0...v1.16.0) (2026-01-14)
+
+### Features
+
+* **conversation-by-users:** provide api in controller for get conversation between two users ([c9c28bc](https://github.com/EvenToNight/EvenToNight/commit/c9c28bcc61ff4c7a8ca17f8b36fe002eae0a6643))
+* **messages-by-users:** provide api for get messages conversation between two users ([153d596](https://github.com/EvenToNight/EvenToNight/commit/153d596ef7aa99d5021e3d396270296e554196c3))
+* **participant-name:** add userName in participant model ([6d7479f](https://github.com/EvenToNight/EvenToNight/commit/6d7479f728fe287a816cffa704edfea83568bae8))
+* **search-conversation:** provide api for searching conversations ([b6074ae](https://github.com/EvenToNight/EvenToNight/commit/b6074ae2bf6868fef940d33172d217d3c82dcad0))
+* **search-conversation:** search also returns users with whom you can start a conversation ([e7cd8e1](https://github.com/EvenToNight/EvenToNight/commit/e7cd8e151f440746096bd447e71c661cc1fbea36))
+
+### Bug Fixes
+
+* **chat-service:** fix minor bugs after copilot review ([f5818cb](https://github.com/EvenToNight/EvenToNight/commit/f5818cb0e518dcd6d10f4aa43e1469fc3fc522ec))
+
 ## [1.15.0](https://github.com/EvenToNight/EvenToNight/compare/v1.14.0...v1.15.0) (2026-01-10)
 
 ### Features

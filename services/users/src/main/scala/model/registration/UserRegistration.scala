@@ -21,27 +21,27 @@ object UserRegistration:
     catch
       case _: ParseException | _: IncompleteParseException | _: AbortException => Left("Invalid JSON")
 
-  private def validateUserType(request: RegistrationRequest): Either[String, Unit] =
-    request.userType match
+  private def validateRole(request: RegistrationRequest): Either[String, Unit] =
+    request.role match
       case Some("member") | Some("organization") => Right(())
-      case _                                     => Left(s"Invalid user type: ${request.userType.get}")
+      case _                                     => Left(s"Invalid role: ${request.role.get}")
 
   def validateRegistrationRequest(request: RegistrationRequest): Either[String, ValidRegistration] =
     for
       username <- request.username.toRight("Username is missing")
       email    <- request.email.toRight("Email is missing")
       password <- request.password.toRight("Password is missing")
-      userType <- request.userType.toRight("User type is missing")
-      _        <- validateUserType(request)
-    yield ValidRegistration(username, email, password, userType)
+      role     <- request.role.toRight("Role is missing")
+      _        <- validateRole(request)
+    yield ValidRegistration(username, email, password, role)
 
-  def fromValidRegistration(valid: ValidRegistration, keycloakId: String): RegisteredUser =
-    valid.userType match
+  def fromValidRegistration(valid: ValidRegistration): RegisteredUser =
+    valid.role match
       case "member" =>
-        val memberAccount = MemberAccount(keycloakId, valid.email)
-        val memberProfile = MemberProfile.default
+        val memberAccount = MemberAccount(valid.username, valid.email)
+        val memberProfile = MemberProfile(valid.username)
         Member(memberAccount, memberProfile)
       case "organization" =>
-        val organizationAccount = OrganizationAccount(keycloakId, valid.email)
-        val organizationProfile = OrganizationProfile.default
+        val organizationAccount = OrganizationAccount(valid.username, valid.email)
+        val organizationProfile = OrganizationProfile(valid.username)
         Organization(organizationAccount, organizationProfile)

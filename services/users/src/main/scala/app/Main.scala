@@ -1,9 +1,9 @@
 package app
 
-import controller.UserRoutes
-import infrastructure.MongoConnection.client
-import infrastructure.RabbitConnection._
+import controller._
 import infrastructure.Wiring._
+import infrastructure.mongo.MongoConnection.client
+import infrastructure.rabbitmq.RabbitConnection._
 import io.undertow.server.HttpHandler
 import middleware.CorsHandler
 
@@ -11,7 +11,7 @@ object Main extends cask.MainRoutes {
   override def port: Int                   = sys.env.getOrElse("PORT", "9000").toInt
   override def host: String                = "0.0.0.0"
   override def defaultHandler: HttpHandler = new CorsHandler(super.defaultHandler)
-  override def allRoutes: Seq[cask.Routes] = Seq(new UserRoutes(userService, authService))
+  override def allRoutes: Seq[cask.Routes] = Seq(new AuthRoutes(authService, userService), new UserRoutes(userService))
 
   sys.addShutdownHook {
     try {

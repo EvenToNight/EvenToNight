@@ -6,10 +6,15 @@ import {
   RmqContext,
 } from '@nestjs/microservices';
 import { UsersService } from '../services/users.service';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Controller()
 export class UserConsumer {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    @InjectModel('Participant') private participantModel: Model<any>,
+  ) {}
 
   @MessagePattern('user.created')
   async handleUserCreated(@Payload() data: any, @Ctx() context: RmqContext) {
@@ -18,6 +23,7 @@ export class UserConsumer {
     try {
       await this.usersService.upsertUser({
         userId: data.userId,
+        userRole: data.role,
         name: data.name,
         avatar: data.avatar,
       });
@@ -40,6 +46,14 @@ export class UserConsumer {
       if (data.avatar !== undefined) updates.avatar = data.avatar;
 
       const result = await this.usersService.updateUser(data.userId, updates);
+
+      if (data.name !== undefined) {
+        await this.participantModel.updateMany(
+          { userId: data.userId },
+          { $set: { userName: data.name } },
+        );
+        console.log(`✅ Updated userName in participants for ${data.userId}`);
+      }
 
       if (result) {
         console.log('✅ User updated successfully:', data.userId);

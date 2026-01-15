@@ -1,4 +1,4 @@
-package infrastructure
+package infrastructure.keycloak
 
 object Secret:
   val usersServiceSecret: String =
