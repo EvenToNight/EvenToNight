@@ -33,3 +33,5 @@ case class UserUpdated(
     interests: Option[List[String]],
     language: String
 ) extends UserData with DomainEvent
+
+case class UserDeleted(id: String) extends DomainEvent
