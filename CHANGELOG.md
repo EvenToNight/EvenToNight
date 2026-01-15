@@ -1,3 +1,16 @@
+## [1.17.0](https://github.com/EvenToNight/EvenToNight/compare/v1.16.0...v1.17.0) (2026-01-15)
+
+### Features
+
+* **message:** send user.created  message on user registration ([5ccce7e](https://github.com/EvenToNight/EvenToNight/commit/5ccce7e633f87469e989db06c23cff3f49af0ae9))
+* **users:** add Keycloak JWKS caching and implement /publicKeys endpoint ([bf5c2ec](https://github.com/EvenToNight/EvenToNight/commit/bf5c2ec4bae8e42938e557b48b07bdd40f6ac3b2))
+* **users:** implement /logout endpoint ([ed66fca](https://github.com/EvenToNight/EvenToNight/commit/ed66fca548adf07011a55c607ba3567d85a8c78e))
+* **users:** implement /refresh endpoint ([adc49d4](https://github.com/EvenToNight/EvenToNight/commit/adc49d41f6b819498b4b818a43b5b20cad8b8587))
+
+### Bug Fixes
+
+* **media-service:** fix bug in media service ([77f0573](https://github.com/EvenToNight/EvenToNight/commit/77f05734607373dd60e41e5ecf7a658048396685))
+
 ## [1.16.0](https://github.com/EvenToNight/EvenToNight/compare/v1.15.0...v1.16.0) (2026-01-14)
 
 ### Features
