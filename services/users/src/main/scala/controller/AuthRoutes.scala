@@ -66,7 +66,8 @@ class AuthRoutes(authService: AuthenticationService, userService: UserService) e
                       avatar = m.profile.avatar,
                       bio = m.profile.bio,
                       interests = m.account.interests,
-                      language = m.account.language
+                      language = m.account.language,
+                      role = "member"
                     ))
                   case o: Organization =>
                     eventPublisher.publish(UserCreated(
@@ -77,7 +78,8 @@ class AuthRoutes(authService: AuthenticationService, userService: UserService) e
                       avatar = o.profile.avatar,
                       bio = o.profile.bio,
                       interests = o.account.interests,
-                      language = o.account.language
+                      language = o.account.language,
+                      role = "organization"
                     ))
                 }
 

@@ -11,6 +11,7 @@ trait UserData:
   def bio: Option[String]
   def interests: Option[List[String]]
   def language: String
+  def role: String
 
 case class UserCreated(
     id: String,
@@ -20,7 +21,8 @@ case class UserCreated(
     avatar: String,
     bio: Option[String],
     interests: Option[List[String]],
-    language: String
+    language: String,
+    role: String
 ) extends UserData with DomainEvent
 
 case class UserUpdated(
@@ -31,7 +33,8 @@ case class UserUpdated(
     avatar: String,
     bio: Option[String],
     interests: Option[List[String]],
-    language: String
+    language: String,
+    role: String
 ) extends UserData with DomainEvent
 
 case class UserDeleted(id: String) extends DomainEvent
