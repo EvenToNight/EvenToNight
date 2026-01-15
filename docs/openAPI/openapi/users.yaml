@@ -33,13 +33,13 @@ paths:
               schema:
                 $ref: '#/components/schemas/LoginResponseDTO'
         '400':
-          description: Invalid request
+          description: Bad request
         '401':
           description: Invalid credentials
         '403':
           description: Client not allowed
         '500':
-          description: Internal server error
+          description: Unexpected keycloak status
 
   /register:
     post:
@@ -65,11 +65,11 @@ paths:
         '400':
           description: Validation error / Bad request
         '401':
-          description: Unauthorized (login step failed)
+          description: Invalid credentials 
         '403':
-          description: Client not allowed (login step failed)
+          description: Client not allowed 
         '500':
-          description: Internal server error
+          description: Unexpected keycloak status
 
   /refresh:
     post:
@@ -93,7 +93,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/TokensDTO'
         '400':
-          description: Invalid request
+          description: Bad request
         '401':
           description: Invalid refresh token
 
@@ -114,8 +114,6 @@ paths:
       responses:
         '204':
           description: Logout successful
-        '400':
-          description: Invalid request
         '500':
           description: Logout failed
 
@@ -139,7 +137,7 @@ paths:
         '500':
           description: Failed to refresh public keys
 
-  /users:
+  /:
     get:
       tags: [Users]
       summary: Get all users
@@ -161,7 +159,7 @@ paths:
         '400':
           description: Bad request
 
-  /users/{userId}:
+  /{userId}:
     get:
       tags: [Users]
       summary: Get user by ID
@@ -198,9 +196,11 @@ components:
       properties:
         usernameOrEmail:
           type: string
+          example: johndoe
         password:
           type: string
           format: password
+          example: StrongP@ssw0rd!
 
     ValidRegistration:
       type: object
@@ -212,13 +212,17 @@ components:
       properties:
         username:
           type: string
+          example: johndoe
         email:
           type: string
+          example: johndoe@example.com
         password:
           type: string
           format: password
+          example: StrongP@ssw0rd!
         role:
           type: string
+          example: member
 
     RefreshRequest:
       type: object
@@ -227,6 +231,7 @@ components:
       properties:
         refreshToken:
           type: string
+          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
 
     LogoutRequest:
       type: object
@@ -235,6 +240,7 @@ components:
       properties:
         refreshToken:
           type: string
+          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
 
     TokensDTO:
       type: object
@@ -246,14 +252,18 @@ components:
       properties:
         accessToken:
           type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         expiresIn:
           type: integer
           format: int64
+          example: 300
         refreshToken:
           type: string
+          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
         refreshExpiresIn:
           type: integer
           format: int64
+          example: 1800
 
     AccountDTO:
       type: object
@@ -265,24 +275,31 @@ components:
       properties:
         username:
           type: string
+          example: johndoe
         email:
           type: string
+          example: johndoe@example
         darkMode:
           type: boolean
+          example: false
         language:
           type: string
+          example: en
         gender:
           type: string
           nullable: true
+          example: male
         birthDate:
           type: string
           format: date-time
           nullable: true
+          example: 1990-01-01T00:00:00Z
         interests:
           type: array
           items:
             type: string
           nullable: true
+          example: ["Dinner", "LiveMusic", "Club"]
 
     ProfileDTO:
       type: object
@@ -292,16 +309,21 @@ components:
       properties:
         name:
           type: string
+          example: John Doe
         avatar:
           type: string
+          example: https://example.com/avatar.jpg
         bio:
           type: string
           nullable: true
+          example: Software developer and event enthusiast.
         contacts:
           type: array
           items:
             type: string
           nullable: true
+          example: ["https://twitter.com/johndoe", "https://linkedin.com/in/johndoe"]
+
 
     LoginResponseDTO:
       type: object
@@ -316,16 +338,21 @@ components:
       properties:
         accessToken:
           type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
         expiresIn:
           type: integer
           format: int64
+          example: 300
         refreshToken:
           type: string
+          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
         refreshExpiresIn:
           type: integer
           format: int64
+          example: 1800
         role:
           type: string
+          example: member
         account:
           $ref: '#/components/schemas/AccountDTO'
         profile:
@@ -340,11 +367,13 @@ components:
       properties:
         username:
           type: string
+          example: johndoe
         role:
           type: string
+          example: member
         profile:
           $ref: '#/components/schemas/ProfileDTO'
-
+    
     PublicKeyEntry:
       type: object
       required:
@@ -353,9 +382,11 @@ components:
       properties:
         kid:
           type: string
+          example: key-id-12345
         publicKey:
           type: string
           description: Base64-encoded public key
+          example: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS1cbk1J...
 
     PublicKeysResponse:
       type: object
