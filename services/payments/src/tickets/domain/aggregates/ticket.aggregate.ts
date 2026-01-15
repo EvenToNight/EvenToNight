@@ -78,6 +78,12 @@ export class Ticket {
     this.status = TicketStatus.REFUNDED;
   }
 
+  delete(): void {
+    if (!this.canBeDeleted()) {
+      throw new InvalidTicketStatusException(this.status.toString(), 'delete');
+    }
+    this.status = TicketStatus.DELETED;
+  }
   /**
    * Confirm payment and activate ticket.
    * Used in Saga pattern - Phase 2: Confirm after successful payment
@@ -129,6 +135,10 @@ export class Ticket {
   }
 
   private canBeTransferred(): boolean {
+    return this.status.isActive();
+  }
+
+  private canBeDeleted(): boolean {
     return this.status.isActive();
   }
 

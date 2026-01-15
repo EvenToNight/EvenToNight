@@ -25,4 +25,24 @@ export class EventTicketTypeService {
   update(ticketType: EventTicketType): Promise<EventTicketType> {
     return this.eventTicketTypeRepository.update(ticketType);
   }
+
+  findById(id: string): Promise<EventTicketType | null> {
+    return this.eventTicketTypeRepository.findById(id);
+  }
+
+  findByEventId(eventId: string): Promise<EventTicketType[]> {
+    return this.eventTicketTypeRepository.findByEventId(eventId);
+  }
+
+  async deleteEventTicketTypes(eventId: string): Promise<string[]> {
+    const eventTicketTypesIds = (
+      await this.eventTicketTypeRepository.findByEventId(eventId)
+    ).map((t) => t.getId());
+    await Promise.all(
+      eventTicketTypesIds.map((ttId) =>
+        this.eventTicketTypeRepository.delete(ttId),
+      ),
+    );
+    return eventTicketTypesIds;
+  }
 }

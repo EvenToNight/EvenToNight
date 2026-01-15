@@ -64,6 +64,11 @@ export class TicketRepositoryImpl implements TicketRepository {
     return Pagination.createResult(items, totalItems, pagination);
   }
 
+  async findByTicketTypeId(ticketTypeId: string): Promise<Ticket[]> {
+    const documents = await this.ticketModel.find({ ticketTypeId }).exec();
+    return documents.map((doc) => TicketMapper.toDomain(doc));
+  }
+
   async update(ticket: Ticket): Promise<Ticket> {
     const document = TicketMapper.toPersistence(ticket);
     const updated = await this.ticketModel

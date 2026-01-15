@@ -7,21 +7,22 @@ import {
   HttpCode,
   HttpStatus,
   ValidationPipe,
-  Inject,
   NotFoundException,
+  Delete,
+  // Put,
 } from '@nestjs/common';
 import { CreateEventTicketTypeHandler } from '../../application/handlers/create-event-ticket-type.handler';
 import { CreateEventTicketTypeDto } from '../../application/dto/create-event-ticket-type.dto';
 import { EventTicketTypeResponseDto } from '../../application/dto/event-ticket-type-response.dto';
-import type { EventTicketTypeRepository } from '../../domain/repositories/event-ticket-type.repository.interface';
-import { EVENT_TICKET_TYPE_REPOSITORY } from '../../domain/repositories/event-ticket-type.repository.interface';
+import { DeleteEventTicketTypeHandler } from 'src/tickets/application/handlers/delete-event-ticket-type.handler';
+import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
 
 @Controller()
 export class EventTicketTypesController {
   constructor(
+    private readonly eventTicketTypeService: EventTicketTypeService,
     private readonly createHandler: CreateEventTicketTypeHandler,
-    @Inject(EVENT_TICKET_TYPE_REPOSITORY)
-    private readonly repository: EventTicketTypeRepository,
+    private readonly deleteHandler: DeleteEventTicketTypeHandler,
   ) {}
 
   @Post('events/:eventId/ticket-types')
@@ -39,7 +40,8 @@ export class EventTicketTypesController {
   async getEventTicketTypes(
     @Param('eventId') eventId: string,
   ): Promise<EventTicketTypeResponseDto[]> {
-    const ticketTypes = await this.repository.findByEventId(eventId);
+    const ticketTypes =
+      await this.eventTicketTypeService.findByEventId(eventId);
     return ticketTypes.map((type) =>
       EventTicketTypeResponseDto.fromDomain(type),
     );
@@ -50,7 +52,7 @@ export class EventTicketTypesController {
   async getEventTicketType(
     @Param('ticketTypeId') ticketTypeId: string,
   ): Promise<EventTicketTypeResponseDto> {
-    const ticketType = await this.repository.findById(ticketTypeId);
+    const ticketType = await this.eventTicketTypeService.findById(ticketTypeId);
     if (!ticketType) {
       throw new NotFoundException(
         `EventTicketType with id ${ticketTypeId} not found`,
@@ -58,4 +60,19 @@ export class EventTicketTypesController {
     }
     return EventTicketTypeResponseDto.fromDomain(ticketType);
   }
+
+  @Delete('events/:eventId/ticket-types')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteEventTicketTypes(
+    @Param('eventId') eventId: string,
+  ): Promise<void> {
+    return this.deleteHandler.handle(eventId);
+  }
+
+  // @Put('ticket-types/:ticketTypeId')
+  // @HttpCode(HttpStatus.OK)
+  // async updateEventTicketType(
+  //   @Param('ticketTypeId') ticketTypeId: string,
+  //   @Body(ValidationPipe) dto: CreateEventTicketTypeDto,
+  // ): Promise<EventTicketTypeResponseDto> {}
 }

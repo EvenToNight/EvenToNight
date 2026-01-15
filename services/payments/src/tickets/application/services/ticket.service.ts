@@ -35,4 +35,20 @@ export class TicketService {
   ): Promise<PaginatedResult<Ticket>> {
     return this.ticketRepository.findByUserId(userId, pagination);
   }
+
+  revokeTickets(eventTicketTypeIds: string[]): Promise<void> {
+    return Promise.all(
+      eventTicketTypeIds.map(async (id) => {
+        const tickets = await this.ticketRepository.findByTicketTypeId(id);
+        await Promise.all(
+          tickets.map((ticket) => {
+            ticket.delete();
+            return this.ticketRepository.update(ticket);
+          }),
+        );
+      }),
+    ).then(() => {
+      return;
+    });
+  }
 }

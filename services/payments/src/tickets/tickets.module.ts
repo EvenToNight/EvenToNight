@@ -34,6 +34,7 @@ import { USER_REPOSITORY } from './domain/repositories/user.repository.interface
 // Handlers
 import { CreateEventTicketTypeHandler } from './application/handlers/create-event-ticket-type.handler';
 import { CreateCheckoutSessionHandler } from './application/handlers/create-checkout-session.handler';
+import { DeleteEventTicketTypeHandler } from './application/handlers/delete-event-ticket-type.handler';
 
 // Events Handlers
 import { BaseCheckoutSessionCompletedHandler } from './application/handlers/base-checkout-session-completed.handler';
@@ -96,6 +97,7 @@ import { OrderService } from './application/services/order.service';
     // Use Case Handlers
     CreateEventTicketTypeHandler,
     CreateCheckoutSessionHandler,
+    DeleteEventTicketTypeHandler,
 
     // Event Handlers
     BaseCheckoutSessionCompletedHandler,
