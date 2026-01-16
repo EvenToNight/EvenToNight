@@ -3,7 +3,7 @@ import Stripe from 'stripe';
 import { Money } from '../../../tickets/domain/value-objects/money.vo';
 import { PaymentException } from '../../../tickets/domain/exceptions/payment.exception';
 import codes from 'currency-codes';
-import { PaymentService } from 'src/tickets/domain/services/payment.service';
+import { PaymentService } from 'src/tickets/domain/services/payment.service.interface';
 
 export interface CheckoutSessionLineItem {
   productName: string;

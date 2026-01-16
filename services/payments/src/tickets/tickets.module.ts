@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { CqrsModule } from '@nestjs/cqrs';
-import { PaymentsModule } from '../payments/payments.module';
 
 // Schemas
 import {
@@ -30,6 +29,10 @@ import { OrderRepositoryImpl } from './infrastructure/persistence/repositories/o
 import { ORDER_REPOSITORY } from './domain/repositories/order.repository.interface';
 import { UserRepositoryImpl } from './infrastructure/persistence/repositories/user.repository';
 import { USER_REPOSITORY } from './domain/repositories/user.repository.interface';
+
+// Domain Services
+import { PAYMENT_SERVICE } from './domain/services/payment.service.interface';
+import { StripeService } from './infrastructure/payment/stripe.service';
 
 // Handlers
 import { CreateEventTicketTypeHandler } from './application/handlers/create-event-ticket-type.handler';
@@ -61,7 +64,6 @@ import { OrderService } from './application/services/order.service';
 @Module({
   imports: [
     CqrsModule,
-    PaymentsModule,
     MongooseModule.forFeature([
       { name: EventTicketTypeDocument.name, schema: EventTicketTypeSchema },
       { name: TicketDocument.name, schema: TicketSchema },
@@ -77,6 +79,11 @@ import { OrderService } from './application/services/order.service';
     OrderController,
   ],
   providers: [
+    // PaymentService provider
+    {
+      provide: PAYMENT_SERVICE,
+      useClass: StripeService,
+    },
     // Repositories
     {
       provide: EVENT_TICKET_TYPE_REPOSITORY,

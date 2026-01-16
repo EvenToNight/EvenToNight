@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { Ticket } from '../../domain/aggregates/ticket.aggregate';
 import { UserId } from '../../domain/value-objects/user-id.vo';
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
@@ -9,11 +9,15 @@ import {
 import { EventTicketTypeNotFoundException } from '../../domain/exceptions/event-ticket-type-not-found.exception';
 import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
 import { ClientSession } from 'mongoose';
-import { StripeService } from 'src/payments/infrastructure/stripe/stripe.service';
-import { CheckoutSessionLineItem } from 'src/payments/infrastructure/stripe/stripe.service';
+import {
+  type PaymentService,
+  PAYMENT_SERVICE,
+} from '../../domain/services/payment.service.interface';
+import { CheckoutLineItem } from '../../domain/types/payment-service.types';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
+import { Stripe } from 'stripe';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -28,7 +32,11 @@ export class CreateCheckoutSessionHandler {
   private readonly isDev = process.env.NODE_ENV === 'development';
   constructor(
     private readonly transactionManager: TransactionManager,
-    private readonly stripeService: StripeService,
+    @Inject(PAYMENT_SERVICE)
+    private readonly paymentService: PaymentService<
+      Stripe.Checkout.Session,
+      Stripe.Event
+    >,
     private readonly ticketTypeService: EventTicketTypeService,
     private readonly ticketService: TicketService,
     private readonly orderService: OrderService,
@@ -139,7 +147,7 @@ export class CreateCheckoutSessionHandler {
         productDescription: ticketType.getDescription(),
         price: ticketType.getPrice(),
         quantity: lineItem.count,
-      } as CheckoutSessionLineItem;
+      } as CheckoutLineItem;
     });
 
     const ticketIds = Array.from(reservedTickets.values()).flatMap((lineItem) =>
@@ -168,7 +176,7 @@ export class CreateCheckoutSessionHandler {
       };
     }
 
-    const session = await this.stripeService.createCheckoutSessionWithItems({
+    const session = await this.paymentService.createCheckoutSessionWithItems({
       userId: dto.userId,
       lineItems,
       metadata: {

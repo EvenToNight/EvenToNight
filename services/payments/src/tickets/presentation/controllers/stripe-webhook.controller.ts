@@ -6,21 +6,29 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
-import { StripeService } from '../../infrastructure/stripe/stripe.service';
 import { Stripe } from 'stripe';
 import { EventPublisher } from '../../../commons/intrastructure/messaging/event-publisher';
-import { CheckoutSessionCompletedEvent } from '../../../tickets/domain/events/checkout-session-completed.event';
-import { CheckoutSessionExpiredEvent } from '../../../tickets/domain/events/checkout-session-expired.event';
+import { CheckoutSessionCompletedEvent } from '../../domain/events/checkout-session-completed.event';
+import { CheckoutSessionExpiredEvent } from '../../domain/events/checkout-session-expired.event';
+import {
+  PAYMENT_SERVICE,
+  type PaymentService,
+} from 'src/tickets/domain/services/payment.service.interface';
 
 @Controller('webhooks/stripe')
 export class StripeWebhookController {
   private readonly logger = new Logger(StripeWebhookController.name);
 
   constructor(
-    private readonly stripeService: StripeService,
+    @Inject(PAYMENT_SERVICE)
+    private readonly paymentService: PaymentService<
+      Stripe.Checkout.Session,
+      Stripe.Event
+    >,
     private readonly eventPublisher: EventPublisher,
   ) {}
 
@@ -41,7 +49,7 @@ export class StripeWebhookController {
 
     try {
       // Verify and construct the event
-      const event = this.stripeService.constructWebhookEvent(
+      const event = this.paymentService.constructWebhookEvent(
         rawBody,
         signature,
       );

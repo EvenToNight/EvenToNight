@@ -13,3 +13,5 @@ export interface PaymentService<S, E> {
     signature: string,
   ): E;
 }
+
+export const PAYMENT_SERVICE = Symbol('PAYMENT_SERVICE');

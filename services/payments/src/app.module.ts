@@ -4,7 +4,6 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TicketsModule } from './tickets/tickets.module';
 import { MessagingModule } from './commons/intrastructure/messaging/messaging.module';
-import { PaymentsModule } from './payments/payments.module';
 
 @Module({
   imports: [
@@ -23,7 +22,6 @@ import { PaymentsModule } from './payments/payments.module';
       },
     ),
     MessagingModule,
-    PaymentsModule,
     TicketsModule,
   ],
   controllers: [AppController],
