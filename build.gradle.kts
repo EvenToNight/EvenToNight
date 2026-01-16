@@ -92,7 +92,26 @@ tasks.register<ExecTask>("teardownUsersEnvironment") {
 tasks.register<ExecTask>("teardownFrontendEnvironment") {
     description = "Tear down the Docker frontend environment."
     group = "docker"
+    dependsOn("stopStripeWebHooksListener")
     bashCommands(DockerCommands.TEARDOWN_FRONTEND_ENVIRONMENT)
+}
+
+tasks.register<ExecTask>("teardownPaymentsEnvironment") {
+    description = "Tear down the Docker payments environment."
+    group = "docker"
+    dependsOn("stopStripeWebHooksListener")
+    bashCommands(DockerCommands.TEARDOWN_PAYMENTS_ENVIRONMENT)
+}
+
+tasks.register<ExecTask>("stopStripeWebHooksListener") {
+    group = "docker"
+    description = "Stops the Stripe WebHooks listener."
+    
+    bashCommands("""
+        echo '🛑 Stopping Stripe Webhook listener...' && \
+        pkill -f "stripe listen" || true && \
+        echo '✅ Process stopped'
+    """)
 }
 
 tasks.register<ExecTask>("setupTestEnvironment") {
@@ -156,11 +175,36 @@ tasks.register<ExecTask>("setupUsersEnvironment") {
 tasks.register<ExecTask>("setupFrontendEnvironment") {
     description = "Set up the Docker frontend environment."
     group = "docker"
+    dependsOn("setupStripeWebHooksListener")
     bashCommands(DockerCommands.TEARDOWN_FRONTEND_ENVIRONMENT).onFailure { code ->
         println("${RED}Teardown failed with exit code ${code}.${RESET}")
     }
     println("💬 Setting up the frontend environment...")
     bashCommands(DockerCommands.SETUP_FRONTEND_ENVIRONMENT)
+}
+
+tasks.register<ExecTask>("setupPaymentsEnvironment") {
+    description = "Set up the Docker payments environment."
+    group = "docker"
+    dependsOn("setupStripeWebHooksListener")
+    bashCommands(DockerCommands.TEARDOWN_PAYMENTS_ENVIRONMENT).onFailure { code ->
+        println("${RED}Teardown failed with exit code ${code}.${RESET}")
+    }
+    println("💬 Setting up the payments environment...")
+    bashCommands(DockerCommands.SETUP_PAYMENTS_ENVIRONMENT)
+}
+
+tasks.register<ExecTask>("setupStripeWebHooksListener") {
+    description = "Set up the Stripe WebHooks listener."
+    group = "docker"
+    dependsOn("stopStripeWebHooksListener")
+    bashCommands("""
+        sed -i '' '/^STRIPE_WEBHOOK_SECRET=/d' .env && \
+        (nohup ./services/payments/scripts/local-webooks.sh > webhook.log 2>&1 &) && \
+        echo '⏳ Waiting for webhook listener...' && \
+        until grep -q 'STRIPE_WEBHOOK_SECRET=whsec_' .env 2>/dev/null; do sleep 1; done && \
+        echo '✅ Webhook listener ready'
+    """)
 }
 
 tasks.register("saveStagedFiles") {
