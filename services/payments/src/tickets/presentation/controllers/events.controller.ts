@@ -23,6 +23,10 @@ export class EventController {
     private readonly deleteHandler: DeleteEventTicketTypesHandler,
   ) {}
 
+  /**
+   * GET /events/:eventId/ticket-types
+   * Returns the ticket types for the specified event.
+   */
   @Get('ticket-types')
   @HttpCode(HttpStatus.OK)
   async getEventTicketTypes(
@@ -35,6 +39,10 @@ export class EventController {
     );
   }
 
+  /**
+   * POST /events/:eventId/ticket-types
+   * Creates a new ticket type for the specified event.
+   */
   @Post('ticket-types')
   @HttpCode(HttpStatus.CREATED)
   async createEventTicketType(
@@ -45,6 +53,10 @@ export class EventController {
     return EventTicketTypeResponseDto.fromDomain(ticketType);
   }
 
+  /**
+   * DELETE /events/:eventId/ticket-types
+   * Deletes all ticket types for the specified event.
+   */
   @Delete('ticket-types')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteEventTicketTypes(

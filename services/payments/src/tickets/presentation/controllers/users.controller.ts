@@ -1,4 +1,11 @@
-import { Controller, Get, Param, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  HttpStatus,
+  HttpCode,
+  Param,
+  Query,
+} from '@nestjs/common';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { PaginatedQueryDto } from 'src/commons/application/dto/paginated-query.dto';
 import { Pagination } from 'src/commons/utils/pagination.utils';
@@ -14,6 +21,7 @@ export class TicketsController {
    * Returns all tickets for the specified user.
    */
   @Get('tickets/')
+  @HttpCode(HttpStatus.OK)
   async getUserTickets(
     @Param('userId') userId: string,
     @Query() query: PaginatedQueryDto,

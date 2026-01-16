@@ -1,4 +1,12 @@
-import { Controller, Get, Param, Res, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Param,
+  Res,
+  NotFoundException,
+  HttpCode,
+  HttpStatus,
+} from '@nestjs/common';
 import type { Response } from 'express';
 import { PdfService } from '../../application/services/pdf.service';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
@@ -15,6 +23,7 @@ export class TicketsController {
    * Returns the ticket details for the specified ticket.
    */
   @Get()
+  @HttpCode(HttpStatus.OK)
   async getUserTicket(@Param('ticketId') ticketId: string) {
     const ticket = await this.ticketService.findById(ticketId);
     if (!ticket) {
@@ -28,6 +37,7 @@ export class TicketsController {
    * Returns a PDF for the specified ticket.
    */
   @Get('pdf')
+  @HttpCode(HttpStatus.OK)
   async getTicketPdf(
     @Param('ticketId') ticketId: string,
     @Res() res: Response,

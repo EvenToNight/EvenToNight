@@ -33,8 +33,8 @@ export class CheckoutSessionsController {
   ) {}
 
   /**
-   * Create a new checkout session for multiple tickets
    * POST /checkout-sessions
+   * Create a new checkout session for multiple tickets
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
@@ -44,7 +44,12 @@ export class CheckoutSessionsController {
     return this.createCheckoutSessionHandler.handle(dto);
   }
 
+  /**
+   * GET /checkout-sessions/:sessionId/cancel
+   * Handles the cancellation of a checkout session.
+   */
   @Get('cancel')
+  @HttpCode(HttpStatus.OK)
   async handleCancel(
     @Param('sessionId') sessionId: string,
     @Query('redirect_to') redirectTo: string,

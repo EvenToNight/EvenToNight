@@ -1,12 +1,10 @@
 import { Global, Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
-import { CqrsModule } from '@nestjs/cqrs';
 import { EventPublisher } from './event-publisher';
 
 @Global()
 @Module({
   imports: [
-    CqrsModule,
     ClientsModule.register([
       {
         name: 'RABBITMQ_CLIENT',

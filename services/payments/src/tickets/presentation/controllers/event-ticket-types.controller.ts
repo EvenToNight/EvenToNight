@@ -22,12 +22,20 @@ export class EventTicketTypesController {
     private readonly deleteHandler: DeleteTicketTypeHandler,
   ) {}
 
+  /**
+   * GET /ticket-types/values
+   * Returns all ticket type values.
+   */
   @Get('values')
   @HttpCode(HttpStatus.OK)
   getAllTicketTypeValues(): string[] {
     return this.eventTicketTypeService.getAllTicketTypeValues();
   }
 
+  /**
+   * GET /ticket-types/:ticketTypeId
+   * Returns the ticket type details for the specified ticket type.
+   */
   @Get(':ticketTypeId')
   @HttpCode(HttpStatus.OK)
   async getEventTicketType(
@@ -42,8 +50,12 @@ export class EventTicketTypesController {
     return EventTicketTypeResponseDto.fromDomain(ticketType);
   }
 
+  /**
+   * PUT /ticket-types/:ticketTypeId
+   * Updates the ticket type details for the specified ticket type.
+   */
   //TODO track selling price in tickets
-  @Put('ticket-types/:ticketTypeId')
+  @Put(':ticketTypeId')
   @HttpCode(HttpStatus.OK)
   async updateEventTicketType(
     @Param('ticketTypeId') ticketTypeId: string,
@@ -56,6 +68,10 @@ export class EventTicketTypesController {
     return EventTicketTypeResponseDto.fromDomain(updatedTicketType);
   }
 
+  /**
+   * DELETE /ticket-types/:ticketTypeId
+   * Deletes the ticket type with the specified ticket type ID.
+   */
   @Delete(':ticketTypeId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteEventTicketType(
