@@ -5,7 +5,8 @@ export interface Money {
   currency: string
 }
 
-export type TicketType = 'STANDARD' | 'VIP'
+export const TICKET_TYPE_VALUES = ['STANDARD', 'VIP'] as const
+export type TicketType = (typeof TICKET_TYPE_VALUES)[number]
 
 export interface EventTicketType {
   id: string
