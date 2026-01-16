@@ -1,9 +1,10 @@
 import {
   CheckoutSession,
   CreateCheckoutSessionParams,
+  WebhookEvent,
 } from '../types/payment-service.types';
 
-export interface PaymentService<E> {
+export interface PaymentService {
   createCheckoutSessionWithItems(
     params: CreateCheckoutSessionParams,
   ): Promise<CheckoutSession>;
@@ -15,7 +16,7 @@ export interface PaymentService<E> {
   constructWebhookEvent(
     payload: string | Buffer<ArrayBufferLike>,
     signature: string,
-  ): E;
+  ): WebhookEvent;
 }
 
 export const PAYMENT_SERVICE = Symbol('PAYMENT_SERVICE');

@@ -26,3 +26,10 @@ export interface CreateCheckoutSessionParams {
   successUrl: string;
   cancelUrl: string;
 }
+
+export interface WebhookEvent {
+  sessionId: string;
+  type: string;
+  userId: string;
+  ticketIds: string[];
+}

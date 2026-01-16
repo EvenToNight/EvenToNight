@@ -7,10 +7,11 @@ import { PaymentService } from 'src/tickets/domain/services/payment.service.inte
 import {
   CheckoutSession,
   CreateCheckoutSessionParams,
+  WebhookEvent,
 } from 'src/tickets/domain/types/payment-service.types';
 
 @Injectable()
-export class StripeService implements PaymentService<Stripe.Event> {
+export class StripeService implements PaymentService {
   private readonly stripe: Stripe;
   private readonly webhookSecret: string;
   private readonly logger = new Logger(StripeService.name);
@@ -130,13 +131,20 @@ export class StripeService implements PaymentService<Stripe.Event> {
   constructWebhookEvent(
     payload: string | Buffer<ArrayBufferLike>,
     signature: string,
-  ): Stripe.Event {
+  ): WebhookEvent {
     try {
-      return this.stripe.webhooks.constructEvent(
+      const event = this.stripe.webhooks.constructEvent(
         payload,
         signature,
         this.webhookSecret,
       );
+      const session = event.data.object as Stripe.Checkout.Session;
+      return {
+        sessionId: session.id,
+        type: event.type,
+        userId: session.metadata!.userId,
+        ticketIds: JSON.parse(session.metadata!.ticketIds) as string[],
+      };
     } catch (error) {
       this.logger.error('Failed to construct webhook event', error);
       const message = error instanceof Error ? error.message : 'Unknown error';

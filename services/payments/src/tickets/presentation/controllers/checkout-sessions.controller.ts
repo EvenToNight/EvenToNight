@@ -19,21 +19,19 @@ import {
 } from '../../application/dto/create-checkout-session.dto';
 import type { PaymentService } from '../../domain/services/payment.service.interface';
 import { PAYMENT_SERVICE } from '../..//domain/services/payment.service.interface';
-import { Stripe } from 'stripe';
 import { EventPublisher } from '../../../commons/intrastructure/messaging/event-publisher';
 import type { Response } from 'express';
 import { CheckoutSessionExpiredEvent } from '../../domain/events/checkout-session-expired.event';
 import { CheckoutSession } from 'src/tickets/domain/types/payment-service.types';
 import { OrderService } from 'src/tickets/application/services/order.service';
 
-//TODO: remove stripe dependency
 @Controller('checkout-sessions')
 export class CheckoutSessionsController {
   private readonly logger = new Logger(CheckoutSessionsController.name);
   constructor(
     private readonly createCheckoutSessionHandler: CreateCheckoutSessionHandler,
     @Inject(PAYMENT_SERVICE)
-    private readonly paymentService: PaymentService<Stripe.Event>,
+    private readonly paymentService: PaymentService,
     private readonly eventPublisher: EventPublisher,
     private readonly orderService: OrderService,
   ) {}

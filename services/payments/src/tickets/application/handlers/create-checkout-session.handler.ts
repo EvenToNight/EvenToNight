@@ -17,7 +17,6 @@ import { CheckoutLineItem } from '../../domain/types/payment-service.types';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
-import { Stripe } from 'stripe';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -33,7 +32,7 @@ export class CreateCheckoutSessionHandler {
   constructor(
     private readonly transactionManager: TransactionManager,
     @Inject(PAYMENT_SERVICE)
-    private readonly paymentService: PaymentService<Stripe.Event>,
+    private readonly paymentService: PaymentService,
     private readonly ticketTypeService: EventTicketTypeService,
     private readonly ticketService: TicketService,
     private readonly orderService: OrderService,

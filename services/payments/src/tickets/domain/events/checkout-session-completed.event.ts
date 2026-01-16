@@ -4,8 +4,6 @@ export interface CheckoutSessionCompletedEventPayload {
   sessionId: string;
   ticketIds: string[];
   userId: string;
-  totalAmount: number;
-  currency: string;
 }
 
 export class CheckoutSessionCompletedEvent implements EventEnvelope<CheckoutSessionCompletedEventPayload> {

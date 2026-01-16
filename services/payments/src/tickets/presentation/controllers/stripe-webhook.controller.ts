@@ -10,7 +10,6 @@ import {
 } from '@nestjs/common';
 import type { RawBodyRequest } from '@nestjs/common';
 import type { Request } from 'express';
-import { Stripe } from 'stripe';
 import { EventPublisher } from '../../../commons/intrastructure/messaging/event-publisher';
 import { CheckoutSessionCompletedEvent } from '../../domain/events/checkout-session-completed.event';
 import { CheckoutSessionExpiredEvent } from '../../domain/events/checkout-session-expired.event';
@@ -18,6 +17,7 @@ import {
   PAYMENT_SERVICE,
   type PaymentService,
 } from 'src/tickets/domain/services/payment.service.interface';
+import { WebhookEvent } from 'src/tickets/domain/types/payment-service.types';
 
 @Controller('webhooks/stripe')
 export class StripeWebhookController {
@@ -25,7 +25,7 @@ export class StripeWebhookController {
 
   constructor(
     @Inject(PAYMENT_SERVICE)
-    private readonly paymentService: PaymentService<Stripe.Event>,
+    private readonly paymentService: PaymentService,
     private readonly eventPublisher: EventPublisher,
   ) {}
 
@@ -82,26 +82,18 @@ export class StripeWebhookController {
    *
    * Publishes CheckoutSessionCompletedEvent to be handled by the tickets module
    */
-  private async handleCheckoutSessionCompleted(event: Stripe.Event) {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const ticketIdsJson = session.metadata!.ticketIds;
-    const userId = session.metadata!.userId;
-
+  private async handleCheckoutSessionCompleted(event: WebhookEvent) {
     try {
-      const ticketIds: string[] = JSON.parse(ticketIdsJson) as string[];
-
       await this.eventPublisher.publish(
         new CheckoutSessionCompletedEvent({
-          sessionId: session.id,
-          ticketIds,
-          userId: userId,
-          totalAmount: session.amount_total!,
-          currency: session.currency!.toUpperCase(),
+          sessionId: event.sessionId,
+          ticketIds: event.ticketIds,
+          userId: event.userId,
         }),
       );
 
       this.logger.log(
-        `Checkout session completed event published for session ${session.id}`,
+        `Checkout session completed event published for session ${event.sessionId}`,
       );
     } catch (error) {
       this.logger.error(
@@ -118,25 +110,19 @@ export class StripeWebhookController {
    *
    * Publishes CheckoutSessionExpiredEvent to be handled by the tickets module
    */
-  private async handleCheckoutSessionExpired(event: Stripe.Event) {
-    const session = event.data.object as Stripe.Checkout.Session;
-    const ticketIdsJson = session.metadata!.ticketIds;
-    const userId = session.metadata!.userId;
-
+  private async handleCheckoutSessionExpired(event: WebhookEvent) {
     try {
-      const ticketIds: string[] = JSON.parse(ticketIdsJson) as string[];
-
       await this.eventPublisher.publish(
         new CheckoutSessionExpiredEvent({
-          sessionId: session.id,
-          ticketIds,
-          userId: userId,
+          sessionId: event.sessionId,
+          ticketIds: event.ticketIds,
+          userId: event.userId,
           expirationReason: 'Session timeout - user did not complete payment',
         }),
       );
 
       this.logger.log(
-        `Checkout session expired event published for session ${session.id}`,
+        `Checkout session expired event published for session ${event.sessionId}`,
       );
     } catch (error) {
       this.logger.error(
