@@ -12,6 +12,10 @@ const port = process.env.MEDIA_SERVICE_PORT || 9020
 
 const s3 = createS3Client()
 
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" })
+})
+
 app.get("/*", async (req, res) => {
   try {
     await ensureBucketWithDefaults(s3, bucketName);
