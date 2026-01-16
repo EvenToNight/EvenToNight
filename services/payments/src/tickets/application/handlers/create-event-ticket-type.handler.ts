@@ -9,6 +9,8 @@ import { EventService } from '../services/event.service';
 import { Event } from '../../domain/aggregates/event.aggregate';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
+import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { MessageEvent } from 'src/commons/domain/events/message.event';
 
 @Injectable()
 export class CreateEventTicketTypeHandler {
@@ -16,6 +18,7 @@ export class CreateEventTicketTypeHandler {
     @Inject(EVENT_TICKET_TYPE_REPOSITORY)
     private readonly eventTicketTypeService: EventTicketTypeService,
     private readonly eventService: EventService,
+    private readonly eventPublisher: EventPublisher,
   ) {}
 
   async handle(
@@ -36,6 +39,11 @@ export class CreateEventTicketTypeHandler {
       UserId.fromString(dto.creatorId),
     );
     await this.eventService.save(event);
+    this.eventPublisher.publish(
+      new MessageEvent({ message: 'Event ticket type created' }),
+      'eventonight',
+      'message.event',
+    );
     return this.eventTicketTypeService.save(ticketType);
   }
 }

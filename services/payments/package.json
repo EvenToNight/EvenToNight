@@ -12,6 +12,8 @@
     "start:dev": "nest start --watch",
     "start-dev": "NODE_ENV=development npm run start",
     "start-dev:dev": "NODE_ENV=development npm run start:dev",
+    "start-with-dev-env": "NODE_ENV=development ENV=development npm run start",
+    "start-with-dev-env:dev": "NODE_ENV=development ENV=development npm run start:dev",
     "start-debug": "nest start --debug",
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main",

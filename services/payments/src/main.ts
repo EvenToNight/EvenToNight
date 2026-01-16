@@ -28,6 +28,22 @@ if (
   process.env.PAYMENTS_SERVICE_PORT = envFromRoot['PAYMENTS_SERVICE_PORT'];
 }
 
+if (
+  process.env.ENV === 'development' &&
+  !process.env.RABBITMQ_USER &&
+  envFromRoot['RABBITMQ_USER']
+) {
+  process.env.RABBITMQ_USER = envFromRoot['RABBITMQ_USER'];
+}
+
+if (
+  process.env.ENV === 'development' &&
+  !process.env.RABBITMQ_PASS &&
+  envFromRoot['RABBITMQ_PASS']
+) {
+  process.env.RABBITMQ_PASS = envFromRoot['RABBITMQ_PASS'];
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true,

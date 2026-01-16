@@ -7,7 +7,7 @@ export class RabbitMqSetupService {
 
     const exchange = 'eventonight';
     const queue = 'payments_queue';
-    const routingKeys = []; //TODO: recieved messages
+    const routingKeys = ['user.created', 'user.updated', 'user.deleted']; //TODO: received messages
 
     await channel.assertExchange(exchange, 'topic', {
       durable: true,

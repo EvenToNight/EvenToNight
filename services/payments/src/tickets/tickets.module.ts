@@ -18,6 +18,10 @@ import {
   UserDocument,
   UserSchema,
 } from './infrastructure/persistence/schemas/user.schema';
+import {
+  EventDocument,
+  EventSchema,
+} from './infrastructure/persistence/schemas/event.schema';
 
 // Repositories
 import { EventTicketTypeRepositoryImpl } from './infrastructure/persistence/repositories/event-ticket-type.repository';
@@ -28,10 +32,12 @@ import { OrderRepositoryImpl } from './infrastructure/persistence/repositories/o
 import { ORDER_REPOSITORY } from './domain/repositories/order.repository.interface';
 import { UserRepositoryImpl } from './infrastructure/persistence/repositories/user.repository';
 import { USER_REPOSITORY } from './domain/repositories/user.repository.interface';
+import { EventRepositoryImpl } from './infrastructure/persistence/repositories/event.repository';
+import { EVENT_REPOSITORY } from './domain/repositories/event.repository.interface';
 
 // Domain Services
-import { PAYMENT_SERVICE } from './domain/services/payment.service.interface';
 import { StripeService } from './infrastructure/payment/stripe.service';
+import { PAYMENT_SERVICE } from './domain/services/payment.service.interface';
 
 // Handlers
 import { CreateEventTicketTypeHandler } from './application/handlers/create-event-ticket-type.handler';
@@ -61,6 +67,7 @@ import { PdfService } from './application/services/pdf.service';
 import { EventTicketTypeService } from './application/services/event-ticket-type.service';
 import { TicketService } from './application/services/ticket.service';
 import { OrderService } from './application/services/order.service';
+import { EventService } from './application/services/event.service';
 
 @Module({
   imports: [
@@ -69,6 +76,7 @@ import { OrderService } from './application/services/order.service';
       { name: TicketDocument.name, schema: TicketSchema },
       { name: OrderDocument.name, schema: OrderSchema },
       { name: UserDocument.name, schema: UserSchema },
+      { name: EventDocument.name, schema: EventSchema },
     ]),
   ],
   controllers: [
@@ -98,6 +106,10 @@ import { OrderService } from './application/services/order.service';
       provide: USER_REPOSITORY,
       useClass: UserRepositoryImpl,
     },
+    {
+      provide: EVENT_REPOSITORY,
+      useClass: EventRepositoryImpl,
+    },
 
     // Domain Services
     {
@@ -124,6 +136,7 @@ import { OrderService } from './application/services/order.service';
     EventTicketTypeService,
     TicketService,
     OrderService,
+    EventService,
   ],
   exports: [EVENT_TICKET_TYPE_REPOSITORY, ORDER_REPOSITORY, USER_REPOSITORY],
 })
