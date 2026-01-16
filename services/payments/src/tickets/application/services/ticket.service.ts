@@ -29,6 +29,10 @@ export class TicketService {
     return this.ticketRepository.findById(id);
   }
 
+  update(ticket: Ticket): Promise<Ticket> {
+    return this.ticketRepository.update(ticket);
+  }
+
   findByUserId(
     userId: string,
     pagination: PaginationParams,

@@ -1,10 +1,10 @@
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
-import { Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { CheckoutSessionCompletedEvent } from '../../domain/events/checkout-session-completed.event';
-import type { TicketRepository } from '../../domain/repositories/ticket.repository.interface';
-import { TICKET_REPOSITORY } from '../../domain/repositories/ticket.repository.interface';
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
+import { TicketService } from '../services/ticket.service';
+import { OrderService } from '../services/order.service';
 
 /**
  * Handler for Checkout Session Completed Event (Saga Phase 2)
@@ -18,47 +18,39 @@ import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
  * 2. Update all tickets to ACTIVE status (TX2)
  * 3. Publish TicketPurchasedEvent for each confirmed ticket?
  */
+//TODO: call the handler instead of triggering with event
 @EventsHandler(CheckoutSessionCompletedEvent)
 export class CheckoutSessionCompletedHandler implements IEventHandler<CheckoutSessionCompletedEvent> {
   private readonly logger = new Logger(CheckoutSessionCompletedHandler.name);
 
   constructor(
-    @Inject(TICKET_REPOSITORY)
-    private readonly ticketRepository: TicketRepository,
+    private readonly ticketService: TicketService,
+    private readonly orderService: OrderService,
     private readonly transactionManager: TransactionManager,
   ) {}
 
+  // ========================================
+  // PHASE 2: Confirm payment for all tickets (TX2)
+  // ========================================
   async handle(event: CheckoutSessionCompletedEvent): Promise<void> {
     this.logger.log(
       `Handling checkout session completed: ${event.payload.sessionId}`,
     );
 
-    const { ticketIds } = event.payload;
-
+    const { orderId } = event.payload;
+    const order = await this.orderService.findById(orderId);
+    //TODO handle order not found and update order status
+    if (!order) {
+      this.logger.warn(`Order ${orderId} not found`);
+      throw new Error(`Order ${orderId} not found`);
+    }
     try {
-      const confirmedTickets =
-        await this.transactionManager.executeInTransaction(async () => {
-          const confirmed: Ticket[] = [];
-
-          for (const ticketId of ticketIds) {
-            const ticket = await this.ticketRepository.findById(ticketId);
-            if (!ticket) {
-              this.logger.warn(`Ticket ${ticketId} not found`);
-              continue;
-            }
-            if (!ticket.isPendingPayment()) {
-              this.logger.warn(
-                `Ticket ${ticketId} is not in PENDING_PAYMENT status (current: ${ticket.getStatus().toString()})`,
-              );
-              continue;
-            }
-            ticket.confirmPayment();
-            const updated = await this.ticketRepository.update(ticket);
-            confirmed.push(updated);
-          }
-
-          return confirmed;
-        });
+      const confirmedTickets = await this.confirmTicketPayment(
+        order.getTicketIds(),
+      );
+      this.logger.log(
+        `Successfully confirmed ${confirmedTickets.length} tickets for session ${event.payload.sessionId}`,
+      );
 
       //TODO: publis some TicketPurchasedEvent here?
       // ticketId, eventId, userId, attendeeName, ticketTypeId, price, currency, purchaseDate
@@ -73,5 +65,29 @@ export class CheckoutSessionCompletedHandler implements IEventHandler<CheckoutSe
       );
       throw error;
     }
+  }
+
+  private async confirmTicketPayment(ticketIds: string[]): Promise<Ticket[]> {
+    return this.transactionManager.executeInTransaction(async () => {
+      const confirmed: Ticket[] = [];
+
+      for (const ticketId of ticketIds) {
+        const ticket = await this.ticketService.findById(ticketId);
+        if (!ticket) {
+          this.logger.warn(`Ticket ${ticketId} not found`);
+          continue;
+        }
+        if (!ticket.isPendingPayment()) {
+          this.logger.warn(
+            `Ticket ${ticketId} is not in PENDING_PAYMENT status (current: ${ticket.getStatus().toString()})`,
+          );
+          continue;
+        }
+        ticket.confirmPayment();
+        const updated = await this.ticketService.update(ticket);
+        confirmed.push(updated);
+      }
+      return confirmed;
+    });
   }
 }

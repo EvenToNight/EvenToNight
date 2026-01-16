@@ -80,22 +80,10 @@ export class CheckoutSessionsController {
 
   private async publishExpiredEvent(session: CheckoutSession) {
     try {
-      const order = await this.orderService.findById(session.orderId);
-
-      if (!order) {
-        this.logger.error(
-          `Order ${session.orderId} not found for session ${session.id} - cannot publish expired event`,
-        );
-        return;
-      }
-      const ticketIds = order.getTicketIds();
-      const userId = order.getUserId().toString();
-
       await this.eventPublisher.publish(
         new CheckoutSessionExpiredEvent({
           sessionId: session.id,
-          ticketIds,
-          userId: userId,
+          orderId: session.orderId,
           expirationReason: 'User cancelled checkout',
         }),
       );

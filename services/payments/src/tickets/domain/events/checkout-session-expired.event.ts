@@ -1,8 +1,7 @@
 import { EventEnvelope } from '../../../commons/domain/events/event-envelope';
 export interface CheckoutSessionExpiredEventPayload {
   sessionId: string;
-  ticketIds: string[];
-  userId: string;
+  orderId: string;
   expirationReason: string;
 }
 

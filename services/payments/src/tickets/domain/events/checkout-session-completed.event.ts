@@ -2,8 +2,7 @@ import { EventEnvelope } from '../../../commons/domain/events/event-envelope';
 
 export interface CheckoutSessionCompletedEventPayload {
   sessionId: string;
-  ticketIds: string[];
-  userId: string;
+  orderId: string;
 }
 
 export class CheckoutSessionCompletedEvent implements EventEnvelope<CheckoutSessionCompletedEventPayload> {

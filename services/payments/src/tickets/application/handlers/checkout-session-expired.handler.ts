@@ -1,11 +1,10 @@
 import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
-import { Inject, Logger } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { CheckoutSessionExpiredEvent } from '../../domain/events/checkout-session-expired.event';
-import type { TicketRepository } from '../../domain/repositories/ticket.repository.interface';
-import { TICKET_REPOSITORY } from '../../domain/repositories/ticket.repository.interface';
-import type { EventTicketTypeRepository } from '../../domain/repositories/event-ticket-type.repository.interface';
-import { EVENT_TICKET_TYPE_REPOSITORY } from '../../domain/repositories/event-ticket-type.repository.interface';
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
+import { TicketService } from '../services/ticket.service';
+import { EventTicketTypeService } from '../services/event-ticket-type.service';
+import { OrderService } from '../services/order.service';
 
 /**
  * Handler for Checkout Session Expired Event (Saga Compensation)
@@ -24,10 +23,9 @@ export class CheckoutSessionExpiredHandler implements IEventHandler<CheckoutSess
   private readonly logger = new Logger(CheckoutSessionExpiredHandler.name);
 
   constructor(
-    @Inject(TICKET_REPOSITORY)
-    private readonly ticketRepository: TicketRepository,
-    @Inject(EVENT_TICKET_TYPE_REPOSITORY)
-    private readonly ticketTypeRepository: EventTicketTypeRepository,
+    private readonly ticketService: TicketService,
+    private readonly eventTicketTypeService: EventTicketTypeService,
+    private readonly orderService: OrderService,
     private readonly transactionManager: TransactionManager,
   ) {}
 
@@ -35,34 +33,17 @@ export class CheckoutSessionExpiredHandler implements IEventHandler<CheckoutSess
     this.logger.log(
       `Handling checkout session expired: ${event.payload.sessionId}`,
     );
-
-    const { ticketIds } = event.payload;
+    const { orderId } = event.payload;
+    const order = await this.orderService.findById(orderId);
+    //TODO handle order not found and update order status
+    if (!order) {
+      this.logger.warn(`Order ${orderId} not found`);
+      throw new Error(`Order ${orderId} not found`);
+    }
+    const ticketIds = order.getTicketIds();
 
     try {
-      await this.transactionManager.executeInTransaction(async () => {
-        const ticketTypeMap = new Map<string, number>();
-        for (const ticketId of ticketIds) {
-          const ticket = await this.ticketRepository.findById(ticketId);
-          if (ticket && ticket.isPendingPayment()) {
-            ticket.markPaymentFailed();
-            await this.ticketRepository.update(ticket);
-            const typeId = ticket.getTicketTypeId();
-            ticketTypeMap.set(typeId, (ticketTypeMap.get(typeId) || 0) + 1);
-          }
-        }
-
-        for (const [ticketTypeId, count] of ticketTypeMap.entries()) {
-          const ticketType =
-            await this.ticketTypeRepository.findById(ticketTypeId);
-          if (ticketType) {
-            for (let i = 0; i < count; i++) {
-              ticketType.releaseTicket();
-            }
-            await this.ticketTypeRepository.update(ticketType);
-          }
-        }
-      });
-
+      await this.cancelTicketPayment(ticketIds);
       this.logger.log(
         `Successfully handled expired session ${event.payload.sessionId}: ` +
           `${ticketIds.length} tickets marked as PAYMENT_FAILED and inventory released`,
@@ -74,5 +55,31 @@ export class CheckoutSessionExpiredHandler implements IEventHandler<CheckoutSess
       );
       throw error;
     }
+  }
+
+  private async cancelTicketPayment(ticketIds: string[]): Promise<void> {
+    return this.transactionManager.executeInTransaction(async () => {
+      const ticketTypeMap = new Map<string, number>();
+      for (const ticketId of ticketIds) {
+        const ticket = await this.ticketService.findById(ticketId);
+        if (ticket && ticket.isPendingPayment()) {
+          ticket.markPaymentFailed();
+          await this.ticketService.update(ticket);
+          const typeId = ticket.getTicketTypeId();
+          ticketTypeMap.set(typeId, (ticketTypeMap.get(typeId) || 0) + 1);
+        }
+      }
+
+      for (const [ticketTypeId, count] of ticketTypeMap.entries()) {
+        const ticketType =
+          await this.eventTicketTypeService.findById(ticketTypeId);
+        if (ticketType) {
+          for (let i = 0; i < count; i++) {
+            ticketType.releaseTicket();
+          }
+          await this.eventTicketTypeService.update(ticketType);
+        }
+      }
+    });
   }
 }

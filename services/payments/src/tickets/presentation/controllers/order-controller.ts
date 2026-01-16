@@ -12,7 +12,11 @@ export class OrderController {
     private readonly ticketService: TicketService,
   ) {}
 
-  @Get('')
+  /**
+   * GET /orders/:orderId
+   * Returns the order details for the specified order.
+   */
+  @Get()
   async getOrder(@Param('orderId') orderId: string) {
     const order = await this.orderService.findById(orderId);
     if (!order) {

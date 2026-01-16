@@ -142,8 +142,7 @@ export class StripeService implements PaymentService {
       return {
         sessionId: session.id,
         type: event.type,
-        userId: session.metadata!.userId,
-        ticketIds: JSON.parse(session.metadata!.ticketIds) as string[],
+        orderId: session.metadata!.orderId,
       };
     } catch (error) {
       this.logger.error('Failed to construct webhook event', error);

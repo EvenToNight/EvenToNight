@@ -18,10 +18,9 @@ export class TicketsController {
     @Param('userId') userId: string,
     @Query() query: PaginatedQueryDto,
   ): Promise<PaginatedResponseDto<Ticket>> {
-    const tickets = await this.ticketService.findByUserId(
+    return await this.ticketService.findByUserId(
       userId,
       Pagination.parse(query.limit, query.offset),
     );
-    return tickets;
   }
 }

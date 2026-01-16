@@ -39,9 +39,9 @@ import { CreateEventTicketTypeHandler } from './application/handlers/create-even
 import { CreateCheckoutSessionHandler } from './application/handlers/create-checkout-session.handler';
 import { DeleteEventTicketTypesHandler } from './application/handlers/delete-event-ticket-types.handler';
 import { DeleteTicketTypeHandler } from './application/handlers/delete-ticket-type.handler';
+import { StripeWebhookHandler } from './application/handlers/stripe-webhook.handler';
 
 // Events Handlers
-import { BaseCheckoutSessionCompletedHandler } from './application/handlers/base-checkout-session-completed.handler';
 import { CheckoutSessionCompletedHandler } from './application/handlers/checkout-session-completed.handler';
 import { CheckoutSessionExpiredHandler } from './application/handlers/checkout-session-expired.handler';
 
@@ -52,6 +52,7 @@ import { TransactionManager } from './infrastructure/database/transaction.manage
 import { EventTicketTypesController } from './presentation/controllers/event-ticket-types.controller';
 import { CheckoutSessionsController } from './presentation/controllers/checkout-sessions.controller';
 import { MockedCheckoutWebhookController } from './presentation/controllers/mocked-checkout-webhook.controller';
+import { StripeWebhookController } from './presentation/controllers/stripe-webhook.controller';
 import { TicketsController } from './presentation/controllers/tickets.controller';
 import { OrderController } from './presentation/controllers/order-controller';
 
@@ -75,15 +76,11 @@ import { OrderService } from './application/services/order.service';
     EventTicketTypesController,
     CheckoutSessionsController,
     MockedCheckoutWebhookController,
+    StripeWebhookController,
     TicketsController,
     OrderController,
   ],
   providers: [
-    // PaymentService provider
-    {
-      provide: PAYMENT_SERVICE,
-      useClass: StripeService,
-    },
     // Repositories
     {
       provide: EVENT_TICKET_TYPE_REPOSITORY,
@@ -102,14 +99,20 @@ import { OrderService } from './application/services/order.service';
       useClass: UserRepositoryImpl,
     },
 
+    // Domain Services
+    {
+      provide: PAYMENT_SERVICE,
+      useClass: StripeService,
+    },
+
     // Use Case Handlers
     CreateEventTicketTypeHandler,
     CreateCheckoutSessionHandler,
     DeleteEventTicketTypesHandler,
     DeleteTicketTypeHandler,
+    StripeWebhookHandler,
 
     // Event Handlers
-    BaseCheckoutSessionCompletedHandler,
     CheckoutSessionCompletedHandler,
     CheckoutSessionExpiredHandler,
 

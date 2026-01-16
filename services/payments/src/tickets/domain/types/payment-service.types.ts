@@ -30,6 +30,5 @@ export interface CreateCheckoutSessionParams {
 export interface WebhookEvent {
   sessionId: string;
   type: string;
-  userId: string;
-  ticketIds: string[];
+  orderId: string;
 }

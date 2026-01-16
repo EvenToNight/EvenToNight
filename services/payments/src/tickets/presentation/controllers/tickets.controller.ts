@@ -10,7 +10,11 @@ export class TicketsController {
     private readonly ticketService: TicketService,
   ) {}
 
-  @Get('')
+  /**
+   * GET /tickets/:ticketId
+   * Returns the ticket details for the specified ticket.
+   */
+  @Get()
   async getUserTicket(@Param('ticketId') ticketId: string) {
     const ticket = await this.ticketService.findById(ticketId);
     if (!ticket) {
