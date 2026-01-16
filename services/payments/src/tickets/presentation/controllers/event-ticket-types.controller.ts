@@ -7,18 +7,18 @@ import {
   HttpStatus,
   NotFoundException,
   Delete,
-  // Put,
+  Put,
+  ValidationPipe,
 } from '@nestjs/common';
-import { CreateEventTicketTypeHandler } from '../../application/handlers/create-event-ticket-type.handler';
 import { EventTicketTypeResponseDto } from '../../application/dto/event-ticket-type-response.dto';
 import { DeleteTicketTypeHandler } from 'src/tickets/application/handlers/delete-ticket-type.handler';
 import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
+import { UpdateEventTicketTypeDto } from 'src/tickets/application/dto/update-event-ticket-type.dto';
 
 @Controller('ticket-types')
 export class EventTicketTypesController {
   constructor(
     private readonly eventTicketTypeService: EventTicketTypeService,
-    private readonly createHandler: CreateEventTicketTypeHandler,
     private readonly deleteHandler: DeleteTicketTypeHandler,
   ) {}
 
@@ -42,6 +42,20 @@ export class EventTicketTypesController {
     return EventTicketTypeResponseDto.fromDomain(ticketType);
   }
 
+  //TODO track selling price in tickets
+  @Put('ticket-types/:ticketTypeId')
+  @HttpCode(HttpStatus.OK)
+  async updateEventTicketType(
+    @Param('ticketTypeId') ticketTypeId: string,
+    @Body(ValidationPipe) dto: UpdateEventTicketTypeDto,
+  ): Promise<EventTicketTypeResponseDto> {
+    const updatedTicketType = await this.eventTicketTypeService.updateTicket(
+      ticketTypeId,
+      dto,
+    );
+    return EventTicketTypeResponseDto.fromDomain(updatedTicketType);
+  }
+
   @Delete(':ticketTypeId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteEventTicketType(
@@ -49,12 +63,4 @@ export class EventTicketTypesController {
   ): Promise<void> {
     return this.deleteHandler.handle(ticketTypeId);
   }
-
-  //TODO track selling price in tickets
-  // @Put('ticket-types/:ticketTypeId')
-  // @HttpCode(HttpStatus.OK)
-  // async updateEventTicketType(
-  //   @Param('ticketTypeId') ticketTypeId: string,
-  //   @Body(ValidationPipe) dto: CreateEventTicketTypeDto,
-  // ): Promise<EventTicketTypeResponseDto> {}
 }

@@ -5,6 +5,7 @@ import { EVENT_TICKET_TYPE_REPOSITORY } from 'src/tickets/domain/repositories/ev
 import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
 import type { ClientSession } from 'mongoose';
 import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
+import { UpdateEventTicketTypeDto } from '../dto/update-event-ticket-type.dto';
 
 @Injectable()
 export class EventTicketTypeService {
@@ -24,6 +25,18 @@ export class EventTicketTypeService {
   }
 
   update(ticketType: EventTicketType): Promise<EventTicketType> {
+    return this.eventTicketTypeRepository.update(ticketType);
+  }
+
+  async updateTicket(
+    id: string,
+    dto: UpdateEventTicketTypeDto,
+  ): Promise<EventTicketType> {
+    const ticketType = await this.findById(id);
+    if (!ticketType) {
+      throw new Error(`EventTicketType with id ${id} not found`);
+    }
+    Object.assign(ticketType, dto);
     return this.eventTicketTypeRepository.update(ticketType);
   }
 
