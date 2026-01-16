@@ -35,16 +35,14 @@ export class CreateCheckoutSessionDto {
     require_protocol: true,
     require_tld: false,
   })
-  @IsOptional()
-  successUrl?: string;
+  successUrl: string;
 
   @IsUrl({
     protocols: ['http', 'https'],
     require_protocol: true,
     require_tld: false,
   })
-  @IsOptional()
-  cancelUrl?: string;
+  cancelUrl: string;
 }
 
 export class CheckoutSessionResponseDto {
