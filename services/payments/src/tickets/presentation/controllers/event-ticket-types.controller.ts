@@ -22,6 +22,12 @@ export class EventTicketTypesController {
     private readonly deleteHandler: DeleteTicketTypeHandler,
   ) {}
 
+  @Get('values')
+  @HttpCode(HttpStatus.OK)
+  getAllTicketTypeValues(): string[] {
+    return this.eventTicketTypeService.getAllTicketTypeValues();
+  }
+
   @Get(':ticketTypeId')
   @HttpCode(HttpStatus.OK)
   async getEventTicketType(

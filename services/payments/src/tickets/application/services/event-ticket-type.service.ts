@@ -4,6 +4,7 @@ import type { EventTicketTypeRepository } from 'src/tickets/domain/repositories/
 import { EVENT_TICKET_TYPE_REPOSITORY } from 'src/tickets/domain/repositories/event-ticket-type.repository.interface';
 import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
 import type { ClientSession } from 'mongoose';
+import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
 
 @Injectable()
 export class EventTicketTypeService {
@@ -48,5 +49,9 @@ export class EventTicketTypeService {
       ),
     );
     return eventTicketTypesIds;
+  }
+
+  getAllTicketTypeValues(): string[] {
+    return TicketType.getAllValues();
   }
 }
