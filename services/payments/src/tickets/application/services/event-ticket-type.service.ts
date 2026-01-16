@@ -34,6 +34,10 @@ export class EventTicketTypeService {
     return this.eventTicketTypeRepository.findByEventId(eventId);
   }
 
+  delete(id: string): Promise<void> {
+    return this.eventTicketTypeRepository.delete(id);
+  }
+
   async deleteEventTicketTypes(eventId: string): Promise<string[]> {
     const eventTicketTypesIds = (
       await this.eventTicketTypeRepository.findByEventId(eventId)
