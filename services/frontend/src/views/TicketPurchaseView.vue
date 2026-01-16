@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
+import type { EventTicketType } from '@/api/types/payments'
 import { useQuasar } from 'quasar'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
@@ -15,14 +16,69 @@ const authStore = useAuthStore()
 
 const eventId = computed(() => params.id as string)
 const event = ref<Event | null>(null)
-const ticketQuantity = ref(1)
 const loading = ref(false)
 const purchasing = ref(false)
-const ticketTypeId = ref<string | null>(null)
+const ticketTypes = ref<EventTicketType[]>([])
+const ticketQuantities = ref<Record<string, number>>({})
+
+const getAvailableQuantity = (tt: EventTicketType) => {
+  return tt.availableQuantity - tt.soldQuantity
+}
+
+const getQuantity = (ttId: string) => {
+  return ticketQuantities.value[ttId] || 0
+}
+
+const incrementQuantity = (tt: EventTicketType) => {
+  const current = getQuantity(tt.id)
+  const max = getAvailableQuantity(tt)
+  if (current < max) {
+    ticketQuantities.value[tt.id] = current + 1
+  }
+}
+
+const decrementQuantity = (tt: EventTicketType) => {
+  const current = getQuantity(tt.id)
+  if (current > 0) {
+    ticketQuantities.value[tt.id] = current - 1
+  }
+}
+
+const hasAnyTickets = computed(() => {
+  return Object.values(ticketQuantities.value).some((q) => q > 0)
+})
 
 const totalPrice = computed(() => {
-  if (!event.value) return 0
-  return event.value.price * ticketQuantity.value
+  let total = 0
+  for (const tt of ticketTypes.value) {
+    const qty = getQuantity(tt.id)
+    if (qty > 0) {
+      total += tt.price.amount * qty
+    }
+  }
+  return total
+})
+
+const totalCurrency = computed(() => {
+  for (const tt of ticketTypes.value) {
+    if (getQuantity(tt.id) > 0) {
+      return tt.price.currency
+    }
+  }
+  return ticketTypes.value[0]?.price.currency || 'EUR'
+})
+
+const selectedTickets = computed(() => {
+  return ticketTypes.value
+    .filter((tt) => getQuantity(tt.id) > 0)
+    .map((tt) => ({
+      ticketType: tt,
+      quantity: getQuantity(tt.id),
+    }))
+})
+
+const totalTicketCount = computed(() => {
+  return Object.values(ticketQuantities.value).reduce((sum, q) => sum + q, 0)
 })
 
 const locationAddress = computed(() => {
@@ -36,15 +92,12 @@ const locationAddress = computed(() => {
 onMounted(async () => {
   try {
     loading.value = true
-    event.value = await api.events.getEventById(eventId.value)
-    const ticketsAvailable = await api.payments.getEventTicketType(eventId.value)
-    console.log('Tickets available:', ticketsAvailable)
-    console.log('Event loaded:', { ...event.value })
-    console.log('User i')
-
-    if (ticketsAvailable.length > 0) {
-      ticketTypeId.value = ticketsAvailable[0]!.id
-    }
+    const [eventData, ticketsAvailable] = await Promise.all([
+      api.events.getEventById(eventId.value),
+      api.payments.getEventTicketType(eventId.value),
+    ])
+    event.value = eventData
+    ticketTypes.value = ticketsAvailable
   } catch (error) {
     console.error('Failed to load event:', error)
     $q.notify({
@@ -58,50 +111,41 @@ onMounted(async () => {
 })
 
 const handlePurchase = async () => {
-  if (!authStore.user || !ticketTypeId.value) {
+  if (!authStore.user || !hasAnyTickets.value) {
     $q.notify({
       type: 'negative',
-      message: 'Missing required information, user not authenticated or ticket type not found',
+      message: 'Please select at least one ticket',
     })
     return
   }
 
   purchasing.value = true
   try {
-    // Create items array with the selected quantity
-    const items = Array.from({ length: ticketQuantity.value }, () => ({
-      ticketTypeId: ticketTypeId.value!,
-      attendeeName: authStore.user!.name,
-    }))
-    console.log(window.location.href)
-    // Create checkout session
+    const items: { ticketTypeId: string; attendeeName: string }[] = []
+    for (const { ticketType, quantity } of selectedTickets.value) {
+      for (let i = 0; i < quantity; i++) {
+        items.push({
+          ticketTypeId: ticketType.id,
+          attendeeName: authStore.user!.name,
+        })
+      }
+    }
+
     const session = await api.payments.createCheckoutSession({
       userId: authStore.user.id,
       items,
-      successUrl: window.location.origin, //`${window.location.origin}/payment-success`,
+      successUrl: window.location.origin,
       cancelUrl: window.location.href,
     })
 
-    // Redirect to Stripe checkout
     window.location.href = session.redirectUrl
   } catch (error) {
     console.error('Failed to create checkout session:', error)
     $q.notify({
       type: 'negative',
       message: 'Failed to start payment process',
-      icon: 'error',
     })
     purchasing.value = false
-  }
-}
-
-const incrementQuantity = () => {
-  ticketQuantity.value++
-}
-
-const decrementQuantity = () => {
-  if (ticketQuantity.value > 1) {
-    ticketQuantity.value--
   }
 }
 </script>
@@ -113,82 +157,122 @@ const decrementQuantity = () => {
     <div class="ticket-purchase-container">
       <q-inner-loading :showing="loading" />
 
-      <div v-if="!loading && event" class="purchase-card">
-        <div class="card-header">
-          <h1 class="page-title">Purchase Tickets</h1>
-        </div>
-
-        <div class="card-body">
-          <!-- Event Info Summary -->
-          <div class="event-summary">
-            <div class="event-poster-container">
-              <img :src="event.poster" :alt="event.title" class="event-poster" />
-            </div>
-
-            <div class="event-details">
-              <h2 class="event-title">{{ event.title }}</h2>
-
-              <div class="event-info-row">
-                <q-icon name="event" size="20px" />
+      <div v-if="!loading && event" class="purchase-layout">
+        <!-- Left: Event Info -->
+        <div class="event-card">
+          <div class="event-poster-container">
+            <img :src="event.poster" :alt="event.title" class="event-poster" />
+          </div>
+          <div class="event-info">
+            <h2 class="event-title">{{ event.title }}</h2>
+            <div class="event-meta">
+              <div class="meta-item">
+                <q-icon name="event" size="18px" />
                 <span>{{ new Date(event.date).toLocaleDateString() }}</span>
               </div>
-
-              <div class="event-info-row">
-                <q-icon name="location_on" size="20px" />
+              <div class="meta-item">
+                <q-icon name="schedule" size="18px" />
+                <span>{{
+                  new Date(event.date).toLocaleTimeString([], {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })
+                }}</span>
+              </div>
+              <div class="meta-item">
+                <q-icon name="location_on" size="18px" />
                 <span>{{ locationAddress }}</span>
               </div>
-
-              <div class="event-info-row">
-                <q-icon name="euro" size="20px" />
-                <span>{{ event.price.toFixed(2) }} per ticket</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <!-- Ticket Quantity Selector -->
-          <div class="quantity-section">
-            <h3 class="section-title">Number of Tickets</h3>
-
-            <div class="quantity-selector">
-              <q-btn
-                round
-                flat
-                icon="remove"
-                color="primary"
-                :disable="ticketQuantity <= 1"
-                @click="decrementQuantity"
-              />
-
-              <div class="quantity-display">
-                <span class="quantity-number">{{ ticketQuantity }}</span>
-                <span class="quantity-label">Ticket{{ ticketQuantity > 1 ? 's' : '' }}</span>
-              </div>
-
-              <q-btn round flat icon="add" color="primary" @click="incrementQuantity" />
-            </div>
-          </div>
-
-          <div class="divider"></div>
-
-          <!-- Total Price -->
-          <div class="total-section">
-            <div class="total-row">
-              <span class="total-label">Total</span>
-              <span class="total-price">€{{ totalPrice.toFixed(2) }}</span>
             </div>
           </div>
         </div>
 
-        <div class="card-actions">
-          <Button :label="'Cancel'" variant="secondary" @click="goBack" />
-          <Button
-            :label="'Purchase'"
-            variant="primary"
-            :loading="purchasing"
-            @click="handlePurchase"
-          />
+        <!-- Right: Ticket Selection -->
+        <div class="selection-card">
+          <h1 class="card-title">Select Tickets</h1>
+
+          <!-- Ticket Types -->
+          <div class="ticket-types-list">
+            <div
+              v-for="tt in ticketTypes"
+              :key="tt.id"
+              class="ticket-type-card"
+              :class="{
+                'has-quantity': getQuantity(tt.id) > 0,
+                'sold-out': getAvailableQuantity(tt) === 0,
+              }"
+            >
+              <div class="ticket-type-main">
+                <div class="ticket-type-info">
+                  <div class="ticket-type-name">{{ tt.type }}</div>
+                  <div class="ticket-type-availability">
+                    <span v-if="getAvailableQuantity(tt) > 0">
+                      {{ getAvailableQuantity(tt) }} available
+                    </span>
+                    <span v-else class="sold-out-text">Sold out</span>
+                  </div>
+                </div>
+                <div class="ticket-type-price">
+                  {{ tt.price.amount.toFixed(2) }}
+                  <span class="currency">{{ tt.price.currency }}</span>
+                </div>
+              </div>
+
+              <!-- Quantity Controls -->
+              <div v-if="getAvailableQuantity(tt) > 0" class="quantity-controls">
+                <q-btn
+                  round
+                  flat
+                  dense
+                  icon="remove"
+                  :disable="getQuantity(tt.id) <= 0"
+                  class="qty-btn"
+                  @click="decrementQuantity(tt)"
+                />
+                <span class="quantity-value">{{ getQuantity(tt.id) }}</span>
+                <q-btn
+                  round
+                  flat
+                  dense
+                  icon="add"
+                  :disable="getQuantity(tt.id) >= getAvailableQuantity(tt)"
+                  class="qty-btn"
+                  @click="incrementQuantity(tt)"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div v-if="hasAnyTickets" class="summary-section">
+            <div v-for="item in selectedTickets" :key="item.ticketType.id" class="summary-row">
+              <span>{{ item.ticketType.type }} x {{ item.quantity }}</span>
+              <span
+                >{{ (item.ticketType.price.amount * item.quantity).toFixed(2) }}
+                {{ item.ticketType.price.currency }}</span
+              >
+            </div>
+            <div class="summary-divider"></div>
+            <div class="summary-row total">
+              <span
+                >Total ({{ totalTicketCount }} ticket{{ totalTicketCount > 1 ? 's' : '' }})</span
+              >
+              <span class="total-amount">{{ totalPrice.toFixed(2) }} {{ totalCurrency }}</span>
+            </div>
+          </div>
+
+          <!-- Actions -->
+          <div class="actions-section">
+            <Button label="Cancel" variant="tertiary" class="cancel-btn" @click="goBack" />
+            <Button
+              label="Continue to Payment"
+              variant="primary"
+              :loading="purchasing"
+              :disable="!hasAnyTickets"
+              class="purchase-btn"
+              @click="handlePurchase"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -198,101 +282,51 @@ const decrementQuantity = () => {
 <style lang="scss" scoped>
 .ticket-purchase-view {
   min-height: 100vh;
-  background: #f5f5f5;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   position: relative;
   margin-top: calc(-1 * v-bind(NAVBAR_HEIGHT_CSS));
   padding-top: calc(v-bind(NAVBAR_HEIGHT_CSS) + #{$spacing-6});
+  padding-bottom: $spacing-8;
 
   @include dark-mode {
-    background: #121212;
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    padding-top: calc(v-bind(NAVBAR_HEIGHT_CSS) + #{$spacing-4});
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
   }
 }
 
 .ticket-purchase-container {
-  max-width: 800px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: 0 $spacing-6 $spacing-8;
+  padding: 0 $spacing-4;
   position: relative;
   min-height: 400px;
+}
 
-  @media (max-width: $breakpoint-mobile) {
-    padding: 0 $spacing-4 $spacing-6;
+.purchase-layout {
+  display: grid;
+  grid-template-columns: 1fr 1.2fr;
+  gap: $spacing-6;
+  align-items: start;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
   }
 }
 
-.purchase-card {
+.event-card {
   background: $color-white;
-  border-radius: $radius-2xl;
-  box-shadow: $shadow-base;
+  border-radius: $radius-xl;
   overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 
   @include dark-mode {
-    background: $color-background-dark;
-  }
-}
-
-.card-header {
-  padding: $spacing-6;
-  border-bottom: 1px solid $color-gray-200;
-
-  @include dark-mode {
-    border-bottom-color: rgba($color-white, 0.1);
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-4;
-  }
-}
-
-.page-title {
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-bold;
-  line-height: 1.2;
-  margin: 0;
-  color: $color-text-primary;
-
-  @include dark-mode {
-    color: $color-text-dark;
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: $font-size-2xl;
-  }
-}
-
-.card-body {
-  padding: $spacing-6;
-
-  @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-4;
-  }
-}
-
-.event-summary {
-  display: flex;
-  gap: $spacing-5;
-
-  @media (max-width: $breakpoint-mobile) {
-    flex-direction: column;
+    background: #1e1e1e;
   }
 }
 
 .event-poster-container {
-  flex-shrink: 0;
-  width: 200px;
-  height: 200px;
-  border-radius: $radius-lg;
+  width: 100%;
+  aspect-ratio: 16/10;
   overflow: hidden;
-  box-shadow: $shadow-md;
-
-  @media (max-width: $breakpoint-mobile) {
-    width: 100%;
-    height: 250px;
-  }
 }
 
 .event-poster {
@@ -301,37 +335,36 @@ const decrementQuantity = () => {
   object-fit: cover;
 }
 
-.event-details {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-3;
+.event-info {
+  padding: $spacing-5;
 }
 
 .event-title {
-  font-size: $font-size-2xl;
+  font-size: $font-size-xl;
   font-weight: $font-weight-bold;
-  margin: 0;
+  margin: 0 0 $spacing-4;
   color: $color-text-primary;
 
   @include dark-mode {
     color: $color-text-dark;
   }
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: $font-size-xl;
-  }
 }
 
-.event-info-row {
+.event-meta {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.meta-item {
   display: flex;
   align-items: center;
   gap: $spacing-2;
-  font-size: $font-size-base;
-  color: $color-gray-700;
+  font-size: $font-size-sm;
+  color: $color-gray-600;
 
   @include dark-mode {
-    color: $color-gray-300;
+    color: $color-gray-400;
   }
 
   .q-icon {
@@ -339,26 +372,25 @@ const decrementQuantity = () => {
   }
 }
 
-.divider {
-  height: 1px;
-  background: $color-gray-200;
-  margin: $spacing-6 0;
+.selection-card {
+  background: $color-white;
+  border-radius: $radius-xl;
+  padding: $spacing-6;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
 
   @include dark-mode {
-    background: rgba($color-white, 0.1);
+    background: #1e1e1e;
+  }
+
+  @media (max-width: 768px) {
+    padding: $spacing-4;
   }
 }
 
-.quantity-section {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-4;
-}
-
-.section-title {
-  font-size: $font-size-xl;
-  font-weight: $font-weight-semibold;
-  margin: 0;
+.card-title {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  margin: 0 0 $spacing-5;
   color: $color-text-primary;
 
   @include dark-mode {
@@ -366,52 +398,125 @@ const decrementQuantity = () => {
   }
 }
 
-.quantity-selector {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: $spacing-6;
-}
-
-.quantity-display {
+.ticket-types-list {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  min-width: 120px;
+  gap: $spacing-3;
+  margin-bottom: $spacing-5;
 }
 
-.quantity-number {
-  font-size: 3rem;
-  font-weight: $font-weight-bold;
-  color: $color-primary;
-  line-height: 1;
+.ticket-type-card {
+  border: 2px solid $color-gray-200;
+  border-radius: $radius-lg;
+  padding: $spacing-4;
+  transition: all 0.2s ease;
+
+  @include dark-mode {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+
+  &.has-quantity {
+    border-color: $color-primary;
+    background: rgba($color-primary, 0.05);
+
+    @include dark-mode {
+      background: rgba($color-primary, 0.15);
+    }
+  }
+
+  &.sold-out {
+    opacity: 0.5;
+  }
 }
 
-.quantity-label {
+.ticket-type-main {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: $spacing-3;
+}
+
+.ticket-type-info {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.ticket-type-name {
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  color: $color-text-primary;
+
+  @include dark-mode {
+    color: $color-text-dark;
+  }
+}
+
+.ticket-type-availability {
   font-size: $font-size-sm;
-  color: $color-gray-600;
-  margin-top: $spacing-2;
+  color: $color-gray-500;
 
   @include dark-mode {
     color: $color-gray-400;
   }
 }
 
-.total-section {
-  display: flex;
-  flex-direction: column;
-  gap: $spacing-3;
+.sold-out-text {
+  color: $color-error;
+  font-weight: $font-weight-medium;
 }
 
-.total-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.total-label {
+.ticket-type-price {
   font-size: $font-size-xl;
-  font-weight: $font-weight-semibold;
+  font-weight: $font-weight-bold;
+  color: $color-primary;
+
+  .currency {
+    font-size: $font-size-sm;
+    font-weight: $font-weight-normal;
+  }
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: $spacing-4;
+  padding-top: $spacing-3;
+  border-top: 1px solid $color-gray-100;
+
+  @include dark-mode {
+    border-top-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.qty-btn {
+  background: $color-gray-100;
+  width: 36px;
+  height: 36px;
+
+  @include dark-mode {
+    background: #2a2a2a;
+  }
+
+  &:hover:not(:disabled) {
+    background: $color-gray-200;
+
+    @include dark-mode {
+      background: #3a3a3a;
+    }
+  }
+
+  &:disabled {
+    opacity: 0.4;
+  }
+}
+
+.quantity-value {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-bold;
+  min-width: 50px;
+  text-align: center;
   color: $color-text-primary;
 
   @include dark-mode {
@@ -419,30 +524,70 @@ const decrementQuantity = () => {
   }
 }
 
-.total-price {
-  font-size: $font-size-3xl;
+.summary-section {
+  padding: $spacing-4;
+  background: $color-gray-50;
+  border-radius: $radius-md;
+  margin-bottom: $spacing-5;
+
+  @include dark-mode {
+    background: rgba(255, 255, 255, 0.05);
+  }
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: $font-size-base;
+  color: $color-gray-600;
+  padding: $spacing-1 0;
+
+  @include dark-mode {
+    color: $color-gray-400;
+  }
+
+  &.total {
+    font-weight: $font-weight-semibold;
+    color: $color-text-primary;
+    padding-top: $spacing-2;
+
+    @include dark-mode {
+      color: $color-text-dark;
+    }
+  }
+}
+
+.summary-divider {
+  height: 1px;
+  background: $color-gray-200;
+  margin: $spacing-3 0;
+
+  @include dark-mode {
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.total-amount {
+  font-size: $font-size-xl;
   font-weight: $font-weight-bold;
   color: $color-primary;
 }
 
-.card-actions {
+.actions-section {
   display: flex;
-  justify-content: flex-end;
   gap: $spacing-3;
-  padding: $spacing-4 $spacing-6;
-  border-top: 1px solid $color-gray-200;
 
-  @include dark-mode {
-    border-top-color: rgba($color-white, 0.1);
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-3 $spacing-4;
+  @media (max-width: 768px) {
     flex-direction: column-reverse;
-
-    :deep(.base-button) {
-      width: 100%;
-    }
   }
+}
+
+.cancel-btn {
+  flex: 0 0 auto;
+}
+
+.purchase-btn {
+  flex: 1;
 }
 </style>

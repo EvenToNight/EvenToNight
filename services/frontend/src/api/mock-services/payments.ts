@@ -5,7 +5,7 @@ import type {
   CreateCheckoutSessionResponse,
   CreateEventTicketTypeRequest,
 } from '../interfaces/payments'
-import { DEFAULT_TICKET_TYPE, mockEventTicketTypes } from './data/payments'
+import { createMockEventTicketType, mockEventTicketTypes } from './data/payments'
 
 export const mockPaymentsApi = {
   async getTicketTypes(): Promise<TicketType[]> {
@@ -40,7 +40,11 @@ export const mockPaymentsApi = {
 
   async getEventTicketType(eventId: EventID): Promise<EventTicketType[]> {
     const filteredTicketTypes = mockEventTicketTypes.filter((t) => t.eventId === eventId)
-    if (filteredTicketTypes.length === 0) return [{ eventId, ...DEFAULT_TICKET_TYPE }]
+    if (filteredTicketTypes.length === 0)
+      return [
+        createMockEventTicketType(eventId, 'STANDARD', 20),
+        createMockEventTicketType(eventId, 'VIP'),
+      ]
     return filteredTicketTypes
   },
 
