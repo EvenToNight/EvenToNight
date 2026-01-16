@@ -42,6 +42,7 @@ import { StripeWebhookHandler } from './application/handlers/stripe-webhook.hand
 import { CheckoutSessionCompletedHandler } from './application/handlers/checkout-session-completed.handler';
 import { CheckoutSessionExpiredHandler } from './application/handlers/checkout-session-expired.handler';
 import { UpdateTicketTypeHandler } from './application/handlers/update-ticket-type.handler';
+import { InvalidateTicketStatusHandler } from './application/handlers/invalidate-ticket-status.handler';
 
 // Infrastructure
 import { TransactionManager } from './infrastructure/database/transaction.manager';
@@ -113,6 +114,7 @@ import { OrderService } from './application/services/order.service';
     CheckoutSessionCompletedHandler,
     CheckoutSessionExpiredHandler,
     UpdateTicketTypeHandler,
+    InvalidateTicketStatusHandler,
 
     // Infrastructure
     TransactionManager,

@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TicketsModule } from './tickets/tickets.module';
 import { MessagingModule } from './commons/intrastructure/messaging/messaging.module';
+import { AuthModule } from './commons/infrastructure/auth';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { MessagingModule } from './commons/intrastructure/messaging/messaging.mo
     ),
     MessagingModule,
     TicketsModule,
+    AuthModule,
   ],
   controllers: [AppController],
   providers: [AppService],

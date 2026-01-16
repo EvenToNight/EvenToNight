@@ -5,17 +5,30 @@ import {
   Res,
   NotFoundException,
   HttpCode,
+  ValidationPipe,
   HttpStatus,
+  Patch,
+  Body,
+  UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { PdfService } from '../../application/services/pdf.service';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
+import { InvalidateTicketStatusDto } from 'src/tickets/application/dto/ticket-status.dto';
+import { InvalidateTicketStatusHandler } from 'src/tickets/application/handlers/invalidate-ticket-status.handler';
+import {
+  JwtAuthGuard,
+  CurrentUser,
+  type AuthUser,
+} from 'src/commons/infrastructure/auth';
 
 @Controller('tickets/:ticketId')
 export class TicketsController {
   constructor(
     private readonly pdfService: PdfService,
     private readonly ticketService: TicketService,
+    private readonly invalidateTicketStatusHandler: InvalidateTicketStatusHandler,
   ) {}
 
   /**
@@ -24,12 +37,34 @@ export class TicketsController {
    */
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getUserTicket(@Param('ticketId') ticketId: string) {
+  @UseGuards(JwtAuthGuard)
+  async getUserTicket(
+    @Param('ticketId') ticketId: string,
+    @CurrentUser() user: AuthUser,
+  ) {
     const ticket = await this.ticketService.findById(ticketId);
     if (!ticket) {
       throw new NotFoundException('Ticket not found');
     }
+    if (ticket.getUserId().toString() !== user.userId) {
+      throw new ForbiddenException('Not authorized to view this ticket');
+    }
     return ticket;
+  }
+
+  /**
+   * PATCH /tickets/:ticketId
+   * Updates the status of the specified ticket as invalid.
+   */
+  @Patch()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
+  async updateTicketStatus(
+    @Param('ticketId') ticketId: string,
+    @Body(ValidationPipe) dto: InvalidateTicketStatusDto,
+    @CurrentUser('userId') userId: string,
+  ) {
+    await this.invalidateTicketStatusHandler.handle(ticketId, dto, userId);
   }
 
   /**

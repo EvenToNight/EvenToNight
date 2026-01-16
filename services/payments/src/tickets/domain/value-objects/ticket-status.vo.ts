@@ -7,6 +7,7 @@ export class TicketStatus {
   static readonly CANCELLED = new TicketStatus('CANCELLED');
   static readonly REFUNDED = new TicketStatus('REFUNDED');
   static readonly PAYMENT_FAILED = new TicketStatus('PAYMENT_FAILED');
+  static readonly USED = new TicketStatus('USED');
 
   static fromString(value: string): TicketStatus {
     switch (value) {
@@ -20,6 +21,8 @@ export class TicketStatus {
         return TicketStatus.REFUNDED;
       case 'PAYMENT_FAILED':
         return TicketStatus.PAYMENT_FAILED;
+      case 'USED':
+        return TicketStatus.USED;
       default:
         throw new Error(`Invalid TicketStatus: ${value}`);
     }
@@ -32,6 +35,7 @@ export class TicketStatus {
       TicketStatus.CANCELLED,
       TicketStatus.REFUNDED,
       TicketStatus.PAYMENT_FAILED,
+      TicketStatus.USED,
     ];
   }
 
@@ -42,6 +46,7 @@ export class TicketStatus {
       'CANCELLED',
       'REFUNDED',
       'PAYMENT_FAILED',
+      'USED',
     ];
   }
 
@@ -71,5 +76,9 @@ export class TicketStatus {
 
   isPaymentFailed(): boolean {
     return this.equals(TicketStatus.PAYMENT_FAILED);
+  }
+
+  isUsed(): boolean {
+    return this.equals(TicketStatus.USED);
   }
 }
