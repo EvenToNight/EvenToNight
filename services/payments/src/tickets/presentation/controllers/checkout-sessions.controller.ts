@@ -23,6 +23,8 @@ import { Stripe } from 'stripe';
 import { EventPublisher } from '../../../commons/intrastructure/messaging/event-publisher';
 import type { Response } from 'express';
 import { CheckoutSessionExpiredEvent } from '../../domain/events/checkout-session-expired.event';
+import { CheckoutSession } from 'src/tickets/domain/types/payment-service.types';
+import { OrderService } from 'src/tickets/application/services/order.service';
 
 //TODO: remove stripe dependency
 @Controller('checkout-sessions')
@@ -31,11 +33,9 @@ export class CheckoutSessionsController {
   constructor(
     private readonly createCheckoutSessionHandler: CreateCheckoutSessionHandler,
     @Inject(PAYMENT_SERVICE)
-    private readonly paymentService: PaymentService<
-      Stripe.Checkout.Session,
-      Stripe.Event
-    >,
+    private readonly paymentService: PaymentService<Stripe.Event>,
     private readonly eventPublisher: EventPublisher,
+    private readonly orderService: OrderService,
   ) {}
 
   /**
@@ -80,19 +80,18 @@ export class CheckoutSessionsController {
     }
   }
 
-  private async publishExpiredEvent(session: Stripe.Checkout.Session) {
+  private async publishExpiredEvent(session: CheckoutSession) {
     try {
-      const ticketIdsJson = session.metadata?.ticketIds;
-      const userId = session.metadata?.userId;
+      const order = await this.orderService.findById(session.orderId);
 
-      if (!ticketIdsJson || !userId) {
+      if (!order) {
         this.logger.error(
-          `Missing metadata in session ${session.id} - cannot publish expired event`,
+          `Order ${session.orderId} not found for session ${session.id} - cannot publish expired event`,
         );
         return;
       }
-
-      const ticketIds: string[] = JSON.parse(ticketIdsJson) as string[];
+      const ticketIds = order.getTicketIds();
+      const userId = order.getUserId().toString();
 
       await this.eventPublisher.publish(
         new CheckoutSessionExpiredEvent({

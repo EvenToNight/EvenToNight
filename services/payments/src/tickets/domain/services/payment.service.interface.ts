@@ -1,12 +1,16 @@
-import { CreateCheckoutSessionParams } from '../types/payment-service.types';
-export interface PaymentService<S, E> {
+import {
+  CheckoutSession,
+  CreateCheckoutSessionParams,
+} from '../types/payment-service.types';
+
+export interface PaymentService<E> {
   createCheckoutSessionWithItems(
     params: CreateCheckoutSessionParams,
-  ): Promise<S>;
+  ): Promise<CheckoutSession>;
 
-  getCheckoutSession(sessionId: string): Promise<S>;
+  getCheckoutSession(sessionId: string): Promise<CheckoutSession>;
 
-  expireCheckoutSession(sessionId: string): Promise<S>;
+  expireCheckoutSession(sessionId: string): Promise<CheckoutSession>;
 
   constructWebhookEvent(
     payload: string | Buffer<ArrayBufferLike>,

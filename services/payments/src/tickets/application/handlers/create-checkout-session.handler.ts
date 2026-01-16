@@ -33,10 +33,7 @@ export class CreateCheckoutSessionHandler {
   constructor(
     private readonly transactionManager: TransactionManager,
     @Inject(PAYMENT_SERVICE)
-    private readonly paymentService: PaymentService<
-      Stripe.Checkout.Session,
-      Stripe.Event
-    >,
+    private readonly paymentService: PaymentService<Stripe.Event>,
     private readonly ticketTypeService: EventTicketTypeService,
     private readonly ticketService: TicketService,
     private readonly orderService: OrderService,
@@ -193,8 +190,8 @@ export class CreateCheckoutSessionHandler {
 
     return {
       sessionId: session.id,
-      redirectUrl: session.url!,
-      expiresAt: session.expires_at,
+      redirectUrl: session.redirectUrl!,
+      expiresAt: session.expiresAt,
       orderId: order.getId(),
     };
   }

@@ -25,10 +25,7 @@ export class StripeWebhookController {
 
   constructor(
     @Inject(PAYMENT_SERVICE)
-    private readonly paymentService: PaymentService<
-      Stripe.Checkout.Session,
-      Stripe.Event
-    >,
+    private readonly paymentService: PaymentService<Stripe.Event>,
     private readonly eventPublisher: EventPublisher,
   ) {}
 

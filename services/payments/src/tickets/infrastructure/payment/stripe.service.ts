@@ -4,6 +4,7 @@ import { Money } from '../../../tickets/domain/value-objects/money.vo';
 import { PaymentException } from '../../../tickets/domain/exceptions/payment.exception';
 import codes from 'currency-codes';
 import { PaymentService } from 'src/tickets/domain/services/payment.service.interface';
+import { CheckoutSession } from 'src/tickets/domain/types/payment-service.types';
 
 export interface CheckoutSessionLineItem {
   productName: string;
@@ -12,6 +13,7 @@ export interface CheckoutSessionLineItem {
   quantity: number;
 }
 
+//TODO: update, add orderId
 export interface CreateCheckoutSessionParams {
   userId: string;
   lineItems: CheckoutSessionLineItem[];
@@ -21,10 +23,7 @@ export interface CreateCheckoutSessionParams {
 }
 
 @Injectable()
-export class StripeService implements PaymentService<
-  Stripe.Checkout.Session,
-  Stripe.Event
-> {
+export class StripeService implements PaymentService<Stripe.Event> {
   private readonly stripe: Stripe;
   private readonly webhookSecret: string;
   private readonly logger = new Logger(StripeService.name);
@@ -47,7 +46,7 @@ export class StripeService implements PaymentService<
 
   async createCheckoutSessionWithItems(
     params: CreateCheckoutSessionParams,
-  ): Promise<Stripe.Checkout.Session> {
+  ): Promise<CheckoutSession> {
     try {
       const lineItems = params.lineItems.map((item) => ({
         price_data: {
@@ -88,31 +87,47 @@ export class StripeService implements PaymentService<
         `Created Stripe checkout session with ${lineItems.length} items: ${session.id}`,
       );
 
-      return session;
+      //TODO: get orderId from metadata or another way
+      return {
+        id: session.id,
+        status: session.status!,
+        orderId: session.metadata?.orderId || '',
+        expiresAt: session.expires_at,
+        redirectUrl: session.url,
+      };
     } catch (error) {
       this.logger.error('Failed to create checkout session with items', error);
       throw error;
     }
   }
 
-  async getCheckoutSession(
-    sessionId: string,
-  ): Promise<Stripe.Checkout.Session> {
+  async getCheckoutSession(sessionId: string): Promise<CheckoutSession> {
     try {
-      return await this.stripe.checkout.sessions.retrieve(sessionId);
+      const session = await this.stripe.checkout.sessions.retrieve(sessionId);
+      return {
+        id: session.id,
+        status: session.status!,
+        orderId: session.metadata?.orderId || '',
+        expiresAt: session.expires_at,
+        redirectUrl: session.url,
+      };
     } catch (error) {
       this.logger.error('Failed to retrieve checkout session', error);
       throw error;
     }
   }
 
-  async expireCheckoutSession(
-    sessionId: string,
-  ): Promise<Stripe.Checkout.Session> {
+  async expireCheckoutSession(sessionId: string): Promise<CheckoutSession> {
     try {
       const session = await this.stripe.checkout.sessions.expire(sessionId);
       this.logger.log(`Expired checkout session: ${sessionId}`);
-      return session;
+      return {
+        id: session.id,
+        status: session.status!,
+        orderId: session.metadata?.orderId || '',
+        expiresAt: session.expires_at,
+        redirectUrl: session.url,
+      };
     } catch (error) {
       this.logger.error('Failed to expire checkout session', error);
       throw error;
