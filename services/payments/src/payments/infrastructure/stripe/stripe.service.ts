@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
 import { Money } from '../../../tickets/domain/value-objects/money.vo';
-import { StripePaymentException } from '../../domain/exceptions/stripe-payment.exception';
+import { PaymentException } from '../../../tickets/domain/exceptions/payment.exception';
 import codes from 'currency-codes';
 import { PaymentService } from 'src/tickets/domain/services/payment.service';
 
@@ -135,7 +135,7 @@ export class StripeService implements PaymentService<
     } catch (error) {
       this.logger.error('Failed to construct webhook event', error);
       const message = error instanceof Error ? error.message : 'Unknown error';
-      throw new StripePaymentException(
+      throw new PaymentException(
         `Webhook signature verification failed: ${message}`,
       );
     }
