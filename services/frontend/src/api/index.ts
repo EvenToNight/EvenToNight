@@ -7,6 +7,7 @@ import { mockInteractionsApi } from './mock-services/interactions'
 import { createInteractionsApi } from './services/interactions'
 import { mockUsersApi } from './mock-services/users'
 import { createPaymentsApi } from './services/payments'
+import { mockPaymentsApi } from './mock-services/payments'
 // import { createUsersApi } from './services/users'
 import {
   createEventsClient,
@@ -31,7 +32,7 @@ export const api = {
   users: mockUsersApi,
   support: mockSupportApi,
   notification: mockNotificationApi,
-  payments: createPaymentsApi(createPaymentsClient()),
+  payments: useRealApi ? createPaymentsApi(createPaymentsClient()) : mockPaymentsApi,
   // media: useMockApi ? mockMediaApi : createMediaApi(createMediaClient()),
   // feed: useMockApi ? mockFeedApi : createFeedApi(createFeedClient()),
   // users: useRealApi ? createUsersApi(createUsersClient()) : mockUsersApi,

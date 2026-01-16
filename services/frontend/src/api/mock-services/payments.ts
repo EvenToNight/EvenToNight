@@ -7,7 +7,7 @@ import type {
 } from '../interfaces/payments'
 import { DEFAULT_TICKET_TYPE, mockEventTicketTypes } from './data/payments'
 
-export const mockPaymentsAPI = {
+export const mockPaymentsApi = {
   async getTicketTypes(): Promise<TicketType[]> {
     return [...TICKET_TYPE_VALUES]
   },
