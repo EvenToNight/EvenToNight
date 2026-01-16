@@ -4,7 +4,7 @@ import { PdfService } from '../../application/services/pdf.service';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { OrderService } from 'src/tickets/application/services/order.service';
 
-@Controller('orders')
+@Controller('orders/:orderId')
 export class OrderController {
   constructor(
     private readonly pdfService: PdfService,
@@ -12,11 +12,20 @@ export class OrderController {
     private readonly ticketService: TicketService,
   ) {}
 
+  @Get('')
+  async getOrder(@Param('orderId') orderId: string) {
+    const order = await this.orderService.findById(orderId);
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+    return order;
+  }
+
   /**
    * GET /orders/:orderId/pdf
    * Returns a PDF for the specified order containing all tickets.
    */
-  @Get(':orderId/pdf')
+  @Get('pdf')
   async getOrderPdf(@Param('orderId') orderId: string, @Res() res: Response) {
     const order = await this.orderService.findById(orderId);
     if (!order) {

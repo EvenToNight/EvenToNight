@@ -3,14 +3,14 @@ import type { Response } from 'express';
 import { PdfService } from '../../application/services/pdf.service';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 
-@Controller('tickets')
+@Controller('tickets/:ticketId')
 export class TicketsController {
   constructor(
     private readonly pdfService: PdfService,
     private readonly ticketService: TicketService,
   ) {}
 
-  @Get(':ticketId')
+  @Get('')
   async getUserTicket(@Param('ticketId') ticketId: string) {
     const ticket = await this.ticketService.findById(ticketId);
     if (!ticket) {
@@ -23,7 +23,7 @@ export class TicketsController {
    * GET /tickets/:ticketId/pdf
    * Returns a PDF for the specified ticket.
    */
-  @Get(':ticketId/pdf')
+  @Get('pdf')
   async getTicketPdf(
     @Param('ticketId') ticketId: string,
     @Res() res: Response,
