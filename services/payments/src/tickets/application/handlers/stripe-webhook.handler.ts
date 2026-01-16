@@ -1,14 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { EventPublisher } from '../../../commons/intrastructure/messaging/event-publisher';
-import { CheckoutSessionCompletedEvent } from '../../domain/events/checkout-session-completed.event';
-import { CheckoutSessionExpiredEvent } from '../../domain/events/checkout-session-expired.event';
 import { WebhookEvent } from '../../domain/types/payment-service.types';
+import { CheckoutSessionExpiredHandler } from './checkout-session-expired.handler';
+import { CheckoutSessionCompletedHandler } from './checkout-session-completed.handler';
 
 @Injectable()
 export class StripeWebhookHandler {
   private readonly logger = new Logger(StripeWebhookHandler.name);
 
-  constructor(private readonly eventPublisher: EventPublisher) {}
+  constructor(
+    private readonly checkoutCompletedHandler: CheckoutSessionCompletedHandler,
+    private readonly checkoutExpiredHandler: CheckoutSessionExpiredHandler,
+  ) {}
 
   // https://docs.stripe.com/testing - check card number for testing
   // [COMPLETED] payment_intent.succeeded - payment_intent.created - checkout.session.completed - mandate.updated - charge.succeeded - charge.updated
@@ -19,11 +21,17 @@ export class StripeWebhookHandler {
 
     switch (event.type) {
       case 'checkout.session.completed':
-        await this.handleCheckoutSessionCompleted(event);
+        await this.checkoutCompletedHandler.handle(
+          event.sessionId,
+          event.orderId,
+        );
         break;
 
       case 'checkout.session.expired':
-        await this.handleCheckoutSessionExpired(event);
+        await this.checkoutExpiredHandler.handle(
+          event.sessionId,
+          event.orderId,
+        );
         break;
 
       default:
@@ -31,32 +39,5 @@ export class StripeWebhookHandler {
     }
 
     return { received: true };
-  }
-
-  private async handleCheckoutSessionCompleted(event: WebhookEvent) {
-    await this.eventPublisher.publish(
-      new CheckoutSessionCompletedEvent({
-        sessionId: event.sessionId,
-        orderId: event.orderId,
-      }),
-    );
-
-    this.logger.log(
-      `Checkout session completed event published for session ${event.sessionId}`,
-    );
-  }
-
-  private async handleCheckoutSessionExpired(event: WebhookEvent) {
-    await this.eventPublisher.publish(
-      new CheckoutSessionExpiredEvent({
-        sessionId: event.sessionId,
-        orderId: event.orderId,
-        expirationReason: 'Session timeout - user did not complete payment',
-      }),
-    );
-
-    this.logger.log(
-      `Checkout session expired event published for session ${event.sessionId}`,
-    );
   }
 }

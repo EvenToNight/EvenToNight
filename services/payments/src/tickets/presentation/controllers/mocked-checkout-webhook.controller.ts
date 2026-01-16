@@ -7,39 +7,21 @@ import {
   Logger,
   ValidationPipe,
 } from '@nestjs/common';
-import { EventPublisher } from '../../../commons/intrastructure/messaging/event-publisher';
-import {
-  CheckoutSessionCompletedEvent,
-  type CheckoutSessionCompletedEventPayload,
-} from 'src/tickets/domain/events/checkout-session-completed.event';
+import type { WebhookEvent } from 'src/tickets/domain/types/payment-service.types';
+import { StripeWebhookHandler } from 'src/tickets/application/handlers/stripe-webhook.handler';
 
-@Controller('webhooks/dev')
+@Controller('dev/webhooks/stripe')
 export class MockedCheckoutWebhookController {
   private readonly logger = new Logger(MockedCheckoutWebhookController.name);
 
-  constructor(private readonly eventPublisher: EventPublisher) {}
+  constructor(private readonly webhookHandler: StripeWebhookHandler) {}
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  async mockCheckoutCompleted(
-    @Body(ValidationPipe) dto: CheckoutSessionCompletedEventPayload,
-  ) {
-    this.logger.warn(
-      `🚨 MOCK WEBHOOK: Simulating successful checkout for session ${dto.sessionId}`,
-    );
-
+  mockCheckoutCompleted(@Body(ValidationPipe) dto: WebhookEvent) {
     try {
-      await this.eventPublisher.publish(new CheckoutSessionCompletedEvent(dto));
-
-      this.logger.log(
-        `✅ Mock checkout completed event published for order with id ${dto.orderId}`,
-      );
-
-      return {
-        success: true,
-        message: 'Mock checkout completed',
-        orderId: dto.orderId,
-      };
+      this.logger.log(`Received Mock webhook: ${dto.type}`);
+      return this.webhookHandler.handle(dto);
     } catch (error) {
       this.logger.error('Failed to process mock checkout', error);
       throw error;

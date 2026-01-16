@@ -9,7 +9,7 @@ import {
   PaginatedResult,
   PaginationParams,
 } from 'src/commons/domain/types/pagination.types';
-import { Pagination } from 'src/tickets/utils/pagination.utils';
+import { Pagination } from 'src/commons/utils/pagination.utils';
 
 @Injectable()
 export class TicketRepositoryImpl implements TicketRepository {

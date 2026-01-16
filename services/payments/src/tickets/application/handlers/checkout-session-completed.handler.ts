@@ -1,6 +1,4 @@
-import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
-import { CheckoutSessionCompletedEvent } from '../../domain/events/checkout-session-completed.event';
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { TicketService } from '../services/ticket.service';
@@ -18,9 +16,7 @@ import { OrderService } from '../services/order.service';
  * 2. Update all tickets to ACTIVE status (TX2)
  * 3. Publish TicketPurchasedEvent for each confirmed ticket?
  */
-//TODO: call the handler instead of triggering with event
-@EventsHandler(CheckoutSessionCompletedEvent)
-export class CheckoutSessionCompletedHandler implements IEventHandler<CheckoutSessionCompletedEvent> {
+export class CheckoutSessionCompletedHandler {
   private readonly logger = new Logger(CheckoutSessionCompletedHandler.name);
 
   constructor(
@@ -32,12 +28,9 @@ export class CheckoutSessionCompletedHandler implements IEventHandler<CheckoutSe
   // ========================================
   // PHASE 2: Confirm payment for all tickets (TX2)
   // ========================================
-  async handle(event: CheckoutSessionCompletedEvent): Promise<void> {
-    this.logger.log(
-      `Handling checkout session completed: ${event.payload.sessionId}`,
-    );
+  async handle(sessionId: string, orderId: string): Promise<void> {
+    this.logger.log(`Handling checkout session completed: ${sessionId}`);
 
-    const { orderId } = event.payload;
     const order = await this.orderService.findById(orderId);
     //TODO handle order not found and update order status
     if (!order) {
@@ -49,18 +42,18 @@ export class CheckoutSessionCompletedHandler implements IEventHandler<CheckoutSe
         order.getTicketIds(),
       );
       this.logger.log(
-        `Successfully confirmed ${confirmedTickets.length} tickets for session ${event.payload.sessionId}`,
+        `Successfully confirmed ${confirmedTickets.length} tickets for session ${sessionId}`,
       );
 
       //TODO: publis some TicketPurchasedEvent here?
       // ticketId, eventId, userId, attendeeName, ticketTypeId, price, currency, purchaseDate
 
       this.logger.log(
-        `Successfully confirmed ${confirmedTickets.length} tickets for session ${event.payload.sessionId}`,
+        `Successfully confirmed ${confirmedTickets.length} tickets for session ${sessionId}`,
       );
     } catch (error) {
       this.logger.error(
-        `Failed to confirm tickets for session ${event.payload.sessionId}`,
+        `Failed to confirm tickets for session ${sessionId}`,
         error,
       );
       throw error;

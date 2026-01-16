@@ -26,7 +26,6 @@
   "dependencies": {
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
-    "@nestjs/cqrs": "^11.0.3",
     "@nestjs/microservices": "^11.1.11",
     "@nestjs/mongoose": "^11.0.3",
     "@nestjs/platform-express": "^11.0.1",

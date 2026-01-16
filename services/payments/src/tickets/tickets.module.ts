@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { CqrsModule } from '@nestjs/cqrs';
 
 // Schemas
 import {
@@ -64,7 +63,6 @@ import { OrderService } from './application/services/order.service';
 
 @Module({
   imports: [
-    CqrsModule,
     MongooseModule.forFeature([
       { name: EventTicketTypeDocument.name, schema: EventTicketTypeSchema },
       { name: TicketDocument.name, schema: TicketSchema },

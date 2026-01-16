@@ -1,6 +1,4 @@
-import { EventsHandler, IEventHandler } from '@nestjs/cqrs';
 import { Logger } from '@nestjs/common';
-import { CheckoutSessionExpiredEvent } from '../../domain/events/checkout-session-expired.event';
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
 import { TicketService } from '../services/ticket.service';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
@@ -18,8 +16,7 @@ import { OrderService } from '../services/order.service';
  * 2. Mark all tickets as PAYMENT_FAILED (TX2)
  * 3. Release inventory for all ticket types
  */
-@EventsHandler(CheckoutSessionExpiredEvent)
-export class CheckoutSessionExpiredHandler implements IEventHandler<CheckoutSessionExpiredEvent> {
+export class CheckoutSessionExpiredHandler {
   private readonly logger = new Logger(CheckoutSessionExpiredHandler.name);
 
   constructor(
@@ -29,12 +26,17 @@ export class CheckoutSessionExpiredHandler implements IEventHandler<CheckoutSess
     private readonly transactionManager: TransactionManager,
   ) {}
 
-  async handle(event: CheckoutSessionExpiredEvent): Promise<void> {
-    this.logger.log(
-      `Handling checkout session expired: ${event.payload.sessionId}`,
-    );
-    const { orderId } = event.payload;
+  async handle(
+    sessionId: string,
+    orderId: string,
+    reason?: string,
+  ): Promise<void> {
+    this.logger.log(`Handling checkout session expired: ${sessionId}`);
     const order = await this.orderService.findById(orderId);
+    //TODO: publish some events? reason is needed?
+    if (reason) {
+      this.logger.log(`Reason for expiration: ${reason}`);
+    }
     //TODO handle order not found and update order status
     if (!order) {
       this.logger.warn(`Order ${orderId} not found`);
@@ -45,14 +47,11 @@ export class CheckoutSessionExpiredHandler implements IEventHandler<CheckoutSess
     try {
       await this.cancelTicketPayment(ticketIds);
       this.logger.log(
-        `Successfully handled expired session ${event.payload.sessionId}: ` +
+        `Successfully handled expired session ${sessionId}: ` +
           `${ticketIds.length} tickets marked as PAYMENT_FAILED and inventory released`,
       );
     } catch (error) {
-      this.logger.error(
-        `Failed to handle expired session ${event.payload.sessionId}`,
-        error,
-      );
+      this.logger.error(`Failed to handle expired session ${sessionId}`, error);
       throw error;
     }
   }

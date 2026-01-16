@@ -1,7 +1,7 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { PaginatedQueryDto } from 'src/commons/application/dto/paginated-query.dto';
-import { Pagination } from 'src/tickets/utils/pagination.utils';
+import { Pagination } from 'src/commons/utils/pagination.utils';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { PaginatedResponseDto } from 'src/commons/application/dto/paginated-response.dto';
 
