@@ -69,6 +69,20 @@ const searchEvents = async () => {
     })
     events.value = response.items.map((event) => ({ event, isFavorite: false }))
     hasMoreEvents.value = response.hasMore
+    if (authStore.user?.id) {
+      const userId = authStore.user.id
+      const likePromises = response.items.map(async (event) => {
+        try {
+          const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
+          console.log(`Event ${event.eventId} is liked by user: ${isLiked}`)
+          return { event, isFavorite: isLiked }
+        } catch (error) {
+          console.error(`Failed to load like status for event ${event.eventId}:`, error)
+          return { event, isFavorite: false }
+        }
+      })
+      events.value = await Promise.all(likePromises)
+    }
   } catch (error) {
     console.error('Failed to search events:', error)
   } finally {
@@ -140,12 +154,14 @@ const onTabChange = (tabId: string) => {
   }
 }
 
-const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
+const handleFavoriteToggle = async (eventId: string) => {
   if (!authStore.isAuthenticated || !authStore.user) {
     emit('auth-required')
     return
   }
-
+  const isFavorite = !(
+    events.value.find((event) => event.event.eventId === eventId)?.isFavorite ?? false
+  )
   try {
     if (isFavorite) {
       await api.interactions.likeEvent(eventId, authStore.user.id)
@@ -154,6 +170,9 @@ const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
       await api.interactions.unlikeEvent(eventId, authStore.user.id)
       console.log(`Event ${eventId} unliked`)
     }
+    events.value = events.value.map((event) =>
+      event.event.eventId === eventId ? { ...event, isFavorite } : event
+    )
   } catch (error) {
     console.error('Failed to toggle favorite:', error)
   }
@@ -189,7 +208,6 @@ const tabs = computed<Tab[]>(() => [
       loading: loadingEvents.value,
       searchQuery: searchQuery.value,
       onFavoriteToggle: handleFavoriteToggle,
-      onAuthRequired: () => emit('auth-required'),
       onFiltersChanged: handleFiltersChanged,
     },
   },

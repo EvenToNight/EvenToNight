@@ -4,33 +4,39 @@ import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const { goToCreateEvent } = useNavigation()
+const { goToCreateEvent, goToEditProfile, goToSettings, goToSupport } = useNavigation()
 
 interface Props {
   isOwnProfile: boolean
   isOrganization: boolean
   isFollowing: boolean
+  userId: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  editProfile: []
-  createEvent: []
   followToggle: []
 }>()
 
 const handleEditProfile = () => {
-  emit('editProfile')
+  goToEditProfile()
 }
 
 const handleCreateEvent = () => {
-  emit('createEvent')
   goToCreateEvent()
 }
 
 const handleFollowToggle = () => {
   emit('followToggle')
+}
+
+const handleOpenSettings = () => {
+  goToSettings()
+}
+
+const handleOpenSupport = () => {
+  goToSupport(props.userId)
 }
 </script>
 
@@ -43,6 +49,7 @@ const handleFollowToggle = () => {
         variant="secondary"
         @click="handleEditProfile"
       />
+      <Button label="Chats" icon="chat" variant="secondary" @click="handleOpenSupport" />
       <Button
         v-if="isOrganization"
         :label="t('userProfile.createEvent')"
@@ -50,8 +57,16 @@ const handleFollowToggle = () => {
         variant="primary"
         @click="handleCreateEvent"
       />
+      <Button icon="settings" variant="secondary" @click="handleOpenSettings" />
     </template>
     <template v-else>
+      <Button
+        v-if="isOrganization"
+        label="Send a message"
+        icon="send"
+        variant="secondary"
+        @click="handleOpenSupport"
+      />
       <Button
         :label="isFollowing ? t('userProfile.following') : t('userProfile.follow')"
         :variant="isFollowing ? 'secondary' : 'primary'"
@@ -65,6 +80,6 @@ const handleFollowToggle = () => {
 .profile-actions {
   display: flex;
   gap: $spacing-2;
-  align-items: center;
+  align-items: stretch;
 }
 </style>

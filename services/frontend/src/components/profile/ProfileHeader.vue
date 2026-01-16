@@ -1,29 +1,33 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
 import type { User } from '@/api/types/users'
-import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
+import type { UserInteractionsInfo, OrganizationReviewsStatistics } from '@/api/types/interaction'
 import RatingInfo from '@/components/reviews/ratings/RatingInfo.vue'
-import { computed } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import UserInfo from './UserInfo.vue'
 import ProfileActions from './ProfileActions.vue'
+import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
 import { useI18n } from 'vue-i18n'
+import { api } from '@/api'
 
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 interface Props {
   user: User
-  isFollowing: boolean
-  reviewsStatistics?: OrganizationReviewsStatistics | null
+  reviewsStatistics?: OrganizationReviewsStatistics
 }
 
 const props = defineProps<Props>()
+const isFollowing = ref(false)
+
+const userInteractionsInfo = ref<UserInteractionsInfo>({
+  followers: 0,
+  following: 0,
+})
 
 const emit = defineEmits<{
-  'update:isFollowing': [value: boolean]
-  editProfile: []
-  createEvent: []
   authRequired: []
 }>()
 
@@ -31,10 +35,11 @@ const $q = useQuasar()
 const { t } = useI18n()
 const authStore = useAuthStore()
 
+const avatarCropUploadRef = ref<InstanceType<typeof AvatarCropUpload> | null>(null)
+const newAvatar = ref<File | null>(null)
+
 const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
-const isOwnProfile = computed(() => {
-  return authStore.isAuthenticated && authStore.user?.id === props.user.id
-})
+const isOwnProfile = computed(() => authStore.isOwnProfile(props.user.id))
 const isOrganization = computed(() => {
   return props.user.role === 'organization'
 })
@@ -43,26 +48,94 @@ const defaultIcon = computed(() => {
   return isOrganization.value ? 'business' : 'person'
 })
 
-const handleFollowToggle = () => {
-  if (!authStore.isAuthenticated) {
+//TODO: handle loading
+onMounted(async () => {
+  if (authStore.isAuthenticated && !isOwnProfile.value && authStore.user?.id) {
+    try {
+      isFollowing.value = await api.interactions.isFollowing(authStore.user.id, props.user.id)
+    } catch (error) {
+      console.error('Failed to load following status:', error)
+    }
+  }
+  const [followers, following] = await Promise.all([
+    api.interactions.followers(props.user.id),
+    api.interactions.following(props.user.id),
+  ])
+
+  const userInteractionsInfoResponse = {
+    followers: followers.totalItems,
+    following: following.totalItems,
+  }
+  userInteractionsInfo.value = userInteractionsInfoResponse
+})
+
+const handleFollowToggle = async () => {
+  if (!authStore.isAuthenticated || !authStore.user?.id) {
     emit('authRequired')
     return
   }
-  emit('update:isFollowing', !props.isFollowing)
+
+  try {
+    if (isFollowing.value) {
+      await api.interactions.unfollowUser(authStore.user.id, props.user.id)
+      isFollowing.value = false
+      userInteractionsInfo.value.followers -= 1
+    } else {
+      await api.interactions.followUser(authStore.user.id, props.user.id)
+      isFollowing.value = true
+      userInteractionsInfo.value.followers += 1
+    }
+  } catch (error) {
+    console.error('Failed to toggle follow:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to update follow status',
+    })
+  }
 }
 
-const handleEditProfile = () => {
-  emit('editProfile')
+const handleAvatarClick = () => {
+  if (isOwnProfile.value) {
+    avatarCropUploadRef.value?.triggerFileInput()
+  }
 }
 
-const handleCreateEvent = () => {
-  emit('createEvent')
+const handleAvatarError = (message: string) => {
+  $q.notify({
+    color: 'negative',
+    message,
+  })
+}
+
+const handleAvatarChange = async (file: File | null) => {
+  if (!file) return
+
+  // TODO: Implement API call to update avatar
+  // await api.users.updateAvatar(authStore.user.id, file)
+
+  $q.notify({
+    color: 'positive',
+    message: t('profile.edit.saveSuccess'),
+    icon: 'check_circle',
+  })
 }
 </script>
 <template>
   <div class="profile-header-card">
+    <!-- Hidden avatar upload component -->
+    <div v-if="isOwnProfile" style="display: none">
+      <AvatarCropUpload
+        ref="avatarCropUploadRef"
+        v-model="newAvatar"
+        :preview-url="user.avatarUrl"
+        :default-icon="defaultIcon"
+        @update:model-value="handleAvatarChange"
+        @error="handleAvatarError"
+      />
+    </div>
+
     <div class="profile-header">
-      <div class="avatar-container">
+      <div class="avatar-container" :class="{ clickable: isOwnProfile }" @click="handleAvatarClick">
         <img
           v-if="user.avatarUrl"
           :src="user.avatarUrl"
@@ -70,12 +143,15 @@ const handleCreateEvent = () => {
           class="profile-avatar"
         />
         <q-icon v-else :name="defaultIcon" size="100px" class="profile-avatar" />
+        <div v-if="isOwnProfile" class="avatar-edit-overlay">
+          <q-icon name="photo_camera" size="32px" color="white" />
+        </div>
       </div>
 
       <template v-if="isMobile">
         <div class="user-info">
           <h1 class="user-name">{{ user.name }}</h1>
-          <UserInfo :user="user" />
+          <UserInfo :user="user" :user-interactions-info="userInteractionsInfo" />
           <template v-if="isOrganization && reviewsStatistics">
             <RatingInfo :reviews-statistics="reviewsStatistics" />
           </template>
@@ -83,8 +159,7 @@ const handleCreateEvent = () => {
             :is-own-profile="isOwnProfile"
             :is-organization="isOrganization"
             :is-following="isFollowing"
-            @edit-profile="handleEditProfile"
-            @create-event="handleCreateEvent"
+            :user-id="user.id"
             @follow-toggle="handleFollowToggle"
           />
         </div>
@@ -98,15 +173,14 @@ const handleCreateEvent = () => {
               :is-own-profile="isOwnProfile"
               :is-organization="isOrganization"
               :is-following="isFollowing"
-              @edit-profile="handleEditProfile"
-              @create-event="handleCreateEvent"
+              :user-id="user.id"
               @follow-toggle="handleFollowToggle"
             />
           </div>
           <template v-if="isOrganization && reviewsStatistics">
             <RatingInfo :reviews-statistics="reviewsStatistics" />
           </template>
-          <UserInfo :user="user" />
+          <UserInfo :user="user" :user-interactions-info="userInteractionsInfo" />
         </div>
       </template>
     </div>
@@ -142,6 +216,20 @@ const handleCreateEvent = () => {
 
 .avatar-container {
   flex-shrink: 0;
+  position: relative;
+
+  &.clickable {
+    cursor: pointer;
+    transition: transform $transition-base;
+
+    &:hover {
+      transform: scale(1.05);
+
+      .avatar-edit-overlay {
+        opacity: 1;
+      }
+    }
+  }
 }
 
 .profile-avatar {
@@ -160,6 +248,19 @@ const handleCreateEvent = () => {
   @include dark-mode {
     background: $color-background-dark;
   }
+}
+
+.avatar-edit-overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba($color-black, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity $transition-base;
+  pointer-events: none;
 }
 
 .user-info {

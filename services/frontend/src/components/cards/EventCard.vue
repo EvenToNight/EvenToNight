@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
@@ -16,14 +15,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  favoriteToggle: [value: boolean]
-  authRequired: []
+  favoriteToggle: []
 }>()
 
-const authStore = useAuthStore()
 const { locale, goToEventDetails } = useNavigation()
 const { t } = useI18n()
-const isFavorite = ref(props.favorite)
+
 const imageObjectUrl = ref<string>('')
 const isLoadingImage = ref(true)
 
@@ -50,12 +47,7 @@ onUnmounted(() => {
 
 const toggleFavorite = (event: Event) => {
   event.stopPropagation()
-  if (!authStore.isAuthenticated) {
-    emit('authRequired')
-    return
-  }
-  isFavorite.value = !isFavorite.value
-  emit('favoriteToggle', isFavorite.value)
+  emit('favoriteToggle')
 }
 
 const day = computed(() => {
@@ -77,11 +69,11 @@ const month = computed(() => {
 
       <button
         class="favorite-button"
-        :class="{ 'is-favorite': isFavorite }"
+        :class="{ 'is-favorite': favorite }"
         :aria-label="t('cards.eventCard.favoriteButtonAriaLabel')"
         @click="toggleFavorite"
       >
-        <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="28px" />
+        <q-icon :name="favorite ? 'favorite' : 'favorite_border'" size="28px" />
       </button>
 
       <div class="date-badge">

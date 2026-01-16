@@ -76,7 +76,7 @@ export const mockUserInteractions: UserInteraction[] = [
 export const mockEventReviews: EventReview[] = [
   {
     eventId: '1',
-    organizationId: 'organization_1',
+    creatorId: 'organization_1',
     collaboratorsId: ['organization_2', 'organization_3'],
     userId: 'member_1',
     rating: 4,
@@ -85,7 +85,7 @@ export const mockEventReviews: EventReview[] = [
   },
   {
     eventId: '1',
-    organizationId: 'organization_1',
+    creatorId: 'organization_1',
     collaboratorsId: ['organization_2', 'organization_3'],
     userId: 'member_2',
     rating: 4,
@@ -94,7 +94,7 @@ export const mockEventReviews: EventReview[] = [
   },
   {
     eventId: '1',
-    organizationId: 'organization_1',
+    creatorId: 'organization_1',
     collaboratorsId: ['organization_2', 'organization_3'],
     userId: 'member_3',
     rating: 2,
@@ -103,7 +103,7 @@ export const mockEventReviews: EventReview[] = [
   },
   {
     eventId: '1',
-    organizationId: 'organization_1',
+    creatorId: 'organization_1',
     collaboratorsId: ['organization_2', 'organization_3'],
     userId: 'member_4',
     rating: 4,

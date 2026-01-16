@@ -133,8 +133,13 @@ export class ApiClient {
     }
 
     if (!response.ok) {
+      let errorMessage = `HTTP error! status: ${response.status}`
+      const errorBody = await response.text()
+      if (errorBody) {
+        errorMessage = errorBody
+      }
       const error: ApiError = {
-        message: `HTTP error! status: ${response.status}, message: ${response.body}`,
+        message: errorMessage,
         status: response.status,
       }
       throw error

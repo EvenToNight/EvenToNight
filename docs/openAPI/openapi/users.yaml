@@ -2,15 +2,398 @@ openapi: 3.0.1
 info:
   title: EvenToNight - Users API
   version: 1.0.0
-servers:
-  - url: http://localhost:9000
-    description: Users service (local development)
-  - url: https://users.eventonight.site
-    description: Users service (production)
+
+tags:
+  - name: Auth
+    description: Authentication and token management
+  - name: Users
+    description: User management
+
 paths:
-  /users:
-    get:
-      summary: Get users list
+
+  /login:
+    post:
+      tags: [Auth]
+      summary: Login user
+      description: Authenticates a user using username/email and password.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidLogin'
       responses:
         '200':
-          description: OK
+          description: Login successful
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponseDTO'
+        '400':
+          description: Bad request
+        '401':
+          description: Invalid credentials
+        '403':
+          description: Client not allowed
+        '500':
+          description: Unexpected keycloak status
+
+  /register:
+    post:
+      tags: [Auth]
+      summary: Register user
+      description: Registers a new user and logs them in.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ValidRegistration'
+      responses:
+        '201':
+          description: User created and logged in
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponseDTO'
+        '400':
+          description: Validation error / Bad request
+        '401':
+          description: Invalid credentials 
+        '403':
+          description: Client not allowed 
+        '500':
+          description: Unexpected keycloak status
+
+  /refresh:
+    post:
+      tags: [Auth]
+      summary: Refresh access token
+      description: Refreshes access and refresh tokens.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefreshRequest'
+      responses:
+        '200':
+          description: Tokens refreshed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokensDTO'
+        '400':
+          description: Bad request
+        '401':
+          description: Invalid refresh token
+
+  /logout:
+    post:
+      tags: [Auth]
+      summary: Logout user
+      description: Invalidates a refresh token.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LogoutRequest'
+      responses:
+        '204':
+          description: Logout successful
+        '500':
+          description: Logout failed
+
+  /public-keys:
+    get:
+      tags: [Auth]
+      summary: Get public keys
+      description: Returns public keys used to verify JWT tokens.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      responses:
+        '200':
+          description: Public keys retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicKeysResponse'
+        '500':
+          description: Failed to refresh public keys
+
+  /:
+    get:
+      tags: [Users]
+      summary: Get all users
+      description: Returns all users with their roles and profile.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      responses:
+        '200':
+          description: List of users
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserDTO'
+        '400':
+          description: Bad request
+
+  /{userId}:
+    get:
+      tags: [Users]
+      summary: Get user by ID
+      description: Returns a single user by ID with role and profile.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: User found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserDTO'
+        '404':
+          description: User not found
+
+components:
+  schemas:
+
+    ValidLogin:
+      type: object
+      required:
+        - usernameOrEmail
+        - password
+      properties:
+        usernameOrEmail:
+          type: string
+          example: johndoe
+        password:
+          type: string
+          format: password
+          example: StrongP@ssw0rd!
+
+    ValidRegistration:
+      type: object
+      required:
+        - username
+        - email
+        - password
+        - role
+      properties:
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          example: johndoe@example.com
+        password:
+          type: string
+          format: password
+          example: StrongP@ssw0rd!
+        role:
+          type: string
+          example: member
+
+    RefreshRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
+
+    LogoutRequest:
+      type: object
+      required:
+        - refreshToken
+      properties:
+        refreshToken:
+          type: string
+          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
+
+    TokensDTO:
+      type: object
+      required:
+        - accessToken
+        - expiresIn
+        - refreshToken
+        - refreshExpiresIn
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expiresIn:
+          type: integer
+          format: int64
+          example: 300
+        refreshToken:
+          type: string
+          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
+        refreshExpiresIn:
+          type: integer
+          format: int64
+          example: 1800
+
+    AccountDTO:
+      type: object
+      required:
+        - username
+        - email
+        - darkMode
+        - language
+      properties:
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          example: johndoe@example
+        darkMode:
+          type: boolean
+          example: false
+        language:
+          type: string
+          example: en
+        gender:
+          type: string
+          nullable: true
+          example: male
+        birthDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: 1990-01-01T00:00:00Z
+        interests:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["Dinner", "LiveMusic", "Club"]
+
+    ProfileDTO:
+      type: object
+      required:
+        - name
+        - avatar
+      properties:
+        name:
+          type: string
+          example: John Doe
+        avatar:
+          type: string
+          example: https://example.com/avatar.jpg
+        bio:
+          type: string
+          nullable: true
+          example: Software developer and event enthusiast.
+        contacts:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["https://twitter.com/johndoe", "https://linkedin.com/in/johndoe"]
+
+
+    LoginResponseDTO:
+      type: object
+      required:
+        - accessToken
+        - expiresIn
+        - refreshToken
+        - refreshExpiresIn
+        - role
+        - account
+        - profile
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expiresIn:
+          type: integer
+          format: int64
+          example: 300
+        refreshToken:
+          type: string
+          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
+        refreshExpiresIn:
+          type: integer
+          format: int64
+          example: 1800
+        role:
+          type: string
+          example: member
+        account:
+          $ref: '#/components/schemas/AccountDTO'
+        profile:
+          $ref: '#/components/schemas/ProfileDTO'
+
+    UserDTO:
+      type: object
+      required:
+        - username
+        - role
+        - profile
+      properties:
+        username:
+          type: string
+          example: johndoe
+        role:
+          type: string
+          example: member
+        profile:
+          $ref: '#/components/schemas/ProfileDTO'
+    
+    PublicKeyEntry:
+      type: object
+      required:
+        - kid
+        - publicKey
+      properties:
+        kid:
+          type: string
+          example: key-id-12345
+        publicKey:
+          type: string
+          description: Base64-encoded public key
+          example: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS1cbk1J...
+
+    PublicKeysResponse:
+      type: object
+      required:
+        - keys
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicKeyEntry'

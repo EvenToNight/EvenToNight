@@ -579,6 +579,15 @@ const onSubmit = async () => {
   :deep(input[type='time']::-webkit-calendar-picker-indicator) {
     display: none;
   }
+
+  :deep(input[type='date']),
+  :deep(input[type='time']) {
+    color-scheme: light;
+
+    @include dark-mode {
+      color-scheme: dark;
+    }
+  }
 }
 
 .error-message {

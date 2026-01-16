@@ -49,7 +49,7 @@ export default {
 
   cards: {
     slider: {
-      seeAll: 'Tout voir',
+      seeAll: 'Tout afficher',
       scrollLeftAriaLabel: 'Faire défiler vers la gauche',
       scrollRightAriaLabel: 'Faites défiler vers la droite',
     },
@@ -74,6 +74,7 @@ export default {
     organizer: 'Organisé par',
     collaborators: 'En collaboration avec',
     editEvent: 'Modifier',
+    freePrice: 'Gratuit',
   },
 
   footer: {
@@ -102,11 +103,23 @@ export default {
     noEventCreated: "Vous n'avez encore créé aucun événement.",
     noEventCreatedExternal: "Cette organisation n'a pas encore créé d'événements.",
     noEventJoined: "Vous n'avez encore assisté à aucun événement.",
-    noEventJoinedExternal: "Cet utilisateur n'a encore assisté à aucun événement.",
+    noEventJoinedExternal: "Cet utilisateur n'a encore participé à aucun événement.",
     noTickets: 'Pas encore de billets',
     draftedEvents: 'Événements rédigés',
     noDraftedEvents: 'Vous n’avez aucun événement rédigé.',
+    reviews: 'Avis',
+    noReviews: "Aucun avis pour l'instant.",
     userAvatarAlt: "Avatar de l'utilisateur",
+    leaveReview: 'Laisser un avis',
+    selectEvent: 'Sélectionnez un événement',
+    selectRating: 'Sélectionnez la note :',
+    reviewTitle: 'Titre',
+    reviewTitlePlaceholder: 'Donnez un titre à votre avis...',
+    reviewDescription: 'Description',
+    reviewDescriptionPlaceholder: 'Écrivez votre avis...',
+    cancel: 'Annuler',
+    submit: 'Soumettre',
+    noEventFound: 'Aucun événement trouvé',
   },
 
   eventCreationForm: {
@@ -121,7 +134,7 @@ export default {
     description: 'Description',
     descriptionError: 'Une description est requise',
     price: 'Prix',
-    priceError: 'Le prix est requis',
+    priceError: 'Le prix est obligatoire',
     tags: 'Balises',
     collaborators: 'Collaborateurs',
     collaboratorAvatarAlt: 'Avatar du collaborateur',
@@ -155,7 +168,7 @@ export default {
 
   home: {
     hero: {
-      title: "Trouvez l'événement qui vous convient",
+      title: "Trouvez l'événement pour vous",
     },
     sections: {
       upcomingEvents: 'Événements à venir',

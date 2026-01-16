@@ -1,0 +1,20 @@
+services:
+  chat:
+    build:
+      context: .
+      dockerfile: ./services/chat/Dockerfile
+    ports:
+      - "${CHAT_SERVICE_PORT}:${CHAT_SERVICE_PORT}" 
+
+  mongo-chat-express:
+    image: mongo-express:1.0.2-20-alpine3.19
+    restart: unless-stopped
+    networks:
+      - chat-network
+    ports:
+      - '${MONGO_EXPRESS_CHAT_PORT}:8081'
+    environment:
+      ME_CONFIG_MONGODB_SERVER: 'mongo-chat'
+    depends_on:
+      mongo-chat:
+        condition: service_healthy

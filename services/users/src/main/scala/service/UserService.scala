@@ -12,19 +12,19 @@ class UserService(memberRepo: MemberRepository, orgRepo: OrganizationRepository)
       case m: Member       => memberRepo.insert(m, userId)
       case o: Organization => orgRepo.insert(o, userId)
 
-  def getUsers(): Either[String, List[RegisteredUser]] =
-    val members                     = memberRepo.getAllMembers().toList
-    val organizations               = orgRepo.getAllOrganizations().toList
-    val users: List[RegisteredUser] = members ++ organizations
+  def getUsers(): Either[String, List[(String, RegisteredUser)]] =
+    val members       = memberRepo.getAllMembers().toList.map(m => ("member", m))
+    val organizations = orgRepo.getAllOrganizations().toList.map(o => ("organization", o))
+    val users         = members ++ organizations
     if users.isEmpty then
       Left("No users found")
     else
       Right(users)
 
-  def getUserById(userId: String): Either[String, RegisteredUser] =
+  def getUserById(userId: String): Either[String, (String, RegisteredUser)] =
     memberRepo.findById(userId) match
-      case Some(member) => Right(member)
+      case Some(member) => Right("member", member)
       case None =>
         orgRepo.findById(userId) match
-          case Some(org) => Right(org)
+          case Some(org) => Right("organization", org)
           case None      => Left(s"User with ID $userId not found")

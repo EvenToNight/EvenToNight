@@ -1,6 +1,9 @@
 package model.member
 
-case class MemberProfile(nickname: String)
+import infrastructure.Wiring.mediaBaseUrl
 
-object MemberProfile:
-  val default: MemberProfile = MemberProfile(nickname = "")
+case class MemberProfile(
+    name: String,
+    avatar: String = s"http://${mediaBaseUrl}/users/default.png",
+    bio: Option[String] = None
+)

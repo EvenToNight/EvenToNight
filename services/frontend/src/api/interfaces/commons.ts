@@ -19,6 +19,7 @@ export interface PaginatedResponseWithTotalCount<T> extends PaginatedResponse<T>
   totalItems: number
 }
 
-export type PaginatedResponseWithStatistics<T, S> = PaginatedResponse<T> & S
+export type ExtendedPaginatedResponse<T, S> = PaginatedResponse<T> & S
+export type ExtendedPaginatedResponseWithTotalCount<T, S> = PaginatedResponseWithTotalCount<T> & S
 
 export type SortOrder = 'asc' | 'desc'

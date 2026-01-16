@@ -57,6 +57,7 @@ const rating = ref<Rating>(props.existingReview?.rating ?? 5)
 const reviewTitle = ref(props.existingReview?.title ?? '')
 const reviewDescription = ref(props.existingReview?.comment ?? '')
 
+//TODO: search completed event where user has partecipated
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
   update(() => {
     if (!query) {
@@ -89,7 +90,7 @@ const submitReview = async () => {
   try {
     const reviewData = {
       userId: authStore.user!.id,
-      organizationId: props.creatorId,
+      creatorId: props.creatorId,
       collaboratorsId: [],
       rating: rating.value,
       title: reviewTitle.value,
@@ -176,6 +177,7 @@ const submitReview = async () => {
             :label="t('userProfile.reviewTitle')"
             :placeholder="t('userProfile.reviewTitlePlaceholder')"
             :rules="[notEmpty('Inserisci un titolo per la recensione')]"
+            :disable="!!existingReview"
           />
 
           <FormField
@@ -188,7 +190,7 @@ const submitReview = async () => {
           />
 
           <q-card-actions align="right" class="q-px-none q-pb-none">
-            <q-btn v-close-popup flat :label="t('userProfile.cancel')" color="primary" />
+            <q-btn v-close-popup flat :label="t('userProfile.cancel')" color="black" />
             <q-btn
               type="submit"
               flat
@@ -231,7 +233,12 @@ const submitReview = async () => {
   width: calc(100% - #{$spacing-4 * 2});
   border-radius: $radius-2xl;
   @media (max-width: $app-min-width) {
-    @include absolute-fill;
+    position: absolute;
+    border-radius: 0;
+    width: 100%;
+    height: 100%;
+    max-width: 100vw;
+    max-height: 100vh;
   }
 }
 </style>

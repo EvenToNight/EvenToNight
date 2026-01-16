@@ -33,6 +33,10 @@ const locationAddress = computed(() => {
     .filter(Boolean)
     .join(', ')
 })
+
+const formattedPrice = computed(() => {
+  return props.event.price === 0 ? t('eventDetails.freePrice') : `€${props.event.price}`
+})
 </script>
 <template>
   <div class="info-list">
@@ -73,7 +77,7 @@ const locationAddress = computed(() => {
       <q-icon name="confirmation_number" class="info-icon" />
       <div class="info-text">
         <span class="info-label">{{ t('price') }}</span>
-        <span class="info-value">€{{ event.price }}</span>
+        <span class="info-value">{{ formattedPrice }}</span>
       </div>
     </div>
   </div>

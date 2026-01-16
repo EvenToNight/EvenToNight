@@ -1,0 +1,708 @@
+openapi: 3.0.1
+info:
+  title: EvenToNight - Chat API
+  version: 1.0.0
+paths:
+  /users/{userId}/conversations:
+    post:
+      summary: Send first message and create a new conversation with an organization
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateConversationMessageDto'
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponseDto'
+        '400':
+          description: Bad Request
+        '404':
+          description: Organization or Member not found
+      tags:
+        - Users
+    get:
+      summary: Get conversations for a user
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of conversations
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          example: "conv123"
+                        organization:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "org456"
+                            name:
+                              type: string
+                              example: "Organization 1"
+                            avatar:
+                              type: string
+                              example: "https://example.com/avatar.png"  
+                        member:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "member321"
+                            name:
+                              type: string
+                              example: "John Doe"
+                            avatar:
+                              type: string
+                              example: "https://example.com/member_avatar.png"
+                        lastMessage:
+                          type: object
+                          nullable: true
+                          properties:
+                            content:
+                              type: string
+                              example: "Hello, can I get more information about your events?"
+                            senderId:
+                              type: string
+                              example: "user123"
+                            timestamp:
+                              type: string
+                              format: date-time
+                        unreadCount:
+                          type: integer
+                          example: 5
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+                  hasMore:
+                    type: boolean
+                    example: false
+        '400':
+          description: Bad Request
+        '404':
+          description: User not found
+      tags:
+        - Users
+  /users/{userId}/conversations/search:
+    get:
+      summary: Search conversations or users by name or id of recipient.
+      description:
+        If "id" is null, the returned item is a user with whom you have not yet a conversation.
+        If "id" is not null, the returned item is a conversation with a user.
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 20
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+        - name: name
+          in: query
+          required: false
+          schema:
+            type: string
+        - name: recipientId
+          in: query
+          required: false
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of conversations or users
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          nullable: true
+                          example: "conv123"
+                        organization:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "org456"
+                            name:
+                              type: string
+                              example: "Organization 1"
+                            avatar:
+                              type: string
+                              example: "https://example.com/avatar.png"  
+                        member:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              example: "member321"
+                            name:
+                              type: string
+                              example: "John Doe"
+                            avatar:
+                              type: string
+                              example: "https://example.com/member_avatar.png"
+                        lastMessage:
+                          type: object
+                          properties:
+                            content:
+                              type: string
+                              example: "Hello, can I get more information about your events?"
+                            senderId:
+                              type: string
+                              example: "user123"
+                            timestamp:
+                              type: string
+                              format: date-time
+                        unreadCount:
+                          type: integer
+                          example: 5
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+                  hasMore:
+                    type: boolean
+                    example: false
+        '400':
+          description: Bad Request
+        '404':
+          description: User not found
+      tags:
+        - Users
+        
+
+  /users/{userId}/conversations/{conversationId}:
+    get:
+      summary: Get specific conversation of a user by ID
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "conv123"
+      responses:
+        '200':
+          description: Conversation details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "conv123"
+                  organization:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "org456"
+                      name:
+                        type: string
+                        example: "Organization 1"
+                      avatar:
+                        type: string
+                        example: "https://example.com/avatar.png"  
+                  member:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "member321"
+                      name:
+                        type: string
+                        example: "John Doe"
+                      avatar:
+                        type: string
+                        example: "https://example.com/member_avatar.png"
+                  "createdAt":
+                    type: string
+                    format: date-time
+                  "updatedAt":
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
+      tags:
+        - Users
+  /users/{userId}/unread/count:
+    get:
+      summary: Get total unread message count for a user
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+      responses:
+        '200':
+          description: Total unread message count
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unreadCount:
+                    type: integer
+                    example: 15
+        '400':
+          description: Bad Request
+        '404':
+          description: User not found    
+      tags:
+        - Users
+  /users/{userId}/conversations/{conversationId}/messages:
+    post:
+      summary: Send a message in an existing conversation for a user
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "conv123"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SendMessageDto'
+      responses:
+        '201':
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponseDto'
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
+      tags:
+        - Users
+    get:
+      summary: Get messages in a conversation for a user, and mark them as read
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "user123"
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "conv123"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of messages in the conversation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: The unique identifier of the message
+                          example: "msg789"
+                        conversationId:
+                          type: string
+                          description: The ID of the conversation
+                          example: "conv123"
+                        sender:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: The ID of the sender
+                              example: "user123"
+                            name:
+                              type: string
+                              description: The name of the sender
+                              example: "John Doe"
+                            avatar:
+                              type: string
+                              description: The avatar URL of the sender
+                              example: "https://example.com/avatar.png"
+                        content:
+                          type: string
+                          example: "Hello, can I get more information about your events?"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: The time when the message was sent
+                        isRead:
+                          type: boolean
+                          description: Whether the message has been read
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+                  hasMore:
+                    type: boolean
+                    example: false
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
+      tags:
+        - Users
+  /users/{userId}/conversations/{conversationId}/read:
+    patch:
+      summary: Mark messages in a conversation as read for a user
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: conversationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "conv123"
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+            description: The ID of the user marking messages as read
+            example: "user123"
+      responses:
+        '204':
+          description: Messages marked as read successfully
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
+      tags:
+        - Users  
+
+  /conversations/{organizationId}/{memberId}:
+    get:
+      summary: Get conversation between organization and member
+      description: Retrieves the conversation details between a specific organization and member.
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          description: The ID of the organization
+          schema:
+            type: string
+            example: "org456"
+        - name: memberId
+          in: path
+          required: true
+          description: The ID of the member
+          schema:
+            type: string
+            example: "user123"
+      responses:
+        '200':
+          description: Conversation details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "conv123"
+                  organization:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "org456"
+                      name:
+                        type: string
+                        example: "Organization 1"
+                      avatar:
+                        type: string
+                        example: "https://example.com/avatar.png"  
+                  member:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "member321"
+                      name:
+                        type: string
+                        example: "John Doe"
+                      avatar:
+                        type: string
+                        example: "https://example.com/member_avatar.png"
+                  "createdAt":
+                    type: string
+                    format: date-time
+                  "updatedAt":
+                    type: string
+                    format: date-time
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
+      tags:
+        - Conversations
+
+  /conversations/{organizationId}/{memberId}/messages:
+    get:
+      summary: Get messages in a conversation, and mark them as read
+      servers:
+        - url: http://localhost:9040
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "org123"
+        - name: memberId
+          in: path
+          required: true
+          schema:
+            type: string
+            example: "member123"
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 50
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            default: 0
+      responses:
+        '200':
+          description: List of messages in the conversation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: The unique identifier of the message
+                          example: "msg789"
+                        conversationId:
+                          type: string
+                          description: The ID of the conversation
+                          example: "conv123"
+                        sender:
+                          type: object
+                          properties:
+                            id:
+                              type: string
+                              description: The ID of the sender
+                              example: "user123"
+                            name:
+                              type: string
+                              description: The name of the sender
+                              example: "John Doe"
+                            avatar:
+                              type: string
+                              description: The avatar URL of the sender
+                              example: "https://example.com/avatar.png"
+                        content:
+                          type: string
+                          example: "Hello, can I get more information about your events?"
+                        createdAt:
+                          type: string
+                          format: date-time
+                          description: The time when the message was sent
+                        isRead:
+                          type: boolean
+                          description: Whether the message has been read
+                  limit:
+                    type: integer
+                    example: 20
+                  offset:
+                    type: integer
+                    example: 0
+                  hasMore:
+                    type: boolean
+                    example: false
+        '400':
+          description: Bad Request
+        '404':
+          description: Conversation not found
+      tags:
+        - Conversations
+
+components:
+  schemas:
+    CreateConversationMessageDto:
+      type: object
+      properties:
+        recipientId:
+          type: string
+          description: The ID of the organization to start a conversation with
+          example: "org456"
+        content:
+          type: string
+          description: The content of the initial message
+          example: "Hello, can I get more information about your events?"
+      required:
+        - recipientId
+        - content
+
+    SendMessageDto:
+      type: object
+      properties:
+        content:
+          type: string
+          description: The content of the message
+          example: "Hello, can I get more information about your events?"
+      required:
+        - content
+
+    MessageResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: The unique identifier of the message
+          example: "msg789"
+        conversationId:
+          type: string
+          description: The ID of the conversation
+          example: "conv123"
+        senderId:
+          type: string
+          description: The ID of the sender
+          example: "user123"
+        content:
+          type: string
+          description: The content of the message
+          example: "Hello, can I get more information about your events?"
+        createdAt:
+          type: string
+          format: date-time
+          description: The time when the message was sent
+      required:
+        - id
+        - conversationId
+        - senderId
+        - content
+        - createdAt
+    

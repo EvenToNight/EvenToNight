@@ -24,12 +24,12 @@ const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
 const upcomingEvents = ref<Event[]>([])
 const eventLikes = ref<Record<string, boolean>>({})
 
-const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
+const handleFavoriteToggle = async (eventId: string) => {
   if (!authStore.isAuthenticated || !authStore.user) {
     emit('auth-required')
     return
   }
-
+  const isFavorite = !(eventLikes.value[eventId] ?? false)
   try {
     if (isFavorite) {
       await api.interactions.likeEvent(eventId, authStore.user.id)
@@ -37,7 +37,6 @@ const handleFavoriteToggle = async (eventId: string, isFavorite: boolean) => {
     } else {
       await api.interactions.unlikeEvent(eventId, authStore.user.id)
     }
-    // Update local state
     eventLikes.value[eventId] = isFavorite
   } catch (error) {
     console.error('Failed to toggle favorite:', error)
@@ -64,9 +63,12 @@ onMounted(async () => {
     // Load like status for each event in parallel
     if (authStore.user?.id) {
       const userId = authStore.user.id
+      console.log('Loading like status for user:', userId)
       const likePromises = upcomingEvents.value.map(async (event) => {
+        console.log('Checking like status for event:', event.eventId)
         try {
           const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
+          console.log(`Event ${event.eventId} is liked by user: ${isLiked}`)
           eventLikes.value[event.eventId] = isLiked
         } catch (error) {
           console.error(`Failed to load like status for event ${event.eventId}:`, error)
@@ -117,8 +119,7 @@ onMounted(async () => {
             :key="event.eventId"
             :event="event"
             :favorite="eventLikes[event.eventId] ?? false"
-            @favorite-toggle="handleFavoriteToggle(event.eventId, $event)"
-            @auth-required="emit('auth-required')"
+            @favorite-toggle="handleFavoriteToggle(event.eventId)"
           />
         </CardSlider>
 

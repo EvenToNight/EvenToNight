@@ -74,6 +74,7 @@ export default {
     organizer: 'Organizado por',
     collaborators: 'En colaboración con',
     editEvent: 'Editar',
+    freePrice: 'Gratis',
   },
 
   footer: {
@@ -106,7 +107,19 @@ export default {
     noTickets: 'Aún no hay entradas',
     draftedEvents: 'Eventos redactados',
     noDraftedEvents: 'No tienes eventos redactados.',
+    reviews: 'Reseñas',
+    noReviews: 'Aún no hay reseñas.',
     userAvatarAlt: 'Avatar de usuario',
+    leaveReview: 'Deja una reseña',
+    selectEvent: 'Seleccionar evento',
+    selectRating: 'Seleccionar calificación:',
+    reviewTitle: 'Título',
+    reviewTitlePlaceholder: 'Ponle un título a tu reseña...',
+    reviewDescription: 'Descripción',
+    reviewDescriptionPlaceholder: 'Escribe tu reseña...',
+    cancel: 'Cancelar',
+    submit: 'Entregar',
+    noEventFound: 'No se encontró ningún evento',
   },
 
   eventCreationForm: {

@@ -1,22 +1,28 @@
 package service
 
-import infrastructure.KeycloakConnection
-import keycloak.KeycloakRoles
-import keycloak.KeycloakRoles._
+import infrastructure.keycloak._
+import model.UserTokens
 import model.ValidRegistration
 
-class AuthenticationService(kc: KeycloakConnection):
-
-  KeycloakRoles.initRoles(kc) match
-    case Left(err) => println(s"Failed to initialize member and organization roles: $err")
-    case Right(_)  => println("Retrieve member and organization roles from Keycloak successfully.")
-
-  def createUserWithRole(registration: ValidRegistration): Either[String, (String, String)] =
+class AuthenticationService(
+    keycloakTokenClient: KeycloakTokenClient,
+    adminApi: KeycloakAdminApi,
+    roleIds: Map[String, String]
+):
+  def createUserWithRole(registration: ValidRegistration): Either[String, String] =
     for
-      (keycloakId, userId) <- kc.createUser(registration.username, registration.email, registration.password)
-      roleId <- roleIds.get(registration.userType).toRight(s"Role '${registration.userType}' not initialized")
-      _      <- kc.assignRoleToUser(keycloakId, roleId, registration.userType)
-    yield (keycloakId, userId)
+      accessToken <- keycloakTokenClient.getClientAccessToken()
+      (keycloakId, userId) <-
+        adminApi.createUser(accessToken, registration.username, registration.email, registration.password)
+      roleId <- roleIds.get(registration.role).toRight(s"Role '${registration.role}' not initialized")
+      _      <- adminApi.assignRealmRoleToUser(accessToken, keycloakId, roleId, registration.role)
+    yield userId
 
-  def login(usernameOrEmail: String, password: String): Either[String, String] =
-    kc.loginUser(usernameOrEmail, password)
+  def login(usernameOrEmail: String, password: String): Either[String, UserTokens] =
+    keycloakTokenClient.loginUser(usernameOrEmail, password)
+
+  def refresh(refreshToken: String): Either[String, UserTokens] =
+    keycloakTokenClient.refreshUserTokens(refreshToken)
+
+  def logoutLocal(refreshToken: String): Either[String, Unit] =
+    keycloakTokenClient.revokeRefreshToken(refreshToken)

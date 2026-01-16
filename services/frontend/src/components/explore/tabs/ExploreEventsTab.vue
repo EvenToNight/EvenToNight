@@ -20,8 +20,7 @@ const loading = ref(false)
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'favorite-toggle': [eventId: string, isFavorite: boolean]
-  'auth-required': []
+  'favorite-toggle': [eventId: string]
   'filters-changed': [filters: EventFilters]
 }>()
 
@@ -58,9 +57,8 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
           v-for="item in events"
           :key="item.event.eventId"
           :event="item.event"
-          :isFavorite="item.isFavorite"
-          @favorite-toggle="emit('favorite-toggle', item.event.eventId, $event)"
-          @auth-required="emit('auth-required')"
+          :favorite="item.isFavorite"
+          @favorite-toggle="emit('favorite-toggle', item.event.eventId)"
         />
       </div>
 
