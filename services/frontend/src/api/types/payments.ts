@@ -5,7 +5,7 @@ export interface Money {
   currency: string
 }
 
-export const TICKET_TYPE_VALUES = ['STANDARD', 'VIP'] as const
+export const TICKET_TYPE_VALUES = ['STANDARD', 'VIP', 'A', 'B', 'C', 'D', 'E', 'F', 'G'] as const
 export type TicketType = (typeof TICKET_TYPE_VALUES)[number]
 
 export interface EventTicketType {

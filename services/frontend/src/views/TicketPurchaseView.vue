@@ -317,9 +317,15 @@ const handlePurchase = async () => {
   border-radius: $radius-xl;
   overflow: hidden;
   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+  position: sticky;
+  top: calc(v-bind(NAVBAR_HEIGHT_CSS) + #{$spacing-4});
 
   @include dark-mode {
     background: #1e1e1e;
+  }
+
+  @media (max-width: 768px) {
+    position: static;
   }
 }
 

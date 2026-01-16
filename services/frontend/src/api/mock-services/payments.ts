@@ -44,6 +44,13 @@ export const mockPaymentsApi = {
       return [
         createMockEventTicketType(eventId, 'STANDARD', 20),
         createMockEventTicketType(eventId, 'VIP'),
+        createMockEventTicketType(eventId, 'A'),
+        createMockEventTicketType(eventId, 'B'),
+        createMockEventTicketType(eventId, 'C'),
+        createMockEventTicketType(eventId, 'D'),
+        createMockEventTicketType(eventId, 'E'),
+        createMockEventTicketType(eventId, 'F'),
+        createMockEventTicketType(eventId, 'G'),
       ]
     return filteredTicketTypes
   },
