@@ -3,8 +3,14 @@ import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
 import AppBrand from '@/components/common/AppBrand.vue'
 
-const { t, availableLocales } = useI18n()
+const { t, locale, availableLocales } = useI18n()
 const { changeLocale } = useNavigation()
+
+const selectLanguage = (langCode: string) => {
+  locale.value = langCode
+  localStorage.setItem('user-locale', langCode)
+  changeLocale(langCode, true)
+}
 </script>
 
 <template>
@@ -25,7 +31,7 @@ const { changeLocale } = useNavigation()
             v-for="lang in availableLocales"
             :key="lang"
             class="language-option"
-            @click="changeLocale(lang)"
+            @click="selectLanguage(lang)"
           >
             {{ lang.toUpperCase() }}
           </span>
