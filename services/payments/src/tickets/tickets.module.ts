@@ -17,7 +17,7 @@ import {
 import {
   UserDocument,
   UserSchema,
-} from './infrastructure/persistence/schemas/user.scherma';
+} from './infrastructure/persistence/schemas/user.schema';
 
 // Repositories
 import { EventTicketTypeRepositoryImpl } from './infrastructure/persistence/repositories/event-ticket-type.repository';

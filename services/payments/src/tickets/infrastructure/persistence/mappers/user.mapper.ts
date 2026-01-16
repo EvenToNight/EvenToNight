@@ -1,6 +1,6 @@
 import { UserId } from '../../../domain/value-objects/user-id.vo';
 import { User } from 'src/tickets/domain/aggregates/user.aggregate';
-import { UserDocument } from '../schemas/user.scherma';
+import { UserDocument } from '../schemas/user.schema';
 
 export class UserMapper {
   static toDomain(document: UserDocument): User {

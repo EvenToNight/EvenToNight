@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { UserRepository } from 'src/tickets/domain/repositories/user.repository.interface';
-import { UserDocument } from '../schemas/user.scherma';
+import { UserDocument } from '../schemas/user.schema';
 import { UserMapper } from '../mappers/user.mapper';
 import { User } from 'src/tickets/domain/aggregates/user.aggregate';
 

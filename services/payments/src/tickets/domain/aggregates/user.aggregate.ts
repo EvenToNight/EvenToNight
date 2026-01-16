@@ -1,4 +1,3 @@
-import { randomUUID } from 'crypto';
 import { UserId } from '../value-objects/user-id.vo';
 
 export class User {
@@ -8,11 +7,7 @@ export class User {
   ) {}
 
   static create(id: UserId, language: string): User {
-    return new User(id || this.generateId(), language);
-  }
-
-  private static generateId(): string {
-    return `user_${randomUUID()}`;
+    return new User(id, language);
   }
 
   changeLanguage(newLanguage: string): void {

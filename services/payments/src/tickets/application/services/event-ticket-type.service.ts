@@ -33,6 +33,10 @@ export class EventTicketTypeService {
     });
   }
 
+  save(ticketType: EventTicketType): Promise<EventTicketType> {
+    return this.eventTicketTypeRepository.save(ticketType);
+  }
+
   async updateTicket(
     id: string,
     dto: UpdateEventTicketTypeDto,
