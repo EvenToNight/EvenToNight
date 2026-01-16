@@ -3,6 +3,7 @@ import Stripe from 'stripe';
 import { Money } from '../../../tickets/domain/value-objects/money.vo';
 import { StripePaymentException } from '../../domain/exceptions/stripe-payment.exception';
 import codes from 'currency-codes';
+import { PaymentService } from 'src/tickets/domain/services/payment.service';
 
 export interface CheckoutSessionLineItem {
   productName: string;
@@ -20,7 +21,10 @@ export interface CreateCheckoutSessionParams {
 }
 
 @Injectable()
-export class StripeService {
+export class StripeService implements PaymentService<
+  Stripe.Checkout.Session,
+  Stripe.Event
+> {
   private readonly stripe: Stripe;
   private readonly webhookSecret: string;
   private readonly logger = new Logger(StripeService.name);

@@ -8,7 +8,7 @@ import { TicketDocument } from '../schemas/ticket.schema';
 import {
   PaginatedResult,
   PaginationParams,
-} from 'src/tickets/domain/types/pagination.types';
+} from 'src/commons/domain/types/pagination.types';
 import { Pagination } from 'src/tickets/utils/pagination.utils';
 
 @Injectable()

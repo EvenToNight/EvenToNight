@@ -6,7 +6,7 @@ import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import {
   PaginatedResult,
   PaginationParams,
-} from 'src/tickets/domain/types/pagination.types';
+} from 'src/commons/domain/types/pagination.types';
 
 @Injectable()
 export class TicketService {

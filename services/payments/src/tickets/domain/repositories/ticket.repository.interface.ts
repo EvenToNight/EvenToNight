@@ -1,5 +1,8 @@
 import { Ticket } from '../aggregates/ticket.aggregate';
-import { PaginatedResult, PaginationParams } from '../types/pagination.types';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from '../../../commons/domain/types/pagination.types';
 
 export interface TicketRepository {
   save(ticket: Ticket): Promise<Ticket>;
