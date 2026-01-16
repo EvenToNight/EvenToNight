@@ -4,23 +4,10 @@ import { Money } from '../../../tickets/domain/value-objects/money.vo';
 import { PaymentException } from '../../../tickets/domain/exceptions/payment.exception';
 import codes from 'currency-codes';
 import { PaymentService } from 'src/tickets/domain/services/payment.service.interface';
-import { CheckoutSession } from 'src/tickets/domain/types/payment-service.types';
-
-export interface CheckoutSessionLineItem {
-  productName: string;
-  productDescription?: string;
-  price: Money;
-  quantity: number;
-}
-
-//TODO: update, add orderId
-export interface CreateCheckoutSessionParams {
-  userId: string;
-  lineItems: CheckoutSessionLineItem[];
-  metadata?: Record<string, any>;
-  successUrl: string;
-  cancelUrl: string;
-}
+import {
+  CheckoutSession,
+  CreateCheckoutSessionParams,
+} from 'src/tickets/domain/types/payment-service.types';
 
 @Injectable()
 export class StripeService implements PaymentService<Stripe.Event> {
@@ -64,7 +51,10 @@ export class StripeService implements PaymentService<Stripe.Event> {
         line_items: lineItems,
         metadata: {
           userId: params.userId,
-          ...params.metadata,
+          ticketIds: JSON.stringify(params.ticketIds),
+          ticketTypeIds: JSON.stringify(params.ticketTypeIds),
+          eventId: params.eventId,
+          orderId: params.orderId,
         },
         success_url: params.successUrl,
         cancel_url: params.cancelUrl,

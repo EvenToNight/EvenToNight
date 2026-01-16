@@ -18,8 +18,11 @@ export interface CheckoutLineItem {
 
 export interface CreateCheckoutSessionParams {
   userId: string;
+  orderId: string;
+  ticketIds: string[];
+  ticketTypeIds: Set<string>[];
+  eventId: string;
   lineItems: CheckoutLineItem[];
-  metadata?: Record<string, any>;
   successUrl: string;
   cancelUrl: string;
 }

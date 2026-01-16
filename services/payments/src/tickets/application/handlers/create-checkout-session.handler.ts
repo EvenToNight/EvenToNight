@@ -175,12 +175,11 @@ export class CreateCheckoutSessionHandler {
 
     const session = await this.paymentService.createCheckoutSessionWithItems({
       userId: dto.userId,
+      orderId: order.getId(),
       lineItems,
-      metadata: {
-        ticketIds: JSON.stringify(ticketIds),
-        ticketTypeIds: JSON.stringify(ticketTypeIds),
-        eventId,
-      },
+      ticketIds: ticketIds,
+      ticketTypeIds: ticketTypeIds,
+      eventId,
       successUrl: dto.successUrl || 'https://google.com',
       cancelUrl: `http://localhost:9050/checkout/cancel?session_id={CHECKOUT_SESSION_ID}&redirect_to=${encodeURIComponent(dto.cancelUrl || 'https://google.com')}`,
     });
