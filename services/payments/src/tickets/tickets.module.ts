@@ -54,6 +54,7 @@ import { MockedStripeWebhookController } from './presentation/controllers/mocked
 import { StripeWebhookController } from './presentation/controllers/stripe-webhook.controller';
 import { TicketsController } from './presentation/controllers/tickets.controller';
 import { OrderController } from './presentation/controllers/order-controller';
+import { EventController } from './presentation/controllers/events.controller';
 
 // Services
 import { PdfService } from './application/services/pdf.service';
@@ -77,6 +78,7 @@ import { OrderService } from './application/services/order.service';
     StripeWebhookController,
     TicketsController,
     OrderController,
+    EventController,
   ],
   providers: [
     // Repositories

@@ -21,6 +21,13 @@ if (
   process.env.STRIPE_WEBHOOK_SECRET = envFromRoot['STRIPE_WEBHOOK_SECRET'];
 }
 
+if (
+  !process.env.PAYMENTS_SERVICE_PORT &&
+  envFromRoot['PAYMENTS_SERVICE_PORT']
+) {
+  process.env.PAYMENTS_SERVICE_PORT = envFromRoot['PAYMENTS_SERVICE_PORT'];
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true,

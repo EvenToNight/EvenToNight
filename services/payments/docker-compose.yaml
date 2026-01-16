@@ -5,6 +5,7 @@ services:
       - eventonight-network
       - payments-network
     environment:
+      - HOST=${HOST}
       - PORT=${PAYMENTS_SERVICE_PORT}
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_USER=${RABBITMQ_USER}

@@ -17,6 +17,7 @@ import { CheckoutLineItem } from '../../domain/types/payment-service.types';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
+import { PAYMENT_SERVICE_BASE_URL } from '../constants';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -163,7 +164,8 @@ export class CreateCheckoutSessionHandler {
     );
 
     if (this.isDev) {
-      const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/checkout-webhook/completed`;
+      //TODO evaluate to uniform the redirectUrl, normally a GET has to be performed not a POST
+      const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/webhooks/stripe/`;
       return {
         sessionId: 'cs_test_dev_session',
         redirectUrl: tempWebHook,
@@ -180,7 +182,7 @@ export class CreateCheckoutSessionHandler {
       ticketTypeIds: ticketTypeIds,
       eventId,
       successUrl: dto.successUrl || 'https://google.com',
-      cancelUrl: `http://localhost:9050/checkout/cancel?session_id={CHECKOUT_SESSION_ID}&redirect_to=${encodeURIComponent(dto.cancelUrl || 'https://google.com')}`,
+      cancelUrl: `${PAYMENT_SERVICE_BASE_URL}/checkout-session/{CHECKOUT_SESSION_ID}/cancel?redirect_to=${encodeURIComponent(dto.cancelUrl || 'https://google.com')}`,
     });
 
     const expiresAt = new Date();

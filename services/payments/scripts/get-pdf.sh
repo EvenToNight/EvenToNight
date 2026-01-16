@@ -82,9 +82,10 @@ echo ""
 # Test 8: Simulate successful payment via mock webhook (skip in prod)
 if [ "$ENV" != "prod" ]; then
   echo -e "${BLUE}8. Simulating successful payment (mock webhook)${NC}"
-  RESPONSE=$(curl -s -X POST "$BASE_URL/dev/checkout-webhook/completed" \
+  RESPONSE=$(curl -s -X POST "$BASE_URL/dev/webhooks/stripe" \
     -H "Content-Type: application/json" \
     -d "{
+      \"type\": \"checkout.session.completed\",
       \"sessionId\": \"$SESSION_ID\",
       \"orderId\": \"$ORDER_ID\"
     }")

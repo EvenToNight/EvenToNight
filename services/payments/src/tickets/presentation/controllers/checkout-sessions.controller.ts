@@ -22,7 +22,7 @@ import { PAYMENT_SERVICE } from '../..//domain/services/payment.service.interfac
 import type { Response } from 'express';
 import { CheckoutSessionExpiredHandler } from 'src/tickets/application/handlers/checkout-session-expired.handler';
 
-@Controller('checkout-sessions/:sessionId')
+@Controller('checkout-sessions')
 export class CheckoutSessionsController {
   private readonly logger = new Logger(CheckoutSessionsController.name);
   constructor(
@@ -48,7 +48,7 @@ export class CheckoutSessionsController {
    * GET /checkout-sessions/:sessionId/cancel
    * Handles the cancellation of a checkout session.
    */
-  @Get('cancel')
+  @Get(':sessionId/cancel')
   @HttpCode(HttpStatus.OK)
   async handleCancel(
     @Param('sessionId') sessionId: string,
