@@ -37,13 +37,6 @@ describe('TicketStatus', () => {
       expect(status.toString()).toBe('PAYMENT_FAILED');
     });
 
-    it('should create DELETED status from string', () => {
-      const status = TicketStatus.fromString('DELETED');
-
-      expect(status).toBe(TicketStatus.DELETED);
-      expect(status.toString()).toBe('DELETED');
-    });
-
     it('should throw error for invalid status', () => {
       expect(() => TicketStatus.fromString('INVALID')).toThrow(
         'Invalid TicketStatus: INVALID',
@@ -101,11 +94,6 @@ describe('TicketStatus', () => {
       expect(TicketStatus.PAYMENT_FAILED.isPaymentFailed()).toBe(true);
       expect(TicketStatus.ACTIVE.isPaymentFailed()).toBe(false);
     });
-
-    it('should check if status is deleted', () => {
-      expect(TicketStatus.DELETED.isDeleted()).toBe(true);
-      expect(TicketStatus.ACTIVE.isDeleted()).toBe(false);
-    });
   });
 
   describe('getAllStatuses', () => {
@@ -117,7 +105,6 @@ describe('TicketStatus', () => {
       expect(statuses).toContain(TicketStatus.REFUNDED);
       expect(statuses).toContain(TicketStatus.PENDING_PAYMENT);
       expect(statuses).toContain(TicketStatus.PAYMENT_FAILED);
-      expect(statuses).toContain(TicketStatus.DELETED);
     });
   });
 
@@ -130,7 +117,6 @@ describe('TicketStatus', () => {
       expect(values).toContain('CANCELLED');
       expect(values).toContain('REFUNDED');
       expect(values).toContain('PAYMENT_FAILED');
-      expect(values).toContain('DELETED');
     });
   });
 });

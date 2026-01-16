@@ -46,7 +46,7 @@ export class TicketService {
         const tickets = await this.ticketRepository.findByTicketTypeId(id);
         await Promise.all(
           tickets.map((ticket) => {
-            ticket.delete();
+            ticket.cancel();
             return this.ticketRepository.update(ticket);
           }),
         );

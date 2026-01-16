@@ -4,7 +4,10 @@ import {
   IsNumber,
   Min,
   IsOptional,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+import { MoneyDto } from './money.dto';
 
 export class UpdateEventTicketTypeDto {
   @IsString()
@@ -12,14 +15,10 @@ export class UpdateEventTicketTypeDto {
   @IsOptional()
   description?: string;
 
-  @IsNumber()
+  @ValidateNested()
+  @Type(() => MoneyDto)
   @IsOptional()
-  @Min(0)
-  price?: number;
-
-  @IsString()
-  @IsOptional()
-  currency?: string;
+  price?: MoneyDto;
 
   @IsNumber()
   @IsOptional()

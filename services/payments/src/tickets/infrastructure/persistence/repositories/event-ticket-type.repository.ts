@@ -65,4 +65,29 @@ export class EventTicketTypeRepositoryImpl implements EventTicketTypeRepository 
 
     return document ? EventTicketTypeMapper.toDomain(document) : null;
   }
+
+  async findByEventIdWithLock(
+    eventId: string,
+    session: ClientSession,
+  ): Promise<EventTicketType[]> {
+    const documents = await this.model
+      .find({ eventId })
+      .session(session)
+      .exec();
+    return documents.map((doc) => EventTicketTypeMapper.toDomain(doc));
+  }
+
+  async saveWithLock(
+    ticketType: EventTicketType,
+    session: ClientSession,
+  ): Promise<EventTicketType> {
+    const document = EventTicketTypeMapper.toPersistence(ticketType);
+    // Passa esplicitamente l'_id per evitare che Mongoose generi un ObjectId
+    const created = new this.model({
+      ...document,
+      _id: ticketType.getId(),
+    });
+    const saved = await created.save({ session });
+    return EventTicketTypeMapper.toDomain(saved);
+  }
 }

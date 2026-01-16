@@ -39,10 +39,9 @@ import { CreateCheckoutSessionHandler } from './application/handlers/create-chec
 import { DeleteEventTicketTypesHandler } from './application/handlers/delete-event-ticket-types.handler';
 import { DeleteTicketTypeHandler } from './application/handlers/delete-ticket-type.handler';
 import { StripeWebhookHandler } from './application/handlers/stripe-webhook.handler';
-
-// Events Handlers
 import { CheckoutSessionCompletedHandler } from './application/handlers/checkout-session-completed.handler';
 import { CheckoutSessionExpiredHandler } from './application/handlers/checkout-session-expired.handler';
+import { UpdateTicketTypeHandler } from './application/handlers/update-ticket-type.handler';
 
 // Infrastructure
 import { TransactionManager } from './infrastructure/database/transaction.manager';
@@ -111,10 +110,9 @@ import { OrderService } from './application/services/order.service';
     DeleteEventTicketTypesHandler,
     DeleteTicketTypeHandler,
     StripeWebhookHandler,
-
-    // Event Handlers
     CheckoutSessionCompletedHandler,
     CheckoutSessionExpiredHandler,
+    UpdateTicketTypeHandler,
 
     // Infrastructure
     TransactionManager,

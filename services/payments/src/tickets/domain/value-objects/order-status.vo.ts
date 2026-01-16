@@ -2,7 +2,6 @@ export class OrderStatus {
   static readonly PENDING = new OrderStatus('PENDING');
   static readonly COMPLETED = new OrderStatus('COMPLETED');
   static readonly CANCELLED = new OrderStatus('CANCELLED');
-  static readonly EXPIRED = new OrderStatus('EXPIRED');
 
   private constructor(private readonly value: string) {}
 
@@ -14,15 +13,13 @@ export class OrderStatus {
         return OrderStatus.COMPLETED;
       case 'CANCELLED':
         return OrderStatus.CANCELLED;
-      case 'EXPIRED':
-        return OrderStatus.EXPIRED;
       default:
         throw new Error(`Invalid order status: ${value}`);
     }
   }
 
   static getAllValues(): string[] {
-    return ['PENDING', 'COMPLETED', 'CANCELLED', 'EXPIRED'];
+    return ['PENDING', 'COMPLETED', 'CANCELLED'];
   }
 
   toString(): string {
@@ -39,10 +36,6 @@ export class OrderStatus {
 
   isCancelled(): boolean {
     return this.value === 'CANCELLED';
-  }
-
-  isExpired(): boolean {
-    return this.value === 'EXPIRED';
   }
 
   equals(other: OrderStatus): boolean {

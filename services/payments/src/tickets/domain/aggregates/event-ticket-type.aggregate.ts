@@ -20,10 +20,10 @@ export class EventTicketType {
     private readonly id: string,
     private readonly eventId: EventId,
     private readonly type: TicketType,
-    private readonly price: Money,
+    private price: Money,
     private availableQuantity: number,
     private soldQuantity: number,
-    private readonly description?: string,
+    private description?: string,
   ) {
     this.validateInvariants();
   }
@@ -104,5 +104,20 @@ export class EventTicketType {
 
   getTotalQuantity(): number {
     return this.availableQuantity + this.soldQuantity;
+  }
+
+  setDescription(description: string): void {
+    this.description = description;
+  }
+
+  setPrice(price: Money): void {
+    this.price = price;
+  }
+
+  setTotalQuantity(quantity: number): void {
+    if (quantity < this.soldQuantity) {
+      throw new Error('Total quantity cannot be less than sold quantity');
+    }
+    this.availableQuantity = quantity - this.soldQuantity;
   }
 }

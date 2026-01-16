@@ -46,6 +46,8 @@ export class CheckoutSessionExpiredHandler {
 
     try {
       await this.cancelTicketPayment(ticketIds);
+      order.cancel();
+      await this.orderService.update(order);
       this.logger.log(
         `Successfully handled expired session ${sessionId}: ` +
           `${ticketIds.length} tickets marked as PAYMENT_FAILED and inventory released`,

@@ -14,11 +14,13 @@ import { EventTicketTypeResponseDto } from '../../application/dto/event-ticket-t
 import { DeleteTicketTypeHandler } from 'src/tickets/application/handlers/delete-ticket-type.handler';
 import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
 import { UpdateEventTicketTypeDto } from 'src/tickets/application/dto/update-event-ticket-type.dto';
+import { UpdateTicketTypeHandler } from 'src/tickets/application/handlers/update-ticket-type.handler';
 
 @Controller('ticket-types')
 export class EventTicketTypesController {
   constructor(
     private readonly eventTicketTypeService: EventTicketTypeService,
+    private readonly updateHandler: UpdateTicketTypeHandler,
     private readonly deleteHandler: DeleteTicketTypeHandler,
   ) {}
 
@@ -61,7 +63,7 @@ export class EventTicketTypesController {
     @Param('ticketTypeId') ticketTypeId: string,
     @Body(ValidationPipe) dto: UpdateEventTicketTypeDto,
   ): Promise<EventTicketTypeResponseDto> {
-    const updatedTicketType = await this.eventTicketTypeService.updateTicket(
+    const updatedTicketType = await this.updateHandler.handle(
       ticketTypeId,
       dto,
     );

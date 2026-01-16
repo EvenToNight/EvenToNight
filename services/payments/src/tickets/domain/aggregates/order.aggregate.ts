@@ -63,25 +63,12 @@ export class Order {
     this.status = OrderStatus.CANCELLED;
   }
 
-  expire(): void {
-    if (!this.canExpire()) {
-      throw new Error(
-        `Cannot expire order in status: ${this.status.toString()}`,
-      );
-    }
-    this.status = OrderStatus.EXPIRED;
-  }
-
   private canBeCompleted(): boolean {
     return this.status.isPending();
   }
 
   private canBeCancelled(): boolean {
     return this.status.isPending() || this.status.isCompleted();
-  }
-
-  private canExpire(): boolean {
-    return this.status.isPending();
   }
 
   private validateInvariants(): void {
@@ -121,9 +108,5 @@ export class Order {
 
   isCancelled(): boolean {
     return this.status.isCancelled();
-  }
-
-  isExpired(): boolean {
-    return this.status.isExpired();
   }
 }

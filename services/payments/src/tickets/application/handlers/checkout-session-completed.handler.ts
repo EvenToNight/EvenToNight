@@ -25,9 +25,6 @@ export class CheckoutSessionCompletedHandler {
     private readonly transactionManager: TransactionManager,
   ) {}
 
-  // ========================================
-  // PHASE 2: Confirm payment for all tickets (TX2)
-  // ========================================
   async handle(sessionId: string, orderId: string): Promise<void> {
     this.logger.log(`Handling checkout session completed: ${sessionId}`);
 
@@ -41,11 +38,13 @@ export class CheckoutSessionCompletedHandler {
       const confirmedTickets = await this.confirmTicketPayment(
         order.getTicketIds(),
       );
+      order.complete();
+      await this.orderService.update(order);
       this.logger.log(
         `Successfully confirmed ${confirmedTickets.length} tickets for session ${sessionId}`,
       );
 
-      //TODO: publis some TicketPurchasedEvent here?
+      //TODO: publish some TicketPurchasedEvent here?
       // ticketId, eventId, userId, attendeeName, ticketTypeId, price, currency, purchaseDate
 
       this.logger.log(

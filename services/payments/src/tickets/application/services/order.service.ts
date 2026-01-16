@@ -21,4 +21,8 @@ export class OrderService {
   async findById(id: string): Promise<Order | null> {
     return this.orderRepository.findById(id);
   }
+
+  async update(order: Order): Promise<Order> {
+    return this.orderRepository.update(order);
+  }
 }
