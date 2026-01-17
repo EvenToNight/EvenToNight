@@ -5,6 +5,7 @@ import { RmqContext, Ctx } from '@nestjs/microservices';
 import { EventPublishedDto } from '../dto/event-published.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
+import { UserCreatedDto } from '../dto/user-created.dto';
 
 @Controller()
 export class MetadataController {
@@ -32,13 +33,15 @@ export class MetadataController {
 
     this.logger.log('📥 Message received:', routingKey);
 
+    this.logger.log(`Payload: ${JSON.stringify(payload)}`);
+
     try {
       switch (routingKey) {
         case 'event.published':
           await this.handleEventPublished(payload);
           break;
-        case 'user.registered':
-          await this.metadataService.handleUserRegistered(payload);
+        case 'user.created':
+          await this.handleUserCreated(payload);
           break;
         case 'event.deleted':
           await this.metadataService.handleEventDeleted(payload);
@@ -69,30 +72,44 @@ export class MetadataController {
     await this.metadataService.handleEventPublished(dto);
   }
 
+  private async handleUserCreated(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(UserCreatedDto, payload);
+    await this.metadataService.handleUserCreated(dto);
+  }
+
   private async validateAndTransform<T extends object>(
     dtoClass: new () => T,
     payload: unknown,
   ): Promise<T> {
-    let dataToValidate = payload;
+    // Estrai il payload dalla struttura EventEnvelope
+    let actualPayload = payload;
 
-    if (typeof payload === 'object' && payload !== null) {
-      const payloadObj = payload as Record<string, unknown>;
+    if (this.isEventEnvelope(payload)) {
+      this.logger.debug('Extracting payload from EventEnvelope');
+      actualPayload = payload.payload;
 
-      const payloadKey = Object.keys(payloadObj).find(
-        (key) => key.charAt(0) === key.charAt(0).toUpperCase(),
-      );
-
-      if (payloadKey && payloadObj[payloadKey]) {
-        this.logger.debug(`Extracting payload from key: ${payloadKey}`);
-        dataToValidate = payloadObj[payloadKey];
+      // Estrai il payload annidato (es. UserCreated, EventPublished, etc.)
+      if (actualPayload && typeof actualPayload === 'object') {
+        const nestedKeys = Object.keys(actualPayload);
+        if (nestedKeys.length === 1) {
+          const nestedKey = nestedKeys[0];
+          this.logger.debug(`Extracting nested payload from key: ${nestedKey}`);
+          actualPayload = (actualPayload as Record<string, unknown>)[nestedKey];
+        }
       }
     }
 
-    const dtoInstance = plainToInstance(dtoClass, dataToValidate);
+    // Trasforma il payload nel DTO
+    const dtoInstance = plainToInstance(dtoClass, actualPayload, {
+      excludeExtraneousValues: false,
+      exposeUnsetFields: false,
+    });
 
+    // Valida il DTO
     const errors = await validate(dtoInstance, {
       whitelist: true,
-      forbidNonWhitelisted: true,
+      forbidNonWhitelisted: false, // Permetti campi extra, li ignoriamo
+      skipMissingProperties: false,
     });
 
     if (errors.length > 0) {
@@ -103,5 +120,18 @@ export class MetadataController {
     }
 
     return dtoInstance;
+  }
+
+  private isEventEnvelope(payload: unknown): payload is {
+    eventType: string;
+    occurredAt: string;
+    payload: unknown;
+  } {
+    return (
+      typeof payload === 'object' &&
+      payload !== null &&
+      'eventType' in payload &&
+      'payload' in payload
+    );
   }
 }

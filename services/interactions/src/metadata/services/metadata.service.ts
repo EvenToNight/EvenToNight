@@ -15,6 +15,7 @@ import { ParticipationService } from '../../events/services/participation.servic
 import { FollowService } from '../../users/services/follow.service';
 import { CreateReviewDto } from 'src/events/dto/create-review.dto';
 import { EventPublishedDto } from '../dto/event-published.dto';
+import { UserCreatedDto } from '../dto/user-created.dto';
 
 @Injectable()
 export class MetadataService {
@@ -61,29 +62,30 @@ export class MetadataService {
     }
   }
 
-  async handleUserRegistered(payload: unknown): Promise<void> {
-    console.log('Handling user registered in MetadataService:', payload);
+  async handleUserCreated(payload: UserCreatedDto): Promise<void> {
+    try {
+      this.logger.debug(`Processing user.created: ${JSON.stringify(payload)}`);
 
-    const wrapper = payload as {
-      UserRegistered?: { userId: string; role: string };
-    };
-    const data = wrapper.UserRegistered;
-    if (!data || !data.userId) {
-      this.logger.error('Invalid payload for UserRegistered event', payload);
-      return;
-    }
-
-    await this.userModel.updateOne(
-      { userId: data.userId },
-      {
-        $setOnInsert: {
-          userId: data.userId,
-          role: data.role,
+      const result = await this.userModel.updateOne(
+        { userId: payload.id },
+        {
+          $setOnInsert: {
+            userId: payload.id,
+            role: payload.role,
+          },
         },
-      },
-      { upsert: true },
-    );
-    this.logger.log(`User ${data.userId} (${data.role}) stored`);
+        { upsert: true },
+      );
+
+      if (result.upsertedCount > 0) {
+        this.logger.log(`✨ User ${payload.id} (${payload.role}) created`);
+      } else {
+        this.logger.log(`🔄 User ${payload.id} already exists`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to handle user.created: ${error}`);
+      throw error;
+    }
   }
 
   async handleEventDeleted(payload: unknown): Promise<void> {

@@ -10,7 +10,7 @@ export class RabbitMqSetupService {
     const queue = 'interactions_queue';
     const routingKeys = [
       'event.published',
-      'user.registered',
+      'user.created',
       'event.deleted',
       'user.deleted',
       'participation.created',
