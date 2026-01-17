@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { UpdateEventTicketTypeDto } from '../dto/update-event-ticket-type.dto';
 import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
@@ -15,7 +15,7 @@ export class UpdateTicketTypeHandler {
   ): Promise<EventTicketType> {
     const ticketType = await this.eventTicketTypeService.findById(id);
     if (!ticketType) {
-      throw new Error(`EventTicketType with id ${id} not found`);
+      throw new NotFoundException(`EventTicketType with id ${id} not found`);
     }
     //TODO: cancel extra tickets and notify users --> refund
     if (dto.quantity && dto.quantity < ticketType.getSoldQuantity()) {

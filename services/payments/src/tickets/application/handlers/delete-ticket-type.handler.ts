@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { TicketService } from '../services/ticket.service';
 import { EventService } from '../services/event.service';
@@ -14,7 +14,9 @@ export class DeleteTicketTypeHandler {
   async handle(ticketTypeId: string): Promise<void> {
     const ticketType = await this.eventTicketTypeService.findById(ticketTypeId);
     if (!ticketType) {
-      throw new Error(`EventTicketType with id ${ticketTypeId} not found`);
+      throw new NotFoundException(
+        `EventTicketType with id ${ticketTypeId} not found`,
+      );
     }
     const eventId = ticketType.getEventId();
     const eventTicketTypes = await this.eventTicketTypeService.findByEventId(

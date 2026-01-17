@@ -1,3 +1,4 @@
+process.env.NODE_ENV = 'development';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -14,12 +15,14 @@ import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { TicketDocument } from 'src/tickets/infrastructure/persistence/schemas/ticket.schema';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
+import { generateFakeToken, ONE_HOUR } from 'src/commons/utils/authUtils';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication<App>;
   let mongod: MongoMemoryServer;
   let ticketService: TicketService;
-  const userId = 'user-123';
+  const userId = 'test-user-id';
+  const anotherUserId = 'another-user-id';
 
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
@@ -71,10 +74,14 @@ describe('UserController (e2e)', () => {
 
   describe('/users/:userId/tickets (GET)', () => {
     describe('Given a user who has not bought any tickets', () => {
-      describe('When requesting the user tickets list', () => {
+      describe("When requesting it's own user tickets list", () => {
         it('Then returns an empty paginated response', async () => {
           const res = await request(app.getHttpServer())
             .get(`/users/${userId}/tickets`)
+            .set(
+              'Authorization',
+              `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
+            )
             .expect(200);
 
           const body = res.body as PaginatedResponseDto<Ticket>;
@@ -88,6 +95,24 @@ describe('UserController (e2e)', () => {
               hasMore: false,
             }),
           );
+        });
+      });
+      describe("When requesting another user's tickets list", () => {
+        it('Then returns 403 Forbidden', async () => {
+          await request(app.getHttpServer())
+            .get(`/users/${anotherUserId}/tickets`)
+            .set(
+              'Authorization',
+              `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
+            )
+            .expect(403);
+        });
+      });
+      describe("When requesting user's without auth header", () => {
+        it('Then returns 401 Unauthorized', async () => {
+          await request(app.getHttpServer())
+            .get(`/users/${userId}/tickets`)
+            .expect(401);
         });
       });
     });
@@ -106,13 +131,17 @@ describe('UserController (e2e)', () => {
           );
         }
       });
-      describe('When requesting the user tickets list with pagination', () => {
+      describe("When requesting it's own user tickets list", () => {
         it('Then returns a paginated response with the tickets', async () => {
           const limit = 5;
           const offset = 5;
           const res = await request(app.getHttpServer())
             .get(`/users/${userId}/tickets`)
             .query({ limit, offset })
+            .set(
+              'Authorization',
+              `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
+            )
             .expect(200);
 
           const body = res.body as PaginatedResponseDto<TicketDocument>;
