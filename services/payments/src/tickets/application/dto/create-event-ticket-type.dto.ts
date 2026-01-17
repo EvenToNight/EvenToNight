@@ -22,6 +22,7 @@ export class CreateEventTicketTypeDto {
   @IsOptional()
   description?: string;
 
+  //TODO: use MoneyDto?
   @IsNumber()
   @Min(0)
   price: number;

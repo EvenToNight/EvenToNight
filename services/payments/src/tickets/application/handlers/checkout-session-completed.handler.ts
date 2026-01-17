@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { TicketService } from '../services/ticket.service';
@@ -16,6 +16,7 @@ import { OrderService } from '../services/order.service';
  * 2. Update all tickets to ACTIVE status (TX2)
  * 3. Publish TicketPurchasedEvent for each confirmed ticket?
  */
+@Injectable()
 export class CheckoutSessionCompletedHandler {
   private readonly logger = new Logger(CheckoutSessionCompletedHandler.name);
 

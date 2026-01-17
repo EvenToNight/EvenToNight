@@ -1,4 +1,4 @@
-import { Injectable, Inject } from '@nestjs/common';
+import { Injectable, Inject, ConflictException } from '@nestjs/common';
 import { EventTicketType } from '../../domain/aggregates/event-ticket-type.aggregate';
 import { EventId } from '../../domain/value-objects/event-id.vo';
 import { Money } from '../../domain/value-objects/money.vo';
@@ -25,6 +25,18 @@ export class CreateEventTicketTypeHandler {
     eventId: string,
     dto: CreateEventTicketTypeDto,
   ): Promise<EventTicketType> {
+    // Check for duplicates
+    const existingTicketTypes =
+      await this.eventTicketTypeService.findByEventId(eventId);
+    const duplicate = existingTicketTypes.find(
+      (tt) => tt.getType().toString() === dto.type,
+    );
+    if (duplicate) {
+      throw new ConflictException(
+        `Ticket type '${dto.type}' already exists for event '${eventId}'`,
+      );
+    }
+
     const ticketType = EventTicketType.create({
       eventId: EventId.fromString(eventId),
       type: TicketType.fromString(dto.type),
@@ -33,8 +45,6 @@ export class CreateEventTicketTypeHandler {
       availableQuantity: dto.quantity,
       soldQuantity: 0,
     });
-    console.log('Creating ticket type for event:', ticketType);
-    //TODO: get creatorId by forwarding token from event service???
 
     if ((await this.eventService.findById(eventId)) === null) {
       await this.eventService.save(

@@ -1,4 +1,4 @@
-import { Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
 import { TicketService } from '../services/ticket.service';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
@@ -16,6 +16,7 @@ import { OrderService } from '../services/order.service';
  * 2. Mark all tickets as PAYMENT_FAILED (TX2)
  * 3. Release inventory for all ticket types
  */
+@Injectable()
 export class CheckoutSessionExpiredHandler {
   private readonly logger = new Logger(CheckoutSessionExpiredHandler.name);
 

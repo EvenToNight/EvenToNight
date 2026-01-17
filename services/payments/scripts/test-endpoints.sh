@@ -1,19 +1,36 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Base variables
 BASE_URL="http://localhost:9050"
 EVENT_ID="evt_test_123"
-ENV="${1:-prod}"  # Default to 'prod' if no parameter provided
+ENV="${1:-prod}"
 
 echo "🚀 Testing Payment Service Endpoints"
 echo "===================================="
 echo ""
 
-# Colors
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+NC='\033[0m'
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CLEAN_DB_SCRIPT="$SCRIPT_DIR/clean-db.sh"
+if [ -x "$CLEAN_DB_SCRIPT" ]; then
+  "$CLEAN_DB_SCRIPT"
+else
+  echo "ERROR: clean-db.sh not found or not executable at $CLEAN_DB_SCRIPT" >&2
+  exit 1
+fi
+
+# TESTS
+# 1. Create STANDARD ticket type
+# 2. Create VIP ticket type
+# 3. Get all ticket types for event and extract IDs
+# 4. Get specific ticket type by ID
+# 5. Try to create duplicate (should fail)
+
 
 # Test 1: Create STANDARD ticket type
 echo -e "${BLUE}1. Creating STANDARD ticket type${NC}"
@@ -23,7 +40,9 @@ RESPONSE=$(curl -s -X POST "$BASE_URL/events/$EVENT_ID/ticket-types" \
     "type": "STANDARD",
     "price": 29.99,
     "currency": "EUR",
-    "quantity": 100
+    "quantity": 100,
+    "description": "Standard entry ticket",
+    "creatorId": "user_test_123"
   }')
 
 echo "$RESPONSE" | jq '.'
@@ -39,8 +58,10 @@ RESPONSE=$(curl -s -X POST "$BASE_URL/events/$EVENT_ID/ticket-types" \
     "type": "VIP",
     "description": "VIP access with backstage pass",
     "price": 99.95,
-    "currency": "EUR",
-    "quantity": 50
+    "currency": "USD",
+    "quantity": 50,
+    "description": "VIP access ticket",
+    "creatorId": "user_test_123"
   }')
 
 echo "$RESPONSE" | jq '.'
@@ -79,10 +100,13 @@ echo -e "${BLUE}5. Testing duplicate prevention (should fail)${NC}"
 RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X POST "$BASE_URL/events/$EVENT_ID/ticket-types" \
   -H "Content-Type: application/json" \
   -d '{
-    "type": "STANDARD",
-    "description": "Another standard ticket",
-    "price": 25.00,
-    "quantity": 50
+    "type": "VIP",
+    "description": "VIP access with backstage pass",
+    "price": 99.95,
+    "currency": "USD",
+    "quantity": 50,
+    "description": "VIP access ticket",
+    "creatorId": "user_test_123"
   }')
 
 HTTP_CODE=$(echo "$RESPONSE" | grep -o "HTTP_CODE:[0-9]*" | cut -d: -f2)
@@ -128,26 +152,29 @@ SESSION_RESPONSE=$(curl -s -X POST "$BASE_URL/checkout-sessions" \
         \"ticketTypeId\": \"$TICKET_TYPE_ID_1\",
         \"attendeeName\": \"Jane Smith\"
       }
-    ]
+    ],
+    \"successUrl\": \"http://example.com/success\",
+    \"cancelUrl\": \"http://example.com/cancel\"
   }")
 
 echo "$SESSION_RESPONSE"
 echo "$SESSION_RESPONSE" | jq '.'
 SESSION_ID=$(echo "$SESSION_RESPONSE" | jq -r '.sessionId')
-TICKET_IDS=$(echo "$SESSION_RESPONSE" | jq -c '.reservedTicketIds')
+ORDER_ID=$(echo "$SESSION_RESPONSE" | jq -r '.orderId')
+REDIRECT_URL=$(echo "$SESSION_RESPONSE" | jq -r '.redirectUrl')
 echo -e "${GREEN}✓ Created checkout session: $SESSION_ID${NC}"
-echo -e "${GREEN}  Reserved ticket IDs: $TICKET_IDS${NC}"
 echo ""
 
 # Test 8: Simulate successful payment via mock webhook (skip in prod)
 if [ "$ENV" != "prod" ]; then
   echo -e "${BLUE}8. Simulating successful payment (mock webhook)${NC}"
   sleep 7 # Delay to ensure session is ready and processed
-  RESPONSE=$(curl -s -X POST "$BASE_URL/dev/checkout-webhook/completed" \
+  RESPONSE=$(curl -s -X POST "$REDIRECT_URL" \
     -H "Content-Type: application/json" \
     -d "{
       \"sessionId\": \"$SESSION_ID\",
-      \"ticketIds\": $TICKET_IDS
+      \"orderId\": \"$ORDER_ID\",
+      \"type\": \"checkout.session.completed\"
     }")
 
   echo "$RESPONSE" | jq '.'
