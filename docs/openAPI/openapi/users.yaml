@@ -45,7 +45,9 @@ paths:
     post:
       tags: [Auth]
       summary: Register user
-      description: Registers a new user and logs them in.
+      description: >
+        Registers a new user and logs them in.
+        On successful registration, a UserCreated domain event is published.
       servers:
         - url: http://localhost:9000
           description: Users service (local development)
@@ -184,6 +186,42 @@ paths:
                 $ref: '#/components/schemas/UserDTO'
         '404':
           description: User not found
+
+    delete:
+      tags: [Users]
+      summary: Delete user by ID
+      description: >
+        Deletes the authenticated user.
+        The userId in the path must match the user_id claim in the access token.
+        On successful deletion, a UserDeleted domain event is published.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user to delete
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: User successfully deleted
+        "400":
+          description: Bad request or authorization error
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                genericError:
+                  summary: Any error
+                  value: "Bad request or authorization failed"
 
 components:
   schemas:
@@ -397,3 +435,9 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PublicKeyEntry'
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
