@@ -19,6 +19,8 @@ import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
+import { EventService } from 'src/tickets/application/services/event.service';
+import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
 
 const createMockGuard = (mockUserId: string) => ({
   canActivate: (context: ExecutionContext) => {
@@ -34,8 +36,12 @@ describe('TicketsController (e2e)', () => {
   let app: INestApplication<App>;
   let mongod: MongoMemoryServer;
   let ticketService: TicketService;
-  const ticketId = 'ticket-123';
-  const userId = 'user-123';
+  let eventService: EventService;
+  const ticketId = 'test-ticket-id';
+  const eventId = 'test-event-id';
+  const eventCreatorId = 'test-event-creator-id';
+  const userId = `test-user-id`;
+  const anotherUserId = `another-user-id`;
 
   describe('With real auth guard', () => {
     beforeAll(async () => {
@@ -75,6 +81,7 @@ describe('TicketsController (e2e)', () => {
 
       await app.init();
       ticketService = moduleFixture.get<TicketService>(TicketService);
+      eventService = moduleFixture.get<EventService>(EventService);
     });
 
     afterAll(async () => {
@@ -84,11 +91,13 @@ describe('TicketsController (e2e)', () => {
 
     beforeEach(async () => {
       await ticketService.deleteAll();
+      await eventService.deleteAll();
     });
+
     describe('GET /tickets/:ticketId', () => {
       describe('Given a non existing ticketId', () => {
-        describe('When requesting the ticket details', () => {
-          it('returns 404 for non existing ticket with valid token', async () => {
+        describe('When an authenticated user requests the ticket details', () => {
+          it('Then returns 404 Not Found', async () => {
             await request(app.getHttpServer())
               .get(`/tickets/test-${ticketId}`)
               .set(
@@ -97,8 +106,9 @@ describe('TicketsController (e2e)', () => {
               )
               .expect(404);
           });
-
-          it('returns 401 without auth header', async () => {
+        });
+        describe('When an unauthenticated user requests the ticket details', () => {
+          it('Then returns 401 Unauthorized', async () => {
             await request(app.getHttpServer())
               .get(`/tickets/test-${ticketId}`)
               .expect(401);
@@ -106,20 +116,21 @@ describe('TicketsController (e2e)', () => {
         });
       });
       describe('Given an existing ticketId', () => {
-        let createdTicket: Ticket;
+        let ticket: Ticket;
         beforeEach(async () => {
-          createdTicket = await ticketService.create({
-            eventId: EventId.fromString(`event-1`),
+          ticket = await ticketService.create({
+            eventId: EventId.fromString(eventId),
             userId: UserId.fromString(userId),
             attendeeName: `Attendee 1`,
             ticketTypeId: `type-1`,
             price: Money.fromAmount(1, 'USD'),
           });
+          await eventService.create(eventId, eventCreatorId);
         });
         describe('When the user owner requests the ticket details', () => {
-          it('returns 200 with the ticket details', async () => {
+          it('Then returns the ticket details', async () => {
             const res = await request(app.getHttpServer())
-              .get(`/tickets/${createdTicket.getId()}`)
+              .get(`/tickets/${ticket.getId()}`)
               .set(
                 'Authorization',
                 `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
@@ -127,90 +138,101 @@ describe('TicketsController (e2e)', () => {
               .expect(200);
 
             expect(res.body).toMatchObject({
-              id: createdTicket.getId(),
-              userId: createdTicket.getUserId(),
-              eventId: createdTicket.getEventId(),
-              attendeeName: createdTicket.getAttendeeName(),
-              ticketTypeId: createdTicket.getTicketTypeId(),
-              price: createdTicket.getPrice(),
-              status: createdTicket.getStatus(),
+              id: ticket.getId(),
+              userId: ticket.getUserId(),
+              eventId: ticket.getEventId(),
+              attendeeName: ticket.getAttendeeName(),
+              ticketTypeId: ticket.getTicketTypeId(),
+              price: ticket.getPrice(),
+              status: ticket.getStatus(),
             });
           });
         });
         describe('When a different user requests the ticket details', () => {
-          it('returns 403 Forbidden', async () => {
+          it('Then returns 403 Forbidden', async () => {
             await request(app.getHttpServer())
-              .get(`/tickets/${createdTicket.getId()}`)
+              .get(`/tickets/${ticket.getId()}`)
               .set(
                 'Authorization',
-                `Bearer ${generateFakeToken('different-user', ONE_HOUR)}`,
+                `Bearer ${generateFakeToken(anotherUserId, ONE_HOUR)}`,
               )
               .expect(403);
           });
         });
-        describe('When requesting the ticket details without token', () => {
-          it('returns 401 Unauthorized', async () => {
-            await request(app.getHttpServer())
-              .get(`/tickets/${createdTicket.getId()}`)
-              .expect(401);
+        describe('When the event creator modifies the ticket', () => {
+          describe('When no body is provided', () => {
+            it('Then update ticket status to USED', async () => {
+              expect(ticket.isActive()).toBe(true);
+              const response = await request(app.getHttpServer())
+                .patch(`/tickets/${ticket.getId()}`)
+                .set(
+                  'Authorization',
+                  `Bearer ${generateFakeToken(eventCreatorId, ONE_HOUR)}`,
+                )
+                .send()
+                .expect(200);
+
+              expect(
+                (response.body as { status: { value: string } }).status.value,
+              ).toBe('USED');
+            });
+          });
+          describe("When a body with { status: 'USED' } is provided", () => {
+            it('Then update ticket status to USED', async () => {
+              expect(ticket.isActive()).toBe(true);
+              const response = await request(app.getHttpServer())
+                .patch(`/tickets/${ticket.getId()}`)
+                .set(
+                  'Authorization',
+                  `Bearer ${generateFakeToken(eventCreatorId, ONE_HOUR)}`,
+                )
+                .send({ status: 'USED' })
+                .expect(200);
+
+              expect(
+                (response.body as { status: { value: string } }).status.value,
+              ).toBe('USED');
+            });
+          });
+          describe('When a body with other values is provided', () => {
+            it('Then returns 400 Bad Request', async () => {
+              await request(app.getHttpServer())
+                .patch(`/tickets/${ticket.getId()}`)
+                .set(
+                  'Authorization',
+                  `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
+                )
+                .send({ status: 'ACTIVE' })
+                .expect(400);
+            });
           });
         });
-        describe('When the owner user modifies the ticket', () => {
-          it('use the ticket if no body is provided', async () => {
-            expect(createdTicket.isActive()).toBe(true);
-            const response = await request(app.getHttpServer())
-              .patch(`/tickets/${createdTicket.getId()}`)
+        describe('When the user owner modifies the ticket', () => {
+          it('Then returns 403 Forbidden', async () => {
+            await request(app.getHttpServer())
+              .patch(`/tickets/${ticket.getId()}`)
               .set(
                 'Authorization',
                 `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
               )
               .send()
-              .expect(200);
-
-            expect(
-              (response.body as { status: { value: string } }).status.value,
-            ).toBe('USED');
-          });
-          it("accept { status: 'USED' } body", async () => {
-            expect(createdTicket.isActive()).toBe(true);
-            const response = await request(app.getHttpServer())
-              .patch(`/tickets/${createdTicket.getId()}`)
-              .set(
-                'Authorization',
-                `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
-              )
-              .send({ status: 'USED' })
-              .expect(200);
-
-            expect(
-              (response.body as { status: { value: string } }).status.value,
-            ).toBe('USED');
-          });
-          it('reject all other values', async () => {
-            await request(app.getHttpServer())
-              .patch(`/tickets/${createdTicket.getId()}`)
-              .set(
-                'Authorization',
-                `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
-              )
-              .send({ status: 'ACTIVE' })
-              .expect(400);
+              .expect(403);
           });
         });
-        describe('When a different user modifies the ticket', () => {
-          it('prevents modification', async () => {
+        describe('When another user modifies the ticket', () => {
+          it('Then returns 403 Forbidden', async () => {
             await request(app.getHttpServer())
-              .patch(`/tickets/${createdTicket.getId()}`)
+              .patch(`/tickets/${ticket.getId()}`)
               .set(
                 'Authorization',
-                `Bearer ${generateFakeToken('different-user', ONE_HOUR)}`,
+                `Bearer ${generateFakeToken(anotherUserId, ONE_HOUR)}`,
               )
               .send()
               .expect(403);
           });
         });
         describe('When modifying a non existing ticketId', () => {
-          it('returns 404 Not Found', async () => {
+          it('Then returns 404 Not Found', async () => {
             await request(app.getHttpServer())
               .patch(`/tickets/non-existing-ticket`)
               .set(
@@ -224,7 +246,7 @@ describe('TicketsController (e2e)', () => {
         describe('When modifying the ticket without token', () => {
           it('returns 401 Unauthorized', async () => {
             await request(app.getHttpServer())
-              .patch(`/tickets/${createdTicket.getId()}`)
+              .patch(`/tickets/${ticket.getId()}`)
               .send()
               .expect(401);
           });
@@ -261,7 +283,7 @@ describe('TicketsController (e2e)', () => {
         .useValue(createMockGuard(userId))
         .compile();
 
-      // .useValue({ canActivate: () => true }) --- IGNORE ---
+      // .useValue({ canActivate: () => true })
 
       app = moduleFixture.createNestApplication();
       app.useGlobalPipes(

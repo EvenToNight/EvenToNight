@@ -28,4 +28,8 @@ export class EventRepositoryImpl implements EventRepository {
   async delete(id: string): Promise<void> {
     await this.eventModel.findByIdAndDelete(id).exec();
   }
+
+  async deleteAll(): Promise<void> {
+    await this.eventModel.deleteMany({}).exec();
+  }
 }

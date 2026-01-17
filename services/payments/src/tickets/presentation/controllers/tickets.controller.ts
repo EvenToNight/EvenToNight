@@ -22,12 +22,14 @@ import {
   CurrentUser,
   type AuthUser,
 } from 'src/commons/infrastructure/auth';
+import { EventService } from 'src/tickets/application/services/event.service';
 
 @Controller('tickets/:ticketId')
 export class TicketsController {
   constructor(
     private readonly pdfService: PdfService,
     private readonly ticketService: TicketService,
+    private readonly eventService: EventService,
     private readonly invalidateTicketStatusHandler: InvalidateTicketStatusHandler,
   ) {}
 
@@ -61,14 +63,20 @@ export class TicketsController {
   @UseGuards(JwtAuthGuard)
   async updateTicketStatus(
     @Param('ticketId') ticketId: string,
-    @Body(ValidationPipe) dto: InvalidateTicketStatusDto,
+    @Body(ValidationPipe) _dto: InvalidateTicketStatusDto,
     @CurrentUser('userId') userId: string,
   ) {
     const ticket = await this.ticketService.findById(ticketId);
     if (!ticket) {
       throw new NotFoundException('Ticket not found');
     }
-    if (ticket.getUserId().toString() !== userId) {
+    const event = await this.eventService.findById(
+      ticket.getEventId().toString(),
+    );
+    if (!event) {
+      throw new NotFoundException('Event not found');
+    }
+    if (event.getCreatorId().toString() !== userId) {
       throw new ForbiddenException('Not authorized to view this ticket');
     }
     return await this.invalidateTicketStatusHandler.handle(ticketId);
