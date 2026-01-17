@@ -38,6 +38,7 @@ export class CheckoutSessionsController {
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  //TODO: add auth
   async createCheckoutSession(
     @Body(ValidationPipe) dto: CreateCheckoutSessionDto,
   ): Promise<CheckoutSessionResponseDto> {
@@ -48,6 +49,7 @@ export class CheckoutSessionsController {
    * GET /checkout-sessions/:sessionId/cancel
    * Handles the cancellation of a checkout session.
    */
+  //TODO: how works auth there?
   @Get(':sessionId/cancel')
   @HttpCode(HttpStatus.OK)
   async handleCancel(

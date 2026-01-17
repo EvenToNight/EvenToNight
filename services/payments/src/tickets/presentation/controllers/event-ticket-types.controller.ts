@@ -56,7 +56,7 @@ export class EventTicketTypesController {
    * PUT /ticket-types/:ticketTypeId
    * Updates the ticket type details for the specified ticket type.
    */
-  //TODO track selling price in tickets
+  //TODO add auth
   @Put(':ticketTypeId')
   @HttpCode(HttpStatus.OK)
   async updateEventTicketType(
@@ -74,6 +74,7 @@ export class EventTicketTypesController {
    * DELETE /ticket-types/:ticketTypeId
    * Deletes the ticket type with the specified ticket type ID.
    */
+  //TODO add auth
   @Delete(':ticketTypeId')
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteEventTicketType(

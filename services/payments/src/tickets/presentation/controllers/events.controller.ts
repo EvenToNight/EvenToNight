@@ -39,6 +39,7 @@ export class EventController {
     );
   }
 
+  //TODO: add auth
   /**
    * POST /events/:eventId/ticket-types
    * Creates a new ticket type for the specified event.

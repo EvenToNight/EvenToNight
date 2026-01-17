@@ -14,9 +14,7 @@ export class DeleteTicketTypeHandler {
   async handle(ticketTypeId: string): Promise<void> {
     const ticketType = await this.eventTicketTypeService.findById(ticketTypeId);
     if (!ticketType) {
-      throw new NotFoundException(
-        `EventTicketType with id ${ticketTypeId} not found`,
-      );
+      return;
     }
     const eventId = ticketType.getEventId();
     const eventTicketTypes = await this.eventTicketTypeService.findByEventId(
