@@ -1,21 +1,33 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import type { Event } from '@/api/types/events'
 import EventDetailsHeader from './EventDetailsHeader.vue'
 import EventInfo from './EventInfo.vue'
 import OrganizationInfo from './OrganizationInfo.vue'
 import EventReviewsPreview from './EventReviewsPreview.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
+import { TICKET_PURCHASE_ROUTE_NAME } from '@/router'
 
 interface Props {
   event: Event
   isAuthRequired: boolean
 }
-defineProps<Props>()
+const props = defineProps<Props>()
 const emit = defineEmits<{
   'update:isAuthRequired': [boolean]
 }>()
 const { t } = useI18n()
+const router = useRouter()
+
+const handleBuyTickets = () => {
+  router.push({
+    name: TICKET_PURCHASE_ROUTE_NAME,
+    params: {
+      id: props.event.eventId,
+    },
+  })
+}
 </script>
 
 <template>
@@ -34,6 +46,7 @@ const { t } = useI18n()
         :label="t('eventDetails.buyTickets')"
         :class="'full-width'"
         size="lg"
+        @click="handleBuyTickets"
       />
       <EventReviewsPreview
         v-else-if="event.status === 'COMPLETED'"
