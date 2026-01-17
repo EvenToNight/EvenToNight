@@ -74,6 +74,7 @@ async function bootstrap() {
       urls: [rabbitmqUrl],
       queue: 'payments_queue',
       noAck: false,
+      prefetchCount: 1,
       queueOptions: {
         durable: true,
       },

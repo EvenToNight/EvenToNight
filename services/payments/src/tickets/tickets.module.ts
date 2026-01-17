@@ -62,6 +62,9 @@ import { TicketsController } from './presentation/controllers/tickets.controller
 import { OrderController } from './presentation/controllers/order-controller';
 import { EventController } from './presentation/controllers/events.controller';
 
+// Consumers
+import { UserEventConsumer } from './presentation/consumers/user-event.consumer';
+
 // Services
 import { PdfService } from './application/services/pdf.service';
 import { EventTicketTypeService } from './application/services/event-ticket-type.service';
@@ -87,6 +90,7 @@ import { EventService } from './application/services/event.service';
     TicketsController,
     OrderController,
     EventController,
+    UserEventConsumer,
   ],
   providers: [
     // Repositories

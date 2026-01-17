@@ -44,7 +44,7 @@ export class CreateEventTicketTypeHandler {
         ),
       );
     }
-    await this.eventPublisher.publish(
+    this.eventPublisher.publish(
       new MessageEvent({ message: 'Event ticket type created' }),
       'message.event',
     );
