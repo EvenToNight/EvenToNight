@@ -102,7 +102,18 @@ class KeycloakAdminApiUnitSpec extends AnyFlatSpec with Matchers:
     val result         = kcAdminApi.deleteUser(testAccessToken, testKeycloakId)
     result shouldBe Right(())
 
-  it should "return Left when user deletion fails" in:
+  it should "return Left when user to delete is not found" in:
+    val notFoundResponse = Response(
+      body = "Not found",
+      code = StatusCode.NotFound,
+      statusText = "Not found"
+    )
+    val connectionStub = stubbedDeleteUserConnectionWithResponse(testKeycloakId, notFoundResponse)
+    val kcAdminApi     = new KeycloakAdminApi(connectionStub)
+    val result         = kcAdminApi.deleteUser(testAccessToken, testKeycloakId)
+    result.left.value should include("User not found")
+
+  it should "return Left when client is unauthorized" in:
     val unauthorizedResponse = Response(
       body = "Unauthorized",
       code = StatusCode.Unauthorized,
@@ -111,4 +122,26 @@ class KeycloakAdminApiUnitSpec extends AnyFlatSpec with Matchers:
     val connectionStub = stubbedDeleteUserConnectionWithResponse(testKeycloakId, unauthorizedResponse)
     val kcAdminApi     = new KeycloakAdminApi(connectionStub)
     val result         = kcAdminApi.deleteUser(testAccessToken, testKeycloakId)
-    result.left.value should include("Failed to delete user")
+    result.left.value should include("Unauthorized on Keycloak")
+
+  it should "return Left when client is forbidden" in:
+    val forbiddenResponse = Response(
+      body = "Forbidden",
+      code = StatusCode.Forbidden,
+      statusText = "Forbidden"
+    )
+    val connectionStub = stubbedDeleteUserConnectionWithResponse(testKeycloakId, forbiddenResponse)
+    val kcAdminApi     = new KeycloakAdminApi(connectionStub)
+    val result         = kcAdminApi.deleteUser(testAccessToken, testKeycloakId)
+    result.left.value should include("Insufficient permissions in Keycloak")
+
+  it should "return Left for other error" in:
+    val errorResponse = Response(
+      body = "Error deleting user",
+      code = StatusCode.BadRequest,
+      statusText = "Bad Request"
+    )
+    val connectionStub = stubbedDeleteUserConnectionWithResponse(testKeycloakId, errorResponse)
+    val kcAdminApi     = new KeycloakAdminApi(connectionStub)
+    val result         = kcAdminApi.deleteUser(testAccessToken, testKeycloakId)
+    result.left.value should include("Failed to delete user on Keycloak")
