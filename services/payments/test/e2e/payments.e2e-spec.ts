@@ -6,14 +6,11 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PAYMENT_SERVICE } from 'src/tickets/domain/services/payment.service.interface';
 import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
 import { UserEventConsumer } from 'src/tickets/presentation/consumers/user-event.consumer';
-import { EventTicketTypeResponseDto } from 'src/tickets/application/dto/event-ticket-type-response.dto';
 import { AppModule } from 'src/app.module';
-import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
 
 describe('Payments API (e2e)', () => {
   let app: INestApplication;
   let mongod: MongoMemoryServer;
-  let eventTicketTypeService: EventTicketTypeService;
 
   beforeAll(async () => {
     process.env.NODE_ENV = 'test';
@@ -49,15 +46,8 @@ describe('Payments API (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
-
-    eventTicketTypeService = moduleFixture.get<EventTicketTypeService>(
-      EventTicketTypeService,
-    );
   });
 
-  beforeEach(async () => {
-    await eventTicketTypeService.deleteAll();
-  });
   afterAll(async () => {
     await app.close();
     await mongod.stop();
@@ -70,15 +60,5 @@ describe('Payments API (e2e)', () => {
       .get('/health')
       .expect(200);
     expect((res.body as { status: string }).status).toBe('ok');
-  });
-
-  it('POST /events/:eventId/ticket-types', async () => {
-    const res = await request(
-      app.getHttpServer() as Parameters<typeof request>[0],
-    )
-      .post('/events/123/ticket-types')
-      .send({ type: 'VIP', price: 100, quantity: 50, creatorId: 'user-1' })
-      .expect(201);
-    expect((res.body as EventTicketTypeResponseDto).id).toBeDefined();
   });
 });
