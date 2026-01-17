@@ -28,3 +28,11 @@ class UserService(memberRepo: MemberRepository, orgRepo: OrganizationRepository)
         orgRepo.findById(userId) match
           case Some(org) => Right("organization", org)
           case None      => Left(s"User with ID $userId not found")
+
+  def deleteUser(userId: String): Either[String, Unit] =
+    memberRepo.findById(userId) match
+      case Some(_) => Right(memberRepo.delete(userId))
+      case None =>
+        orgRepo.findById(userId) match
+          case Some(_) => Right(orgRepo.delete(userId))
+          case None    => Left(s"User with ID $userId not found")

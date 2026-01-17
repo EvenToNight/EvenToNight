@@ -8,6 +8,7 @@ trait OrganizationRepository:
   def insert(org: Organization, userId: String): String
   def getAllOrganizations(): List[Organization]
   def findById(userId: String): Option[Organization]
+  def delete(userId: String): Unit
 
 class MongoOrganizationRepository(
     orgAccountProfileRepo: AccountProfileRepository[OrganizationAccount, OrganizationProfile]
@@ -24,3 +25,6 @@ class MongoOrganizationRepository(
     orgAccountProfileRepo.findById(userId) match
       case Some((account, profile)) => Some(Organization(account, profile))
       case None                     => None
+
+  override def delete(userId: String) =
+    orgAccountProfileRepo.delete(userId)

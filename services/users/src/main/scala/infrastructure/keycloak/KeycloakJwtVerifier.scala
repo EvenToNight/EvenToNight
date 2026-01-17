@@ -105,12 +105,24 @@ object KeycloakJwtVerifier:
     )
 
   def extractUserId(accessToken: String): Either[String, String] =
-    verifyToken(accessToken).flatMap(claim =>
-      parse(claim.content)
+    verifyToken(accessToken).flatMap(payload =>
+      parse(payload.content)
         .left.map(_.getMessage)
         .flatMap(
           _.hcursor
             .get[String]("user_id")
             .left.map(_ => "Missing 'user_id' claim in token")
         )
+    )
+
+  def authorizeUser(accessToken: String, userId: String): Either[String, Unit] =
+    for
+      userIdFromToken <- extractUserId(accessToken)
+      _ <- if userIdFromToken == userId then Right(())
+      else Left("Forbidden: userId does not match 'user_id' token claim")
+    yield ()
+
+  def extractSub(accessToken: String): Either[String, String] =
+    verifyToken(accessToken).flatMap(payload =>
+      payload.subject.toRight("Missing 'sub' claim in token")
     )

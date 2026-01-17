@@ -18,3 +18,4 @@ object RabbitConnection:
   val channel: Channel       = connection.createChannel()
   val exchangeName: String   = "eventonight"
   channel.exchangeDeclare(exchangeName, "topic", true)
+  val eventPublisher = EventPublisher() // Set mock = true to use the mock publisher

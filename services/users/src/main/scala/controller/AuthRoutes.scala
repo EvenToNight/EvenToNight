@@ -18,9 +18,8 @@ import model.registration.UserRegistration._
 import service.AuthenticationService
 import service.UserService
 
-class AuthRoutes(authService: AuthenticationService, userService: UserService) extends cask.Routes {
-  val eventPublisher = EventPublisher() // Set mock = true to use the mock publisher
-
+class AuthRoutes(authService: AuthenticationService, userService: UserService, eventPublisher: EventPublisher)
+    extends cask.Routes {
   @cask.post("/login")
   def login(req: Request): Response[String] =
     parseLoginRequest(req) match

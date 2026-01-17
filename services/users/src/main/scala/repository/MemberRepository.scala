@@ -8,6 +8,7 @@ trait MemberRepository:
   def insert(member: Member, userId: String): String
   def getAllMembers(): List[Member]
   def findById(userId: String): Option[Member]
+  def delete(userId: String): Unit
 
 class MongoMemberRepository(
     memberAccountProfileRepo: AccountProfileRepository[MemberAccount, MemberProfile]
@@ -24,3 +25,6 @@ class MongoMemberRepository(
     memberAccountProfileRepo.findById(userId) match
       case Some((account, profile)) => Some(Member(account, profile))
       case None                     => None
+
+  override def delete(userId: String) =
+    memberAccountProfileRepo.delete(userId)

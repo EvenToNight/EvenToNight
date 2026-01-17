@@ -12,6 +12,7 @@ trait AccountProfileRepository[A, P]:
   def insert(account: A, profile: P, userId: String): String
   def getAll(): List[(A, P)]
   def findById(userId: String): Option[(A, P)]
+  def delete(userId: String): Unit
 
 class MongoAccountProfileRepository[A, P](
     referencesColl: MongoCollection[UserReferences],
@@ -44,4 +45,12 @@ class MongoAccountProfileRepository[A, P](
         account <- accountOpt
         profile <- profileOpt
       yield (account, profile)
+    )
+
+  override def delete(userId: String) =
+    val referenceOpt = Option(referencesColl.find(Filters.eq("_id", userId)).first())
+    referenceOpt.foreach(reference =>
+      referencesColl.deleteOne(Filters.eq("_id", userId))
+      accountsColl.deleteOne(Filters.eq("_id", new ObjectId(reference.accountId)))
+      profilesColl.deleteOne(Filters.eq("_id", new ObjectId(reference.profileId)))
     )
