@@ -2,7 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import type { EventTicketTypeRepository } from 'src/tickets/domain/repositories/event-ticket-type.repository.interface';
 import { EVENT_TICKET_TYPE_REPOSITORY } from 'src/tickets/domain/repositories/event-ticket-type.repository.interface';
-import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
+import {
+  EventTicketType,
+  EventTicketTypeCreateParams,
+} from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
 import type { ClientSession } from 'mongoose';
 import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
 import { UpdateEventTicketTypeDto } from '../dto/update-event-ticket-type.dto';
@@ -16,6 +19,11 @@ export class EventTicketTypeService {
     private readonly eventTicketTypeRepository: EventTicketTypeRepository,
     private readonly transactionManager: TransactionManager,
   ) {}
+
+  create(params: EventTicketTypeCreateParams): Promise<EventTicketType> {
+    const ticketType = EventTicketType.create(params);
+    return this.eventTicketTypeRepository.save(ticketType);
+  }
 
   findTicketTypeByIdWithLock(
     ticketTypeId: string,

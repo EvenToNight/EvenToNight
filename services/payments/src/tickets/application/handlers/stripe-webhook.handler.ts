@@ -16,7 +16,7 @@ export class StripeWebhookHandler {
   // [COMPLETED] payment_intent.succeeded - payment_intent.created - checkout.session.completed - mandate.updated - charge.succeeded - charge.updated
   // [FAILED] payment_intent.payment_failed - charge.failed
   // [EXPIRED] payment_intent.canceled - checkout.session.expired
-  async handle(event: WebhookEvent): Promise<{ received: true }> {
+  async handle(event: WebhookEvent): Promise<{ received: boolean }> {
     this.logger.log(`Processing Stripe webhook: ${event.type}`);
 
     switch (event.type) {
@@ -36,6 +36,7 @@ export class StripeWebhookHandler {
 
       default:
         this.logger.log(`Unhandled event type: ${event.type}`);
+        return { received: false };
     }
 
     return { received: true };

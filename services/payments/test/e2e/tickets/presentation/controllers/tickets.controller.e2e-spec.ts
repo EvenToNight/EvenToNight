@@ -21,6 +21,7 @@ import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
+import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 
 const createMockGuard = (mockUserId: string) => ({
   canActivate: (context: ExecutionContext) => {
@@ -124,6 +125,7 @@ describe('TicketsController (e2e)', () => {
             attendeeName: `Attendee 1`,
             ticketTypeId: `type-1`,
             price: Money.fromAmount(1, 'USD'),
+            status: TicketStatus.ACTIVE,
           });
           await eventService.create(eventId, eventCreatorId);
         });

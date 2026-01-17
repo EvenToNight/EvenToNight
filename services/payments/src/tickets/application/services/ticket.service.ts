@@ -10,6 +10,7 @@ import {
   PaginatedResult,
   PaginationParams,
 } from 'src/commons/domain/types/pagination.types';
+import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 
 @Injectable()
 export class TicketService {
@@ -19,6 +20,9 @@ export class TicketService {
   ) {}
 
   create(createParams: TicketCreateParams): Promise<Ticket> {
+    if (!createParams.status) {
+      createParams.status = TicketStatus.PENDING_PAYMENT;
+    }
     return this.save(Ticket.create(createParams));
   }
 

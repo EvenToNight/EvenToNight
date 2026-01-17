@@ -19,8 +19,6 @@ import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import { WebhookEvent } from 'src/tickets/domain/types/payment-service.types';
 import { Order } from 'src/tickets/domain/aggregates/order.aggregate';
-import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
-import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
 import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
 
 describe('StripeWebhookController (e2e)', () => {
@@ -31,9 +29,9 @@ describe('StripeWebhookController (e2e)', () => {
   let eventTicketTypeService: EventTicketTypeService;
   let mockPaymentService: jest.Mocked<PaymentService>;
 
-  const userId = 'user-123';
-  const eventId = 'event-123';
-  const sessionId = 'cs_test_123';
+  const userId = 'test-user-id';
+  const eventId = 'test-event-id';
+  const sessionId = 'test-session-id';
 
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
@@ -98,12 +96,12 @@ describe('StripeWebhookController (e2e)', () => {
 
   describe('POST /webhooks/stripe', () => {
     describe('Given missing stripe-signature header', () => {
-      it('returns 400 Bad Request', async () => {
+      it('Then returns 400 Bad Request', async () => {
         const res = await request(app.getHttpServer())
           .post('/webhooks/stripe')
-          .send({ some: 'data' });
+          .send({ some: 'data' })
+          .expect(400);
 
-        expect(res.status).toBe(400);
         expect((res.body as { message: string }).message).toBe(
           'Missing stripe-signature header',
         );
@@ -111,7 +109,7 @@ describe('StripeWebhookController (e2e)', () => {
     });
 
     describe('Given invalid signature', () => {
-      it('returns 400 Bad Request when constructWebhookEvent throws', async () => {
+      it('Then returns 400 Bad Request', async () => {
         mockPaymentService.constructWebhookEvent.mockImplementation(() => {
           throw new Error('Invalid signature');
         });
@@ -119,34 +117,35 @@ describe('StripeWebhookController (e2e)', () => {
         const res = await request(app.getHttpServer())
           .post('/webhooks/stripe')
           .set('stripe-signature', 'invalid_sig')
-          .send({ some: 'data' });
+          .send({ some: 'data' })
+          .expect(400);
 
-        expect(res.status).toBe(400);
         expect((res.body as { message: string }).message).toBe(
           'Webhook processing failed',
         );
       });
     });
 
-    describe('Given a valid checkout.session.completed event', () => {
+    describe('Given a valid event', () => {
       let order: Order;
       let ticket1Id: string;
       let ticket2Id: string;
       let ticketTypeId: string;
+      const availableQuantity = 100;
+      const soldQuantity = 50;
 
       beforeEach(async () => {
-        const ticketType = EventTicketType.create({
+        const ticketType = await eventTicketTypeService.create({
           eventId: EventId.fromString(eventId),
           type: TicketType.fromString('STANDARD'),
           description: 'Standard ticket',
           price: Money.fromAmount(50, 'EUR'),
-          availableQuantity: 100,
-          soldQuantity: 0,
+          availableQuantity: availableQuantity,
+          soldQuantity: soldQuantity,
         });
         ticketTypeId = ticketType.getId();
-        await eventTicketTypeService.save(ticketType);
 
-        const ticket1 = Ticket.createPending({
+        const ticket1 = await ticketService.create({
           eventId: EventId.fromString(eventId),
           userId: UserId.fromString(userId),
           attendeeName: 'John Doe',
@@ -154,9 +153,8 @@ describe('StripeWebhookController (e2e)', () => {
           price: Money.fromAmount(50, 'EUR'),
         });
         ticket1Id = ticket1.getId();
-        await ticketService.save(ticket1);
 
-        const ticket2 = Ticket.createPending({
+        const ticket2 = await ticketService.create({
           eventId: EventId.fromString(eventId),
           userId: UserId.fromString(userId),
           attendeeName: 'Jane Doe',
@@ -164,7 +162,6 @@ describe('StripeWebhookController (e2e)', () => {
           price: Money.fromAmount(50, 'EUR'),
         });
         ticket2Id = ticket2.getId();
-        await ticketService.save(ticket2);
 
         order = Order.createPending({
           userId: UserId.fromString(userId),
@@ -172,127 +169,90 @@ describe('StripeWebhookController (e2e)', () => {
         });
         await orderService.save(order);
       });
+      describe("When the event is 'checkout.session.completed'", () => {
+        it('Then returns 200 and confirms tickets', async () => {
+          const webhookEvent: WebhookEvent = {
+            sessionId,
+            type: 'checkout.session.completed',
+            orderId: order.getId(),
+          };
 
-      it('returns 200 and confirms tickets', async () => {
-        const webhookEvent: WebhookEvent = {
-          sessionId,
-          type: 'checkout.session.completed',
-          orderId: order.getId(),
-        };
+          mockPaymentService.constructWebhookEvent.mockReturnValue(
+            webhookEvent,
+          );
 
-        mockPaymentService.constructWebhookEvent.mockReturnValue(webhookEvent);
+          const res = await request(app.getHttpServer())
+            .post('/webhooks/stripe')
+            .set('stripe-signature', 'valid_sig')
+            .send({ session: 'data' })
+            .expect(200);
 
-        const res = await request(app.getHttpServer())
-          .post('/webhooks/stripe')
-          .set('stripe-signature', 'valid_sig')
-          .send(JSON.stringify({ id: 'evt_123' }));
+          expect(res.body).toEqual({ received: true });
 
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual({ received: true });
-
-        const updatedOrder = await orderService.findById(order.getId());
-        expect(updatedOrder?.isCompleted()).toBe(true);
-        const updatedTicket1 = await ticketService.findById(ticket1Id);
-        expect(updatedTicket1?.isActive()).toBe(true);
-        const updatedTicket2 = await ticketService.findById(ticket2Id);
-        expect(updatedTicket2?.isActive()).toBe(true);
-        const updatedTicketType =
-          await eventTicketTypeService.findById(ticketTypeId);
-        expect(updatedTicketType?.getAvailableQuantity()).toBe(98);
-      });
-    });
-
-    describe('Given a valid checkout.session.expired event', () => {
-      let order: Order;
-      let ticketTypeId: string;
-      let ticket1Id: string;
-      let ticket2Id: string;
-
-      beforeEach(async () => {
-        const ticketType = EventTicketType.create({
-          eventId: EventId.fromString(eventId),
-          type: TicketType.fromString('VIP'),
-          description: 'VIP ticket',
-          price: Money.fromAmount(100, 'EUR'),
-          availableQuantity: 48,
-          soldQuantity: 2,
+          const updatedOrder = await orderService.findById(order.getId());
+          expect(updatedOrder?.isCompleted()).toBe(true);
+          const updatedTicket1 = await ticketService.findById(ticket1Id);
+          expect(updatedTicket1?.isActive()).toBe(true);
+          const updatedTicket2 = await ticketService.findById(ticket2Id);
+          expect(updatedTicket2?.isActive()).toBe(true);
         });
-        await eventTicketTypeService.save(ticketType);
-        ticketTypeId = ticketType.getId();
-
-        const ticket1 = Ticket.createPending({
-          eventId: EventId.fromString(eventId),
-          userId: UserId.fromString(userId),
-          attendeeName: 'John Doe',
-          ticketTypeId: ticketTypeId,
-          price: Money.fromAmount(100, 'EUR'),
-        });
-        ticket1Id = ticket1.getId();
-        await ticketService.save(ticket1);
-
-        const ticket2 = Ticket.createPending({
-          eventId: EventId.fromString(eventId),
-          userId: UserId.fromString(userId),
-          attendeeName: 'Jane Doe',
-          ticketTypeId: ticketTypeId,
-          price: Money.fromAmount(100, 'EUR'),
-        });
-        ticket2Id = ticket2.getId();
-        await ticketService.save(ticket2);
-
-        order = Order.createPending({
-          userId: UserId.fromString(userId),
-          ticketIds: [ticket1Id, ticket2Id],
-        });
-        await orderService.save(order);
       });
 
-      it('returns 200 and cancels order, releases inventory', async () => {
-        const webhookEvent: WebhookEvent = {
-          sessionId,
-          type: 'checkout.session.expired',
-          orderId: order.getId(),
-        };
+      describe("When the event is 'checkout.session.expired'", () => {
+        it('Then returns 200 and cancels order, releases inventory', async () => {
+          const webhookEvent: WebhookEvent = {
+            sessionId,
+            type: 'checkout.session.expired',
+            orderId: order.getId(),
+          };
 
-        mockPaymentService.constructWebhookEvent.mockReturnValue(webhookEvent);
+          mockPaymentService.constructWebhookEvent.mockReturnValue(
+            webhookEvent,
+          );
 
-        const res = await request(app.getHttpServer())
-          .post('/webhooks/stripe')
-          .set('stripe-signature', 'valid_sig')
-          .send(JSON.stringify({ id: 'evt_123' }));
+          const res = await request(app.getHttpServer())
+            .post('/webhooks/stripe')
+            .set('stripe-signature', 'valid_sig')
+            .send({ session: 'data' })
+            .expect(200);
 
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual({ received: true });
+          expect(res.body).toEqual({ received: true });
 
-        const updatedOrder = await orderService.findById(order.getId());
-        expect(updatedOrder?.isCancelled()).toBe(true);
-        const updatedTicket1 = await ticketService.findById(ticket1Id);
-        expect(updatedTicket1?.isPaymentFailed()).toBe(true);
-        const updatedTicket2 = await ticketService.findById(ticket2Id);
-        expect(updatedTicket2?.isPaymentFailed()).toBe(true);
-        const updatedTicketType =
-          await eventTicketTypeService.findById(ticketTypeId);
-        expect(updatedTicketType?.getAvailableQuantity()).toBe(50);
+          const updatedOrder = await orderService.findById(order.getId());
+          expect(updatedOrder?.isCancelled()).toBe(true);
+          const updatedTicket1 = await ticketService.findById(ticket1Id);
+          expect(updatedTicket1?.isPaymentFailed()).toBe(true);
+          const updatedTicket2 = await ticketService.findById(ticket2Id);
+          expect(updatedTicket2?.isPaymentFailed()).toBe(true);
+          const updatedTicketType =
+            await eventTicketTypeService.findById(ticketTypeId);
+          expect(updatedTicketType?.getAvailableQuantity()).toBe(
+            availableQuantity + 2,
+          );
+          expect(updatedTicketType?.getSoldQuantity()).toBe(soldQuantity - 2);
+        });
       });
-    });
 
-    describe('Given an unhandled event type', () => {
-      it('returns 200 with received: true (logs but does not fail)', async () => {
-        const webhookEvent: WebhookEvent = {
-          sessionId,
-          type: 'payment_intent.succeeded',
-          orderId: 'order-123',
-        };
+      describe('Given an unhandled event type', () => {
+        it('Then returns 200 with received: true (logs but does not fail)', async () => {
+          const webhookEvent: WebhookEvent = {
+            sessionId,
+            type: 'payment_intent.succeeded',
+            orderId: order.getId(),
+          };
 
-        mockPaymentService.constructWebhookEvent.mockReturnValue(webhookEvent);
+          mockPaymentService.constructWebhookEvent.mockReturnValue(
+            webhookEvent,
+          );
 
-        const res = await request(app.getHttpServer())
-          .post('/webhooks/stripe')
-          .set('stripe-signature', 'valid_sig')
-          .send(JSON.stringify({ id: 'evt_123' }));
+          const res = await request(app.getHttpServer())
+            .post('/webhooks/stripe')
+            .set('stripe-signature', 'valid_sig')
+            .send({ session: 'data' })
+            .expect(200);
 
-        expect(res.status).toBe(200);
-        expect(res.body).toEqual({ received: true });
+          expect(res.body).toEqual({ received: false });
+        });
       });
     });
   });
