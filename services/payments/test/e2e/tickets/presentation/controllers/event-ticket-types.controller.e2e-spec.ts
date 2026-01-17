@@ -15,14 +15,18 @@ import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
+import { EventService } from 'src/tickets/application/services/event.service';
+import { generateFakeToken, ONE_YEAR } from 'src/commons/utils/authUtils';
 
 describe('EventTicketTypesController (e2e)', () => {
   let app: INestApplication<App>;
   let mongod: MongoMemoryServer;
   let eventTicketTypeService: EventTicketTypeService;
   let ticketService: TicketService;
+  let eventService: EventService;
 
   const eventId = 'test-event-id';
+  const creatorId = 'test-creator-id';
   let ticketTypeId: string;
   let soldTicketsIds: string[] = [];
 
@@ -68,6 +72,7 @@ describe('EventTicketTypesController (e2e)', () => {
       EventTicketTypeService,
     );
     ticketService = moduleFixture.get<TicketService>(TicketService);
+    eventService = moduleFixture.get<EventService>(EventService);
   });
 
   afterAll(async () => {
@@ -77,6 +82,9 @@ describe('EventTicketTypesController (e2e)', () => {
 
   beforeEach(async () => {
     await eventTicketTypeService.deleteAll();
+    await ticketService.deleteAll();
+    await eventService.deleteAll();
+    await eventService.create(eventId, creatorId);
     soldTicketsIds = [];
 
     const ticketType = await eventTicketTypeService.create({
@@ -143,6 +151,7 @@ describe('EventTicketTypesController (e2e)', () => {
     });
   });
 
+  //TODO: add tests for unauthorized access
   describe('PUT /ticket-types/:ticketTypeId', () => {
     describe('Given valid update data', () => {
       it('Then returns 200 and updates description', async () => {
@@ -152,6 +161,10 @@ describe('EventTicketTypesController (e2e)', () => {
 
         const res = await request(app.getHttpServer())
           .put(`/ticket-types/${ticketTypeId}`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+          )
           .send(dto)
           .expect(200);
 
@@ -168,6 +181,10 @@ describe('EventTicketTypesController (e2e)', () => {
 
         const res = await request(app.getHttpServer())
           .put(`/ticket-types/${ticketTypeId}`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+          )
           .send(dto)
           .expect(200);
 
@@ -189,6 +206,10 @@ describe('EventTicketTypesController (e2e)', () => {
 
         const res = await request(app.getHttpServer())
           .put(`/ticket-types/${ticketTypeId}`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+          )
           .send(dto)
           .expect(200);
 
@@ -207,6 +228,10 @@ describe('EventTicketTypesController (e2e)', () => {
 
         await request(app.getHttpServer())
           .put(`/ticket-types/${ticketTypeId}`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+          )
           .send(dto)
           .expect(400);
       });
@@ -220,12 +245,17 @@ describe('EventTicketTypesController (e2e)', () => {
 
         await request(app.getHttpServer())
           .put('/ticket-types/non-existing-id')
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+          )
           .send(dto)
           .expect(404);
       });
     });
   });
 
+  //TODO: add tests for unauthorized access
   describe('DELETE /ticket-types/:ticketTypeId', () => {
     describe('Given an existing ticket type', () => {
       it('Then returns returns 204', async () => {
@@ -240,6 +270,10 @@ describe('EventTicketTypesController (e2e)', () => {
         expect(initial).not.toBeNull();
         await request(app.getHttpServer())
           .delete(`/ticket-types/${ticketTypeId}`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+          )
           .expect(204);
 
         const remaining = await eventTicketTypeService.findById(ticketTypeId);
@@ -254,11 +288,16 @@ describe('EventTicketTypesController (e2e)', () => {
       });
     });
 
+    //TODO evaluate returning 204 for idempotency
     describe('Given non-existing ticket type', () => {
-      it('Then returns returns 204 (idempotent)', async () => {
+      it('Then returns returns 404', async () => {
         await request(app.getHttpServer())
           .delete('/ticket-types/non-existing-id')
-          .expect(204);
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+          )
+          .expect(404);
       });
     });
   });

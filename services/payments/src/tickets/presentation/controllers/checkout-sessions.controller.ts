@@ -67,10 +67,8 @@ export class CheckoutSessionsController {
     @Res() res: Response,
   ) {
     try {
-      console.log('Handling cancel for session:', sessionId);
       const session = await this.paymentService.getCheckoutSession(sessionId);
       if (session.status === 'open') {
-        console.log('Expiring session:', sessionId);
         await this.paymentService.expireCheckoutSession(sessionId);
         this.logger.log(`Manually expired checkout session: ${sessionId}`);
         await this.checkoutSessionExpiredHandler.handle(

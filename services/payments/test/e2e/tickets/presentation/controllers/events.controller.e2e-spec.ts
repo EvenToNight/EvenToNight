@@ -289,7 +289,6 @@ describe('EventController (e2e)', () => {
           const intitalSoldTickets = await Promise.all(
             soldTicketsIds.map((t) => ticketService.findById(t)),
           );
-          console.log(`Initial sold tickets: ${intitalSoldTickets.length}`);
           expect(intitalSoldTickets).toHaveLength(soldTicketsIds.length);
           for (const ticket of intitalSoldTickets) {
             expect(ticket?.getStatus().toString()).toBe('ACTIVE');
