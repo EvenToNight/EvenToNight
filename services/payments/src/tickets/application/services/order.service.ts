@@ -25,4 +25,12 @@ export class OrderService {
   async update(order: Order): Promise<Order> {
     return this.orderRepository.update(order);
   }
+
+  async save(order: Order): Promise<Order> {
+    return this.orderRepository.save(order);
+  }
+
+  async deleteAll(): Promise<void> {
+    return this.orderRepository.deleteAll();
+  }
 }

@@ -49,4 +49,8 @@ export class OrderRepositoryImpl implements OrderRepository {
   async delete(id: string): Promise<void> {
     await this.orderModel.findByIdAndDelete(id).exec();
   }
+
+  async deleteAll(): Promise<void> {
+    await this.orderModel.deleteMany({}).exec();
+  }
 }
