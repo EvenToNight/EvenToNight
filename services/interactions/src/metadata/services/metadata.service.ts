@@ -14,12 +14,7 @@ import { ReviewService } from '../../events/services/review.service';
 import { ParticipationService } from '../../events/services/participation.service';
 import { FollowService } from '../../users/services/follow.service';
 import { CreateReviewDto } from 'src/events/dto/create-review.dto';
-
-interface EventPublishedPayload {
-  eventId: string;
-  creatorId: string;
-  collaboratorIds?: string[];
-}
+import { EventPublishedDto } from '../dto/event-published.dto';
 
 @Injectable()
 export class MetadataService {
@@ -38,29 +33,32 @@ export class MetadataService {
     private readonly followService: FollowService,
   ) {}
 
-  async handleEventPublished(payload: unknown): Promise<void> {
-    console.log('Handling event published in MetadataService:', payload);
-
-    const wrapper = payload as { EventPublished?: EventPublishedPayload };
-    const data = wrapper.EventPublished;
-
-    if (!data || !data.eventId || !data.creatorId) {
-      this.logger.error('Invalid payload for EventPublished event', payload);
-      return;
-    }
-
-    await this.eventModel.updateOne(
-      { eventId: data.eventId },
-      {
-        $setOnInsert: {
-          eventId: data.eventId,
-          creatorId: data.creatorId,
-          collaboratorIds: data.collaboratorIds ?? [],
+  async handleEventPublished(payload: EventPublishedDto): Promise<void> {
+    try {
+      this.logger.debug(
+        `Processing event.published: ${JSON.stringify(payload)}`,
+      );
+      const result = await this.eventModel.updateOne(
+        { eventId: payload.eventId },
+        {
+          $setOnInsert: {
+            eventId: payload.eventId,
+            creatorId: payload.creatorId,
+            collaboratorIds: payload.collaboratorIds ?? [],
+          },
         },
-      },
-      { upsert: true },
-    );
-    this.logger.log(`Event ${data.eventId} stored`);
+        { upsert: true },
+      );
+
+      if (result.upsertedCount > 0) {
+        this.logger.log(`✨ Event ${payload.eventId} created`);
+      } else {
+        this.logger.log(`🔄 Event ${payload.eventId} already exists`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to handle event.published: ${error}`);
+      throw error;
+    }
   }
 
   async handleUserRegistered(payload: unknown): Promise<void> {

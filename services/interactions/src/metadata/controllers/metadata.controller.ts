@@ -2,6 +2,9 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MetadataService } from '../services/metadata.service';
 import { RmqContext, Ctx } from '@nestjs/microservices';
+import { EventPublishedDto } from '../dto/event-published.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
 
 @Controller()
 export class MetadataController {
@@ -32,7 +35,7 @@ export class MetadataController {
     try {
       switch (routingKey) {
         case 'event.published':
-          await this.metadataService.handleEventPublished(payload);
+          await this.handleEventPublished(payload);
           break;
         case 'user.registered':
           await this.metadataService.handleUserRegistered(payload);
@@ -59,5 +62,46 @@ export class MetadataController {
       channel.nack(originalMsg, false, false);
       this.logger.warn('⚠️  Message rejected (not requeued)');
     }
+  }
+
+  private async handleEventPublished(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventPublishedDto, payload);
+    await this.metadataService.handleEventPublished(dto);
+  }
+
+  private async validateAndTransform<T extends object>(
+    dtoClass: new () => T,
+    payload: unknown,
+  ): Promise<T> {
+    let dataToValidate = payload;
+
+    if (typeof payload === 'object' && payload !== null) {
+      const payloadObj = payload as Record<string, unknown>;
+
+      const payloadKey = Object.keys(payloadObj).find(
+        (key) => key.charAt(0) === key.charAt(0).toUpperCase(),
+      );
+
+      if (payloadKey && payloadObj[payloadKey]) {
+        this.logger.debug(`Extracting payload from key: ${payloadKey}`);
+        dataToValidate = payloadObj[payloadKey];
+      }
+    }
+
+    const dtoInstance = plainToInstance(dtoClass, dataToValidate);
+
+    const errors = await validate(dtoInstance, {
+      whitelist: true,
+      forbidNonWhitelisted: true,
+    });
+
+    if (errors.length > 0) {
+      const errorMessages = errors
+        .map((error) => Object.values(error.constraints || {}).join(', '))
+        .join('; ');
+      throw new Error(`Validation failed: ${errorMessages}`);
+    }
+
+    return dtoInstance;
   }
 }

@@ -7,12 +7,10 @@ import {
 } from 'class-validator';
 
 export class EventPublishedDto {
-  @IsDefined()
   @IsString()
   @IsNotEmpty()
   eventId: string;
 
-  @IsDefined()
   @IsString()
   @IsNotEmpty()
   creatorId: string;
