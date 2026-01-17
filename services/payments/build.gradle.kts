@@ -38,11 +38,25 @@ tasks.register<NpmTask>("run") {
     args.set(listOf("run", "start:dev"))
 }
 
-tasks.register<NpmTask>("test") {
+tasks.register<NpmTask>("unitTest") {
     group = "verification"
-    description = "Runs the test suite."
+    description = "Runs the unit test suite."
     dependsOn("npmInstall")
     args.set(listOf("run", "test"))
+}
+
+tasks.register<NpmTask>("e2eTest") {
+    group = "verification"
+    description = "Runs the end-to-end test suite."
+    dependsOn("npmInstall")
+    args.set(listOf("run", "test:e2e"))
+}
+
+tasks.register<NpmTask>("test") {
+    group = "verification"
+    description = "Runs all the test suites."
+    dependsOn("npmInstall")
+    dependsOn("unitTest", "e2eTest")
 }
 
 tasks.register<NpmTask>("testWithCoverage") {
