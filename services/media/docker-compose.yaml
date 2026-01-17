@@ -14,6 +14,12 @@ services:
       - "traefik.http.routers.media.rule=Host(`media.${HOST}`)"
       - "traefik.http.routers.media.entrypoints=web"
       - "traefik.http.services.media.loadbalancer.server.port=9020"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9020/health"]
+      interval: 2s
+      timeout: 3s
+      retries: 100
+      start_period: 500s
     depends_on:
       - minio
 

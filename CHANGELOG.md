@@ -1,3 +1,9 @@
+## [1.17.1](https://github.com/EvenToNight/EvenToNight/compare/v1.17.0...v1.17.1) (2026-01-16)
+
+### Bug Fixes
+
+* **media-service:** add healthcheck in media service ([d617a19](https://github.com/EvenToNight/EvenToNight/commit/d617a194a4861661e0a4050f726340b6f0196fd3))
+
 ## [1.17.0](https://github.com/EvenToNight/EvenToNight/compare/v1.16.0...v1.17.0) (2026-01-15)
 
 ### Features
