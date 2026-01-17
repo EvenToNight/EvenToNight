@@ -1,9 +1,9 @@
-import { Ticket } from '../../../../src/tickets/domain/aggregates/ticket.aggregate';
-import { EventId } from '../../../../src/tickets/domain/value-objects/event-id.vo';
-import { UserId } from '../../../../src/tickets/domain/value-objects/user-id.vo';
-import { Money } from '../../../../src/tickets/domain/value-objects/money.vo';
-import { InvalidTicketStatusException } from '../../../../src/tickets/domain/exceptions/invalid-ticket-status.exception';
-import { TicketStatus } from '../../../../src/tickets/domain/value-objects/ticket-status.vo';
+import { Ticket } from '../../../../../src/tickets/domain/aggregates/ticket.aggregate';
+import { EventId } from '../../../../../src/tickets/domain/value-objects/event-id.vo';
+import { UserId } from '../../../../../src/tickets/domain/value-objects/user-id.vo';
+import { Money } from '../../../../../src/tickets/domain/value-objects/money.vo';
+import { InvalidTicketStatusException } from '../../../../../src/tickets/domain/exceptions/invalid-ticket-status.exception';
+import { TicketStatus } from '../../../../../src/tickets/domain/value-objects/ticket-status.vo';
 
 describe('Ticket Aggregate', () => {
   const createTicket = () => {

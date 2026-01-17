@@ -1,8 +1,8 @@
-import { EventTicketType } from '../../../../src/tickets/domain/aggregates/event-ticket-type.aggregate';
-import { EventId } from '../../../../src/tickets/domain/value-objects/event-id.vo';
-import { Money } from '../../../../src/tickets/domain/value-objects/money.vo';
-import { TicketType } from '../../../../src/tickets/domain/value-objects/ticket-type.vo';
-import { SoldOutException } from '../../../../src/tickets/domain/exceptions/sold-out.exception';
+import { EventTicketType } from '../../../../../src/tickets/domain/aggregates/event-ticket-type.aggregate';
+import { EventId } from '../../../../../src/tickets/domain/value-objects/event-id.vo';
+import { Money } from '../../../../../src/tickets/domain/value-objects/money.vo';
+import { TicketType } from '../../../../../src/tickets/domain/value-objects/ticket-type.vo';
+import { SoldOutException } from '../../../../../src/tickets/domain/exceptions/sold-out.exception';
 
 describe('EventTicketType Aggregate', () => {
   const DEFAULT_AVAILABLE_QUANTITY = 10;

@@ -18,6 +18,7 @@ export interface TicketRepository {
   findByTicketTypeId(ticketTypeId: string): Promise<Ticket[]>;
   update(ticket: Ticket): Promise<Ticket>;
   delete(id: string): Promise<void>;
+  deleteAll(): Promise<void>;
 }
 
 export const TICKET_REPOSITORY = Symbol('TICKET_REPOSITORY');

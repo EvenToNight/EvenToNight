@@ -1,4 +1,4 @@
-import { TicketStatus } from '../../../../src/tickets/domain/value-objects/ticket-status.vo';
+import { TicketStatus } from '../../../../../src/tickets/domain/value-objects/ticket-status.vo';
 
 describe('TicketStatus', () => {
   describe('fromString', () => {

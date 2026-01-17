@@ -19,6 +19,12 @@ export class TicketService {
     return this.ticketRepository.save(ticket);
   }
 
+  saveMany(tickets: Ticket[]): Promise<Ticket[]> {
+    return Promise.all(
+      tickets.map((ticket) => this.ticketRepository.save(ticket)),
+    );
+  }
+
   findByIds(ticketIds: string[]): Promise<Ticket[]> {
     return Promise.all(
       ticketIds.map((id) => this.ticketRepository.findById(id)),
@@ -31,6 +37,10 @@ export class TicketService {
 
   update(ticket: Ticket): Promise<Ticket> {
     return this.ticketRepository.update(ticket);
+  }
+
+  deleteAll(): Promise<void> {
+    return this.ticketRepository.deleteAll();
   }
 
   findByUserId(

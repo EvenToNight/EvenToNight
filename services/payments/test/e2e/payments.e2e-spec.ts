@@ -3,15 +3,17 @@ import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { MongooseModule } from '@nestjs/mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { AppModule } from '../src/app.module';
 import { PAYMENT_SERVICE } from 'src/tickets/domain/services/payment.service.interface';
 import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
 import { UserEventConsumer } from 'src/tickets/presentation/consumers/user-event.consumer';
 import { EventTicketTypeResponseDto } from 'src/tickets/application/dto/event-ticket-type-response.dto';
+import { AppModule } from 'src/app.module';
+import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
 
 describe('Payments API (e2e)', () => {
   let app: INestApplication;
   let mongod: MongoMemoryServer;
+  let eventTicketTypeService: EventTicketTypeService;
 
   beforeAll(async () => {
     process.env.NODE_ENV = 'test';
@@ -47,8 +49,15 @@ describe('Payments API (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     await app.init();
+
+    eventTicketTypeService = moduleFixture.get<EventTicketTypeService>(
+      EventTicketTypeService,
+    );
   });
 
+  beforeEach(async () => {
+    await eventTicketTypeService.deleteAll();
+  });
   afterAll(async () => {
     await app.close();
     await mongod.stop();

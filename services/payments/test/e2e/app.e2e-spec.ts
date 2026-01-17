@@ -2,10 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { AppModule } from './../src/app.module';
 import { PAYMENT_SERVICE } from 'src/tickets/domain/services/payment.service.interface';
 import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
 import { UserEventConsumer } from 'src/tickets/presentation/consumers/user-event.consumer';
+import { AppModule } from 'src/app.module';
 
 describe('AppController (e2e)', () => {
   let app: INestApplication<App>;

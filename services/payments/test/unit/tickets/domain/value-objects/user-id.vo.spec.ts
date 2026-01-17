@@ -1,4 +1,4 @@
-import { UserId } from '../../../../src/tickets/domain/value-objects/user-id.vo';
+import { UserId } from '../../../../../src/tickets/domain/value-objects/user-id.vo';
 
 describe('UserId', () => {
   describe('fromString', () => {

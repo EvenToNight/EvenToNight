@@ -27,6 +27,8 @@ export interface EventTicketTypeRepository {
     ticketType: EventTicketType,
     session: ClientSession,
   ): Promise<EventTicketType>;
+
+  deleteAll(): Promise<void>;
 }
 
 export const EVENT_TICKET_TYPE_REPOSITORY = Symbol(

@@ -13,7 +13,7 @@ import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { PaginatedResponseDto } from 'src/commons/application/dto/paginated-response.dto';
 
 @Controller('users/:userId')
-export class TicketsController {
+export class UserController {
   constructor(private readonly ticketService: TicketService) {}
 
   /**

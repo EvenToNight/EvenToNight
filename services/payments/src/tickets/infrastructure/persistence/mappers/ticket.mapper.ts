@@ -19,7 +19,7 @@ export class TicketMapper {
     });
   }
 
-  static toPersistence(ticket: Ticket): Partial<TicketDocument> {
+  static toPersistence(ticket: Ticket): TicketDocument {
     return {
       _id: ticket.getId() as any,
       eventId: ticket.getEventId().toString(),

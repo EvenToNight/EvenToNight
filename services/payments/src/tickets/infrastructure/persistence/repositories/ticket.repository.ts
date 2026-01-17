@@ -85,4 +85,8 @@ export class TicketRepositoryImpl implements TicketRepository {
   async delete(id: string): Promise<void> {
     await this.ticketModel.findByIdAndDelete(id).exec();
   }
+
+  async deleteAll(): Promise<void> {
+    await this.ticketModel.deleteMany({}).exec();
+  }
 }

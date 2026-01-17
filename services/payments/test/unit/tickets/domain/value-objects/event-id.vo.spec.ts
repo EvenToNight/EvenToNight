@@ -1,4 +1,4 @@
-import { EventId } from '../../../../src/tickets/domain/value-objects/event-id.vo';
+import { EventId } from '../../../../../src/tickets/domain/value-objects/event-id.vo';
 
 describe('EventId', () => {
   describe('fromString', () => {

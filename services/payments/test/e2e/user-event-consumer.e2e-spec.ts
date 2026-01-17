@@ -3,12 +3,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { MongooseModule, getModelToken } from '@nestjs/mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { Model } from 'mongoose';
-import { AppModule } from '../src/app.module';
 import { PAYMENT_SERVICE } from 'src/tickets/domain/services/payment.service.interface';
 import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
 import { UserEventConsumer } from 'src/tickets/presentation/consumers/user-event.consumer';
 import { UserDocument } from 'src/tickets/infrastructure/persistence/schemas/user.schema';
 import type { RmqContext } from '@nestjs/microservices';
+import { AppModule } from 'src/app.module';
 
 interface MockChannel {
   ack: jest.Mock;

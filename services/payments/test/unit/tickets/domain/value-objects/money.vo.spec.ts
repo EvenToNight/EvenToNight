@@ -1,4 +1,4 @@
-import { Money } from '../../../../src/tickets/domain/value-objects/money.vo';
+import { Money } from '../../../../../src/tickets/domain/value-objects/money.vo';
 
 describe('Money Value Object', () => {
   describe('fromAmount', () => {

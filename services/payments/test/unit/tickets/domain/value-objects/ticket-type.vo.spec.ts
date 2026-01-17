@@ -1,4 +1,4 @@
-import { TicketType } from '../../../../src/tickets/domain/value-objects/ticket-type.vo';
+import { TicketType } from '../../../../../src/tickets/domain/value-objects/ticket-type.vo';
 
 describe('TicketType', () => {
   describe('fromString', () => {

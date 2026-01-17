@@ -37,6 +37,10 @@ export class EventTicketTypeService {
     return this.eventTicketTypeRepository.save(ticketType);
   }
 
+  deleteAll(): Promise<void> {
+    return this.eventTicketTypeRepository.deleteAll();
+  }
+
   async updateTicket(
     id: string,
     dto: UpdateEventTicketTypeDto,

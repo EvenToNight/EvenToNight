@@ -53,6 +53,10 @@ export class EventTicketTypeRepositoryImpl implements EventTicketTypeRepository 
     await this.model.findByIdAndDelete(id).exec();
   }
 
+  async deleteAll(): Promise<void> {
+    await this.model.deleteMany({}).exec();
+  }
+
   /**
    * Pessimistic locking: Finds a ticket type within a transaction session.
    * MongoDB will acquire a lock on the document for the duration of the transaction.

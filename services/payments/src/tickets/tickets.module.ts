@@ -61,6 +61,7 @@ import { StripeWebhookController } from './presentation/controllers/stripe-webho
 import { TicketsController } from './presentation/controllers/tickets.controller';
 import { OrderController } from './presentation/controllers/order-controller';
 import { EventController } from './presentation/controllers/events.controller';
+import { UserController } from './presentation/controllers/users.controller';
 
 // Consumers
 import { UserEventConsumer } from './presentation/consumers/user-event.consumer';
@@ -91,6 +92,7 @@ import { EventService } from './application/services/event.service';
     OrderController,
     EventController,
     UserEventConsumer,
+    UserController,
   ],
   providers: [
     // Repositories
