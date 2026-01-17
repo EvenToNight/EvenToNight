@@ -57,20 +57,28 @@ export class TicketsController {
    * Updates the status of the specified ticket as invalid.
    */
   @Patch()
-  @HttpCode(HttpStatus.NO_CONTENT)
+  @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async updateTicketStatus(
     @Param('ticketId') ticketId: string,
     @Body(ValidationPipe) dto: InvalidateTicketStatusDto,
     @CurrentUser('userId') userId: string,
   ) {
-    await this.invalidateTicketStatusHandler.handle(ticketId, dto, userId);
+    const ticket = await this.ticketService.findById(ticketId);
+    if (!ticket) {
+      throw new NotFoundException('Ticket not found');
+    }
+    if (ticket.getUserId().toString() !== userId) {
+      throw new ForbiddenException('Not authorized to view this ticket');
+    }
+    return await this.invalidateTicketStatusHandler.handle(ticketId);
   }
 
   /**
    * GET /tickets/:ticketId/pdf
    * Returns a PDF for the specified ticket.
    */
+  //TODO: test this endpoint
   @Get('pdf')
   @HttpCode(HttpStatus.OK)
   async getTicketPdf(

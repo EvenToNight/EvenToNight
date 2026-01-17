@@ -65,14 +65,21 @@ export class Ticket {
   }
 
   cancel(): void {
-    if (!this.canBeCancelled()) {
+    if (!this.isActive()) {
       throw new InvalidTicketStatusException(this.status.toString(), 'cancel');
     }
     this.status = TicketStatus.CANCELLED;
   }
 
+  use(): void {
+    if (!this.isActive()) {
+      throw new InvalidTicketStatusException(this.status.toString(), 'use');
+    }
+    this.status = TicketStatus.USED;
+  }
+
   refund(): void {
-    if (!this.canBeRefunded()) {
+    if (!this.isActive()) {
       throw new InvalidTicketStatusException(this.status.toString(), 'refund');
     }
     this.status = TicketStatus.REFUNDED;
@@ -108,7 +115,7 @@ export class Ticket {
 
   //TODO: evaluate ownership transefer
   transferTo(newAttendeeName: string): void {
-    if (!this.canBeTransferred()) {
+    if (!this.isActive()) {
       throw new InvalidTicketStatusException(
         this.status.toString(),
         'transfer',
@@ -118,18 +125,6 @@ export class Ticket {
       throw new Error('Attendee name cannot be empty');
     }
     this.attendeeName = newAttendeeName;
-  }
-
-  private canBeCancelled(): boolean {
-    return this.status.isActive();
-  }
-
-  private canBeRefunded(): boolean {
-    return this.status.isActive();
-  }
-
-  private canBeTransferred(): boolean {
-    return this.status.isActive();
   }
 
   private validateInvariants(): void {
@@ -192,5 +187,9 @@ export class Ticket {
 
   isPaymentFailed(): boolean {
     return this.status.isPaymentFailed();
+  }
+
+  isUsed(): boolean {
+    return this.status.isUsed();
   }
 }

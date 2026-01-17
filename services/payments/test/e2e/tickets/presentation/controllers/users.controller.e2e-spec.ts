@@ -15,15 +15,13 @@ import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { TicketDocument } from 'src/tickets/infrastructure/persistence/schemas/ticket.schema';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 
-describe('UserEventConsumer (e2e)', () => {
+describe('UserController (e2e)', () => {
   let app: INestApplication<App>;
   let mongod: MongoMemoryServer;
   let ticketService: TicketService;
   const userId = 'user-123';
 
   beforeAll(async () => {
-    process.env.NODE_ENV = 'test';
-
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
 
@@ -98,7 +96,7 @@ describe('UserEventConsumer (e2e)', () => {
         const tickets: Ticket[] = [];
         for (let i = 1; i <= 15; i++) {
           tickets.push(
-            Ticket.create({
+            await ticketService.create({
               eventId: EventId.fromString(`event-${i}`),
               userId: UserId.fromString(userId),
               attendeeName: `Attendee ${i}`,
@@ -107,7 +105,6 @@ describe('UserEventConsumer (e2e)', () => {
             }),
           );
         }
-        await ticketService.saveMany(tickets);
       });
       describe('When requesting the user tickets list with pagination', () => {
         it('Then returns a paginated response with the tickets', async () => {
