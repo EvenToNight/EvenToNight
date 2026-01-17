@@ -100,6 +100,7 @@ tasks.register<ExecTask>("teardownPaymentsEnvironment") {
     description = "Tear down the Docker payments environment."
     group = "docker"
     dependsOn("stopStripeWebHooksListener")
+    dependsOn("teardownDevEnvironment")
     bashCommands(DockerCommands.TEARDOWN_PAYMENTS_ENVIRONMENT)
 }
 
@@ -191,6 +192,7 @@ tasks.register<ExecTask>("setupPaymentsEnvironment") {
         println("${RED}Teardown failed with exit code ${code}.${RESET}")
     }
     println("💬 Setting up the payments environment...")
+    bashCommands(DockerCommands.SETUP_DEV_ENVIRONMENT + " --scale rabbitmq=0")
     bashCommands(DockerCommands.SETUP_PAYMENTS_ENVIRONMENT)
 }
 

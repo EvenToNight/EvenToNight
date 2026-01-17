@@ -8,8 +8,8 @@
   "scripts": {
     "build": "nest build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
+    "start": "sh ./scripts/clean-db.sh && nest start",
+    "start:dev": "sh ./scripts/clean-db.sh && nest start --watch",
     "start-dev": "NODE_ENV=development npm run start",
     "start-dev:dev": "NODE_ENV=development npm run start:dev",
     "start-with-dev-env": "NODE_ENV=development ENV=development npm run start",
