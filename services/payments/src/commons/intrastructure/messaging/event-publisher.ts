@@ -1,38 +1,35 @@
-import { Injectable, Logger, Inject } from '@nestjs/common';
-import { ClientProxy } from '@nestjs/microservices';
-import { CheckoutSessionCompletedEvent } from '../../../tickets/domain/events/checkout-session-completed.event';
-import { CheckoutSessionExpiredEvent } from '../../../tickets/domain/events/checkout-session-expired.event';
-import { MessageEvent } from '../../../commons/domain/events/message.event';
-// Estendi DomainEvent se necessario
-type DomainEvent =
-  | CheckoutSessionCompletedEvent
-  | CheckoutSessionExpiredEvent
-  | MessageEvent;
-// type DomainEvent = { eventType: string; toJSON(): any };
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import * as amqp from 'amqplib';
 
 @Injectable()
-export class EventPublisher {
-  private readonly logger = new Logger(EventPublisher.name);
+export class EventPublisher implements OnModuleInit, OnModuleDestroy {
+  private connection!: amqp.ChannelModel;
+  private channel!: amqp.Channel;
 
-  constructor(
-    @Inject('RABBITMQ_CLIENT') private readonly rabbitMQClient: ClientProxy,
-  ) {}
-
-  publish(event: DomainEvent, exchange?: string, routingKey?: string): void {
-    this.logger.log(`Publishing event: ${event.eventType}`, event.toJSON());
-    const pattern =
-      exchange && routingKey ? `${exchange}:${routingKey}` : event.eventType;
-    this.rabbitMQClient.emit(pattern, JSON.stringify(event));
-    this.logger.debug(`Event published to RabbitMQ: ${pattern}`);
+  async onModuleInit() {
+    const user = process.env.RABBITMQ_USER || 'guest';
+    const pass = process.env.RABBITMQ_PASS || 'guest';
+    const host = process.env.RABBITMQ_HOST || 'localhost';
+    const port = process.env.RABBITMQ_PORT || '5672';
+    const rabbitUrl = `amqp://${user}:${pass}@${host}:${port}`;
+    this.connection = await amqp.connect(rabbitUrl);
+    this.channel = await this.connection.createChannel();
+    await this.channel.assertExchange('eventonight', 'topic', {
+      durable: true,
+    });
   }
 
-  publishBatch(
-    events: DomainEvent[],
-    exchange?: string,
-    routingKey?: string,
-  ): void {
-    for (const event of events) {
-      this.publish(event, exchange, routingKey);
-    }
+  publish(event: any, routingKey: string) {
+    this.channel.publish(
+      'eventonight',
+      routingKey,
+      Buffer.from(JSON.stringify(event)),
+      { persistent: true },
+    );
+  }
+
+  async onModuleDestroy() {
+    await this.channel?.close();
+    await this.connection?.close();
   }
 }

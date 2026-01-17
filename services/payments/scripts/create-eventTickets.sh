@@ -20,7 +20,8 @@ RESPONSE=$(curl -s -X POST "$BASE_URL/events/$EVENT_ID/ticket-types" \
     "type": "STANDARD",
     "price": 29.99,
     "currency": "EUR",
-    "quantity": 100
+    "quantity": 100,
+    "creatorId": "organization_1"
   }')
 echo "$RESPONSE" | jq '.'
 # Create VIP ticket type
@@ -31,7 +32,8 @@ RESPONSE=$(curl -s -X POST "$BASE_URL/events/$EVENT_ID/ticket-types" \
     "type": "VIP",
     "price": 59.99,
     "currency": "EUR",
-    "quantity": 50
+    "quantity": 50,
+    "creatorId": "organization_1"
   }')
 echo "$RESPONSE" | jq '.'
 echo "Ticket types created successfully."

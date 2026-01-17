@@ -33,15 +33,19 @@ export class CreateEventTicketTypeHandler {
       availableQuantity: dto.quantity,
       soldQuantity: 0,
     });
+    console.log('Creating ticket type for event:', ticketType);
     //TODO: get creatorId by forwarding token from event service???
-    const event = Event.create(
-      EventId.fromString(eventId),
-      UserId.fromString(dto.creatorId),
-    );
-    await this.eventService.save(event);
-    this.eventPublisher.publish(
+
+    if ((await this.eventService.findById(eventId)) === null) {
+      await this.eventService.save(
+        Event.create(
+          EventId.fromString(eventId),
+          UserId.fromString(dto.creatorId),
+        ),
+      );
+    }
+    await this.eventPublisher.publish(
       new MessageEvent({ message: 'Event ticket type created' }),
-      'eventonight',
       'message.event',
     );
     return this.eventTicketTypeService.save(ticketType);
