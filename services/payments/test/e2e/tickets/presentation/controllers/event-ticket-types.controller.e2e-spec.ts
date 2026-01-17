@@ -36,7 +36,7 @@ describe('EventTicketTypesController (e2e)', () => {
       .overrideModule(MongooseModule)
       .useModule(
         MongooseModule.forRoot(mongoUri, {
-          dbName: 'test5',
+          dbName: 'test',
         }),
       )
       .overrideProvider(PAYMENT_SERVICE)
