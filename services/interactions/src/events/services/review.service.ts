@@ -42,6 +42,7 @@ export class ReviewService {
   }
 
   async deleteReview(eventId: string, userId: string): Promise<void> {
+    await this.metadataService.validateReviewDeletionAllowed(eventId, userId);
     const result = await this.reviewModel.deleteOne({ eventId, userId });
 
     if (result.deletedCount === 0) {
@@ -54,6 +55,7 @@ export class ReviewService {
     userId: string,
     updateReviewDto: UpdateReviewDto,
   ): Promise<Review> {
+    await this.metadataService.validateReviewUpdateAllowed(eventId, userId);
     const review = await this.reviewModel.findOneAndUpdate(
       { eventId, userId },
       { rating: updateReviewDto.rating, comment: updateReviewDto.comment },
@@ -72,10 +74,12 @@ export class ReviewService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
+    await this.metadataService.validateEventExistence(eventId);
     return this.getReviewsWithStats({ eventId }, limit, offset);
   }
 
   async getUserReviews(userId: string, limit?: number, offset?: number) {
+    await this.metadataService.validateUserExistence(userId);
     return this.getReviewsWithStats({ userId }, limit, offset);
   }
 
@@ -85,6 +89,7 @@ export class ReviewService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Review>> {
+    await this.metadataService.validateUserExistence(organizationId);
     return this.getReviewsWithStats(
       role === 'creator'
         ? { creatorId: organizationId }
@@ -183,15 +188,19 @@ export class ReviewService {
     userId: string,
     eventId: string,
   ): Promise<boolean> {
+    await this.metadataService.validateUserExistence(userId);
+    await this.metadataService.validateEventExistence(eventId);
     const review = await this.reviewModel.findOne({ userId, eventId });
     return !!review;
   }
 
   async deleteEvent(eventId: string): Promise<void> {
+    await this.metadataService.validateEventExistence(eventId);
     await this.reviewModel.deleteMany({ eventId });
   }
 
   async deleteUser(userId: string): Promise<void> {
+    await this.metadataService.validateUserExistence(userId);
     await this.reviewModel.deleteMany({ userId });
   }
 }

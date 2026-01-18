@@ -34,6 +34,7 @@ export class ParticipationService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Participation>> {
+    await this.metadataService.validateEventExistence(eventId);
     const query = this.participationModel.find({ eventId });
     if (offset !== undefined) {
       query.skip(offset);
@@ -55,6 +56,7 @@ export class ParticipationService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Participation>> {
+    await this.metadataService.validateUserExistence(userId);
     const query = this.participationModel.find({ userId });
     if (offset !== undefined) {
       query.skip(offset);
@@ -72,6 +74,8 @@ export class ParticipationService {
   }
 
   async hasUserParticipated(userId: string, eventId: string): Promise<boolean> {
+    await this.metadataService.validateUserExistence(userId);
+    await this.metadataService.validateEventExistence(eventId);
     const participation = await this.participationModel.findOne({
       userId,
       eventId,
@@ -80,10 +84,12 @@ export class ParticipationService {
   }
 
   async deleteEvent(eventId: string): Promise<void> {
+    await this.metadataService.validateEventExistence(eventId);
     await this.participationModel.deleteMany({ eventId });
   }
 
   async deleteUser(userId: string): Promise<void> {
+    await this.metadataService.validateUserExistence(userId);
     await this.participationModel.deleteMany({ userId });
   }
 }

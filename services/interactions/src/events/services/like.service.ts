@@ -32,6 +32,7 @@ export class LikeService {
   }
 
   async unlikeEvent(eventId: string, userId: string): Promise<void> {
+    await this.metadataService.validateUnlikeAllowed(eventId, userId);
     const result = await this.likeModel.deleteOne({ eventId, userId });
 
     if (result.deletedCount === 0) {
@@ -44,6 +45,7 @@ export class LikeService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<string>> {
+    await this.metadataService.validateEventExistence(eventId);
     let query = this.likeModel.find({ eventId });
     if (offset !== undefined) query = query.skip(offset);
     if (limit !== undefined) query = query.limit(limit);
@@ -60,6 +62,7 @@ export class LikeService {
   }
 
   async getUserLikes(userId: string, limit?: number, offset?: number) {
+    await this.metadataService.validateUserExistence(userId);
     let query = this.likeModel.find({ userId });
     if (offset !== undefined) query = query.skip(offset);
     if (limit !== undefined) query = query.limit(limit);
@@ -76,15 +79,19 @@ export class LikeService {
   }
 
   async hasUserLikedEvent(userId: string, eventId: string): Promise<boolean> {
+    await this.metadataService.validateUserExistence(userId);
+    await this.metadataService.validateEventExistence(eventId);
     const like = await this.likeModel.findOne({ userId, eventId });
     return !!like;
   }
 
   async deleteEvent(eventId: string): Promise<void> {
+    await this.metadataService.validateEventExistence(eventId);
     await this.likeModel.deleteMany({ eventId });
   }
 
   async deleteUser(userId: string): Promise<void> {
+    await this.metadataService.validateUserExistence(userId);
     await this.likeModel.deleteMany({ userId });
   }
 }

@@ -152,6 +152,13 @@ export class MetadataService {
     ]);
   }
 
+  async validateUnlikeAllowed(eventId: string, userId: string): Promise<void> {
+    await Promise.all([
+      this.validateEventExistence(eventId),
+      this.validateUserExistence(userId),
+    ]);
+  }
+
   async validateParticipationAllowed(
     eventId: string,
     userId: string,
@@ -163,6 +170,16 @@ export class MetadataService {
   }
 
   async validateFollowAllowed(
+    followerId: string,
+    followeeId: string,
+  ): Promise<void> {
+    await Promise.all([
+      this.validateUserExistence(followerId),
+      this.validateUserExistence(followeeId),
+    ]);
+  }
+
+  async validateUnfollowAllowed(
     followerId: string,
     followeeId: string,
   ): Promise<void> {
@@ -186,14 +203,34 @@ export class MetadataService {
     ]);
   }
 
-  private async validateEventExistence(eventId: string): Promise<void> {
+  async validateReviewDeletionAllowed(
+    eventId: string,
+    userId: string,
+  ): Promise<void> {
+    await Promise.all([
+      this.validateEventExistence(eventId),
+      this.validateUserExistence(userId),
+    ]);
+  }
+
+  async validateReviewUpdateAllowed(
+    eventId: string,
+    userId: string,
+  ): Promise<void> {
+    await Promise.all([
+      this.validateEventExistence(eventId),
+      this.validateUserExistence(userId),
+    ]);
+  }
+
+  async validateEventExistence(eventId: string): Promise<void> {
     const event = await this.eventModel.findOne({ eventId });
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
   }
 
-  private async validateUserExistence(userId: string): Promise<void> {
+  async validateUserExistence(userId: string): Promise<void> {
     const user = await this.userModel.findOne({ userId });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);

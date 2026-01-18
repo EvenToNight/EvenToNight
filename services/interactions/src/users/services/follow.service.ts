@@ -33,6 +33,7 @@ export class FollowService {
   }
 
   async unfollow(followerId: string, followedId: string) {
+    await this.metadataService.validateUnfollowAllowed(followerId, followedId);
     const result = await this.followModel.deleteOne({ followerId, followedId });
     if (result.deletedCount === 0) {
       throw new NotFoundException('Follow relationship not found');
@@ -40,6 +41,7 @@ export class FollowService {
   }
 
   async getFollowers(userId: string, limit?: number, offset?: number) {
+    await this.metadataService.validateUserExistence(userId);
     let query = this.followModel
       .find({ followedId: userId })
       .select({ _id: 0, followerId: 1, followedId: 1 });
@@ -60,6 +62,7 @@ export class FollowService {
   }
 
   async getFollowing(userId: string, limit?: number, offset?: number) {
+    await this.metadataService.validateUserExistence(userId);
     let query = this.followModel
       .find({ followerId: userId })
       .select({ _id: 0, followerId: 1, followedId: 1 });
@@ -80,6 +83,7 @@ export class FollowService {
   }
 
   async getUserFollowsInteraction(userId: string) {
+    await this.metadataService.validateUserExistence(userId);
     const [followersData, followingData] = await Promise.all([
       this.getFollowers(userId, undefined, undefined),
       this.getFollowing(userId, undefined, undefined),
@@ -93,12 +97,15 @@ export class FollowService {
   }
 
   async deleteUser(userId: string) {
+    await this.metadataService.validateUserExistence(userId);
     await this.followModel.deleteMany({
       $or: [{ followerId: userId }, { followedId: userId }],
     });
   }
 
   async isFollowing(followerId: string, followedId: string): Promise<boolean> {
+    await this.metadataService.validateUserExistence(followerId);
+    await this.metadataService.validateUserExistence(followedId);
     const follow = await this.followModel.findOne({ followerId, followedId });
     return !!follow;
   }
