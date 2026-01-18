@@ -6,6 +6,10 @@ BASE_URL="http://localhost:9050"
 EVENT_ID="evt_test_123"
 ENV="${1:-prod}"
 
+# JWT token for authenticated requests
+# You can override this by setting JWT env variable before running the script
+JWT="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoidXNlcl90ZXN0XzEyMyIsImlhdCI6MTc2ODc0NDc2MCwiZXhwIjoxODAwMjgwNzYwfQ.4PIfsBZbYQkfWrNuk8jdSr-Q2bgA0ctIsIdFEHGK-Tc"
+
 echo "🚀 Testing Payment Service Endpoints"
 echo "===================================="
 echo ""
@@ -123,7 +127,8 @@ echo ""
 # Test 6: Get non-existent ticket type (should 404)
 echo -e "${BLUE}6. Getting non-existent ticket type (should 404)${NC}"
 RESPONSE=$(curl -s -w "\nHTTP_CODE:%{http_code}" -X GET "$BASE_URL/ticket-types/non-existent-id" \
-  -H "Content-Type: application/json")
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $JWT")
 
 HTTP_CODE=$(echo "$RESPONSE" | grep -o "HTTP_CODE:[0-9]*" | cut -d: -f2)
 BODY=$(echo "$RESPONSE" | sed 's/HTTP_CODE:[0-9]*$//')
@@ -141,6 +146,7 @@ echo -e "${BLUE}7. Creating checkout session${NC}"
 USER_ID="user_test_123"
 SESSION_RESPONSE=$(curl -s -X POST "$BASE_URL/checkout-sessions" \
   -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $JWT" \
   -d "{
     \"userId\": \"$USER_ID\",
     \"items\": [
@@ -188,7 +194,8 @@ fi
 # Test 9: Get ticket types again to verify quantity decreased
 echo -e "${BLUE}9. Verifying ticket quantity decreased${NC}"
 curl -s -X GET "$BASE_URL/ticket-types/$TICKET_TYPE_ID_1" \
-  -H "Content-Type: application/json" | jq '.'
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $JWT" | jq '.'
 echo -e "${GREEN}✓ Ticket type updated${NC}"
 echo ""
 

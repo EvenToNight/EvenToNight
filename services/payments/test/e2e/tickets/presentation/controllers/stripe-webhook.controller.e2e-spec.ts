@@ -165,6 +165,7 @@ describe('StripeWebhookController (e2e)', () => {
 
         order = Order.createPending({
           userId: UserId.fromString(userId),
+          eventId: EventId.fromString(eventId),
           ticketIds: [ticket1Id, ticket2Id],
         });
         await orderService.save(order);

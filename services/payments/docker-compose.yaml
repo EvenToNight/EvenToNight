@@ -11,8 +11,8 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
       - MONGO_HOST=mongo-payments
-      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY}
-      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET}
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:?}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:?}
       - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
     labels:
       - "traefik.enable=true"
