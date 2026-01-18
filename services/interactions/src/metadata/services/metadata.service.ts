@@ -185,13 +185,10 @@ export class MetadataService {
   }
 
   private async validateUserExistence(userId: string): Promise<void> {
-    /* MOCK VALIDATION - Uncomment for real validation */
-    // const user = await this.userModel.findOne({ userId });
-    // if (!user) {
-    //   throw new NotFoundException(`User with ID ${userId} not found`);
-    // }
-    console.log(`Mock validation: assuming user with ID ${userId} exists`);
-    await Promise.resolve();
+    const user = await this.userModel.findOne({ userId });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
   }
 
   private async validateCreator(
