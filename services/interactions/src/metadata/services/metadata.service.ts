@@ -16,6 +16,7 @@ import { FollowService } from '../../users/services/follow.service';
 import { CreateReviewDto } from 'src/events/dto/create-review.dto';
 import { EventPublishedDto } from '../dto/event-published.dto';
 import { UserCreatedDto } from '../dto/user-created.dto';
+import { EventDeletedDto } from '../dto/event-deleted.dto';
 
 @Injectable()
 export class MetadataService {
@@ -52,9 +53,9 @@ export class MetadataService {
       );
 
       if (result.upsertedCount > 0) {
-        this.logger.log(`✨ Event ${payload.eventId} created`);
+        this.logger.log(`Event ${payload.eventId} created`);
       } else {
-        this.logger.log(`🔄 Event ${payload.eventId} already exists`);
+        this.logger.log(`Event ${payload.eventId} already exists`);
       }
     } catch (error) {
       this.logger.error(`Failed to handle event.published: ${error}`);
@@ -78,9 +79,9 @@ export class MetadataService {
       );
 
       if (result.upsertedCount > 0) {
-        this.logger.log(`✨ User ${payload.id} (${payload.role}) created`);
+        this.logger.log(`User ${payload.id} (${payload.role}) created`);
       } else {
-        this.logger.log(`🔄 User ${payload.id} already exists`);
+        this.logger.log(`User ${payload.id} already exists`);
       }
     } catch (error) {
       this.logger.error(`Failed to handle user.created: ${error}`);
@@ -88,24 +89,31 @@ export class MetadataService {
     }
   }
 
-  async handleEventDeleted(payload: unknown): Promise<void> {
-    console.log('Handling event deleted in MetadataService:', payload);
+  async handleEventDeleted(payload: EventDeletedDto): Promise<void> {
+    try {
+      this.logger.debug(`Processing event.deleted: ${JSON.stringify(payload)}`);
 
-    const wrapper = payload as { EventDeleted?: { eventId: string } };
-    const data = wrapper.EventDeleted;
-    if (!data || !data.eventId) {
-      this.logger.error('Invalid payload for EventDeleted event', payload);
-      return;
+      const deleteResult = await this.eventModel.deleteOne({
+        eventId: payload.eventId,
+      });
+
+      if (deleteResult.deletedCount === 0) {
+        this.logger.warn(`Event ${payload.eventId} not found for deletion`);
+      } else {
+        this.logger.log(`Event ${payload.eventId} deleted from metadata`);
+      }
+
+      await Promise.all([
+        this.likeService.deleteEvent(payload.eventId),
+        this.reviewService.deleteEvent(payload.eventId),
+        this.participationService.deleteEvent(payload.eventId),
+      ]);
+
+      this.logger.log(`Cleanup completed for event ${payload.eventId}`);
+    } catch (error) {
+      this.logger.error(`Failed to handle event.deleted: ${error}`);
+      throw error;
     }
-
-    await this.eventModel.deleteOne({ eventId: data.eventId });
-    this.logger.log(`Event ${data.eventId} deleted`);
-
-    await Promise.all([
-      this.likeService.deleteEvent(data.eventId),
-      this.reviewService.deleteEvent(data.eventId),
-      this.participationService.deleteEvent(data.eventId),
-    ]);
   }
 
   async handleUserDeleted(payload: unknown): Promise<void> {

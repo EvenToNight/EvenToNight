@@ -6,6 +6,7 @@ import { EventPublishedDto } from '../dto/event-published.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { UserCreatedDto } from '../dto/user-created.dto';
+import { EventDeletedDto } from '../dto/event-deleted.dto';
 
 @Controller()
 export class MetadataController {
@@ -44,7 +45,7 @@ export class MetadataController {
           await this.handleUserCreated(payload);
           break;
         case 'event.deleted':
-          await this.metadataService.handleEventDeleted(payload);
+          await this.handleEventDeleted(payload);
           break;
         case 'user.deleted':
           await this.metadataService.handleUserDeleted(payload);
@@ -77,18 +78,21 @@ export class MetadataController {
     await this.metadataService.handleUserCreated(dto);
   }
 
+  private async handleEventDeleted(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventDeletedDto, payload);
+    await this.metadataService.handleEventDeleted(dto);
+  }
+
   private async validateAndTransform<T extends object>(
     dtoClass: new () => T,
     payload: unknown,
   ): Promise<T> {
-    // Estrai il payload dalla struttura EventEnvelope
     let actualPayload = payload;
 
     if (this.isEventEnvelope(payload)) {
       this.logger.debug('Extracting payload from EventEnvelope');
       actualPayload = payload.payload;
 
-      // Estrai il payload annidato (es. UserCreated, EventPublished, etc.)
       if (actualPayload && typeof actualPayload === 'object') {
         const nestedKeys = Object.keys(actualPayload);
         if (nestedKeys.length === 1) {
@@ -97,18 +101,27 @@ export class MetadataController {
           actualPayload = (actualPayload as Record<string, unknown>)[nestedKey];
         }
       }
+    } else if (typeof payload === 'object' && payload !== null) {
+      const payloadObj = payload as Record<string, unknown>;
+      const capitalizedKeys = Object.keys(payloadObj).filter(
+        (key) => key.charAt(0) === key.charAt(0).toUpperCase(),
+      );
+
+      if (capitalizedKeys.length === 1) {
+        const eventKey = capitalizedKeys[0];
+        this.logger.debug(`Extracting payload from event key: ${eventKey}`);
+        actualPayload = payloadObj[eventKey];
+      }
     }
 
-    // Trasforma il payload nel DTO
     const dtoInstance = plainToInstance(dtoClass, actualPayload, {
       excludeExtraneousValues: false,
       exposeUnsetFields: false,
     });
 
-    // Valida il DTO
     const errors = await validate(dtoInstance, {
       whitelist: true,
-      forbidNonWhitelisted: false, // Permetti campi extra, li ignoriamo
+      forbidNonWhitelisted: false,
       skipMissingProperties: false,
     });
 
