@@ -104,25 +104,22 @@ object KeycloakJwtVerifier:
           )
     )
 
-  def extractUserId(accessToken: String): Either[String, String] =
-    verifyToken(accessToken).flatMap(payload =>
-      parse(payload.content)
-        .left.map(_.getMessage)
-        .flatMap(
-          _.hcursor
-            .get[String]("user_id")
-            .left.map(_ => "Missing 'user_id' claim in token")
-        )
-    )
+  private def extractClaimFromPayload(payload: JwtClaim, claim: String): Either[String, String] =
+    claim match
+      case "sub" =>
+        payload.subject.toRight("Missing 'sub' claim in token")
+      case other =>
+        parse(payload.content)
+          .left.map(_.getMessage)
+          .flatMap(_.hcursor.get[String](other)).left.map(_ => "Missing '$claim' claim in token")
 
-  def authorizeUser(accessToken: String, userId: String): Either[String, Unit] =
+  def extractUserId(payload: JwtClaim): Either[String, String] = extractClaimFromPayload(payload, "user_id")
+
+  def extractSub(payload: JwtClaim): Either[String, String] = extractClaimFromPayload(payload, "sub")
+
+  def authorizeUser(payload: JwtClaim, userId: String): Either[String, Unit] =
     for
-      userIdFromToken <- extractUserId(accessToken)
+      userIdFromToken <- extractUserId(payload)
       _ <- if userIdFromToken == userId then Right(())
       else Left("Forbidden: userId does not match 'user_id' token claim")
     yield ()
-
-  def extractSub(accessToken: String): Either[String, String] =
-    verifyToken(accessToken).flatMap(payload =>
-      payload.subject.toRight("Missing 'sub' claim in token")
-    )

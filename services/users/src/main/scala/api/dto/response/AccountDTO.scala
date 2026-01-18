@@ -1,4 +1,4 @@
-package api.dto
+package api.dto.response
 
 import io.circe.Encoder
 import io.circe.generic.semiauto._

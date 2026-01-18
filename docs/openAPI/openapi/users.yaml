@@ -223,6 +223,55 @@ paths:
                   summary: Any error
                   value: "Bad request or authorization failed"
 
+    put:
+      tags: [Users]
+      summary: Update user by ID
+      description: >
+        Updates the authenticated user's account and/or profile information.
+        The userId in the path must match the user_id claim in the access token.
+        Only provided fields are updated; missing fields keep their current value.
+        On success, a UserUpdated domain event is published.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user to update
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequestDTO'
+      responses:
+        "204":
+          description: User successfully updated
+        "400":
+          description: Bad request or validation error
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidPayload:
+                  summary: Invalid update payload
+                  value: "Invalid update request"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (user not authorized to update this resource)
+        "404":
+          description: User not found
+
 components:
   schemas:
 
@@ -435,6 +484,63 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PublicKeyEntry'
+
+    UpdateUserRequestDTO:
+      type: object
+      description: >
+        Partial update request for a user.
+        All fields are optional; only provided fields are updated.
+      properties:
+        accountDTO:
+          $ref: '#/components/schemas/UpdateAccountDTO'
+        profileDTO:
+          $ref: '#/components/schemas/UpdateProfileDTO'
+
+    UpdateAccountDTO:
+      type: object
+      description: Partial update of user account settings.
+      properties:
+        darkMode:
+          type: boolean
+          example: true
+        language:
+          type: string
+          example: it
+        gender:
+          type: string
+          nullable: true
+          example: male
+        birthDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: 1990-01-01T00:00:00Z
+        interests:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["Dinner", "LiveMusic", "Club"]
+
+    UpdateProfileDTO:
+      type: object
+      description: Partial update of user profile information.
+      properties:
+        name:
+          type: string
+          example: John Doe
+        bio:
+          type: string
+          nullable: true
+          example: Software developer and event enthusiast.
+        contacts:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example:
+            - https://twitter.com/johndoe
+            - https://linkedin.com/in/johndoe
 
   securitySchemes:
     bearerAuth:

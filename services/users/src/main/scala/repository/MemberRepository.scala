@@ -9,6 +9,7 @@ trait MemberRepository:
   def getAllMembers(): List[Member]
   def findById(userId: String): Option[Member]
   def delete(userId: String): Unit
+  def update(updatedMember: Member, userId: String): Unit
 
 class MongoMemberRepository(
     memberAccountProfileRepo: AccountProfileRepository[MemberAccount, MemberProfile]
@@ -28,3 +29,6 @@ class MongoMemberRepository(
 
   override def delete(userId: String) =
     memberAccountProfileRepo.delete(userId)
+
+  override def update(updatedMember: Member, userId: String) =
+    memberAccountProfileRepo.update(updatedMember.account, updatedMember.profile, userId)

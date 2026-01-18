@@ -1,7 +1,7 @@
 package api.mappers
 
-import api.dto.LoginResponseDTO
-import api.dto.UserDTO
+import api.dto.response.LoginResponseDTO
+import api.dto.response.UserDTO
 import model.Member
 import model.Organization
 import model.RegisteredUser

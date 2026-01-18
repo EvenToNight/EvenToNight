@@ -6,6 +6,7 @@ import cask.Request
 import cask.Response
 import infrastructure.keycloak.KeycloakJwtVerifier.extractUserId
 import infrastructure.keycloak.KeycloakJwtVerifier.refreshPublicKeys
+import infrastructure.keycloak.KeycloakJwtVerifier.verifyToken
 import infrastructure.rabbitmq.EventPublisher
 import io.circe.syntax._
 import model.LoginValidation._
@@ -33,14 +34,17 @@ class AuthRoutes(authService: AuthenticationService, userService: UserService, e
               case Left("Client not allowed")  => Response("Login failed: client not allowed", 403)
               case Left(err)                   => Response(s"Login failed: $err", 500)
               case Right(userTokens) =>
-                extractUserId(userTokens.accessToken) match
-                  case Left(err) => Response(s"Failed to extract userId: $err", 500)
-                  case Right(userId) =>
-                    userService.getUserById(userId) match
-                      case Left(err) => Response(err, 404)
-                      case Right(role, user) =>
-                        val dto = user.toLoginDTO(userTokens, role)
-                        Response(dto.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
+                verifyToken(userTokens.accessToken) match
+                  case Left(err) => Response(s"Failed to verify token: $err", 500)
+                  case Right(payload) =>
+                    extractUserId(payload) match
+                      case Left(err) => Response(s"Failed to extract userId: $err", 500)
+                      case Right(userId) =>
+                        userService.getUserById(userId) match
+                          case Left(err) => Response(err, 404)
+                          case Right(role, user) =>
+                            val dto = user.toLoginDTO(userTokens, role)
+                            Response(dto.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.post("/register")
   def register(req: Request): Response[String] =
