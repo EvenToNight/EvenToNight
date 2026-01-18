@@ -10,6 +10,7 @@ import infrastructure.keycloak.KeycloakJwtVerifier.authorizeUser
 import infrastructure.keycloak.KeycloakJwtVerifier.extractSub
 import infrastructure.keycloak.KeycloakJwtVerifier.verifyToken
 import infrastructure.rabbitmq.EventPublisher
+import io.circe.Json
 import io.circe.syntax._
 import model.Member
 import model.Organization
@@ -23,12 +24,35 @@ import service.UserService
 class UserRoutes(authService: AuthenticationService, userService: UserService, eventPublisher: EventPublisher)
     extends cask.Routes {
   @cask.get("/:userId")
-  def getUser(userId: String): Response[String] =
+  def getUser(userId: String, req: Request): Response[String] =
     userService.getUserById(userId) match
       case Left(err) => Response(err, 404)
       case Right(role, user) =>
-        val dto = user.toUserDTO(role)
-        Response(dto.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
+        val isOwner: Boolean =
+          (
+            for
+              userAccessToken <- AuthHeaderExtractor.extractBearer(req)
+              payload         <- verifyToken(userAccessToken)
+              _               <- authorizeUser(payload, userId)
+            yield ()
+          ).isRight
+        val json = if isOwner then
+          user match
+            case m: Member =>
+              Json.obj(
+                "role"    -> Json.fromString(role),
+                "account" -> m.account.asJson,
+                "profile" -> m.profile.asJson
+              )
+            case o: Organization =>
+              Json.obj(
+                "role"    -> Json.fromString(role),
+                "account" -> o.account.asJson,
+                "profile" -> o.profile.asJson
+              )
+        else
+          user.toUserDTO(role).asJson
+        Response(json.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.get("/")
   def getAllUsers(): Response[String] =

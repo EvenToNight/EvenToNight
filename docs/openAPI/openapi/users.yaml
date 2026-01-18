@@ -165,12 +165,19 @@ paths:
     get:
       tags: [Users]
       summary: Get user by ID
-      description: Returns a single user by ID with role and profile.
+      description: >
+        Returns the user corresponding to the ID.
+
+        - If the request contains a valid token with the user_id claim matching the userId in the path, 
+          the response includes full account and profile.  
+        - Otherwise, only username, role and profile are returned.
       servers:
         - url: http://localhost:9000
           description: Users service (local development)
         - url: https://users.eventonight.site
           description: Users service (production)
+      security:
+        - bearerAuth: []      
       parameters:
         - name: userId
           in: path
@@ -183,7 +190,21 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserDTO'
+                oneOf:
+                  - $ref: '#/components/schemas/UserDTO'
+                  - type: object
+                    required:
+                      - role
+                      - account
+                      - profile
+                    properties:
+                      role:
+                        type: string
+                        example: member
+                      account:
+                        $ref: '#/components/schemas/AccountDTO'
+                      profile:
+                        $ref: '#/components/schemas/ProfileDTO'
         '404':
           description: User not found
 
