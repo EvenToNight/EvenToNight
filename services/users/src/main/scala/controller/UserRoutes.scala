@@ -1,5 +1,6 @@
 package controller
 
+import api.dto.request.UpdatePasswordRequestDTO
 import api.dto.request.UpdateUserRequestDTO
 import api.mappers.UserMappers.toUserDTO
 import api.utils.RequestParser.parseRequestBody
@@ -126,6 +127,24 @@ class UserRoutes(authService: AuthenticationService, userService: UserService, e
                 ))
             Response("", 204)
           case Left(err) => Response(err, 400)
+
+  @cask.put("/:userId/password")
+  def updatePassword(userId: String, req: Request): Response[String] =
+    (
+      for
+        token   <- AuthHeaderExtractor.extractBearer(req)
+        payload <- verifyToken(token)
+        _       <- authorizeUser(payload, userId)
+
+        dto <- parseRequestBody[UpdatePasswordRequestDTO](req)
+        _ <- if dto.newPassword == dto.confirmPassword then Right(())
+        else Left("Passwords do not match")
+        keycloakId <- extractSub(payload)
+        _          <- authService.updatePassword(keycloakId, dto.newPassword)
+      yield ()
+    ) match
+      case Right(_)  => Response("", 204)
+      case Left(err) => Response(err, 400)
 
   initialize()
 }

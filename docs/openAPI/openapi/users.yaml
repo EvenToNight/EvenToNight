@@ -293,6 +293,41 @@ paths:
         "404":
           description: User not found
 
+  /{userId}/password:
+    put:
+      tags: [Users]
+      summary: Update user password
+      description: >
+        Updates the authenticated user's password.
+        Password management is handled by the identity provider.
+        The userId in the path must match the user_id claim in the access token.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user whose password will be updated
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePasswordRequestDTO'
+      responses:
+        '204':
+          description: Password updated successfully
+        '400':
+          description: Invalid request or password update failed
+
 components:
   schemas:
 
@@ -562,6 +597,26 @@ components:
           example:
             - https://twitter.com/johndoe
             - https://linkedin.com/in/johndoe
+
+    UpdatePasswordRequestDTO:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+        - confirmPassword
+      properties:
+        currentPassword:
+          type: string
+          format: password
+          example: "OldP@ssw0rd!"
+        newPassword:
+          type: string
+          format: password
+          example: "NewStr0ngP@ss!"
+        confirmPassword:
+          type: string
+          format: password
+          example: "NewStr0ngP@ss!"
 
   securitySchemes:
     bearerAuth:

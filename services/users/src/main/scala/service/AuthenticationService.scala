@@ -32,3 +32,9 @@ class AuthenticationService(
       adminToken <- keycloakTokenClient.getClientAccessToken()
       _          <- adminApi.deleteUser(adminToken, keycloakId)
     yield ()
+
+  def updatePassword(keycloakId: String, newPassword: String): Either[String, Unit] =
+    for
+      adminToken <- keycloakTokenClient.getClientAccessToken()
+      _          <- adminApi.updatePassword(adminToken, keycloakId, newPassword)
+    yield ()

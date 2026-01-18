@@ -106,3 +106,28 @@ class KeycloakAdminApi(connection: KeycloakConnection):
         case other =>
           Left(s"Failed to assign role '$roleName' to user '$keycloakId': ${other.code} ${response.body}")
     )
+
+  def updatePassword(adminToken: String, keycloakId: String, newPassword: String): Either[String, Unit] =
+    val updatePwsUri = adminUsersUri.addPath(keycloakId, "reset-password")
+    val body = Json.obj(
+      "type"      -> Json.fromString("password"),
+      "value"     -> Json.fromString(newPassword),
+      "temporary" -> Json.fromBoolean(false)
+    ).noSpaces
+
+    val request = basicRequest
+      .put(updatePwsUri)
+      .header("Authorization", s"Bearer $adminToken")
+      .header("Content-Type", "application/json")
+      .body(body)
+
+    val responseOrError = connection.sendRequest(request)
+    responseOrError.flatMap(response =>
+      response.code match
+        case StatusCode.NoContent    => Right(())
+        case StatusCode.BadRequest   => Left(s"Invalid password: ${response.body}")
+        case StatusCode.Unauthorized => Left("Unauthorized on Keycloak")
+        case StatusCode.Forbidden    => Left("Insufficient permissions in Keycloak")
+        case StatusCode.NotFound     => Left("User not found in Keycloak")
+        case _ => Left(s"Failed to update password on Keycloak: ${response.code} ${response.body}")
+    )
