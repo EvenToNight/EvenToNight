@@ -17,6 +17,7 @@ import { CreateReviewDto } from 'src/events/dto/create-review.dto';
 import { EventPublishedDto } from '../dto/event-published.dto';
 import { UserCreatedDto } from '../dto/user-created.dto';
 import { EventDeletedDto } from '../dto/event-deleted.dto';
+import { UserDeletedDto } from '../dto/user-deleted.dto';
 
 @Injectable()
 export class MetadataService {
@@ -116,24 +117,32 @@ export class MetadataService {
     }
   }
 
-  async handleUserDeleted(payload: unknown): Promise<void> {
-    console.log('Handling user deleted in MetadataService:', payload);
+  async handleUserDeleted(payload: UserDeletedDto): Promise<void> {
+    try {
+      this.logger.debug(`Processing user.deleted: ${JSON.stringify(payload)}`);
 
-    const wrapper = payload as { UserDeleted?: { userId: string } };
-    const data = wrapper.UserDeleted;
-    if (!data || !data.userId) {
-      this.logger.error('Invalid payload for UserDeleted event', payload);
-      return;
+      const deleteResult = await this.userModel.deleteOne({
+        userId: payload.userId,
+      });
+
+      if (deleteResult.deletedCount === 0) {
+        this.logger.warn(`User ${payload.userId} not found for deletion`);
+      } else {
+        this.logger.log(`🗑️  User ${payload.userId} deleted from metadata`);
+      }
+
+      await Promise.all([
+        this.likeService.deleteUser(payload.userId),
+        this.reviewService.deleteUser(payload.userId),
+        this.participationService.deleteUser(payload.userId),
+        this.followService.deleteUser(payload.userId),
+      ]);
+
+      this.logger.log(`🧹 Cleanup completed for user ${payload.userId}`);
+    } catch (error) {
+      this.logger.error(`Failed to handle user.deleted: ${error}`);
+      throw error;
     }
-
-    await this.userModel.deleteOne({ userId: data.userId });
-    this.logger.log(`User ${data.userId} deleted`);
-    await Promise.all([
-      this.likeService.deleteUser(data.userId),
-      this.reviewService.deleteUser(data.userId),
-      this.participationService.deleteUser(data.userId),
-      this.followService.deleteUser(data.userId),
-    ]);
   }
 
   async validateLikeAllowed(eventId: string, userId: string): Promise<void> {

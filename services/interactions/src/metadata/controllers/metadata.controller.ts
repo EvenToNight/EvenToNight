@@ -7,6 +7,7 @@ import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { UserCreatedDto } from '../dto/user-created.dto';
 import { EventDeletedDto } from '../dto/event-deleted.dto';
+import { UserDeletedDto } from '../dto/user-deleted.dto';
 
 @Controller()
 export class MetadataController {
@@ -48,7 +49,7 @@ export class MetadataController {
           await this.handleEventDeleted(payload);
           break;
         case 'user.deleted':
-          await this.metadataService.handleUserDeleted(payload);
+          await this.handleUserDeleted(payload);
           break;
         default:
           this.logger.warn(`⚠️  Unhandled routing key: ${routingKey}`);
@@ -81,6 +82,11 @@ export class MetadataController {
   private async handleEventDeleted(payload: unknown): Promise<void> {
     const dto = await this.validateAndTransform(EventDeletedDto, payload);
     await this.metadataService.handleEventDeleted(dto);
+  }
+
+  private async handleUserDeleted(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(UserDeletedDto, payload);
+    await this.metadataService.handleUserDeleted(dto);
   }
 
   private async validateAndTransform<T extends object>(
