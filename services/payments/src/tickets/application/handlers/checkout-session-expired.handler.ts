@@ -3,6 +3,8 @@ import { TransactionManager } from '../../infrastructure/database/transaction.ma
 import { TicketService } from '../services/ticket.service';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { OrderService } from '../services/order.service';
+import { OrderRejectedEvent } from 'src/tickets/domain/events/order-rejected.event';
+import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
 
 /**
  * Handler for Checkout Session Expired Event (Saga Compensation)
@@ -25,6 +27,7 @@ export class CheckoutSessionExpiredHandler {
     private readonly eventTicketTypeService: EventTicketTypeService,
     private readonly orderService: OrderService,
     private readonly transactionManager: TransactionManager,
+    private readonly eventPublisher: EventPublisher,
   ) {}
 
   async handle(
@@ -49,6 +52,15 @@ export class CheckoutSessionExpiredHandler {
       await this.cancelTicketPayment(ticketIds);
       order.cancel();
       await this.orderService.update(order);
+      const orderRejectedEvent = new OrderRejectedEvent({
+        orderId: order.getId(),
+        userId: order.getUserId().toString(),
+        eventId: order.getEventId().toString(),
+      });
+      this.eventPublisher.publish(
+        orderRejectedEvent,
+        orderRejectedEvent.eventType,
+      );
       this.logger.log(
         `Successfully handled expired session ${sessionId}: ` +
           `${ticketIds.length} tickets marked as PAYMENT_FAILED and inventory released`,

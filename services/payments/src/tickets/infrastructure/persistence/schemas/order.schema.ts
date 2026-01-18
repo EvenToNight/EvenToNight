@@ -15,6 +15,9 @@ export class OrderDocument {
   @Prop({ required: true, index: true })
   userId: string;
 
+  @Prop({ required: true })
+  eventId: string;
+
   @Prop({ type: [String], required: true })
   ticketIds: string[];
 

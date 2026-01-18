@@ -1,11 +1,13 @@
 import { randomUUID } from 'crypto';
 import { UserId } from '../value-objects/user-id.vo';
 import { OrderStatus } from '../value-objects/order-status.vo';
+import { EventId } from '../value-objects/event-id.vo';
 
 //TODO: add reference to session or payment intent id and total amount, evaluate OrderLineItem[]
 export interface OrderCreateParams {
   id?: string;
   userId: UserId;
+  eventId: EventId;
   ticketIds: string[];
   status: OrderStatus;
   createdAt?: Date;
@@ -17,6 +19,7 @@ export class Order {
   private constructor(
     private readonly id: string,
     private readonly userId: UserId,
+    private readonly eventId: EventId,
     private readonly ticketIds: string[],
     private status: OrderStatus,
     private readonly createdAt: Date,
@@ -28,6 +31,7 @@ export class Order {
     return new Order(
       params.id || this.generateId(),
       params.userId,
+      params.eventId,
       params.ticketIds,
       params.status || OrderStatus.COMPLETED,
       params.createdAt || new Date(),
@@ -84,6 +88,10 @@ export class Order {
 
   getUserId(): UserId {
     return this.userId;
+  }
+
+  getEventId(): EventId {
+    return this.eventId;
   }
 
   getTicketIds(): string[] {

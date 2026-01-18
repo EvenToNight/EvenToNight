@@ -18,6 +18,7 @@ import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
 import { PAYMENT_SERVICE_BASE_URL } from '../constants';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -160,6 +161,7 @@ export class CreateCheckoutSessionHandler {
 
     const order = await this.orderService.createOrder(
       UserId.fromString(dto.userId),
+      EventId.fromString(eventId),
       ticketIds,
     );
 

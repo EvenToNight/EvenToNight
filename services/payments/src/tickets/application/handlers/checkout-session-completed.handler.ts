@@ -3,6 +3,8 @@ import { TransactionManager } from '../../infrastructure/database/transaction.ma
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
+import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { OrderConfirmedEvent } from 'src/tickets/domain/events/order-confirmed.event';
 
 /**
  * Handler for Checkout Session Completed Event (Saga Phase 2)
@@ -24,6 +26,7 @@ export class CheckoutSessionCompletedHandler {
     private readonly ticketService: TicketService,
     private readonly orderService: OrderService,
     private readonly transactionManager: TransactionManager,
+    private readonly eventPublisher: EventPublisher,
   ) {}
 
   async handle(sessionId: string, orderId: string): Promise<void> {
@@ -47,7 +50,15 @@ export class CheckoutSessionCompletedHandler {
 
       //TODO: publish some TicketPurchasedEvent here?
       // ticketId, eventId, userId, attendeeName, ticketTypeId, price, currency, purchaseDate
-
+      const orderConfirmedEvent = new OrderConfirmedEvent({
+        orderId: order.getId(),
+        userId: order.getUserId().toString(),
+        eventId: order.getEventId().toString(),
+      });
+      this.eventPublisher.publish(
+        orderConfirmedEvent,
+        orderConfirmedEvent.eventType,
+      );
       this.logger.log(
         `Successfully confirmed ${confirmedTickets.length} tickets for session ${sessionId}`,
       );

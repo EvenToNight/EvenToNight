@@ -4,6 +4,7 @@ import type { OrderRepository } from 'src/tickets/domain/repositories/order.repo
 import { ORDER_REPOSITORY } from 'src/tickets/domain/repositories/order.repository.interface';
 import { Order } from 'src/tickets/domain/aggregates/order.aggregate';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 
 @Injectable()
 export class OrderService {
@@ -12,8 +13,12 @@ export class OrderService {
     private readonly orderRepository: OrderRepository,
   ) {}
 
-  async createOrder(userId: UserId, ticketIds: string[]): Promise<Order> {
-    const order = Order.createPending({ userId, ticketIds });
+  async createOrder(
+    userId: UserId,
+    eventId: EventId,
+    ticketIds: string[],
+  ): Promise<Order> {
+    const order = Order.createPending({ userId, eventId, ticketIds });
     await this.orderRepository.save(order);
     return order;
   }
