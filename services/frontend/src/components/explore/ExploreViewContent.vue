@@ -147,12 +147,11 @@ const onSearch = () => {
   }
 }
 
-const onTabChange = (tabId: string) => {
-  activeTab.value = tabId as ExploreTab
+watch(activeTab, (_tabId) => {
   if (searchQuery.value.trim()) {
     onSearch()
   }
-}
+})
 
 const organizationsAsSearchResults = computed<SearchResult[]>(() => {
   return organizations.value.map((org) => ({
@@ -234,10 +233,10 @@ watch(searchQuery, () => {
       :class="{ 'padded-content': !searchQuery, 'hide-tabs': !searchQuery }"
     >
       <TabView
+        v-model:activeTab="activeTab"
         :variant="'explore'"
         :tabs="tabs"
-        default-tab="events"
-        @update:active-tab="onTabChange"
+        :default-tab="'events'"
       />
       <div class="colored-box"></div>
     </div>

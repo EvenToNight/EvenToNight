@@ -179,5 +179,5 @@ const tabs = computed<Tab[]>(() => {
 </script>
 
 <template>
-  <TabView v-model="activeTab" :variant="'explore'" :tabs="tabs" />
+  <TabView v-model:activeTab="activeTab" :variant="'explore'" :tabs="tabs" />
 </template>
