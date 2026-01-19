@@ -3,6 +3,7 @@ import TabView, { type Tab } from '@/components/navigation/TabView.vue'
 import TicketsTab from './tabs/TicketsTab.vue'
 import EventsTab from './tabs/EventsTab.vue'
 import ReviewsTab from './tabs/ReviewsTab.vue'
+import MyLikesTab from './tabs/MyLikesTab.vue'
 import type { User } from '@/api/types/users'
 import { computed, onMounted, ref } from 'vue'
 import { api } from '@/api'
@@ -87,6 +88,13 @@ const loadMoreDraft = createLoadMoreFunction(organizationDraftedEvents, hasMoreD
 
 const tabs = computed<Tab[]>(() => {
   const baseTabs: Tab[] = []
+
+  baseTabs.push({
+    id: 'likes',
+    label: 'My Likes',
+    icon: 'favorite',
+    component: MyLikesTab,
+  })
 
   if (!isOrganization.value && isOwnProfile.value) {
     baseTabs.push({

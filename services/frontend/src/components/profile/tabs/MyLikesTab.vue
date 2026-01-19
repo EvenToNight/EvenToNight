@@ -9,7 +9,7 @@ import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
 const ITEMS_PER_PAGE = 12
 
 const authStore = useAuthStore()
-const events = ref<Event[]>([])
+const events = ref<(Event & { liked: boolean })[]>([])
 const loading = ref(true)
 const loadingMore = ref(false)
 const hasMore = ref(true)
@@ -34,9 +34,9 @@ const loadLikedEvents = async (isLoadingMore = false) => {
     const loadedEvents = await Promise.all(eventPromises)
 
     if (isLoadingMore) {
-      events.value = [...events.value, ...loadedEvents]
+      events.value = [...events.value, ...loadedEvents.map((event) => ({ ...event, liked: true }))]
     } else {
-      events.value = loadedEvents
+      events.value = loadedEvents.map((event) => ({ ...event, liked: true }))
     }
 
     hasMore.value = response.hasMore
@@ -65,13 +65,22 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
   }
 }
 
-const handleUnlike = async (eventId: string) => {
+const handleLike = async (eventId: string) => {
   if (!authStore.user?.id) return
-
   try {
-    await api.interactions.unlikeEvent(eventId, authStore.user.id)
-    // Remove event from local list
-    events.value = events.value.filter((event) => event.eventId !== eventId)
+    const liked = events.value.find((event) => event.eventId === eventId)?.liked
+    if (liked) {
+      await api.interactions.unlikeEvent(eventId, authStore.user.id)
+    } else {
+      await api.interactions.likeEvent(eventId, authStore.user.id)
+    }
+    events.value = events.value.map((event) => {
+      if (event.eventId === eventId) {
+        console.log('Marking event as unliked locally:', eventId)
+        return { ...event, liked: !event.liked }
+      }
+      return event
+    })
   } catch (error) {
     console.error('Failed to unlike event:', error)
   }
@@ -94,8 +103,8 @@ const handleUnlike = async (eventId: string) => {
             v-for="event in events"
             :key="event.eventId"
             :event="event"
-            :favorite="true"
-            @favorite-toggle="handleUnlike(event.eventId)"
+            :favorite="event.liked"
+            @favorite-toggle="handleLike(event.eventId)"
           />
         </div>
 
