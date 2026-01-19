@@ -13,15 +13,6 @@ export class CreateReviewDto {
   @IsNotEmpty()
   userId: string;
 
-  @IsString()
-  @IsNotEmpty()
-  creatorId: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  collaboratorIds?: string[];
-
   @IsInt()
   @Min(1)
   @Max(5)
