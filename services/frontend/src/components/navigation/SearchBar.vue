@@ -20,7 +20,7 @@ const inputRef = ref<QInput | null>(null)
 const isSearching = ref(false)
 const maxResults = 5
 
-let searchDebounceTimer: number | null = null
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(searchQuery, (value) => {
   showSuggestions.value = !hideDropdown && value.length > 0

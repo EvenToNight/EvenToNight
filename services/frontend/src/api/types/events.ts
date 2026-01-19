@@ -26,12 +26,12 @@ export interface Event extends Omit<EventData, 'poster'> {
   poster: string
 }
 
-export type PartialEventData = Partial<EventData> &
-  Pick<EventData, 'creatorId' | 'status'> & {
-    ticketTypes: Array<Omit<EventTicketTypeData, 'creatorId'>>
-  }
+export type PartialEventData = Partial<EventData> & Pick<EventData, 'creatorId' | 'status'>
 
-export type PartialEventDataForUpdate = Partial<EventData> &
-  Pick<EventData, 'creatorId' | 'status'> & {
-    ticketTypes: Array<Omit<EventTicketTypeData, 'creatorId'> & { id: string }>
-  }
+export type PartialEventDataWithTickets = PartialEventData & {
+  ticketTypes: Array<Omit<EventTicketTypeData, 'creatorId'>>
+}
+
+export type PartialEventDataWithTicketsForUpdate = PartialEventData & {
+  ticketTypes: Array<Omit<EventTicketTypeData, 'creatorId'> & { id: string }>
+}

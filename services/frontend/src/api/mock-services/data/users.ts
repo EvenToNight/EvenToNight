@@ -9,6 +9,8 @@ const mockMembers = [
     bio: 'Music enthusiast and event organizer. Love techno and house music.',
     avatar: 'https://i.pravatar.cc/150?img=1',
     role: 'member',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'member_2',
@@ -18,6 +20,8 @@ const mockMembers = [
     bio: 'DJ and producer. Spinning records since 2015. Electronic music lover.',
     avatar: 'https://i.pravatar.cc/150?img=5',
     role: 'member',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'member_3',
@@ -27,6 +31,8 @@ const mockMembers = [
     bio: 'Festival addict. Always on the lookout for the next big event.',
     avatar: 'https://i.pravatar.cc/150?img=12',
     role: 'member',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'member_4',
@@ -36,6 +42,8 @@ const mockMembers = [
     bio: 'Event photographer capturing the best moments of electronic music culture.',
     avatar: 'https://i.pravatar.cc/150?img=9',
     role: 'member',
+    language: 'en',
+    darkMode: false,
   },
 ] as const satisfies readonly User[]
 
@@ -49,6 +57,8 @@ const mockOrganizations = [
     avatar:
       'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3s2TWG_y1cT4NHdiYO0_MBkrI9wGTAIF_QA&s',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_2',
@@ -58,6 +68,8 @@ const mockOrganizations = [
     bio: 'Promoter of electronic music events along the Italian Riviera',
     avatar: 'https://www.cdclick.it/gfx/Vinyl/12-BLACK.jpg',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_3',
@@ -67,6 +79,8 @@ const mockOrganizations = [
     bio: 'Leading event organizer for music festivals and club nights in Italy',
     avatar: 'https://cdn.bestmovie.it/wp-content/uploads/2020/11/maradona.jpg',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_40',
@@ -76,6 +90,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_41',
@@ -85,6 +101,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_42',
@@ -94,6 +112,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_43',
@@ -103,6 +123,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_44',
@@ -112,6 +134,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_45',
@@ -121,6 +145,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_46',
@@ -130,6 +156,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_47',
@@ -139,6 +167,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_48',
@@ -148,6 +178,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_49',
@@ -157,6 +189,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
   {
     id: 'organization_50',
@@ -166,6 +200,8 @@ const mockOrganizations = [
     bio: 'bio',
     avatar: 'https://i.pravatar.cc/150?img=7',
     role: 'organization',
+    language: 'en',
+    darkMode: false,
   },
 ] as const satisfies readonly User[]
 

@@ -35,6 +35,16 @@ onMounted(() => {
   authStore.setupAutoRefresh()
 
   if (import.meta.env.VITE_AUTO_LOGIN === 'true') {
+    try {
+      authStore.register(
+        import.meta.env.VITE_DEV_EMAIL.split('@')[0],
+        import.meta.env.VITE_DEV_EMAIL,
+        import.meta.env.VITE_DEV_PASSWORD,
+        import.meta.env.VITE_DEV_ROLE
+      )
+    } catch (error) {
+      console.error('Error reading auto login env variables:', error)
+    }
     authStore.login(import.meta.env.VITE_DEV_EMAIL, import.meta.env.VITE_DEV_PASSWORD)
   }
   setTokenProvider(() => authStore.accessToken)

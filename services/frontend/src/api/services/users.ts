@@ -6,24 +6,31 @@ import type {
   LogoutResponse,
   RegistrationRequest,
   ChangePasswordRequest,
+  LoginAPIResponse,
+  UserAPIResponse,
 } from '../interfaces/users'
 import type { User, UserID } from '../types/users'
 import type { ApiClient } from '../client'
 import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
+import { LoginAdapter, UserAdapter } from '../adapters/users'
 
 export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
   async getUserById(id: UserID): Promise<User> {
-    return usersClient.get<User>(`/${id}`)
+    return UserAdapter.fromApi(id, await usersClient.get<UserAPIResponse>(`/${id}`))
   },
 
   async register(data: RegistrationRequest): Promise<LoginResponse> {
     const body = { userType: data.role, ...data }
-    return usersClient.post<LoginResponse>('/register', body)
+    return LoginAdapter.fromApi(await usersClient.post<LoginAPIResponse>('/register', body))
   },
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    return usersClient.post<LoginResponse>('/login', credentials)
+    const rawData = await usersClient.post<LoginAPIResponse>('/login', credentials)
+    console.log('Raw Login data:', rawData)
+    const data = LoginAdapter.fromApi(rawData)
+    console.log('Login data:', data)
+    return data
   },
 
   async logout(): Promise<LogoutResponse> {

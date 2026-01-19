@@ -7,10 +7,10 @@ import type {
 import type { GetTagResponse } from '../interfaces/events'
 import type {
   EventID,
-  PartialEventData,
   Event,
   EventStatus,
-  PartialEventDataForUpdate,
+  PartialEventDataWithTickets,
+  PartialEventDataWithTicketsForUpdate,
 } from '../types/events'
 import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
@@ -30,7 +30,7 @@ export const createEventsApi = (eventsClient: ApiClient, paymentsApi: PaymentsAP
     const eventsResponses = await Promise.all(eventIds.map((eventId) => this.getEventById(eventId)))
     return { events: eventsResponses }
   },
-  async createEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
+  async createEvent(eventData: PartialEventDataWithTickets): Promise<PublishEventResponse> {
     const { poster, date, ...rest } = eventData
     const formData = new FormData()
     if (poster) {
@@ -51,7 +51,10 @@ export const createEventsApi = (eventsClient: ApiClient, paymentsApi: PaymentsAP
     }
     return event
   },
-  async updateEventData(eventId: EventID, eventData: PartialEventDataForUpdate): Promise<void> {
+  async updateEventData(
+    eventId: EventID,
+    eventData: PartialEventDataWithTicketsForUpdate
+  ): Promise<void> {
     const { poster, date, ...rest } = eventData
     const backendEventData = {
       ...rest,

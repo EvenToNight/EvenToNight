@@ -1,4 +1,4 @@
-import type { User, UserID, UserRole } from '../types/users'
+import type { Account, Profile, User, UserID, UserRole } from '../types/users'
 import type { PaginatedRequest, PaginatedResponse } from './commons'
 
 export interface RegistrationRequest {
@@ -18,10 +18,34 @@ export interface ChangePasswordRequest {
 }
 
 export type AccessToken = string
+export type RefreshToken = string
 
-//TODO: add refresh token expiry(?) and user
+export type ProfileAPIResponse = Omit<Profile, 'website'> & {
+  constacts: string[]
+}
+
+export interface UserAPIResponse {
+  username: string
+  profile: ProfileAPIResponse
+  role: UserRole
+}
+
+export interface LoginAPIResponse {
+  accessToken: AccessToken
+  expiresIn: number
+  refreshToken: RefreshToken
+  refreshExpiresIn: number
+  role: UserRole
+  account: Account
+  profile: ProfileAPIResponse
+}
+
 export interface LoginResponse {
-  token: AccessToken
+  accessToken: AccessToken
+  expiresIn: number
+  refreshToken: RefreshToken
+  refreshExpiresIn: number
+  user: User
 }
 
 export interface RefreshTokenResponse {

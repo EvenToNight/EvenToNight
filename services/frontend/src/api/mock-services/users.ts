@@ -55,7 +55,11 @@ export const mockUsersApi: UsersAPI = {
     }
     if (user) {
       return {
-        token: generateFakeToken(user.id, ONE_YEAR),
+        accessToken: generateFakeToken(user.id, ONE_YEAR),
+        expiresIn: ONE_YEAR,
+        refreshToken: generateFakeToken(user.id, ONE_YEAR),
+        refreshExpiresIn: ONE_YEAR,
+        user,
       }
     } else {
       throw {
@@ -68,7 +72,11 @@ export const mockUsersApi: UsersAPI = {
     currentLoggedInUsername = credentials.username
     const user = getMockUser(credentials.username)
     return {
-      token: generateFakeToken(user.id, ONE_YEAR),
+      accessToken: generateFakeToken(user.id, ONE_YEAR),
+      expiresIn: ONE_YEAR,
+      refreshToken: generateFakeToken(user.id, ONE_YEAR),
+      refreshExpiresIn: ONE_YEAR,
+      user,
     }
   },
 

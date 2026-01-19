@@ -28,26 +28,24 @@ export const useAuthStore = defineStore('auth', () => {
   })
   const accessToken = computed(() => token.value || null)
 
-  const setTokens = (authToken: LoginResponse) => {
-    console.log('Auth token:', authToken)
-    decodedToken.value = jwtDecode<DecodedToken>(authToken.token)
+  const setTokens = (accessToken: AccessToken) => {
+    console.log('Auth token:', accessToken)
+    decodedToken.value = jwtDecode<DecodedToken>(accessToken)
     console.log('Decoded token:', { ...decodedToken.value })
-    token.value = authToken.token
+    token.value = accessToken
     sessionStorage.setItem(ACCESS_TOKEN_SESSION_KEY, token.value)
     sessionStorage.setItem(TOKEN_EXPIRY_SESSION_KEY, decodedToken.value!.exp.toString())
   }
 
   const setUser = (authUser: User) => {
     user.value = authUser
+    console.log('Auth user set:', user.value)
     sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(authUser))
   }
 
   const setAuthData = async (authData: LoginResponse) => {
-    setTokens(authData)
-    console.log('Fetching user with ID:', decodedToken.value!.user_id)
-    const user: User = await api.users.getUserById(decodedToken.value!.user_id)
-    console.log('Fetched user:', user)
-    setUser(user)
+    setTokens(authData.accessToken)
+    setUser(authData.user)
   }
 
   const clearAuth = () => {
@@ -89,7 +87,9 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (username: string, password: string) => {
     isLoading.value = true
     try {
-      setAuthData(await api.users.login({ username, password }))
+      const data = await api.users.login({ username, password })
+      console.log('Login Data in store:', data)
+      setAuthData(data)
       return { success: true }
     } catch (error) {
       console.log('Login error:', error)
@@ -130,7 +130,7 @@ export const useAuthStore = defineStore('auth', () => {
     const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
     const expiresAt = storedExpiry ? parseInt(storedExpiry, 10) : 0
     if (storedAccessToken && expiresAt > Date.now() / 1000) {
-      setTokens({ token: storedAccessToken })
+      setTokens(storedAccessToken)
       if (storedUser) {
         try {
           user.value = JSON.parse(storedUser)
