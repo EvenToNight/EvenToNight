@@ -1,13 +1,30 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, watch } from 'vue'
 import { RouterView } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { setTokenProvider, setTokenExpiredCallback } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
+import { useI18n } from 'vue-i18n'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
+const { t, locale } = useI18n()
+function updateMetaTags() {
+  const meta = document.querySelector('meta[name="description"]')
+  if (meta) {
+    meta.setAttribute('content', t('meta.description'))
+  }
+  document.documentElement.setAttribute('lang', locale.value)
+}
+
+onMounted(() => {
+  updateMetaTags()
+})
+
+watch(locale, () => {
+  updateMetaTags()
+})
 
 const handleKeyboardShortcut = (event: KeyboardEvent) => {
   if ((event.ctrlKey || event.metaKey) && event.key === 'd') {

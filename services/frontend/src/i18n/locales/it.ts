@@ -1,4 +1,7 @@
 export default {
+  meta: {
+    description: 'Piattaforma di eventi EvenToNight: trova, crea e vivi eventi!',
+  },
   date: 'Data',
   time: 'Orario',
   location: 'Posizione',
