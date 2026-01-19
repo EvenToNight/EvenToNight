@@ -100,7 +100,10 @@ async function searchConversations(query: string) {
   try {
     loading.value = true
     offset.value = 0
-    const response = await api.chat.searchConversations(authStore.user!.id, query, { limit: LIMIT })
+    const response = await api.chat.searchConversations(authStore.user!.id, {
+      name: query,
+      pagination: { limit: LIMIT },
+    })
     conversations.value = response.items.filter((c) => c.id)
     potentialConversations.value = response.items.filter((c) => !c.id)
     hasMore.value = response.hasMore

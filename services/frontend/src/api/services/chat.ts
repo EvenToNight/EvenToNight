@@ -23,7 +23,6 @@ export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
   ): Promise<SendMessageAPIResponse> {
     return chatClient.post<SendMessageAPIResponse>(`/users/${userId}/conversations`, firstMessage)
   },
-  //TODO: move query params to andother endpoint
   async getConversations(
     userId: string,
     pagination?: PaginatedRequest
@@ -41,13 +40,15 @@ export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
   },
   async searchConversations(
     userId: string,
-    query: string,
-    pagination?: PaginatedRequest
+    params: {
+      name: string
+      pagination?: PaginatedRequest
+    }
   ): Promise<PaginatedResponse<Conversation>> {
     const response = await chatClient.get<PaginatedResponse<ConversationAPIResponse>>(
       `/users/${userId}/conversations/search${buildQueryParams({
-        ...evaluatePagination(pagination),
-        query,
+        ...evaluatePagination(params?.pagination),
+        name: params.name,
       })}`
     )
     const { items, ...rest } = response

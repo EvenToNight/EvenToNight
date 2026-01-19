@@ -148,14 +148,16 @@ export const mockChatApi: ChatAPI = {
 
   async searchConversations(
     userId: string,
-    query: string,
-    pagination?: PaginatedRequest
+    params: {
+      name: string
+      pagination?: PaginatedRequest
+    }
   ): Promise<PaginatedResponse<Conversation>> {
     const conversations: Conversation[] = getConversationsForUser(userId).filter((c) => {
       const otherUser = c.organization.id === userId ? c.member : c.organization
       return (
-        otherUser.name.toLowerCase().includes(query.toLowerCase()) ||
-        otherUser.username.toLowerCase().includes(query.toLowerCase())
+        otherUser.name.toLowerCase().includes(params.name.toLowerCase()) ||
+        otherUser.username.toLowerCase().includes(params.name.toLowerCase())
       )
     })
     const currentUser = mockUsers.data.find((u) => u.id === userId)!
@@ -165,7 +167,7 @@ export const mockChatApi: ChatAPI = {
         status: 404,
       }
     }
-    const users: User[] = searchMockUsersByName(query)
+    const users: User[] = searchMockUsersByName(params.name)
       .filter((u) => u.role !== currentUser.role)
       .filter((u) => !conversations.some((c) => c.organization.id === u.id || c.member.id === u.id))
     const newConversations = users.map((u) => {
@@ -181,7 +183,7 @@ export const mockChatApi: ChatAPI = {
         unreadCount: 0,
       }
     })
-    return getPaginatedItems([...conversations, ...newConversations], pagination)
+    return getPaginatedItems([...conversations, ...newConversations], params.pagination)
   },
 
   async getConversation(organizationId: string, memberId: string): Promise<Conversation | null> {

@@ -51,8 +51,10 @@ export interface ChatAPI {
   ): Promise<PaginatedResponse<Conversation>>
   searchConversations(
     userId: string,
-    query: string,
-    pagination?: PaginatedRequest
+    params: {
+      name: string
+      pagination?: PaginatedRequest
+    }
   ): Promise<PaginatedResponse<Conversation>>
   getConversation(organizationId: string, memberId: string): Promise<ConversationBaseInfo | null>
   sendMessage(
