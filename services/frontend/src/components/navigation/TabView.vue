@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import type { Component } from 'vue'
 
 export interface Tab {
@@ -14,19 +14,29 @@ interface Props {
   tabs: Tab[]
   defaultTab?: string
   variant: 'explore' | 'profile'
+  modelValue?: string
 }
 
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'update:activeTab': [tabId: string]
+  'update:modelValue': [tabId: string] // aggiungi questo evento per v-model
 }>()
 
-const activeTab = ref(props.defaultTab || props.tabs[0]!.id)
+const activeTab = ref(props.modelValue ?? props.defaultTab ?? props.tabs[0]!.id)
+
+watch(
+  () => props.modelValue,
+  (newVal) => {
+    if (newVal && newVal !== activeTab.value) {
+      activeTab.value = newVal
+    }
+  }
+)
 
 const selectTab = (tabId: string) => {
   activeTab.value = tabId
-  emit('update:activeTab', tabId)
+  emit('update:modelValue', tabId)
 }
 
 const getCurrentTabComponent = (): Tab => {

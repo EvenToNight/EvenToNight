@@ -1,6 +1,11 @@
 import { DEFAULT_LOCALE } from '@/i18n'
 import { computed, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import {
+  useRouter,
+  useRoute,
+  type RouteLocationAsPathGeneric,
+  type RouteLocationAsRelativeGeneric,
+} from 'vue-router'
 import {
   HOME_ROUTE_NAME,
   LOGIN_ROUTE_NAME,
@@ -25,6 +30,7 @@ export const useNavigation = () => {
   const locale = computed(() => (route.params.locale as string) || DEFAULT_LOCALE)
   const params = route.params
   const query = route.query
+  const hash = computed(() => route.hash)
   const routeName = computed(() => route.name as string)
   const redirect = computed(() => {
     return route.query.redirect as string | undefined
@@ -179,6 +185,11 @@ export const useNavigation = () => {
     }
   }
 
+  const replaceRoute = (
+    to: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric
+  ) => {
+    router.replace(to)
+  }
   const changeLocale = (newLocale: string, swap: boolean = false) => {
     if (swap) {
       router.replace({
@@ -205,6 +216,7 @@ export const useNavigation = () => {
     locale,
     params,
     query,
+    hash,
     routeName,
     goBack,
     goToRedirect,
@@ -219,6 +231,7 @@ export const useNavigation = () => {
     goToUserProfile,
     goToSettings,
     goToChat,
+    replaceRoute,
     changeLocale,
     removeQuery,
   }
