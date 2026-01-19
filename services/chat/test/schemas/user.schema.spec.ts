@@ -1,6 +1,10 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { Connection, Model, connect } from 'mongoose';
-import { User, UserSchema } from '../../src/users/schemas/user.schema';
+import {
+  User,
+  UserSchema,
+  UserRole,
+} from '../../src/users/schemas/user.schema';
 
 describe('UserSchema', () => {
   let mongod: MongoMemoryServer;
@@ -28,15 +32,17 @@ describe('UserSchema', () => {
   });
 
   describe('Schema validation', () => {
-    it('should create a user with only userId', async () => {
+    it('should create a user with required fields', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
       });
 
       const savedUser = await user.save();
 
       expect(savedUser._id).toBeDefined();
       expect(savedUser.userId).toBe('user123');
+      expect(savedUser.role).toBe(UserRole.MEMBER);
       expect(savedUser.name).toBeUndefined();
       expect(savedUser.avatar).toBeUndefined();
       expect(savedUser.createdAt).toBeDefined();
@@ -46,6 +52,7 @@ describe('UserSchema', () => {
     it('should create a user with all fields', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'John Doe',
         avatar: 'https://example.com/avatar.jpg',
       });
@@ -53,12 +60,23 @@ describe('UserSchema', () => {
       const savedUser = await user.save();
 
       expect(savedUser.userId).toBe('user123');
+      expect(savedUser.role).toBe(UserRole.MEMBER);
       expect(savedUser.name).toBe('John Doe');
       expect(savedUser.avatar).toBe('https://example.com/avatar.jpg');
     });
 
     it('should fail without userId', async () => {
       const user = new userModel({
+        role: UserRole.MEMBER,
+        name: 'John Doe',
+      });
+
+      await expect(user.save()).rejects.toThrow();
+    });
+
+    it('should fail without role', async () => {
+      const user = new userModel({
+        userId: 'user123',
         name: 'John Doe',
       });
 
@@ -68,12 +86,14 @@ describe('UserSchema', () => {
     it('should fail with duplicate userId', async () => {
       const user1 = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'John Doe',
       });
       await user1.save();
 
       const user2 = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'Jane Doe',
       });
 
@@ -83,6 +103,7 @@ describe('UserSchema', () => {
     it('should allow empty string for name', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: '',
       });
 
@@ -93,6 +114,7 @@ describe('UserSchema', () => {
     it('should allow empty string for avatar', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         avatar: '',
       });
 
@@ -103,6 +125,7 @@ describe('UserSchema', () => {
     it('should allow null for optional fields', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: null,
         avatar: null,
       });
@@ -115,6 +138,7 @@ describe('UserSchema', () => {
     it('should update updatedAt on modification', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'John Doe',
       });
 
@@ -136,6 +160,7 @@ describe('UserSchema', () => {
       const longUserId = 'a'.repeat(500);
       const user = new userModel({
         userId: longUserId,
+        role: UserRole.MEMBER,
       });
 
       const savedUser = await user.save();
@@ -146,6 +171,7 @@ describe('UserSchema', () => {
     it('should handle special characters in fields', async () => {
       const user = new userModel({
         userId: 'user-123_ABC@domain',
+        role: UserRole.MEMBER,
         name: 'John Doe <script>alert("test")</script>',
         avatar: 'https://example.com/avatar?param=value&other=123',
       });
@@ -161,6 +187,7 @@ describe('UserSchema', () => {
     it('should handle unicode characters in name', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'José García 日本語 emoji 👋',
       });
 
@@ -178,15 +205,23 @@ describe('UserSchema', () => {
       expect(hasUserIdIndex).toBe(true);
     });
 
+    it('should have index on role', () => {
+      const indexes = userModel.schema.indexes();
+      const hasRoleIndex = indexes.some((index: any) => index[0].role === 1);
+      expect(hasRoleIndex).toBe(true);
+    });
+
     it('should enforce unique constraint on userId', async () => {
       const user1 = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'User 1',
       });
       await user1.save();
 
       const user2 = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'User 2',
       });
 
@@ -198,6 +233,7 @@ describe('UserSchema', () => {
     it('should update name only', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'John Doe',
         avatar: 'https://example.com/avatar1.jpg',
       });
@@ -211,11 +247,13 @@ describe('UserSchema', () => {
 
       expect(updated.name).toBe('Jane Doe');
       expect(updated.avatar).toBe('https://example.com/avatar1.jpg');
+      expect(updated.role).toBe(UserRole.MEMBER);
     });
 
     it('should update avatar only', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'John Doe',
         avatar: 'https://example.com/avatar1.jpg',
       });
@@ -234,6 +272,7 @@ describe('UserSchema', () => {
     it('should update both name and avatar', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'John Doe',
         avatar: 'https://example.com/avatar1.jpg',
       });
@@ -252,11 +291,16 @@ describe('UserSchema', () => {
     it('should handle upsert operation', async () => {
       const updated = await userModel.findOneAndUpdate(
         { userId: 'newuser123' },
-        { userId: 'newuser123', name: 'New User' },
+        {
+          userId: 'newuser123',
+          role: UserRole.MEMBER,
+          name: 'New User',
+        },
         { upsert: true, new: true },
       );
 
       expect(updated.userId).toBe('newuser123');
+      expect(updated.role).toBe(UserRole.MEMBER);
       expect(updated.name).toBe('New User');
 
       const count = await userModel.countDocuments({ userId: 'newuser123' });
@@ -268,6 +312,7 @@ describe('UserSchema', () => {
     it('should delete a user', async () => {
       const user = new userModel({
         userId: 'user123',
+        role: UserRole.MEMBER,
         name: 'John Doe',
       });
       await user.save();
@@ -280,9 +325,9 @@ describe('UserSchema', () => {
 
     it('should delete multiple users', async () => {
       await userModel.insertMany([
-        { userId: 'user1', name: 'User 1' },
-        { userId: 'user2', name: 'User 2' },
-        { userId: 'user3', name: 'User 3' },
+        { userId: 'user1', role: UserRole.MEMBER, name: 'User 1' },
+        { userId: 'user2', role: UserRole.MEMBER, name: 'User 2' },
+        { userId: 'user3', role: UserRole.MEMBER, name: 'User 3' },
       ]);
 
       await userModel.deleteMany({ userId: { $in: ['user1', 'user3'] } });
@@ -298,13 +343,20 @@ describe('UserSchema', () => {
       await userModel.insertMany([
         {
           userId: 'user1',
+          role: UserRole.MEMBER,
           name: 'Alice',
           avatar: 'https://example.com/alice.jpg',
         },
-        { userId: 'user2', name: 'Bob', avatar: 'https://example.com/bob.jpg' },
-        { userId: 'user3', name: 'Charlie' },
+        {
+          userId: 'user2',
+          role: UserRole.MEMBER,
+          name: 'Bob',
+          avatar: 'https://example.com/bob.jpg',
+        },
+        { userId: 'user3', role: UserRole.MEMBER, name: 'Charlie' },
         {
           userId: 'org1',
+          role: UserRole.ORGANIZATION,
           name: 'Organization A',
           avatar: 'https://example.com/org.jpg',
         },
@@ -316,6 +368,7 @@ describe('UserSchema', () => {
 
       expect(user).toBeDefined();
       expect(user.name).toBe('Alice');
+      expect(user.role).toBe(UserRole.MEMBER);
     });
 
     it('should find multiple users by userId array', async () => {
@@ -359,6 +412,102 @@ describe('UserSchema', () => {
 
       const notExists = await userModel.exists({ userId: 'nonexistent' });
       expect(notExists).toBeNull();
+    });
+  });
+
+  describe('Role validation', () => {
+    it('should create a user with MEMBER role', async () => {
+      const user = new userModel({
+        userId: 'user123',
+        role: UserRole.MEMBER,
+        name: 'John Doe',
+        avatar: 'https://example.com/avatar.jpg',
+      });
+
+      const savedUser = await user.save();
+
+      expect(savedUser.role).toBe(UserRole.MEMBER);
+    });
+
+    it('should create a user with ORGANIZATION role', async () => {
+      const user = new userModel({
+        userId: 'org123',
+        role: UserRole.ORGANIZATION,
+        name: 'Tech Org',
+        avatar: 'https://example.com/org.jpg',
+      });
+
+      const savedUser = await user.save();
+
+      expect(savedUser.role).toBe(UserRole.ORGANIZATION);
+    });
+
+    it('should fail with invalid role', async () => {
+      const user = new userModel({
+        userId: 'user123',
+        role: 'invalid_role',
+        name: 'John Doe',
+      });
+
+      await expect(user.save()).rejects.toThrow();
+    });
+  });
+
+  describe('Query by role', () => {
+    beforeEach(async () => {
+      await userModel.insertMany([
+        {
+          userId: 'user1',
+          role: UserRole.MEMBER,
+          name: 'User 1',
+          avatar: 'avatar1.jpg',
+        },
+        {
+          userId: 'user2',
+          role: UserRole.MEMBER,
+          name: 'User 2',
+          avatar: 'avatar2.jpg',
+        },
+        {
+          userId: 'org1',
+          role: UserRole.ORGANIZATION,
+          name: 'Org 1',
+          avatar: 'org1.jpg',
+        },
+        {
+          userId: 'org2',
+          role: UserRole.ORGANIZATION,
+          name: 'Org 2',
+          avatar: 'org2.jpg',
+        },
+      ]);
+    });
+
+    it('should find all members', async () => {
+      const members = await userModel.find({ role: UserRole.MEMBER });
+
+      expect(members).toHaveLength(2);
+      members.forEach((m) => expect(m.role).toBe(UserRole.MEMBER));
+    });
+
+    it('should find all organizations', async () => {
+      const orgs = await userModel.find({ role: UserRole.ORGANIZATION });
+
+      expect(orgs).toHaveLength(2);
+      orgs.forEach((o) => expect(o.role).toBe(UserRole.ORGANIZATION));
+    });
+
+    it('should find users by role and other criteria', async () => {
+      const membersWithAvatar = await userModel.find({
+        role: UserRole.MEMBER,
+        avatar: { $exists: true, $nin: [null, ''] },
+      });
+
+      expect(membersWithAvatar).toHaveLength(2);
+      membersWithAvatar.forEach((m) => {
+        expect(m.role).toBe(UserRole.MEMBER);
+        expect(m.avatar).toBeTruthy();
+      });
     });
   });
 });

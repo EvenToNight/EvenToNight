@@ -6,6 +6,8 @@ import { api } from '@/api'
 import type { CreationEventStatus, PartialEventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
 import { parseLocation, buildLocationDisplayName } from '@/api/utils/locationUtils'
+import type { TicketType } from '@/api/types/payments'
+import type { CreateEventTicketTypeRequest } from '@/api/interfaces/payments'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import FormField from '@/components/forms/FormField.vue'
@@ -39,6 +41,63 @@ const tags = ref<string[]>([])
 const collaborators = ref<string[]>([])
 const location = ref<LocationOption | null>(null)
 const poster = ref<File | null>(null)
+
+// Ticket types
+interface TicketEntry {
+  type: TicketType | null
+  price: string
+  currency: string
+  quantity: string
+}
+
+const CURRENCY_OPTIONS = [
+  { label: 'EUR (€)', value: 'EUR' },
+  { label: 'USD ($)', value: 'USD' },
+  { label: 'GBP (£)', value: 'GBP' },
+]
+
+const availableTicketTypes = ref<TicketType[]>([])
+const ticketEntries = ref<TicketEntry[]>([])
+
+const createEmptyTicketEntry = (): TicketEntry => ({
+  type: null,
+  price: '',
+  currency: 'EUR',
+  quantity: '',
+})
+
+const getAvailableTypesForEntry = (currentIndex: number): TicketType[] => {
+  const usedTypes = ticketEntries.value
+    .filter((_, idx) => idx !== currentIndex)
+    .map((entry) => entry.type)
+    .filter((type): type is TicketType => type !== null)
+  return availableTicketTypes.value.filter((type) => !usedTypes.includes(type))
+}
+
+const canAddMoreTickets = computed(() => {
+  return ticketEntries.value.length < availableTicketTypes.value.length
+})
+
+const addTicketEntry = () => {
+  if (canAddMoreTickets.value) {
+    ticketEntries.value.push(createEmptyTicketEntry())
+  }
+}
+
+const removeTicketEntry = (index: number) => {
+  ticketEntries.value.splice(index, 1)
+}
+
+const loadTicketTypes = async () => {
+  try {
+    availableTicketTypes.value = await api.payments.getTicketTypes()
+    if (availableTicketTypes.value.length > 0 && ticketEntries.value.length === 0) {
+      ticketEntries.value.push(createEmptyTicketEntry())
+    }
+  } catch (error) {
+    console.error('Failed to load ticket types:', error)
+  }
+}
 
 const handleImageError = (message: string) => {
   $q.notify({
@@ -121,7 +180,7 @@ const loadEvent = async () => {
 }
 
 onMounted(async () => {
-  await loadTags()
+  await Promise.all([loadTags(), loadTicketTypes()])
   if (isEditMode.value) {
     await loadEvent()
   }
@@ -288,12 +347,29 @@ const handleDelete = async () => {
   })
 }
 
+const createTicketTypesForEvent = async (eventId: string) => {
+  const validEntries = ticketEntries.value.filter(
+    (entry) => entry.type && entry.price && entry.quantity
+  )
+
+  for (const entry of validEntries) {
+    const request: CreateEventTicketTypeRequest = {
+      type: entry.type!,
+      price: Number(entry.price),
+      currency: entry.currency,
+      quantity: Number(entry.quantity),
+    }
+    await api.payments.createEventTicketType(eventId, request)
+  }
+}
+
 const onSubmit = async () => {
   try {
     const eventData: PartialEventData = buildEventData('PUBLISHED')
     if (isEditMode.value) {
       await api.events.updateEventData(eventId.value, eventData)
       await api.events.updateEventPoster(eventId.value, poster.value!)
+      await createTicketTypesForEvent(eventId.value)
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventUpdate'),
@@ -301,6 +377,7 @@ const onSubmit = async () => {
       goToEventDetails(eventId.value)
     } else {
       const response = await api.events.createEvent(eventData)
+      await createTicketTypesForEvent(response.eventId)
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventPublication'),
@@ -385,6 +462,68 @@ const onSubmit = async () => {
             :rules="[notEmpty(t('eventCreationForm.priceError'))]"
             prefix="€"
           />
+
+          <!-- Ticket Types Section -->
+          <div v-if="availableTicketTypes.length > 0" class="ticket-types-section q-my-md">
+            <div class="text-subtitle1 q-mb-sm">Ticket Types</div>
+
+            <div v-for="(entry, index) in ticketEntries" :key="index" class="ticket-entry-row">
+              <q-select
+                v-model="entry.type"
+                :options="getAvailableTypesForEntry(index)"
+                label="Type"
+                outlined
+                dense
+                class="ticket-type-select"
+              />
+
+              <q-input
+                v-model="entry.price"
+                type="number"
+                label="Price"
+                outlined
+                dense
+                class="ticket-price-input"
+              />
+
+              <q-select
+                v-model="entry.currency"
+                :options="CURRENCY_OPTIONS"
+                option-value="value"
+                option-label="label"
+                emit-value
+                map-options
+                label="Currency"
+                outlined
+                dense
+                class="ticket-currency-select"
+              />
+
+              <q-input
+                v-model="entry.quantity"
+                type="number"
+                label="Quantity"
+                outlined
+                dense
+                class="ticket-quantity-input"
+              />
+
+              <q-btn
+                v-if="ticketEntries.length > 1"
+                flat
+                round
+                dense
+                icon="delete"
+                color="negative"
+                class="delete-ticket-btn"
+                @click="removeTicketEntry(index)"
+              />
+            </div>
+
+            <div v-if="canAddMoreTickets" class="add-ticket-btn-container">
+              <q-btn flat round icon="add" color="primary" @click="addTicketEntry" />
+            </div>
+          </div>
 
           <FormSelectorField
             v-model="tags"
@@ -626,5 +765,56 @@ const onSubmit = async () => {
     flex-direction: column;
     width: 100%;
   }
+}
+
+.ticket-types-section {
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: $radius-md;
+  padding: $spacing-4;
+
+  @include dark-mode {
+    border-color: rgba(255, 255, 255, 0.1);
+  }
+}
+
+.ticket-entry-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  margin-bottom: $spacing-3;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex-wrap: wrap;
+  }
+}
+
+.ticket-type-select {
+  flex: 2;
+  min-width: 120px;
+}
+
+.ticket-price-input {
+  flex: 1;
+  min-width: 80px;
+}
+
+.ticket-currency-select {
+  flex: 1;
+  min-width: 100px;
+}
+
+.ticket-quantity-input {
+  flex: 1;
+  min-width: 80px;
+}
+
+.delete-ticket-btn {
+  flex-shrink: 0;
+}
+
+.add-ticket-btn-container {
+  display: flex;
+  justify-content: center;
+  margin-top: $spacing-2;
 }
 </style>

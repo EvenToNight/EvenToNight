@@ -16,6 +16,9 @@ export class Participant {
   @Prop({ required: true })
   userId: string;
 
+  @Prop({ required: true })
+  userName: string;
+
   @Prop({ required: true, enum: ParticipantRole })
   role: ParticipantRole;
 

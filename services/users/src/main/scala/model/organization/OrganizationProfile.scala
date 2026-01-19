@@ -1,6 +1,10 @@
 package model.organization
 
-case class OrganizationProfile(nickname: String)
+import infrastructure.Wiring.mediaBaseUrl
 
-object OrganizationProfile:
-  val default: OrganizationProfile = OrganizationProfile(nickname = "")
+case class OrganizationProfile(
+    name: String,
+    avatar: String = s"http://${mediaBaseUrl}/users/default.png",
+    bio: Option[String] = None,
+    contacts: Option[List[String]] = None
+)

@@ -1,62 +1,63 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
-import {
-  Conversation,
-  ConversationDocument,
-} from '../schemas/conversation.schema';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { ParticipantRole } from '../schemas/participant.schema';
-import { SendMessageDto } from '../dto/send-message.dto';
+
+import { Conversation } from '../schemas/conversation.schema';
 import { Message, MessageDocument } from '../schemas/message.schema';
+
+import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
+import { SendMessageDto } from '../dto/send-message.dto';
 import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
+import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
+import { SearchConversationsQueryDto } from '../dto/search-conversation-query.dto';
 import { ConversationListResponse } from '../dto/conversation-list.response';
 import { ConversationListItemDTO } from '../dto/conversation-list-item.dto';
-import { NotFoundException } from '@nestjs/common/exceptions/not-found.exception';
-import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
+import { ConversationDetailDTO } from '../dto/conversation-details.dto';
 import { MessageListResponse } from '../dto/message-list.response';
-import { MessageDTO } from '../dto/message.dto';
-import { UsersService } from 'src/users/services/users.service';
-import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
+
+import { DataMapperService } from './data-mapper.service';
+import { MessageManagerService } from './message-manager.service';
+import { UserSuggestionService } from './user-suggestion.service';
+import { ConversationSearchService } from './conversation.search.service';
+import { ConversationManagerService } from './conversation.manager.service';
 
 @Injectable()
 export class ConversationsService {
+  private readonly DEFAULT_AVATAR =
+    'https://media.eventonight.site/users/default.jpg';
+
   constructor(
     @InjectModel(Conversation.name)
     private readonly conversationModel: Model<any>,
-    @InjectModel('Participant')
-    private readonly participantModel: Model<any>,
-    @InjectModel(Message.name)
-    private readonly messageModel: Model<any>,
-    private readonly usersService: UsersService,
+    @InjectModel('Participant') private readonly participantModel: Model<any>,
+    @InjectModel(Message.name) private readonly messageModel: Model<any>,
+    private readonly dataMapperService: DataMapperService,
+    private readonly messageManagerService: MessageManagerService,
+    private readonly userSuggestionService: UserSuggestionService,
+    private readonly conversationSearchService: ConversationSearchService,
+    private readonly conversationManagerService: ConversationManagerService,
   ) {}
 
   async createConversationWithMessage(
     senderId: string,
     dto: CreateConversationMessageDto,
   ): Promise<MessageDocument> {
-    const existingConversation = await this.findConversationBetweenUsers(
+    await this.conversationManagerService.ensureConversationDoesNotExist(
       dto.recipientId,
       senderId,
     );
 
-    if (existingConversation) {
-      throw new BadRequestException(
-        'Conversation already exists. Use the existing conversation endpoint.',
+    const conversation =
+      await this.conversationManagerService.findOrCreateConversation(
+        senderId,
+        dto.recipientId,
       );
-    }
 
-    const conversation = await this.findOrCreateConversation(
-      dto.recipientId,
-      senderId,
-    );
-
-    const message = await this.createMessage(
+    return this.messageManagerService.createMessage(
       conversation._id.toString(),
       senderId,
       dto.content,
     );
-
-    return message;
   }
 
   async sendMessageToConversation(
@@ -64,127 +65,67 @@ export class ConversationsService {
     conversationId: string,
     dto: SendMessageDto,
   ): Promise<MessageDocument> {
-    const isParticipant = await this.verifyUserInConversation(
+    await this.conversationManagerService.validateConversationExists(
+      conversationId,
+    );
+    await this.conversationManagerService.validateUserIsParticipant(
       conversationId,
       senderId,
     );
-
-    if (!isParticipant) {
-      throw new BadRequestException(
-        'User is not a participant of this conversation',
-      );
-    }
-
-    return this.createMessage(conversationId, senderId, dto.content);
+    return this.messageManagerService.createMessage(
+      conversationId,
+      senderId,
+      dto.content,
+    );
   }
 
   async getUserConversations(
     userId: string,
     query: GetConversationsQueryDto,
   ): Promise<ConversationListResponse> {
-    await this.usersService.userExists(userId);
+    await this.conversationManagerService.validateUserExists(userId);
 
     const { limit = 20, offset = 0 } = query;
 
-    const participants = await this.participantModel
-      .find({ userId })
-      .populate('conversationId')
-      .sort({ 'conversationId.updatedAt': -1 })
-      .skip(offset)
-      .limit(limit + 1)
-      .exec();
+    const participants =
+      await this.conversationManagerService.fetchUserParticipants(
+        userId,
+        limit,
+        offset,
+      );
 
     const hasMore = participants.length > limit;
     const items = participants.slice(0, limit);
 
-    const conversations: ConversationListItemDTO[] = await Promise.all(
-      items.map(async (participant) => {
-        const conversation = participant.conversationId;
+    const conversations =
+      await this.dataMapperService.buildConversationListItems(items);
 
-        const lastMessage = await this.messageModel
-          .findOne({ conversationId: conversation._id })
-          .sort({ createdAt: -1 })
-          .exec();
-
-        const [orgInfo, memberInfo] = await Promise.all([
-          this.usersService.getUserInfo(conversation.organizationId),
-          this.usersService.getUserInfo(conversation.memberId),
-        ]);
-
-        return {
-          id: conversation._id.toString(),
-          organization: {
-            id: conversation.organizationId,
-            name: orgInfo?.name || 'Unknown Organization',
-            avatar: orgInfo?.avatar || 'https://via.placeholder.com/150',
-          },
-          member: {
-            id: conversation.memberId,
-            name: memberInfo?.name || 'Unknown Member',
-            avatar: memberInfo?.avatar || 'https://via.placeholder.com/150',
-          },
-          lastMessage: lastMessage
-            ? {
-                content: lastMessage.content,
-                senderId: String(lastMessage.senderId),
-                timestamp: lastMessage.createdAt,
-              }
-            : {
-                content: '',
-                senderId: '',
-                timestamp: new Date(0),
-              },
-          unreadCount: participant.unreadCount,
-        };
-      }),
-    );
-
-    return {
-      items: conversations,
-      limit,
-      offset,
-      hasMore,
-    };
+    return { items: conversations, limit, offset, hasMore };
   }
 
   async getTotalUnreadCount(userId: string): Promise<number> {
-    await this.usersService.userExists(userId);
-
+    await this.conversationManagerService.validateUserExists(userId);
     const participants = await this.participantModel.find({ userId });
-
-    return participants.reduce((total, participant) => {
-      return total + participant.unreadCount;
-    }, 0);
+    return participants.reduce((total, p) => total + p.unreadCount, 0);
   }
 
   async getConversationById(
     conversationId: string,
-  ): Promise<ConversationDocument> {
-    if (!Types.ObjectId.isValid(conversationId)) {
-      throw new BadRequestException('Invalid conversation ID');
-    }
-
-    const conversation = await this.conversationModel.findById(conversationId);
-
-    if (!conversation) {
-      throw new NotFoundException('Conversation not found');
-    }
-
-    return conversation;
-  }
-
-  async verifyUserInConversation(
-    conversationId: string,
     userId: string,
-  ): Promise<boolean> {
-    await this.usersService.userExists(userId);
+  ): Promise<ConversationDetailDTO> {
+    this.conversationManagerService.validateObjectId(conversationId);
 
-    const participant = await this.participantModel.findOne({
-      conversationId: new Types.ObjectId(conversationId),
+    const conversation =
+      await this.conversationManagerService.findConversationOrThrow(
+        conversationId,
+      );
+
+    await this.conversationManagerService.validateUserIsParticipant(
+      conversationId,
       userId,
-    });
+    );
 
-    return !!participant;
+    return this.dataMapperService.buildConversationDetail(conversation);
   }
 
   async getMessages(
@@ -192,191 +133,146 @@ export class ConversationsService {
     userId: string,
     query: GetMessagesQueryDto,
   ): Promise<MessageListResponse> {
-    await this.usersService.userExists(userId);
-
-    const { limit = 50, offset = 0 } = query;
-
-    const isParticipant = await this.verifyUserInConversation(
+    await this.conversationManagerService.validateUserExists(userId);
+    await this.conversationManagerService.validateUserIsParticipant(
       conversationId,
       userId,
     );
-    if (!isParticipant) {
-      throw new BadRequestException(
-        'User is not a participant of this conversation',
-      );
-    }
-
-    const participant = await this.participantModel.findOne({
-      conversationId: new Types.ObjectId(conversationId),
+    const { limit = 50, offset = 0 } = query;
+    const participant = await this.conversationManagerService.findParticipant(
+      conversationId,
       userId,
-    });
+    );
 
-    const messages = await this.messageModel
-      .find({ conversationId: new Types.ObjectId(conversationId) })
-      .sort({ createdAt: -1 })
-      .skip(offset)
-      .limit(limit + 1)
-      .exec();
-
+    const messages = await this.messageManagerService.fetchMessages(
+      conversationId,
+      limit,
+      offset,
+    );
     const hasMore = messages.length > limit;
     const items = messages.slice(0, limit);
 
-    const senderIds = [...new Set(items.map((msg) => msg.senderId))];
-
-    const usersInfo = await Promise.all(
-      senderIds.map(async (id) => {
-        const user = await this.usersService.getUserInfo(id);
-        return (
-          user || {
-            userId: id,
-            name: 'Unknown User',
-            avatar: 'Unknown Avatar',
-          }
-        );
-      }),
-    );
-
-    const usersMap = new Map(usersInfo.map((user) => [user.userId, user]));
-
-    this.markAsRead(conversationId, userId).catch((err) => {
-      console.error(
-        `Failed to mark messages as read for user ${userId} in conversation ${conversationId}:`,
-        err,
-      );
-    });
-
-    const messageDTOs: MessageDTO[] = items.map((message) => {
-      const senderInfo = usersMap.get(message.senderId);
-
-      return {
-        id: message._id.toString(),
-        conversationId: conversationId,
-        sender: {
-          id: message.senderId,
-          name: senderInfo?.name || 'Unknown User',
-          avatar: senderInfo?.avatar || 'Unknown Avatar',
-        },
-        content: message.content,
-        createdAt: message.createdAt,
-        isRead: message.createdAt <= participant.lastReadAt,
-      };
-    });
-
-    return {
-      items: messageDTOs,
-      limit,
-      offset,
-      hasMore,
-    };
-  }
-
-  async markAsRead(conversationId: string, userId: string): Promise<void> {
-    const isParticipant = await this.verifyUserInConversation(
+    const messageDTOs = await this.dataMapperService.buildMessageDTOs(
+      items,
       conversationId,
-      userId,
+      participant,
     );
-    if (!isParticipant) {
-      throw new BadRequestException(
-        'User is not a participant of this conversation',
-      );
-    }
 
-    await this.participantModel.updateOne(
-      {
-        conversationId: new Types.ObjectId(conversationId),
-        userId,
-      },
-      {
-        lastReadAt: new Date(),
-        unreadCount: 0,
-      },
-    );
+    this.markAsReadAsync(conversationId, userId);
+
+    return { items: messageDTOs, limit, offset, hasMore };
   }
 
-  private async findOrCreateConversation(
+  async getConversationByUsers(
     organizationId: string,
     memberId: string,
-  ): Promise<any> {
-    await this.usersService.userExists(organizationId);
-    await this.usersService.userExists(memberId);
-
-    let conversation = await this.conversationModel.findOne({
+  ): Promise<ConversationDetailDTO> {
+    const conversation = await this.conversationModel.findOne({
       organizationId,
       memberId,
     });
 
     if (!conversation) {
-      conversation = new this.conversationModel({
-        organizationId,
-        memberId,
-      });
-      const savedConversation = await conversation.save();
-
-      const orgParticipant = new this.participantModel({
-        conversationId: savedConversation._id,
-        userId: organizationId,
-        role: ParticipantRole.ORGANIZATION,
-        unreadCount: 0,
-        lastReadAt: new Date(),
-      });
-
-      const memberParticipant = new this.participantModel({
-        conversationId: savedConversation._id,
-        userId: memberId,
-        role: ParticipantRole.MEMBER,
-        unreadCount: 0,
-        lastReadAt: new Date(),
-      });
-
-      await Promise.all([orgParticipant.save(), memberParticipant.save()]);
-
-      conversation = savedConversation;
+      throw new NotFoundException('Conversation not found');
     }
 
-    return conversation;
+    return this.dataMapperService.buildConversationDetail(conversation);
   }
 
-  private async findConversationBetweenUsers(
+  async getConversationWithMessagesByUsers(
     organizationId: string,
     memberId: string,
-  ): Promise<Conversation | null> {
-    return this.conversationModel.findOne({
+    query: GetMessagesQueryDto,
+  ): Promise<MessageListResponse> {
+    const conversation = await this.conversationModel.findOne({
       organizationId,
       memberId,
     });
+
+    if (!conversation) {
+      throw new NotFoundException('Conversation not found');
+    }
+
+    return this.getMessages(conversation._id, memberId, query);
   }
 
-  private async createMessage(
-    conversationId: string,
-    senderId: string,
-    content: string,
-  ): Promise<MessageDocument> {
-    const message = new this.messageModel({
-      conversationId: new Types.ObjectId(conversationId),
-      senderId,
-      content,
-    });
-    const savedMessage = await message.save();
+  async searchConversationWithFilters(
+    userId: string,
+    query: SearchConversationsQueryDto,
+  ): Promise<ConversationListResponse> {
+    await this.conversationManagerService.validateUserExists(userId);
 
-    await this.conversationModel.updateOne(
-      { _id: conversationId },
-      { updatedAt: new Date() },
+    const { limit = 20, offset = 0, name, recipientId } = query;
+    const hasFilters = Boolean(name || recipientId);
+
+    let conversationIds: Types.ObjectId[] | null = null;
+
+    if (hasFilters) {
+      conversationIds =
+        await this.conversationSearchService.findFilteredConversationIds(
+          userId,
+          name,
+          recipientId,
+        );
+
+      if (conversationIds.length === 0 && offset === 0) {
+        return this.userSuggestionService.getSuggestedUsers(userId, {
+          limit: Number(limit),
+          offset: 0,
+          name,
+          recipientId,
+        });
+      }
+    }
+
+    const participants =
+      await this.conversationSearchService.fetchFilteredParticipants(
+        userId,
+        conversationIds,
+        Number(limit),
+        Number(offset),
+      );
+
+    const hasMore = participants.length > Number(limit);
+    const items = participants.slice(0, Number(limit));
+
+    const conversations =
+      await this.conversationSearchService.buildSearchResults(items, userId);
+    const validConversations = conversations.filter(
+      (c): c is ConversationListItemDTO => c !== null,
     );
 
+    if (offset === 0) {
+      await this.userSuggestionService.addSuggestionsIfNeeded(
+        validConversations,
+        userId,
+        Number(limit),
+        name,
+        recipientId,
+      );
+    }
+
+    return {
+      items: validConversations,
+      limit: Number(limit),
+      offset: Number(offset),
+      hasMore: hasMore || validConversations.length === Number(limit),
+    };
+  }
+
+  async markAsRead(conversationId: string, userId: string): Promise<void> {
     await this.participantModel.updateOne(
-      {
-        conversationId: new Types.ObjectId(conversationId),
-        userId: { $ne: senderId },
-      },
-      {
-        $inc: { unreadCount: 1 },
-      },
+      { conversationId: new Types.ObjectId(conversationId), userId },
+      { lastReadAt: new Date(), unreadCount: 0 },
     );
+  }
 
-    console.log(`✅ Message sent in conversation ${conversationId}`);
-
-    // TODO: Publish event to RabbitMQ for real-time notifications
-
-    return savedMessage;
+  async markAsReadAsync(conversationId: string, userId: string): Promise<void> {
+    await this.markAsRead(conversationId, userId).catch((err) => {
+      console.error(
+        `Failed to mark messages as read for user ${userId} in conversation ${conversationId}:`,
+        err,
+      );
+    });
   }
 }

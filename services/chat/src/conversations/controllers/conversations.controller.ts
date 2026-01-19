@@ -8,7 +8,6 @@ import {
   HttpCode,
   HttpStatus,
   Query,
-  BadRequestException,
 } from '@nestjs/common';
 import { SendMessageDto } from '../dto/send-message.dto';
 import { ConversationsService } from '../services/conversations.service';
@@ -17,6 +16,8 @@ import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
 import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
 import { MessageListResponse } from '../dto/message-list.response';
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
+import { ConversationDetailDTO } from '../dto/conversation-details.dto';
+import { SearchConversationsQueryDto } from '../dto/search-conversation-query.dto';
 
 @Controller('users/:userId')
 export class ConversationsController {
@@ -43,7 +44,18 @@ export class ConversationsController {
     };
   }
 
-  @Post('conversations/:conversationId')
+  @Get('conversations/search')
+  async searchConversations(
+    @Param('userId') userId: string,
+    @Query() query: SearchConversationsQueryDto,
+  ): Promise<ConversationListResponse> {
+    return this.conversationsService.searchConversationWithFilters(
+      userId,
+      query,
+    );
+  }
+
+  @Post('conversations/:conversationId/messages')
   @HttpCode(HttpStatus.CREATED)
   async sendMessage(
     @Param('userId') userId: string,
@@ -86,29 +98,11 @@ export class ConversationsController {
   async getConversation(
     @Param('userId') userId: string,
     @Param('conversationId') conversationId: string,
-  ) {
-    const isParticipant =
-      await this.conversationsService.verifyUserInConversation(
-        conversationId,
-        userId,
-      );
-
-    if (!isParticipant) {
-      throw new BadRequestException(
-        'User is not a participant of this conversation',
-      );
-    }
-
-    const conversation =
-      await this.conversationsService.getConversationById(conversationId);
-
-    return {
-      id: conversation._id.toString(),
-      organizationId: conversation.organizationId,
-      memberId: conversation.memberId,
-      createdAt: conversation.createdAt,
-      updatedAt: conversation.updatedAt,
-    };
+  ): Promise<ConversationDetailDTO> {
+    return await this.conversationsService.getConversationById(
+      conversationId,
+      userId,
+    );
   }
 
   @Get('conversations/:conversationId/messages')

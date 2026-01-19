@@ -13,6 +13,8 @@ services:
       - MONGO_HOST=mongo-users
       - USERS_SERVICE_SECRET=${USERS_SERVICE_SECRET}
       - KEYCLOAK_URL=http://keycloak:8080
+      - MEDIA_HOST=media
+      - MEDIA_BASE_URL=media.${HOST}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.users.rule=Host(`users.${HOST}`)"

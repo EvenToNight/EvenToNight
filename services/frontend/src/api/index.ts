@@ -7,11 +7,14 @@ import { mockInteractionsApi } from './mock-services/interactions'
 import { createInteractionsApi } from './services/interactions'
 import { mockUsersApi } from './mock-services/users'
 import { createChatApi } from './services/chat'
+import { createPaymentsApi } from './services/payments'
+import { mockPaymentsApi } from './mock-services/payments'
 // import { createUsersApi } from './services/users'
 import {
   createEventsClient,
   createInteractionsClient,
   createChatClient,
+  createPaymentsClient,
   // createFeedClient,
   // createUsersClient,
 } from './client'
@@ -31,6 +34,7 @@ export const api = {
   users: mockUsersApi,
   chat: useRealApi ? createChatApi(createChatClient()) : mockChatApi,
   notification: mockNotificationApi,
+  payments: useRealApi ? createPaymentsApi(createPaymentsClient()) : mockPaymentsApi,
   // media: useMockApi ? mockMediaApi : createMediaApi(createMediaClient()),
   // feed: useMockApi ? mockFeedApi : createFeedApi(createFeedClient()),
   // users: useRealApi ? createUsersApi(createUsersClient()) : mockUsersApi,

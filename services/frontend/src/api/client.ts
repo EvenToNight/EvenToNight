@@ -2,7 +2,7 @@ import type { ApiError } from './interfaces/commons'
 import { dateReviver } from '@/api/utils/parsingUtils'
 
 const getServiceUrl = (service: string): string => {
-  const host = import.meta.env.VITE_HOST
+  const host = import.meta.env.VITE_HOST || 'localhost'
   if (!host) {
     throw new Error('Environment variable VITE_HOST is not defined')
   }
@@ -146,3 +146,4 @@ export const createMediaClient = () => new ApiClient('media')
 export const createFeedClient = () => new ApiClient('feed')
 export const createInteractionsClient = () => new ApiClient('interactions')
 export const createChatClient = () => new ApiClient('chat')
+export const createPaymentsClient = () => new ApiClient('payments')

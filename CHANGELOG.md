@@ -1,3 +1,76 @@
+## [1.18.0](https://github.com/EvenToNight/EvenToNight/compare/v1.17.1...v1.18.0) (2026-01-19)
+
+### Features
+
+* **auth:** add authentication layer setup ([f6aae72](https://github.com/EvenToNight/EvenToNight/commit/f6aae72690e86ca297f88bd274a7244395ee5650))
+* **checkout:** integarte stripe for checkout session and update testing modes ([8b3fc63](https://github.com/EvenToNight/EvenToNight/commit/8b3fc63ef290dc03d4ac92262933c9024fc0f03b))
+* **domain-data:** save event and user data ([b0f191c](https://github.com/EvenToNight/EvenToNight/commit/b0f191c3d932fd106f1e7a60523f486083fc18b3))
+* **event:** publish payments.order.confirmed and payments.order.rejected events ([bfe4639](https://github.com/EvenToNight/EvenToNight/commit/bfe4639848b5ec344ce8edf2cb970c289f4ab30c))
+* **eventTicketType:** handle event ticketTypes deletion ([9cff6f2](https://github.com/EvenToNight/EvenToNight/commit/9cff6f23e49144d16a876fafdc4947c92386dedf))
+* **eventTicketType:** handle single ticket type  deletion ([d24835d](https://github.com/EvenToNight/EvenToNight/commit/d24835dd74f6ff9c10be65bd7d7bb3486fdec8d3))
+* **ticket:** add ticket to pdf service ([2c170f8](https://github.com/EvenToNight/EvenToNight/commit/2c170f8c50abae6cc25f8eafa7af762f6e1e144f))
+* **ticket:** suport multiple ticket languages ([c19fdd5](https://github.com/EvenToNight/EvenToNight/commit/c19fdd5f66e0c601a0e86d9bee91ad9270b43525))
+* **ticket:** wire event-ticket-type API ([0491e4a](https://github.com/EvenToNight/EvenToNight/commit/0491e4a3d85ddf16fb462b605334f7b71a64607d))
+* **transactionManager:** add retry logic ([7bb4979](https://github.com/EvenToNight/EvenToNight/commit/7bb4979f40eeefa4b7f6663759c583560a08b749))
+* **user:** handle user messages reception ([74a2f73](https://github.com/EvenToNight/EvenToNight/commit/74a2f731a6ac1f72724bd0f55f9a6b753299867d))
+
+### Bug Fixes
+
+* **checkout:** react to correct event ([d341999](https://github.com/EvenToNight/EvenToNight/commit/d34199941619cde607f4c53bb48e3934c342cd5b))
+* **event-ticket:** avoid duplicate ticket type for same event ([be3d862](https://github.com/EvenToNight/EvenToNight/commit/be3d8621028ee34d87275a87a4dd5e71ac0442c7))
+* **locale:** fix local selection from footer ([abea457](https://github.com/EvenToNight/EvenToNight/commit/abea4577eabed719edc2cc6e1baec672506a510d))
+* **setupApp:** update command to keep stripe listener alive ([0ad8b6c](https://github.com/EvenToNight/EvenToNight/commit/0ad8b6c65c7dd21a5d5be31c7bbf0f69f7d941e1))
+* **tickets:** check for event creator to mark ticket as USED ([3f61a3f](https://github.com/EvenToNight/EvenToNight/commit/3f61a3f7641882794c546b084b02258824e4df57))
+* **transaction:** add readPreference ([e86a0ce](https://github.com/EvenToNight/EvenToNight/commit/e86a0ceb0445202e397633f54931433da0a48e27))
+
+## [1.17.1](https://github.com/EvenToNight/EvenToNight/compare/v1.17.0...v1.17.1) (2026-01-16)
+
+### Bug Fixes
+
+* **media-service:** add healthcheck in media service ([d617a19](https://github.com/EvenToNight/EvenToNight/commit/d617a194a4861661e0a4050f726340b6f0196fd3))
+
+## [1.17.0](https://github.com/EvenToNight/EvenToNight/compare/v1.16.0...v1.17.0) (2026-01-15)
+
+### Features
+
+* **message:** send user.created  message on user registration ([5ccce7e](https://github.com/EvenToNight/EvenToNight/commit/5ccce7e633f87469e989db06c23cff3f49af0ae9))
+* **users:** add Keycloak JWKS caching and implement /publicKeys endpoint ([bf5c2ec](https://github.com/EvenToNight/EvenToNight/commit/bf5c2ec4bae8e42938e557b48b07bdd40f6ac3b2))
+* **users:** implement /logout endpoint ([ed66fca](https://github.com/EvenToNight/EvenToNight/commit/ed66fca548adf07011a55c607ba3567d85a8c78e))
+* **users:** implement /refresh endpoint ([adc49d4](https://github.com/EvenToNight/EvenToNight/commit/adc49d41f6b819498b4b818a43b5b20cad8b8587))
+
+### Bug Fixes
+
+* **media-service:** fix bug in media service ([77f0573](https://github.com/EvenToNight/EvenToNight/commit/77f05734607373dd60e41e5ecf7a658048396685))
+
+## [1.16.0](https://github.com/EvenToNight/EvenToNight/compare/v1.15.0...v1.16.0) (2026-01-14)
+
+### Features
+
+* **conversation-by-users:** provide api in controller for get conversation between two users ([c9c28bc](https://github.com/EvenToNight/EvenToNight/commit/c9c28bcc61ff4c7a8ca17f8b36fe002eae0a6643))
+* **messages-by-users:** provide api for get messages conversation between two users ([153d596](https://github.com/EvenToNight/EvenToNight/commit/153d596ef7aa99d5021e3d396270296e554196c3))
+* **participant-name:** add userName in participant model ([6d7479f](https://github.com/EvenToNight/EvenToNight/commit/6d7479f728fe287a816cffa704edfea83568bae8))
+* **search-conversation:** provide api for searching conversations ([b6074ae](https://github.com/EvenToNight/EvenToNight/commit/b6074ae2bf6868fef940d33172d217d3c82dcad0))
+* **search-conversation:** search also returns users with whom you can start a conversation ([e7cd8e1](https://github.com/EvenToNight/EvenToNight/commit/e7cd8e151f440746096bd447e71c661cc1fbea36))
+
+### Bug Fixes
+
+* **chat-service:** fix minor bugs after copilot review ([f5818cb](https://github.com/EvenToNight/EvenToNight/commit/f5818cb0e518dcd6d10f4aa43e1469fc3fc522ec))
+
+## [1.15.0](https://github.com/EvenToNight/EvenToNight/compare/v1.14.0...v1.15.0) (2026-01-10)
+
+### Features
+
+* **settings:** add change password tab ([71582d4](https://github.com/EvenToNight/EvenToNight/commit/71582d4fa40ea469cfb97c2b2dd67ce81a5d2ed4))
+* **settings:** add preferred language selection ([d167876](https://github.com/EvenToNight/EvenToNight/commit/d167876fe86061ec93269e51086d9effbc0bce23))
+* **support-chat:** add buttons in profile to use support-chat ([84af718](https://github.com/EvenToNight/EvenToNight/commit/84af718b9bf5f94f9c9112cd6f7fe4f9d89e7b41))
+* **support-chat:** implement mocked socket using localstorage and broadcast channel ([27b6a59](https://github.com/EvenToNight/EvenToNight/commit/27b6a5923b39c47d5d586571cce9d43ab1768dd4))
+
+### Bug Fixes
+
+* **DrawerMenu:** fix opening anchor point ([ebdb6ef](https://github.com/EvenToNight/EvenToNight/commit/ebdb6efd9371577ebef56545c6834e3d8a54a290))
+* **layout:** fix content height of TwoColumnLayout ([969b658](https://github.com/EvenToNight/EvenToNight/commit/969b658a1f2bd95ad2ab6bf23b46e3689c7086cc))
+* **users-service:** add USERS_SERVICE_SECRET for dev and fix mongo-users-express network ([51e2c9e](https://github.com/EvenToNight/EvenToNight/commit/51e2c9eb30cb53b340a0ff378198a276add00687))
+
 ## [1.14.0](https://github.com/EvenToNight/EvenToNight/compare/v1.13.0...v1.14.0) (2026-01-10)
 
 ### Features

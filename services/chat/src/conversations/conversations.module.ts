@@ -9,6 +9,12 @@ import {
 import { Participant, ParticipantSchema } from './schemas/participant.schema';
 import { Message, MessageSchema } from './schemas/message.schema';
 import { UsersModule } from 'src/users/users.module';
+import { ConversationsLookupController } from './controllers/conversations-lookup.controller';
+import { DataMapperService } from './services/data-mapper.service';
+import { MessageManagerService } from './services/message-manager.service';
+import { UserSuggestionService } from './services/user-suggestion.service';
+import { ConversationSearchService } from './services/conversation.search.service';
+import { ConversationManagerService } from './services/conversation.manager.service';
 
 @Module({
   imports: [
@@ -19,7 +25,14 @@ import { UsersModule } from 'src/users/users.module';
     ]),
     UsersModule,
   ],
-  providers: [ConversationsService],
-  controllers: [ConversationsController],
+  providers: [
+    ConversationsService,
+    DataMapperService,
+    MessageManagerService,
+    UserSuggestionService,
+    ConversationSearchService,
+    ConversationManagerService,
+  ],
+  controllers: [ConversationsController, ConversationsLookupController],
 })
 export class ConversationsModule {}

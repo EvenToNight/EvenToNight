@@ -12,6 +12,10 @@ const port = process.env.MEDIA_SERVICE_PORT || 9020
 
 const s3 = createS3Client()
 
+app.get("/health", (req, res) => {
+  res.json({ status: "ok" })
+})
+
 app.get("/*", async (req, res) => {
   try {
     await ensureBucketWithDefaults(s3, bucketName);
@@ -39,7 +43,8 @@ app.get("/*", async (req, res) => {
 app.post("/:type/:entityId", upload.single("file"), async (req, res) => {
   try {
     const { file } = req
-    const { type, entityId} = req.params
+    const type = req.params.type as string;
+    const entityId = req.params.entityId as string;
 
     const { isValid, error } = validateUploadFile(file, type, entityId)
     if (!isValid) {
@@ -66,7 +71,8 @@ app.post("/:type/:entityId", upload.single("file"), async (req, res) => {
 app.put("/:type/:entityId", upload.single("file"), async (req, res) => {
   try {
     const { file } = req
-    const { type, entityId} = req.params
+    const type = req.params.type as string;
+    const entityId = req.params.entityId as string;
 
     const { isValid, error } = validateUploadFile(file, type, entityId)
     if (!isValid) {
@@ -98,7 +104,9 @@ app.put("/:type/:entityId", upload.single("file"), async (req, res) => {
 
 app.delete("/:type/:entityId/:filename", async (req, res) => {
   try {
-    const { type, entityId, filename } = req.params;
+    const type = req.params.type as string;
+    const entityId = req.params.entityId as string;
+    const filename = req.params.filename as string;
     
     const { isValid, error } = validateDeleteParams(type, entityId, filename);
     if (!isValid) {

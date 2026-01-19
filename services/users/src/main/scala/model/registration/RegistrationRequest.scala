@@ -7,7 +7,7 @@ case class RegistrationRequest(
     username: Option[String] = None,
     email: Option[String] = None,
     password: Option[String] = None,
-    userType: Option[String] = None
+    role: Option[String] = None
 )
 
 object RegistrationRequest:
