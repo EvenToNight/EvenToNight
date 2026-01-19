@@ -12,9 +12,11 @@ object Main extends cask.MainRoutes {
   override def host: String                = "0.0.0.0"
   override def defaultHandler: HttpHandler = new CorsHandler(super.defaultHandler)
   override def allRoutes: Seq[cask.Routes] =
+
     Seq(
       new AuthRoutes(authService, userService, eventPublisher),
-      new UserRoutes(authService, userService, userQueryService, eventPublisher)
+      new UserRoutes(authService, userService, userQueryService, eventPublisher),
+      new AppRoutes()
     )
 
   sys.addShutdownHook {
