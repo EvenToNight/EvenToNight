@@ -1138,9 +1138,7 @@ components:
           type: array
           description: Array of users IDs
           items:
-            type: string
-            description: ID of the user who is following
-            example: user123, user456, user789
+            $ref: '#/components/schemas/UserFollowDto'
         limit:
           type: integer 
           description: Maximum number of items per page
@@ -1200,36 +1198,63 @@ components:
     
     ListsPaginatedResponseDto:
       type: object
-      description: Paginated response containing followers and following user IDs
+      description: Paginated response containing followers and following users with their details
       properties:
         followers:
           type: array
-          description: Array of follower user IDs
+          description: Array of followers with user details
           items:
-            type: string
-            description: ID of the user who is following
-            example: user123, user789, user456
+            $ref: '#/components/schemas/UserFollowDto'
         totalFollowers:
           type: integer
           description: Total number of followers
-          example: 3
+          example: 1
         following:
           type: array
-          description: Array of followed user IDs
+          description: Array of following users with their details
           items:
-            type: string
-            description: ID of the user being followed
-            example: user456, user789
+            $ref: '#/components/schemas/UserFollowDto'
         totalFollowing:
           type: integer
           description: Total number of following
-          example: 2
+          example: 1
       required:
         - followers
         - totalFollowers
         - following
         - totalFollowing
-    
+
+    UserFollowDto:
+      type: object
+      description: User information for follow relationships
+      properties:
+        userId:
+          type: string
+          description: Unique identifier of the user
+          example: user123
+        avatar:
+          type: string
+          description: URL of the user's avatar image
+          example: http://media.localhost/users/user123.png
+        name:
+          type: string
+          description: Display name of the user
+          example: John Doe
+        username:
+          type: string
+          description: Username of the user
+          example: johndoe
+      required:
+        - userId
+        - avatar
+        - name
+        - username
+      example:
+        userId: user123
+        avatar: http://media.localhost/users/user123.png
+        name: John Doe
+        username: johndoe
+
     ReviewsPaginatedResponseDto:
       type: object
       description: Paginated response containing reviews
