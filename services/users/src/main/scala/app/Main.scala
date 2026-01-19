@@ -14,7 +14,7 @@ object Main extends cask.MainRoutes {
   override def allRoutes: Seq[cask.Routes] =
     Seq(
       new AuthRoutes(authService, userService, eventPublisher),
-      new UserRoutes(authService, userService, eventPublisher)
+      new UserRoutes(authService, userService, userQueryService, eventPublisher)
     )
 
   sys.addShutdownHook {

@@ -14,6 +14,7 @@ trait AccountProfileRepository[A, P]:
   def findById(userId: String): Option[(A, P)]
   def delete(userId: String): Unit
   def update(account: A, profile: P, userId: String): Unit
+  def search(prefix: Option[String], limit: Int, getUsername: A => String, getName: P => String): List[(A, P)]
 
 class MongoAccountProfileRepository[A, P](
     referencesColl: MongoCollection[UserReferences],
@@ -62,3 +63,15 @@ class MongoAccountProfileRepository[A, P](
       accountsColl.replaceOne(Filters.eq("_id", ObjectId(reference.accountId)), account)
       profilesColl.replaceOne(Filters.eq("_id", ObjectId(reference.profileId)), profile)
     )
+
+  override def search(prefix: Option[String], limit: Int, getUsername: A => String, getName: P => String) =
+    val all = getAll()
+    val filtered = prefix match
+      case Some(p) =>
+        val lower = p.toLowerCase
+        all.filter { case (account, profile) =>
+          getUsername(account).toLowerCase.startsWith(lower) ||
+          getName(profile).toLowerCase.startsWith(lower)
+        }
+      case None => all
+    filtered.take(limit)

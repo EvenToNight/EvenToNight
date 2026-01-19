@@ -2,8 +2,11 @@ package controller
 
 import api.dto.request.UpdatePasswordRequestDTO
 import api.dto.request.UpdateUserRequestDTO
+import api.dto.request.query.SearchUsersQueryDTO
+import api.dto.response.query.PaginatedResponse
 import api.mappers.UserMappers.toUserDTO
 import api.utils.RequestParser.parseRequestBody
+import api.utils.UserQueryParser
 import cask.Request
 import cask.Response
 import http.AuthHeaderExtractor
@@ -20,10 +23,15 @@ import model.events.UserUpdated
 import model.member.MemberUpdate
 import model.organization.OrganizationUpdate
 import service.AuthenticationService
+import service.UserQueryService
 import service.UserService
 
-class UserRoutes(authService: AuthenticationService, userService: UserService, eventPublisher: EventPublisher)
-    extends cask.Routes {
+class UserRoutes(
+    authService: AuthenticationService,
+    userService: UserService,
+    userQueryService: UserQueryService,
+    eventPublisher: EventPublisher
+) extends cask.Routes {
   @cask.get("/:userId")
   def getUser(userId: String, req: Request): Response[String] =
     userService.getUserById(userId) match
@@ -145,6 +153,33 @@ class UserRoutes(authService: AuthenticationService, userService: UserService, e
     ) match
       case Right(_)  => Response("", 204)
       case Left(err) => Response(err, 400)
+
+  @cask.get("/search")
+  def searchUsers(
+      role: Option[String] = None,
+      prefix: Option[String] = None,
+      limit: Option[Int] = None,
+      offset: Option[Int] = None
+  ): Response[String] =
+    val dto = SearchUsersQueryDTO(role, prefix, limit, offset)
+    UserQueryParser.parse(dto) match
+      case Left(err) =>
+        Response(err.mkString(", "), 400)
+
+      case Right(query) =>
+        userQueryService.searchUsers(query) match
+          case Left(err) =>
+            Response(err.mkString(", "), 500)
+
+          case Right((users, hasMore)) =>
+            val response =
+              PaginatedResponse(
+                users.map(_.asJson),
+                query.limit,
+                query.offset,
+                hasMore
+              )
+            Response(response.asJson.spaces2, 200)
 
   initialize()
 }

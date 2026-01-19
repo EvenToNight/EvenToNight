@@ -10,6 +10,7 @@ trait OrganizationRepository:
   def findById(userId: String): Option[Organization]
   def delete(userId: String): Unit
   def update(updatedOrg: Organization, userId: String): Unit
+  def search(prefix: Option[String], limit: Int): List[Organization]
 
 class MongoOrganizationRepository(
     orgAccountProfileRepo: AccountProfileRepository[OrganizationAccount, OrganizationProfile]
@@ -32,3 +33,11 @@ class MongoOrganizationRepository(
 
   override def update(updatedOrg: Organization, userId: String) =
     orgAccountProfileRepo.update(updatedOrg.account, updatedOrg.profile, userId)
+
+  override def search(prefix: Option[String], limit: Int): List[Organization] =
+    orgAccountProfileRepo.search(
+      prefix,
+      limit,
+      getUsername = _.username,
+      getName = _.name
+    ).map { case (account, profile) => Organization(account, profile) }

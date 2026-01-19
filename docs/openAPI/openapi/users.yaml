@@ -328,6 +328,77 @@ paths:
         '400':
           description: Invalid request or password update failed
 
+  /search:
+    get:
+      tags: [Users]
+      summary: Search and filter users
+      description: >
+        Searches for users by role and/or username/profile name prefix.
+        Returns users matching the criteria in pages of results.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      parameters:
+        - name: role
+          in: query
+          description: Filter by role ("member" or "organization")
+          required: false
+          schema:
+            $ref: '#/components/schemas/SearchUsersQueryDTO/properties/role'
+        - name: prefix
+          in: query
+          description: Filter users whose username or profile name starts with this prefix (case-insensitive)
+          required: false
+          schema:
+            $ref: '#/components/schemas/SearchUsersQueryDTO/properties/prefix'
+        - name: limit
+          in: query
+          description: Maximum number of users to return (default 10, max 20)
+          required: false
+          schema:
+            $ref: '#/components/schemas/SearchUsersQueryDTO/properties/limit'
+        - name: offset
+          in: query
+          description: Number of users to skip for pagination (default 0)
+          required: false
+          schema:
+            $ref: '#/components/schemas/SearchUsersQueryDTO/properties/offset'
+      responses:
+        '200':
+          description: Successfully retrieved filtered users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserSearchResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidRole:
+                  summary: Role not valid
+                  value: "Invalid role: admin"
+                negativeLimit:
+                  summary: Limit not positive
+                  value: "Limit must be positive, got -5"
+                negativeOffset:
+                  summary: Offset not valid
+                  value: "Offset must be non-negative, got -3"
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                genericError:
+                  summary: Unexpected server error
+                  value: "Internal server error while searching users"
+
 components:
   schemas:
 
@@ -617,6 +688,83 @@ components:
           type: string
           format: password
           example: "NewStr0ngP@ss!"
+
+    SearchUsersQueryDTO:
+      type: object
+      description: Parameters used to filter/search users
+      properties:
+        role:
+          type: string
+          enum: [member, organization]
+          description: Filter users by role
+        prefix:
+          type: string
+          description: Filter users whose username or profile name starts with this prefix (case-insensitive)
+        limit:
+          type: integer
+          default: 10
+          maximum: 20
+          description: Maximum number of users to return (default 10, max 20)
+        offset:
+          type: integer
+          default: 0
+          minimum: 0
+          description: Number of users to skip for pagination (default 0)
+          
+    UserSearchResult:
+      type: object
+      description: Represents a single user returned in search results
+      required:
+        - username
+        - name
+        - avatar
+        - role
+      properties:
+        username:
+          type: string
+          description: The user's unique username
+          example: johndoe
+        name:
+          type: string
+          description: The full name of the user from their profile
+          example: John Doe
+        avatar:
+          type: string
+          description: URL to the user's avatar image
+          example: https://example.com/avatar.jpg
+        bio:
+          type: string
+          description: Short biography or description of the user (optional)
+          nullable: true
+          example: Software developer and event enthusiast.
+        role:
+          type: string
+          description: Role of the user, either "member" or "organization"
+          enum: [member, organization]
+          example: member
+
+    PaginatedUserSearchResponse:
+      type: object
+      description: Paginated response for user search
+      required:
+        - data
+        - limit
+        - offset
+        - hasMore
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserSearchResult'
+        limit:
+          type: integer
+          example: 20
+        offset:
+          type: integer
+          example: 0
+        hasMore:
+          type: boolean
+          example: true
 
   securitySchemes:
     bearerAuth:
