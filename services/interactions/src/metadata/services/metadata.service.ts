@@ -21,6 +21,7 @@ import { EventDeletedDto } from '../dto/event-deleted.dto';
 import { UserDeletedDto } from '../dto/user-deleted.dto';
 import { EventCompletedDto } from '../dto/event-completed.dto';
 import { UserInfoDto } from 'src/common/dto/user-info-dto';
+import { UserUpdatedDto } from '../dto/user-updated.dto';
 
 @Injectable()
 export class MetadataService {
@@ -163,6 +164,15 @@ export class MetadataService {
       }
     } catch (error) {
       this.logger.error(`Failed to handle event.completed: ${error}`);
+      throw error;
+    }
+  }
+
+  async handleUserUpdated(payload: UserUpdatedDto) {
+    try {
+      this.logger.debug(`Processing user.updated: ${JSON.stringify(payload)}`);
+    } catch (error) {
+      this.logger.error(`Failed to handle user.updated: ${error}`);
       throw error;
     }
   }
