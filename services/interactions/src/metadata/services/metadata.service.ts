@@ -349,4 +349,13 @@ export class MetadataService {
 
     return users as UserInfoDto[];
   }
+
+  async getEventIdsByOrganization(organizationId: string): Promise<string[]> {
+    const events = await this.eventModel
+      .find({ organizationId })
+      .select({ eventId: 1, _id: 0 })
+      .lean();
+
+    return events.map((e) => e.eventId);
+  }
 }

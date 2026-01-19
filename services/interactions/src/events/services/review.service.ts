@@ -207,4 +207,21 @@ export class ReviewService {
     await this.metadataService.validateUserExistence(userId);
     await this.reviewModel.deleteMany({ userId });
   }
+
+  async getUserReviewedEventIds(
+    userId: string,
+    eventIds: string[],
+  ): Promise<string[]> {
+    if (eventIds.length === 0) return [];
+
+    const reviews = await this.reviewModel
+      .find({
+        userId,
+        eventId: { $in: eventIds },
+      })
+      .select({ eventId: 1, _id: 0 })
+      .lean();
+
+    return reviews.map((r) => r.eventId);
+  }
 }

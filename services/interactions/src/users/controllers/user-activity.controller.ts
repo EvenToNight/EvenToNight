@@ -3,6 +3,7 @@ import { LikeService } from '../../events/services/like.service';
 import { PaginatedQueryDto } from '../../common/dto/paginated-query.dto';
 import { ReviewService } from '../../events/services/review.service';
 import { ParticipationService } from '../../events/services/participation.service';
+import { UserParticipationsQueryDto } from '../dto/user-participations-query.dto';
 
 @Controller('users/:userId')
 export class UserActivityController {
@@ -54,13 +55,15 @@ export class UserActivityController {
   @Get('participations')
   async getUserParticipations(
     @Param('userId') userId: string,
-    @Query() paginatedQuery: PaginatedQueryDto,
+    @Query() paginatedQuery: UserParticipationsQueryDto,
   ) {
-    const { limit, offset } = paginatedQuery;
+    const { limit, offset, organizationId, reviewed } = paginatedQuery;
     return this.participationService.getUserParticipations(
       userId,
       limit,
       offset,
+      organizationId,
+      reviewed,
     );
   }
 
