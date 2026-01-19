@@ -29,7 +29,7 @@ const ITEMS_PER_PAGE = 20
 type ExploreTab = 'events' | 'organizations' | 'people'
 const activeTab = ref<ExploreTab>('events')
 
-const events = ref<{ event: Event; isFavorite: boolean }[]>([])
+const events = ref<(Event & { liked?: boolean })[]>([])
 const hasMoreEvents = ref(true)
 const loadingEvents = ref(false)
 
@@ -67,18 +67,18 @@ const searchEvents = async () => {
       pagination: { limit: ITEMS_PER_PAGE },
       ...eventFilters.value,
     })
-    events.value = response.items.map((event) => ({ event, isFavorite: false }))
+    events.value = response.items.map((event) => ({ ...event, liked: false }))
     hasMoreEvents.value = response.hasMore
     if (authStore.user?.id) {
       const userId = authStore.user.id
-      const likePromises = response.items.map(async (event) => {
+      const likePromises = events.value.map(async (event) => {
         try {
           const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
           console.log(`Event ${event.eventId} is liked by user: ${isLiked}`)
-          return { event, isFavorite: isLiked }
+          return { ...event, liked: isLiked }
         } catch (error) {
           console.error(`Failed to load like status for event ${event.eventId}:`, error)
-          return { event, isFavorite: false }
+          return { ...event, liked: false }
         }
       })
       events.value = await Promise.all(likePromises)
@@ -154,30 +154,6 @@ const onTabChange = (tabId: string) => {
   }
 }
 
-const handleFavoriteToggle = async (eventId: string) => {
-  if (!authStore.isAuthenticated || !authStore.user) {
-    emit('auth-required')
-    return
-  }
-  const isFavorite = !(
-    events.value.find((event) => event.event.eventId === eventId)?.isFavorite ?? false
-  )
-  try {
-    if (isFavorite) {
-      await api.interactions.likeEvent(eventId, authStore.user.id)
-      console.log(`Event ${eventId} liked`)
-    } else {
-      await api.interactions.unlikeEvent(eventId, authStore.user.id)
-      console.log(`Event ${eventId} unliked`)
-    }
-    events.value = events.value.map((event) =>
-      event.event.eventId === eventId ? { ...event, isFavorite } : event
-    )
-  } catch (error) {
-    console.error('Failed to toggle favorite:', error)
-  }
-}
-
 const organizationsAsSearchResults = computed<SearchResult[]>(() => {
   return organizations.value.map((org) => ({
     type: 'organization',
@@ -207,7 +183,7 @@ const tabs = computed<Tab[]>(() => [
       events: events.value,
       loading: loadingEvents.value,
       searchQuery: searchQuery.value,
-      onFavoriteToggle: handleFavoriteToggle,
+      onAuthRequired: () => emit('auth-required'),
       onFiltersChanged: handleFiltersChanged,
     },
   },

@@ -184,7 +184,7 @@ export class CreateCheckoutSessionHandler {
       ticketTypeIds: ticketTypeIds,
       eventId,
       successUrl: dto.successUrl,
-      cancelUrl: `${PAYMENT_SERVICE_BASE_URL}/checkout-session/{CHECKOUT_SESSION_ID}/cancel?redirect_to=${encodeURIComponent(dto.cancelUrl)}`,
+      cancelUrl: `${PAYMENT_SERVICE_BASE_URL}/checkout-sessions/{CHECKOUT_SESSION_ID}/cancel?redirect_to=${encodeURIComponent(dto.cancelUrl)}`,
     });
 
     const expiresAt = new Date();

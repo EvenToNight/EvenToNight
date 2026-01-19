@@ -24,25 +24,6 @@ const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
 const upcomingEvents = ref<Event[]>([])
 const eventLikes = ref<Record<string, boolean>>({})
 
-const handleFavoriteToggle = async (eventId: string) => {
-  if (!authStore.isAuthenticated || !authStore.user) {
-    emit('auth-required')
-    return
-  }
-  const isFavorite = !(eventLikes.value[eventId] ?? false)
-  try {
-    if (isFavorite) {
-      await api.interactions.likeEvent(eventId, authStore.user.id)
-      console.log(`Event ${eventId} liked`)
-    } else {
-      await api.interactions.unlikeEvent(eventId, authStore.user.id)
-    }
-    eventLikes.value[eventId] = isFavorite
-  } catch (error) {
-    console.error('Failed to toggle favorite:', error)
-  }
-}
-
 const handleSeeAllEvents = () => {
   console.log('See all events clicked')
   pendingExploreFilters.value = { otherFilter: 'upcoming' }
@@ -84,7 +65,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div>
+  <div class="home-view-content">
     <div class="hero-section">
       <div class="hero-container">
         <div class="theme-selector-absolute">
@@ -115,11 +96,10 @@ onMounted(async () => {
           @see-all="handleSeeAllEvents"
         >
           <EventCard
-            v-for="event in upcomingEvents"
+            v-for="(event, index) in upcomingEvents"
             :key="event.eventId"
-            :event="event"
-            :favorite="eventLikes[event.eventId] ?? false"
-            @favorite-toggle="handleFavoriteToggle(event.eventId)"
+            v-model="upcomingEvents[index]!"
+            @auth-required="emit('auth-required')"
           />
         </CardSlider>
 
@@ -130,7 +110,15 @@ onMounted(async () => {
 </template>
 
 <style lang="scss" scoped>
+.home-view-content {
+  width: 100%;
+  min-height: 100%;
+  background: #f5f5f5;
+}
+
 .container {
+  background: #f5f5f5;
+
   max-width: $breakpoint-xl;
   margin: 0 auto;
   width: 100%;

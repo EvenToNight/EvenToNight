@@ -96,15 +96,6 @@ const tabs = computed<Tab[]>(() => {
     component: MyLikesTab,
   })
 
-  if (!isOrganization.value && isOwnProfile.value) {
-    baseTabs.push({
-      id: 'tickets',
-      label: t('userProfile.myTickets'),
-      icon: 'confirmation_number',
-      component: TicketsTab,
-    })
-  }
-
   baseTabs.push({
     id: 'events',
     label: isOwnProfile.value ? t('userProfile.myEvents') : t('userProfile.events'),
@@ -138,6 +129,15 @@ const tabs = computed<Tab[]>(() => {
         emptyText: t('userProfile.noDraftedEvents'),
         emptyIconName: 'edit_note',
       },
+    })
+  }
+
+  if (!isOrganization.value && isOwnProfile.value) {
+    baseTabs.push({
+      id: 'tickets',
+      label: t('userProfile.myTickets'),
+      icon: 'confirmation_number',
+      component: TicketsTab,
     })
   }
 

@@ -64,90 +64,55 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
     done(!hasMore.value)
   }
 }
-
-const handleLike = async (eventId: string) => {
-  if (!authStore.user?.id) return
-  try {
-    const liked = events.value.find((event) => event.eventId === eventId)?.liked
-    if (liked) {
-      await api.interactions.unlikeEvent(eventId, authStore.user.id)
-    } else {
-      await api.interactions.likeEvent(eventId, authStore.user.id)
-    }
-    events.value = events.value.map((event) => {
-      if (event.eventId === eventId) {
-        console.log('Marking event as unliked locally:', eventId)
-        return { ...event, liked: !event.liked }
-      }
-      return event
-    })
-  } catch (error) {
-    console.error('Failed to unlike event:', error)
-  }
-}
 </script>
 
 <template>
   <div class="my-likes-tab">
-    <q-inner-loading :showing="loading" />
+    <q-infinite-scroll
+      v-if="!loading && events.length > 0"
+      :offset="250"
+      class="events-scroll"
+      :disable="loadingMore"
+      @load="onLoad"
+    >
+      <div class="events-grid">
+        <EventCard v-for="(event, index) in events" :key="event.eventId" v-model="events[index]!" />
+      </div>
 
-    <template v-if="!loading">
-      <q-infinite-scroll
-        v-if="events.length > 0"
-        :offset="250"
-        :disable="loadingMore"
-        @load="onLoad"
-      >
-        <div class="events-grid">
-          <EventCard
-            v-for="event in events"
-            :key="event.eventId"
-            :event="event"
-            :favorite="event.liked"
-            @favorite-toggle="handleLike(event.eventId)"
-          />
+      <template #loading>
+        <div class="row justify-center q-my-md">
+          <q-spinner-dots color="primary" size="40px" />
         </div>
+      </template>
+    </q-infinite-scroll>
 
-        <template #loading>
-          <div class="loading-state">
-            <q-spinner-dots color="primary" size="50px" />
-          </div>
-        </template>
-      </q-infinite-scroll>
-
-      <EmptyState
-        v-else
-        empty-icon-name="favorite_border"
-        :empty-text="'You have not liked any events yet.'"
-        class="empty-state"
-      />
-    </template>
+    <EmptyState
+      v-else-if="!loading"
+      empty-icon-name="favorite_border"
+      :empty-text="'You have not liked any events yet.'"
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .my-likes-tab {
-  padding: $spacing-6;
-  min-height: 400px;
-  position: relative;
+  @include flex-column;
+  height: 100%;
+}
 
-  @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-4;
-  }
+.events-scroll {
+  height: 100%;
 }
 
 .events-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: $spacing-4;
-}
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: $spacing-6;
+  padding: $spacing-3;
 
-.loading-state {
-  @include flex-center;
-  padding: $spacing-8;
-}
-
-.empty-state {
-  padding: $spacing-8 0;
+  @media (max-width: $breakpoint-mobile) {
+    grid-template-columns: 1fr;
+    gap: $spacing-4;
+  }
 }
 </style>
