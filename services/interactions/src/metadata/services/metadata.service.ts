@@ -222,6 +222,7 @@ export class MetadataService {
       this.validateEventExistence(eventId),
       this.validateUserExistence(createReviewDto.userId),
       this.validateEventCompleted(eventId),
+      this.validateUserNotCreator(eventId, createReviewDto.userId),
       /* MOCK VALIDATION - Uncomment for real validation */
       // this.hasParticipated(eventId, createReviewDto.userId);
     ]);
@@ -266,7 +267,7 @@ export class MetadataService {
     const status = event?.status || EventStatus.CANCELLED;
     if (status != EventStatus.COMPLETED) {
       throw new BadRequestException(
-        'Not possible to reviewed a event not completed',
+        'It is not possible to review a event not completed',
       );
     }
   }
@@ -283,6 +284,13 @@ export class MetadataService {
       throw new NotFoundException(
         `User with ID ${userId} has not participated in event ${eventId}`,
       );
+    }
+  }
+
+  async validateUserNotCreator(eventId: string, userId: string): Promise<void> {
+    const { creatorId, collaboratorIds } = await this.getEventInfo(eventId);
+    if (creatorId == userId || collaboratorIds.includes(userId)) {
+      throw new BadRequestException('User cannot review their own event');
     }
   }
 
