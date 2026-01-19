@@ -171,6 +171,21 @@ export class MetadataService {
   async handleUserUpdated(payload: UserUpdatedDto) {
     try {
       this.logger.debug(`Processing user.updated: ${JSON.stringify(payload)}`);
+
+      const updateResult = await this.userModel.updateOne(
+        { userId: payload.id },
+        {
+          name: payload.name,
+          username: payload.username,
+          role: payload.role,
+          avatar: payload.avatar,
+        },
+      );
+      if (updateResult.modifiedCount == 0) {
+        this.logger.warn(`User ${payload.id} not found for update`);
+      } else {
+        this.logger.log(`User ${payload.id} update from metadata`);
+      }
     } catch (error) {
       this.logger.error(`Failed to handle user.updated: ${error}`);
       throw error;
