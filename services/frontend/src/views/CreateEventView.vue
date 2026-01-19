@@ -3,11 +3,14 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
 import { api } from '@/api'
-import type { CreationEventStatus, PartialEventData } from '@/api/types/events'
+import type {
+  CreationEventStatus,
+  // PartialEventData,
+  PartialEventDataForUpdate,
+} from '@/api/types/events'
 import type { Location } from '@/api/types/common'
 import { parseLocation, buildLocationDisplayName } from '@/api/utils/locationUtils'
 import type { TicketType } from '@/api/types/payments'
-import type { CreateEventTicketTypeRequest } from '@/api/interfaces/payments'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import FormField from '@/components/forms/FormField.vue'
@@ -36,7 +39,6 @@ const title = ref('')
 const date = ref('')
 const time = ref('')
 const description = ref('')
-const price = ref('')
 const tags = ref<string[]>([])
 const collaborators = ref<string[]>([])
 const location = ref<LocationOption | null>(null)
@@ -44,6 +46,7 @@ const poster = ref<File | null>(null)
 
 // Ticket types
 interface TicketEntry {
+  id: string | null
   type: TicketType | null
   price: string
   currency: string
@@ -60,6 +63,7 @@ const availableTicketTypes = ref<TicketType[]>([])
 const ticketEntries = ref<TicketEntry[]>([])
 
 const createEmptyTicketEntry = (): TicketEntry => ({
+  id: null,
   type: null,
   price: '',
   currency: 'EUR',
@@ -159,7 +163,6 @@ const loadEvent = async () => {
       time.value = eventDate.toTimeString().slice(0, 5) // HH:mm
     }
     description.value = event.description ?? ''
-    price.value = String(event.price ?? '')
     tags.value = event.tags ?? []
     collaborators.value = event.collaboratorIds ?? []
     if (event.location) {
@@ -279,7 +282,7 @@ const handleLocationInputValue = (val: string) => {
 }
 
 const saveDraft = async () => {
-  const eventData: PartialEventData = buildEventData('DRAFT')
+  const eventData: PartialEventDataForUpdate = buildEventData('DRAFT')
   if (isEditMode.value) {
     await api.events.updateEventData(eventId.value, eventData)
     if (poster.value) {
@@ -299,7 +302,7 @@ const saveDraft = async () => {
   goToUserProfile(eventData.creatorId)
 }
 
-const buildEventData = (status: CreationEventStatus): PartialEventData => {
+const buildEventData = (status: CreationEventStatus): PartialEventDataForUpdate => {
   return {
     title: title.value || undefined,
     description: description.value || undefined,
@@ -307,10 +310,22 @@ const buildEventData = (status: CreationEventStatus): PartialEventData => {
     tags: tags.value.length > 0 ? tags.value : undefined,
     location: location.value?.value || undefined,
     date: date.value && time.value ? new Date(`${date.value}T${time.value}`) : undefined,
-    price: Number(price.value) || undefined,
+    price: 0, //TODO: deprecated field, to be removed
     status: status,
     creatorId: currentUserId!,
     collaboratorIds: collaborators.value.length > 0 ? collaborators.value : undefined,
+    //TODO maybe id will cause problem in creation
+    ticketTypes: ticketEntries.value
+      .filter((entry) => entry.type && entry.price && entry.quantity && entry.currency)
+      .map((entry) => ({
+        id: entry.id || 'will-be-generated',
+        type: entry.type!,
+        price: {
+          amount: Number(entry.price),
+          currency: entry.currency,
+        },
+        quantity: Number(entry.quantity),
+      })),
   }
 }
 
@@ -347,29 +362,13 @@ const handleDelete = async () => {
   })
 }
 
-const createTicketTypesForEvent = async (eventId: string) => {
-  const validEntries = ticketEntries.value.filter(
-    (entry) => entry.type && entry.price && entry.quantity
-  )
-
-  for (const entry of validEntries) {
-    const request: CreateEventTicketTypeRequest = {
-      type: entry.type!,
-      price: Number(entry.price),
-      currency: entry.currency,
-      quantity: Number(entry.quantity),
-    }
-    await api.payments.createEventTicketType(eventId, request)
-  }
-}
-
 const onSubmit = async () => {
   try {
-    const eventData: PartialEventData = buildEventData('PUBLISHED')
+    const eventData: PartialEventDataForUpdate = buildEventData('PUBLISHED')
     if (isEditMode.value) {
       await api.events.updateEventData(eventId.value, eventData)
       await api.events.updateEventPoster(eventId.value, poster.value!)
-      await createTicketTypesForEvent(eventId.value)
+      // await createTicketTypesForEvent(eventId.value)
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventUpdate'),
@@ -377,7 +376,7 @@ const onSubmit = async () => {
       goToEventDetails(eventId.value)
     } else {
       const response = await api.events.createEvent(eventData)
-      await createTicketTypesForEvent(response.eventId)
+      // await createTicketTypesForEvent(response.eventId)
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventPublication'),
@@ -455,14 +454,6 @@ const onSubmit = async () => {
             rows="4"
           />
 
-          <FormField
-            v-model="price"
-            type="number"
-            :label="t('eventCreationForm.price') + ' (€)'"
-            :rules="[notEmpty(t('eventCreationForm.priceError'))]"
-            prefix="€"
-          />
-
           <!-- Ticket Types Section -->
           <div v-if="availableTicketTypes.length > 0" class="ticket-types-section q-my-md">
             <div class="text-subtitle1 q-mb-sm">Ticket Types</div>
@@ -475,6 +466,7 @@ const onSubmit = async () => {
                 outlined
                 dense
                 class="ticket-type-select"
+                :rules="[notEmpty('Please select a ticket type')]"
               />
 
               <q-input
@@ -484,6 +476,7 @@ const onSubmit = async () => {
                 outlined
                 dense
                 class="ticket-price-input"
+                :rules="[notEmpty('Please enter a price')]"
               />
 
               <q-select
@@ -497,6 +490,7 @@ const onSubmit = async () => {
                 outlined
                 dense
                 class="ticket-currency-select"
+                :rules="[notEmpty('Please select a currency')]"
               />
 
               <q-input
@@ -506,6 +500,7 @@ const onSubmit = async () => {
                 outlined
                 dense
                 class="ticket-quantity-input"
+                :rules="[notEmpty('Please enter a quantity')]"
               />
 
               <q-btn

@@ -1,20 +1,20 @@
-import { TICKET_TYPE_VALUES, type EventTicketType, type TicketType } from '../types/payments'
+import type { EventTicketType, EventTicketTypeData, TicketType } from '../types/payments'
 import type { EventID } from '../types/events'
 import type {
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
-  CreateEventTicketTypeRequest,
+  PaymentsAPI,
 } from '../interfaces/payments'
 import { createMockEventTicketType, mockEventTicketTypes } from './data/payments'
 
-export const mockPaymentsApi = {
+export const mockPaymentsApi: PaymentsAPI = {
   async getTicketTypes(): Promise<TicketType[]> {
-    return [...TICKET_TYPE_VALUES]
+    return ['STANDARD', 'VIP', 'A', 'B', 'C', 'D', 'E', 'F', 'G']
   },
 
   async createEventTicketType(
     eventId: EventID,
-    request: CreateEventTicketTypeRequest
+    request: EventTicketTypeData
   ): Promise<EventTicketType> {
     const existingTicketType = mockEventTicketTypes.find(
       (t) => t.eventId === eventId && t.type === request.type
@@ -27,15 +27,39 @@ export const mockPaymentsApi = {
       eventId,
       type: request.type,
       description: request.description,
-      price: {
-        amount: request.price,
-        currency: request.currency || 'USD',
-      },
+      price: request.price,
       availableQuantity: request.quantity,
       soldQuantity: 0,
+      totalQuantity: request.quantity,
+      isSoldOut: false,
     }
     mockEventTicketTypes.push(newTicketType)
     return newTicketType
+  },
+
+  async updateEventTicketType(
+    ticketTypeId: string,
+    request: EventTicketTypeData
+  ): Promise<EventTicketType> {
+    const ticketTypeIndex = mockEventTicketTypes.findIndex((t) => t.id === ticketTypeId)
+    if (ticketTypeIndex === -1) {
+      throw new Error(`Ticket type with ID ${ticketTypeId} not found`)
+    }
+    const existingTicketType = mockEventTicketTypes[ticketTypeIndex]!
+    const tempAvailableQuantity = request.quantity
+      ? request.quantity - existingTicketType.soldQuantity
+      : existingTicketType.availableQuantity
+    const availableQuantity = tempAvailableQuantity < 0 ? 0 : tempAvailableQuantity
+    const updatedTicketType: EventTicketType = {
+      ...existingTicketType,
+      description: request.description ?? existingTicketType.description,
+      price: request.price ?? existingTicketType.price,
+      availableQuantity: availableQuantity,
+      totalQuantity: availableQuantity + existingTicketType.soldQuantity,
+      isSoldOut: availableQuantity === 0,
+    }
+    mockEventTicketTypes[ticketTypeIndex] = updatedTicketType
+    return updatedTicketType
   },
 
   async getEventTicketType(eventId: EventID): Promise<EventTicketType[]> {

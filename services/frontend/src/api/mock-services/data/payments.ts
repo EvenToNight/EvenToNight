@@ -9,6 +9,8 @@ export const DEFAULT_TICKET_TYPE: Omit<EventTicketType, 'eventId' | 'type'> = {
   },
   availableQuantity: 100,
   soldQuantity: 50,
+  totalQuantity: 150,
+  isSoldOut: false,
 }
 
 let mockTicketIdCounter = 0
