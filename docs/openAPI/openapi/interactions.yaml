@@ -511,6 +511,7 @@ paths:
   /users/{userId}/participations:
     get:
       summary: Get events a user is participating in
+      description: Returns a paginated list of events the user has participated in, with optional filters for organization and review status
       servers:
         - url: http://localhost:9030
           description: Local server
@@ -522,6 +523,7 @@ paths:
           required: true
           schema:
             type: string
+          description: ID of the user
           example: user123
         - name: offset
           in: query
@@ -530,6 +532,7 @@ paths:
             type: integer
             minimum: 0
             default: 0
+          description: Number of items to skip for pagination
         - name: limit
           in: query
           required: false
@@ -538,13 +541,52 @@ paths:
             minimum: 1
             maximum: 100
             default: 20
+          description: Maximum number of items to return
+        - name: organizationId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter participations by events belonging to a specific organization
+          example: org456
+        - name: reviewed
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter by review status (true = only reviewed events, false = only unreviewed events)
+          example: false
       responses:
         '200':
           description: A paginated list of events the user is participating in
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventPaginatedResponseDto'
+                $ref: '#/components/schemas/UserParticipationsPaginatedResponseDto'
+              examples:
+                allParticipations:
+                  summary: All participations
+                  value:
+                    items:
+                      - eventId: event123
+                        createdAt: "2026-01-15T10:00:00Z"
+                        reviewed: false
+                      - eventId: event456
+                        createdAt: "2026-01-10T14:30:00Z"
+                        reviewed: true
+                    totalItems: 2
+                    limit: 20
+                    offset: 0
+                unreviewedOnly:
+                  summary: Only unreviewed participations
+                  value:
+                    items:
+                      - eventId: event123
+                        createdAt: "2026-01-15T10:00:00Z"
+                        reviewed: false
+                    totalItems: 1
+                    limit: 20
+                    offset: 0
         '400':
           description: Bad Request
           content:
@@ -556,6 +598,19 @@ paths:
                     type: string
                   statusCode:
                     type: integer
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User with ID user123 not found
+                  statusCode:
+                    type: integer
+                    example: 404
       tags:
         - Users
 
@@ -1254,6 +1309,59 @@ components:
         avatar: http://media.localhost/users/user123.png
         name: John Doe
         username: johndoe
+
+    UserParticipationsPaginatedResponseDto:
+      type: object
+      description: Paginated response containing user participations
+      properties:
+        items:
+          type: array
+          description: Array of participation records
+          items:
+            $ref: '#/components/schemas/UserParticipationDto'
+        totalItems:
+          type: integer
+          description: Total number of participations matching the filters
+          example: 15
+        limit:
+          type: integer
+          description: Maximum number of items returned
+          example: 20
+        offset:
+          type: integer
+          description: Number of items skipped
+          example: 0
+      required:
+        - items
+        - totalItems
+        - limit
+        - offset
+
+    UserParticipationDto:
+      type: object
+      description: User participation record with review status
+      properties:
+        eventId:
+          type: string
+          description: ID of the event
+          example: event123
+        createdAt:
+          type: string
+          format: date-time
+          description: When the user joined the event
+          example: "2026-01-15T10:00:00Z"
+        reviewed:
+          type: boolean
+          description: Whether the user has reviewed this event
+          example: false
+      required:
+        - eventId
+        - createdAt
+        - reviewed
+      example:
+        eventId: event123
+        createdAt: "2026-01-15T10:00:00Z"
+        reviewed: false
 
     ReviewsPaginatedResponseDto:
       type: object
