@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Event } from '../schemas/event.schema';
+import { Event, EventStatus } from '../schemas/event.schema';
 import { User } from '../schemas/user.schema';
 import { LikeService } from '../../events/services/like.service';
 import { ReviewService } from '../../events/services/review.service';
@@ -48,6 +48,7 @@ export class MetadataService {
             eventId: payload.eventId,
             creatorId: payload.creatorId,
             collaboratorIds: payload.collaboratorIds ?? [],
+            status: EventStatus.PUBLISHED,
           },
         },
         { upsert: true },

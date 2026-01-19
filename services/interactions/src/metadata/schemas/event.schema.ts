@@ -2,9 +2,9 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export enum EventStatus {
-  PUBLISHED,
-  COMPLETED,
-  CANCELLED,
+  PUBLISHED = 'published',
+  COMPLETED = 'completed',
+  CANCELLED = 'cancelled',
 }
 
 @Schema({ versionKey: false })
@@ -18,7 +18,7 @@ export class Event extends Document {
   @Prop({ type: [String], default: [] })
   collaboratorIds: string[];
 
-  @Prop({})
+  @Prop({ required: true })
   status: EventStatus;
 }
 
