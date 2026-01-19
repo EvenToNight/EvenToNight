@@ -97,23 +97,16 @@ export class MetadataService {
     try {
       this.logger.debug(`Processing event.deleted: ${JSON.stringify(payload)}`);
 
-      const deleteResult = await this.eventModel.deleteOne({
-        eventId: payload.eventId,
-      });
+      const deleteResult = await this.eventModel.updateOne(
+        { eventId: payload.eventId },
+        { status: EventStatus.CANCELLED },
+      );
 
-      if (deleteResult.deletedCount === 0) {
+      if (deleteResult.modifiedCount === 0) {
         this.logger.warn(`Event ${payload.eventId} not found for deletion`);
       } else {
         this.logger.log(`Event ${payload.eventId} deleted from metadata`);
       }
-
-      await Promise.all([
-        this.likeService.deleteEvent(payload.eventId),
-        this.reviewService.deleteEvent(payload.eventId),
-        this.participationService.deleteEvent(payload.eventId),
-      ]);
-
-      this.logger.log(`Cleanup completed for event ${payload.eventId}`);
     } catch (error) {
       this.logger.error(`Failed to handle event.deleted: ${error}`);
       throw error;
