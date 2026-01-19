@@ -20,6 +20,7 @@ import { UserCreatedDto } from '../dto/user-created.dto';
 import { EventDeletedDto } from '../dto/event-deleted.dto';
 import { UserDeletedDto } from '../dto/user-deleted.dto';
 import { EventCompletedDto } from '../dto/event-completed.dto';
+import { UserInfoDto } from 'src/common/dto/user-info-dto';
 
 @Injectable()
 export class MetadataService {
@@ -311,5 +312,16 @@ export class MetadataService {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
     return user;
+  }
+
+  async getUsersInfo(userIds: string[]): Promise<UserInfoDto[]> {
+    if (userIds.length === 0) return [];
+
+    const users = await this.userModel
+      .find({ userId: { $in: userIds } })
+      .select({ userId: 1, avatar: 1, name: 1, username: 1, _id: 0 })
+      .lean();
+
+    return users as UserInfoDto[];
   }
 }
