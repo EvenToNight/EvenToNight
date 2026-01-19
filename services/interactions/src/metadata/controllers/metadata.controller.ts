@@ -58,6 +58,7 @@ export class MetadataController {
           break;
         case 'user.updated':
           await this.handleUserUpdated(payload);
+          break;
         default:
           this.logger.warn(`⚠️  Unhandled routing key: ${routingKey}`);
           channel.ack(originalMsg);

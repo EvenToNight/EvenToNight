@@ -97,7 +97,7 @@ export class ParticipationService {
       query = query.limit(limit);
     }
 
-    const [items, _] = await Promise.all([
+    const [items] = await Promise.all([
       query.exec(),
       this.participationModel.countDocuments({ userId }),
     ]);
