@@ -4,7 +4,7 @@ import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
-const { goToCreateEvent, goToEditProfile, goToSettings, goToChat } = useNavigation()
+const { goToCreateEvent, goToSettings, goToChat } = useNavigation()
 
 interface Props {
   isOwnProfile: boolean
@@ -18,10 +18,6 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   followToggle: []
 }>()
-
-const handleEditProfile = () => {
-  goToEditProfile()
-}
 
 const handleCreateEvent = () => {
   goToCreateEvent()
@@ -43,12 +39,6 @@ const handleOpenChat = () => {
 <template>
   <div class="profile-actions">
     <template v-if="isOwnProfile">
-      <Button
-        :label="t('userProfile.editProfile')"
-        icon="edit"
-        variant="secondary"
-        @click="handleEditProfile"
-      />
       <Button label="Chats" icon="chat" variant="secondary" @click="handleOpenChat" />
       <Button
         v-if="isOrganization"
