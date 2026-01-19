@@ -646,8 +646,12 @@ paths:
                   hasParticipated:
                     type: boolean
                     description: Indicates if the user has participated in the event
+                  hasReviewed:
+                    type: boolean
+                    description: Indicates if the user has reviewed the event
               example:
                 hasParticipated: true
+                hasReviewed: false
       tags:
         - Users
 
