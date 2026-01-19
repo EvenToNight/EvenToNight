@@ -45,11 +45,7 @@ export class UserActivityController {
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
   ) {
-    const hasReviewed = await this.reviewService.hasUserReviewedEvent(
-      userId,
-      eventId,
-    );
-    return { hasReviewed };
+    return this.reviewService.getReview(userId, eventId);
   }
 
   @Get('participations')

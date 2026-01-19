@@ -224,4 +224,14 @@ export class ReviewService {
 
     return reviews.map((r) => r.eventId);
   }
+
+  async getReview(userId: string, eventId: string): Promise<Review> {
+    await this.metadataService.validateUserExistence(userId);
+    await this.metadataService.validateEventExistence(eventId);
+    const review = await this.reviewModel.findOne({ userId, eventId });
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+    return review;
+  }
 }
