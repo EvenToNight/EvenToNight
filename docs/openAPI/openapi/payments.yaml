@@ -1,0 +1,1004 @@
+openapi: 3.0.1
+info:
+  title: EvenToNight - Payments API
+  version: 1.0.0
+  description: API for managing event ticket types, pricing, and availability
+paths:
+
+  # Event Ticket Types endpoints (per-event)
+  /events/{eventId}/ticket-types:
+    get:
+      summary: Get all ticket types for an event
+      description: Retrieve all available ticket types for a specific event
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event
+          schema:
+            type: string
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: List of ticket types for the event
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/EventTicketTypeResponseDto'
+              example:
+                - id: ett_123e4567-e89b-12d3-a456-426614174000
+                  eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                  type: STANDARD
+                  description: "General admission ticket"
+                  price:
+                    amount: 29.99
+                    currency: EUR
+                  availableQuantity: 85
+                  soldQuantity: 15
+                  totalQuantity: 100
+                  isSoldOut: false
+                - id: ett_456e7890-e89b-12d3-a456-426614174111
+                  eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                  type: VIP
+                  description: "VIP access with backstage pass"
+                  price:
+                    amount: 99.99
+                    currency: EUR
+                  availableQuantity: 0
+                  soldQuantity: 20
+                  totalQuantity: 20
+                  isSoldOut: true
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Event
+
+    post:
+      summary: Create a new ticket type for an event
+      description: Define a new ticket type with pricing and quantity for a specific event
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event to create ticket type for
+          schema:
+            type: string
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventTicketTypeDto'
+            example:
+              type: STANDARD
+              description: "General admission ticket"
+              price: 29.99
+              currency: EUR
+              quantity: 100
+              creatorId: usr_123e4567-e89b-12d3-a456-426614174000
+      responses:
+        '201':
+          description: Ticket type created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventTicketTypeResponseDto'
+              example:
+                id: ett_123e4567-e89b-12d3-a456-426614174000
+                eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                type: STANDARD
+                description: "General admission ticket"
+                price:
+                  amount: 29.99
+                  currency: EUR
+                availableQuantity: 100
+                soldQuantity: 0
+                totalQuantity: 100
+                isSoldOut: false
+        '400':
+          description: Bad Request - Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidType:
+                  summary: Invalid ticket type
+                  value:
+                    statusCode: 400
+                    message: ["type must be one of: STANDARD, VIP"]
+                    error: Bad Request
+                invalidPrice:
+                  summary: Invalid price
+                  value:
+                    statusCode: 400
+                    message: ["price must not be less than 0"]
+                    error: Bad Request
+                invalidQuantity:
+                  summary: Invalid quantity
+                  value:
+                    statusCode: 400
+                    message: ["quantity must not be less than 1"]
+                    error: Bad Request
+        '409':
+          description: Conflict - Ticket type already exists for this event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 409
+                message: Ticket type STANDARD already exists for event evt_550e8400-e29b-41d4-a716-446655440000
+                error: Conflict
+      tags:
+        - Event
+
+    delete:
+      summary: Delete all ticket types for an event
+      description: Delete all ticket types for a specific event (creator only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Ticket types deleted
+        '403':
+          description: Forbidden
+        '404':
+          description: Event not found
+      tags:
+        - Event
+
+  /ticket-types/values:
+    get:
+      summary: Get all ticket type values
+      description: List all possible ticket type values
+      responses:
+        '200':
+          description: List of ticket type values
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: string
+                example: ["STANDARD", "VIP"]
+      tags:
+        - Event Ticket Types
+
+  /ticket-types/{ticketTypeId}:
+    get:
+      summary: Get a specific ticket type by ID
+      description: Retrieve detailed information about a specific ticket type
+      servers:
+        - url: http://localhost:3000
+          description: Local server
+        - url: https://payments.eventonight.site
+          description: Production server
+      parameters:
+        - name: ticketTypeId
+          in: path
+          required: true
+          description: ID of the ticket type
+          schema:
+            type: string
+          example: ett_123e4567-e89b-12d3-a456-426614174000
+      responses:
+        '200':
+          description: Ticket type details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventTicketTypeResponseDto'
+              example:
+                id: ett_123e4567-e89b-12d3-a456-426614174000
+                eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                type: STANDARD
+                description: "General admission ticket"
+                price:
+                  amount: 29.99
+                  currency: EUR
+                availableQuantity: 85
+                soldQuantity: 15
+                totalQuantity: 100
+                isSoldOut: false
+        '404':
+          description: Not Found - Ticket type does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: EventTicketType with id ett_123e4567-e89b-12d3-a456-426614174000 not found
+                error: Not Found
+      tags:
+        - Event Ticket Types
+
+    put:
+      summary: Update ticket type
+      description: Update details of a ticket type (creator only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: ticketTypeId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateEventTicketTypeDto'
+            example:
+              description: "Updated ticket description"
+              price:
+                amount: 49.99
+                currency: EUR
+              quantity: 150
+      responses:
+        '200':
+          description: Ticket type updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventTicketTypeResponseDto'
+              example:
+                id: ett_123e4567-e89b-12d3-a456-426614174000
+                eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                type: STANDARD
+                description: "Updated ticket description"
+                price:
+                  amount: 49.99
+                  currency: EUR
+                availableQuantity: 150
+                soldQuantity: 0
+                totalQuantity: 150
+                isSoldOut: false
+        '403':
+          description: Forbidden - User is not the event creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User ID in token does not match event creator ID
+                error: Forbidden
+        '404':
+          description: Ticket type or event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: EventTicketType with id ett_123e4567-e89b-12d3-a456-426614174000 not found
+                error: Not Found
+      tags:
+        - Event Ticket Types
+
+    delete:
+      summary: Delete ticket type
+      description: Delete a ticket type (creator only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: ticketTypeId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Ticket type deleted
+        '403':
+          description: Forbidden
+        '404':
+          description: Ticket type or event not found
+      tags:
+        - Event Ticket Types
+
+  /tickets/{ticketId}:
+    patch:
+      summary: Invalidate ticket status
+      description: Invalidate a ticket (event creator only)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/InvalidateTicketStatusDto'
+            example:
+              status: USED
+      responses:
+        '200':
+          description: Ticket invalidated
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Ticket or event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - Tickets
+
+  /tickets/{ticketId}/pdf:
+    get:
+      summary: Get ticket PDF
+      description: Download a PDF for the specified ticket
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Ticket PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Ticket not found
+      tags:
+        - Tickets
+
+  /users/{userId}/tickets/:
+    get:
+      summary: Get all tickets for a user
+      description: List all tickets for a user (only self)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Max results per page (optional)
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: Offset for pagination (optional)
+      responses:
+        '200':
+          description: Paginated list of tickets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedResponseDto'
+              example:
+                items:
+                  - id: tick_123e4567-e89b-12d3-a456-426614174000
+                    eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                    userId: usr_123e4567-e89b-12d3-a456-426614174000
+                    attendeeName: John Doe
+                    ticketTypeId: ett_123e4567-e89b-12d3-a456-426614174000
+                    price:
+                      amount: 29.99
+                      currency: EUR
+                    purchaseDate: 2024-01-01T12:00:00Z
+                    status: ACTIVE
+                totalItems: 1
+                limit: 10
+                offset: 0
+                hasMore: false
+        '403':
+          description: Forbidden
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+      tags:
+        - User Tickets
+
+  /checkout-sessions:
+    post:
+      summary: Create a checkout session
+      description: Create a new checkout session for tickets
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateCheckoutSessionDto'
+            example:
+              userId: "usr_123e4567-e89b-12d3-a456-426614174000"
+              items:
+                - ticketTypeId: "ett_123e4567-e89b-12d3-a456-426614174000"
+                  attendeeName: "John Doe"
+                - ticketTypeId: "ett_123e4567-e89b-12d3-a456-426614174000"
+                  attendeeName: "Jane Doe"
+              successUrl: "http://localhost:3000/checkout/success"
+              cancelUrl: "http://localhost:3000/checkout/cancel"
+      responses:
+        '201':
+          description: Checkout session created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutSessionResponseDto'
+              example:
+                sessionId: "sess_123e4567-e89b-12d3-a456-426614174000"
+                redirectUrl: "https://checkout.stripe.com/pay/cs_test_123"
+                expiresAt: 1712345678
+                orderId: "ord_123e4567-e89b-12d3-a456-426614174000"
+        '403':
+          description: Forbidden
+      tags:
+        - Checkout
+
+  /checkout-sessions/{sessionId}/cancel:
+    get:
+      summary: Cancel a checkout session
+      description: Cancel a checkout session and redirect
+      parameters:
+        - name: sessionId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: redirect_to
+          in: query
+          schema:
+            type: string
+      responses:
+        '302':
+          description: Redirect after cancellation
+      tags:
+        - Checkout
+
+  /orders/{orderId}:
+    get:
+      summary: Get order details
+      description: Get details for a specific order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: order_123e4567-e89b-12d3-a456-426614174000
+                  userId:
+                    type: string
+                    example: usr_123e4567-e89b-12d3-a456-426614174000
+                  ticketIds:
+                    type: array
+                    items:
+                      type: string
+                    example: ["tick_123e4567-e89b-12d3-a456-426614174000"]
+                  status:
+                    type: string
+                    enum: [PENDING, COMPLETED, CANCELLED]
+                    example: COMPLETED
+                  createdAt:
+                    type: string
+                    format: date-time
+                    example: 2024-01-01T12:00:00Z
+              example:
+                id: order_123e4567-e89b-12d3-a456-426614174000
+                userId: usr_123e4567-e89b-12d3-a456-426614174000
+                ticketIds:
+                  - tick_123e4567-e89b-12d3-a456-426614174000
+                  - tick_456e7890-e89b-12d3-a456-426614174111
+                status: COMPLETED
+                createdAt: 2024-01-01T12:00:00Z
+        '404':
+          description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Order not found
+                error: Not Found
+      tags:
+        - Orders
+
+  /orders/{orderId}/pdf:
+    get:
+      summary: Get order PDF
+      description: Download a PDF for the specified order
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order PDF
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '404':
+          description: Order not found
+      tags:
+        - Orders
+
+  /webhooks/stripe:
+    post:
+      summary: Handle Stripe webhook (Stripe signature validated)
+      description: |
+        Handles incoming Stripe webhook events. Validates the 'stripe-signature' header and the raw request body using Stripe's signing secret.
+        
+        - The endpoint expects the exact raw body as sent by Stripe (not parsed JSON).
+        - The 'stripe-signature' header is **required** and is used to validate the event.
+        - If validation fails, a 400 Bad Request is returned.
+        - On success, processes the event and returns `{ received: true }` or `{ received: false }` if the event type is unhandled.
+      parameters:
+        - name: stripe-signature
+          in: header
+          required: true
+          description: Stripe signature header for webhook validation
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEventDto'
+            example:
+              sessionId: cs_test_a1b2c3d4e5
+              type: checkout.session.completed
+              orderId: ord_123e4567-e89b-12d3-a456-426614174000
+      responses:
+        '200':
+          description: Webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                example:
+                  received: true
+        '400':
+          description: Bad Request (missing or invalid signature, invalid body, or processing error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: "Webhook processing failed"
+                error: "Bad Request"
+      tags:
+        - Webhooks
+
+  /dev/webhooks/stripe:
+    post:
+      summary: Handle mock Stripe webhook (validates event DTO)
+      description: |
+        Handles incoming mock Stripe webhook events for development/testing. Validates the request body as a WebhookEventDto.
+        
+        - No signature header is required.
+        - The body must match the WebhookEventDto schema.
+        - On success, processes the event and returns `{ received: true }` or `{ received: false }` if the event type is unhandled.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookEventDto'
+            example:
+              sessionId: cs_test_a1b2c3d4e5
+              type: checkout.session.completed
+              orderId: ord_123e4567-e89b-12d3-a456-426614174000
+      responses:
+        '200':
+          description: Mock webhook processed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  received:
+                    type: boolean
+                example:
+                  received: true
+        '400':
+          description: Bad Request (invalid body or processing error)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: "Validation failed"
+                error: "Bad Request"
+      tags:
+        - Webhooks
+
+components:
+  schemas:
+    InvalidateTicketStatusDto:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [USED]
+          description: Must be 'USED' to invalidate the ticket
+          example: USED
+      required:
+        - status
+    UpdateEventTicketTypeDto:
+      type: object
+      properties:
+        description:
+          type: string
+          description: (Optional) Description of the ticket type
+          example: "Updated ticket description"
+        price:
+          $ref: '#/components/schemas/MoneyDto'
+          description: (Optional) Updated price of the ticket
+        quantity:
+          type: integer
+          minimum: 1
+          description: (Optional) Updated total quantity of tickets
+          example: 150
+      example:
+        description: "Updated ticket description"
+        price:
+          amount: 49.99
+          currency: EUR
+        quantity: 150
+    CreateEventTicketTypeDto:
+      type: object
+      description: Data required to create a new event ticket type
+      properties:
+        type:
+          type: string
+          description: Type of ticket (STANDARD, VIP)
+          enum: [STANDARD, VIP]
+          example: STANDARD
+        description:
+          type: string
+          description: Description of the ticket type
+          example: "General admission ticket"
+        price:
+          type: number
+          format: float
+          description: Price of the ticket
+          example: 29.99
+        currency:
+          type: string
+          description: Currency code (ISO 4217, optional)
+          example: EUR
+        quantity:
+          type: integer
+          minimum: 1
+          description: Total quantity of tickets available
+          example: 100
+        creatorId:
+          type: string
+          description: ID of the creator of the event ticket type
+          example: usr_123e4567-e89b-12d3-a456-426614174000
+      required:
+        - type
+        - price
+        - quantity
+        - creatorId
+      example:
+        type: STANDARD
+        description: "General admission ticket"
+        price: 29.99
+        currency: EUR
+        quantity: 100
+        creatorId: usr_123e4567-e89b-12d3-a456-426614174000
+
+    EventTicketTypeResponseDto:
+      type: object
+      description: Complete ticket type information
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the ticket type (prefixed with 'ett_')
+          example: ett_123e4567-e89b-12d3-a456-426614174000
+        eventId:
+          type: string
+          description: ID of the associated event
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+        type:
+          type: string
+          enum: [STANDARD, VIP]
+          description: Type of ticket
+          example: STANDARD
+        description:
+          type: string
+          description: Description of the ticket type
+          example: "General admission ticket"
+        price:
+          type: object
+          description: Price information
+          properties:
+            amount:
+              type: number
+              format: float
+              description: Price amount
+              example: 29.99
+            currency:
+              type: string
+              description: Currency code (ISO 4217)
+              example: EUR
+          required:
+            - amount
+            - currency
+        availableQuantity:
+          type: integer
+          description: Number of tickets still available for purchase
+          example: 85
+        soldQuantity:
+          type: integer
+          description: Number of tickets already sold
+          example: 15
+        totalQuantity:
+          type: integer
+          description: Total quantity of tickets (available + sold)
+          example: 100
+        isSoldOut:
+          type: boolean
+          description: Whether all tickets are sold out
+          example: false
+      required:
+        - id
+        - eventId
+        - type
+        - description
+        - price
+        - availableQuantity
+        - soldQuantity
+        - totalQuantity
+        - isSoldOut
+
+    ErrorResponse:
+      type: object
+      description: Standard error response
+      properties:
+        statusCode:
+          type: integer
+          description: HTTP status code
+          example: 400
+        message:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+          description: Error message or array of validation errors
+          example: "Validation failed"
+        error:
+          type: string
+          description: Error type
+          example: Bad Request
+      required:
+        - statusCode
+        - message
+
+    CreateCheckoutSessionDto:
+      type: object
+      description: Data to create a new checkout session
+      properties:
+        userId:
+          type: string
+          description: ID of the user creating the checkout session
+          example: "usr_123e4567-e89b-12d3-a456-426614174000"
+        items:
+          type: array
+          description: List of ticket items to purchase
+          items:
+            $ref: '#/components/schemas/CheckoutTicketItemDto'
+        successUrl:
+          type: string
+          format: uri
+          description: URL to return to after successful checkout
+          example: "http://localhost:3000/checkout/success"
+        cancelUrl:
+          type: string
+          format: uri
+          description: URL to return to if checkout is canceled
+          example: "http://localhost:3000/checkout/cancel"
+      required:
+        - userId
+        - items
+        - successUrl
+        - cancelUrl
+
+
+    CheckoutTicketItemDto:
+      type: object
+      properties:
+        ticketTypeId:
+          type: string
+        attendeeName:
+          type: string
+      required:
+        - ticketTypeId
+        - attendeeName
+
+    CheckoutSessionResponseDto:
+      type: object
+      properties:
+        sessionId:
+          type: string
+        redirectUrl:
+          type: string
+        expiresAt:
+          type: integer
+        orderId:
+          type: string
+      required:
+        - sessionId
+        - redirectUrl
+        - expiresAt
+        - orderId
+
+    TicketResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+        eventId:
+          type: string
+        userId:
+          type: string
+        attendeeName:
+          type: string
+        ticketTypeId:
+          type: string
+        price:
+          $ref: '#/components/schemas/MoneyDto'
+        purchaseDate:
+          type: string
+          format: date-time
+        status:
+          type: string
+      required:
+        - id
+        - eventId
+        - userId
+        - attendeeName
+        - ticketTypeId
+        - price
+        - purchaseDate
+        - status
+
+    WebhookEventDto:
+      type: object
+      description: Stripe webhook event payload (validated for mock endpoint)
+      properties:
+        sessionId:
+          type: string
+          description: Stripe Checkout Session ID
+          example: cs_test_a1b2c3d4e5
+        type:
+          type: string
+          description: Webhook event type
+          enum:
+            - checkout.session.completed
+            - checkout.session.expired
+          example: checkout.session.completed
+        orderId:
+          type: string
+          description: Associated order ID
+          example: ord_123e4567-e89b-12d3-a456-426614174000
+      required:
+        - sessionId
+        - type
+        - orderId
+      example:
+        sessionId: cs_test_a1b2c3d4e5
+        type: checkout.session.completed
+        orderId: ord_123e4567-e89b-12d3-a456-426614174000
+
+    MoneyDto:
+      type: object
+      properties:
+        amount:
+          type: number
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+      required:
+        - amount
+        - currency
+
+    PaginatedQueryDto:
+      type: object
+      properties:
+        limit:
+          type: integer
+          minimum: 1
+        offset:
+          type: integer
+          minimum: 0
+
+    PaginatedResponseDto:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: object
+        totalItems:
+          type: integer
+        limit:
+          type: integer
+        offset:
+          type: integer
+        hasMore:
+          type: boolean
+      required:
+        - items
+        - totalItems
+        - limit
+        - offset
+        - hasMore
