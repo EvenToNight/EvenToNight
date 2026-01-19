@@ -18,6 +18,7 @@ import { EventPublishedDto } from '../dto/event-published.dto';
 import { UserCreatedDto } from '../dto/user-created.dto';
 import { EventDeletedDto } from '../dto/event-deleted.dto';
 import { UserDeletedDto } from '../dto/user-deleted.dto';
+import { EventCompletedDto } from '../dto/event-completed.dto';
 
 @Injectable()
 export class MetadataService {
@@ -146,6 +147,28 @@ export class MetadataService {
     }
   }
 
+  async handleEventCompleted(payload: EventCompletedDto) {
+    try {
+      this.logger.debug(
+        `Processing event.completed: ${JSON.stringify(payload)}`,
+      );
+
+      const completeResult = await this.userModel.updateOne(
+        { eventId: payload.eventId },
+        { status: EventStatus.COMPLETED.toString },
+      );
+
+      if (completeResult.modifiedCount == 0) {
+        this.logger.warn(`Event ${payload.eventId} not found for update`);
+      } else {
+        this.logger.log(`Event ${payload.eventId} completed from metadata`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to handle event.completed: ${error}`);
+      throw error;
+    }
+  }
+
   async validateLikeAllowed(eventId: string, userId: string): Promise<void> {
     await Promise.all([
       this.validateEventExistence(eventId),
@@ -199,6 +222,7 @@ export class MetadataService {
       this.validateUserExistence(createReviewDto.userId),
       this.validateCreator(eventId, createReviewDto.creatorId),
       this.validateCollaborators(eventId, createReviewDto.collaboratorIds),
+      this.validateEventCompleted(eventId),
       /* MOCK VALIDATION - Uncomment for real validation */
       // this.hasParticipated(eventId, createReviewDto.userId);
     ]);
@@ -268,6 +292,8 @@ export class MetadataService {
       }
     }
   }
+
+  private async validateEventCompleted(eventId: string): Promise<void> {}
 
   private async hasParticipated(
     eventId: string,
