@@ -44,8 +44,8 @@ export const createEventsApi = (eventsClient: ApiClient, paymentsApi: PaymentsAP
     for (const ticket of eventData.ticketTypes) {
       tickets.push({ ...ticket, creatorId: eventData.creatorId })
     }
-    const event = await eventsClient.post<PublishEventResponse>('/', formData)
     formData.append('event', JSON.stringify(backendEventData))
+    const event = await eventsClient.post<PublishEventResponse>('/', formData)
     for (const ticket of tickets) {
       await paymentsApi.createEventTicketType(event.eventId, ticket)
     }
