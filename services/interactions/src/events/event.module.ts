@@ -15,6 +15,7 @@ import {
 import { ParticipationService } from './services/participation.service';
 import { ParticipationController } from './controllers/participant.controller';
 import { ParticipationConsumer } from './controllers/participant.consumer';
+import { AuthModule } from 'src/commons/auth';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ParticipationConsumer } from './controllers/participant.consumer';
       { name: Participation.name, schema: ParticipationSchema },
     ]),
     forwardRef(() => MetadataModule),
+    AuthModule,
   ],
   controllers: [
     LikeController,

@@ -6,12 +6,15 @@ import {
   Delete,
   Get,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { LikeService } from '../services/like.service';
 import { LikeEventDto } from '../dto/like-event.dto';
 import { PaginatedQueryDto } from '../../commons/dto/paginated-query.dto';
+import { JwtAuthGuard } from 'src/commons/auth/jwt-auth.guard';
 
 @Controller('events/:eventId')
+@UseGuards(JwtAuthGuard)
 export class LikeController {
   constructor(private readonly likeService: LikeService) {}
 
