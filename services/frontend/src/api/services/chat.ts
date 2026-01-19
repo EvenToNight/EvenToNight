@@ -4,7 +4,6 @@ import type { UserID } from '../types/users'
 import type {
   ChatAPI,
   ConversationAPIResponse,
-  ConversationResponse,
   MessageAPIResponse,
   SendMessageAPIResponse,
   UnreadMessageResponse,
@@ -14,9 +13,9 @@ import type {
   ConversationID,
   FirstMessage,
   Message as AdaptedMessage,
-  ChatUser,
+  Conversation,
 } from '../types/chat'
-import { Message, Conversation } from '../adapters/chat'
+import { Message, Conversation as ConversationAdapter } from '../adapters/chat'
 export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
   async startConversation(
     userId: string,
@@ -24,29 +23,43 @@ export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
   ): Promise<SendMessageAPIResponse> {
     return chatClient.post<SendMessageAPIResponse>(`/users/${userId}/conversations`, firstMessage)
   },
+  //TODO: move query params to andother endpoint
   async getConversations(
     userId: string,
-    params?: {
-      pagination?: PaginatedRequest
-      query?: string
-      recipientId?: string
-    }
-  ): Promise<PaginatedResponse<ConversationResponse>> {
-    const response = await chatClient.get<PaginatedResponse<ConversationAPIResponse | ChatUser>>(
+    pagination?: PaginatedRequest
+  ): Promise<PaginatedResponse<Conversation>> {
+    const response = await chatClient.get<PaginatedResponse<ConversationAPIResponse>>(
       `/users/${userId}/conversations${buildQueryParams({
-        ...evaluatePagination(params?.pagination),
-        // query: params?.query,
-        // recipientId: params?.recipientId,
+        ...evaluatePagination(pagination),
       })}`
     )
     const { items, ...rest } = response
     const adaptedConversations = response.items.map((conv) => {
-      if ('unreadCount' in conv) {
-        return Conversation.fromApi(conv)
-      }
-      return conv
+      return ConversationAdapter.fromApi(conv)
     })
     return { items: adaptedConversations, ...rest }
+  },
+  async searchConversations(
+    userId: string,
+    query: string,
+    pagination?: PaginatedRequest
+  ): Promise<PaginatedResponse<Conversation>> {
+    const response = await chatClient.get<PaginatedResponse<ConversationAPIResponse>>(
+      `/users/${userId}/conversations/search${buildQueryParams({
+        ...evaluatePagination(pagination),
+        query,
+      })}`
+    )
+    const { items, ...rest } = response
+    const adaptedConversations = response.items.map((conv) => {
+      return ConversationAdapter.fromApi(conv)
+    })
+    return { items: adaptedConversations, ...rest }
+  },
+  async getConversation(organizationId: string, memberId: string): Promise<Conversation | null> {
+    return chatClient
+      .get<Conversation>(`/conversations/${organizationId}/${memberId}`)
+      .catch(() => null)
   },
   async sendMessage(
     senderId: UserID,

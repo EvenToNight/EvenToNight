@@ -9,15 +9,22 @@ import type {
   MessageID,
 } from '@/api/types/chat'
 
-//TODO: sync type with backend response
-export type ConversationResponse = Conversation | ChatUser
-
 export interface ConversationAPIResponse extends Omit<Conversation, 'lastMessage'> {
   lastMessage: {
-    sender: UserID
+    senderId: UserID
     content: string
     timestamp: Date
   }
+}
+
+//TODO: why not full conversation? evaluta also user/:userId/conversations/:conversationId endpoint to return full conversation
+export interface ConversationBaseInfo {
+  id: ConversationID
+  organization: ChatUser
+  member: ChatUser
+  //TODO: needed?
+  // createdAt: Date
+  // updatedAt: Date
 }
 
 export interface MessageAPIResponse {
@@ -40,12 +47,14 @@ export interface ChatAPI {
   //TODO: sync with backend to add search query
   getConversations(
     userId: string,
-    params?: {
-      pagination?: PaginatedRequest
-      query?: string
-      recipientId?: string
-    }
-  ): Promise<PaginatedResponse<ConversationResponse>>
+    pagination?: PaginatedRequest
+  ): Promise<PaginatedResponse<Conversation>>
+  searchConversations(
+    userId: string,
+    query: string,
+    pagination?: PaginatedRequest
+  ): Promise<PaginatedResponse<Conversation>>
+  getConversation(organizationId: string, memberId: string): Promise<ConversationBaseInfo | null>
   sendMessage(
     senderId: UserID,
     conversationId: ConversationID,

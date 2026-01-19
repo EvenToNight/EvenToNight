@@ -1,4 +1,4 @@
-import type { ChatAPI, ConversationResponse, SendMessageAPIResponse } from '../interfaces/chat'
+import type { ChatAPI, SendMessageAPIResponse } from '../interfaces/chat'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { Conversation, Message } from '../types/chat'
 import type { NewMessageEvent } from '../types/notification'
@@ -79,25 +79,31 @@ export const mockChatApi: ChatAPI = {
 
   async getConversations(
     userId: string,
-    params?: {
-      pagination?: PaginatedRequest
-      query?: string
-      recipientId?: string
-    }
-  ): Promise<PaginatedResponse<ConversationResponse>> {
+    pagination?: PaginatedRequest
+  ): Promise<PaginatedResponse<Conversation>> {
     let conversations: Conversation[] = getConversationsForUser(userId)
-    if (params?.query) {
-      conversations = conversations.filter((c) => {
-        const otherUser = c.organization.id === userId ? c.member : c.organization
-        return (
-          otherUser.name.toLowerCase().includes(params.query!.toLowerCase()) ||
-          otherUser.username.toLowerCase().includes(params.query!.toLowerCase())
-        )
-      })
-    }
-    if (params?.recipientId) {
-      conversations = getConversationsForUser(params.recipientId)
-    }
+    // if (params?.query) {
+    //   conversations = conversations.filter((c) => {
+    //     const otherUser = c.organization.id === userId ? c.member : c.organization
+    //     return (
+    //       otherUser.name.toLowerCase().includes(params.query!.toLowerCase()) ||
+    //       otherUser.username.toLowerCase().includes(params.query!.toLowerCase())
+    //     )
+    //   })
+    // }
+    // if (params?.recipientId) {
+    //   conversations = getConversationsForUser(params.recipientId)
+    // }
+    // Calculate unreadCount per-user dynamically
+    // If the user sent the last message, they have 0 unread
+    // Otherwise, use the stored unreadCount (which represents messages from the other user)
+    conversations = conversations.map((c) => {
+      if (c.lastMessage.senderId === userId) {
+        return { ...c, unreadCount: 0 }
+      } else {
+        return c
+      }
+    })
     // Calculate unreadCount per-user dynamically
     // If the user sent the last message, they have 0 unread
     // Otherwise, use the stored unreadCount (which represents messages from the other user)
@@ -109,6 +115,49 @@ export const mockChatApi: ChatAPI = {
       }
     })
 
+    // const currentUser = mockUsers.data.find((u) => u.id === userId)!
+    // if (!currentUser) {
+    //   throw {
+    //     message: 'User not found',
+    //     status: 404,
+    //   }
+    // }
+    // const users: User[] = params?.query
+    //   ? searchMockUsersByName(params.query)
+    //       .filter((u) => u.role !== currentUser.role)
+    //       .filter(
+    //         (u) => !conversations.some((c) => c.organization.id === u.id || c.member.id === u.id)
+    //       )
+    //   : []
+    // users.map((u) => {
+    //   return {
+    //     id: '',
+    //     organization: currentUser.role === 'organization' ? currentUser : u,
+    //     member: currentUser.role === 'member' ? currentUser : u,
+    //     lastMessage: {
+    //       senderId: '',
+    //       content: '',
+    //       createdAt: new Date(0),
+    //     },
+    //     unreadCount: 0,
+    //   }
+    // })
+    // const results: Conversation[] = [...conversations, ...users]
+    return getPaginatedItems(conversations, pagination)
+  },
+
+  async searchConversations(
+    userId: string,
+    query: string,
+    pagination?: PaginatedRequest
+  ): Promise<PaginatedResponse<Conversation>> {
+    const conversations: Conversation[] = getConversationsForUser(userId).filter((c) => {
+      const otherUser = c.organization.id === userId ? c.member : c.organization
+      return (
+        otherUser.name.toLowerCase().includes(query.toLowerCase()) ||
+        otherUser.username.toLowerCase().includes(query.toLowerCase())
+      )
+    })
     const currentUser = mockUsers.data.find((u) => u.id === userId)!
     if (!currentUser) {
       throw {
@@ -116,16 +165,32 @@ export const mockChatApi: ChatAPI = {
         status: 404,
       }
     }
-    const users: User[] = params?.query
-      ? searchMockUsersByName(params.query)
-          .filter((u) => u.role !== currentUser.role)
-          .filter(
-            (u) => !conversations.some((c) => c.organization.id === u.id || c.member.id === u.id)
-          )
-      : []
+    const users: User[] = searchMockUsersByName(query)
+      .filter((u) => u.role !== currentUser.role)
+      .filter((u) => !conversations.some((c) => c.organization.id === u.id || c.member.id === u.id))
+    const newConversations = users.map((u) => {
+      return {
+        id: '',
+        organization: currentUser.role === 'organization' ? currentUser : u,
+        member: currentUser.role === 'member' ? currentUser : u,
+        lastMessage: {
+          senderId: '',
+          content: '',
+          createdAt: new Date(0),
+        },
+        unreadCount: 0,
+      }
+    })
+    return getPaginatedItems([...conversations, ...newConversations], pagination)
+  },
 
-    const results: ConversationResponse[] = [...conversations, ...users]
-    return getPaginatedItems(results, params?.pagination)
+  async getConversation(organizationId: string, memberId: string): Promise<Conversation | null> {
+    const conversation = mockConversations.find(
+      (c) =>
+        (c.organization.id === organizationId && c.member.id === memberId) ||
+        (c.organization.id === memberId && c.member.id === organizationId)
+    )
+    return conversation || null
   },
 
   async sendMessage(

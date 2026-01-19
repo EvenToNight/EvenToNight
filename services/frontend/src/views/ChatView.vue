@@ -64,19 +64,18 @@ onMounted(async () => {
 //   }
 // })
 
-async function loadOrganizationConversation(organizationId: string) {
+async function loadOrganizationConversation(userId: string) {
   //TODO seach usign API
-  const existingConversation = (
-    await api.chat.getConversations(authStore.user!.id, {
-      recipientId: organizationId,
-    })
-  ).items
-  if (existingConversation.length !== 0 && 'organization' in existingConversation[0]!) {
+  const organizationId = authStore.user?.role === 'organization' ? authStore.user!.id : userId
+  const memberId = authStore.user?.role === 'organization' ? userId : authStore.user!.id
+  const existingConversation = await api.chat.getConversation(organizationId!, memberId!)
+
+  if (existingConversation) {
     selectedChatUser.value =
       authStore.user?.role === 'organization'
-        ? existingConversation[0]!.member
-        : existingConversation[0]!.organization
-    await handleSelectConversation(existingConversation[0]!.id)
+        ? existingConversation.member
+        : existingConversation.organization
+    await handleSelectConversation(existingConversation.id)
   } else {
     await loadUser(organizationId)
   }
@@ -96,7 +95,15 @@ async function loadUser(userId: string) {
 }
 
 async function loadConversations() {
-  await handleSearch('')
+  try {
+    loading.value = true
+    const response = await api.chat.getConversations(authStore.user!.id, { limit: 50 })
+    conversations.value = response.items
+  } catch (error) {
+    console.error('Failed to load conversations:', error)
+  } finally {
+    loading.value = false
+  }
   for (const conversation of conversations.value) {
     console.log('Conversation Loaded:', conversation)
   }
@@ -154,9 +161,8 @@ async function handleSearch(query: string) {
   try {
     loading.value = true
     // TODO: add query param
-    const response = await api.chat.getConversations(authStore.user!.id, {
-      pagination: { limit: searchResultLimit },
-      query,
+    const response = await api.chat.searchConversations(authStore.user!.id, query, {
+      limit: searchResultLimit,
     })
 
     console.log('Conversations search response:', response)
