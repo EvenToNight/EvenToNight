@@ -42,9 +42,11 @@ export class FollowService {
 
   async getFollowers(userId: string, limit?: number, offset?: number) {
     await this.metadataService.validateUserExistence(userId);
+
     let query = this.followModel
       .find({ followedId: userId })
-      .select({ _id: 0, followerId: 1, followedId: 1 });
+      .select({ _id: 0, followerId: 1 });
+
     if (offset !== undefined) query = query.skip(offset);
     if (limit !== undefined) query = query.limit(limit);
 
@@ -53,8 +55,23 @@ export class FollowService {
       this.followModel.countDocuments({ followedId: userId }),
     ]);
 
+    const userIds = items.map((f) => f.followerId);
+    const users = await this.metadataService.getUsersInfo(userIds);
+
+    const userMap = new Map(users.map((u) => [u.userId, u]));
+
+    const enrichedItems = items.map((f) => {
+      const user = userMap.get(f.followerId);
+      return {
+        userId: f.followerId,
+        avatar: user?.avatar || '',
+        name: user?.name || '',
+        username: user?.username || '',
+      };
+    });
+
     return new PaginatedResponseDto(
-      items.map((f) => f.followerId),
+      enrichedItems,
       total,
       limit ?? total,
       offset ?? 0,
@@ -63,9 +80,11 @@ export class FollowService {
 
   async getFollowing(userId: string, limit?: number, offset?: number) {
     await this.metadataService.validateUserExistence(userId);
+
     let query = this.followModel
       .find({ followerId: userId })
-      .select({ _id: 0, followerId: 1, followedId: 1 });
+      .select({ _id: 0, followedId: 1 });
+
     if (offset !== undefined) query = query.skip(offset);
     if (limit !== undefined) query = query.limit(limit);
 
@@ -74,8 +93,23 @@ export class FollowService {
       this.followModel.countDocuments({ followerId: userId }),
     ]);
 
+    const userIds = items.map((f) => f.followedId);
+    const users = await this.metadataService.getUsersInfo(userIds);
+
+    const userMap = new Map(users.map((u) => [u.userId, u]));
+
+    const enrichedItems = items.map((f) => {
+      const user = userMap.get(f.followedId);
+      return {
+        userId: f.followedId,
+        avatar: user?.avatar || '',
+        name: user?.name || '',
+        username: user?.username || '',
+      };
+    });
+
     return new PaginatedResponseDto(
-      items.map((f) => f.followedId),
+      enrichedItems,
       total,
       limit ?? total,
       offset ?? 0,
@@ -84,10 +118,12 @@ export class FollowService {
 
   async getUserFollowsInteraction(userId: string) {
     await this.metadataService.validateUserExistence(userId);
+
     const [followersData, followingData] = await Promise.all([
       this.getFollowers(userId, undefined, undefined),
       this.getFollowing(userId, undefined, undefined),
     ]);
+
     return new PaginatedUserResponseDto(
       followersData.items,
       followersData.totalItems,
