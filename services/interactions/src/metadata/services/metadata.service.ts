@@ -221,8 +221,6 @@ export class MetadataService {
     await Promise.all([
       this.validateEventExistence(eventId),
       this.validateUserExistence(createReviewDto.userId),
-      this.validateCreator(eventId, createReviewDto.creatorId),
-      this.validateCollaborators(eventId, createReviewDto.collaboratorIds),
       this.validateEventCompleted(eventId),
       /* MOCK VALIDATION - Uncomment for real validation */
       // this.hasParticipated(eventId, createReviewDto.userId);
@@ -260,37 +258,6 @@ export class MetadataService {
     const user = await this.userModel.findOne({ userId });
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
-    }
-  }
-
-  private async validateCreator(
-    eventId: string,
-    creatorId: string,
-  ): Promise<void> {
-    const event = await this.eventModel.findOne({ eventId });
-    if (event?.creatorId !== creatorId) {
-      throw new NotFoundException(
-        `Creator with ID ${creatorId} is not associated with event ${eventId}`,
-      );
-    }
-  }
-
-  private async validateCollaborators(
-    eventId: string,
-    collaboratorIds?: string[],
-  ): Promise<void> {
-    if (!collaboratorIds || collaboratorIds.length === 0) {
-      return;
-    }
-
-    const event = await this.eventModel.findOne({ eventId });
-    const eventCollaborators = event?.collaboratorIds || [];
-    for (const collabId of collaboratorIds) {
-      if (!eventCollaborators.includes(collabId)) {
-        throw new NotFoundException(
-          `Collaborator with ID ${collabId} is not associated with event ${eventId}`,
-        );
-      }
     }
   }
 
