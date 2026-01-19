@@ -304,4 +304,12 @@ export class MetadataService {
       collaboratorIds: event.collaboratorIds || [],
     };
   }
+
+  async getUserInfo(userId: string): Promise<User> {
+    const user = await this.userModel.findOne({ userId });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+    return user;
+  }
 }
