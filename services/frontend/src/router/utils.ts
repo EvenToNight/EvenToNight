@@ -180,11 +180,11 @@ export const useNavigation = () => {
     }
   }
 
-  const goToChat = (organizationId?: string, swap: boolean = false) => {
+  const goToChat = (userId?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(CHAT_ROUTE_NAME, undefined, { organizationId })
+      replaceWithLocale(CHAT_ROUTE_NAME, undefined, { userId })
     } else {
-      pushWithLocale(CHAT_ROUTE_NAME, undefined, { organizationId })
+      pushWithLocale(CHAT_ROUTE_NAME, undefined, { userId })
     }
   }
 

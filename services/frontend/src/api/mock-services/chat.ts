@@ -61,7 +61,7 @@ export const mockChatApi: ChatAPI = {
       },
       unreadCount: 1,
     }
-    mockConversations.push(newConversation)
+    mockConversations.unshift(newConversation)
     saveConversations(mockConversations)
 
     const newMessage: Message = {
@@ -209,7 +209,8 @@ export const mockChatApi: ChatAPI = {
 
     mockMessages[conversationId]!.push(message)
     saveMessages(mockMessages)
-    const conversation = mockConversations.find((c) => c.id === conversationId)!
+    const conversationIndex = mockConversations.findIndex((c) => c.id === conversationId)
+    const conversation = mockConversations[conversationIndex]!
     const previousSenderId = conversation.lastMessage.senderId
     conversation.lastMessage = message
     if (previousSenderId !== senderId) {
@@ -217,6 +218,9 @@ export const mockChatApi: ChatAPI = {
     } else {
       conversation.unreadCount += 1
     }
+    // Move conversation to top
+    mockConversations.splice(conversationIndex, 1)
+    mockConversations.unshift(conversation)
     saveConversations(mockConversations)
     emitNewMessageEvent(conversation, message)
     return { ...message }
