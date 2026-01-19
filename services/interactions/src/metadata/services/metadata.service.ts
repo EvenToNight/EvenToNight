@@ -77,6 +77,9 @@ export class MetadataService {
           $setOnInsert: {
             userId: payload.id,
             role: payload.role,
+            username: payload.username,
+            name: payload.name,
+            avatar: payload.avatar,
           },
         },
         { upsert: true },
