@@ -34,11 +34,13 @@ export class ReviewService {
     if (existing) {
       throw new ConflictException('You have already reviewed this event');
     }
+    const { creatorId, collaboratorIds } =
+      await this.metadataService.getEventInfo(eventId);
     const review = new this.reviewModel({
       eventId,
       ...createReviewDto,
-      creatorId: 'org1', // MOCK -> get creator from metadata
-      collaboratorIds: ['collab1'], // MOCK -> get collaboratorIds from metadata
+      creatorId,
+      collaboratorIds,
     });
     return review.save();
   }

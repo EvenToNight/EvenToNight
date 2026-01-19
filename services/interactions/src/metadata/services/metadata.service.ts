@@ -285,4 +285,19 @@ export class MetadataService {
       );
     }
   }
+
+  async getEventInfo(
+    eventId: string,
+  ): Promise<{ creatorId: string; collaboratorIds: string[] }> {
+    const event = await this.eventModel.findOne({ eventId }).lean();
+
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+
+    return {
+      creatorId: event.creatorId,
+      collaboratorIds: event.collaboratorIds || [],
+    };
+  }
 }
