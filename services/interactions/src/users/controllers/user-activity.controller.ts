@@ -76,6 +76,10 @@ export class UserActivityController {
       userId,
       eventId,
     );
-    return { hasParticipated };
+    const hasReviewed = await this.reviewService.hasUserReviewedEvent(
+      userId,
+      eventId,
+    );
+    return { hasParticipated, hasReviewed };
   }
 }
