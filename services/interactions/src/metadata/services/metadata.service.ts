@@ -20,7 +20,7 @@ import { UserCreatedDto } from '../dto/user-created.dto';
 import { EventDeletedDto } from '../dto/event-deleted.dto';
 import { UserDeletedDto } from '../dto/user-deleted.dto';
 import { EventCompletedDto } from '../dto/event-completed.dto';
-import { UserInfoDto } from 'src/common/dto/user-info-dto';
+import { UserInfoDto } from 'src/commons/dto/user-info-dto';
 import { UserUpdatedDto } from '../dto/user-updated.dto';
 
 @Injectable()

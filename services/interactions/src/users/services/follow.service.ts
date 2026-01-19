@@ -4,7 +4,7 @@ import { Follow } from '../schemas/follow.schema';
 import { Model } from 'mongoose';
 import { ConflictException } from '@nestjs/common';
 import { NotFoundException } from '@nestjs/common';
-import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { PaginatedUserResponseDto } from '../dto/paginated-user-response.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
 

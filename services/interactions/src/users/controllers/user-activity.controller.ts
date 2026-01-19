@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { LikeService } from '../../events/services/like.service';
-import { PaginatedQueryDto } from '../../common/dto/paginated-query.dto';
+import { PaginatedQueryDto } from '../../commons/dto/paginated-query.dto';
 import { ReviewService } from '../../events/services/review.service';
 import { ParticipationService } from '../../events/services/participation.service';
 import { UserParticipationsQueryDto } from '../dto/user-participations-query.dto';

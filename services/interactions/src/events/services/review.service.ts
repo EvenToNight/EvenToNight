@@ -11,7 +11,7 @@ import { Review } from '../schemas/review.schema';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
 import { UpdateReviewDto } from '../dto/update-review.dto';
-import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
+import { PaginatedResponseDto } from 'src/commons/dto/paginated-response.dto';
 import { ReviewStatsDto } from '../dto/review-stats.dto';
 
 @Injectable()

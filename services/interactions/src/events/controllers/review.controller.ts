@@ -11,7 +11,7 @@ import {
 import { ReviewService } from '../services/review.service';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { UpdateReviewDto } from '../dto/update-review.dto';
-import { PaginatedQueryDto } from '../../common/dto/paginated-query.dto';
+import { PaginatedQueryDto } from '../../commons/dto/paginated-query.dto';
 
 @Controller('events/:eventId')
 export class ReviewController {

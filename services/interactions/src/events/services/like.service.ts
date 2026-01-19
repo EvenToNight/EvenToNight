@@ -8,9 +8,9 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Like } from '../schemas/like.schema';
-import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
-import { UserInfoDto } from '../../common/dto/user-info-dto';
+import { UserInfoDto } from '../../commons/dto/user-info-dto';
 
 @Injectable()
 export class LikeService {

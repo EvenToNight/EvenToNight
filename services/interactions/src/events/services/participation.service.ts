@@ -7,9 +7,9 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Participation } from '../schemas/participation.schema';
-import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { MetadataService } from '../../metadata/services/metadata.service';
-import { UserInfoDto } from 'src/common/dto/user-info-dto';
+import { UserInfoDto } from 'src/commons/dto/user-info-dto';
 import { ReviewService } from './review.service';
 import { UserParticipationDto } from '../dto/user-participation.dto';
 

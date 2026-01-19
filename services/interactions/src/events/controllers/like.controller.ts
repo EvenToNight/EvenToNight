@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { LikeService } from '../services/like.service';
 import { LikeEventDto } from '../dto/like-event.dto';
-import { PaginatedQueryDto } from '../../common/dto/paginated-query.dto';
+import { PaginatedQueryDto } from '../../commons/dto/paginated-query.dto';
 
 @Controller('events/:eventId')
 export class LikeController {
