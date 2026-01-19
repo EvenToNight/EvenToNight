@@ -1,34 +1,44 @@
 <script setup lang="ts">
 import { ref, watch, nextTick, onMounted, onBeforeUnmount, computed } from 'vue'
-import type { Conversation, Message } from '@/api/types/chat'
+import type { ConversationID, Message, ChatUser, Conversation } from '@/api/types/chat'
 import ChatHeader from './ChatHeader.vue'
+import MessageInput from './MessageInput.vue'
 import { useAuthStore } from '@/stores/auth'
-import type { ChatUser } from '@/api/types/chat'
+import { api } from '@/api'
+import { useQuasar } from 'quasar'
+import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 
 const props = defineProps<{
   selectedChatUser?: ChatUser
-  conversation?: Conversation
-  messages?: Message[]
 }>()
+
+const selectedConversationId = defineModel<ConversationID | undefined>('selectedConversationId', {
+  default: undefined,
+})
 
 const emit = defineEmits<{
   back: []
-  loadMore: []
+  conversationCreated: [conversation: Conversation]
+  messageSent: [
+    conversationId: string,
+    lastMessage: { senderId: string; content: string; createdAt: Date },
+  ]
 }>()
 
 const messagesContainer = ref<HTMLElement | null>(null)
 const autoScroll = ref(true)
+const messages = ref<Message[]>([])
+const loading = ref(false)
+const hasMoreMessages = ref(true)
+const loadingMoreMessages = ref(false)
+const messagesLimit = 50
 
 const authStore = useAuthStore()
+const $q = useQuasar()
+const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
+const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
 
 function isFromCurrentUser(message: Message): boolean {
-  console.log(
-    'Checking message sender:',
-    message.senderId,
-    'Current user ID:',
-    authStore.user?.id,
-    message.content
-  )
   return message.senderId === authStore.user?.id
 }
 
@@ -56,18 +66,11 @@ function formatDateSeparator(date: Date): string {
     })
   }
 }
-import { useQuasar } from 'quasar'
-
-const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
-import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
-const $q = useQuasar()
-
-const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
 
 function shouldShowDateSeparator(index: number): boolean {
-  if (!props.messages || index === 0) return true
-  const currentMsg = props.messages[index]
-  const prevMsg = props.messages[index - 1]
+  if (index === 0) return true
+  const currentMsg = messages.value[index]
+  const prevMsg = messages.value[index - 1]
   if (!currentMsg || !prevMsg) return false
 
   const currentDate = new Date(currentMsg.createdAt)
@@ -94,25 +97,143 @@ function onContainerScroll() {
   const el = messagesContainer.value
   if (!el) return
 
-  // Check if at bottom for auto-scroll
-  const tolerance = 48 // px from bottom to consider "at bottom"
+  const tolerance = 48
   const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - tolerance
   autoScroll.value = atBottom
 
-  // Check if near top to load more messages
-  const nearTop = el.scrollTop < 200 // px from top to trigger load more
-  if (nearTop) {
-    emit('loadMore')
+  const nearTop = el.scrollTop < 200
+  if (
+    nearTop &&
+    !loadingMoreMessages.value &&
+    hasMoreMessages.value &&
+    selectedConversationId.value
+  ) {
+    loadMoreMessages()
   }
 }
 
+async function loadMessages() {
+  if (!selectedConversationId.value) {
+    messages.value = []
+    return
+  }
+
+  try {
+    loading.value = true
+    hasMoreMessages.value = false
+    messages.value = []
+
+    const response = await api.chat.getConversationMessages(
+      authStore.user!.id,
+      selectedConversationId.value,
+      {
+        limit: messagesLimit,
+        offset: 0,
+      }
+    )
+
+    messages.value = response.items
+    hasMoreMessages.value = response.hasMore
+    scrollToBottom()
+  } catch (error) {
+    console.error('Failed to load conversation messages:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadMoreMessages() {
+  if (!selectedConversationId.value || loadingMoreMessages.value || !hasMoreMessages.value) {
+    return
+  }
+
+  try {
+    loadingMoreMessages.value = true
+    const response = await api.chat.getConversationMessages(
+      authStore.user!.id,
+      selectedConversationId.value,
+      {
+        limit: messagesLimit,
+        offset: messages.value.length,
+      }
+    )
+
+    messages.value = [...response.items, ...messages.value]
+    hasMoreMessages.value = response.hasMore
+  } catch (error) {
+    console.error('Failed to load more messages:', error)
+  } finally {
+    loadingMoreMessages.value = false
+  }
+}
+
+async function handleSendMessage(content: string) {
+  if (!content.trim()) return
+
+  if (!selectedConversationId.value) {
+    // Create new conversation
+    const response = await api.chat.startConversation(authStore.user!.id, {
+      recipientId: props.selectedChatUser!.id,
+      content: content.trim(),
+    })
+
+    selectedConversationId.value = response.conversationId
+    messages.value.push({
+      ...response,
+      isRead: false,
+    })
+
+    // Build conversation object and emit
+    const isCurrentUserOrganization = authStore.user?.role === 'organization'
+    const currentUserAsChatUser: ChatUser = {
+      id: authStore.user!.id,
+      name: authStore.user!.name,
+      username: authStore.user!.username,
+      avatar: authStore.user!.avatar,
+    }
+    const newConversation: Conversation = {
+      id: response.conversationId,
+      organization: isCurrentUserOrganization ? currentUserAsChatUser : props.selectedChatUser!,
+      member: isCurrentUserOrganization ? props.selectedChatUser! : currentUserAsChatUser,
+      lastMessage: {
+        senderId: response.senderId,
+        content: response.content,
+        createdAt: response.createdAt,
+      },
+      unreadCount: 0,
+    }
+    emit('conversationCreated', newConversation)
+  } else {
+    // Send message to existing conversation
+    const response = await api.chat.sendMessage(
+      authStore.user!.id,
+      selectedConversationId.value,
+      content.trim()
+    )
+
+    messages.value.push({
+      ...response,
+      isRead: false,
+    })
+
+    // Emit for conversation list update
+    emit('messageSent', selectedConversationId.value, {
+      senderId: response.senderId,
+      content: response.content,
+      createdAt: response.createdAt,
+    })
+  }
+
+  scrollToBottom()
+}
+
 onMounted(() => {
-  // attach scroll listener
   if (messagesContainer.value) {
     messagesContainer.value.addEventListener('scroll', onContainerScroll, { passive: true })
   }
-  // ensure initial scroll to bottom
-  scrollToBottom()
+  if (selectedConversationId.value) {
+    loadMessages()
+  }
 })
 
 onBeforeUnmount(() => {
@@ -121,15 +242,22 @@ onBeforeUnmount(() => {
   }
 })
 
-// Watch the conversation messages (deep) and autoscroll only if the user is at/near bottom
+// Watch conversation changes to load messages
+watch(selectedConversationId, (newId, oldId) => {
+  if (newId !== oldId) {
+    loadMessages()
+  }
+})
+
+// Watch messages and autoscroll
 watch(
-  () => props.messages,
+  messages,
   () => {
     if (autoScroll.value) {
       scrollToBottom()
     }
   },
-  { deep: true, immediate: true }
+  { deep: true }
 )
 </script>
 
@@ -149,39 +277,47 @@ watch(
       />
 
       <div ref="messagesContainer" class="messages-container">
-        <div v-if="!messages || messages.length === 0" class="empty-messages">
+        <div v-if="loading" class="loading-messages">
+          <q-spinner-dots color="primary" size="40px" />
+        </div>
+
+        <div v-else-if="messages.length === 0" class="empty-messages">
           <q-icon name="chat" size="80px" color="grey-4" />
           <p>Nessun messaggio ancora</p>
           <span>Inizia la conversazione scrivendo un messaggio</span>
         </div>
 
-        <div v-for="(message, index) in messages" :key="message.id" class="message-wrapper">
-          <div v-if="shouldShowDateSeparator(index)" class="date-separator">
-            <span>{{ formatDateSeparator(message.createdAt) }}</span>
-          </div>
+        <template v-else>
+          <div v-for="(message, index) in messages" :key="message.id" class="message-wrapper">
+            <div v-if="shouldShowDateSeparator(index)" class="date-separator">
+              <span>{{ formatDateSeparator(message.createdAt) }}</span>
+            </div>
 
-          <div
-            class="message-bubble"
-            :class="{
-              'message-sent': isFromCurrentUser(message),
-              'message-received': !isFromCurrentUser(message),
-            }"
-          >
-            <div class="message-content">
-              {{ message.content }}
-            </div>
-            <div class="message-time">
-              {{ formatTime(message.createdAt) }}
-              <q-icon
-                v-if="isFromCurrentUser(message)"
-                name="done_all"
-                size="16px"
-                class="read-icon"
-              />
+            <div
+              class="message-bubble"
+              :class="{
+                'message-sent': isFromCurrentUser(message),
+                'message-received': !isFromCurrentUser(message),
+              }"
+            >
+              <div class="message-content">
+                {{ message.content }}
+              </div>
+              <div class="message-time">
+                {{ formatTime(message.createdAt) }}
+                <q-icon
+                  v-if="isFromCurrentUser(message)"
+                  name="done_all"
+                  size="16px"
+                  class="read-icon"
+                />
+              </div>
             </div>
           </div>
-        </div>
+        </template>
       </div>
+
+      <MessageInput @send-message="handleSendMessage" />
     </template>
   </div>
 </template>
@@ -192,6 +328,7 @@ watch(
 .chat-area {
   display: flex;
   flex-direction: column;
+  height: 100%;
   flex: 1;
   min-height: 0;
   overflow: hidden;
@@ -221,12 +358,6 @@ watch(
   }
 }
 
-.desktop-header {
-  @media (max-width: 768px) {
-    display: none;
-  }
-}
-
 .messages-container {
   flex: 1;
   overflow-y: auto;
@@ -234,6 +365,13 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.loading-messages {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
 }
 
 .empty-messages {

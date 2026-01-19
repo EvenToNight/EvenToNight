@@ -1,3 +1,4 @@
+<!-- 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { api } from '@/api'
@@ -11,30 +12,15 @@ import { useNavigation } from '@/router/utils'
 // import type { WebSocket } from '@/api/mock-services/webSocket'
 // import { isNewMessageEvent } from '@/api/mock-services/webSocket'
 // import type { NewMessageEvent } from '@/api/types/notification'
-
-const twoColumnLayout = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
-const conversationListRef = ref<InstanceType<typeof ConversationList> | null>(null)
 // const websocket = ref<WebSocket | null>(null)
-const authStore = useAuthStore()
-const { query, removeQuery } = useNavigation()
 
-const selectedConversationId = ref<ConversationID | undefined>()
-const selectedChatUser = ref<ChatUser | undefined>()
-
-const loading = ref(false)
-const hasMoreMessages = ref(true)
-const messagesLimit = 50
-const selectedMessages = ref<Message[]>([])
-
-const loadingMoreMessages = ref(false)
-
-onMounted(async () => {
-  const selectedChatUserId = query.userId as string | undefined
-  if (selectedChatUserId && selectedChatUserId !== authStore.user?.id) {
-    await loadConversation(selectedChatUserId)
-  } else if (selectedChatUserId) {
-    removeQuery('userId')
-  }
+// onMounted(async () => {
+//   const selectedChatUserId = query.userId as string | undefined
+//   if (selectedChatUserId && selectedChatUserId !== authStore.user?.id) {
+//     await loadConversation(selectedChatUserId)
+//   } else if (selectedChatUserId) {
+//     removeQuery('userId')
+//   }
 
   // // Initialize WebSocket for real-time updates
   // if (authStore.user?.id) {
@@ -50,195 +36,13 @@ onMounted(async () => {
   //     }
   //   })
   // }
-})
+// })
 
 // onUnmounted(() => {
 //   if (websocket.value) {
 //     websocket.value.disconnect()
 //   }
 // })
-
-async function loadConversation(userId: string) {
-  const organizationId = authStore.user?.role === 'organization' ? authStore.user!.id : userId
-  const memberId = authStore.user?.role === 'organization' ? userId : authStore.user!.id
-  const existingConversation = await api.chat.getConversation(organizationId, memberId)
-
-  if (existingConversation) {
-    selectedChatUser.value =
-      authStore.user?.role === 'organization'
-        ? existingConversation.member
-        : existingConversation.organization
-
-    selectedConversationId.value = existingConversation.id
-    try {
-      loading.value = true
-      const response = await api.chat.getConversationMessages(
-        authStore.user!.id,
-        existingConversation.id,
-        {
-          limit: messagesLimit,
-          offset: 0,
-        }
-      )
-      selectedMessages.value = response.items
-      hasMoreMessages.value = response.hasMore
-    } catch (error) {
-      console.error('Failed to load conversation messages:', error)
-    } finally {
-      loading.value = false
-    }
-  } else {
-    // No existing conversation, load user to start a new one
-    await loadUser(userId)
-  }
-  removeQuery('userId')
-}
-
-async function loadUser(userId: string) {
-  try {
-    loading.value = true
-    const user = await api.users.getUserById(userId)
-    selectedChatUser.value = user
-  } catch (error) {
-    console.error('Failed to load user:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function handleSelectConversation(conversation: Conversation) {
-  try {
-    loading.value = true
-    hasMoreMessages.value = false
-    selectedMessages.value = []
-
-    // Set the other user from the conversation
-    selectedChatUser.value = conversationListRef.value?.getOtherUser(conversation)
-
-    const response = await api.chat.getConversationMessages(authStore.user!.id, conversation.id, {
-      limit: messagesLimit,
-      offset: 0,
-    })
-
-    selectedMessages.value = response.items
-    hasMoreMessages.value = response.hasMore
-
-    // Show content in mobile
-    twoColumnLayout.value?.showContent()
-  } catch (error) {
-    console.error('Failed to load conversation messages:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function handleSelectNewConversation(chatUser: ChatUser) {
-  try {
-    loading.value = true
-    hasMoreMessages.value = false
-    selectedMessages.value = []
-    selectedConversationId.value = undefined // Reset - it's a new conversation
-    selectedChatUser.value = chatUser
-    // Show content in mobile
-    twoColumnLayout.value?.showContent()
-  } catch (error) {
-    console.error('Failed to start new conversation:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-function handleBackToList() {
-  selectedConversationId.value = undefined
-  selectedChatUser.value = undefined
-  selectedMessages.value = []
-  // Show sidebar in mobile
-  twoColumnLayout.value?.showSidebar()
-}
-
-async function handleLoadMoreMessages() {
-  if (!selectedConversationId.value || loadingMoreMessages.value || !hasMoreMessages.value) {
-    return
-  }
-
-  try {
-    loadingMoreMessages.value = true
-    const response = await api.chat.getConversationMessages(
-      authStore.user!.id,
-      selectedConversationId.value,
-      {
-        limit: messagesLimit,
-        offset: selectedMessages.value.length,
-      }
-    )
-
-    // Prepend older messages to the beginning
-    selectedMessages.value = [...response.items, ...selectedMessages.value]
-    hasMoreMessages.value = response.hasMore
-  } catch (error) {
-    console.error('Failed to load more messages:', error)
-  } finally {
-    loadingMoreMessages.value = false
-  }
-}
-
-async function handleSendMessage(content: string) {
-  if (!content.trim()) return
-
-  if (!selectedConversationId.value) {
-    // Create new conversation
-    const response = await api.chat.startConversation(authStore.user!.id, {
-      recipientId: selectedChatUser.value!.id,
-      content: content.trim(),
-    })
-
-    selectedConversationId.value = response.conversationId
-    selectedMessages.value.push({
-      ...response,
-      isRead: false,
-    })
-
-    // Build conversation object and add to top of list
-    const isCurrentUserOrganization = authStore.user?.role === 'organization'
-    const currentUserAsChatUser: ChatUser = {
-      id: authStore.user!.id,
-      name: authStore.user!.name,
-      username: authStore.user!.username,
-      avatar: authStore.user!.avatar,
-    }
-    const newConversation: Conversation = {
-      id: response.conversationId,
-      organization: isCurrentUserOrganization ? currentUserAsChatUser : selectedChatUser.value!,
-      member: isCurrentUserOrganization ? selectedChatUser.value! : currentUserAsChatUser,
-      lastMessage: {
-        senderId: response.senderId,
-        content: response.content,
-        createdAt: response.createdAt,
-      },
-      unreadCount: 0,
-    }
-    conversationListRef.value?.addNewConversation(newConversation)
-  } else {
-    // Send message to existing conversation
-    const response = await api.chat.sendMessage(
-      authStore.user!.id,
-      selectedConversationId.value!,
-      content.trim()
-    )
-
-    selectedMessages.value.push({
-      ...response,
-      isRead: false,
-    })
-
-    // Update conversation's last message and move to top
-    conversationListRef.value?.updateConversationLastMessage(selectedConversationId.value, {
-      senderId: response.senderId,
-      content: response.content,
-      createdAt: response.createdAt,
-    })
-  }
-}
 
 // function handleWebSocketNewMessage(event: NewMessageEvent) {
 //   console.log('[SupportView] handleWebSocketNewMessage called:', event)
@@ -296,6 +100,90 @@ async function handleSendMessage(content: string) {
 //     }
 //   }
 // }
+</script> -->
+
+<script setup lang="ts">
+import { ref, onMounted } from 'vue'
+import { api } from '@/api'
+import { useAuthStore } from '@/stores/auth'
+import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
+import ConversationList from '@/components/chat/ConversationList.vue'
+import type { ChatUser, Conversation, ConversationID } from '@/api/types/chat'
+import ChatArea from '@/components/chat/ChatArea.vue'
+import { useNavigation } from '@/router/utils'
+
+const twoColumnLayout = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
+const conversationListRef = ref<InstanceType<typeof ConversationList> | null>(null)
+const authStore = useAuthStore()
+const { query, removeQuery } = useNavigation()
+
+const selectedConversationId = ref<ConversationID | undefined>()
+const selectedChatUser = ref<ChatUser | undefined>()
+
+onMounted(async () => {
+  const selectedChatUserId = query.userId as string | undefined
+  if (selectedChatUserId && selectedChatUserId !== authStore.user?.id) {
+    await loadConversation(selectedChatUserId)
+  } else if (selectedChatUserId) {
+    removeQuery('userId')
+  }
+})
+
+async function loadConversation(userId: string) {
+  const organizationId = authStore.user?.role === 'organization' ? authStore.user!.id : userId
+  const memberId = authStore.user?.role === 'organization' ? userId : authStore.user!.id
+  const existingConversation = await api.chat.getConversation(organizationId, memberId)
+
+  if (existingConversation) {
+    selectedChatUser.value =
+      authStore.user?.role === 'organization'
+        ? existingConversation.member
+        : existingConversation.organization
+    selectedConversationId.value = existingConversation.id
+  } else {
+    // No existing conversation, load user to start a new one
+    await loadUser(userId)
+  }
+  removeQuery('userId')
+}
+
+async function loadUser(userId: string) {
+  try {
+    const user = await api.users.getUserById(userId)
+    selectedChatUser.value = user
+  } catch (error) {
+    console.error('Failed to load user:', error)
+  }
+}
+
+function handleSelectConversation(conversation: Conversation) {
+  selectedChatUser.value = conversationListRef.value?.getOtherUser(conversation)
+  selectedConversationId.value = conversation.id
+  twoColumnLayout.value?.showContent()
+}
+
+function handleSelectNewConversation(chatUser: ChatUser) {
+  selectedConversationId.value = undefined
+  selectedChatUser.value = chatUser
+  twoColumnLayout.value?.showContent()
+}
+
+function handleBackToList() {
+  selectedConversationId.value = undefined
+  selectedChatUser.value = undefined
+  twoColumnLayout.value?.showSidebar()
+}
+
+function handleConversationCreated(conversation: Conversation) {
+  conversationListRef.value?.addNewConversation(conversation)
+}
+
+function handleMessageSent(
+  conversationId: string,
+  lastMessage: { senderId: string; content: string; createdAt: Date }
+) {
+  conversationListRef.value?.updateConversationLastMessage(conversationId, lastMessage)
+}
 </script>
 
 <template>
@@ -309,40 +197,17 @@ async function handleSendMessage(content: string) {
       />
     </template>
     <template #content>
-      <div class="chat-content">
-        <ChatArea
-          :selected-chat-user="selectedChatUser"
-          :messages="selectedMessages"
-          @back="handleBackToList"
-          @load-more="handleLoadMoreMessages"
-        />
-        <MessageInput v-if="selectedChatUser" @send-message="handleSendMessage" />
-      </div>
+      <ChatArea
+        v-model:selected-conversation-id="selectedConversationId"
+        :selected-chat-user="selectedChatUser"
+        @back="handleBackToList"
+        @conversation-created="handleConversationCreated"
+        @message-sent="handleMessageSent"
+      />
     </template>
   </TwoColumnLayout>
 </template>
+
 <style scoped lang="scss">
-.chat-content {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-}
-
-.no-chat-selected {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: $spacing-6;
-  background-color: var(--q-background);
-  border-top: 1px solid var(--q-separator-color);
-  min-height: 62px;
-
-  p {
-    margin: 0;
-    color: var(--q-text-secondary);
-    font-size: $font-size-sm;
-    text-align: center;
-  }
-}
+// Styles removed - ChatArea now handles its own layout
 </style>
