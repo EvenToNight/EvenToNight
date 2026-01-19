@@ -501,49 +501,49 @@ paths:
                 type: object
                 properties:
                   eventId:
-                type: string
-                description: ID of the event being reviewed
-                example: event123
-              userId:
-                type: string
-                description: ID of the user who made the review
-                example: user123
-              creatorId:
-                type: string
-                description: ID of the organization being reviewed
-                example: org456
-              collaboratorIds:
-                type: array
-                description: IDs of collaborators associated with the review
-                items:
-                  type: string
-                  example: collab789
-              rating:
-                type: integer
-                description: Rating given in the review
-                example: 5
-              title:
-                type: string
-                description: Title of the review
-                example: "Amazing Event!"
-              comment:
-                type: string
-                description: Comment of the review
-                example: "Had a fantastic time at this event."
-              createdAt:
-                type: string
-                format: date-time
-                description: Timestamp when the review was created
-                example: "2024-01-01T12:00:00Z"
-              updatedAt:
-                type: string
-                format: date-time
-                description: Timestamp when the review was last updated
-                example: "2024-01-02T15:30:00Z"
-              id:
-                type: string
-                description: ID of the review
-                example: review123
+                    type: string
+                    description: ID of the event being reviewed
+                    example: event123
+                  userId:
+                    type: string
+                    description: ID of the user who made the review
+                    example: user123
+                  creatorId:
+                    type: string
+                    description: ID of the organization being reviewed
+                    example: org456
+                  collaboratorIds:
+                    type: array
+                    description: IDs of collaborators associated with the review
+                    items:
+                      type: string
+                      example: collab789
+                  rating:
+                    type: integer
+                    description: Rating given in the review
+                    example: 5
+                  title:
+                    type: string
+                    description: Title of the review
+                    example: "Amazing Event!"
+                  comment:
+                    type: string
+                    description: Comment of the review
+                    example: "Had a fantastic time at this event."
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp when the review was created
+                    example: "2024-01-01T12:00:00Z"
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp when the review was last updated
+                    example: "2024-01-02T15:30:00Z"
+                  id:
+                    type: string
+                    description: ID of the review
+                    example: review123
         '404':
           description: Review not found
           content:
@@ -712,6 +712,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -1564,3 +1566,10 @@ components:
       required:
         - statusCode
         - message
+    
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Enter your JWT token in the format: Bearer <token>'

@@ -12,17 +12,22 @@ import { LikeService } from '../services/like.service';
 import { LikeEventDto } from '../dto/like-event.dto';
 import { PaginatedQueryDto } from '../../commons/dto/paginated-query.dto';
 import { JwtAuthGuard } from 'src/commons/auth/jwt-auth.guard';
+import { CurrentUser } from 'src/commons/auth/current-user.decorator';
 
 @Controller('events/:eventId')
-@UseGuards(JwtAuthGuard)
 export class LikeController {
   constructor(private readonly likeService: LikeService) {}
 
   @Post('likes')
+  @UseGuards(JwtAuthGuard)
   async likeEvent(
     @Param('eventId') eventId: string,
     @Body() likeEventDto: LikeEventDto,
+    @CurrentUser('userId') userId: string,
   ) {
+    if (likeEventDto.userId !== userId) {
+      throw new Error('Authorized user mismatch');
+    }
     await this.likeService.likeEvent(eventId, likeEventDto.userId);
     return {
       message: 'Event liked successfully',
