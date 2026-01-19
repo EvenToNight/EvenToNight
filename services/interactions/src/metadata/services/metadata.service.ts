@@ -4,6 +4,7 @@ import {
   Inject,
   forwardRef,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -293,7 +294,15 @@ export class MetadataService {
     }
   }
 
-  private async validateEventCompleted(eventId: string): Promise<void> {}
+  private async validateEventCompleted(eventId: string): Promise<void> {
+    const event = await this.eventModel.findOne({ eventId });
+    const status = event?.status || EventStatus.CANCELLED;
+    if (status != EventStatus.COMPLETED) {
+      throw new BadRequestException(
+        'Not possible to reviewed a event not completed',
+      );
+    }
+  }
 
   private async hasParticipated(
     eventId: string,
