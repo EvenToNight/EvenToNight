@@ -785,12 +785,6 @@ paths:
               properties:
                 userId:
                   type: string
-                creatorId:
-                  type: string
-                collaboratorIds:
-                  type: array
-                  items:
-                    type: string
                 rating:
                   type: integer
                 title:
@@ -804,8 +798,6 @@ paths:
                 - title
             example:
               userId: user123
-              creatorId: org456
-              collaboratorIds: [collab789]
               rating: 5
               title: "Amazing Event!"
               comment: "Had a fantastic time at this event."

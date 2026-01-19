@@ -37,6 +37,8 @@ export class ReviewService {
     const review = new this.reviewModel({
       eventId,
       ...createReviewDto,
+      creatorId: 'org1', // MOCK -> get creator from metadata
+      collaboratorIds: ['collab1'], // MOCK -> get collaboratorIds from metadata
     });
     return review.save();
   }
