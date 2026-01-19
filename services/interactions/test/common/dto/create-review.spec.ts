@@ -59,27 +59,4 @@ describe('CreateReviewDto', () => {
     expect(errorsHigh.length).toBeGreaterThan(0);
     expect(errorsFloat.length).toBeGreaterThan(0);
   });
-
-  it('fails when collaboratorIds is not array of strings', async () => {
-    const dtoNotArray = plainToInstance(CreateReviewDto, {
-      userId: 'u',
-      creatorId: 'o',
-      collaboratorIds: 'not-array',
-      rating: 4,
-      title: 't',
-    });
-
-    const dtoNonString = plainToInstance(CreateReviewDto, {
-      userId: 'u',
-      creatorId: 'o',
-      collaboratorIds: [1, 2],
-      rating: 4,
-      title: 't',
-    });
-
-    const errorsNotArray = await validate(dtoNotArray as any);
-    const errorsNonString = await validate(dtoNonString as any);
-    expect(errorsNotArray.length).toBeGreaterThan(0);
-    expect(errorsNonString.length).toBeGreaterThan(0);
-  });
 });

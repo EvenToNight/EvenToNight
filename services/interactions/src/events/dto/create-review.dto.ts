@@ -5,7 +5,6 @@ import {
   Min,
   Max,
   IsOptional,
-  IsArray,
 } from 'class-validator';
 
 export class CreateReviewDto {

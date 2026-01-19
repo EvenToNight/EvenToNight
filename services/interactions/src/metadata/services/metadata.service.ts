@@ -147,9 +147,9 @@ export class MetadataService {
         `Processing event.completed: ${JSON.stringify(payload)}`,
       );
 
-      const completeResult = await this.userModel.updateOne(
+      const completeResult = await this.eventModel.updateOne(
         { eventId: payload.eventId },
-        { status: EventStatus.COMPLETED.toString },
+        { status: EventStatus.COMPLETED },
       );
 
       if (completeResult.modifiedCount == 0) {
