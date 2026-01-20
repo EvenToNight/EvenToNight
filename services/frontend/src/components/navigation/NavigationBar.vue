@@ -32,6 +32,11 @@ const { goToHome, goToUserProfile } = useNavigation()
 const mobileSearchOpen = ref(false) //TODO evaluate usage
 const mobileMenuOpen = ref(false)
 
+const toggleDarkMode = () => {
+  $q.dark.toggle()
+  localStorage.setItem('darkMode', String($q.dark.isActive))
+}
+
 watch(
   () => searchBarHasFocus.value,
   (newVal) => (mobileSearchOpen.value = newVal)
@@ -93,7 +98,11 @@ const goToProfile = () => {
           <q-btn flat dense icon="menu" @click="toggleMobileMenu" />
         </template>
         <template v-else>
-          <div v-if="showSearch" class="search-container">
+          <div
+            v-if="showSearch"
+            class="search-container"
+            :class="{ 'search-container--narrow': !authStore.isAuthenticated }"
+          >
             <SearchBar />
           </div>
           <div v-if="authStore.isAuthenticated">
@@ -123,7 +132,16 @@ const goToProfile = () => {
               </q-menu>
             </q-btn>
           </div>
-          <div v-else>
+          <div v-else class="unauthenticated-actions">
+            <q-btn
+              flat
+              round
+              class="theme-toggle"
+              :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+              @click="toggleDarkMode"
+            >
+              <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
+            </q-btn>
             <AuthButtons />
           </div>
         </template>
@@ -155,7 +173,21 @@ const goToProfile = () => {
           />
         </div>
       </div>
-      <div v-else>
+      <div v-else class="drawer-unauthenticated">
+        <div class="drawer-theme-toggle">
+          <div class="toggle-field">
+            <div class="toggle-label">
+              <q-icon :name="$q.dark.isActive ? 'light_mode' : 'dark_mode'" size="24px" />
+              <span>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</span>
+            </div>
+            <q-toggle
+              :model-value="$q.dark.isActive"
+              color="primary"
+              @update:model-value="toggleDarkMode"
+            />
+          </div>
+        </div>
+        <q-separator class="q-my-md" />
         <AuthButtons variant="vertical" />
       </div>
     </DrawerMenu>
@@ -230,6 +262,10 @@ const goToProfile = () => {
   left: 50%;
   transform: translateX(-50%);
   width: clamp(200px, 40vw, 500px);
+
+  &--narrow {
+    width: clamp(180px, 35vw, 380px);
+  }
 }
 
 .drawer-user-info {
@@ -265,5 +301,57 @@ const goToProfile = () => {
 .drawer-user-buttons {
   @include flex-column;
   gap: $spacing-3;
+}
+
+.unauthenticated-actions {
+  @include flex-center;
+  gap: $spacing-1;
+}
+
+.theme-toggle {
+  transition: all $transition-base;
+
+  :deep(.q-icon) {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover :deep(.q-icon) {
+    transform: rotate(20deg);
+  }
+}
+
+.drawer-unauthenticated {
+  .drawer-theme-toggle {
+    padding: $spacing-2 0;
+  }
+
+  .toggle-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $spacing-2 0;
+  }
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+
+    @include dark-mode {
+      color: $color-white;
+    }
+
+    .q-icon {
+      color: $color-gray-600;
+      transition: transform 0.3s ease;
+
+      @include dark-mode {
+        color: $color-gray-400;
+      }
+    }
+  }
 }
 </style>

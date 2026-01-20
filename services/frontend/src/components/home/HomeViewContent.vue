@@ -1,14 +1,12 @@
 <script setup lang="ts">
 import { ref, onMounted, inject } from 'vue'
 import type { Ref } from 'vue'
-import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import SearchBar from '@/components/navigation/SearchBar.vue'
 import EventCard from '@/components/cards/EventCard.vue'
 import CardSlider from '@/components/cards/CardSlider.vue'
 import CategorySelection from '@/components/home/CategorySelection.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useNavigation } from '@/router/utils'
@@ -16,7 +14,6 @@ import { useNavigation } from '@/router/utils'
 const emit = defineEmits(['auth-required'])
 
 const { goToExplore } = useNavigation()
-const $q = useQuasar()
 const { t } = useI18n()
 const authStore = useAuthStore()
 
@@ -28,11 +25,6 @@ const eventLikes = ref<Record<string, boolean>>({})
 const handleSeeAllEvents = () => {
   console.log('See all events clicked')
   goToExplore({ otherFilter: 'upcoming' })
-}
-
-const toggleDarkMode = () => {
-  $q.dark.toggle()
-  localStorage.setItem('darkMode', $q.dark.isActive ? 'true' : 'false')
 }
 
 onMounted(async () => {
@@ -68,15 +60,6 @@ onMounted(async () => {
   <div class="home-view-content">
     <div class="hero-section">
       <div class="hero-container">
-        <div class="theme-selector-absolute">
-          <Button
-            :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
-            :label="$q.dark.isActive ? t('theme.light_mode') : t('theme.dark_mode')"
-            variant="primary"
-            @click="toggleDarkMode"
-          />
-        </div>
-
         <div class="hero-content">
           <h1 class="hero-title">{{ t('home.hero.title') }}</h1>
           <div ref="pageContentSearchBarRef" class="hero-search-wrapper">
@@ -159,13 +142,6 @@ onMounted(async () => {
       border-bottom-left-radius: 24px;
       border-bottom-right-radius: 24px;
     }
-  }
-
-  .theme-selector-absolute {
-    position: absolute;
-    top: $spacing-4;
-    right: $spacing-4;
-    z-index: 10;
   }
 
   .hero-content {
