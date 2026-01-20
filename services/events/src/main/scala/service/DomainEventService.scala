@@ -31,7 +31,8 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
             EventPublished(
               eventId = newEvent._id,
               creatorId = cmd.creatorId,
-              collaboratorIds = cmd.collaboratorIds
+              collaboratorIds = cmd.collaboratorIds,
+              name = cmd.title.getOrElse("Unnamed Event")
             )
           )
         Right(newEvent._id)
@@ -58,14 +59,15 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
                 EventPublished(
                   eventId = updatedEvent._id,
                   creatorId = updatedEvent.creatorId,
-                  collaboratorIds = updatedEvent.collaboratorIds
+                  collaboratorIds = updatedEvent.collaboratorIds,
+                  name = updatedEvent.title.getOrElse("Unnamed Event")
                 )
               )
             else
               publisher.publish(
                 EventUpdated(
                   eventId = updatedEvent._id,
-                  collaboratorIds = updatedEvent.collaboratorIds
+                  collaboratorIds = updatedEvent.collaboratorIds,
                 )
               )
             Right(())
