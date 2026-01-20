@@ -1,3 +1,47 @@
+## [1.18.0](https://github.com/EvenToNight/EvenToNight/compare/v1.17.1...v1.18.0) (2026-01-19)
+
+### Features
+
+* **auth:** add authentication layer setup ([f6aae72](https://github.com/EvenToNight/EvenToNight/commit/f6aae72690e86ca297f88bd274a7244395ee5650))
+* **checkout:** integarte stripe for checkout session and update testing modes ([8b3fc63](https://github.com/EvenToNight/EvenToNight/commit/8b3fc63ef290dc03d4ac92262933c9024fc0f03b))
+* **domain-data:** save event and user data ([b0f191c](https://github.com/EvenToNight/EvenToNight/commit/b0f191c3d932fd106f1e7a60523f486083fc18b3))
+* **event:** publish payments.order.confirmed and payments.order.rejected events ([bfe4639](https://github.com/EvenToNight/EvenToNight/commit/bfe4639848b5ec344ce8edf2cb970c289f4ab30c))
+* **eventTicketType:** handle event ticketTypes deletion ([9cff6f2](https://github.com/EvenToNight/EvenToNight/commit/9cff6f23e49144d16a876fafdc4947c92386dedf))
+* **eventTicketType:** handle single ticket type  deletion ([d24835d](https://github.com/EvenToNight/EvenToNight/commit/d24835dd74f6ff9c10be65bd7d7bb3486fdec8d3))
+* **ticket:** add ticket to pdf service ([2c170f8](https://github.com/EvenToNight/EvenToNight/commit/2c170f8c50abae6cc25f8eafa7af762f6e1e144f))
+* **ticket:** suport multiple ticket languages ([c19fdd5](https://github.com/EvenToNight/EvenToNight/commit/c19fdd5f66e0c601a0e86d9bee91ad9270b43525))
+* **ticket:** wire event-ticket-type API ([0491e4a](https://github.com/EvenToNight/EvenToNight/commit/0491e4a3d85ddf16fb462b605334f7b71a64607d))
+* **transactionManager:** add retry logic ([7bb4979](https://github.com/EvenToNight/EvenToNight/commit/7bb4979f40eeefa4b7f6663759c583560a08b749))
+* **user:** handle user messages reception ([74a2f73](https://github.com/EvenToNight/EvenToNight/commit/74a2f731a6ac1f72724bd0f55f9a6b753299867d))
+
+### Bug Fixes
+
+* **checkout:** react to correct event ([d341999](https://github.com/EvenToNight/EvenToNight/commit/d34199941619cde607f4c53bb48e3934c342cd5b))
+* **event-ticket:** avoid duplicate ticket type for same event ([be3d862](https://github.com/EvenToNight/EvenToNight/commit/be3d8621028ee34d87275a87a4dd5e71ac0442c7))
+* **locale:** fix local selection from footer ([abea457](https://github.com/EvenToNight/EvenToNight/commit/abea4577eabed719edc2cc6e1baec672506a510d))
+* **setupApp:** update command to keep stripe listener alive ([0ad8b6c](https://github.com/EvenToNight/EvenToNight/commit/0ad8b6c65c7dd21a5d5be31c7bbf0f69f7d941e1))
+* **tickets:** check for event creator to mark ticket as USED ([3f61a3f](https://github.com/EvenToNight/EvenToNight/commit/3f61a3f7641882794c546b084b02258824e4df57))
+* **transaction:** add readPreference ([e86a0ce](https://github.com/EvenToNight/EvenToNight/commit/e86a0ceb0445202e397633f54931433da0a48e27))
+
+## [1.17.1](https://github.com/EvenToNight/EvenToNight/compare/v1.17.0...v1.17.1) (2026-01-16)
+
+### Bug Fixes
+
+* **media-service:** add healthcheck in media service ([d617a19](https://github.com/EvenToNight/EvenToNight/commit/d617a194a4861661e0a4050f726340b6f0196fd3))
+
+## [1.17.0](https://github.com/EvenToNight/EvenToNight/compare/v1.16.0...v1.17.0) (2026-01-15)
+
+### Features
+
+* **message:** send user.created  message on user registration ([5ccce7e](https://github.com/EvenToNight/EvenToNight/commit/5ccce7e633f87469e989db06c23cff3f49af0ae9))
+* **users:** add Keycloak JWKS caching and implement /publicKeys endpoint ([bf5c2ec](https://github.com/EvenToNight/EvenToNight/commit/bf5c2ec4bae8e42938e557b48b07bdd40f6ac3b2))
+* **users:** implement /logout endpoint ([ed66fca](https://github.com/EvenToNight/EvenToNight/commit/ed66fca548adf07011a55c607ba3567d85a8c78e))
+* **users:** implement /refresh endpoint ([adc49d4](https://github.com/EvenToNight/EvenToNight/commit/adc49d41f6b819498b4b818a43b5b20cad8b8587))
+
+### Bug Fixes
+
+* **media-service:** fix bug in media service ([77f0573](https://github.com/EvenToNight/EvenToNight/commit/77f05734607373dd60e41e5ecf7a658048396685))
+
 ## [1.16.0](https://github.com/EvenToNight/EvenToNight/compare/v1.15.0...v1.16.0) (2026-01-14)
 
 ### Features

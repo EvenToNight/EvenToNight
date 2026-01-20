@@ -1,0 +1,82 @@
+services:
+  payments:
+    image: ghcr.io/eventonight/eventonight/payments:latest
+    networks:
+      - eventonight-network
+      - payments-network
+    environment:
+      - HOST=${HOST}
+      - PORT=${PAYMENTS_SERVICE_PORT}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - MONGO_HOST=mongo-payments
+      - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:?}
+      - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:?}
+      - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.payments.rule=Host(`payments.${HOST}`)"
+      - "traefik.http.routers.payments.entrypoints=web"
+      - "traefik.http.services.payments.loadbalancer.server.port=${PAYMENTS_SERVICE_PORT}"
+    restart: unless-stopped
+    depends_on:
+      mongo-payments:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+
+  # PRIMARY NODE
+  mongo-payments:
+    image: mongo
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    restart: unless-stopped
+    networks:
+      - payments-network
+    volumes:
+      - mongo-payments-data:/data/db
+      - ./services/payments/scripts/init-replica-set.sh:/docker-entrypoint-initdb.d/init-replica-set.sh:ro
+    healthcheck:
+      test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
+      interval: 2s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  # TODO: test multi-node replica set
+  # SECONDARY NODE 1 (optional - uncomment for 3-node replica set)
+  # mongo-payments-2:
+  #   image: mongo
+  #   command: ["--replSet", "rs0", "--bind_ip_all"]
+  #   restart: unless-stopped
+  #   networks:
+  #     - payments-network
+  #   healthcheck:
+  #     test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
+  #     interval: 2s
+  #     timeout: 3s
+  #     retries: 10
+  #     start_period: 30s
+
+  # SECONDARY NODE 2 (optional - uncomment for 3-node replica set)
+  # mongo-payments-3:
+  #   image: mongo
+  #   command: ["--replSet", "rs0", "--bind_ip_all"]
+  #   restart: unless-stopped
+  #   networks:
+  #     - payments-network
+  #   healthcheck:
+  #     test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
+  #     interval: 2s
+  #     timeout: 3s
+  #     retries: 10
+  #     start_period: 30s
+
+networks:
+  eventonight-network:
+    driver: bridge
+  payments-network:
+    driver: bridge
+
+volumes:
+  mongo-payments-data:
