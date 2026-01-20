@@ -9,7 +9,7 @@ const { changeLocale } = useNavigation()
 const selectLanguage = (langCode: string) => {
   locale.value = langCode
   localStorage.setItem('user-locale', langCode)
-  changeLocale(langCode, true)
+  changeLocale(langCode)
 }
 </script>
 

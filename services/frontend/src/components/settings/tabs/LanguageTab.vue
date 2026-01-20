@@ -58,7 +58,7 @@ const selectLanguage = (langCode: string) => {
   // Save to localStorage
   localStorage.setItem('user-locale', langCode)
   // Navigate to the new locale path
-  changeLocale(langCode, true)
+  changeLocale(langCode)
 }
 </script>
 

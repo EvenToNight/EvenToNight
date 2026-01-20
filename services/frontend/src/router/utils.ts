@@ -190,26 +190,15 @@ export const useNavigation = () => {
   ) => {
     router.replace(to)
   }
-  const changeLocale = (newLocale: string, swap: boolean = false) => {
-    if (swap) {
-      router.replace({
-        name: route.name as string,
-        params: {
-          ...route.params,
-          locale: newLocale,
-        },
-        query: route.query,
-      })
-    } else {
-      router.push({
-        name: route.name as string,
-        params: {
-          ...route.params,
-          locale: newLocale,
-        },
-        query: route.query,
-      })
-    }
+  const changeLocale = (newLocale: string) => {
+    router.replace({
+      name: route.name as string,
+      params: {
+        ...route.params,
+        locale: newLocale,
+      },
+      query: route.query,
+    })
   }
 
   return {
