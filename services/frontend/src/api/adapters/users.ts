@@ -13,8 +13,7 @@ function adaptProfile(dto: ProfileAPI): Profile {
     name: dto.name,
     avatar: dto.avatar,
     bio: dto.bio,
-    website:
-      Array.isArray(dto.constacts) && dto.constacts.length > 0 ? dto.constacts[0] : undefined,
+    website: Array.isArray(dto.contacts) && dto.contacts.length > 0 ? dto.contacts[0] : undefined,
   }
 }
 
@@ -61,7 +60,7 @@ export const UserAdapter = {
         name: user.name!,
         avatar: user.avatar!,
         bio: user.bio,
-        constacts: user.website ? [user.website] : [],
+        contacts: user.website ? [user.website] : [],
       },
     }
   },

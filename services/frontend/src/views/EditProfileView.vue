@@ -9,6 +9,7 @@ import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
 import FormField from '@/components/forms/FormField.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { required } from '@/components/forms/validationUtils'
+import { api } from '@/api'
 
 const authStore = useAuthStore()
 const { goToUserProfile } = useNavigation()
@@ -48,28 +49,31 @@ const handleSave = async () => {
 
   loading.value = true
   try {
-    // TODO: Implement API call to update user profile
-    // await api.users.updateProfile(authStore.user.id, {
-    //   name: name.value,
-    //   bio: bio.value,
-    //   website: website.value,
-    //   avatar: avatar.value,
-    // })
+    const updateReq = {
+      name: name.value.trim(),
+      bio: bio.value.trim() || undefined,
+      website: website.value.trim() || undefined,
+    }
+    console.log('Updating user with data:', updateReq)
+    await api.users.updateUserById(authStore.user.id, updateReq)
+
+    if (authStore.user) {
+      authStore.user.name = name.value
+      authStore.user.bio = bio.value || undefined
+      authStore.user.website = website.value || undefined
+    }
+
+    if (avatar.value) {
+      const { avatarUrl } = await api.users.updateUserAvatarById(authStore.user.id, avatar.value)
+      currentAvatarUrl.value = avatarUrl
+      authStore.user.avatar = avatarUrl
+    }
 
     $q.notify({
       color: 'positive',
       message: 'Profile updated successfully',
       icon: 'check_circle',
     })
-
-    // Update auth store with new data
-    if (authStore.user) {
-      authStore.user.name = name.value
-      authStore.user.bio = bio.value
-      authStore.user.website = website.value
-    }
-
-    // Navigate back to profile
     goToUserProfile(authStore.user.id)
   } catch (error) {
     console.error('Failed to update profile:', error)

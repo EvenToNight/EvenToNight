@@ -50,7 +50,9 @@ const setupScrollObserver = async () => {
 const loadUser = async () => {
   try {
     const userId = params.id as string
+    console.log('Loading user with ID:', userId)
     user.value = await api.users.getUserById(userId)
+    console.log('Loaded user:', { ...user.value })
 
     // Load reviews statistics if organization
     if (user.value.role === 'organization') {
@@ -95,7 +97,7 @@ const defaultIcon = computed(() => {
     <template v-if="user">
       <div ref="profileHeaderRef">
         <ProfileHeader
-          :user="user"
+          v-model="user"
           :reviews-statistics="reviewsStatistics"
           @auth-required="showAuthDialog = true"
         />

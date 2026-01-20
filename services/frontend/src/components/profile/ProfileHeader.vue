@@ -15,11 +15,11 @@ import { api } from '@/api'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 interface Props {
-  user: User
   reviewsStatistics?: OrganizationReviewsStatistics
 }
 
-const props = defineProps<Props>()
+const user = defineModel<User>({ required: true })
+defineProps<Props>()
 const isFollowing = ref(false)
 
 const userInteractionsInfo = ref<UserInteractionsInfo>({
@@ -39,9 +39,9 @@ const avatarCropUploadRef = ref<InstanceType<typeof AvatarCropUpload> | null>(nu
 const newAvatar = ref<File | null>(null)
 
 const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
-const isOwnProfile = computed(() => authStore.isOwnProfile(props.user.id))
+const isOwnProfile = computed(() => authStore.isOwnProfile(user.value.id))
 const isOrganization = computed(() => {
-  return props.user.role === 'organization'
+  return user.value.role === 'organization'
 })
 
 const defaultIcon = computed(() => {
@@ -52,14 +52,14 @@ const defaultIcon = computed(() => {
 onMounted(async () => {
   if (authStore.isAuthenticated && !isOwnProfile.value && authStore.user?.id) {
     try {
-      isFollowing.value = await api.interactions.isFollowing(authStore.user.id, props.user.id)
+      isFollowing.value = await api.interactions.isFollowing(authStore.user.id, user.value.id)
     } catch (error) {
       console.error('Failed to load following status:', error)
     }
   }
   const [followers, following] = await Promise.all([
-    api.interactions.followers(props.user.id),
-    api.interactions.following(props.user.id),
+    api.interactions.followers(user.value.id),
+    api.interactions.following(user.value.id),
   ])
 
   const userInteractionsInfoResponse = {
@@ -77,11 +77,11 @@ const handleFollowToggle = async () => {
 
   try {
     if (isFollowing.value) {
-      await api.interactions.unfollowUser(authStore.user.id, props.user.id)
+      await api.interactions.unfollowUser(authStore.user.id, user.value.id)
       isFollowing.value = false
       userInteractionsInfo.value.followers -= 1
     } else {
-      await api.interactions.followUser(authStore.user.id, props.user.id)
+      await api.interactions.followUser(authStore.user.id, user.value.id)
       isFollowing.value = true
       userInteractionsInfo.value.followers += 1
     }
@@ -109,10 +109,10 @@ const handleAvatarError = (message: string) => {
 
 const handleAvatarChange = async (file: File | null) => {
   if (!file) return
-
-  // TODO: Implement API call to update avatar
-  // await api.users.updateAvatar(authStore.user.id, file)
-
+  console.log('Uploading new avatar file:', file)
+  const { avatarUrl } = await api.users.updateUserAvatarById(authStore.user!.id, file)
+  authStore.user!.avatar = avatarUrl
+  user.value.avatar = avatarUrl
   $q.notify({
     color: 'positive',
     message: t('profile.edit.saveSuccess'),

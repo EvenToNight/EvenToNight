@@ -41,7 +41,9 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
   },
 
   async getUserById(id: UserID): Promise<User> {
-    return UserAdapter.fromApi(await usersClient.get<UserAPIResponse>(`/${id}`))
+    const res = await usersClient.get<UserAPIResponse>(`/${id}`)
+    console.log('Fetched user data from API:', res)
+    return UserAdapter.fromApi(res)
   },
 
   async deleteUserById(id: UserID): Promise<void> {
@@ -50,13 +52,17 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
 
   //TODO: check update and removal of all optional fields
   async updateUserById(id: UserID, data: Partial<User>): Promise<void> {
-    return usersClient.put<void>(`/${id}`, UserAdapter.toApi(data))
+    const res = UserAdapter.toApi(data)
+    console.log('Sending updated user data to API:', res)
+    const response = await usersClient.put<void>(`/${id}`, res)
+    console.log('Update user response:', response)
+    return response
   },
 
-  async updateUserAvatarById(id: UserID, avatarFile: File): Promise<void> {
+  async updateUserAvatarById(id: UserID, avatarFile: File): Promise<{ avatarUrl: string }> {
     const formData = new FormData()
     formData.append('avatar', avatarFile)
-    await usersClient.post(`/${id}/avatar`, formData)
+    return usersClient.post<{ avatarUrl: string }>(`/${id}`, formData)
   },
 
   async changePassword(userId: UserID, data: ChangePasswordRequest): Promise<void> {

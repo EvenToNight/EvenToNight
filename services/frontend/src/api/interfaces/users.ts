@@ -23,7 +23,7 @@ export type AccessToken = string
 export type RefreshToken = string
 
 export type ProfileAPI = Omit<Profile, 'website'> & {
-  constacts: string[]
+  contacts: string[]
 }
 export interface TokenResponse {
   accessToken: AccessToken
@@ -56,6 +56,7 @@ export interface LoginResponse extends TokenResponse {
 
 export interface UsersAPI {
   login(credentials: LoginRequest): Promise<LoginResponse>
+  //TODO update with current darkmode and lang settings
   register(data: RegistrationRequest): Promise<LoginResponse>
   refreshToken(refreshToken: RefreshToken): Promise<TokenResponse>
   logout(refreshToken: RefreshToken): Promise<void>
@@ -65,7 +66,7 @@ export interface UsersAPI {
   getUserById(id: UserID): Promise<User>
   deleteUserById(id: UserID): Promise<void>
   updateUserById(id: UserID, data: Partial<User>): Promise<void>
-  updateUserAvatarById(id: UserID, avatarFile: File): Promise<void>
+  updateUserAvatarById(id: UserID, avatarFile: File): Promise<{ avatarUrl: string }>
 
   changePassword(userId: UserID, data: ChangePasswordRequest): Promise<void>
   searchUsers(params: {

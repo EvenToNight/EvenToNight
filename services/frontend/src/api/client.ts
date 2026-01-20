@@ -79,7 +79,7 @@ export class ApiClient {
   private async requestJson<T>(endpoint: string, options: RequestInit): Promise<T> {
     const response = await this.request(endpoint, options)
     const text = await response.text()
-    return JSON.parse(text, dateReviver) as T
+    return text ? (JSON.parse(text, dateReviver) as T) : ({} as T)
   }
   private async request(
     endpoint: string,

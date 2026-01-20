@@ -3,39 +3,42 @@ import { defineStore } from 'pinia'
 import type { User, UserID } from '@/api/types/users'
 import { api } from '@/api'
 import { useI18n } from 'vue-i18n'
-import { jwtDecode } from 'jwt-decode'
-import type { AccessToken, LoginResponse, RefreshToken } from '@/api/interfaces/users'
+import type {
+  AccessToken,
+  LoginResponse,
+  RefreshToken,
+  TokenResponse,
+} from '@/api/interfaces/users'
 
-interface DecodedToken {
-  user_id: UserID
-  exp: number
-}
-
-// Access token in sessionStorage as fallback (lost when the tab is closed)
 const ACCESS_TOKEN_SESSION_KEY = 'access_token_session'
 const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
+const REFRESH_TOKEN_SESSION_KEY = 'refresh_token_session'
+const REFRESH_TOKEN_EXPIRY_SESSION_KEY = 'refresh_token_expiry_session'
 const USER_SESSION_KEY = 'user_session'
 
 export const useAuthStore = defineStore('auth', () => {
   const { t } = useI18n()
-  const token = ref<AccessToken | null>(null)
-  const decodedToken = ref<DecodedToken | null>(null)
+
   const user = ref<User | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
-    if (!decodedToken.value) return false
-    return decodedToken.value.exp > Date.now() / 1000
+    if (!expiredAt.value) return false
+    return expiredAt.value > Date.now()
   })
-  const accessToken = computed(() => token.value || null)
+  const accessToken = ref<AccessToken | null>(null)
+  const expiredAt = ref<number | null>(null)
   const refreshToken = ref<RefreshToken | null>(null)
+  const refreshExpiredAt = ref<number | null>(null)
 
-  const setTokens = (accessToken: AccessToken) => {
-    console.log('Auth token:', accessToken)
-    decodedToken.value = jwtDecode<DecodedToken>(accessToken)
-    console.log('Decoded token:', { ...decodedToken.value })
-    token.value = accessToken
-    sessionStorage.setItem(ACCESS_TOKEN_SESSION_KEY, token.value)
-    sessionStorage.setItem(TOKEN_EXPIRY_SESSION_KEY, decodedToken.value!.exp.toString())
+  const setTokens = (tokenResponse: TokenResponse) => {
+    accessToken.value = tokenResponse.accessToken
+    expiredAt.value = Date.now() + tokenResponse.expiresIn * 1000
+    refreshToken.value = tokenResponse.refreshToken
+    refreshExpiredAt.value = Date.now() + tokenResponse.refreshExpiresIn * 1000
+    sessionStorage.setItem(ACCESS_TOKEN_SESSION_KEY, accessToken.value)
+    sessionStorage.setItem(TOKEN_EXPIRY_SESSION_KEY, expiredAt.value.toString())
+    sessionStorage.setItem(REFRESH_TOKEN_SESSION_KEY, refreshToken.value)
+    sessionStorage.setItem(REFRESH_TOKEN_EXPIRY_SESSION_KEY, refreshExpiredAt.value.toString())
   }
 
   const setUser = (authUser: User) => {
@@ -45,15 +48,20 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const setAuthData = async (authData: LoginResponse) => {
-    setTokens(authData.accessToken)
+    setTokens(authData)
     setUser(authData.user)
   }
 
   const clearAuth = () => {
-    token.value = null
+    accessToken.value = null
+    expiredAt.value = null
+    refreshToken.value = null
+    refreshExpiredAt.value = null
     user.value = null
     sessionStorage.removeItem(ACCESS_TOKEN_SESSION_KEY)
     sessionStorage.removeItem(TOKEN_EXPIRY_SESSION_KEY)
+    sessionStorage.removeItem(REFRESH_TOKEN_SESSION_KEY)
+    sessionStorage.removeItem(REFRESH_TOKEN_EXPIRY_SESSION_KEY)
     sessionStorage.removeItem(USER_SESSION_KEY)
   }
 
@@ -118,9 +126,13 @@ export const useAuthStore = defineStore('auth', () => {
 
   const refreshAccessToken = async (): Promise<boolean> => {
     try {
-      // refreshToken is sent automatically via httpOnly cookie
-      // setAuthData(await api.users.refreshToken())
-      return true
+      if (refreshToken.value) {
+        setTokens(await api.users.refreshToken(refreshToken.value as RefreshToken))
+        console.log('Access token refreshed')
+        return true
+      }
+      console.log('Access token NOT refreshed')
+      return false
     } catch {
       clearAuth()
       return false
@@ -130,10 +142,19 @@ export const useAuthStore = defineStore('auth', () => {
   const initializeAuth = () => {
     const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
     const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
-    const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
+    const storedRefreshToken = sessionStorage.getItem(REFRESH_TOKEN_SESSION_KEY)
+    const storedRefreshExpiry = sessionStorage.getItem(REFRESH_TOKEN_EXPIRY_SESSION_KEY)
     const expiresAt = storedExpiry ? parseInt(storedExpiry, 10) : 0
-    if (storedAccessToken && expiresAt > Date.now() / 1000) {
-      setTokens(storedAccessToken)
+    const refreshExpiresAt = storedRefreshExpiry ? parseInt(storedRefreshExpiry, 10) : 0
+    const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
+
+    if (storedAccessToken && expiresAt > Date.now()) {
+      setTokens({
+        accessToken: storedAccessToken,
+        expiresIn: (expiresAt - Date.now()) / 1000,
+        refreshToken: storedRefreshToken || '',
+        refreshExpiresIn: (refreshExpiresAt - Date.now()) / 1000,
+      })
       if (storedUser) {
         try {
           user.value = JSON.parse(storedUser)
@@ -148,10 +169,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const setupAutoRefresh = () => {
-    if (!token.value) return
+    if (!expiredAt.value) return
 
-    const timeUntilExpiry = decodedToken.value!.exp - Date.now() / 1000
-    const refreshTime = timeUntilExpiry - 5 * 60
+    const timeUntilExpiry = expiredAt.value - Date.now()
+    const refreshTime = timeUntilExpiry - 5 * 60 * 1000 // 5 minutes before expiry
 
     if (refreshTime > 0) {
       setTimeout(() => {
@@ -189,7 +210,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token,
     user,
     isLoading,
     isAuthenticated,
