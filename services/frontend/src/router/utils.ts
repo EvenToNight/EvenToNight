@@ -18,6 +18,7 @@ import {
   EXPLORE_ROUTE_NAME,
   SETTINGS_ROUTE_NAME,
   CHAT_ROUTE_NAME,
+  CONTACTS_ROUTE_NAME,
 } from '@/router'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
 
@@ -227,6 +228,14 @@ export const useNavigation = () => {
     }
   }
 
+  const goToContacts = (swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(CONTACTS_ROUTE_NAME)
+    } else {
+      pushWithLocale(CONTACTS_ROUTE_NAME)
+    }
+  }
+
   const replaceRoute = (
     to: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric
   ) => {
@@ -262,6 +271,7 @@ export const useNavigation = () => {
     goToUserProfile,
     goToSettings,
     goToChat,
+    goToContacts,
     replaceRoute,
     changeLocale,
     removeQuery,
