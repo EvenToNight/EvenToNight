@@ -35,27 +35,9 @@ const props = defineProps<Props>()
 const $q = useQuasar()
 const { t } = useI18n()
 const authStore = useAuthStore()
-const {
-  goToHome,
-  goToUserProfile,
-  goToCreateEvent,
-  goToChat,
-  goToContacts,
-  goToExplore,
-  routeName,
-} = useNavigation()
+const { goToHome, goToUserProfile, goToCreateEvent, goToChat } = useNavigation()
 
 const isOrganization = computed(() => authStore.user?.role === 'organization')
-
-const activeTab = computed(() => {
-  console.log('Active tab route name:', routeName.value)
-  return routeName.value
-})
-
-watch(routeName, (newVal) => {
-  console.log('Route name changed to:', newVal)
-  console.log('Active tab is now:', activeTab.value)
-})
 
 // Notifications management
 const notifications = ref<Notification[]>([
@@ -182,28 +164,17 @@ const goToProfile = () => {
       </div>
 
       <template v-else>
-        <q-toolbar-title class="brand-title" :class="{ 'brand-title--hidden': showSearch }">
+        <q-toolbar-title class="brand-title">
           <AppBrand />
         </q-toolbar-title>
-
+        <q-space />
         <template v-if="isMobile">
-          <q-space />
           <template v-if="showSearch">
             <q-btn flat dense icon="search" @click="toggleMobileSearch" />
           </template>
           <q-btn flat dense icon="menu" @click="toggleMobileMenu" />
         </template>
         <template v-else>
-          <!-- Navigation Tabs - animated position -->
-          <div class="nav-tabs" :class="{ 'nav-tabs--left': showSearch }">
-            <q-tabs :model-value="activeTab" active-color="primary" indicator-color="primary">
-              <q-tab name="home" label="Home" @click="goToHome()" />
-              <q-tab name="explore" label="Explore" @click="goToExplore()" />
-              <q-tab name="contacts" label="Contacts" @click="goToContacts()" />
-            </q-tabs>
-          </div>
-
-          <!-- Search Bar - centered when present -->
           <div
             v-if="showSearch"
             class="search-container"
@@ -211,13 +182,9 @@ const goToProfile = () => {
           >
             <SearchBar />
           </div>
-
-          <q-space />
-
           <div
             v-if="authStore.isAuthenticated"
-            class="authenticated-actions"
-            :class="{ 'authenticated-actions--left-space': !showSearch }"
+            class="authenticated-actions authenticated-actions--left-space"
           >
             <!-- Create Event Button (Organizations only) -->
             <q-btn
@@ -334,42 +301,6 @@ const goToProfile = () => {
           </div>
         </div>
         <q-separator class="q-my-md" />
-        <div class="drawer-nav-buttons">
-          <Button
-            icon="home"
-            label="Home"
-            :variant="activeTab === 'home' ? 'primary' : 'secondary'"
-            @click="
-              () => {
-                goToHome()
-                mobileMenuOpen = false
-              }
-            "
-          />
-          <Button
-            icon="explore"
-            label="Explore"
-            :variant="activeTab === 'explore' ? 'primary' : 'secondary'"
-            @click="
-              () => {
-                goToExplore()
-                mobileMenuOpen = false
-              }
-            "
-          />
-          <Button
-            icon="people"
-            label="Contacts"
-            :variant="activeTab === 'contacts' ? 'primary' : 'secondary'"
-            @click="
-              () => {
-                goToContacts()
-                mobileMenuOpen = false
-              }
-            "
-          />
-        </div>
-        <q-separator class="q-my-md" />
         <div class="drawer-user-buttons">
           <Button icon="person" :label="t('profile')" variant="secondary" @click="goToProfile" />
           <Button
@@ -381,42 +312,6 @@ const goToProfile = () => {
         </div>
       </div>
       <div v-else class="drawer-unauthenticated">
-        <div class="drawer-nav-buttons">
-          <Button
-            icon="home"
-            label="Home"
-            :variant="activeTab === 'home' ? 'primary' : 'secondary'"
-            @click="
-              () => {
-                goToHome()
-                mobileMenuOpen = false
-              }
-            "
-          />
-          <Button
-            icon="explore"
-            label="Explore"
-            :variant="activeTab === 'explore' ? 'primary' : 'secondary'"
-            @click="
-              () => {
-                goToExplore()
-                mobileMenuOpen = false
-              }
-            "
-          />
-          <Button
-            icon="people"
-            label="Contacts"
-            :variant="activeTab === 'contacts' ? 'primary' : 'secondary'"
-            @click="
-              () => {
-                goToContacts()
-                mobileMenuOpen = false
-              }
-            "
-          />
-        </div>
-        <q-separator class="q-my-md" />
         <div class="drawer-theme-toggle">
           <div class="toggle-field">
             <div class="toggle-label">
@@ -492,73 +387,10 @@ const goToProfile = () => {
   flex: 0 1 auto;
   margin-right: $spacing-2;
   min-width: 0;
-  transition:
-    opacity $transition-base,
-    transform $transition-base,
-    max-width $transition-base;
-  opacity: 1;
-  transform: translateX(0) scale(1);
-  max-width: 200px;
-  overflow: hidden;
-
-  &--hidden {
-    opacity: 0;
-    transform: translateX(-20px) scale(0.9);
-    max-width: 0;
-    margin-right: 0;
-    pointer-events: none;
-  }
 
   :deep(.brand-text) {
     @media (max-width: $breakpoint-mobile) {
       display: none;
-    }
-  }
-
-  &--compact {
-    :deep(.brand-text) {
-      display: none;
-    }
-  }
-}
-
-.nav-tabs {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 1;
-  transition: all $transition-base;
-
-  &--left {
-    left: 0;
-    transform: translateX(0);
-    margin-left: $spacing-4;
-  }
-
-  :deep(.q-tabs) {
-    .q-tab {
-      font-weight: $font-weight-medium;
-      text-transform: none;
-      font-size: $font-size-base;
-      min-height: auto;
-      padding: $spacing-2 $spacing-4;
-
-      &__label {
-        font-weight: $font-weight-medium;
-      }
-
-      &__content {
-        padding-bottom: 0;
-      }
-    }
-
-    .q-tabs__content {
-      align-items: center;
-    }
-
-    .q-tab__indicator {
-      height: 2px;
-      bottom: 0;
     }
   }
 }
@@ -568,7 +400,6 @@ const goToProfile = () => {
   left: 50%;
   transform: translateX(-50%);
   width: clamp(100px, 36vw, 600px);
-  z-index: 2;
 
   &--narrow {
     width: clamp(100px, 22vw, 220px);
@@ -603,11 +434,6 @@ const goToProfile = () => {
   @include dark-mode {
     color: $color-gray-200;
   }
-}
-
-.drawer-nav-buttons {
-  @include flex-column;
-  gap: $spacing-3;
 }
 
 .drawer-user-buttons {
