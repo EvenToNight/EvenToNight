@@ -2,7 +2,6 @@
 import { ref, computed, watch, onMounted } from 'vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
-import EditProfileTab from '@/components/settings/tabs/EditProfileTab.vue'
 import GeneralSettingsTab from '@/components/settings/tabs/GeneralSettingsTab.vue'
 import MyReviewsTab from '@/components/settings/tabs/MyReviewsTab.vue'
 import LanguageTab from '@/components/settings/tabs/LanguageTab.vue'
@@ -11,15 +10,9 @@ import type { Tab } from '@/components/navigation/TabView.vue'
 import { useNavigation } from '@/router/utils'
 
 const { hash, replaceRoute } = useNavigation()
-const activeTabId = ref('edit-profile')
+const activeTabId = ref('general')
 
 const tabs = computed<Tab[]>(() => [
-  {
-    id: 'edit-profile',
-    label: 'Edit Profile',
-    icon: 'person',
-    component: EditProfileTab,
-  },
   {
     id: 'general',
     label: 'General',
