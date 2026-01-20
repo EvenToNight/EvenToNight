@@ -3,18 +3,23 @@ package controller
 import api.dto.request.UpdatePasswordRequestDTO
 import api.dto.request.UpdateUserRequestDTO
 import api.dto.request.query.SearchUsersQueryDTO
+import api.dto.response.AvatarResponseDTO
 import api.dto.response.query.PaginatedResponse
 import api.mappers.UserMappers.toUserDTO
 import api.utils.RequestParser.parseRequestBody
 import api.utils.UserQueryParser
+import cask.FormFile
 import cask.Request
 import cask.Response
 import http.AuthHeaderExtractor
+import http.HttpSecurity.authenticateAndAuthorize
 import infrastructure.keycloak.KeycloakJwtVerifier.authorizeUser
 import infrastructure.keycloak.KeycloakJwtVerifier.extractSub
 import infrastructure.keycloak.KeycloakJwtVerifier.verifyToken
+import infrastructure.media.MediaServiceClient.uploadAvatarToMediaService
 import infrastructure.rabbitmq.EventPublisher
 import io.circe.Json
+import io.circe.generic.auto._
 import io.circe.syntax._
 import model.Member
 import model.Organization
@@ -135,6 +140,54 @@ class UserRoutes(
                 ))
             Response("", 204)
           case Left(err) => Response(err, 400)
+
+  @cask.postForm("/:userId")
+  def updateAvatar(userId: String, req: Request, avatar: FormFile = null): Response[String] =
+    authenticateAndAuthorize(req, userId) match
+      case Left(err) => Response(err, 401)
+      case Right(_) =>
+        val avatarOpt: Option[FormFile] = Option(avatar)
+
+        userService.getUserById(userId) match
+          case Left(err) => Response(err, 404)
+          case Right((_, user)) =>
+            val avatarUrl = uploadAvatarToMediaService(userId, avatarOpt)
+
+            val updatedUser = user match
+              case m: Member =>
+                Member(m.account, m.profile.copy(avatar = avatarUrl))
+              case o: Organization =>
+                Organization(o.account, o.profile.copy(avatar = avatarUrl))
+
+            userService.updateUser(updatedUser, userId) match
+              case Left(err) => Response(err, 400)
+              case Right(_) =>
+                updatedUser match
+                  case m: Member =>
+                    eventPublisher.publish(UserUpdated(
+                      id = userId,
+                      username = m.account.username,
+                      name = m.profile.name,
+                      email = m.account.email,
+                      avatar = m.profile.avatar,
+                      bio = m.profile.bio,
+                      interests = m.account.interests,
+                      language = m.account.language,
+                      role = "member"
+                    ))
+                  case o: Organization =>
+                    eventPublisher.publish(UserUpdated(
+                      id = userId,
+                      username = o.account.username,
+                      name = o.profile.name,
+                      email = o.account.email,
+                      avatar = o.profile.avatar,
+                      bio = o.profile.bio,
+                      interests = o.account.interests,
+                      language = o.account.language,
+                      role = "organization"
+                    ))
+                Response(AvatarResponseDTO(avatarUrl).asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.put("/:userId/password")
   def updatePassword(userId: String, req: Request): Response[String] =

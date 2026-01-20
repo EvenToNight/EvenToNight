@@ -40,6 +40,7 @@ dependencies {
     implementation("io.circe:circe-literal_3:0.14.7")
     implementation("com.lihaoyi:cask_3:0.11.3")
     implementation("com.lihaoyi:upickle_3:3.3.1")
+    implementation("com.lihaoyi:requests_3:0.8.0")
     implementation("com.github.jwt-scala:jwt-core_3:11.0.3")
     implementation("io.undertow:undertow-core:2.3.12.Final")
     implementation("org.jboss.logging:jboss-logging:3.5.3.Final")

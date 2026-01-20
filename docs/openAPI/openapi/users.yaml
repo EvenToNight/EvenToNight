@@ -293,6 +293,80 @@ paths:
         "404":
           description: User not found
 
+    post:
+      tags: [Users]
+      summary: Update user avatar by ID
+      description: >
+        Updates the avatar of the authenticated user corresponding to the ID.
+        The userId in the path must match the user_id claim in the access token.
+        On success, returns the URL of the uploaded avatar.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user whose avatar will be updated
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: The new avatar image file
+      responses:
+        '200':
+          description: Avatar updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvatarResponseDTO'
+              examples:
+                success:
+                  summary: Avatar URL returned
+                  value:
+                    avatarUrl: "https://media.eventonight.site/users/1234/avatar.jpg"
+        '400':
+          description: Failed to update user avatar
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                updateFailed:
+                  summary: Update failed
+                  value: "Failed to update user avatar"
+        '401':
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                unauthorized:
+                  summary: No token or not authorized
+                  value: "Unauthorized: invalid or missing token"
+        '404':
+          description: User not found
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                notFound:
+                  summary: User does not exist
+                  value: "User not found"
+
   /{userId}/password:
     put:
       tags: [Users]
@@ -668,6 +742,15 @@ components:
           example:
             - https://twitter.com/johndoe
             - https://linkedin.com/in/johndoe
+
+    AvatarResponseDTO:
+      type: object
+      required:
+        - avatarUrl
+      properties:
+        avatarUrl:
+          type: string
+          example: "https://media.eventonight.site/users/1234/avatar.jpg"
 
     UpdatePasswordRequestDTO:
       type: object
