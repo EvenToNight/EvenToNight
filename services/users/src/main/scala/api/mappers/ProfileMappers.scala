@@ -1,6 +1,6 @@
 package api.mappers
 
-import api.dto.ProfileDTO
+import api.dto.response.ProfileDTO
 import model.member.MemberProfile
 import model.organization.OrganizationProfile
 

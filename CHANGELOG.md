@@ -1,3 +1,14 @@
+## [1.19.0](https://github.com/EvenToNight/EvenToNight/compare/v1.18.0...v1.19.0) (2026-01-20)
+
+### Features
+
+* **users:** GET /{userId} returns full account/profile if token userId matches ([61a9fe9](https://github.com/EvenToNight/EvenToNight/commit/61a9fe9385278c53da9e0add51cca6807616bc64))
+* **users:** implement delete /:userId endpoint ([f5b1353](https://github.com/EvenToNight/EvenToNight/commit/f5b13532c2a7c4b2619f4e525504db9b977bf562))
+* **users:** implement POST /{userId} endpoint to update avatar and add OpenAPI spec ([6b0d14d](https://github.com/EvenToNight/EvenToNight/commit/6b0d14d5e908dc6846e8cd6ac13361753e63326b))
+* **users:** implement PUT /{userId} endpoint and add OpenAPI spec ([b7da510](https://github.com/EvenToNight/EvenToNight/commit/b7da5100fa88c2745f18150749208ce0b33f98f5))
+* **users:** implement PUT /{userId}/password and add OpenAPI spec ([0710c21](https://github.com/EvenToNight/EvenToNight/commit/0710c21eacbdafc658c1b1f2561877b0a522f0f5))
+* **users:** implement search endpoint with pagination and filters ([d182ed1](https://github.com/EvenToNight/EvenToNight/commit/d182ed15dd8b1233ad15ce910a4576d64c4343c8))
+
 ## [1.18.0](https://github.com/EvenToNight/EvenToNight/compare/v1.17.1...v1.18.0) (2026-01-19)
 
 ### Features

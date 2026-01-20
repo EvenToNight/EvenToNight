@@ -1,5 +1,8 @@
 package model.organization
 
+import io.circe.Encoder
+import io.circe.generic.semiauto._
+
 case class OrganizationAccount(
     username: String,
     email: String,
@@ -7,3 +10,6 @@ case class OrganizationAccount(
     language: String = "en",
     interests: Option[List[String]] = None
 )
+
+object OrganizationAccount:
+  given Encoder[OrganizationAccount] = deriveEncoder[OrganizationAccount].mapJson(_.dropNullValues)
