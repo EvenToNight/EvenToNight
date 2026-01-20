@@ -109,7 +109,7 @@ export const getSearchResult = async (
 ): Promise<SearchResult[]> => {
   const [eventsResponse, usersResponse] = await Promise.all([
     api.events.searchEvents({ title: query }),
-    api.users.searchUsers({ name: query }),
+    api.users.searchUsers({ prefix: query }),
   ])
   const processedEvents = await processEventSearchResults(eventsResponse.items, query)
   const processedUsers = await processUserSearchResults(usersResponse.items, query)

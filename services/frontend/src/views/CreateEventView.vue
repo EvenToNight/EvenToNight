@@ -232,7 +232,7 @@ const filterCollaborators = (query: string, update: (fn: () => void) => void) =>
     })
     return
   }
-  api.users.searchUsers({ name: query, pagination: { limit: 10 } }).then((response) => {
+  api.users.searchUsers({ prefix: query, pagination: { limit: 10 } }).then((response) => {
     update(() => {
       collaboratorOptions.value = response.items.map(mapCollaborator)
     })

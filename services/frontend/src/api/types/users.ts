@@ -28,7 +28,7 @@ export interface Account {
   email?: string //only on own profile
   language?: string //only on own profile
   gender?: string
-  birthday?: Date
+  birthDate?: Date
   interests?: Tag[]
 }
 

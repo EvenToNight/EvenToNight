@@ -153,7 +153,7 @@ const searchOrganizations = async () => {
   loadingOrganizations.value = true
   try {
     const response = await api.users.searchUsers({
-      name: searchQuery.value,
+      prefix: searchQuery.value,
       pagination: { limit: ITEMS_PER_PAGE },
       role: 'organization',
     })
@@ -174,7 +174,7 @@ const searchPeople = async () => {
   loadingPeople.value = true
   try {
     const response = await api.users.searchUsers({
-      name: searchQuery.value,
+      prefix: searchQuery.value,
       pagination: { limit: ITEMS_PER_PAGE },
       role: 'member',
     })

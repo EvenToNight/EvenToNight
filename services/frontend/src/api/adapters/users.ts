@@ -1,13 +1,14 @@
 import type {
   LoginAPIResponse,
   LoginResponse,
-  ProfileAPIResponse,
+  ProfileAPI,
+  UpdateUserAPIRequest,
   UserAPIResponse,
 } from '../interfaces/users'
-import type { Profile, User, UserID } from '../types/users'
+import type { Profile, User } from '../types/users'
 import { jwtDecode } from 'jwt-decode'
 
-function adaptProfile(dto: ProfileAPIResponse): Profile {
+function adaptProfile(dto: ProfileAPI): Profile {
   return {
     name: dto.name,
     avatar: dto.avatar,
@@ -37,12 +38,31 @@ export const LoginAdapter = {
 }
 
 export const UserAdapter = {
-  fromApi(userId: UserID, dto: UserAPIResponse): User {
+  fromApi(dto: UserAPIResponse): User {
     return {
-      id: userId,
+      id: dto.id,
       role: dto.role,
       username: dto.username,
       ...adaptProfile(dto.profile),
+    }
+  },
+
+  toApi(user: Partial<User>): Partial<UpdateUserAPIRequest> {
+    return {
+      accountDTO: {
+        username: user.username!,
+        darkMode: user.darkMode,
+        language: user.language,
+        gender: user.gender,
+        birthDate: user.birthDate,
+        interests: user.interests,
+      },
+      profileDTO: {
+        name: user.name!,
+        avatar: user.avatar!,
+        bio: user.bio,
+        constacts: user.website ? [user.website] : [],
+      },
     }
   },
 }

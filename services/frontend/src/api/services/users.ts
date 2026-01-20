@@ -2,8 +2,8 @@ import type {
   UsersAPI,
   LoginRequest,
   LoginResponse,
-  RefreshTokenResponse,
-  LogoutResponse,
+  TokenResponse,
+  RefreshToken,
   RegistrationRequest,
   ChangePasswordRequest,
   LoginAPIResponse,
@@ -11,40 +11,60 @@ import type {
 } from '../interfaces/users'
 import type { User, UserID } from '../types/users'
 import type { ApiClient } from '../client'
-import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
+import { buildQueryParams, evaluatePagination, getPaginatedItems } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import { LoginAdapter, UserAdapter } from '../adapters/users'
 
 export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
-  async getUserById(id: UserID): Promise<User> {
-    return UserAdapter.fromApi(id, await usersClient.get<UserAPIResponse>(`/${id}`))
-  },
-
-  async register(data: RegistrationRequest): Promise<LoginResponse> {
-    const body = { userType: data.role, ...data }
-    return LoginAdapter.fromApi(await usersClient.post<LoginAPIResponse>('/register', body))
-  },
-
   async login(credentials: LoginRequest): Promise<LoginResponse> {
-    const rawData = await usersClient.post<LoginAPIResponse>('/login', credentials)
-    const data = LoginAdapter.fromApi(rawData)
+    const data = LoginAdapter.fromApi(
+      await usersClient.post<LoginAPIResponse>('/login', credentials)
+    )
     return data
   },
 
-  async logout(): Promise<LogoutResponse> {
-    return usersClient.post<LogoutResponse>('/logout', undefined, { credentials: true })
+  async register(data: RegistrationRequest): Promise<LoginResponse> {
+    return LoginAdapter.fromApi(await usersClient.post<LoginAPIResponse>('/register', data))
   },
 
-  async refreshToken(): Promise<RefreshTokenResponse> {
-    return usersClient.post<RefreshTokenResponse>('/refresh', undefined, { credentials: true })
+  async refreshToken(refreshToken: RefreshToken): Promise<TokenResponse> {
+    return usersClient.post<TokenResponse>('/refresh', { refreshToken })
+  },
+
+  async logout(refreshToken: RefreshToken): Promise<void> {
+    return usersClient.post<void>('/logout', { refreshToken })
+  },
+
+  async getUsers(pagination?: PaginatedRequest): Promise<PaginatedResponse<User>> {
+    const response = (await usersClient.get<UserAPIResponse[]>('/')).map(UserAdapter.fromApi)
+    return getPaginatedItems(response, pagination)
+  },
+
+  async getUserById(id: UserID): Promise<User> {
+    return UserAdapter.fromApi(await usersClient.get<UserAPIResponse>(`/${id}`))
+  },
+
+  async deleteUserById(id: UserID): Promise<void> {
+    return usersClient.delete<void>(`/${id}`)
+  },
+
+  //TODO: check update and removal of all optional fields
+  async updateUserById(id: UserID, data: Partial<User>): Promise<void> {
+    return usersClient.put<void>(`/${id}`, UserAdapter.toApi(data))
+  },
+
+  async updateUserAvatarById(id: UserID, avatarFile: File): Promise<void> {
+    const formData = new FormData()
+    formData.append('avatar', avatarFile)
+    await usersClient.post(`/${id}/avatar`, formData)
   },
 
   async changePassword(userId: UserID, data: ChangePasswordRequest): Promise<void> {
-    return usersClient.post<void>(`/${userId}/change-password`, data)
+    return usersClient.post<void>(`/${userId}/password`, data)
   },
 
   async searchUsers(params: {
-    name?: string
+    prefix?: string
     pagination?: PaginatedRequest
     role?: string
   }): Promise<PaginatedResponse<User>> {

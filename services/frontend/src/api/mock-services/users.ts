@@ -2,8 +2,7 @@ import type {
   UsersAPI,
   LoginRequest,
   LoginResponse,
-  RefreshTokenResponse,
-  LogoutResponse,
+  TokenResponse,
   RegistrationRequest,
   ChangePasswordRequest,
 } from '../interfaces/users'
@@ -12,6 +11,7 @@ import type { UserID, User, UserRole } from '../types/users'
 import { getPaginatedItems } from '@/api/utils/requestUtils'
 import { generateFakeToken, ONE_YEAR } from '@/api/utils/authUtils'
 import { mockUsers } from './data/users'
+import type { RefreshToken } from '../interfaces/users'
 
 let currentLoggedInUsername: string | null = null
 
@@ -35,15 +35,16 @@ export const searchMockUsersByName = (name: string): User[] => {
 }
 
 export const mockUsersApi: UsersAPI = {
-  async getUserById(id: UserID): Promise<User> {
-    const user = mockUsers.data.find((u) => u.id === id)
-    if (!user) {
-      throw {
-        message: 'User not found',
-        status: 404,
-      } as ApiError
+  async login(credentials: LoginRequest): Promise<LoginResponse> {
+    currentLoggedInUsername = credentials.username
+    const user = getMockUser(credentials.username)
+    return {
+      accessToken: generateFakeToken(user.id, ONE_YEAR),
+      expiresIn: ONE_YEAR,
+      refreshToken: generateFakeToken(user.id, ONE_YEAR),
+      refreshExpiresIn: ONE_YEAR,
+      user,
     }
-    return user
   },
 
   async register(data: RegistrationRequest): Promise<LoginResponse> {
@@ -68,59 +69,59 @@ export const mockUsersApi: UsersAPI = {
       } as ApiError
     }
   },
-  async login(credentials: LoginRequest): Promise<LoginResponse> {
-    currentLoggedInUsername = credentials.username
-    const user = getMockUser(credentials.username)
+
+  async refreshToken(): Promise<TokenResponse> {
+    const user = getMockUser(currentLoggedInUsername!)
     return {
       accessToken: generateFakeToken(user.id, ONE_YEAR),
       expiresIn: ONE_YEAR,
       refreshToken: generateFakeToken(user.id, ONE_YEAR),
       refreshExpiresIn: ONE_YEAR,
-      user,
     }
   },
 
-  async logout(): Promise<LogoutResponse> {
+  async logout(_refreshToken: RefreshToken): Promise<void> {
     currentLoggedInUsername = null
-    return {
-      success: true,
-    }
+    return
   },
 
-  async refreshToken(): Promise<RefreshTokenResponse> {
-    if (!currentLoggedInUsername) {
-      throw {
-        message: 'No refresh token found',
-        status: 401,
-      } as ApiError
-    }
-
-    return {
-      accessToken: 'mock_access_token_refreshed_' + Date.now(),
-      expiresIn: 900,
-      user: getMockUser(currentLoggedInUsername),
-    }
+  async getUsers(pagination?: PaginatedRequest): Promise<PaginatedResponse<User>> {
+    return getPaginatedItems(mockUsers.data, pagination)
   },
 
-  async changePassword(userId: UserID, _data: ChangePasswordRequest): Promise<void> {
-    const user = mockUsers.data.find((u) => u.id === userId)
+  async getUserById(id: UserID): Promise<User> {
+    const user = mockUsers.data.find((u) => u.id === id)
     if (!user) {
       throw {
         message: 'User not found',
         status: 404,
       } as ApiError
     }
+    return user
+  },
 
-    //TODO: evaluate save and validate current password
+  async deleteUserById(_id: UserID): Promise<void> {
+    return
+  },
+
+  async updateUserById(_id: UserID, _data: Partial<User>): Promise<void> {
+    return
+  },
+
+  async updateUserAvatarById(_id: UserID, _avatarFile: File): Promise<void> {
+    return
+  },
+
+  async changePassword(_userId: UserID, _data: ChangePasswordRequest): Promise<void> {
     return
   },
 
   async searchUsers(params: {
-    name?: string
+    prefix?: string
     pagination?: PaginatedRequest
     role?: UserRole
   }): Promise<PaginatedResponse<User>> {
-    const lowerName = (params.name ?? '').toLowerCase().trim()
+    const lowerName = (params.prefix ?? '').toLowerCase().trim()
     const allUsers = mockUsers.data
       .filter((user) => (params.role ? user.role === params.role : true))
       .filter((user) => user.name.toLowerCase().includes(lowerName))

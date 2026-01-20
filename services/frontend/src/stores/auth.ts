@@ -4,7 +4,7 @@ import type { User, UserID } from '@/api/types/users'
 import { api } from '@/api'
 import { useI18n } from 'vue-i18n'
 import { jwtDecode } from 'jwt-decode'
-import type { AccessToken, LoginResponse } from '@/api/interfaces/users'
+import type { AccessToken, LoginResponse, RefreshToken } from '@/api/interfaces/users'
 
 interface DecodedToken {
   user_id: UserID
@@ -27,6 +27,7 @@ export const useAuthStore = defineStore('auth', () => {
     return decodedToken.value.exp > Date.now() / 1000
   })
   const accessToken = computed(() => token.value || null)
+  const refreshToken = ref<RefreshToken | null>(null)
 
   const setTokens = (accessToken: AccessToken) => {
     console.log('Auth token:', accessToken)
@@ -105,7 +106,9 @@ export const useAuthStore = defineStore('auth', () => {
   const logout = async () => {
     isLoading.value = true
     try {
-      await api.users.logout().catch(() => {})
+      if (refreshToken.value) {
+        await api.users.logout(refreshToken.value).catch(() => {})
+      }
     } finally {
       clearAuth()
       isLoading.value = false
@@ -175,6 +178,7 @@ export const useAuthStore = defineStore('auth', () => {
       await api.users.changePassword(user.value.id, {
         currentPassword,
         newPassword,
+        confirmPassword: newPassword,
       })
     } catch (error) {
       console.log('Change password error:', error)
