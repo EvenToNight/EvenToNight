@@ -27,9 +27,7 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
 
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const rawData = await usersClient.post<LoginAPIResponse>('/login', credentials)
-    console.log('Raw Login data:', rawData)
     const data = LoginAdapter.fromApi(rawData)
-    console.log('Login data:', data)
     return data
   },
 

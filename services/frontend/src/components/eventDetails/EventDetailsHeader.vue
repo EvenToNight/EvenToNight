@@ -35,7 +35,6 @@ const loadInteractions = async () => {
         props.event.eventId,
         authStore.user.id
       )
-      console.log('User like status:', isFavorite.value)
     }
   } catch (error) {
     console.error('Failed to load interactions:', error)

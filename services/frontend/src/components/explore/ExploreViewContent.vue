@@ -110,7 +110,6 @@ watch(
 )
 
 const searchEvents = async () => {
-  console.log('Searching events for query:', searchQuery.value)
   if (!searchQuery.value.trim() && !eventFilters.value) {
     events.value = []
     return
@@ -130,7 +129,6 @@ const searchEvents = async () => {
       const likePromises = events.value.map(async (event) => {
         try {
           const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
-          console.log(`Event ${event.eventId} is liked by user: ${isLiked}`)
           return { ...event, liked: isLiked }
         } catch (error) {
           console.error(`Failed to load like status for event ${event.eventId}:`, error)

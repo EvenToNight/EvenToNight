@@ -310,5 +310,5 @@ const defaultMessages: ConversationMessages = {
 }
 
 // Export data loaded from localStorage (or defaults if not found)
-export const mockConversations = loadConversations(defaultConversations)
-export const mockMessages = loadMessages(defaultMessages)
+export const mockConversations = () => loadConversations(defaultConversations)
+export const mockMessages = () => loadMessages(defaultMessages)

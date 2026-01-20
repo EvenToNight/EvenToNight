@@ -23,7 +23,6 @@ const upcomingEvents = ref<Event[]>([])
 const eventLikes = ref<Record<string, boolean>>({})
 
 const handleSeeAllEvents = () => {
-  console.log('See all events clicked')
   goToExplore({ otherFilter: 'upcoming' })
 }
 
@@ -36,12 +35,9 @@ onMounted(async () => {
     // Load like status for each event in parallel
     if (authStore.user?.id) {
       const userId = authStore.user.id
-      console.log('Loading like status for user:', userId)
       const likePromises = upcomingEvents.value.map(async (event) => {
-        console.log('Checking like status for event:', event.eventId)
         try {
           const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
-          console.log(`Event ${event.eventId} is liked by user: ${isLiked}`)
           eventLikes.value[event.eventId] = isLiked
         } catch (error) {
           console.error(`Failed to load like status for event ${event.eventId}:`, error)

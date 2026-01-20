@@ -37,7 +37,6 @@ export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
   async createCheckoutSession(
     request: CreateCheckoutSessionRequest
   ): Promise<CreateCheckoutSessionResponse> {
-    console.log('Creating checkout session with request:', request)
     return paymentsClient.post<CreateCheckoutSessionResponse>(`/checkout-sessions`, request)
   },
 })

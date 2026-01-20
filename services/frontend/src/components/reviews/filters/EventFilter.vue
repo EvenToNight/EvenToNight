@@ -35,7 +35,6 @@ const displayValue = computed({
         return 'Tutti gli eventi'
       }
     }
-    console.log('selectedEventId', selectedEventId.value)
     return selectedEventId.value
   },
   set(value: EventID | null | undefined) {

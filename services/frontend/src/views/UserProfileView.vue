@@ -61,7 +61,6 @@ const loadUser = async () => {
           totalReviews: reviews.totalReviews,
           ratingDistribution: reviews.ratingDistribution,
         }
-        console.log('Reviews statistics:', reviewsStatistics.value)
       } catch (error) {
         console.error('Failed to load organization reviews:', error)
       }

@@ -24,12 +24,10 @@ const selectedRating = ref<Rating | null>(props.selectedRating)
 const selectedEventId = ref<EventID | null>(props.selectedEventId)
 
 watch(selectedEventId, (newValue) => {
-  console.log('selectedEventId', newValue)
   emit('update:selectedEventId', newValue)
 })
 
 watch(selectedRating, (newValue) => {
-  console.log(newValue)
   emit('update:selectedRating', newValue)
 })
 </script>

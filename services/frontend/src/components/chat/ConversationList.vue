@@ -13,7 +13,7 @@ const selectedConversationId = defineModel<string | undefined>('selectedConversa
   default: undefined,
 })
 const searchQuery = ref('')
-const loading = ref(true)
+const loading = ref(false)
 const hasMore = ref(true)
 const offset = ref(0)
 const LIMIT = 20
@@ -186,7 +186,7 @@ function addNewConversation(conversation: Conversation) {
 }
 
 defineExpose({
-  loadConversations,
+  // loadConversations,
   updateConversationLastMessage,
   addOrMoveConversationToTop,
   addNewConversation,
@@ -301,6 +301,20 @@ defineExpose({
             </q-item-section>
           </q-item>
         </template>
+
+        <!-- Empty state message -->
+        <div
+          v-if="conversations.length === 0 && potentialConversations.length === 0 && !loading"
+          class="empty-state"
+        >
+          <p class="empty-state-message">
+            {{
+              searchQuery.trim()
+                ? 'Nessun risultato trovato per la ricerca.'
+                : 'Nessuna conversazione trovata.\nCerca e inizia una nuova conversazione.'
+            }}
+          </p>
+        </div>
       </q-list>
 
       <template #loading>
@@ -422,6 +436,23 @@ defineExpose({
 
   &:hover {
     background-color: rgba(var(--q-primary-rgb), 0.1);
+  }
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--q-text-secondary);
+
+  .empty-state-message {
+    margin-top: 16px;
+    font-size: 16px;
+    color: var(--q-text-secondary);
+    white-space: pre-line;
   }
 }
 </style>
