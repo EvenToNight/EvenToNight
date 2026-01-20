@@ -95,6 +95,7 @@ case class MongoEventRepository(
             update(updatedEvent).left.foreach(ex =>
               println(s"[MongoDB] Could not auto-update past event to COMPLETED: ${ex.getMessage}")
             )
+          publishEventCompletedIfNeeded(updatedEvent, event)
           updatedEvent
         }
         .toList
