@@ -28,8 +28,6 @@ services:
         condition: service_healthy
       keycloak-provision:
         condition: service_completed_successfully
-      media:
-        condition: service_healthy
 
   mongo-users:
     image: mongo
