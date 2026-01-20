@@ -66,6 +66,7 @@ const emitFiltersChanged = () => {
 }
 
 const applyFilters = () => {
+  // Simply copy draft values to active (watchers already handle mutual exclusion)
   activeDateFilterValue.value = { ...dateFilterValue.value }
   activeTags.value = [...selectedTags.value]
   activePriceFilterValue.value = { ...priceFilterValue.value }
@@ -167,6 +168,35 @@ watch(
   },
   { deep: true }
 )
+
+// Watch for changes in regular filters - if any is selected, clear otherFilter
+watch(
+  [dateFilterValue, selectedTags, priceFilterValue],
+  () => {
+    const hasRegularFilters =
+      dateFilterValue.value.dateFilter ||
+      dateFilterValue.value.dateRange ||
+      selectedTags.value.length > 0 ||
+      priceFilterValue.value.priceFilter ||
+      priceFilterValue.value.customPriceRange?.min ||
+      priceFilterValue.value.customPriceRange?.max
+
+    if (hasRegularFilters && selectedOtherFilter.value !== null) {
+      selectedOtherFilter.value = null
+    }
+  },
+  { deep: true }
+)
+
+// Watch for changes in otherFilter - if selected, clear regular filters
+watch(selectedOtherFilter, (newValue) => {
+  if (newValue !== null) {
+    // Clear all regular filters
+    dateFilterValue.value = {}
+    selectedTags.value = []
+    priceFilterValue.value = {}
+  }
+})
 
 onMounted(() => {
   // Always sync with initial filters (even if empty)
