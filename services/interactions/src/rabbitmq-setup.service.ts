@@ -13,7 +13,7 @@ export class RabbitMqSetupService {
       'user.created',
       'event.deleted',
       'user.deleted',
-      'participation.created',
+      'payments.order.confirmed',
       'event.completed',
       'user.updated',
     ];

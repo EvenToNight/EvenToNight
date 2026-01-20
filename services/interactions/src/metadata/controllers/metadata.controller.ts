@@ -10,6 +10,7 @@ import { EventDeletedDto } from '../dto/event-deleted.dto';
 import { UserDeletedDto } from '../dto/user-deleted.dto';
 import { EventCompletedDto } from '../dto/event-completed.dto';
 import { UserUpdatedDto } from '../dto/user-updated.dto';
+import { OrderConfirmedDto } from '../dto/order-confirmed.dto';
 
 @Controller()
 export class MetadataController {
@@ -59,6 +60,9 @@ export class MetadataController {
         case 'user.updated':
           await this.handleUserUpdated(payload);
           break;
+        case 'payments.order.confirmed':
+          await this.handleOrderConfirmed(payload);
+          break;
         default:
           this.logger.warn(`⚠️  Unhandled routing key: ${routingKey}`);
           channel.ack(originalMsg);
@@ -105,6 +109,11 @@ export class MetadataController {
   private async handleUserUpdated(payload: unknown): Promise<void> {
     const dto = await this.validateAndTransform(UserUpdatedDto, payload);
     await this.metadataService.handleUserUpdated(dto);
+  }
+
+  private async handleOrderConfirmed(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(OrderConfirmedDto, payload);
+    await this.metadataService.handleOrderConfirmed(dto);
   }
 
   private async validateAndTransform<T extends object>(

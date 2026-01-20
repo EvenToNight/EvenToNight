@@ -22,6 +22,7 @@ import { UserDeletedDto } from '../dto/user-deleted.dto';
 import { EventCompletedDto } from '../dto/event-completed.dto';
 import { UserInfoDto } from 'src/commons/dto/user-info-dto';
 import { UserUpdatedDto } from '../dto/user-updated.dto';
+import { OrderConfirmedDto } from '../dto/order-confirmed.dto';
 
 @Injectable()
 export class MetadataService {
@@ -358,5 +359,17 @@ export class MetadataService {
       .lean();
 
     return events.map((e) => e.eventId);
+  }
+
+  async handleOrderConfirmed(payload: OrderConfirmedDto): Promise<void> {
+    try {
+      this.logger.debug(
+        `Processing payments.order.confirmed: ${JSON.stringify(payload)}`,
+      );
+      await this.participationService.participate(payload.eventId, payload.userId);
+    } catch (error) {
+      this.logger.error(`Failed to handle payments.order.confirmed: ${error instanceof Error ? error.message : error}`);
+      throw error;
+    }
   }
 }
