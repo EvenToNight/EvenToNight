@@ -137,11 +137,53 @@ export const useNavigation = () => {
     }
   }
 
-  const goToExplore = (swap: boolean = false) => {
+  const goToExplore = (initialFilter?: EventFilters, swap: boolean = false) => {
+    const queryParams: Record<string, string> = {}
+
+    if (initialFilter) {
+      if (initialFilter.dateFilter) {
+        queryParams.dateFilter = initialFilter.dateFilter
+      }
+      if (initialFilter.dateRange) {
+        queryParams.dateFrom = initialFilter.dateRange.from.toISOString()
+        queryParams.dateTo = initialFilter.dateRange.to.toISOString()
+      }
+      if (initialFilter.priceFilter) {
+        queryParams.priceFilter = initialFilter.priceFilter
+      }
+      if (initialFilter.customPriceRange) {
+        if (
+          initialFilter.customPriceRange.min !== undefined &&
+          initialFilter.customPriceRange.min !== null
+        ) {
+          queryParams.priceMin = String(initialFilter.customPriceRange.min)
+        }
+        if (
+          initialFilter.customPriceRange.max !== undefined &&
+          initialFilter.customPriceRange.max !== null
+        ) {
+          queryParams.priceMax = String(initialFilter.customPriceRange.max)
+        }
+      }
+      if (initialFilter.tags && initialFilter.tags.length > 0) {
+        const tagsString = initialFilter.tags.filter((tag) => tag && tag.trim()).join(',')
+
+        if (tagsString) {
+          queryParams.tags = tagsString
+        }
+      }
+      if (initialFilter.sortBy) {
+        queryParams.sortBy = initialFilter.sortBy
+      }
+      if (initialFilter.otherFilter) {
+        queryParams.otherFilter = String(initialFilter.otherFilter)
+      }
+    }
+
     if (swap) {
-      replaceWithLocale(EXPLORE_ROUTE_NAME)
+      replaceWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams)
     } else {
-      pushWithLocale(EXPLORE_ROUTE_NAME)
+      pushWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams)
     }
   }
 

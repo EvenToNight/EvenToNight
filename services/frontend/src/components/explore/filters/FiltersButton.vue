@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted, inject, watch } from 'vue'
+import type { Ref } from 'vue'
 import DateFilters, { type DateFilterValue } from './DateFilters.vue'
 import TagFilters from './TagFilters.vue'
 import PriceFilters, { type PriceFilterValue } from './PriceFilters.vue'
@@ -17,6 +18,7 @@ export interface EventFilters extends DateFilterValue, PriceFilterValue {
   otherFilter?: OtherFilter | null
 }
 const initialFilters = inject<EventFilters>('initialEventFilters', {})
+const filtersFromUrl = inject<Ref<EventFilters>>('filtersFromUrl', ref({}))
 
 const emit = defineEmits<{
   'filters-changed': [filters: EventFilters]
@@ -128,56 +130,53 @@ watch(filtersMenuOpen, (isOpen) => {
   }
 })
 
+const syncFiltersFromUrl = (filters: EventFilters) => {
+  // Set draft filters
+  dateFilterValue.value = {
+    dateFilter: filters?.dateFilter ?? null,
+    dateRange: filters?.dateRange ?? null,
+  }
+  selectedTags.value = (filters?.tags as Tag[]) || []
+  priceFilterValue.value = {
+    priceFilter: filters?.priceFilter ?? null,
+    customPriceRange: filters?.customPriceRange || { min: null, max: null },
+  }
+  selectedSortBy.value = filters?.sortBy ?? null
+  selectedOtherFilter.value = filters?.otherFilter ?? null
+
+  // Set active filters (same as draft)
+  activeDateFilterValue.value = {
+    dateFilter: filters?.dateFilter ?? null,
+    dateRange: filters?.dateRange ?? null,
+  }
+  activeTags.value = (filters?.tags as Tag[]) || []
+  activePriceFilterValue.value = {
+    priceFilter: filters?.priceFilter ?? null,
+    customPriceRange: filters?.customPriceRange || { min: null, max: null },
+  }
+  activeSortBy.value = filters?.sortBy ?? null
+  activeOtherFilter.value = filters?.otherFilter ?? null
+}
+
+// Watch for URL changes
+watch(
+  filtersFromUrl,
+  (newFilters) => {
+    // Sync even if empty (to clear filters when URL is cleared)
+    syncFiltersFromUrl(newFilters || {})
+  },
+  { deep: true }
+)
+
 onMounted(() => {
+  // Always sync with initial filters (even if empty)
+  syncFiltersFromUrl(initialFilters || {})
+
+  // Only emit if there are actual filters to apply
   if (initialFilters && Object.keys(initialFilters).length > 0) {
-    // Set draft filters
-    if (initialFilters.dateFilter) {
-      dateFilterValue.value.dateFilter = initialFilters.dateFilter
-    }
-    if (initialFilters.dateRange) {
-      dateFilterValue.value.dateRange = initialFilters.dateRange
-    }
-    if (initialFilters.tags) {
-      selectedTags.value = initialFilters.tags
-    }
-    if (initialFilters.priceFilter) {
-      priceFilterValue.value.priceFilter = initialFilters.priceFilter
-    }
-    if (initialFilters.customPriceRange) {
-      priceFilterValue.value.customPriceRange = initialFilters.customPriceRange
-    }
-    if (initialFilters.sortBy) {
-      selectedSortBy.value = initialFilters.sortBy
-    }
-    if (initialFilters.otherFilter) {
-      selectedOtherFilter.value = initialFilters.otherFilter
-    }
-
-    // Set active filters (same as draft initially)
-    if (initialFilters.dateFilter) {
-      activeDateFilterValue.value.dateFilter = initialFilters.dateFilter
-    }
-    if (initialFilters.dateRange) {
-      activeDateFilterValue.value.dateRange = initialFilters.dateRange
-    }
-    if (initialFilters.tags) {
-      activeTags.value = initialFilters.tags
-    }
-    if (initialFilters.priceFilter) {
-      activePriceFilterValue.value.priceFilter = initialFilters.priceFilter
-    }
-    if (initialFilters.customPriceRange) {
-      activePriceFilterValue.value.customPriceRange = initialFilters.customPriceRange
-    }
-    if (initialFilters.sortBy) {
-      activeSortBy.value = initialFilters.sortBy
-    }
-    if (initialFilters.otherFilter) {
-      activeOtherFilter.value = initialFilters.otherFilter
-    }
-
     emitFiltersChanged()
   }
+
   window.addEventListener('scroll', handleScroll, true)
 })
 

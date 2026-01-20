@@ -1,8 +1,11 @@
+<script lang="ts">
+export const FEED_FILTERS = ['upcoming', 'popular', 'for_you', 'new', 'nearby'] as const
+</script>
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export type OtherFilter = 'upcoming' | 'popular' | 'for_you' | 'new' | 'nearby'
+export type OtherFilter = (typeof FEED_FILTERS)[number]
 
 interface Props {
   modelValue?: OtherFilter | null

@@ -12,13 +12,31 @@ import ExploreEventsTab from '@/components/explore/tabs/ExploreEventsTab.vue'
 import ExplorePeopleTab from '@/components/explore/tabs/ExplorePeopleTab.vue'
 import type { EventFilters } from './filters/FiltersButton.vue'
 import type { EventsQueryParams } from '@/api/interfaces/events'
-import { convertFiltersToEventsQueryParams } from '@/api/utils/searchUtils'
-import { pendingExploreFilters } from '@/router/utils'
+import { buildExploreFiltersFromQuery, buildExploreRouteQuery } from '@/api/utils/filtersUtils'
 import { useI18n } from 'vue-i18n'
+import { useRouter, useRoute } from 'vue-router'
 
 const { t } = useI18n()
+const router = useRouter()
+const route = useRoute()
 
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
+
+const normalizeQuery = (queryObj: any) => {
+  return typeof queryObj === 'object' && queryObj !== null
+    ? Object.fromEntries(
+        Object.entries(queryObj).map(([k, v]) => [k, Array.isArray(v) ? (v[0] ?? '') : (v ?? '')])
+      )
+    : {}
+}
+
+const normalizedQuery = normalizeQuery(route.query)
+const initialEventFilters = buildExploreFiltersFromQuery(normalizedQuery)
+
+// Reactive filters from URL for sync with FiltersButton
+const filtersFromUrl = ref<EventFilters>(initialEventFilters)
+provide('initialEventFilters', initialEventFilters)
+provide('filtersFromUrl', filtersFromUrl)
 
 const emit = defineEmits(['auth-required'])
 const authStore = useAuthStore()
@@ -42,16 +60,54 @@ const hasMorePeople = ref(true)
 const loadingPeople = ref(false)
 
 const eventFilters = ref<EventsQueryParams>({})
-
-const initialEventFilters = pendingExploreFilters.value || {}
-pendingExploreFilters.value = null
-provide('initialEventFilters', initialEventFilters)
+const currentFilters = ref<EventFilters>(initialEventFilters)
+const isUpdatingFromUrl = ref(false)
 
 const handleFiltersChanged = (newFilters: EventFilters) => {
-  eventFilters.value = convertFiltersToEventsQueryParams(newFilters)
-  console.log('Filters changed:', eventFilters.value, newFilters)
+  currentFilters.value = newFilters
+  eventFilters.value = buildExploreRouteQuery(newFilters)
+
+  // Update URL with new filters
+  if (!isUpdatingFromUrl.value) {
+    const queryParams = buildExploreRouteQuery(newFilters)
+    router.replace({
+      name: route.name as string,
+      params: route.params,
+      query: queryParams,
+    })
+  }
+
   searchEvents()
 }
+
+// Watch for URL changes (e.g., browser back/forward)
+watch(
+  () => route.query,
+  (newQuery) => {
+    const normalized = normalizeQuery(newQuery)
+    const filtersFromQuery = buildExploreFiltersFromQuery(normalized)
+
+    // Only update if filters actually changed
+    const newFiltersJson = JSON.stringify(filtersFromQuery)
+    const currentFiltersJson = JSON.stringify(currentFilters.value)
+
+    if (newFiltersJson !== currentFiltersJson) {
+      isUpdatingFromUrl.value = true
+      currentFilters.value = filtersFromQuery
+      eventFilters.value = buildExploreRouteQuery(filtersFromQuery)
+
+      // Update the reactive filters so FiltersButton can sync
+      filtersFromUrl.value = filtersFromQuery
+
+      searchEvents()
+
+      // Reset flag after a tick to allow new changes
+      setTimeout(() => {
+        isUpdatingFromUrl.value = false
+      }, 0)
+    }
+  }
+)
 
 const searchEvents = async () => {
   console.log('Searching events for query:', searchQuery.value)
