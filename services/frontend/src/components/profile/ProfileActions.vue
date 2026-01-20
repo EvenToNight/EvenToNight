@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
 
@@ -43,33 +42,38 @@ const handleOpenChat = () => {
 <template>
   <div class="profile-actions">
     <template v-if="isOwnProfile">
-      <Button
-        :label="t('userProfile.editProfile')"
-        icon="edit"
-        variant="secondary"
-        @click="handleEditProfile"
+      <q-btn icon="edit" flat class="action-btn action-btn--secondary" @click="handleEditProfile" />
+      <q-btn icon="chat" flat class="action-btn action-btn--secondary" @click="handleOpenChat" />
+      <q-btn
+        icon="settings"
+        flat
+        class="action-btn action-btn--secondary"
+        @click="handleOpenSettings"
       />
-      <Button label="Chats" icon="chat" variant="secondary" @click="handleOpenChat" />
-      <Button
+      <q-btn
         v-if="isOrganization"
         :label="t('userProfile.createEvent')"
         icon="add"
-        variant="primary"
+        unelevated
+        color="primary"
+        class="action-btn action-btn--primary"
         @click="handleCreateEvent"
       />
-      <Button icon="settings" variant="secondary" @click="handleOpenSettings" />
     </template>
     <template v-else>
-      <Button
+      <q-btn
         v-if="isOrganization"
-        label="Send a message"
         icon="send"
-        variant="secondary"
+        flat
+        class="action-btn action-btn--secondary"
         @click="handleOpenChat"
       />
-      <Button
+      <q-btn
         :label="isFollowing ? t('userProfile.following') : t('userProfile.follow')"
-        :variant="isFollowing ? 'secondary' : 'primary'"
+        :unelevated="!isFollowing"
+        :flat="isFollowing"
+        :color="!isFollowing ? 'primary' : undefined"
+        :class="['action-btn', isFollowing ? 'action-btn--secondary' : 'action-btn--primary']"
         @click="handleFollowToggle"
       />
     </template>
@@ -77,9 +81,42 @@ const handleOpenChat = () => {
 </template>
 
 <style lang="scss" scoped>
+@use 'sass:color';
+
 .profile-actions {
   display: flex;
   gap: $spacing-2;
   align-items: stretch;
+}
+
+.action-btn {
+  padding: $spacing-3;
+  font-size: $font-size-base;
+
+  &--primary {
+    background: $color-primary;
+    color: $color-white;
+
+    &:hover {
+      background: color.adjust($color-primary, $lightness: -8%);
+    }
+  }
+
+  &--secondary {
+    color: $color-text-primary;
+
+    &:hover {
+      background: color-alpha($color-black, 0.04);
+    }
+
+    @include dark-mode {
+      color: $color-text-dark;
+      border-color: color-alpha($color-white, 0.12);
+
+      &:hover {
+        background: color-alpha($color-white, 0.04);
+      }
+    }
+  }
 }
 </style>
