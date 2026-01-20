@@ -1,7 +1,7 @@
 package api.mappers
 
-import api.dto.LoginResponseDTO
-import api.dto.UserDTO
+import api.dto.response.LoginResponseDTO
+import api.dto.response.UserDTO
 import model.Member
 import model.Organization
 import model.RegisteredUser
@@ -12,10 +12,11 @@ import ProfileMappers.toProfileDTO
 
 object UserMappers:
   extension (user: RegisteredUser)
-    def toLoginDTO(tokens: UserTokens, role: String): LoginResponseDTO =
+    def toLoginDTO(userId: String, tokens: UserTokens, role: String): LoginResponseDTO =
       user match
         case member: Member =>
           LoginResponseDTO(
+            id = userId,
             accessToken = tokens.accessToken,
             expiresIn = tokens.expiresIn,
             refreshToken = tokens.refreshToken,
@@ -26,6 +27,7 @@ object UserMappers:
           )
         case org: Organization =>
           LoginResponseDTO(
+            id = userId,
             accessToken = tokens.accessToken,
             expiresIn = tokens.expiresIn,
             refreshToken = tokens.refreshToken,
@@ -35,16 +37,18 @@ object UserMappers:
             profile = org.profile.toProfileDTO
           )
 
-    def toUserDTO(role: String): UserDTO =
+    def toUserDTO(userId: String, role: String): UserDTO =
       user match
         case member: Member =>
           UserDTO(
+            id = userId,
             role = role,
             username = member.account.username,
             profile = member.profile.toProfileDTO
           )
         case org: Organization =>
           UserDTO(
+            id = userId,
             role = role,
             username = org.account.username,
             profile = org.profile.toProfileDTO

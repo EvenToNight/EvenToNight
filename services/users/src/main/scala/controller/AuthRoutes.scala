@@ -6,6 +6,7 @@ import cask.Request
 import cask.Response
 import infrastructure.keycloak.KeycloakJwtVerifier.extractUserId
 import infrastructure.keycloak.KeycloakJwtVerifier.refreshPublicKeys
+import infrastructure.keycloak.KeycloakJwtVerifier.verifyToken
 import infrastructure.rabbitmq.EventPublisher
 import io.circe.syntax._
 import model.LoginValidation._
@@ -18,9 +19,8 @@ import model.registration.UserRegistration._
 import service.AuthenticationService
 import service.UserService
 
-class AuthRoutes(authService: AuthenticationService, userService: UserService) extends cask.Routes {
-  val eventPublisher = EventPublisher() // Set mock = true to use the mock publisher
-
+class AuthRoutes(authService: AuthenticationService, userService: UserService, eventPublisher: EventPublisher)
+    extends cask.Routes {
   @cask.post("/login")
   def login(req: Request): Response[String] =
     parseLoginRequest(req) match
@@ -34,14 +34,17 @@ class AuthRoutes(authService: AuthenticationService, userService: UserService) e
               case Left("Client not allowed")  => Response("Login failed: client not allowed", 403)
               case Left(err)                   => Response(s"Login failed: $err", 500)
               case Right(userTokens) =>
-                extractUserId(userTokens.accessToken) match
-                  case Left(err) => Response(s"Failed to extract userId: $err", 500)
-                  case Right(userId) =>
-                    userService.getUserById(userId) match
-                      case Left(err) => Response(err, 404)
-                      case Right(role, user) =>
-                        val dto = user.toLoginDTO(userTokens, role)
-                        Response(dto.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
+                verifyToken(userTokens.accessToken) match
+                  case Left(err) => Response(s"Failed to verify token: $err", 500)
+                  case Right(payload) =>
+                    extractUserId(payload) match
+                      case Left(err) => Response(s"Failed to extract userId: $err", 500)
+                      case Right(userId) =>
+                        userService.getUserById(userId) match
+                          case Left(err) => Response(err, 404)
+                          case Right(role, user) =>
+                            val dto = user.toLoginDTO(userId, userTokens, role)
+                            Response(dto.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.post("/register")
   def register(req: Request): Response[String] =
@@ -86,7 +89,7 @@ class AuthRoutes(authService: AuthenticationService, userService: UserService) e
                 authService.login(validReq.username, validReq.password) match
                   case Left(err) => Response(s"User created but login failed: $err", 500)
                   case Right(userTokens) =>
-                    val dto = registeredUser.toLoginDTO(userTokens, validReq.role)
+                    val dto = registeredUser.toLoginDTO(userId, userTokens, validReq.role)
                     Response(dto.asJson.spaces2, 201, Seq("Content-Type" -> "application/json"))
 
   @cask.post("/refresh")

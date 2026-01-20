@@ -26,3 +26,15 @@ class AuthenticationService(
 
   def logoutLocal(refreshToken: String): Either[String, Unit] =
     keycloakTokenClient.revokeRefreshToken(refreshToken)
+
+  def deleteUser(keycloakId: String): Either[String, Unit] =
+    for
+      adminToken <- keycloakTokenClient.getClientAccessToken()
+      _          <- adminApi.deleteUser(adminToken, keycloakId)
+    yield ()
+
+  def updatePassword(keycloakId: String, newPassword: String): Either[String, Unit] =
+    for
+      adminToken <- keycloakTokenClient.getClientAccessToken()
+      _          <- adminApi.updatePassword(adminToken, keycloakId, newPassword)
+    yield ()

@@ -45,7 +45,9 @@ paths:
     post:
       tags: [Auth]
       summary: Register user
-      description: Registers a new user and logs them in.
+      description: >
+        Registers a new user and logs them in.
+        On successful registration, a UserCreated domain event is published.
       servers:
         - url: http://localhost:9000
           description: Users service (local development)
@@ -163,12 +165,19 @@ paths:
     get:
       tags: [Users]
       summary: Get user by ID
-      description: Returns a single user by ID with role and profile.
+      description: >
+        Returns the user corresponding to the ID.
+
+        - If the request contains a valid token with the user_id claim matching the userId in the path, 
+          the response includes full account and profile.  
+        - Otherwise, only username, role and profile are returned.
       servers:
         - url: http://localhost:9000
           description: Users service (local development)
         - url: https://users.eventonight.site
           description: Users service (production)
+      security:
+        - bearerAuth: []      
       parameters:
         - name: userId
           in: path
@@ -181,9 +190,288 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserDTO'
+                oneOf:
+                  - $ref: '#/components/schemas/UserDTO'
+                  - type: object
+                    required:
+                      - role
+                      - account
+                      - profile
+                    properties:
+                      role:
+                        type: string
+                        example: member
+                      account:
+                        $ref: '#/components/schemas/AccountDTO'
+                      profile:
+                        $ref: '#/components/schemas/ProfileDTO'
         '404':
           description: User not found
+
+    delete:
+      tags: [Users]
+      summary: Delete user by ID
+      description: >
+        Deletes the authenticated user.
+        The userId in the path must match the user_id claim in the access token.
+        On successful deletion, a UserDeleted domain event is published.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user to delete
+          schema:
+            type: string
+            format: uuid
+      responses:
+        "204":
+          description: User successfully deleted
+        "400":
+          description: Bad request or authorization error
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                genericError:
+                  summary: Any error
+                  value: "Bad request or authorization failed"
+
+    put:
+      tags: [Users]
+      summary: Update user by ID
+      description: >
+        Updates the authenticated user's account and/or profile information.
+        The userId in the path must match the user_id claim in the access token.
+        Only provided fields are updated; missing fields keep their current value.
+        On success, a UserUpdated domain event is published.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user to update
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequestDTO'
+      responses:
+        "204":
+          description: User successfully updated
+        "400":
+          description: Bad request or validation error
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidPayload:
+                  summary: Invalid update payload
+                  value: "Invalid update request"
+        "401":
+          description: Unauthorized
+        "403":
+          description: Forbidden (user not authorized to update this resource)
+        "404":
+          description: User not found
+
+    post:
+      tags: [Users]
+      summary: Update user avatar by ID
+      description: >
+        Updates the avatar of the authenticated user corresponding to the ID.
+        The userId in the path must match the user_id claim in the access token.
+        On success, returns the URL of the uploaded avatar.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user whose avatar will be updated
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                  format: binary
+                  description: The new avatar image file
+      responses:
+        '200':
+          description: Avatar updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvatarResponseDTO'
+              examples:
+                success:
+                  summary: Avatar URL returned
+                  value:
+                    avatarUrl: "https://media.eventonight.site/users/1234/avatar.jpg"
+        '400':
+          description: Failed to update user avatar
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                updateFailed:
+                  summary: Update failed
+                  value: "Failed to update user avatar"
+        '401':
+          description: Unauthorized
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                unauthorized:
+                  summary: No token or not authorized
+                  value: "Unauthorized: invalid or missing token"
+        '404':
+          description: User not found
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                notFound:
+                  summary: User does not exist
+                  value: "User not found"
+
+  /{userId}/password:
+    put:
+      tags: [Users]
+      summary: Update user password
+      description: >
+        Updates the authenticated user's password.
+        Password management is handled by the identity provider.
+        The userId in the path must match the user_id claim in the access token.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user whose password will be updated
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdatePasswordRequestDTO'
+      responses:
+        '204':
+          description: Password updated successfully
+        '400':
+          description: Invalid request or password update failed
+
+  /search:
+    get:
+      tags: [Users]
+      summary: Search and filter users
+      description: >
+        Searches for users by role and/or username/profile name prefix.
+        Returns users matching the criteria in pages of results.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      parameters:
+        - name: role
+          in: query
+          description: Filter by role ("member" or "organization")
+          required: false
+          schema:
+            $ref: '#/components/schemas/SearchUsersQueryDTO/properties/role'
+        - name: prefix
+          in: query
+          description: Filter users whose username or profile name starts with this prefix (case-insensitive)
+          required: false
+          schema:
+            $ref: '#/components/schemas/SearchUsersQueryDTO/properties/prefix'
+        - name: limit
+          in: query
+          description: Maximum number of users to return (default 10, max 20)
+          required: false
+          schema:
+            $ref: '#/components/schemas/SearchUsersQueryDTO/properties/limit'
+        - name: offset
+          in: query
+          description: Number of users to skip for pagination (default 0)
+          required: false
+          schema:
+            $ref: '#/components/schemas/SearchUsersQueryDTO/properties/offset'
+      responses:
+        '200':
+          description: Successfully retrieved filtered users
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserSearchResponse'
+        '400':
+          description: Invalid query parameters
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidRole:
+                  summary: Role not valid
+                  value: "Invalid role: admin"
+                negativeLimit:
+                  summary: Limit not positive
+                  value: "Limit must be positive, got -5"
+                negativeOffset:
+                  summary: Offset not valid
+                  value: "Offset must be non-negative, got -3"
+        '500':
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                genericError:
+                  summary: Unexpected server error
+                  value: "Internal server error while searching users"
 
 components:
   schemas:
@@ -328,6 +616,7 @@ components:
     LoginResponseDTO:
       type: object
       required:
+        - id
         - accessToken
         - expiresIn
         - refreshToken
@@ -336,6 +625,9 @@ components:
         - account
         - profile
       properties:
+        id:
+          type: string
+          example: user123
         accessToken:
           type: string
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -361,10 +653,14 @@ components:
     UserDTO:
       type: object
       required:
+        - id
         - username
         - role
         - profile
       properties:
+        id:
+          type: string
+          example: user123
         username:
           type: string
           example: johndoe
@@ -397,3 +693,181 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/PublicKeyEntry'
+
+    UpdateUserRequestDTO:
+      type: object
+      description: >
+        Partial update request for a user.
+        All fields are optional; only provided fields are updated.
+      properties:
+        accountDTO:
+          $ref: '#/components/schemas/UpdateAccountDTO'
+        profileDTO:
+          $ref: '#/components/schemas/UpdateProfileDTO'
+
+    UpdateAccountDTO:
+      type: object
+      description: Partial update of user account settings.
+      properties:
+        darkMode:
+          type: boolean
+          example: true
+        language:
+          type: string
+          example: it
+        gender:
+          type: string
+          nullable: true
+          example: male
+        birthDate:
+          type: string
+          format: date-time
+          nullable: true
+          example: 1990-01-01T00:00:00Z
+        interests:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["Dinner", "LiveMusic", "Club"]
+
+    UpdateProfileDTO:
+      type: object
+      description: Partial update of user profile information.
+      properties:
+        name:
+          type: string
+          example: John Doe
+        bio:
+          type: string
+          nullable: true
+          example: Software developer and event enthusiast.
+        contacts:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example:
+            - https://twitter.com/johndoe
+            - https://linkedin.com/in/johndoe
+
+    AvatarResponseDTO:
+      type: object
+      required:
+        - userId
+        - avatarUrl
+      properties:
+        userId:
+          type: string
+          example: user123
+        avatarUrl:
+          type: string
+          example: "https://media.eventonight.site/users/user123/avatar.jpg"
+
+    UpdatePasswordRequestDTO:
+      type: object
+      required:
+        - currentPassword
+        - newPassword
+        - confirmPassword
+      properties:
+        currentPassword:
+          type: string
+          format: password
+          example: "OldP@ssw0rd!"
+        newPassword:
+          type: string
+          format: password
+          example: "NewStr0ngP@ss!"
+        confirmPassword:
+          type: string
+          format: password
+          example: "NewStr0ngP@ss!"
+
+    SearchUsersQueryDTO:
+      type: object
+      description: Parameters used to filter/search users
+      properties:
+        role:
+          type: string
+          enum: [member, organization]
+          description: Filter users by role
+        prefix:
+          type: string
+          description: Filter users whose username or profile name starts with this prefix (case-insensitive)
+        limit:
+          type: integer
+          default: 10
+          maximum: 20
+          description: Maximum number of users to return (default 10, max 20)
+        offset:
+          type: integer
+          default: 0
+          minimum: 0
+          description: Number of users to skip for pagination (default 0)
+          
+    UserSearchResult:
+      type: object
+      description: Represents a single user returned in search results
+      required:
+        - id
+        - username
+        - name
+        - avatar
+        - role
+      properties:
+        id:
+          type: string
+          description: The user's unique ID
+          example: user123
+        username:
+          type: string
+          description: The user's unique username
+          example: johndoe
+        name:
+          type: string
+          description: The full name of the user from their profile
+          example: John Doe
+        avatar:
+          type: string
+          description: URL to the user's avatar image
+          example: https://example.com/avatar.jpg
+        bio:
+          type: string
+          description: Short biography or description of the user (optional)
+          nullable: true
+          example: Software developer and event enthusiast.
+        role:
+          type: string
+          description: Role of the user, either "member" or "organization"
+          enum: [member, organization]
+          example: member
+
+    PaginatedUserSearchResponse:
+      type: object
+      description: Paginated response for user search
+      required:
+        - data
+        - limit
+        - offset
+        - hasMore
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserSearchResult'
+        limit:
+          type: integer
+          example: 20
+        offset:
+          type: integer
+          example: 0
+        hasMore:
+          type: boolean
+          example: true
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
