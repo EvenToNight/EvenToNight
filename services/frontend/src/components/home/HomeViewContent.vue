@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import SearchBar from '@/components/navigation/SearchBar.vue'
 import EventCard from '@/components/cards/EventCard.vue'
 import CardSlider from '@/components/cards/CardSlider.vue'
+import CategorySelection from '@/components/home/CategorySelection.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
@@ -89,6 +90,8 @@ onMounted(async () => {
 
     <div class="container">
       <div class="content-section">
+        <CategorySelection />
+
         <CardSlider
           v-if="upcomingEvents.length > 0"
           :title="t('home.sections.upcomingEvents')"
@@ -153,7 +156,8 @@ onMounted(async () => {
     }
 
     @media (min-width: calc($app-max-width + 1px)) {
-      border-radius: 24px;
+      border-bottom-left-radius: 24px;
+      border-bottom-right-radius: 24px;
     }
   }
 
