@@ -23,6 +23,8 @@ RUN ./gradlew shadowJar --no-daemon -x test
 FROM eclipse-temurin:21-jre-alpine
 WORKDIR /home/app
 
+RUN apk add --no-cache curl
+
 COPY --from=builder /home/app/services/users/build/libs/*.jar ./app.jar
 
 EXPOSE $PORT

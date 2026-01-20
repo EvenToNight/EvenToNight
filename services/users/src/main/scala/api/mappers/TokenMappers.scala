@@ -1,6 +1,6 @@
 package api.mappers
 
-import api.dto.TokensDTO
+import api.dto.response.TokensDTO
 import model.UserTokens
 
 object TokenMappers:

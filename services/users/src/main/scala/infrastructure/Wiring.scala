@@ -13,6 +13,7 @@ import repository.MongoMemberRepository
 import repository.MongoOrganizationRepository
 import repository.OrganizationRepository
 import service.AuthenticationService
+import service.UserQueryService
 import service.UserService
 import sttp.client3.HttpURLConnectionBackend
 
@@ -47,7 +48,8 @@ object Wiring:
   val organizationRepository: OrganizationRepository =
     new MongoOrganizationRepository(organizationAccountProfileRepository)
 
-  val userService: UserService = new UserService(memberRepository, organizationRepository)
+  val userService: UserService           = new UserService(memberRepository, organizationRepository)
+  val userQueryService: UserQueryService = new UserQueryService(memberRepository, organizationRepository)
 
   private val kcConnection: KeycloakConnection     = new KeycloakConnection(HttpURLConnectionBackend())
   private val kcTokenService: KeycloakTokenService = new KeycloakTokenService(kcConnection)

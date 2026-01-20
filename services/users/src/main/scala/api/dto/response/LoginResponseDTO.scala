@@ -1,11 +1,12 @@
-package api.dto
+package api.dto.response
 
-import api.dto.AccountDTO
-import api.dto.ProfileDTO
+import api.dto.response.AccountDTO
+import api.dto.response.ProfileDTO
 import io.circe.Encoder
 import io.circe.generic.semiauto._
 
 case class LoginResponseDTO(
+    id: String,
     accessToken: String,
     expiresIn: Long,
     refreshToken: String,

@@ -1,6 +1,6 @@
 package api.mappers
 
-import api.dto.AccountDTO
+import api.dto.response.AccountDTO
 import model.member.MemberAccount
 import model.organization.OrganizationAccount
 

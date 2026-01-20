@@ -50,18 +50,20 @@ class KeycloakAdminApi(connection: KeycloakConnection):
         Left(s"Failed to create user on Keycloak: ${response.code} ${response.body}")
     )
 
-  def deleteUser(token: String, userId: String): Either[String, Unit] =
-    val deleteUserUri = adminUsersUri.addPath(userId)
+  def deleteUser(adminToken: String, keycloakId: String): Either[String, Unit] =
+    val deleteUserUri = adminUsersUri.addPath(keycloakId)
     val request = basicRequest
       .delete(deleteUserUri)
-      .header("Authorization", s"Bearer $token")
+      .header("Authorization", s"Bearer $adminToken")
 
     val responseOrError = connection.sendRequest(request)
     responseOrError.flatMap(response =>
-      if response.code == StatusCode.NoContent then
-        Right(())
-      else
-        Left(s"Failed to delete user $userId: ${response.code} ${response.body}")
+      response.code match
+        case StatusCode.NoContent    => Right(())
+        case StatusCode.NotFound     => Left("User not found")
+        case StatusCode.Unauthorized => Left(s"Unauthorized on Keycloak: ${response.body}")
+        case StatusCode.Forbidden    => Left("Insufficient permissions in Keycloak")
+        case _                       => Left(s"Failed to delete user on Keycloak: ${response.code} ${response.body}")
     )
 
   def getRealmRoles(token: String): Either[String, String] =
@@ -103,4 +105,29 @@ class KeycloakAdminApi(connection: KeycloakConnection):
           Right(())
         case other =>
           Left(s"Failed to assign role '$roleName' to user '$keycloakId': ${other.code} ${response.body}")
+    )
+
+  def updatePassword(adminToken: String, keycloakId: String, newPassword: String): Either[String, Unit] =
+    val updatePwsUri = adminUsersUri.addPath(keycloakId, "reset-password")
+    val body = Json.obj(
+      "type"      -> Json.fromString("password"),
+      "value"     -> Json.fromString(newPassword),
+      "temporary" -> Json.fromBoolean(false)
+    ).noSpaces
+
+    val request = basicRequest
+      .put(updatePwsUri)
+      .header("Authorization", s"Bearer $adminToken")
+      .header("Content-Type", "application/json")
+      .body(body)
+
+    val responseOrError = connection.sendRequest(request)
+    responseOrError.flatMap(response =>
+      response.code match
+        case StatusCode.NoContent    => Right(())
+        case StatusCode.BadRequest   => Left(s"Invalid password: ${response.body}")
+        case StatusCode.Unauthorized => Left("Unauthorized on Keycloak")
+        case StatusCode.Forbidden    => Left("Insufficient permissions in Keycloak")
+        case StatusCode.NotFound     => Left("User not found in Keycloak")
+        case _ => Left(s"Failed to update password on Keycloak: ${response.code} ${response.body}")
     )
