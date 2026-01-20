@@ -17,7 +17,8 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     eventPublished = EventPublished(
       eventId = "event-published-1",
       creatorId = "creator-1",
-      collaboratorIds = Some(List("collab-1", "collab-2"))
+      collaboratorIds = Some(List("collab-1", "collab-2")),
+      name = "Sample Event"
     )
     eventUpdated = EventUpdated(
       eventId = "event-updated-1",
@@ -34,12 +35,13 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     eventPublished.eventId shouldBe "event-published-1"
     eventPublished.creatorId shouldBe "creator-1"
     eventPublished.collaboratorIds shouldBe Some(List("collab-1", "collab-2"))
-
+    eventPublished.name shouldBe "Sample Event"
   it should "be comparable with itself" in:
     val event2 = EventPublished(
       eventId = "event-published-1",
       creatorId = "creator-1",
-      collaboratorIds = Some(List("collab-1", "collab-2"))
+      collaboratorIds = Some(List("collab-1", "collab-2")),
+      name = "Sample Event"
     )
     eventPublished shouldBe event2
 

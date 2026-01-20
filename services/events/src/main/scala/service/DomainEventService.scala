@@ -67,7 +67,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
               publisher.publish(
                 EventUpdated(
                   eventId = updatedEvent._id,
-                  collaboratorIds = updatedEvent.collaboratorIds,
+                  collaboratorIds = updatedEvent.collaboratorIds
                 )
               )
             Right(())

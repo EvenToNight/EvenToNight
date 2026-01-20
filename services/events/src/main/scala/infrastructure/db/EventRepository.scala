@@ -35,8 +35,12 @@ trait EventRepository:
       sortOrder: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)]
 
-case class MongoEventRepository(connectionString: String, databaseName: String, collectionName: String = "events", messageBroker: EventPublisher)
-    extends EventRepository:
+case class MongoEventRepository(
+    connectionString: String,
+    databaseName: String,
+    collectionName: String = "events",
+    messageBroker: EventPublisher
+) extends EventRepository:
 
   private val mongoClient: MongoClient              = MongoClients.create(connectionString)
   private val database: MongoDatabase               = mongoClient.getDatabase(databaseName)

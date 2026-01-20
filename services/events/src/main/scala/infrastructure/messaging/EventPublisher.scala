@@ -1,6 +1,6 @@
 package infrastructure.messaging
 import com.rabbitmq.client.{AMQP, Channel, Connection, ConnectionFactory}
-import domain.events.{DomainEvent, EventDeleted, EventPublished, EventUpdated, EventCompleted}
+import domain.events.{DomainEvent, EventCompleted, EventDeleted, EventPublished, EventUpdated}
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 
