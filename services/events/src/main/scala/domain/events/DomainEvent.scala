@@ -5,7 +5,8 @@ sealed trait DomainEvent
 case class EventPublished(
     eventId: String,
     creatorId: String,
-    collaboratorIds: Option[List[String]]
+    collaboratorIds: Option[List[String]],
+    name: String
 ) extends DomainEvent
 
 case class EventUpdated(
