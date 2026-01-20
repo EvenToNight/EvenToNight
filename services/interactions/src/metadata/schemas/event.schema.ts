@@ -20,6 +20,9 @@ export class Event extends Document {
 
   @Prop({ required: true })
   status: EventStatus;
+
+  @Prop({ required: true })
+  name: string;
 }
 
 export const EventSchema = SchemaFactory.createForClass(Event);
