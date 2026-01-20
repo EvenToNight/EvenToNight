@@ -53,6 +53,7 @@ export class MetadataService {
             creatorId: payload.creatorId,
             collaboratorIds: payload.collaboratorIds ?? [],
             status: EventStatus.PUBLISHED,
+            name: payload.name,
           },
         },
         { upsert: true },
