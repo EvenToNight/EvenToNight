@@ -366,9 +366,14 @@ export class MetadataService {
       this.logger.debug(
         `Processing payments.order.confirmed: ${JSON.stringify(payload)}`,
       );
-      await this.participationService.participate(payload.eventId, payload.userId);
+      await this.participationService.participate(
+        payload.eventId,
+        payload.userId,
+      );
     } catch (error) {
-      this.logger.error(`Failed to handle payments.order.confirmed: ${error instanceof Error ? error.message : error}`);
+      this.logger.error(
+        `Failed to handle payments.order.confirmed: ${error instanceof Error ? error.message : error}`,
+      );
       throw error;
     }
   }

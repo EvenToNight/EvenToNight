@@ -14,7 +14,6 @@ import {
 } from './schemas/participation.schema';
 import { ParticipationService } from './services/participation.service';
 import { ParticipationController } from './controllers/participant.controller';
-import { ParticipationConsumer } from './controllers/participant.consumer';
 import { AuthModule } from 'src/commons/auth';
 
 @Module({
@@ -32,7 +31,6 @@ import { AuthModule } from 'src/commons/auth';
     ReviewController,
     OrganizationController,
     ParticipationController,
-    ParticipationConsumer,
   ],
   providers: [LikeService, ReviewService, ParticipationService],
   exports: [LikeService, ReviewService, ParticipationService],
