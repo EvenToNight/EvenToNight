@@ -114,11 +114,12 @@ onMounted(async () => {
   width: 100%;
   min-height: 100%;
   background: #f5f5f5;
+  @include dark-mode {
+    background: $color-background-dark;
+  }
 }
 
 .container {
-  background: #f5f5f5;
-
   max-width: $breakpoint-xl;
   margin: 0 auto;
   width: 100%;
