@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
 import EditProfileTab from '@/components/settings/tabs/EditProfileTab.vue'
@@ -8,16 +8,10 @@ import MyReviewsTab from '@/components/settings/tabs/MyReviewsTab.vue'
 import LanguageTab from '@/components/settings/tabs/LanguageTab.vue'
 import ChangePasswordTab from '@/components/settings/tabs/ChangePasswordTab.vue'
 import type { Tab } from '@/components/navigation/TabView.vue'
+import { useNavigation } from '@/router/utils'
 
+const { hash, replaceRoute } = useNavigation()
 const activeTabId = ref('edit-profile')
-
-const activeTab = computed(() => {
-  return tabs.value.find((tab) => tab.id === activeTabId.value) ?? tabs.value[0]!
-})
-
-const selectTab = (tabId: string) => {
-  activeTabId.value = tabId
-}
 
 const tabs = computed<Tab[]>(() => [
   {
@@ -51,6 +45,35 @@ const tabs = computed<Tab[]>(() => [
     component: MyReviewsTab,
   },
 ])
+
+const activeTab = computed(() => {
+  return tabs.value.find((tab) => tab.id === activeTabId.value) ?? tabs.value[0]!
+})
+
+const selectTab = (tabId: string) => {
+  activeTabId.value = tabId
+}
+
+function updateTabIdFromHash() {
+  const tabId = hash.value.replace('#', '')
+  const exists = tabs.value.some((tab) => tab.id === tabId)
+  activeTabId.value = exists ? tabId : tabs.value[0]!.id
+  replaceRoute({ hash: `#${activeTabId.value}` })
+}
+onMounted(() => {
+  updateTabIdFromHash()
+})
+
+watch(
+  () => hash.value,
+  () => updateTabIdFromHash()
+)
+
+watch(activeTab, (newTab) => {
+  if (hash.value !== `#${newTab.id}`) {
+    replaceRoute({ hash: `#${newTab.id}` })
+  }
+})
 </script>
 
 <template>

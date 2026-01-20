@@ -35,11 +35,13 @@ const hasMoreDraft = ref(true)
 
 const EVENTS_PER_PAGE = 5
 
-const activeTab = ref<string>('events')
+const activeTab = ref<string>('likes')
 
 onMounted(() => {
   if (hash.value) {
     activeTab.value = hash.value.replace('#', '')
+  } else {
+    replaceRoute({ hash: `#${activeTab.value}` })
   }
 })
 
