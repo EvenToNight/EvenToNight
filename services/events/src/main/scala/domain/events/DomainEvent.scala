@@ -16,3 +16,7 @@ case class EventUpdated(
 case class EventDeleted(
     eventId: String
 ) extends DomainEvent
+
+case class EventCompleted(
+    eventId: String
+) extends DomainEvent
