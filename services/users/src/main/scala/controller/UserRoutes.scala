@@ -54,18 +54,20 @@ class UserRoutes(
           user match
             case m: Member =>
               Json.obj(
+                "id"      -> Json.fromString(userId),
                 "role"    -> Json.fromString(role),
                 "account" -> m.account.asJson,
                 "profile" -> m.profile.asJson
               )
             case o: Organization =>
               Json.obj(
+                "id"      -> Json.fromString(userId),
                 "role"    -> Json.fromString(role),
                 "account" -> o.account.asJson,
                 "profile" -> o.profile.asJson
               )
         else
-          user.toUserDTO(role).asJson
+          user.toUserDTO(userId, role).asJson
         Response(json.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.get("/")
@@ -73,8 +75,8 @@ class UserRoutes(
     userService.getUsers() match
       case Left(err) => Response(err, 400)
       case Right(users) =>
-        val dtoList = users.map { case (role, user) =>
-          user.toUserDTO(role)
+        val dtoList = users.map { case (userId, role, user) =>
+          user.toUserDTO(userId, role)
         }
         Response(dtoList.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
@@ -187,7 +189,11 @@ class UserRoutes(
                       language = o.account.language,
                       role = "organization"
                     ))
-                Response(AvatarResponseDTO(avatarUrl).asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
+                Response(
+                  AvatarResponseDTO(userId, avatarUrl).asJson.spaces2,
+                  200,
+                  Seq("Content-Type" -> "application/json")
+                )
 
   @cask.put("/:userId/password")
   def updatePassword(userId: String, req: Request): Response[String] =

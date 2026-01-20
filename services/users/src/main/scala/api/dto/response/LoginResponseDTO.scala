@@ -6,6 +6,7 @@ import io.circe.Encoder
 import io.circe.generic.semiauto._
 
 case class LoginResponseDTO(
+    id: String,
     accessToken: String,
     expiresIn: Long,
     refreshToken: String,

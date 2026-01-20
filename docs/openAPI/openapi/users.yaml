@@ -616,6 +616,7 @@ components:
     LoginResponseDTO:
       type: object
       required:
+        - id
         - accessToken
         - expiresIn
         - refreshToken
@@ -624,6 +625,9 @@ components:
         - account
         - profile
       properties:
+        id:
+          type: string
+          example: user123
         accessToken:
           type: string
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -649,10 +653,14 @@ components:
     UserDTO:
       type: object
       required:
+        - id
         - username
         - role
         - profile
       properties:
+        id:
+          type: string
+          example: user123
         username:
           type: string
           example: johndoe
@@ -746,11 +754,15 @@ components:
     AvatarResponseDTO:
       type: object
       required:
+        - userId
         - avatarUrl
       properties:
+        userId:
+          type: string
+          example: user123
         avatarUrl:
           type: string
-          example: "https://media.eventonight.site/users/1234/avatar.jpg"
+          example: "https://media.eventonight.site/users/user123/avatar.jpg"
 
     UpdatePasswordRequestDTO:
       type: object
@@ -798,11 +810,16 @@ components:
       type: object
       description: Represents a single user returned in search results
       required:
+        - id
         - username
         - name
         - avatar
         - role
       properties:
+        id:
+          type: string
+          description: The user's unique ID
+          example: user123
         username:
           type: string
           description: The user's unique username

@@ -5,6 +5,7 @@ import io.circe.generic.semiauto._
 import model.UserRole
 
 case class UserSearchResult(
+    id: String,
     username: String,
     name: String,
     avatar: String,

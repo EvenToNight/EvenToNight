@@ -15,20 +15,27 @@ class UserQueryService(memberRepo: MemberRepository, orgRepo: OrganizationReposi
       val members       = memberRepo.search(query.prefix, query.limit + query.offset)
       val organizations = orgRepo.search(query.prefix, query.limit + query.offset)
 
-      val allUsers: Seq[RegisteredUser] = query.role match
+      val allUsers: Seq[(String, RegisteredUser)] = query.role match
         case Some(MemberRole)       => members
         case Some(OrganizationRole) => organizations
         case None                   => members ++ organizations
 
       val pagedUsers = allUsers.slice(query.offset, query.offset + query.limit)
 
-      val results = pagedUsers.map(user =>
+      val results = pagedUsers.map { case (userId, user) =>
         user match
           case m: Member =>
-            UserSearchResult(m.account.username, m.profile.name, m.profile.avatar, m.profile.bio, MemberRole)
+            UserSearchResult(userId, m.account.username, m.profile.name, m.profile.avatar, m.profile.bio, MemberRole)
           case o: Organization =>
-            UserSearchResult(o.account.username, o.profile.name, o.profile.avatar, o.profile.bio, OrganizationRole)
-      )
+            UserSearchResult(
+              userId,
+              o.account.username,
+              o.profile.name,
+              o.profile.avatar,
+              o.profile.bio,
+              OrganizationRole
+            )
+      }
 
       val hasMore = allUsers.size > query.limit + query.offset
       Right((results, hasMore))

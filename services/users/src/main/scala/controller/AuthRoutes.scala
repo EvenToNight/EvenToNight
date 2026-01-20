@@ -43,7 +43,7 @@ class AuthRoutes(authService: AuthenticationService, userService: UserService, e
                         userService.getUserById(userId) match
                           case Left(err) => Response(err, 404)
                           case Right(role, user) =>
-                            val dto = user.toLoginDTO(userTokens, role)
+                            val dto = user.toLoginDTO(userId, userTokens, role)
                             Response(dto.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
   @cask.post("/register")
@@ -89,7 +89,7 @@ class AuthRoutes(authService: AuthenticationService, userService: UserService, e
                 authService.login(validReq.username, validReq.password) match
                   case Left(err) => Response(s"User created but login failed: $err", 500)
                   case Right(userTokens) =>
-                    val dto = registeredUser.toLoginDTO(userTokens, validReq.role)
+                    val dto = registeredUser.toLoginDTO(userId, userTokens, validReq.role)
                     Response(dto.asJson.spaces2, 201, Seq("Content-Type" -> "application/json"))
 
   @cask.post("/refresh")
