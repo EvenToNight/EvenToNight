@@ -17,18 +17,9 @@
         @click="handleCategoryClick(category)"
       >
         <div class="category-icon-wrapper">
-          <q-icon :name="getCategoryIcon(category.category)" size="48px" />
+          <q-icon :name="getCategoryIcon(category.category)" size="36px" />
         </div>
         <h3 class="category-name">{{ category.category }}</h3>
-        <p class="category-count">{{ category.tags.length }} tags</p>
-        <!-- <div class="category-tags">
-          <span v-for="tag in category.tags.slice(0, 3)" :key="tag" class="tag-preview">
-            {{ tag }}
-          </span>
-          <span v-if="category.tags.length > 3" class="tag-more">
-            +{{ category.tags.length - 3 }}
-          </span>
-        </div> -->
       </div>
     </div>
   </div>
@@ -46,16 +37,15 @@ const categories = ref<TagCategory[]>([])
 const loading = ref(true)
 
 const categoryIcons: Record<string, string> = {
+  EventType: 'event',
+  Venue: 'place',
+  MusicStyle: 'music_note',
+  Special: 'star',
+  Target: 'group',
+  Extra: 'add_circle',
   Music: 'music_note',
   Sports: 'sports_soccer',
   Arts: 'palette',
-  Food: 'restaurant',
-  Technology: 'computer',
-  Education: 'school',
-  Entertainment: 'theaters',
-  Business: 'business',
-  Health: 'favorite',
-  Travel: 'flight',
 }
 
 const getCategoryIcon = (category: string): string => {
@@ -78,6 +68,7 @@ onMounted(async () => {
 </script>
 
 <style scoped lang="scss">
+@use 'sass:color';
 @import '@/assets/styles/abstracts';
 
 .category-selection {
@@ -139,11 +130,13 @@ onMounted(async () => {
   border: 2px solid $color-border;
   position: relative;
   overflow: hidden;
+  display: flex;
+  align-items: center;
+  gap: $spacing-4;
 
   &:hover {
     transform: translateY(-4px);
     box-shadow: $shadow-lg;
-    border-color: $color-primary;
 
     .category-icon-wrapper {
       transform: scale(1.1) rotate(5deg);
@@ -151,29 +144,25 @@ onMounted(async () => {
   }
 
   @include dark-mode {
-    background: $color-background-dark-soft;
-    border-color: $color-border-dark;
-
-    &:hover {
-      border-color: $color-primary;
-    }
+    background: rgba(255, 255, 255, 0.05);
+    border-color: transparent;
   }
 }
 
 .category-icon-wrapper {
-  width: 80px;
-  height: 80px;
+  width: 60px;
+  height: 60px;
+  flex-shrink: 0;
   border-radius: 50%;
-  background: linear-gradient(135deg, $color-primary 0%, lighten($color-primary, 10%) 100%);
+  background: rgba($color-primary, 0.1);
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 0 auto $spacing-3;
   transition: transform $transition-slow;
   box-shadow: $shadow-md;
 
   .q-icon {
-    color: $color-white;
+    color: $color-primary;
   }
 }
 
@@ -181,8 +170,7 @@ onMounted(async () => {
   font-size: $font-size-xl;
   font-weight: $font-weight-bold;
   color: $color-text-primary;
-  text-align: center;
-  margin: 0 0 $spacing-1 0;
+  margin: 0;
 
   @include dark-mode {
     color: $color-white;
@@ -217,7 +205,7 @@ onMounted(async () => {
 
     @include dark-mode {
       background: rgba($color-primary, 0.25);
-      color: lighten($color-primary, 20%);
+      color: color.scale($color-primary, $lightness: 20%);
     }
   }
 

@@ -73,8 +73,6 @@ onMounted(async () => {
 
     <div class="container">
       <div class="content-section">
-        <CategorySelection />
-
         <CardSlider
           v-if="upcomingEvents.length > 0"
           :title="t('home.sections.upcomingEvents')"
@@ -87,8 +85,31 @@ onMounted(async () => {
             @auth-required="emit('auth-required')"
           />
         </CardSlider>
-
-        <div class="colored-box"></div>
+        <CardSlider
+          v-if="upcomingEvents.length > 0"
+          :title="t('home.sections.upcomingEvents')"
+          @see-all="handleSeeAllEvents"
+        >
+          <EventCard
+            v-for="(event, index) in upcomingEvents"
+            :key="event.eventId"
+            v-model="upcomingEvents[index]!"
+            @auth-required="emit('auth-required')"
+          />
+        </CardSlider>
+        <CategorySelection />
+        <CardSlider
+          v-if="upcomingEvents.length > 0"
+          :title="t('home.sections.upcomingEvents')"
+          @see-all="handleSeeAllEvents"
+        >
+          <EventCard
+            v-for="(event, index) in upcomingEvents"
+            :key="event.eventId"
+            v-model="upcomingEvents[index]!"
+            @auth-required="emit('auth-required')"
+          />
+        </CardSlider>
       </div>
     </div>
   </div>
@@ -202,14 +223,6 @@ onMounted(async () => {
       grid-template-columns: 1fr;
       gap: $spacing-4;
     }
-  }
-
-  .colored-box {
-    width: 100%;
-    height: 800px;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    border-radius: $radius-xl;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
   }
 
   p {
