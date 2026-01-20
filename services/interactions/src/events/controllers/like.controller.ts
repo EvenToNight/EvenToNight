@@ -7,6 +7,7 @@ import {
   Get,
   Query,
   UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { LikeService } from '../services/like.service';
 import { LikeEventDto } from '../dto/like-event.dto';
@@ -26,7 +27,7 @@ export class LikeController {
     @CurrentUser('userId') userId: string,
   ) {
     if (likeEventDto.userId !== userId) {
-      throw new Error('Authorized user mismatch');
+      throw new ForbiddenException('Authorized user mismatch');
     }
     await this.likeService.likeEvent(eventId, likeEventDto.userId);
     return {

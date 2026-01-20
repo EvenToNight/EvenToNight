@@ -755,6 +755,16 @@ paths:
                 statusCode: 400
                 message: ["userId should not be empty"]
                 error: Bad Request
+        '403':
+          description: Forbidden - Authorized user mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: Authorized user mismatch
+                error: Forbidden
         '409':
           description: Conflict - Already liked the event
           content:
