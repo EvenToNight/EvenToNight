@@ -13,4 +13,8 @@ export class EventPublishedDto {
   @IsArray()
   @IsString({ each: true })
   collaboratorIds?: string[];
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 }
