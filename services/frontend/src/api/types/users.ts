@@ -4,6 +4,7 @@ export type UserID = string
 
 export type UserRole = 'member' | 'organization'
 
+export type Gender = 'male' | 'female' | 'other'
 // export interface User {
 //   id: UserID
 //   name: string
@@ -27,7 +28,7 @@ export interface Account {
   username: string
   email?: string //only on own profile
   language?: string //only on own profile
-  gender?: string
+  gender?: Gender
   birthDate?: Date
   interests?: Tag[]
 }

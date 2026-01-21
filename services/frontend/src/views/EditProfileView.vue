@@ -64,13 +64,11 @@ const handleSave = async () => {
       website: website.value.trim() || undefined,
     }
 
-    if (avatarModified.value) {
-      const updatedUser = await authStore.updateUserById(authStore.user.id, {
-        ...updateReq,
-        avatarFile: avatar.value ?? undefined,
-      })
-      currentAvatarUrl.value = updatedUser.avatar
-    }
+    const updatedUser = await authStore.updateUserById(authStore.user.id, {
+      ...updateReq,
+      avatarFile: avatarModified.value ? avatar.value : undefined,
+    })
+    currentAvatarUrl.value = updatedUser.avatar
 
     $q.notify({
       color: 'positive',

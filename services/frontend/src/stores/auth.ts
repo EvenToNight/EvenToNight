@@ -158,7 +158,7 @@ export const useAuthStore = defineStore('auth', () => {
         updatedUser.avatar = response.avatarUrl
       }
 
-      await api.users.updateUserById(id, userData)
+      await api.users.updateUserById(id, updatedUser)
       if (userData.language) {
         await changeLocale(userData.language)
       }

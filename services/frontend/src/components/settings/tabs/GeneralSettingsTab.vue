@@ -7,13 +7,14 @@ import type { TagCategory } from '@/api/interfaces/events'
 import FormField from '@/components/forms/FormField.vue'
 import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import { useAuthStore } from '@/stores/auth'
+import type { Gender } from '@/api/types/users'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
 
 // Form fields
 const birthDate = ref<string>('')
-const gender = ref<'male' | 'female' | 'other' | null>(null)
+const gender = ref<Gender | null>(null)
 const selectedTags = ref<Tag[]>([])
 const isDarkMode = ref($q.dark.isActive)
 
@@ -110,7 +111,7 @@ onMounted(async () => {
 
     // TODO: Load from user profile when backend is ready
     birthDate.value = authStore.user?.birthDate?.toDateString() || ''
-    gender.value = (authStore.user?.gender as any) || null
+    gender.value = authStore.user?.gender || null
     selectedTags.value = authStore.user?.interests || []
     isDarkMode.value = authStore.user?.darkMode || $q.dark.isActive
   } catch (error) {
@@ -135,8 +136,8 @@ const handleSave = async () => {
     // TODO: Save to backend when API is ready
     await authStore.updateUserById(authStore.user!.id, {
       birthDate: new Date(birthDate.value),
-      gender: gender.value as string,
-      interests: selectedTags.value,
+      gender: gender.value || undefined,
+      interests: selectedTags.value || undefined,
       darkMode: isDarkMode.value,
     })
 
