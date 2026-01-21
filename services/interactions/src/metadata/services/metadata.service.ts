@@ -125,23 +125,23 @@ export class MetadataService {
       this.logger.debug(`Processing user.deleted: ${JSON.stringify(payload)}`);
 
       const deleteResult = await this.userModel.deleteOne({
-        userId: payload.userId,
+        id: payload.id,
       });
 
       if (deleteResult.deletedCount === 0) {
-        this.logger.warn(`User ${payload.userId} not found for deletion`);
+        this.logger.warn(`User ${payload.id} not found for deletion`);
       } else {
-        this.logger.log(`🗑️  User ${payload.userId} deleted from metadata`);
+        this.logger.log(`🗑️  User ${payload.id} deleted from metadata`);
       }
 
       await Promise.all([
-        this.likeService.deleteUser(payload.userId),
-        this.reviewService.deleteUser(payload.userId),
-        this.participationService.deleteUser(payload.userId),
-        this.followService.deleteUser(payload.userId),
+        this.likeService.deleteUser(payload.id),
+        this.reviewService.deleteUser(payload.id),
+        this.participationService.deleteUser(payload.id),
+        this.followService.deleteUser(payload.id),
       ]);
 
-      this.logger.log(`🧹 Cleanup completed for user ${payload.userId}`);
+      this.logger.log(`🧹 Cleanup completed for user ${payload.id}`);
     } catch (error) {
       this.logger.error(`Failed to handle user.deleted: ${error}`);
       throw error;
