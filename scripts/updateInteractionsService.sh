@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 : '
 Update Interactions Service Script
 
@@ -32,7 +33,6 @@ NOTES:
     - The interactions-only option is faster for iterative development.
 '
 
-#!/usr/bin/env bash
 set -euo pipefail
 
 # Colors for output

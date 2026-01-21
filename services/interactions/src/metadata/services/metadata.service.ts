@@ -159,7 +159,7 @@ export class MetadataService {
         { status: EventStatus.COMPLETED },
       );
 
-      if (completeResult.modifiedCount == 0) {
+      if (completeResult.modifiedCount === 0) {
         this.logger.warn(`Event ${payload.eventId} not found for update`);
       } else {
         this.logger.log(`Event ${payload.eventId} completed from metadata`);
@@ -183,7 +183,7 @@ export class MetadataService {
           avatar: payload.avatar,
         },
       );
-      if (updateResult.modifiedCount == 0) {
+      if (updateResult.modifiedCount === 0) {
         this.logger.warn(`User ${payload.id} not found for update`);
       } else {
         this.logger.log(`User ${payload.id} update from metadata`);
@@ -288,9 +288,9 @@ export class MetadataService {
   private async validateEventCompleted(eventId: string): Promise<void> {
     const event = await this.eventModel.findOne({ eventId });
     const status = event?.status || EventStatus.CANCELLED;
-    if (status != EventStatus.COMPLETED) {
+    if (status !== EventStatus.COMPLETED) {
       throw new BadRequestException(
-        'It is not possible to review a event not completed',
+        'It is not possible to review an event that is not completed',
       );
     }
   }
@@ -312,7 +312,7 @@ export class MetadataService {
 
   async validateUserNotCreator(eventId: string, userId: string): Promise<void> {
     const { creatorId, collaboratorIds } = await this.getEventInfo(eventId);
-    if (creatorId == userId || collaboratorIds.includes(userId)) {
+    if (creatorId === userId || collaboratorIds.includes(userId)) {
       throw new BadRequestException('User cannot review their own event');
     }
   }
@@ -354,7 +354,12 @@ export class MetadataService {
 
   async getEventIdsByOrganization(organizationId: string): Promise<string[]> {
     const events = await this.eventModel
-      .find({ organizationId })
+      .find({
+        $or: [
+          { creatorId: organizationId },
+          { collaboratorIds: organizationId },
+        ],
+      })
       .select({ eventId: 1, _id: 0 })
       .lean();
 

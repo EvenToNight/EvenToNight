@@ -632,10 +632,8 @@ paths:
                   value:
                     items:
                       - eventId: event123
-                        createdAt: "2026-01-15T10:00:00Z"
                         reviewed: false
                       - eventId: event456
-                        createdAt: "2026-01-10T14:30:00Z"
                         reviewed: true
                     totalItems: 2
                     limit: 20
@@ -645,7 +643,6 @@ paths:
                   value:
                     items:
                       - eventId: event123
-                        createdAt: "2026-01-15T10:00:00Z"
                         reviewed: false
                     totalItems: 1
                     limit: 20
