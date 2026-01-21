@@ -53,9 +53,11 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
     return usersClient.put<void>(`/${id}`, UserAdapter.toApi(data))
   },
 
-  async updateUserAvatarById(id: UserID, avatarFile: File): Promise<{ avatarUrl: string }> {
+  async updateUserAvatarById(id: UserID, avatarFile?: File): Promise<{ avatarUrl: string }> {
     const formData = new FormData()
-    formData.append('avatar', avatarFile)
+    if (avatarFile) {
+      formData.append('avatar', avatarFile)
+    }
     return usersClient.post<{ avatarUrl: string }>(`/${id}`, formData)
   },
 

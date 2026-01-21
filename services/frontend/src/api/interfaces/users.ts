@@ -66,7 +66,7 @@ export interface UsersAPI {
   getUserById(id: UserID): Promise<User>
   deleteUserById(id: UserID): Promise<void>
   updateUserById(id: UserID, data: Partial<User>): Promise<void>
-  updateUserAvatarById(id: UserID, avatarFile: File): Promise<{ avatarUrl: string }>
+  updateUserAvatarById(id: UserID, avatarFile?: File): Promise<{ avatarUrl: string }>
 
   changePassword(userId: UserID, data: ChangePasswordRequest): Promise<void>
   searchUsers(params: {

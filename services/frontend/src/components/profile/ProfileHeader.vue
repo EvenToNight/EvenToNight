@@ -36,7 +36,7 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 
 const avatarCropUploadRef = ref<InstanceType<typeof AvatarCropUpload> | null>(null)
-const newAvatar = ref<File | null>(null)
+const currentAvatarUrl = ref<string | undefined>(undefined)
 
 const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
 const isOwnProfile = computed(() => authStore.isOwnProfile(user.value.id))
@@ -48,8 +48,8 @@ const defaultIcon = computed(() => {
   return isOrganization.value ? 'business' : 'person'
 })
 
-//TODO: handle loading
 onMounted(async () => {
+  currentAvatarUrl.value = user.value.avatar
   if (authStore.isAuthenticated && !isOwnProfile.value && authStore.user?.id) {
     try {
       isFollowing.value = await api.interactions.isFollowing(authStore.user.id, user.value.id)
@@ -109,8 +109,13 @@ const handleAvatarError = (message: string) => {
 
 const handleAvatarChange = async (file: File | null) => {
   if (!file) return
+  URL.revokeObjectURL(currentAvatarUrl.value || '')
+  const localPreviewUrl = URL.createObjectURL(file)
+  currentAvatarUrl.value = localPreviewUrl
+
   const updatedUser = await authStore.updateUserById(authStore.user!.id, { avatarFile: file })
   user.value.avatar = updatedUser.avatar
+
   $q.notify({
     color: 'positive',
     message: t('profile.edit.saveSuccess'),
@@ -124,10 +129,9 @@ const handleAvatarChange = async (file: File | null) => {
     <div v-if="isOwnProfile" style="display: none">
       <AvatarCropUpload
         ref="avatarCropUploadRef"
-        v-model="newAvatar"
-        :preview-url="user.avatar"
+        :preview-url="currentAvatarUrl"
         :default-icon="defaultIcon"
-        @update:model-value="handleAvatarChange"
+        @update:imageFile="handleAvatarChange"
         @error="handleAvatarError"
       />
     </div>
@@ -135,8 +139,9 @@ const handleAvatarChange = async (file: File | null) => {
     <div class="profile-header">
       <div class="avatar-container" :class="{ clickable: isOwnProfile }" @click="handleAvatarClick">
         <img
-          v-if="user.avatar"
-          :src="user.avatar"
+          v-if="currentAvatarUrl"
+          :key="currentAvatarUrl"
+          :src="currentAvatarUrl"
           :alt="t('userProfile.userAvatarAlt')"
           class="profile-avatar"
         />

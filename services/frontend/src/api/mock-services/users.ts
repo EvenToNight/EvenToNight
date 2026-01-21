@@ -108,7 +108,7 @@ export const mockUsersApi: UsersAPI = {
     return
   },
 
-  async updateUserAvatarById(id: UserID, _avatarFile: File): Promise<{ avatarUrl: string }> {
+  async updateUserAvatarById(id: UserID, _avatarFile?: File): Promise<{ avatarUrl: string }> {
     return this.getUserById(id).then((user) => ({ avatarUrl: user.avatar }))
   },
 

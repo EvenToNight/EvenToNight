@@ -17,8 +17,8 @@ const $q = useQuasar()
 const name = ref('')
 const bio = ref('')
 const website = ref('')
-const avatar = ref<File | null>(null)
 const loading = ref(false)
+const avatar = ref<File | null>(null)
 const currentAvatarUrl = ref<string | undefined>(undefined)
 
 const isOrganization = computed(() => authStore.user?.role === 'organization')
@@ -43,6 +43,13 @@ const handleAvatarError = (message: string) => {
   })
 }
 
+const handleAvatar = (file: File | null) => {
+  avatar.value = file
+  if (file === null) {
+    currentAvatarUrl.value = undefined
+  }
+}
+
 const handleSave = async () => {
   if (!authStore.user?.id) return
 
@@ -54,6 +61,7 @@ const handleSave = async () => {
       website: website.value.trim() || undefined,
     }
 
+    console.log(avatar.value ? 'Updating avatar' : 'No avatar to update')
     const updatedUser = await authStore.updateUserById(authStore.user.id, {
       ...updateReq,
       avatarFile: avatar.value ?? undefined,
@@ -98,12 +106,11 @@ const handleCancel = () => {
         <div class="card-body">
           <div class="avatar-section">
             <AvatarCropUpload
-              v-model="avatar"
               :preview-url="currentAvatarUrl"
               :default-icon="defaultIcon"
               @error="handleAvatarError"
+              @update:imageFile="handleAvatar"
             />
-            <p class="avatar-hint">You can upload a profile photo here.</p>
           </div>
 
           <div class="form-section">
@@ -228,17 +235,6 @@ const handleCancel = () => {
 
   @include dark-mode {
     border-bottom-color: rgba($color-white, 0.1);
-  }
-}
-
-.avatar-hint {
-  font-size: $font-size-sm;
-  color: $color-gray-600;
-  text-align: center;
-  margin: 0;
-
-  @include dark-mode {
-    color: $color-gray-400;
   }
 }
 

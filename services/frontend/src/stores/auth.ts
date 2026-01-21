@@ -151,10 +151,10 @@ export const useAuthStore = defineStore('auth', () => {
     if (user.value && user.value.id === id) {
       const { avatarFile, ...userData } = data
       const updatedUser = { ...user.value, ...userData }
-      if (avatarFile) {
-        const response = await api.users.updateUserAvatarById(id, avatarFile)
-        updatedUser.avatar = response.avatarUrl
-      }
+
+      const response = await api.users.updateUserAvatarById(id, avatarFile)
+      updatedUser.avatar = response.avatarUrl
+
       await api.users.updateUserById(id, userData)
       if (userData.language) {
         await changeLocale(userData.language)
