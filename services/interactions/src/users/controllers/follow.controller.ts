@@ -60,10 +60,17 @@ export class FollowController {
   }
 
   @Delete('following/:followedId')
+  @UseGuards(JwtAuthGuard)
   async remove(
     @Param('userId') userId: string,
     @Param('followedId') followedId: string,
+    @CurrentUser('userId') currentUserId: string,
   ) {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException(
+        'You are not allowed to unfollow on behalf of another user',
+      );
+    }
     await this.followService.unfollow(userId, followedId);
     return {
       message: 'Follow removed successfully',
@@ -86,7 +93,16 @@ export class FollowController {
   }
 
   @Delete()
-  async deleteUser(@Param('userId') userId: string) {
+  @UseGuards(JwtAuthGuard)
+  async deleteUser(
+    @Param('userId') userId: string,
+    @CurrentUser('userId') currentUserId: string,
+  ) {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException(
+        'You are not allowed to delete a user on behalf of another user',
+      );
+    }
     await this.followService.deleteUser(userId);
     return {
       message: 'All follow relationships removed successfully',
