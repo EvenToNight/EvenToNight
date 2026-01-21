@@ -1,3 +1,10 @@
+## [1.20.0](https://github.com/EvenToNight/EvenToNight/compare/v1.19.0...v1.20.0) (2026-01-21)
+
+### Features
+
+* **user-check:** implement existence check of user in interaction service ([564d74d](https://github.com/EvenToNight/EvenToNight/commit/564d74dc17ea99f701872987e95d387cb60e6ac0))
+* **user-participations:** update response to user participations request ([d6fcaf4](https://github.com/EvenToNight/EvenToNight/commit/d6fcaf49b92ec6c3efb98b061a86c30d9a51fd7d))
+
 ## [1.19.0](https://github.com/EvenToNight/EvenToNight/compare/v1.18.0...v1.19.0) (2026-01-20)
 
 ### Features
