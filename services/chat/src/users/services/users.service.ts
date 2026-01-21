@@ -37,9 +37,7 @@ export class UsersService {
   async userExists(userId: string): Promise<boolean> {
     const user = await this.userModel.findOne({ userId });
     console.log('Checking if user exists:', userId, !!user);
-    // TODO: Implement check properly
-    //return !!user;
-    return true;
+    return !!user;
   }
 
   async getUserInfo(userId: string): Promise<User | null> {
