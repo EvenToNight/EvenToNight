@@ -20,6 +20,7 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
     const data = LoginAdapter.fromApi(
       await usersClient.post<LoginAPIResponse>('/login', credentials)
     )
+    console.log('Login response data:', data)
     return data
   },
 
@@ -41,7 +42,9 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
   },
 
   async getUserById(id: UserID): Promise<User> {
-    return UserAdapter.fromApi(await usersClient.get<UserAPIResponse>(`/${id}`))
+    const res = await usersClient.get<UserAPIResponse>(`/${id}`)
+    console.log('Fetched user by ID:', { id, res })
+    return UserAdapter.fromApi(res)
   },
 
   async deleteUserById(id: UserID): Promise<void> {

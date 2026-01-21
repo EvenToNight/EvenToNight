@@ -49,6 +49,7 @@ const defaultIcon = computed(() => {
 })
 
 onMounted(async () => {
+  console.log('ProfileHeader mounted for user:', { ...user.value })
   currentAvatarUrl.value = user.value.avatar
   if (authStore.isAuthenticated && !isOwnProfile.value && authStore.user?.id) {
     try {
@@ -140,7 +141,6 @@ const handleAvatarChange = async (file: File | null) => {
       <div class="avatar-container" :class="{ clickable: isOwnProfile }" @click="handleAvatarClick">
         <img
           v-if="currentAvatarUrl"
-          :key="currentAvatarUrl"
           :src="currentAvatarUrl"
           :alt="t('userProfile.userAvatarAlt')"
           class="profile-avatar"
@@ -153,7 +153,10 @@ const handleAvatarChange = async (file: File | null) => {
 
       <template v-if="isMobile">
         <div class="user-info">
-          <h1 class="user-name">{{ user.name }}</h1>
+          <div class="name-username-container">
+            <h1 class="user-name">{{ user.name }}</h1>
+            <p class="user-username">@{{ user.username }}</p>
+          </div>
           <UserInfo :user="user" :user-interactions-info="userInteractionsInfo" />
           <template v-if="isOrganization && reviewsStatistics">
             <RatingInfo :reviews-statistics="reviewsStatistics" />
@@ -171,7 +174,10 @@ const handleAvatarChange = async (file: File | null) => {
       <template v-else>
         <div class="user-info">
           <div class="name-action-row">
-            <h1 class="user-name">{{ user.name }}</h1>
+            <div class="name-username-container">
+              <h1 class="user-name">{{ user.name }}</h1>
+              <p class="user-username">@{{ user.username }}</p>
+            </div>
             <ProfileActions
               :is-own-profile="isOwnProfile"
               :is-organization="isOrganization"
@@ -283,6 +289,10 @@ const handleAvatarChange = async (file: File | null) => {
   @include flex-between;
 }
 
+.name-username-container {
+  @include flex-column;
+}
+
 .user-name {
   font-size: $font-size-4xl;
   font-weight: $font-weight-bold;
@@ -291,6 +301,21 @@ const handleAvatarChange = async (file: File | null) => {
 
   @media (max-width: $breakpoint-mobile) {
     font-size: $font-size-xl;
+    text-align: center;
+  }
+}
+
+.user-username {
+  font-size: $font-size-base;
+  color: $color-gray-600;
+  margin: $spacing-1 0 0 0;
+  font-weight: $font-weight-normal;
+
+  @include dark-mode {
+    color: $color-gray-400;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
     text-align: center;
   }
 }

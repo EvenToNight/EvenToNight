@@ -81,13 +81,14 @@ const defaultIcon = computed(() => {
 
 <template>
   <NavigationButtons>
+    <!-- TODO: improve username screen exiting detection -->
     <template v-if="user && showNavbarCustomContent" #left-custom-content>
       <div class="navbar-user-info">
         <q-avatar size="32px">
           <img v-if="user.avatar" :src="user.avatar" :alt="user.name" class="navbar-avatar" />
           <q-icon v-else :name="defaultIcon" size="24px" />
         </q-avatar>
-        <span class="navbar-user-name">{{ user.name }}</span>
+        <span class="navbar-user-name">@{{ user.username }}</span>
       </div>
     </template>
   </NavigationButtons>

@@ -37,7 +37,9 @@ export const LoginAdapter = {
 }
 
 export const UserAdapter = {
+  //TODO: check response format in case of own profile request or other profile requests
   fromApi(dto: UserAPIResponse): User {
+    console.log('Adapting user from API:', dto)
     return {
       id: dto.id,
       role: dto.role,
