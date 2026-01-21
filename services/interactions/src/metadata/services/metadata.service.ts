@@ -247,8 +247,7 @@ export class MetadataService {
       this.validateUserExistence(createReviewDto.userId),
       this.validateEventCompleted(eventId),
       this.validateUserNotCreator(eventId, createReviewDto.userId),
-      /* MOCK VALIDATION - Uncomment for real validation */
-      // this.hasParticipated(eventId, createReviewDto.userId);
+      this.hasParticipated(eventId, createReviewDto.userId),
     ]);
   }
 
