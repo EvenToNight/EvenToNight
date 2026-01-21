@@ -729,19 +729,6 @@ paths:
           schema:
             type: string
           example: event123
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                userId:
-                  type: string
-              required:
-                - userId
-            example:
-              userId: user123
       responses:
         '201':
           description: Successfully liked the event
@@ -762,16 +749,8 @@ paths:
                 statusCode: 400
                 message: ["userId should not be empty"]
                 error: Bad Request
-        '403':
-          description: Forbidden - Authorized user mismatch
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                statusCode: 403
-                message: Authorized user mismatch
-                error: Forbidden
+        '401':
+          description: Unauthorized - Invalid or missing token
         '409':
           description: Conflict - Already liked the event
           content:
