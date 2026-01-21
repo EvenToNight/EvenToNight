@@ -8,7 +8,7 @@ import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
 import FormField from '@/components/forms/FormField.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
-import { required } from '@/components/forms/validationUtils'
+import { notEmpty } from '@/components/forms/validationUtils'
 
 const authStore = useAuthStore()
 const { goToUserProfile } = useNavigation()
@@ -51,6 +51,7 @@ const handleAvatar = (file: File | null) => {
 }
 
 const handleSave = async () => {
+  console.log('Saving profile')
   if (!authStore.user?.id) return
 
   loading.value = true
@@ -103,47 +104,49 @@ const handleCancel = () => {
           <h1 class="page-title">Edit Profile</h1>
         </div>
 
-        <div class="card-body">
-          <div class="avatar-section">
-            <AvatarCropUpload
-              :preview-url="currentAvatarUrl"
-              :default-icon="defaultIcon"
-              @error="handleAvatarError"
-              @update:imageFile="handleAvatar"
-            />
+        <q-form greedy @submit.prevent="handleSave">
+          <div class="card-body">
+            <div class="avatar-section">
+              <AvatarCropUpload
+                :preview-url="currentAvatarUrl"
+                :default-icon="defaultIcon"
+                @error="handleAvatarError"
+                @update:imageFile="handleAvatar"
+              />
+            </div>
+
+            <div class="form-section">
+              <FormField
+                v-model="name"
+                :label="'Name'"
+                :placeholder="'Enter your name'"
+                :rules="[notEmpty('Name is required')]"
+              />
+
+              <FormField
+                v-model="bio"
+                :label="'Bio'"
+                :placeholder="'Enter your bio'"
+                type="textarea"
+                :rows="4"
+                :maxlength="150"
+                counter
+              />
+
+              <FormField
+                v-if="isOrganization"
+                v-model="website"
+                :label="'Website'"
+                :placeholder="'https://example.com'"
+              />
+            </div>
           </div>
 
-          <div class="form-section">
-            <FormField
-              v-model="name"
-              :label="'Name'"
-              :placeholder="'Enter your name'"
-              :rules="[required]"
-            />
-
-            <FormField
-              v-model="bio"
-              :label="'Bio'"
-              :placeholder="'Enter your bio'"
-              type="textarea"
-              :rows="4"
-              :maxlength="150"
-              counter
-            />
-
-            <FormField
-              v-if="isOrganization"
-              v-model="website"
-              :label="'Website'"
-              :placeholder="'https://example.com'"
-            />
+          <div class="card-actions">
+            <Button :label="'Cancel'" variant="secondary" type="button" @click="handleCancel" />
+            <Button :label="'Save'" variant="primary" type="submit" :loading="loading" />
           </div>
-        </div>
-
-        <div class="card-actions">
-          <Button :label="'Cancel'" variant="secondary" @click="handleCancel" />
-          <Button :label="'Save'" variant="primary" :loading="loading" @click="handleSave" />
-        </div>
+        </q-form>
       </div>
     </div>
   </div>
