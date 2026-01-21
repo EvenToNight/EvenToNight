@@ -450,6 +450,13 @@ paths:
             minimum: 1
             maximum: 100
             default: 20
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search term to filter reviews by name of event, name or username of organization
+          example: "concert"
       responses:
         '200':
           description: A paginated list of reviews made by the user
