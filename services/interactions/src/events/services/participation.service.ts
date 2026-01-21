@@ -7,8 +7,11 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Participation } from '../schemas/participation.schema';
-import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { MetadataService } from '../../metadata/services/metadata.service';
+import { UserInfoDto } from 'src/commons/dto/user-info-dto';
+import { ReviewService } from './review.service';
+import { UserParticipationDto } from '../dto/user-participation.dto';
 
 @Injectable()
 export class ParticipationService {
@@ -17,6 +20,7 @@ export class ParticipationService {
     private participationModel: Model<Participation>,
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
+    private readonly reviewService: ReviewService,
   ) {}
 
   async participate(eventId: string, userId: string): Promise<Participation> {
@@ -33,45 +37,112 @@ export class ParticipationService {
     eventId: string,
     limit?: number,
     offset?: number,
-  ): Promise<PaginatedResponseDto<Participation>> {
-    const query = this.participationModel.find({ eventId });
+  ): Promise<PaginatedResponseDto<UserInfoDto>> {
+    await this.metadataService.validateEventExistence(eventId);
+    let query = this.participationModel.find({ eventId });
+
     if (offset !== undefined) {
-      query.skip(offset);
+      query = query.skip(offset);
     }
     if (limit !== undefined) {
-      query.limit(limit);
+      query = query.limit(limit);
     }
-    query.sort({ createdAt: -1 });
+
     const [items, total] = await Promise.all([
       query.exec(),
       this.participationModel.countDocuments({ eventId }),
     ]);
 
-    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
+    const userIds = items.map((item) => item.userId);
+    const users = await this.metadataService.getUsersInfo(userIds);
+
+    const userMap = new Map(users.map((u) => [u.userId, u]));
+
+    const enrichedItems = items.map((item) => {
+      const user = userMap.get(item.userId);
+      return {
+        userId: item.userId,
+        avatar: user?.avatar || '',
+        name: user?.name || '',
+        username: user?.username || '',
+      };
+    });
+
+    return new PaginatedResponseDto(
+      enrichedItems,
+      total,
+      limit ?? total,
+      offset ?? 0,
+    );
   }
 
   async getUserParticipations(
     userId: string,
     limit?: number,
     offset?: number,
-  ): Promise<PaginatedResponseDto<Participation>> {
-    const query = this.participationModel.find({ userId });
+    organizationId?: string,
+    reviewed?: boolean,
+  ): Promise<PaginatedResponseDto<UserParticipationDto>> {
+    await this.metadataService.validateUserExistence(userId);
+
+    let query = this.participationModel
+      .find({ userId })
+      .select({ _id: 0, eventId: 1, createdAt: 1 })
+      .sort({ createdAt: -1 });
+
     if (offset !== undefined) {
-      query.skip(offset);
+      query = query.skip(offset);
     }
     if (limit !== undefined) {
-      query.limit(limit);
+      query = query.limit(limit);
     }
-    query.sort({ createdAt: -1 });
-    const [items, total] = await Promise.all([
+
+    const [items] = await Promise.all([
       query.exec(),
       this.participationModel.countDocuments({ userId }),
     ]);
 
-    return new PaginatedResponseDto(items, total, limit || total, offset || 0);
+    const eventIds = items.map((item) => item.eventId);
+
+    const reviewedEventIds = await this.reviewService.getUserReviewedEventIds(
+      userId,
+      eventIds,
+    );
+    const reviewedSet = new Set(reviewedEventIds);
+
+    let enrichedItems = items.map((item) => ({
+      eventId: item.eventId,
+      reviewed: reviewedSet.has(item.eventId),
+    }));
+
+    if (organizationId !== undefined) {
+      const orgEventIds =
+        await this.metadataService.getEventIdsByOrganization(organizationId);
+      const orgEventSet = new Set(orgEventIds);
+      enrichedItems = enrichedItems.filter((item) =>
+        orgEventSet.has(item.eventId),
+      );
+    }
+
+    if (reviewed !== undefined) {
+      enrichedItems = enrichedItems.filter(
+        (item) => item.reviewed === reviewed,
+      );
+    }
+
+    const filteredTotal = enrichedItems.length;
+
+    return new PaginatedResponseDto(
+      enrichedItems,
+      filteredTotal,
+      limit ?? filteredTotal,
+      offset ?? 0,
+    );
   }
 
   async hasUserParticipated(userId: string, eventId: string): Promise<boolean> {
+    await this.metadataService.validateUserExistence(userId);
+    await this.metadataService.validateEventExistence(eventId);
     const participation = await this.participationModel.findOne({
       userId,
       eventId,
@@ -80,10 +151,12 @@ export class ParticipationService {
   }
 
   async deleteEvent(eventId: string): Promise<void> {
+    await this.metadataService.validateEventExistence(eventId);
     await this.participationModel.deleteMany({ eventId });
   }
 
   async deleteUser(userId: string): Promise<void> {
+    await this.metadataService.validateUserExistence(userId);
     await this.participationModel.deleteMany({ userId });
   }
 }

@@ -1,8 +1,29 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
-@Schema({ timestamps: true, versionKey: false })
+@Schema({
+  timestamps: true,
+  versionKey: false,
+  toJSON: {
+    virtuals: true,
+    transform: function (doc, ret) {
+      (ret as any).id = ret._id.toString();
+      delete (ret as any)._id;
+      return ret;
+    },
+  },
+  toObject: {
+    virtuals: true,
+    transform: function (doc, ret) {
+      (ret as any).id = ret._id.toString();
+      delete (ret as any)._id;
+      return ret;
+    },
+  },
+})
 export class Review extends Document {
+  declare id?: string;
+
   @Prop({ required: true, index: true })
   eventId: string;
 

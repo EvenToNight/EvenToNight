@@ -1,18 +1,10 @@
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsArray,
-  IsDefined,
-} from 'class-validator';
+import { IsString, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
 
 export class EventPublishedDto {
-  @IsDefined()
   @IsString()
   @IsNotEmpty()
   eventId: string;
 
-  @IsDefined()
   @IsString()
   @IsNotEmpty()
   creatorId: string;
@@ -21,4 +13,8 @@ export class EventPublishedDto {
   @IsArray()
   @IsString({ each: true })
   collaboratorIds?: string[];
+
+  @IsString()
+  @IsNotEmpty()
+  name: string;
 }
