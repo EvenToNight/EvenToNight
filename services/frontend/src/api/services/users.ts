@@ -63,7 +63,7 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
   },
 
   async changePassword(userId: UserID, data: ChangePasswordRequest): Promise<void> {
-    return usersClient.post<void>(`/${userId}/password`, data)
+    return usersClient.put<void>(`/${userId}/password`, data)
   },
 
   async searchUsers(params: {
