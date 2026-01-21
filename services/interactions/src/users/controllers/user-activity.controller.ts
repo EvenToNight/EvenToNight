@@ -4,6 +4,7 @@ import { PaginatedQueryDto } from '../../commons/dto/paginated-query.dto';
 import { ReviewService } from '../../events/services/review.service';
 import { ParticipationService } from '../../events/services/participation.service';
 import { UserParticipationsQueryDto } from '../dto/user-participations-query.dto';
+import { PaginatedSearchQueryDto } from 'src/commons/dto/paginated-search-query.dto';
 
 @Controller('users/:userId')
 export class UserActivityController {
@@ -34,10 +35,10 @@ export class UserActivityController {
   @Get('reviews')
   async getUserReviews(
     @Param('userId') userId: string,
-    @Query() paginatedQuery: PaginatedQueryDto,
+    @Query() paginatedSearchQuery: PaginatedSearchQueryDto,
   ) {
-    const { limit, offset } = paginatedQuery;
-    return this.reviewService.getUserReviews(userId, limit, offset);
+    const { limit, offset, search } = paginatedSearchQuery;
+    return this.reviewService.getUserReviews(userId, limit, offset, search);
   }
 
   @Get('reviews/:eventId')

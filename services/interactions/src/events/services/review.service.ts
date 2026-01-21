@@ -82,8 +82,12 @@ export class ReviewService {
     return this.getReviewsWithStats({ eventId }, limit, offset);
   }
 
-  async getUserReviews(userId: string, limit?: number, offset?: number) {
+  async getUserReviews(userId: string, limit?: number, offset?: number, search?: string) {
     await this.metadataService.validateUserExistence(userId);
+
+    if(search){
+      return this.getFilteredUserReviewsWithStats(userId, limit, offset, search);
+    }
     return this.getReviewsWithStats({ userId }, limit, offset);
   }
 
@@ -137,6 +141,15 @@ export class ReviewService {
       ...new PaginatedResponseDto(items, total, limit || total, offset || 0),
       ...stats,
     };
+  }
+
+  private async getFilteredUserReviewsWithStats(
+    userId: string,
+    search: string,
+    limit?: number,
+    offset?: number,
+  ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
+    
   }
 
   private async calculateRatingStats(
