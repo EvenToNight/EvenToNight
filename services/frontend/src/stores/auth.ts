@@ -46,7 +46,6 @@ export const useAuthStore = defineStore('auth', () => {
 
   const setUser = (authUser: User) => {
     user.value = authUser
-    console.log('Auth user set:', user.value)
     sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(authUser))
   }
 
@@ -90,7 +89,6 @@ export const useAuthStore = defineStore('auth', () => {
       })
       return { success: true }
     } catch (error) {
-      console.log('Registration error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : t('auth.registerForm.failedRegistration'),
@@ -104,13 +102,13 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     try {
       const data = await api.users.login({ username, password })
-      console.log('Login Data in store:', data)
       setAuthData(data)
       $q.dark.set(user.value?.darkMode || false)
+      localStorage.setItem('user-locale', user.value!.language!)
+      localStorage.setItem('darkMode', String($q.dark.isActive))
       changeLocale(user.value!.language!)
       return { success: true }
     } catch (error) {
-      console.log('Login error:', error)
       return {
         success: false,
         error: error instanceof Error ? error.message : t('auth.loginForm.failedLogin'),
@@ -137,10 +135,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       if (refreshToken.value) {
         setTokens(await api.users.refreshToken(refreshToken.value as RefreshToken))
-        console.log('Access token refreshed')
         return true
       }
-      console.log('Access token NOT refreshed')
       return false
     } catch {
       clearAuth()
@@ -161,7 +157,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       await api.users.updateUserById(id, userData)
       if (userData.language) {
-        changeLocale(userData.language)
+        await changeLocale(userData.language)
       }
       //TODO: sync last logged user settings? seems great
       localStorage.setItem('darkMode', String($q.dark.isActive))
@@ -235,7 +231,6 @@ export const useAuthStore = defineStore('auth', () => {
         confirmPassword: newPassword,
       })
     } catch (error) {
-      console.log('Change password error:', error)
       throw error instanceof Error ? error : new Error('Failed to change password')
     } finally {
       isLoading.value = false

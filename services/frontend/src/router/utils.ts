@@ -241,6 +241,7 @@ export const useNavigation = () => {
   ) => {
     router.replace(to)
   }
+
   const changeLocale = (newLocale: string) => {
     router.replace({
       name: route.name as string,
@@ -249,6 +250,7 @@ export const useNavigation = () => {
         locale: newLocale,
       },
       query: route.query,
+      hash: route.hash,
     })
   }
 

@@ -105,7 +105,6 @@ const filterTags = (val: string, update: (fn: () => void) => void) => {
 onMounted(async () => {
   try {
     await loadTags()
-    console.log('Settings loaded successfully, user:', { ...authStore.user })
 
     isDarkMode.value = authStore.user!.darkMode as boolean
 
@@ -140,8 +139,6 @@ const handleSave = async () => {
       interests: selectedTags.value,
       darkMode: isDarkMode.value,
     })
-
-    console.log('Settings saved successfully, updated user:', { ...authStore.user })
 
     $q.notify({
       type: 'positive',

@@ -53,7 +53,7 @@ const handleSave = async () => {
       bio: bio.value.trim() || undefined,
       website: website.value.trim() || undefined,
     }
-    console.log('Updating user with data:', updateReq)
+
     const updatedUser = await authStore.updateUserById(authStore.user.id, {
       ...updateReq,
       avatarFile: avatar.value ?? undefined,

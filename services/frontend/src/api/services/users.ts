@@ -41,9 +41,7 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
   },
 
   async getUserById(id: UserID): Promise<User> {
-    const res = await usersClient.get<UserAPIResponse>(`/${id}`)
-    console.log('Fetched user data from API:', res)
-    return UserAdapter.fromApi(res)
+    return UserAdapter.fromApi(await usersClient.get<UserAPIResponse>(`/${id}`))
   },
 
   async deleteUserById(id: UserID): Promise<void> {
@@ -52,11 +50,7 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
 
   //TODO: check update and removal of all optional fields
   async updateUserById(id: UserID, data: Partial<User>): Promise<void> {
-    const res = UserAdapter.toApi(data)
-    console.log('Sending updated user data to API:', res)
-    const response = await usersClient.put<void>(`/${id}`, res)
-    console.log('Update user response:', response)
-    return response
+    return usersClient.put<void>(`/${id}`, UserAdapter.toApi(data))
   },
 
   async updateUserAvatarById(id: UserID, avatarFile: File): Promise<{ avatarUrl: string }> {
