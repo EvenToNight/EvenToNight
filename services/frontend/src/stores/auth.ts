@@ -146,14 +146,16 @@ export const useAuthStore = defineStore('auth', () => {
 
   const updateUserById = async (
     id: UserID,
-    data: Partial<User> & { avatarFile?: File }
+    data: Partial<User> & { avatarFile?: File | null }
   ): Promise<User> => {
     if (user.value && user.value.id === id) {
       const { avatarFile, ...userData } = data
       const updatedUser = { ...user.value, ...userData }
 
-      const response = await api.users.updateUserAvatarById(id, avatarFile)
-      updatedUser.avatar = response.avatarUrl
+      if (avatarFile !== undefined) {
+        const response = await api.users.updateUserAvatarById(id, avatarFile)
+        updatedUser.avatar = response.avatarUrl
+      }
 
       await api.users.updateUserById(id, userData)
       if (userData.language) {

@@ -53,11 +53,12 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
     return usersClient.put<void>(`/${id}`, UserAdapter.toApi(data))
   },
 
-  async updateUserAvatarById(id: UserID, avatarFile?: File): Promise<{ avatarUrl: string }> {
+  async updateUserAvatarById(id: UserID, avatarFile: File | null): Promise<{ avatarUrl: string }> {
     const formData = new FormData()
     if (avatarFile) {
       formData.append('avatar', avatarFile)
     }
+    //TODO: handle deletion of avatar when no file is provided
     return usersClient.post<{ avatarUrl: string }>(`/${id}`, formData)
   },
 

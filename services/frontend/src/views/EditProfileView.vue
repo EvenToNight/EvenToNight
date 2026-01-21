@@ -20,6 +20,7 @@ const website = ref('')
 const loading = ref(false)
 const avatar = ref<File | null>(null)
 const currentAvatarUrl = ref<string | undefined>(undefined)
+const avatarModified = ref(false)
 
 const isOrganization = computed(() => authStore.user?.role === 'organization')
 
@@ -44,6 +45,7 @@ const handleAvatarError = (message: string) => {
 }
 
 const handleAvatar = (file: File | null) => {
+  avatarModified.value = true
   avatar.value = file
   if (file === null) {
     currentAvatarUrl.value = undefined
@@ -62,12 +64,13 @@ const handleSave = async () => {
       website: website.value.trim() || undefined,
     }
 
-    console.log(avatar.value ? 'Updating avatar' : 'No avatar to update')
-    const updatedUser = await authStore.updateUserById(authStore.user.id, {
-      ...updateReq,
-      avatarFile: avatar.value ?? undefined,
-    })
-    currentAvatarUrl.value = updatedUser.avatar
+    if (avatarModified.value) {
+      const updatedUser = await authStore.updateUserById(authStore.user.id, {
+        ...updateReq,
+        avatarFile: avatar.value ?? undefined,
+      })
+      currentAvatarUrl.value = updatedUser.avatar
+    }
 
     $q.notify({
       color: 'positive',
