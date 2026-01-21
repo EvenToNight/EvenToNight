@@ -61,10 +61,17 @@ export class ReviewController {
   }
 
   @Delete('reviews/:userId')
+  @UseGuards(JwtAuthGuard)
   async deleteReview(
     @Param('eventId') eventId: string,
     @Param('userId') userId: string,
+    @CurrentUser('userId') currentUserId: string,
   ) {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException(
+        'You are not allowed to delete a review on behalf of another user',
+      );
+    }
     await this.reviewService.deleteReview(eventId, userId);
     return {
       message: 'Review deleted successfully',
