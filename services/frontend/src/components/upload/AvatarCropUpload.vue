@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { Cropper, CircleStencil } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
@@ -7,43 +7,29 @@ import 'vue-advanced-cropper/dist/style.css'
 const $q = useQuasar()
 
 interface Props {
-  modelValue?: File | null
   previewUrl?: string
   defaultIcon?: string
   maxSize?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  modelValue: null,
   previewUrl: undefined,
   defaultIcon: 'person',
   maxSize: 5000000, // 5MB default
 })
 
 const emit = defineEmits<{
-  'update:modelValue': [value: File | null]
+  'update:imageFile': [value: File | null]
   error: [message: string]
+  remove: []
 }>()
 
+const imageFile = ref<File | null>(null)
 const showCropper = ref(false)
 const croppedImage = ref<string | null>(null)
 const selectedImage = ref<string>('')
 const fileInput = ref<HTMLInputElement | null>(null)
 const cropperRef = ref<InstanceType<typeof Cropper> | null>(null)
-
-// Watch for external changes to modelValue
-watch(
-  () => props.modelValue,
-  (newFile) => {
-    if (newFile && !croppedImage.value) {
-      croppedImage.value = URL.createObjectURL(newFile)
-    } else if (!newFile && croppedImage.value) {
-      URL.revokeObjectURL(croppedImage.value)
-      croppedImage.value = null
-    }
-  },
-  { immediate: true }
-)
 
 const triggerFileInput = () => {
   fileInput.value?.click()
@@ -101,7 +87,8 @@ const cropImage = async () => {
     // Create preview URL
     croppedImage.value = URL.createObjectURL(blob)
 
-    emit('update:modelValue', file)
+    emit('update:imageFile', file)
+    imageFile.value = file
     showCropper.value = false
   } catch (error) {
     console.error('Error cropping image:', error)
@@ -117,7 +104,14 @@ const closeCropper = () => {
   }
 }
 
-// Expose methods for parent components
+const removeAvatar = () => {
+  if (croppedImage.value) {
+    URL.revokeObjectURL(croppedImage.value)
+    croppedImage.value = null
+  }
+  emit('update:imageFile', null)
+}
+
 defineExpose({
   triggerFileInput,
 })
@@ -132,11 +126,26 @@ defineExpose({
           <q-icon name="photo_camera" size="32px" color="white" />
         </div>
       </div>
-      <div v-else class="avatar-placeholder">
-        <q-icon :name="defaultIcon" size="48px" />
-        <div class="overlay-text">Change Photo</div>
+      <div v-else class="avatar-preview">
+        <q-icon :name="defaultIcon" size="48px" class="avatar-image" />
+        <div class="avatar-overlay">
+          <q-icon name="photo_camera" size="32px" color="white" />
+        </div>
       </div>
     </div>
+
+    <q-btn
+      v-if="croppedImage || previewUrl"
+      flat
+      dense
+      size="sm"
+      color="negative"
+      icon="delete"
+      label="Remove Photo"
+      class="remove-button"
+      @click.stop="removeAvatar"
+    />
+    <p v-else class="avatar-hint">Upload your profile photo</p>
 
     <input
       ref="fileInput"
@@ -188,7 +197,9 @@ defineExpose({
 .avatar-crop-upload {
   width: 100%;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-3;
 }
 
 .avatar-preview-container {
@@ -196,6 +207,10 @@ defineExpose({
   width: 120px;
   height: 120px;
   cursor: pointer;
+}
+
+.remove-button {
+  margin-top: $spacing-2;
 }
 
 .avatar-preview,
@@ -324,6 +339,17 @@ defineExpose({
 
   @include dark-mode {
     border-top-color: rgba(255, 255, 255, 0.12);
+  }
+}
+
+.avatar-hint {
+  font-size: $font-size-sm;
+  color: $color-gray-600;
+  text-align: center;
+  margin: 0;
+
+  @include dark-mode {
+    color: $color-gray-400;
   }
 }
 </style>

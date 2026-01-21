@@ -10,7 +10,7 @@ import type { ApiClient } from '../client'
 import type { UserID } from '../types/users'
 import type { EventReviewData, UpdateEventReviewData } from '../types/interaction'
 import type { PaginatedRequest } from '../interfaces/commons'
-import { evaluatePagination, buildQueryParams } from '../utils'
+import { evaluatePagination, buildQueryParams } from '@/api/utils/requestUtils'
 
 export const createInteractionsApi = (interactionsClient: ApiClient): InteractionAPI => ({
   async getEventLikes(eventId: EventID): Promise<GetUserInfoResponse> {

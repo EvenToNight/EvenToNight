@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { SearchResult } from '@/api/utils'
+import type { SearchResult } from '@/api/utils/searchUtils'
 import { useNavigation } from '@/router/utils'
 
 interface Props {

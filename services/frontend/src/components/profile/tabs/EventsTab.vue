@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Event } from '@/api/types/events'
-import EventCardVariant from '@/components/cards/EventCardVariant.vue'
+import EventCard from '@/components/cards/EventCard.vue'
 import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 
 interface Props {
@@ -43,7 +43,7 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
       @load="onLoad"
     >
       <div class="events-grid">
-        <EventCardVariant v-for="event in events" :key="event.eventId" :event="event" />
+        <EventCard v-for="(event, index) in events" :key="event.eventId" v-model="events[index]!" />
       </div>
 
       <template #loading>

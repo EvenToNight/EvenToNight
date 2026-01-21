@@ -2,6 +2,7 @@ package infrastructure.media
 
 import cask.FormFile
 import infrastructure.Wiring.mediaBaseUrl
+import infrastructure.Wiring.mediaHost
 
 import java.nio.file.Files
 import scala.util.Try
@@ -18,13 +19,13 @@ object MediaServiceClient:
             bytes <- Try(Files.readAllBytes(path)).toEither
             response <- Try {
               requests.post(
-                s"http://${mediaBaseUrl}/users/$userId",
+                s"http://${mediaHost}/users/$userId",
                 data = requests.MultiPart(
                   requests.MultiItem(name = "file", data = bytes, filename = "avatar.jpg")
                 )
               )
             }.toEither
-            url <- Try(ujson.read(response.text())("url").str).toEither
+            url <- Try(s"http://${mediaBaseUrl}/" + ujson.read(response.text())("url").str).toEither
           yield url
 
         result.getOrElse(defaultAvatarUrl)

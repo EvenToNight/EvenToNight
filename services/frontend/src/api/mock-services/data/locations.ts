@@ -1,7 +1,7 @@
 import type { Location } from '@/api/types/common'
-import { extractLocationMapsLink } from '@/api/utils'
+import { extractLocationMapsLink } from '@/api/utils/locationUtils'
 
-const event1Location: Location = {
+const event1LocationData = {
   name: 'Cocoricò',
   country: 'Italia',
   country_code: 'it',
@@ -13,9 +13,12 @@ const event1Location: Location = {
   house_number: '44',
   lat: 43.9873461,
   lon: 12.6567808,
-  link: '',
 }
-event1Location.link = extractLocationMapsLink(event1Location)
+
+const event1Location: Location = {
+  ...event1LocationData,
+  link: extractLocationMapsLink(event1LocationData),
+}
 
 const event2Location: Location = event1Location
 const event3Location: Location = event1Location

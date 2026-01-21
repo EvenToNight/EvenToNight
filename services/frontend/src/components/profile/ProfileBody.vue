@@ -3,12 +3,14 @@ import TabView, { type Tab } from '@/components/navigation/TabView.vue'
 import TicketsTab from './tabs/TicketsTab.vue'
 import EventsTab from './tabs/EventsTab.vue'
 import ReviewsTab from './tabs/ReviewsTab.vue'
+import MyLikesTab from './tabs/MyLikesTab.vue'
 import type { User } from '@/api/types/users'
-import { computed, onMounted, ref } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { api } from '@/api'
 import type { Event, EventStatus } from '@/api/types/events'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { useNavigation } from '@/router/utils'
 
 interface Props {
   user: User
@@ -17,6 +19,7 @@ interface Props {
 const props = defineProps<Props>()
 const { t } = useI18n()
 const authStore = useAuthStore()
+const { hash, replaceRoute } = useNavigation()
 
 const isOwnProfile = computed(() => authStore.isOwnProfile(props.user.id))
 const isOrganization = computed(() => {
@@ -32,9 +35,30 @@ const hasMoreDraft = ref(true)
 
 const EVENTS_PER_PAGE = 5
 
-const handleTabChange = (tabId: string) => {
-  console.log('Tab attiva:', tabId)
-}
+const activeTab = ref<string>('likes')
+
+onMounted(() => {
+  if (hash.value) {
+    activeTab.value = hash.value.replace('#', '')
+  } else {
+    replaceRoute({ hash: `#${activeTab.value}` })
+  }
+})
+
+watch(
+  () => hash.value,
+  (newHash) => {
+    if (newHash) {
+      activeTab.value = newHash.replace('#', '')
+    }
+  }
+)
+
+watch(activeTab, (newTab) => {
+  if (hash.value !== `#${newTab}`) {
+    replaceRoute({ hash: `#${newTab}` })
+  }
+})
 
 onMounted(async () => {
   try {
@@ -88,14 +112,12 @@ const loadMoreDraft = createLoadMoreFunction(organizationDraftedEvents, hasMoreD
 const tabs = computed<Tab[]>(() => {
   const baseTabs: Tab[] = []
 
-  if (!isOrganization.value && isOwnProfile.value) {
-    baseTabs.push({
-      id: 'tickets',
-      label: t('userProfile.myTickets'),
-      icon: 'confirmation_number',
-      component: TicketsTab,
-    })
-  }
+  baseTabs.push({
+    id: 'likes',
+    label: isOwnProfile.value ? 'My Likes' : 'Likes',
+    icon: 'favorite',
+    component: MyLikesTab,
+  })
 
   baseTabs.push({
     id: 'events',
@@ -133,6 +155,15 @@ const tabs = computed<Tab[]>(() => {
     })
   }
 
+  if (!isOrganization.value && isOwnProfile.value) {
+    baseTabs.push({
+      id: 'tickets',
+      label: t('userProfile.myTickets'),
+      icon: 'confirmation_number',
+      component: TicketsTab,
+    })
+  }
+
   if (isOrganization.value) {
     baseTabs.push({
       id: 'reviews',
@@ -150,5 +181,5 @@ const tabs = computed<Tab[]>(() => {
 </script>
 
 <template>
-  <TabView :variant="'explore'" :tabs="tabs" @update:activeTab="handleTabChange" />
+  <TabView v-model:activeTab="activeTab" :variant="'explore'" :tabs="tabs" />
 </template>

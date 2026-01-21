@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, provide, onMounted, onUnmounted } from 'vue'
-import type { SearchResult } from '@/api/utils'
+import type { SearchResult } from '@/api/utils/searchUtils'
 import NavigationBar, { NAVBAR_HEIGHT } from '@/components/navigation/NavigationBar.vue'
 import Footer from '@/components/navigation/Footer.vue'
 

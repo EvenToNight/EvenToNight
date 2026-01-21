@@ -25,11 +25,6 @@ const showContent = ref(false)
 
 const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
 
-const handleItemClick = () => {
-  if (isMobile.value) {
-    showContent.value = true
-  }
-}
 const slots = useSlots()
 const hasMobileTitleSlot = computed(() => !!slots['mobile-title'])
 const handleBack = () => {
@@ -64,7 +59,7 @@ const mainStyle = computed(() => {
       <div v-if="sidebarTitle" class="sidebar-header">
         <h2 class="sidebar-title">{{ sidebarTitle }}</h2>
       </div>
-      <div class="sidebar-content" @click="handleItemClick">
+      <div class="sidebar-content">
         <slot name="sidebar" />
       </div>
     </div>

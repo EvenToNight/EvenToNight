@@ -50,7 +50,9 @@ const setupScrollObserver = async () => {
 const loadUser = async () => {
   try {
     const userId = params.id as string
+    console.log('Loading user with ID:', userId)
     user.value = await api.users.getUserById(userId)
+    console.log('Loaded user:', { ...user.value })
 
     // Load reviews statistics if organization
     if (user.value.role === 'organization') {
@@ -61,7 +63,6 @@ const loadUser = async () => {
           totalReviews: reviews.totalReviews,
           ratingDistribution: reviews.ratingDistribution,
         }
-        console.log('Reviews statistics:', reviewsStatistics.value)
       } catch (error) {
         console.error('Failed to load organization reviews:', error)
       }
@@ -80,13 +81,14 @@ const defaultIcon = computed(() => {
 
 <template>
   <NavigationButtons>
+    <!-- TODO: improve username screen exiting detection -->
     <template v-if="user && showNavbarCustomContent" #left-custom-content>
       <div class="navbar-user-info">
         <q-avatar size="32px">
-          <img v-if="user.avatarUrl" :src="user.avatarUrl" :alt="user.name" class="navbar-avatar" />
+          <img v-if="user.avatar" :src="user.avatar" :alt="user.name" class="navbar-avatar" />
           <q-icon v-else :name="defaultIcon" size="24px" />
         </q-avatar>
-        <span class="navbar-user-name">{{ user.name }}</span>
+        <span class="navbar-user-name">@{{ user.username }}</span>
       </div>
     </template>
   </NavigationButtons>
@@ -96,7 +98,7 @@ const defaultIcon = computed(() => {
     <template v-if="user">
       <div ref="profileHeaderRef">
         <ProfileHeader
-          :user="user"
+          v-model="user"
           :reviews-statistics="reviewsStatistics"
           @auth-required="showAuthDialog = true"
         />

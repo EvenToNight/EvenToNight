@@ -9,12 +9,11 @@ import type { EventID } from '../types/events'
 import type { EventReviewData, UpdateEventReviewData } from '../types/interaction'
 import type { UserID } from '../types/users'
 import { mockEvents } from './data/events'
-import { mockUsers } from './data/members'
 import { mockEventInteractions, mockEventReviews, mockUserInteractions } from './data/interactions'
-import { mockOrganizations } from './data/organizations'
 import type { PaginatedRequest } from '../interfaces/commons'
-import { getPaginatedItems } from '@/api/utils'
+import { getPaginatedItems } from '@/api/utils/requestUtils'
 import type { Rating } from '../types/interaction'
+import { mockUsers } from './data/users'
 
 const findInteractionByEventId = (eventId: EventID) => {
   const interaction = mockEventInteractions.find((interaction) => interaction.eventId === eventId)
@@ -119,14 +118,14 @@ export const mockInteractionsApi: InteractionAPI = {
         status: 404,
       }
     }
-    if (!mockUsers.find((user) => user.id === review.userId)) {
+    if (!mockUsers.data.find((user) => user.id === review.userId)) {
       throw {
         message: `User ${review.userId} not found`,
         code: 'USER_NOT_FOUND',
         status: 404,
       }
     }
-    if (!mockOrganizations.find((org) => org.id === review.creatorId)) {
+    if (!mockUsers.organizations().find((org) => org.id === review.creatorId)) {
       throw {
         message: `Organization ${review.creatorId} not found`,
         code: 'ORGANIZATION_NOT_FOUND',
@@ -134,7 +133,7 @@ export const mockInteractionsApi: InteractionAPI = {
       }
     }
     for (const collaboratorId of review.collaboratorsId) {
-      if (!mockOrganizations.find((org) => org.id === collaboratorId)) {
+      if (!mockUsers.organizations().find((org) => org.id === collaboratorId)) {
         throw {
           message: `Collaborator organization ${collaboratorId} not found`,
           code: 'ORGANIZATION_NOT_FOUND',
