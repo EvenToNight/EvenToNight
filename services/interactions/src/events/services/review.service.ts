@@ -86,7 +86,7 @@ export class ReviewService {
     await this.metadataService.validateUserExistence(userId);
 
     if(search){
-      return this.getFilteredUserReviewsWithStats(userId, limit, offset, search);
+      return this.getFilteredUserReviewsWithStats(userId, search, limit, offset);
     }
     return this.getReviewsWithStats({ userId }, limit, offset);
   }
@@ -149,8 +149,119 @@ export class ReviewService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
-    
+    const allReviews = await this.reviewModel.find({ userId }).lean();
+  
+  if (allReviews.length === 0) {
+    return {
+      ...new PaginatedResponseDto([], 0, limit || 0, offset || 0),
+      averageRating: 0,
+      ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+    };
   }
+
+  const eventIds = [...new Set(allReviews.map(r => r.eventId))];
+  const eventsInfo = await Promise.all(
+    eventIds.map(id => this.metadataService.getEventInfo(id))
+  );
+  
+  const eventInfoMap = new Map();
+  eventIds.forEach((id, index) => {
+    eventInfoMap.set(id, eventsInfo[index]);
+  });
+
+  const organizationIds = [...new Set([
+    ...allReviews.map(r => r.creatorId),
+    ...allReviews.flatMap(r => r.collaboratorIds || []),
+  ])];
+  
+  const organizationsInfo = await Promise.all(
+    organizationIds.map(id => this.metadataService.getUserInfo(id))
+  );
+  
+  const orgInfoMap = new Map();
+  organizationIds.forEach((id, index) => {
+    orgInfoMap.set(id, organizationsInfo[index]);
+  });
+
+  const searchLower = search.toLowerCase();
+  const filteredReviews = allReviews.filter(review => {
+    const eventInfo = eventInfoMap.get(review.eventId);
+    const creatorInfo = orgInfoMap.get(review.creatorId);
+    
+    if (eventInfo?.name?.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+    
+    if (creatorInfo?.name?.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+    
+    if (creatorInfo?.username?.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+    
+    if (review.collaboratorIds) {
+      for (const collabId of review.collaboratorIds) {
+        const collabInfo = orgInfoMap.get(collabId);
+        if (
+          collabInfo?.name?.toLowerCase().includes(searchLower) ||
+          collabInfo?.username?.toLowerCase().includes(searchLower)
+        ) {
+          return true;
+        }
+      }
+    }
+    
+    return false;
+  });
+
+  const total = filteredReviews.length;
+  const startIndex = offset || 0;
+  const endIndex = limit ? startIndex + limit : total;
+  const paginatedReviews = filteredReviews
+    .slice(startIndex, endIndex);
+
+  const reviewDocuments = paginatedReviews.map(r => 
+    new this.reviewModel(r)
+  );
+
+  const stats = this.calculateRatingStatsFromReviews(filteredReviews);
+
+  return {
+    ...new PaginatedResponseDto(
+      reviewDocuments,
+      total,
+      limit || total,
+      offset || 0
+    ),
+    ...stats,
+  };
+}
+
+private calculateRatingStatsFromReviews(
+  reviews: any[]
+): ReviewStatsDto {
+  const ratingDistribution: Record<number, number> = {
+    1: 0,
+    2: 0,
+    3: 0,
+    4: 0,
+    5: 0,
+  };
+
+  let sumRating = 0;
+  reviews.forEach(review => {
+    ratingDistribution[review.rating] = (ratingDistribution[review.rating] || 0) + 1;
+    sumRating += review.rating;
+  });
+
+  const averageRating = reviews.length > 0 ? sumRating / reviews.length : 0;
+
+  return {
+    averageRating: Math.round(averageRating * 100) / 100,
+    ratingDistribution,
+  };
+}
 
   private async calculateRatingStats(
     filter: Record<string, any>,
