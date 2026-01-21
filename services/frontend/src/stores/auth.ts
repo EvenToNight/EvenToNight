@@ -127,7 +127,8 @@ export const useAuthStore = defineStore('auth', () => {
     } finally {
       clearAuth()
       isLoading.value = false
-      window.location.reload()
+      const currentLocale = window.location.pathname.split('/')[1]
+      window.location.href = `/${currentLocale}`
     }
   }
 

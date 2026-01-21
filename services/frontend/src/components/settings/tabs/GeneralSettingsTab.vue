@@ -173,16 +173,12 @@ const handleDeleteProfile = () => {
     persistent: true,
   }).onOk(async () => {
     try {
-      // TODO: Implement API call to delete profile
-      // await api.users.deleteProfile(authStore.user!.id)
-
+      await api.users.deleteUserById(authStore.user!.id)
       $q.notify({
         type: 'positive',
         message: 'Profile deleted successfully',
       })
-
-      // TODO: Logout and redirect to home
-      // authStore.logout()
+      authStore.logout()
     } catch (error) {
       console.error('Failed to delete profile:', error)
       $q.notify({
