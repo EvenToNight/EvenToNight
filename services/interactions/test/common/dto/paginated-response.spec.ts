@@ -1,4 +1,4 @@
-import { PaginatedResponseDto } from '../../../src/common/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../../src/commons/dto/paginated-response.dto';
 
 describe('PaginatedResponseDto', () => {
   it('calculates hasMore true when offset + items.length < total', () => {

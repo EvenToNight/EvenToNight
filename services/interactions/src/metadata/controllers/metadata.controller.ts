@@ -1,37 +1,183 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MetadataService } from '../services/metadata.service';
 import { RmqContext, Ctx } from '@nestjs/microservices';
+import { EventPublishedDto } from '../dto/event-published.dto';
+import { plainToInstance } from 'class-transformer';
+import { validate } from 'class-validator';
+import { UserCreatedDto } from '../dto/user-created.dto';
+import { EventDeletedDto } from '../dto/event-deleted.dto';
+import { UserDeletedDto } from '../dto/user-deleted.dto';
+import { EventCompletedDto } from '../dto/event-completed.dto';
+import { UserUpdatedDto } from '../dto/user-updated.dto';
+import { OrderConfirmedDto } from '../dto/order-confirmed.dto';
 
 @Controller()
 export class MetadataController {
+  private readonly logger = new Logger(MetadataController.name);
+
   constructor(private readonly metadataService: MetadataService) {}
 
   @MessagePattern()
-  async handleEvent(@Payload() payload: unknown, @Ctx() context: RmqContext) {
-    const msg: unknown = context.getMessage();
+  async handleEvent(
+    @Payload() payload: unknown,
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
 
     let routingKey: string | undefined;
-    if (typeof msg === 'object' && msg !== null && 'fields' in msg) {
-      const m = msg as { fields?: { routingKey?: string } };
-      routingKey = m.fields?.routingKey;
+    if (
+      typeof originalMsg === 'object' &&
+      originalMsg !== null &&
+      'fields' in originalMsg
+    ) {
+      const msg = originalMsg as { fields?: { routingKey?: string } };
+      routingKey = msg.fields?.routingKey;
     }
 
-    console.log('📥 Message received:', routingKey);
+    this.logger.log('📥 Message received:', routingKey);
 
-    if (routingKey === 'event.published') {
-      await this.metadataService.handleEventPublished(payload);
-    } else if (routingKey === 'user.registered') {
-      await this.metadataService.handleUserRegistered(payload);
-    } else if (routingKey === 'event.deleted') {
-      await this.metadataService.handleEventDeleted(payload);
-    } else if (routingKey === 'user.deleted') {
-      await this.metadataService.handleUserDeleted(payload);
+    this.logger.log(`Payload: ${JSON.stringify(payload)}`);
+
+    try {
+      switch (routingKey) {
+        case 'event.published':
+          await this.handleEventPublished(payload);
+          break;
+        case 'user.created':
+          await this.handleUserCreated(payload);
+          break;
+        case 'event.deleted':
+          await this.handleEventDeleted(payload);
+          break;
+        case 'user.deleted':
+          await this.handleUserDeleted(payload);
+          break;
+        case 'event.completed':
+          await this.handleEventCompleted(payload);
+          break;
+        case 'user.updated':
+          await this.handleUserUpdated(payload);
+          break;
+        case 'payments.order.confirmed':
+          await this.handleOrderConfirmed(payload);
+          break;
+        default:
+          this.logger.warn(`⚠️  Unhandled routing key: ${routingKey}`);
+          channel.ack(originalMsg);
+          return;
+      }
+      channel.ack(originalMsg);
+      this.logger.debug('✅ Message acknowledged');
+    } catch (error) {
+      this.logger.error(
+        `❌ Error processing ${routingKey}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      channel.nack(originalMsg, false, false);
+      this.logger.warn('⚠️  Message rejected (not requeued)');
+    }
+  }
+
+  private async handleEventPublished(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventPublishedDto, payload);
+    await this.metadataService.handleEventPublished(dto);
+  }
+
+  private async handleUserCreated(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(UserCreatedDto, payload);
+    await this.metadataService.handleUserCreated(dto);
+  }
+
+  private async handleEventDeleted(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventDeletedDto, payload);
+    await this.metadataService.handleEventDeleted(dto);
+  }
+
+  private async handleUserDeleted(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(UserDeletedDto, payload);
+    await this.metadataService.handleUserDeleted(dto);
+  }
+
+  private async handleEventCompleted(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventCompletedDto, payload);
+    await this.metadataService.handleEventCompleted(dto);
+  }
+
+  private async handleUserUpdated(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(UserUpdatedDto, payload);
+    await this.metadataService.handleUserUpdated(dto);
+  }
+
+  private async handleOrderConfirmed(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(OrderConfirmedDto, payload);
+    await this.metadataService.handleOrderConfirmed(dto);
+  }
+
+  private async validateAndTransform<T extends object>(
+    dtoClass: new () => T,
+    payload: unknown,
+  ): Promise<T> {
+    let actualPayload = payload;
+
+    if (this.isEventEnvelope(payload)) {
+      this.logger.debug('Extracting payload from EventEnvelope');
+      actualPayload = payload.payload;
+
+      if (actualPayload && typeof actualPayload === 'object') {
+        const nestedKeys = Object.keys(actualPayload);
+        if (nestedKeys.length === 1) {
+          const nestedKey = nestedKeys[0];
+          this.logger.debug(`Extracting nested payload from key: ${nestedKey}`);
+          actualPayload = (actualPayload as Record<string, unknown>)[nestedKey];
+        }
+      }
+    } else if (typeof payload === 'object' && payload !== null) {
+      const payloadObj = payload as Record<string, unknown>;
+      const capitalizedKeys = Object.keys(payloadObj).filter(
+        (key) => key.charAt(0) === key.charAt(0).toUpperCase(),
+      );
+
+      if (capitalizedKeys.length === 1) {
+        const eventKey = capitalizedKeys[0];
+        this.logger.debug(`Extracting payload from event key: ${eventKey}`);
+        actualPayload = payloadObj[eventKey];
+      }
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const channel = context.getChannelRef();
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-    channel.ack(msg as any);
+    const dtoInstance = plainToInstance(dtoClass, actualPayload, {
+      excludeExtraneousValues: false,
+      exposeUnsetFields: false,
+    });
+
+    const errors = await validate(dtoInstance, {
+      whitelist: true,
+      forbidNonWhitelisted: false,
+      skipMissingProperties: false,
+    });
+
+    if (errors.length > 0) {
+      const errorMessages = errors
+        .map((error) => Object.values(error.constraints || {}).join(', '))
+        .join('; ');
+      throw new Error(`Validation failed: ${errorMessages}`);
+    }
+
+    return dtoInstance;
+  }
+
+  private isEventEnvelope(payload: unknown): payload is {
+    eventType: string;
+    occurredAt: string;
+    payload: unknown;
+  } {
+    return (
+      typeof payload === 'object' &&
+      payload !== null &&
+      'eventType' in payload &&
+      'payload' in payload
+    );
   }
 }

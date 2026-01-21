@@ -2,8 +2,10 @@ package infrastructure.db
 
 import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
 import com.mongodb.client.model.{Filters, ReplaceOptions, Sorts}
+import domain.events.EventCompleted
 import domain.models.{Event, EventStatus}
 import domain.models.EventConversions.{fromDocument, toDocument}
+import infrastructure.messaging.EventPublisher
 import org.bson.Document
 import utils.Utils
 
@@ -33,8 +35,12 @@ trait EventRepository:
       sortOrder: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)]
 
-case class MongoEventRepository(connectionString: String, databaseName: String, collectionName: String = "events")
-    extends EventRepository:
+case class MongoEventRepository(
+    connectionString: String,
+    databaseName: String,
+    collectionName: String = "events",
+    messageBroker: EventPublisher
+) extends EventRepository:
 
   private val mongoClient: MongoClient              = MongoClients.create(connectionString)
   private val database: MongoDatabase               = mongoClient.getDatabase(databaseName)
@@ -61,6 +67,7 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
         update(updatedEvent).left.foreach(ex =>
           println(s"[MongoDB] Could not auto-update past event to COMPLETED: ${ex.getMessage}")
         )
+        publishEventCompletedIfNeeded(updatedEvent, event)
       Some(updatedEvent)
     else None
 
@@ -88,6 +95,7 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
             update(updatedEvent).left.foreach(ex =>
               println(s"[MongoDB] Could not auto-update past event to COMPLETED: ${ex.getMessage}")
             )
+          publishEventCompletedIfNeeded(updatedEvent, event)
           updatedEvent
         }
         .toList
@@ -224,7 +232,13 @@ case class MongoEventRepository(connectionString: String, databaseName: String, 
       update(updatedEvent).left.foreach(ex =>
         println(s"[MongoDB] Could not auto-update past event to COMPLETED: ${ex.getMessage}")
       )
+      publishEventCompletedIfNeeded(updatedEvent, event)
     updatedEvent
+
+  private def publishEventCompletedIfNeeded(updatedEvent: Event, originalEvent: Event): Unit =
+    if updatedEvent.status == EventStatus.COMPLETED && originalEvent.status != EventStatus.COMPLETED then
+      messageBroker.publish(EventCompleted(eventId = updatedEvent._id))
+      println(s"[RABBITMQ] Published EventCompleted for event: ${updatedEvent._id}")
 
   private def calculateHasMore(results: List[Event], limit: Option[Int]): (List[Event], Boolean) =
     limit match

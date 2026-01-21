@@ -2,6 +2,7 @@ package service
 import domain.commands.{GetAllEventsCommand, GetEventCommand, GetFilteredEventsCommand, UpdateEventPosterCommand}
 import domain.models.{Event, EventStatus, EventTag, Location}
 import infrastructure.db.{EventRepository, MongoEventRepository}
+import infrastructure.messaging.MockEventPublisher
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -15,7 +16,11 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
 
   override def beforeEach(): Unit =
     super.beforeEach()
-    repo = new MongoEventRepository("mongodb://localhost:27017", "eventonight_test")
+    repo = new MongoEventRepository(
+      "mongodb://localhost:27017",
+      "eventonight_test",
+      messageBroker = new MockEventPublisher()
+    )
     service = new EventQueryService(repo)
 
   private def createEvent(): Event =

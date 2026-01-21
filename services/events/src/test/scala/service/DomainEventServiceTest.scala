@@ -44,7 +44,11 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
 
   override def beforeEach(): Unit =
     super.beforeEach()
-    repo = new MongoEventRepository("mongodb://localhost:27017", "eventonight_test")
+    repo = new MongoEventRepository(
+      "mongodb://localhost:27017",
+      "eventonight_test",
+      messageBroker = new MockEventPublisher()
+    )
     publisher = new MockEventPublisher()
     service = new DomainEventService(repo, publisher)
 
