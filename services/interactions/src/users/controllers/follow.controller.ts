@@ -6,20 +6,31 @@ import {
   Get,
   Param,
   Query,
+  UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { FollowService } from '../services/follow.service';
 import { FollowUserDto } from '../dto/follow-user.dto';
 import { PaginatedQueryDto } from '../../commons/dto/paginated-query.dto';
+import { JwtAuthGuard } from 'src/commons/auth/jwt-auth.guard';
+import { CurrentUser } from 'src/commons/auth';
 
 @Controller('users/:userId/')
 export class FollowController {
   constructor(private readonly followService: FollowService) {}
 
   @Post('following')
+  @UseGuards(JwtAuthGuard)
   async create(
     @Param('userId') userId: string,
     @Body() followUserDto: FollowUserDto,
+    @CurrentUser('userId') currentUserId: string,
   ) {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException(
+        'You are not allowed to follow on behalf of another user',
+      );
+    }
     await this.followService.follow(userId, followUserDto.followedId);
     return {
       message: 'Follow created successfully',
