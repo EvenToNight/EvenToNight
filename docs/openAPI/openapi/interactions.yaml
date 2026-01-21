@@ -44,6 +44,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -81,6 +83,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -243,6 +247,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -897,6 +903,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -1080,6 +1088,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -1123,6 +1133,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
