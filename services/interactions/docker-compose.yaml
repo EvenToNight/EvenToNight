@@ -15,6 +15,7 @@ services:
       - "traefik.http.routers.interactions.rule=Host(`interactions.${HOST}`)"
       - "traefik.http.routers.interactions.entrypoints=web"
       - "traefik.http.services.interactions.loadbalancer.server.port=${INTERACTIONS_SERVICE_PORT}"
+      - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     restart: unless-stopped
     depends_on:
       mongo-interactions:
