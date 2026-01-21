@@ -46,8 +46,9 @@ export class ReviewController {
     @Param('eventId') eventId: string,
     @Param('userId') userId: string,
     @Body() updateReviewDto: UpdateReviewDto,
+    @CurrentUser('userId') currentUserId: string,
   ) {
-    if (userId !== updateReviewDto.userId) {
+    if (userId !== currentUserId) {
       throw new ForbiddenException(
         'You are not allowed to update a review on behalf of another user',
       );
