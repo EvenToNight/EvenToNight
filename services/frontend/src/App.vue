@@ -57,7 +57,7 @@ onMounted(() => {
         import.meta.env.VITE_DEV_EMAIL.split('@')[0],
         import.meta.env.VITE_DEV_EMAIL,
         import.meta.env.VITE_DEV_PASSWORD,
-        import.meta.env.VITE_DEV_ROLE
+        import.meta.env.VITE_DEV_ROLE === 'organization'
       )
     } catch (error) {
       console.error('Error reading auto login env variables:', error)
