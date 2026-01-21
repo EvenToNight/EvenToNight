@@ -32,10 +32,17 @@ export class LikeController {
   }
 
   @Delete('likes/:userId')
+  @UseGuards(JwtAuthGuard)
   async unlikeEvent(
     @Param('eventId') eventId: string,
     @Param('userId') userId: string,
+    @CurrentUser('userId') currentUserId: string,
   ) {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException(
+        'You are not allowed to unlike on behalf of another user',
+      );
+    }
     await this.likeService.unlikeEvent(eventId, userId);
     return {
       message: 'Event unliked successfully',

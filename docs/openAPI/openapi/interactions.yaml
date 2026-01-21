@@ -830,6 +830,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -855,6 +857,26 @@ paths:
               example:
                 message: Event unliked successfully
                 statusCode: 200
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 401
+                message: Unauthorized
+                error: Unauthorized
+        '403':
+          description: Forbidden - User trying to unlike on behalf of another user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: You are not allowed to unlike on behalf of another user
+                error: Forbidden
         '404':
           description: Not Found - Like relationship does not exist
           content:
