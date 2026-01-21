@@ -125,7 +125,7 @@ export class MetadataService {
       this.logger.debug(`Processing user.deleted: ${JSON.stringify(payload)}`);
 
       const deleteResult = await this.userModel.deleteOne({
-        id: payload.id,
+        userId: payload.id,
       });
 
       if (deleteResult.deletedCount === 0) {
