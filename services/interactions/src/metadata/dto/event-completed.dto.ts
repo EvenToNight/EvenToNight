@@ -1,7 +1,7 @@
 import { IsString, IsNotEmpty } from 'class-validator';
 
-export class LikeEventDto {
+export class EventCompletedDto {
   @IsString()
   @IsNotEmpty()
-  userId: string;
+  eventId: string;
 }

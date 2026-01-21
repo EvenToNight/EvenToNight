@@ -44,6 +44,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -81,6 +83,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -243,6 +247,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -450,6 +456,13 @@ paths:
             minimum: 1
             maximum: 100
             default: 20
+        - name: search
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Search term to filter reviews by name of event, name or username of organization
+          example: "concert"
       responses:
         '200':
           description: A paginated list of reviews made by the user
@@ -500,17 +513,68 @@ paths:
               schema:
                 type: object
                 properties:
-                  hasReviewed:
-                    type: boolean
-                    description: Indicates if the user has reviewed the event
+                  eventId:
+                    type: string
+                    description: ID of the event being reviewed
+                    example: event123
+                  userId:
+                    type: string
+                    description: ID of the user who made the review
+                    example: user123
+                  creatorId:
+                    type: string
+                    description: ID of the organization being reviewed
+                    example: org456
+                  collaboratorIds:
+                    type: array
+                    description: IDs of collaborators associated with the review
+                    items:
+                      type: string
+                      example: collab789
+                  rating:
+                    type: integer
+                    description: Rating given in the review
+                    example: 5
+                  title:
+                    type: string
+                    description: Title of the review
+                    example: "Amazing Event!"
+                  comment:
+                    type: string
+                    description: Comment of the review
+                    example: "Had a fantastic time at this event."
+                  createdAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp when the review was created
+                    example: "2024-01-01T12:00:00Z"
+                  updatedAt:
+                    type: string
+                    format: date-time
+                    description: Timestamp when the review was last updated
+                    example: "2024-01-02T15:30:00Z"
+                  id:
+                    type: string
+                    description: ID of the review
+                    example: review123
+        '404':
+          description: Review not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
               example:
-                hasReviewed: true
+                statusCode: 404
+                message: Review not found
+                error: Not Found
+
       tags:
         - Users
 
   /users/{userId}/participations:
     get:
       summary: Get events a user is participating in
+      description: Returns a paginated list of events the user has participated in, with optional filters for organization and review status
       servers:
         - url: http://localhost:9030
           description: Local server
@@ -522,6 +586,7 @@ paths:
           required: true
           schema:
             type: string
+          description: ID of the user
           example: user123
         - name: offset
           in: query
@@ -530,6 +595,7 @@ paths:
             type: integer
             minimum: 0
             default: 0
+          description: Number of items to skip for pagination
         - name: limit
           in: query
           required: false
@@ -538,13 +604,49 @@ paths:
             minimum: 1
             maximum: 100
             default: 20
+          description: Maximum number of items to return
+        - name: organizationId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter participations by events belonging to a specific organization
+          example: org456
+        - name: reviewed
+          in: query
+          required: false
+          schema:
+            type: boolean
+          description: Filter by review status (true = only reviewed events, false = only unreviewed events)
+          example: false
       responses:
         '200':
           description: A paginated list of events the user is participating in
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/EventPaginatedResponseDto'
+                $ref: '#/components/schemas/UserParticipationsPaginatedResponseDto'
+              examples:
+                allParticipations:
+                  summary: All participations
+                  value:
+                    items:
+                      - eventId: event123
+                        reviewed: false
+                      - eventId: event456
+                        reviewed: true
+                    totalItems: 2
+                    limit: 20
+                    offset: 0
+                unreviewedOnly:
+                  summary: Only unreviewed participations
+                  value:
+                    items:
+                      - eventId: event123
+                        reviewed: false
+                    totalItems: 1
+                    limit: 20
+                    offset: 0
         '400':
           description: Bad Request
           content:
@@ -556,6 +658,19 @@ paths:
                     type: string
                   statusCode:
                     type: integer
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User with ID user123 not found
+                  statusCode:
+                    type: integer
+                    example: 404
       tags:
         - Users
 
@@ -591,8 +706,12 @@ paths:
                   hasParticipated:
                     type: boolean
                     description: Indicates if the user has participated in the event
+                  hasReviewed:
+                    type: boolean
+                    description: Indicates if the user has reviewed the event
               example:
                 hasParticipated: true
+                hasReviewed: false
       tags:
         - Users
 
@@ -603,6 +722,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -611,19 +732,6 @@ paths:
           schema:
             type: string
           example: event123
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                userId:
-                  type: string
-              required:
-                - userId
-            example:
-              userId: user123
       responses:
         '201':
           description: Successfully liked the event
@@ -644,6 +752,8 @@ paths:
                 statusCode: 400
                 message: ["userId should not be empty"]
                 error: Bad Request
+        '401':
+          description: Unauthorized - Invalid or missing token
         '409':
           description: Conflict - Already liked the event
           content:
@@ -723,6 +833,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -748,6 +860,26 @@ paths:
               example:
                 message: Event unliked successfully
                 statusCode: 200
+        '401':
+          description: Unauthorized - Invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 401
+                message: Unauthorized
+                error: Unauthorized
+        '403':
+          description: Forbidden - User trying to unlike on behalf of another user
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: You are not allowed to unlike on behalf of another user
+                error: Forbidden
         '404':
           description: Not Found - Like relationship does not exist
           content:
@@ -768,6 +900,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -785,12 +919,6 @@ paths:
               properties:
                 userId:
                   type: string
-                creatorId:
-                  type: string
-                collaboratorIds:
-                  type: array
-                  items:
-                    type: string
                 rating:
                   type: integer
                 title:
@@ -804,8 +932,6 @@ paths:
                 - title
             example:
               userId: user123
-              creatorId: org456
-              collaboratorIds: [collab789]
               rating: 5
               title: "Amazing Event!"
               comment: "Had a fantastic time at this event."
@@ -959,6 +1085,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -1002,6 +1130,8 @@ paths:
       servers:
         - url: http://localhost:9030
           description: Local server
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -1146,9 +1276,7 @@ components:
           type: array
           description: Array of users IDs
           items:
-            type: string
-            description: ID of the user who is following
-            example: user123, user456, user789
+            $ref: '#/components/schemas/UserFollowDto'
         limit:
           type: integer 
           description: Maximum number of items per page
@@ -1208,36 +1336,116 @@ components:
     
     ListsPaginatedResponseDto:
       type: object
-      description: Paginated response containing followers and following user IDs
+      description: Paginated response containing followers and following users with their details
       properties:
         followers:
           type: array
-          description: Array of follower user IDs
+          description: Array of followers with user details
           items:
-            type: string
-            description: ID of the user who is following
-            example: user123, user789, user456
+            $ref: '#/components/schemas/UserFollowDto'
         totalFollowers:
           type: integer
           description: Total number of followers
-          example: 3
+          example: 1
         following:
           type: array
-          description: Array of followed user IDs
+          description: Array of following users with their details
           items:
-            type: string
-            description: ID of the user being followed
-            example: user456, user789
+            $ref: '#/components/schemas/UserFollowDto'
         totalFollowing:
           type: integer
           description: Total number of following
-          example: 2
+          example: 1
       required:
         - followers
         - totalFollowers
         - following
         - totalFollowing
-    
+
+    UserFollowDto:
+      type: object
+      description: User information for follow relationships
+      properties:
+        userId:
+          type: string
+          description: Unique identifier of the user
+          example: user123
+        avatar:
+          type: string
+          description: URL of the user's avatar image
+          example: http://media.localhost/users/user123.png
+        name:
+          type: string
+          description: Display name of the user
+          example: John Doe
+        username:
+          type: string
+          description: Username of the user
+          example: johndoe
+      required:
+        - userId
+        - avatar
+        - name
+        - username
+      example:
+        userId: user123
+        avatar: http://media.localhost/users/user123.png
+        name: John Doe
+        username: johndoe
+
+    UserParticipationsPaginatedResponseDto:
+      type: object
+      description: Paginated response containing user participations
+      properties:
+        items:
+          type: array
+          description: Array of participation records
+          items:
+            $ref: '#/components/schemas/UserParticipationDto'
+        totalItems:
+          type: integer
+          description: Total number of participations matching the filters
+          example: 15
+        limit:
+          type: integer
+          description: Maximum number of items returned
+          example: 20
+        offset:
+          type: integer
+          description: Number of items skipped
+          example: 0
+      required:
+        - items
+        - totalItems
+        - limit
+        - offset
+
+    UserParticipationDto:
+      type: object
+      description: User participation record with review status
+      properties:
+        eventId:
+          type: string
+          description: ID of the event
+          example: event123
+        createdAt:
+          type: string
+          format: date-time
+          description: When the user joined the event
+          example: "2026-01-15T10:00:00Z"
+        reviewed:
+          type: boolean
+          description: Whether the user has reviewed this event
+          example: false
+      required:
+        - eventId
+        - createdAt
+        - reviewed
+      example:
+        eventId: event123
+        createdAt: "2026-01-15T10:00:00Z"
+        reviewed: false
+
     ReviewsPaginatedResponseDto:
       type: object
       description: Paginated response containing reviews
@@ -1248,10 +1456,6 @@ components:
           items:
             type: object
             properties:
-              _id:
-                type: string
-                description: ID of the review
-                example: review123
               eventId:
                 type: string
                 description: ID of the event being reviewed
@@ -1292,6 +1496,10 @@ components:
                 format: date-time
                 description: Timestamp when the review was last updated
                 example: "2024-01-02T15:30:00Z"
+              id:
+                type: string
+                description: ID of the review
+                example: review123
         limit:
           type: integer 
           description: Maximum number of items per page
@@ -1385,3 +1593,10 @@ components:
       required:
         - statusCode
         - message
+    
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Enter your JWT token in the format: Bearer <token>'

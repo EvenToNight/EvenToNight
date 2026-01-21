@@ -8,8 +8,9 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { Like } from '../schemas/like.schema';
-import { PaginatedResponseDto } from '../../common/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
+import { UserInfoDto } from '../../commons/dto/user-info-dto';
 
 @Injectable()
 export class LikeService {
@@ -32,6 +33,7 @@ export class LikeService {
   }
 
   async unlikeEvent(eventId: string, userId: string): Promise<void> {
+    await this.metadataService.validateUnlikeAllowed(eventId, userId);
     const result = await this.likeModel.deleteOne({ eventId, userId });
 
     if (result.deletedCount === 0) {
@@ -43,7 +45,8 @@ export class LikeService {
     eventId: string,
     limit?: number,
     offset?: number,
-  ): Promise<PaginatedResponseDto<string>> {
+  ): Promise<PaginatedResponseDto<UserInfoDto>> {
+    await this.metadataService.validateEventExistence(eventId);
     let query = this.likeModel.find({ eventId });
     if (offset !== undefined) query = query.skip(offset);
     if (limit !== undefined) query = query.limit(limit);
@@ -51,8 +54,24 @@ export class LikeService {
       query.exec(),
       this.likeModel.countDocuments({ eventId }),
     ]);
+
+    const userIds = items.map((item) => item.userId);
+    const users = await this.metadataService.getUsersInfo(userIds);
+
+    const userMap = new Map(users.map((u) => [u.userId, u]));
+
+    const enrichedItems = items.map((item) => {
+      const user = userMap.get(item.userId);
+      return {
+        userId: item.userId,
+        avatar: user?.avatar || '',
+        name: user?.name || '',
+        username: user?.username || '',
+      };
+    });
+
     return new PaginatedResponseDto(
-      items.map((item) => item.userId),
+      enrichedItems,
       total,
       limit ?? total,
       offset ?? 0,
@@ -60,6 +79,7 @@ export class LikeService {
   }
 
   async getUserLikes(userId: string, limit?: number, offset?: number) {
+    await this.metadataService.validateUserExistence(userId);
     let query = this.likeModel.find({ userId });
     if (offset !== undefined) query = query.skip(offset);
     if (limit !== undefined) query = query.limit(limit);
@@ -76,15 +96,19 @@ export class LikeService {
   }
 
   async hasUserLikedEvent(userId: string, eventId: string): Promise<boolean> {
+    await this.metadataService.validateUserExistence(userId);
+    await this.metadataService.validateEventExistence(eventId);
     const like = await this.likeModel.findOne({ userId, eventId });
     return !!like;
   }
 
   async deleteEvent(eventId: string): Promise<void> {
+    await this.metadataService.validateEventExistence(eventId);
     await this.likeModel.deleteMany({ eventId });
   }
 
   async deleteUser(userId: string): Promise<void> {
+    await this.metadataService.validateUserExistence(userId);
     await this.likeModel.deleteMany({ userId });
   }
 }

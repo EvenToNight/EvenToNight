@@ -5,22 +5,12 @@ import {
   Min,
   Max,
   IsOptional,
-  IsArray,
 } from 'class-validator';
 
 export class CreateReviewDto {
   @IsString()
   @IsNotEmpty()
   userId: string;
-
-  @IsString()
-  @IsNotEmpty()
-  creatorId: string;
-
-  @IsArray()
-  @IsString({ each: true })
-  @IsOptional()
-  collaboratorIds?: string[];
 
   @IsInt()
   @Min(1)
