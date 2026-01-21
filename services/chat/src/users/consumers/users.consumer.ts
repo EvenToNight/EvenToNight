@@ -37,117 +37,98 @@ export class UserConsumer {
     }
 
     this.logger.log('📥 Message received:', routingKey);
-
     this.logger.log(`Payload: ${JSON.stringify(payload)}`);
+
     try {
       switch (routingKey) {
         case 'user.created':
-          await this.handleUserCreated(payload, context);
+          await this.handleUserCreated(payload);
           break;
         case 'user.updated':
-          await this.handleUserUpdated(payload, context);
+          await this.handleUserUpdated(payload);
           break;
         case 'user.deleted':
-          await this.handleUserDeleted(payload, context);
+          await this.handleUserDeleted(payload);
           break;
         default:
-          this.logger.warn(`No handler for routing key: ${routingKey}`);
+          this.logger.warn(`⚠️  Unhandled routing key: ${routingKey}`);
+          channel.ack(originalMsg);
+          return;
       }
+
+      channel.ack(originalMsg);
+      this.logger.debug('✅ Message acknowledged');
     } catch (error) {
       this.logger.error(
-        `Error processing message with routing key ${routingKey}:`,
-        error,
+        `❌ Error processing ${routingKey}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
       );
+
+      channel.nack(originalMsg, false, false);
+      this.logger.warn('⚠️  Message rejected (not requeued)');
     }
   }
 
-  async handleUserCreated(data: any, context: RmqContext) {
-    console.log('Received user.created event:', data);
+  private async handleUserCreated(payload: any): Promise<void> {
+    this.logger.log('Processing user.created event');
 
-    try {
-      // Estrai i dati dell'utente dalla struttura nidificata
-      const userData = data.payload?.UserCreated;
+    const userData = payload.payload;
 
-      if (!userData) {
-        this.logger.error('UserCreated data not found in payload');
-        const channel = context.getChannelRef();
-        const originalMsg = context.getMessage();
-        channel.ack(originalMsg); // Ack comunque per non bloccare la coda
-        return;
-      }
+    if (!userData || !userData.id) {
+      throw new Error('User data not found in payload or missing id');
+    }
 
-      await this.usersService.upsertUser({
-        id: userData.id,
-        role: userData.role,
-        name: userData.name,
-        avatar: userData.avatar,
-      });
+    await this.usersService.upsertUser({
+      id: userData.id,
+      role: userData.role,
+      name: userData.name,
+      avatar: userData.avatar,
+    });
 
-      const channel = context.getChannelRef();
-      const originalMsg = context.getMessage();
-      channel.ack(originalMsg);
+    this.logger.log(`✅ User created/cached: ${userData.id}`);
+  }
 
-      this.logger.log(`✅ User created/cached: ${userData.id}`);
-    } catch (error) {
-      this.logger.error('Error caching user:', error);
+  private async handleUserUpdated(payload: any): Promise<void> {
+    this.logger.log('Processing user.updated event');
+
+    const userData = payload.payload;
+
+    if (!userData || !userData.id) {
+      throw new Error('User data not found in payload or missing id');
+    }
+
+    const updates: { name?: string; avatar?: string } = {};
+    if (userData.name !== undefined) updates.name = userData.name;
+    if (userData.avatar !== undefined) updates.avatar = userData.avatar;
+
+    const result = await this.usersService.updateUser(userData.id, updates);
+
+    if (userData.name !== undefined) {
+      await this.participantModel.updateMany(
+        { userId: userData.id },
+        { $set: { userName: userData.name } },
+      );
+      this.logger.log(`✅ Updated userName in participants for ${userData.id}`);
+    }
+
+    if (result) {
+      this.logger.log(`✅ User updated successfully: ${userData.id}`);
+    } else {
+      this.logger.warn(`⚠️ User not found for update: ${userData.id}`);
     }
   }
 
-  async handleUserUpdated(data: any, context: RmqContext) {
-    console.log('Received user.updated event:', data);
+  private async handleUserDeleted(payload: any): Promise<void> {
+    this.logger.log('Processing user.deleted event');
 
-    try {
-      const updates: { name?: string; avatar?: string } = {};
-      if (data.name !== undefined) updates.name = data.name;
-      if (data.avatar !== undefined) updates.avatar = data.avatar;
+    const userData = payload.payload;
 
-      const result = await this.usersService.updateUser(data.id, updates);
-
-      if (data.name !== undefined) {
-        await this.participantModel.updateMany(
-          { userId: data.id },
-          { $set: { userName: data.name } },
-        );
-        console.log(`✅ Updated userName in participants for ${data.id}`);
-      }
-
-      if (result) {
-        console.log('✅ User updated successfully:', data.id);
-      } else {
-        console.warn('⚠️ User not found for update:', data.id);
-      }
-
-      const channel = context.getChannelRef();
-      const originalMsg = context.getMessage();
-      channel.ack(originalMsg);
-    } catch (error) {
-      console.error('Error updating user:', error);
+    if (!userData || !userData.id) {
+      throw new Error('User data not found in payload or missing id');
     }
-  }
 
-  async handleUserDeleted(data: any, context: RmqContext) {
-    console.log('Received user.deleted event:', data);
+    await this.usersService.deleteUser(userData.id);
 
-    try {
-      const userData = data.payload?.UserDeleted;
-
-      if (!userData) {
-        this.logger.error('UserDeleted data not found in payload');
-        const channel = context.getChannelRef();
-        const originalMsg = context.getMessage();
-        channel.ack(originalMsg); // Ack comunque per non bloccare la coda
-        return;
-      }
-
-      await this.usersService.deleteUser(userData.id);
-
-      console.log('User deleted successfully:', userData.id);
-
-      const channel = context.getChannelRef();
-      const originalMsg = context.getMessage();
-      channel.ack(originalMsg);
-    } catch (error) {
-      console.error('Error deleting user:', error);
-    }
+    this.logger.log(`✅ User deleted successfully: ${userData.id}`);
   }
 }
