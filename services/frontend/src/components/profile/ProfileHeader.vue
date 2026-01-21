@@ -110,9 +110,8 @@ const handleAvatarError = (message: string) => {
 const handleAvatarChange = async (file: File | null) => {
   if (!file) return
   console.log('Uploading new avatar file:', file)
-  const { avatarUrl } = await api.users.updateUserAvatarById(authStore.user!.id, file)
-  authStore.user!.avatar = avatarUrl
-  user.value.avatar = avatarUrl
+  const updatedUser = await authStore.updateUserById(authStore.user!.id, { avatarFile: file })
+  user.value.avatar = updatedUser.avatar
   $q.notify({
     color: 'positive',
     message: t('profile.edit.saveSuccess'),

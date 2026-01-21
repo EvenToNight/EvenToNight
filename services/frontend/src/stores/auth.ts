@@ -3,12 +3,14 @@ import { defineStore } from 'pinia'
 import type { User, UserID } from '@/api/types/users'
 import { api } from '@/api'
 import { useI18n } from 'vue-i18n'
+import { useQuasar } from 'quasar'
 import type {
   AccessToken,
   LoginResponse,
   RefreshToken,
   TokenResponse,
 } from '@/api/interfaces/users'
+import { useNavigation } from '@/router/utils'
 
 const ACCESS_TOKEN_SESSION_KEY = 'access_token_session'
 const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
@@ -18,7 +20,8 @@ const USER_SESSION_KEY = 'user_session'
 
 export const useAuthStore = defineStore('auth', () => {
   const { t } = useI18n()
-
+  const { locale, changeLocale } = useNavigation()
+  const $q = useQuasar()
   const user = ref<User | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
@@ -81,6 +84,10 @@ export const useAuthStore = defineStore('auth', () => {
           role: isOrganization ? 'organization' : 'member',
         })
       )
+      await updateUserById(user.value!.id, {
+        language: locale.value,
+        darkMode: $q.dark.isActive,
+      })
       return { success: true }
     } catch (error) {
       console.log('Registration error:', error)
@@ -99,6 +106,8 @@ export const useAuthStore = defineStore('auth', () => {
       const data = await api.users.login({ username, password })
       console.log('Login Data in store:', data)
       setAuthData(data)
+      $q.dark.set(user.value?.darkMode || false)
+      changeLocale(user.value!.language!)
       return { success: true }
     } catch (error) {
       console.log('Login error:', error)
@@ -139,6 +148,31 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const updateUserById = async (
+    id: UserID,
+    data: Partial<User> & { avatarFile?: File }
+  ): Promise<User> => {
+    if (user.value && user.value.id === id) {
+      const { avatarFile, ...userData } = data
+      const updatedUser = { ...user.value, ...userData }
+      if (avatarFile) {
+        const response = await api.users.updateUserAvatarById(id, avatarFile)
+        updatedUser.avatar = response.avatarUrl
+      }
+      await api.users.updateUserById(id, userData)
+      if (userData.language) {
+        changeLocale(userData.language)
+      }
+      //TODO: sync last logged user settings? seems great
+      localStorage.setItem('darkMode', String($q.dark.isActive))
+      localStorage.setItem('user-locale', userData.language!)
+      setUser(updatedUser)
+    } else {
+      throw new Error('Cannot update users')
+    }
+    return user.value!
+  }
+
   const initializeAuth = () => {
     const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
     const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
@@ -147,7 +181,6 @@ export const useAuthStore = defineStore('auth', () => {
     const expiresAt = storedExpiry ? parseInt(storedExpiry, 10) : 0
     const refreshExpiresAt = storedRefreshExpiry ? parseInt(storedRefreshExpiry, 10) : 0
     const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
-
     if (storedAccessToken && expiresAt > Date.now()) {
       setTokens({
         accessToken: storedAccessToken,
@@ -218,6 +251,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     refreshAccessToken,
+    updateUserById,
     initializeAuth,
     setupAutoRefresh,
     clearAuth,

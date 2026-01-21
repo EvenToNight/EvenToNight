@@ -9,7 +9,6 @@ import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
 import FormField from '@/components/forms/FormField.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { required } from '@/components/forms/validationUtils'
-import { api } from '@/api'
 
 const authStore = useAuthStore()
 const { goToUserProfile } = useNavigation()
@@ -55,19 +54,11 @@ const handleSave = async () => {
       website: website.value.trim() || undefined,
     }
     console.log('Updating user with data:', updateReq)
-    await api.users.updateUserById(authStore.user.id, updateReq)
-
-    if (authStore.user) {
-      authStore.user.name = name.value
-      authStore.user.bio = bio.value || undefined
-      authStore.user.website = website.value || undefined
-    }
-
-    if (avatar.value) {
-      const { avatarUrl } = await api.users.updateUserAvatarById(authStore.user.id, avatar.value)
-      currentAvatarUrl.value = avatarUrl
-      authStore.user.avatar = avatarUrl
-    }
+    const updatedUser = await authStore.updateUserById(authStore.user.id, {
+      ...updateReq,
+      avatarFile: avatar.value ?? undefined,
+    })
+    currentAvatarUrl.value = updatedUser.avatar
 
     $q.notify({
       color: 'positive',

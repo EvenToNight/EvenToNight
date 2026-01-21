@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useNavigation } from '@/router/utils'
 import { SUPPORTED_LOCALES } from '@/i18n'
+import { useAuthStore } from '@/stores/auth'
 
 const { locale } = useI18n()
-const { changeLocale } = useNavigation()
+const authStore = useAuthStore()
 
 interface LanguageOption {
   code: string
@@ -53,12 +53,9 @@ const availableLanguages = computed(() => {
   return SUPPORTED_LOCALES.map((langCode) => getLanguageInfo(langCode))
 })
 
-const selectLanguage = (langCode: string) => {
+const selectLanguage = async (langCode: string) => {
   locale.value = langCode
-  // Save to localStorage
-  localStorage.setItem('user-locale', langCode)
-  // Navigate to the new locale path
-  changeLocale(langCode)
+  await authStore.updateUserById(authStore.user!.id, { language: langCode })
 }
 </script>
 
