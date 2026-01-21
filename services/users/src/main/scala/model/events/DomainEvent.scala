@@ -1,6 +1,15 @@
 package model.events
+import io.circe.Encoder
+import io.circe.generic.semiauto._
 
 sealed trait DomainEvent
+
+object DomainEvent:
+  implicit val encoder: Encoder[DomainEvent] = Encoder.instance {
+    case event: UserCreated => deriveEncoder[UserCreated].apply(event)
+    case event: UserUpdated => deriveEncoder[UserUpdated].apply(event)
+    case event: UserDeleted => deriveEncoder[UserDeleted].apply(event)
+  }
 
 trait UserData:
   def id: String
