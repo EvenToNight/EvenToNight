@@ -1,5 +1,6 @@
 package infrastructure.messaging
 
+import infrastructure.db.MongoUserMetadataRepository
 import infrastructure.messaging.MessageHandler
 import io.circe.generic.auto.*
 import io.circe.parser.*
@@ -12,9 +13,10 @@ case class EventEnvelope(
 
 case class UserCreatedEvent(id: String, role: String)
 
-class ExternalEventHandler extends MessageHandler:
+class ExternalEventHandler(userMetadataRepo: MongoUserMetadataRepository) extends MessageHandler:
 
   override def handle(routingKey: String, message: String): Unit =
+    println("connected with " + userMetadataRepo)
     routingKey match
       case "user.created" => handleUserCreated(message)
       case _              => println(s"[HANDLER] ⚠️ Unknown routing key: $routingKey")

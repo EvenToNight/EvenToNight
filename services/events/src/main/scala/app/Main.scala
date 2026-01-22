@@ -1,7 +1,7 @@
 package app
 
 import controller.Controller
-import infrastructure.db.MongoEventRepository
+import infrastructure.db.{MongoEventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.{ExternalEventHandler, RabbitEventConsumer, RabbitEventPublisher}
 import service.EventService
 
@@ -24,11 +24,18 @@ object Main extends App:
     exchangeName = "eventonight"
   )
 
-  val database: MongoEventRepository = MongoEventRepository(mongoUri, "eventonight", "events", messageBroker)
+  val eventDatabase: MongoEventRepository = MongoEventRepository(mongoUri, "eventonight", "events", messageBroker)
 
-  val eventService: EventService = new EventService(database, messageBroker)
+  val userDatabase: MongoUserMetadataRepository = new MongoUserMetadataRepository(
+    mongoUri,
+    "eventonight",
+    "user_metadata",
+    messageBroker
+  )
 
-  val externalEventHandler: ExternalEventHandler = new ExternalEventHandler()
+  val eventService: EventService = new EventService(eventDatabase, messageBroker)
+
+  val externalEventHandler: ExternalEventHandler = new ExternalEventHandler(userDatabase)
   val messageConsumer: RabbitEventConsumer = new RabbitEventConsumer(
     host = rabbitHost,
     port = rabbitPort,
