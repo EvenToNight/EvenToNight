@@ -3,6 +3,7 @@ import domain.commands.{CreateEventCommand, GetFilteredEventsCommand, UpdateEven
 import domain.models.{Event, EventStatus, EventTag, Location}
 import domain.models.EventConversions.*
 import domain.models.EventTag.validateTagList
+import infrastructure.db.MongoUserMetadataRepository
 
 import java.nio.file.Files
 import java.time.LocalDateTime
@@ -189,3 +190,8 @@ object Utils:
       "offset"  -> offset.getOrElse(0),
       "hasMore" -> hasMore
     )
+
+  def checkUserIsOrganization(userId: String, userMetadataDatabase: MongoUserMetadataRepository): Boolean =
+    userMetadataDatabase.findById(userId) match
+      case Some(userMetadata) if userMetadata.role == "organization" => true
+      case _                                                         => false
