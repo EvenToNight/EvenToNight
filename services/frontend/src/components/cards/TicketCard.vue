@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import Button from '@/components/buttons/basicButtons/Button.vue'
-import { useI18n } from 'vue-i18n'
 import type { Event } from '@/api/types/events'
 
 interface Props {
@@ -9,7 +7,6 @@ interface Props {
 
 defineProps<Props>()
 
-const { t } = useI18n()
 const emit = defineEmits<{
   download: [eventId: string]
 }>()
@@ -31,19 +28,7 @@ const handleDownload = (eventId: string) => {
         <p class="event-date">{{ new Date(event.date).toLocaleDateString() }}</p>
       </div>
 
-      <Button
-        icon="download"
-        variant="primary"
-        class="download-button download-button-desktop"
-        :label="t('download')"
-        @click="handleDownload(event.eventId)"
-      />
-      <Button
-        icon="download"
-        variant="primary"
-        class="download-button download-button-mobile"
-        @click="handleDownload(event.eventId)"
-      />
+      <q-btn flat round icon="download" @click="handleDownload(event.eventId)" />
     </div>
   </div>
 </template>
@@ -123,26 +108,6 @@ const handleDownload = (eventId: string) => {
 
   @media (max-width: $breakpoint-mobile) {
     font-size: $font-size-xs;
-  }
-}
-
-.download-button {
-  flex-shrink: 0;
-}
-
-.download-button-mobile {
-  display: none;
-
-  @media (max-width: $breakpoint-mobile) {
-    display: inline-flex;
-  }
-}
-
-.download-button-desktop {
-  display: inline-flex;
-
-  @media (max-width: $breakpoint-mobile) {
-    display: none;
   }
 }
 </style>
