@@ -159,12 +159,14 @@ export const mockInteractionsApi: InteractionAPI = {
     }
   ): Promise<PaginatedResponseWithTotalCount<UserPartecipation>> {
     //TODO: filter checking user's partecipation to events
-    let participations = mockEvents.map((event) => ({
-      ...event,
-      reviewed: mockEventReviews.some(
-        (review) => review.eventId === event.eventId && review.userId === userId
-      ),
-    }))
+    let participations = mockEvents
+      .filter((event) => event.status !== 'DRAFT')
+      .map((event) => ({
+        ...event,
+        reviewed: mockEventReviews.some(
+          (review) => review.eventId === event.eventId && review.userId === userId
+        ),
+      }))
     if (params?.organizationId) {
       participations = participations.filter((participation) => {
         return (
