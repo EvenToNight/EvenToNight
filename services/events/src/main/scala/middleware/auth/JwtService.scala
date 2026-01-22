@@ -1,3 +1,5 @@
+package middleware.auth
+
 import middleware.auth.{AuthUser, PublicKeyEntry}
 import pdi.jwt.{Jwt, JwtAlgorithm}
 
