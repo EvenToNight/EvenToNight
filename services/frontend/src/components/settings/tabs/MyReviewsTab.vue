@@ -163,7 +163,6 @@ provide('deleteReview', deleteReview)
 
 .search-input {
   margin-bottom: $spacing-4;
-  max-width: 600px;
 }
 
 .reviews-list {
