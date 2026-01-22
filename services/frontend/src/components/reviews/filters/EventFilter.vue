@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import type { Event, EventID } from '@/api/types/events'
 import { api } from '@/api'
 import type { UserID } from '@/api/types/users'
@@ -11,6 +11,7 @@ interface Props {
 const props = defineProps<Props>()
 const hasSearched = ref(false)
 const hasFocus = ref(false)
+const isFiltering = ref(false)
 
 const selectedEventId = defineModel<EventID | null>('selectedEventId', { required: true })
 const eventOptions = ref<Event[]>([])
@@ -23,8 +24,22 @@ const loadInitialEvent = async () => {
     } catch (error) {
       console.error('Failed to load initial event:', error)
     }
+  } else {
+    isFiltering.value = true
   }
 }
+
+watch(selectedEventId, async (newEventId) => {
+  if (newEventId === null) {
+    const events = await api.events.searchEvents({
+      organizationId: props.organizationId,
+      status: 'PUBLISHED',
+      pagination: { limit: 5 },
+    })
+    eventOptions.value = events.items
+    isFiltering.value = true
+  }
+})
 
 const displayValue = computed({
   get(): EventID | null | undefined {
@@ -42,23 +57,47 @@ const displayValue = computed({
   },
 })
 
-//TODO: search completed event
-const filterEvents = (query: string, update: (callback: () => void) => void) => {
+const filterEvents = async (query: string, update: (callback: () => void) => void) => {
   if (!query) {
-    update(() => {
-      const found = eventOptions.value.find((e) => e.eventId === selectedEventId.value)
-      eventOptions.value = found ? [found] : []
-      hasSearched.value = false
-    })
-  } else {
-    api.events
-      .searchEvents({ organizationId: props.organizationId, status: 'PUBLISHED', title: query })
-      .then((response) => {
-        update(() => {
-          hasSearched.value = true
-          eventOptions.value = response.items
-        })
+    if (selectedEventId.value) {
+      console.log('Filtering to selected event only')
+      update(() => {
+        isFiltering.value = true
+        const found = eventOptions.value.find((e) => e.eventId === selectedEventId.value)
+        if (found) {
+          eventOptions.value = [found]
+        }
+        hasSearched.value = false
       })
+    } else if (isFiltering.value) {
+      const events = await api.events.searchEvents({
+        organizationId: props.organizationId,
+        status: 'PUBLISHED',
+        pagination: { limit: 5 },
+      })
+      update(() => {
+        isFiltering.value = false
+        hasSearched.value = false
+        eventOptions.value = events.items
+      })
+    } else {
+      // Eventi già caricati, usa solo update senza ricaricare
+      update(() => {
+        hasSearched.value = false
+      })
+    }
+  } else {
+    console.log('Searching events with query:', query)
+    const response = await api.events.searchEvents({
+      organizationId: props.organizationId,
+      status: 'PUBLISHED',
+      title: query,
+    })
+    update(() => {
+      isFiltering.value = true
+      hasSearched.value = true
+      eventOptions.value = response.items
+    })
   }
 }
 
