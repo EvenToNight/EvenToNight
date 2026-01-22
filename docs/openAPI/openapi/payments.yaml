@@ -495,6 +495,73 @@ paths:
       tags:
         - User Tickets
 
+  /users/{userId}/events/:
+    get:
+      summary: Get all events for which a user has tickets
+      description: List all distinct event IDs for which the user has purchased at least one ticket (only self)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: usr_123e4567-e89b-12d3-a456-426614174000
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Max results per page (optional)
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: Offset for pagination (optional)
+      responses:
+        '200':
+          description: Paginated list of event IDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - evt_550e8400-e29b-41d4-a716-446655440000
+                      - evt_660f9511-f30c-52e5-b827-557766551111
+                  totalItems:
+                    type: integer
+                    example: 2
+                  limit:
+                    type: integer
+                    example: 10
+                  offset:
+                    type: integer
+                    example: 0
+                  hasMore:
+                    type: boolean
+                    example: false
+        '403':
+          description: Forbidden - User can only access their own events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: "Forbidden: Cannot access tickets of other users"
+                error: Forbidden
+      tags:
+        - User Events
+
   /checkout-sessions:
     post:
       summary: Create a checkout session
