@@ -39,3 +39,10 @@ export interface Profile {
   bio?: string
   website?: string
 }
+
+export interface UserInfo {
+  userId: UserID
+  name: string
+  avatar: string
+  username: string
+}

@@ -1,10 +1,12 @@
-import type { UserID } from '../types/users'
-import type { EventID } from '../types/events'
+import type { UserID, UserInfo } from '../types/users'
+import type { EventID, OrganizationRole } from '../types/events'
 import type {
   EventReview,
   EventReviewData,
   UpdateEventReviewData,
   OrganizationReviewsStatistics,
+  PartecipationInfo,
+  UserPartecipation,
 } from '../types/interaction'
 import type {
   PaginatedRequest,
@@ -18,31 +20,53 @@ export type GetReviewWithStatisticsResponse = ExtendedPaginatedResponse<
   OrganizationReviewsStatistics
 >
 
-export type GetUserInfoResponse = PaginatedResponseWithTotalCount<UserID>
+export type GetUserInfoResponse = PaginatedResponseWithTotalCount<UserInfo>
 export type GetUserLikedEventsResponse = PaginatedResponseWithTotalCount<EventID>
 
 //TODO: find way to get user following status and if user participated to event
 export interface InteractionAPI {
-  getEventLikes(eventId: EventID): Promise<GetUserInfoResponse>
-  userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean>
-  likeEvent(eventId: EventID, userId: UserID): Promise<void>
-  unlikeEvent(eventId: EventID, userId: UserID): Promise<void>
-  isFollowing(currentUserId: UserID, targetUserId: UserID): Promise<boolean>
   followUser(currentUserId: UserID, targetUserId: UserID): Promise<void>
-  unfollowUser(currentUserId: UserID, targetUserId: UserID): Promise<void>
   following(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse>
+  isFollowing(currentUserId: UserID, targetUserId: UserID): Promise<boolean>
+  unfollowUser(currentUserId: UserID, targetUserId: UserID): Promise<void>
   followers(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse>
-  getEventReviews(eventId: EventID, pagination?: PaginatedRequest): Promise<GetReviewResponse>
-  createEventReview(eventId: EventID, review: EventReviewData): Promise<void>
-  updateEventReview(eventId: EventID, userId: UserID, review: UpdateEventReviewData): Promise<void>
-  getOrganizationReviews(
-    organizationId: UserID,
-    pagination?: PaginatedRequest
-  ): Promise<GetReviewWithStatisticsResponse>
-  deleteEventReview(eventId: EventID, userId: UserID): Promise<void>
-  getUserReviews(userId: UserID, pagination?: PaginatedRequest): Promise<GetReviewResponse>
   getUserLikedEvents(
     userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<GetUserLikedEventsResponse>
+  userLikesEvent(eventId: EventID, userId: UserID): Promise<boolean>
+  getUserReviews(
+    userId: UserID,
+    params: {
+      search?: string
+      pagination?: PaginatedRequest
+    }
+  ): Promise<GetReviewResponse>
+  userReviewForEvent(userId: UserID, eventId: EventID): Promise<EventReview>
+  userParticipations(
+    userId: UserID,
+    params?: {
+      organizationId?: UserID
+      reviewed?: boolean
+      pagination?: PaginatedRequest
+    }
+  ): Promise<PaginatedResponseWithTotalCount<UserPartecipation>>
+  userParticipatedToEvent(userId: UserID, eventId: EventID): Promise<PartecipationInfo>
+  likeEvent(eventId: EventID, userId: UserID): Promise<void>
+  getEventLikes(eventId: EventID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse>
+  unlikeEvent(eventId: EventID, userId: UserID): Promise<void>
+  createEventReview(eventId: EventID, review: EventReviewData): Promise<void>
+  getEventReviews(
+    eventId: EventID,
+    pagination?: PaginatedRequest
+  ): Promise<GetReviewWithStatisticsResponse>
+  deleteEventReview(eventId: EventID, userId: UserID): Promise<void>
+  updateEventReview(eventId: EventID, userId: UserID, review: UpdateEventReviewData): Promise<void>
+  getOrganizationReviews(
+    organizationId: UserID,
+    params?: {
+      role?: OrganizationRole
+      pagination?: PaginatedRequest
+    }
+  ): Promise<GetReviewWithStatisticsResponse>
 }

@@ -5,7 +5,7 @@ import type { EventTicketTypeData } from './payments'
 export type Tag = string
 export type CreationEventStatus = 'DRAFT' | 'PUBLISHED'
 export type EventStatus = CreationEventStatus | 'COMPLETED' | 'CANCELLED'
-
+export type OrganizationRole = 'creator' | 'collaborator'
 export type EventID = string
 
 export interface EventData {

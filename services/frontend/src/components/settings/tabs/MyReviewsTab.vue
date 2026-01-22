@@ -25,8 +25,10 @@ const loadReviews = async (isLoadingMore = false) => {
 
   try {
     const response = await api.interactions.getUserReviews(authStore.user.id, {
-      limit: ITEMS_PER_PAGE,
-      offset: isLoadingMore ? reviews.value.length : 0,
+      pagination: {
+        limit: ITEMS_PER_PAGE,
+        offset: isLoadingMore ? reviews.value.length : 0,
+      },
     })
 
     if (isLoadingMore) {
