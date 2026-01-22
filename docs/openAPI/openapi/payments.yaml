@@ -62,8 +62,6 @@ paths:
     post:
       summary: Create a new ticket type for an event
       description: Define a new ticket type with pricing and quantity for a specific event
-      security:
-        - bearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -145,8 +143,6 @@ paths:
     delete:
       summary: Delete all ticket types for an event
       description: Delete all ticket types for a specific event (creator only)
-      security:
-        - bearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -232,8 +228,6 @@ paths:
     put:
       summary: Update ticket type
       description: Update details of a ticket type (creator only)
-      security:
-        - bearerAuth: []
       parameters:
         - name: ticketTypeId
           in: path
@@ -297,8 +291,6 @@ paths:
     delete:
       summary: Delete ticket type
       description: Delete a ticket type (creator only)
-      security:
-        - bearerAuth: []
       parameters:
         - name: ticketTypeId
           in: path
@@ -316,11 +308,65 @@ paths:
         - Event Ticket Types
 
   /tickets/{ticketId}:
+    get:
+      summary: Get ticket details
+      description: Retrieve details for a specific ticket (user must own the ticket)
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          description: ID of the ticket
+          schema:
+            type: string
+          example: tkt_123e4567-e89b-12d3-a456-426614174000
+      responses:
+        '200':
+          description: Ticket details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TicketResponseDto'
+              example:
+                id: tkt_123e4567-e89b-12d3-a456-426614174000
+                eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                userId: usr_789e0123-e89b-12d3-a456-426614174222
+                attendeeName: John Doe
+                ticketTypeId: ett_123e4567-e89b-12d3-a456-426614174000
+                price:
+                  amount: 29.99
+                  currency: EUR
+                purchaseDate: "2024-03-15T10:30:00Z"
+                status: ACTIVE
+        '403':
+          description: Forbidden - User not authorized to view this ticket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: Not authorized to view this ticket
+                error: Forbidden
+        '404':
+          description: Ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Ticket not found
+                error: Not Found
+      tags:
+        - Tickets
+
     patch:
       summary: Invalidate ticket status
       description: Invalidate a ticket (event creator only)
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: ticketId
           in: path
@@ -389,7 +435,7 @@ paths:
       summary: Get all tickets for a user
       description: List all tickets for a user (only self)
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -447,7 +493,7 @@ paths:
       summary: Create a checkout session
       description: Create a new checkout session for tickets
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -1002,3 +1048,10 @@ components:
         - limit
         - offset
         - hasMore
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Enter your JWT token in the format: Bearer <token>'
