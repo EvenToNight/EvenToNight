@@ -4,7 +4,7 @@ export const NAVBAR_HEIGHT_CSS = `${NAVBAR_HEIGHT}px`
 </script>
 
 <script setup lang="ts">
-import { computed, ref, inject, type Ref, watch } from 'vue'
+import { computed, ref, inject, type Ref, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
@@ -15,6 +15,7 @@ import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import AuthButtons from '../auth/AuthButtons.vue'
 import DrawerMenu from './DrawerMenu.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
+import { api } from '@/api'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 const searchQuery = inject<Ref<string>>('searchQuery')
@@ -66,6 +67,24 @@ const notifications = ref<Notification[]>([
 const notificationsPage = ref(1)
 const hasMoreNotifications = ref(true)
 const loadingNotifications = ref(false)
+
+const unreadMessagesCount = ref(0)
+
+const loadUnreadMessagesCount = async () => {
+  if (authStore.user?.id) {
+    try {
+      const response = await api.chat.unreadMessageCountFor(authStore.user.id)
+      unreadMessagesCount.value = response.unreadCount
+    } catch (error) {
+      console.error('Failed to load unread messages count:', error)
+      unreadMessagesCount.value = 0
+    }
+  }
+}
+
+onMounted(() => {
+  loadUnreadMessagesCount()
+})
 
 const loadMoreNotifications = async (index: number, done: (stop?: boolean) => void) => {
   if (loadingNotifications.value || !hasMoreNotifications.value) {
@@ -214,7 +233,9 @@ const goToProfile = () => {
 
             <!-- Chat Button Mobile -->
             <q-btn flat dense icon="chat" @click="goToChat()">
-              <q-badge color="red" floating>{{ String(2) }}</q-badge>
+              <q-badge v-if="unreadMessagesCount > 0" color="red" floating>{{
+                String(unreadMessagesCount)
+              }}</q-badge>
               <q-tooltip>Chat</q-tooltip>
             </q-btn>
           </template>
@@ -285,7 +306,9 @@ const goToProfile = () => {
 
             <!-- Chat Button -->
             <q-btn flat round icon="chat" @click="goToChat()">
-              <q-badge color="red" floating>{{ String(2) }}</q-badge>
+              <q-badge v-if="unreadMessagesCount > 0" color="red" floating>{{
+                String(unreadMessagesCount)
+              }}</q-badge>
               <q-tooltip>Chat</q-tooltip>
             </q-btn>
 
