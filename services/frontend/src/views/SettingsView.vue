@@ -17,6 +17,7 @@ const { hash, replaceRoute } = useNavigation()
 const $q = useQuasar()
 const activeTabId = ref('general')
 const layoutRef = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
+const showingContent = ref(false)
 
 const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
 
@@ -55,7 +56,12 @@ const selectTab = (tabId: string) => {
   activeTabId.value = tabId
   if (isMobile.value && layoutRef.value) {
     layoutRef.value.showContent()
+    showingContent.value = true
   }
+}
+
+const handleBack = () => {
+  showingContent.value = false
 }
 
 function updateTabIdFromHash() {
@@ -67,6 +73,7 @@ function updateTabIdFromHash() {
   // Show content on mobile if navigating with hash
   if (isMobile.value && layoutRef.value && hash.value) {
     layoutRef.value.showContent()
+    showingContent.value = true
   }
 }
 onMounted(() => {
@@ -88,14 +95,14 @@ watch(activeTab, (newTab) => {
 <template>
   <div class="settings-view">
     <div class="settings-container">
-      <TwoColumnLayout ref="layoutRef" :sidebar-title="'Settings'">
+      <TwoColumnLayout ref="layoutRef" :sidebar-title="'Settings'" @back="handleBack">
         <template #sidebar>
           <div class="settings-menu">
             <button
               v-for="tab in tabs"
               :key="tab.id"
               class="settings-menu-item"
-              :class="{ active: activeTabId === tab.id }"
+              :class="{ active: activeTabId === tab.id && (!isMobile || showingContent) }"
               @click="selectTab(tab.id)"
             >
               <q-icon :name="tab.icon" size="24px" class="menu-icon" />
