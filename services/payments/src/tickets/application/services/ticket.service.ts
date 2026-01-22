@@ -59,6 +59,18 @@ export class TicketService {
     return this.ticketRepository.findByUserId(userId, pagination);
   }
 
+  findByUserIdAndEventId(
+    userId: string,
+    eventId: string,
+    pagination: PaginationParams,
+  ): Promise<PaginatedResult<Ticket>> {
+    return this.ticketRepository.findByUserIdAndEventId(
+      userId,
+      eventId,
+      pagination,
+    );
+  }
+
   revokeTickets(eventTicketTypeIds: string[]): Promise<void> {
     return Promise.all(
       eventTicketTypeIds.map(async (id) => {

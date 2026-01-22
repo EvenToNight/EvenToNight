@@ -46,6 +46,25 @@ export class TicketRepositoryImpl implements TicketRepository {
     return Pagination.createResult(items, totalItems, pagination);
   }
 
+  async findByUserIdAndEventId(
+    userId: string,
+    eventId: string,
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResult<Ticket>> {
+    const totalItems = await this.ticketModel
+      .countDocuments({ userId, eventId })
+      .exec();
+    pagination = Pagination.parse(pagination?.limit, pagination?.offset);
+    const documents = await this.ticketModel
+      .find({ userId, eventId })
+      .sort({ purchaseDate: -1 })
+      .limit(pagination.limit)
+      .skip(pagination.offset)
+      .exec();
+    const items = documents.map((doc) => TicketMapper.toDomain(doc));
+    return Pagination.createResult(items, totalItems, pagination);
+  }
+
   async findByEventId(
     eventId: string,
     pagination?: PaginationParams,
