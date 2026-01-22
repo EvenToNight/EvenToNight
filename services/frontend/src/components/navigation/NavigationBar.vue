@@ -172,6 +172,52 @@ const goToProfile = () => {
           <template v-if="showSearch">
             <q-btn flat dense icon="search" @click="toggleMobileSearch" />
           </template>
+          <template v-if="authStore.isAuthenticated">
+            <!-- Notifications Button Mobile -->
+            <q-btn flat dense icon="notifications">
+              <q-badge color="red" floating>{{ String(notifications.length) }}</q-badge>
+              <q-tooltip>Notifications</q-tooltip>
+              <q-menu class="notifications-menu">
+                <q-list style="min-width: 300px; max-width: 400px" class="notifications-list">
+                  <q-item-label header>Notifications</q-item-label>
+                  <q-separator />
+                  <q-scroll-area
+                    class="notifications-scroll-area"
+                    :thumb-style="{ width: '4px', borderRadius: '2px', opacity: '0.5' }"
+                  >
+                    <q-infinite-scroll :offset="50" @load="loadMoreNotifications">
+                      <template
+                        v-for="(notification, index) in notifications"
+                        :key="notification.id"
+                      >
+                        <q-item clickable>
+                          <q-item-section avatar>
+                            <q-icon :name="notification.icon" :color="notification.iconColor" />
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label>{{ notification.message }}</q-item-label>
+                            <q-item-label caption>{{ notification.timestamp }}</q-item-label>
+                          </q-item-section>
+                        </q-item>
+                        <q-separator v-if="index < notifications.length - 1" />
+                      </template>
+                      <template #loading>
+                        <div class="row justify-center q-my-md">
+                          <q-spinner-dots color="primary" size="40px" />
+                        </div>
+                      </template>
+                    </q-infinite-scroll>
+                  </q-scroll-area>
+                </q-list>
+              </q-menu>
+            </q-btn>
+
+            <!-- Chat Button Mobile -->
+            <q-btn flat dense icon="chat_bubble" @click="goToChat()">
+              <q-badge color="red" floating>{{ String(2) }}</q-badge>
+              <q-tooltip>Chat</q-tooltip>
+            </q-btn>
+          </template>
           <q-btn flat dense icon="menu" @click="toggleMobileMenu" />
         </template>
         <template v-else>
@@ -303,6 +349,18 @@ const goToProfile = () => {
         <q-separator class="q-my-md" />
         <div class="drawer-user-buttons">
           <Button icon="person" :label="t('profile')" variant="secondary" @click="goToProfile" />
+          <Button
+            v-if="isOrganization"
+            icon="add"
+            label="Create Event"
+            variant="primary"
+            @click="
+              () => {
+                goToCreateEvent()
+                mobileMenuOpen = false
+              }
+            "
+          />
           <Button
             icon="logout"
             :label="t('auth.logout')"
