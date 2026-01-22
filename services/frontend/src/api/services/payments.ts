@@ -11,6 +11,8 @@ import type {
   EventTicketTypeData,
 } from '../types/payments'
 import type { EventID } from '../types/events'
+import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
+import { buildQueryParams } from '../utils/requestUtils'
 
 export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
   async getTicketTypes(): Promise<TicketType[]> {
@@ -38,5 +40,18 @@ export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
     request: CreateCheckoutSessionRequest
   ): Promise<CreateCheckoutSessionResponse> {
     return paymentsClient.post<CreateCheckoutSessionResponse>(`/checkout-sessions`, request)
+  },
+
+  async findEventsWithUserTickets(
+    userId: string,
+    pagination?: PaginatedRequest
+  ): Promise<PaginatedResponse<EventID>> {
+    return paymentsClient.get<PaginatedResponse<EventID>>(
+      `/users/${userId}/events${buildQueryParams({ ...pagination })}`
+    )
+  },
+
+  async getEventPdfTickets(userId: string, eventId: string): Promise<Blob> {
+    return paymentsClient.getBlob(`/users/${userId}/events/${eventId}/pdf`)
   },
 })

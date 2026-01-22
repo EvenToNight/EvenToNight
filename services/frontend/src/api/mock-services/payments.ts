@@ -5,7 +5,10 @@ import type {
   CreateCheckoutSessionResponse,
   PaymentsAPI,
 } from '../interfaces/payments'
+import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import { createMockEventTicketType, mockEventTicketTypes } from './data/payments'
+import { getPaginatedItems } from '../utils/requestUtils'
+import { mockEvents } from './data/events'
 
 export const mockPaymentsApi: PaymentsAPI = {
   async getTicketTypes(): Promise<TicketType[]> {
@@ -88,5 +91,19 @@ export const mockPaymentsApi: PaymentsAPI = {
       expiresAt: Date.now() + 30 * 60 * 1000, // Expires in 30 minutes
       reservedTicketIds: request.items.map((_item, index) => `ticket-${index + 1}`),
     }
+  },
+
+  async findEventsWithUserTickets(
+    _userId: string,
+    pagination?: PaginatedRequest
+  ): Promise<PaginatedResponse<EventID>> {
+    return getPaginatedItems(
+      mockEvents.filter((e) => e.status !== 'DRAFT').map((event) => event.eventId),
+      pagination
+    )
+  },
+
+  async getEventPdfTickets(_userId: string, _eventId: string): Promise<Blob> {
+    return new Blob(['Mock PDF content'], { type: 'application/pdf' })
   },
 }
