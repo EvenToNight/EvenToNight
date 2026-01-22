@@ -131,10 +131,15 @@ export class ConversationsController {
 
   @Patch('conversations/:conversationId/read')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
   async markAsRead(
     @Param('userId') userId: string,
     @Param('conversationId') conversationId: string,
+    @CurrentUser('userId') currentUserId: string,
   ): Promise<void> {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException('You can only mark as read for yourself');
+    }
     await this.conversationsService.markAsRead(conversationId, userId);
   }
 }
