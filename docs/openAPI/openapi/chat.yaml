@@ -468,6 +468,8 @@ paths:
       summary: Mark messages in a conversation as read for a user
       servers:
         - url: http://localhost:9040
+      security:
+        - BearerAuth: []
       parameters:
         - name: conversationId
           in: path
