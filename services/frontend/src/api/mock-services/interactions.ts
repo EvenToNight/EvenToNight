@@ -129,12 +129,14 @@ export const mockInteractionsApi: InteractionAPI = {
   async getUserReviews(
     userId: UserID,
     params: {
-      _search?: string
+      search?: string
       pagination?: PaginatedRequest
     }
   ): Promise<GetReviewResponse> {
-    //TOODO: use search to filter for event/org name/username
-    const reviews = mockEventReviews.filter((review) => review.userId === userId)
+    //TODO: use search to filter for event/org name/username
+    const reviews = params.search
+      ? []
+      : mockEventReviews.filter((review) => review.userId === userId)
     return { ...getPaginatedItems(reviews, params.pagination), totalItems: reviews.length }
   },
 
