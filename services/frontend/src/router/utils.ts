@@ -261,6 +261,14 @@ export const useNavigation = () => {
     })
   }
 
+  const goToRoute = (routeName: string, swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(routeName)
+    } else {
+      pushWithLocale(routeName)
+    }
+  }
+
   return {
     locale,
     params,
@@ -281,6 +289,7 @@ export const useNavigation = () => {
     goToSettings,
     goToEditProfile,
     goToChat,
+    goToRoute,
     replaceRoute,
     changeLocale,
     removeQuery,
