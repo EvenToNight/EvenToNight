@@ -42,6 +42,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
   var userRepo: MongoUserMetadataRepository = uninitialized
   var publisher: EventPublisher             = uninitialized
   var service: DomainEventService           = uninitialized
+  var creatorId: String                     = "creator-123"
 
   override def beforeEach(): Unit =
     super.beforeEach()
@@ -55,6 +56,11 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       "eventonight_test",
       messageBroker = new MockEventPublisher()
     )
+    userRepo.save(domain.models.UserMetadata(
+      id = creatorId,
+      role = "organization"
+    ))
+
     publisher = new MockEventPublisher()
     service = new DomainEventService(repo, userRepo, publisher)
 
@@ -76,7 +82,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       price: Option[Double] = Some(15.0),
       date: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(10)),
       status: EventStatus = EventStatus.DRAFT,
-      creatorId: String = "creator-123",
+      creatorId: String = creatorId,
       collaboratorIds: Option[List[String]] = None
   ): CreateEventCommand =
     CreateEventCommand(title, description, poster, tags, location, date, price, status, creatorId, collaboratorIds)
