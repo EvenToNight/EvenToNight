@@ -213,7 +213,7 @@ const goToProfile = () => {
             </q-btn>
 
             <!-- Chat Button Mobile -->
-            <q-btn flat dense icon="chat_bubble" @click="goToChat()">
+            <q-btn flat dense icon="chat" @click="goToChat()">
               <q-badge color="red" floating>{{ String(2) }}</q-badge>
               <q-tooltip>Chat</q-tooltip>
             </q-btn>
@@ -284,7 +284,7 @@ const goToProfile = () => {
             </q-btn>
 
             <!-- Chat Button -->
-            <q-btn flat round icon="chat_bubble" @click="goToChat()">
+            <q-btn flat round icon="chat" @click="goToChat()">
               <q-badge color="red" floating>{{ String(2) }}</q-badge>
               <q-tooltip>Chat</q-tooltip>
             </q-btn>
