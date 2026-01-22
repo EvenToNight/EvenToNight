@@ -16,11 +16,11 @@ import infrastructure.db.EventRepository
 import infrastructure.messaging.EventPublisher
 
 class EventService(
-    repo: EventRepository,
+    eventRepository: EventRepository,
     publisher: EventPublisher
 ):
-  val eventQueryService: EventQueryService    = EventQueryService(repo)
-  val eventCommandService: DomainEventService = DomainEventService(repo, publisher)
+  val eventQueryService: EventQueryService    = EventQueryService(eventRepository)
+  val eventCommandService: DomainEventService = DomainEventService(eventRepository, publisher)
 
   def handleCommand(cmd: Commands): Either[String, Any] =
     cmd match
