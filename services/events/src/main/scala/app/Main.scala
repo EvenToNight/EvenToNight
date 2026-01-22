@@ -43,7 +43,7 @@ object Main extends App:
     password = rabbitPass,
     exchangeName = "eventonight",
     queueName = "events-service-queue",
-    routingKeys = List("user.created"),
+    routingKeys = List("user.created", "user.deleted"),
     handler = externalEventHandler
   )
   messageConsumer.start()
