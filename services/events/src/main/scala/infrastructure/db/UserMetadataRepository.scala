@@ -1,17 +1,17 @@
 package infrastructure.db
 
-import domain.models.UserMetadata
 import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
-import com.mongodb.client.model.{Filters, ReplaceOptions }
+import com.mongodb.client.model.{Filters, ReplaceOptions}
+import domain.models.UserMetadata
 import infrastructure.messaging.EventPublisher
 import org.bson.Document
+
 import scala.util.{Failure, Success, Try}
 
 trait UserMetadataRepository:
   def save(user: UserMetadata): Unit
   def findById(id: String): Option[UserMetadata]
   def delete(id: String): Unit
-
 
 case class MongoUserMetadataRepository(
     connectionString: String,
@@ -35,12 +35,10 @@ case class MongoUserMetadataRepository(
       case Failure(ex) =>
         println(s"[MongoDB][Error] Failed to save User ID: ${user.id} - ${ex.getMessage}")
         Left(ex)
-    
+
   def findById(id: String): Option[UserMetadata] =
     val docOption = Option(collection.find(Filters.eq("id", id)).first())
     docOption.map(UserMetadata.fromDocument)
-    
+
   def delete(id: String): Unit =
     collection.deleteOne(Filters.eq("id", id))
-
-  
