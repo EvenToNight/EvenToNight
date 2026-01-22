@@ -433,7 +433,7 @@ paths:
   /users/{userId}/tickets/:
     get:
       summary: Get all tickets for a user
-      description: List all tickets for a user (only self)
+      description: List all tickets for a user (only self). Optionally filter by event ID.
       security:
         - BearerAuth: []
       parameters:
@@ -442,6 +442,13 @@ paths:
           required: true
           schema:
             type: string
+        - name: eventId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter tickets by event ID (optional)
+          example: evt_550e8400-e29b-41d4-a716-446655440000
         - name: limit
           in: query
           required: false
