@@ -10,6 +10,7 @@ import {
   PaginationParams,
 } from 'src/commons/domain/types/pagination.types';
 import { Pagination } from 'src/commons/utils/pagination.utils';
+import { EventId } from '../../../domain/value-objects/event-id.vo';
 
 @Injectable()
 export class TicketRepositoryImpl implements TicketRepository {
@@ -63,6 +64,21 @@ export class TicketRepositoryImpl implements TicketRepository {
       .exec();
     const items = documents.map((doc) => TicketMapper.toDomain(doc));
     return Pagination.createResult(items, totalItems, pagination);
+  }
+
+  async findEventsByUserId(
+    userId: string,
+    pagination?: PaginationParams,
+  ): Promise<PaginatedResult<EventId>> {
+    const distinctEventIds = await this.ticketModel
+      .distinct('eventId', { userId })
+      .exec();
+    const totalItems = distinctEventIds.length;
+    pagination = Pagination.parse(pagination?.limit, pagination?.offset);
+    const paginatedEventIds = distinctEventIds
+      .slice(pagination.offset, pagination.offset + pagination.limit)
+      .map((id: string) => EventId.fromString(id));
+    return Pagination.createResult(paginatedEventIds, totalItems, pagination);
   }
 
   async findByEventId(

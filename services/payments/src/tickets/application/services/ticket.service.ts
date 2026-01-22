@@ -11,6 +11,7 @@ import {
   PaginationParams,
 } from 'src/commons/domain/types/pagination.types';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 
 @Injectable()
 export class TicketService {
@@ -69,6 +70,13 @@ export class TicketService {
       eventId,
       pagination,
     );
+  }
+
+  findEventsByUserId(
+    userId: string,
+    pagination: PaginationParams,
+  ): Promise<PaginatedResult<EventId>> {
+    return this.ticketRepository.findEventsByUserId(userId, pagination);
   }
 
   revokeTickets(eventTicketTypeIds: string[]): Promise<void> {

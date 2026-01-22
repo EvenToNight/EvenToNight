@@ -53,4 +53,27 @@ export class UserController {
       Pagination.parse(query.limit, query.offset),
     );
   }
+
+  /**
+   * GET /users/:userId/events
+   * Returns all events where the specified user has bought tickets.
+   */
+  @Get('events/')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async getUserEvents(
+    @Param('userId') userId: string,
+    @Query() query: PaginatedQueryDto,
+    @CurrentUser('userId') currentUserId: string,
+  ): Promise<PaginatedResponseDto<EventId>> {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException(
+        'Forbidden: Cannot access tickets of other users',
+      );
+    }
+    return await this.ticketService.findEventsByUserId(
+      userId,
+      Pagination.parse(query.limit, query.offset),
+    );
+  }
 }
