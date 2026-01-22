@@ -1,4 +1,4 @@
-import { Controller } from '@nestjs/common';
+import { Controller, Logger } from '@nestjs/common';
 import {
   MessagePattern,
   Payload,
@@ -11,78 +11,124 @@ import { Model } from 'mongoose';
 
 @Controller()
 export class UserConsumer {
+  private readonly logger = new Logger(UserConsumer.name);
+
   constructor(
     private readonly usersService: UsersService,
     @InjectModel('Participant') private participantModel: Model<any>,
   ) {}
 
-  @MessagePattern('user.created')
-  async handleUserCreated(@Payload() data: any, @Ctx() context: RmqContext) {
-    console.log('Received user.created event:', data);
+  @MessagePattern()
+  async handleEvent(
+    @Payload() payload: unknown,
+    @Ctx() context: RmqContext,
+  ): Promise<void> {
+    const channel = context.getChannelRef();
+    const originalMsg = context.getMessage();
+
+    let routingKey: string | undefined;
+    if (
+      typeof originalMsg === 'object' &&
+      originalMsg !== null &&
+      'fields' in originalMsg
+    ) {
+      const msg = originalMsg as { fields?: { routingKey?: string } };
+      routingKey = msg.fields?.routingKey;
+    }
+
+    this.logger.log('📥 Message received:', routingKey);
+    this.logger.log(`Payload: ${JSON.stringify(payload)}`);
 
     try {
-      await this.usersService.upsertUser({
-        userId: data.userId,
-        userRole: data.role,
-        name: data.name,
-        avatar: data.avatar,
-      });
+      switch (routingKey) {
+        case 'user.created':
+          await this.handleUserCreated(payload);
+          break;
+        case 'user.updated':
+          await this.handleUserUpdated(payload);
+          break;
+        case 'user.deleted':
+          await this.handleUserDeleted(payload);
+          break;
+        default:
+          this.logger.warn(`⚠️  Unhandled routing key: ${routingKey}`);
+          channel.ack(originalMsg);
+          return;
+      }
 
-      const channel = context.getChannelRef();
-      const originalMsg = context.getMessage();
       channel.ack(originalMsg);
+      this.logger.debug('✅ Message acknowledged');
     } catch (error) {
-      console.error('Error caching user:', error);
+      this.logger.error(
+        `❌ Error processing ${routingKey}: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        error instanceof Error ? error.stack : undefined,
+      );
+
+      channel.nack(originalMsg, false, false);
+      this.logger.warn('⚠️  Message rejected (not requeued)');
     }
   }
 
-  @MessagePattern('user.updated')
-  async handleUserUpdated(@Payload() data: any, @Ctx() context: RmqContext) {
-    console.log('Received user.updated event:', data);
+  private async handleUserCreated(payload: any): Promise<void> {
+    this.logger.log('Processing user.created event');
 
-    try {
-      const updates: { name?: string; avatar?: string } = {};
-      if (data.name !== undefined) updates.name = data.name;
-      if (data.avatar !== undefined) updates.avatar = data.avatar;
+    const userData = payload.payload;
 
-      const result = await this.usersService.updateUser(data.userId, updates);
+    if (!userData || !userData.id) {
+      throw new Error('User data not found in payload or missing id');
+    }
 
-      if (data.name !== undefined) {
-        await this.participantModel.updateMany(
-          { userId: data.userId },
-          { $set: { userName: data.name } },
-        );
-        console.log(`✅ Updated userName in participants for ${data.userId}`);
-      }
+    await this.usersService.upsertUser({
+      id: userData.id,
+      role: userData.role,
+      name: userData.name,
+      avatar: userData.avatar,
+    });
 
-      if (result) {
-        console.log('✅ User updated successfully:', data.userId);
-      } else {
-        console.warn('⚠️ User not found for update:', data.userId);
-      }
+    this.logger.log(`✅ User created/cached: ${userData.id}`);
+  }
 
-      const channel = context.getChannelRef();
-      const originalMsg = context.getMessage();
-      channel.ack(originalMsg);
-    } catch (error) {
-      console.error('Error updating user:', error);
+  private async handleUserUpdated(payload: any): Promise<void> {
+    this.logger.log('Processing user.updated event');
+
+    const userData = payload.payload;
+
+    if (!userData || !userData.id) {
+      throw new Error('User data not found in payload or missing id');
+    }
+
+    const updates: { name?: string; avatar?: string } = {};
+    if (userData.name !== undefined) updates.name = userData.name;
+    if (userData.avatar !== undefined) updates.avatar = userData.avatar;
+
+    const result = await this.usersService.updateUser(userData.id, updates);
+
+    if (userData.name !== undefined) {
+      await this.participantModel.updateMany(
+        { userId: userData.id },
+        { $set: { userName: userData.name } },
+      );
+      this.logger.log(`✅ Updated userName in participants for ${userData.id}`);
+    }
+
+    if (result) {
+      this.logger.log(`✅ User updated successfully: ${userData.id}`);
+    } else {
+      this.logger.warn(`⚠️ User not found for update: ${userData.id}`);
     }
   }
 
-  @MessagePattern('user.deleted')
-  async handleUserDeleted(@Payload() data: any, @Ctx() context: RmqContext) {
-    console.log('Received user.deleted event:', data);
+  private async handleUserDeleted(payload: any): Promise<void> {
+    this.logger.log('Processing user.deleted event');
 
-    try {
-      await this.usersService.deleteUser(data.userId);
+    const userData = payload.payload;
 
-      console.log('User deleted successfully:', data.userId);
-
-      const channel = context.getChannelRef();
-      const originalMsg = context.getMessage();
-      channel.ack(originalMsg);
-    } catch (error) {
-      console.error('Error deleting user:', error);
+    if (!userData || !userData.id) {
+      throw new Error('User data not found in payload or missing id');
     }
+
+    await this.usersService.deleteUser(userData.id);
+
+    this.logger.log(`✅ User deleted successfully: ${userData.id}`);
   }
 }

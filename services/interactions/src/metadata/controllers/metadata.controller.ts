@@ -125,17 +125,10 @@ export class MetadataController {
     if (this.isEventEnvelope(payload)) {
       this.logger.debug('Extracting payload from EventEnvelope');
       actualPayload = payload.payload;
+    }
 
-      if (actualPayload && typeof actualPayload === 'object') {
-        const nestedKeys = Object.keys(actualPayload);
-        if (nestedKeys.length === 1) {
-          const nestedKey = nestedKeys[0];
-          this.logger.debug(`Extracting nested payload from key: ${nestedKey}`);
-          actualPayload = (actualPayload as Record<string, unknown>)[nestedKey];
-        }
-      }
-    } else if (typeof payload === 'object' && payload !== null) {
-      const payloadObj = payload as Record<string, unknown>;
+    if (typeof actualPayload === 'object' && actualPayload !== null) {
+      const payloadObj = actualPayload as Record<string, unknown>;
       const capitalizedKeys = Object.keys(payloadObj).filter(
         (key) => key.charAt(0) === key.charAt(0).toUpperCase(),
       );

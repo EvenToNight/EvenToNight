@@ -4,12 +4,16 @@ describe('ConversationListItemDTO', () => {
   it('should have all required properties', () => {
     const dto: ConversationListItemDTO = {
       id: 'conv123',
-      organizationId: 'org456',
-      organizationName: 'Test Org',
-      organizationAvatar: 'https://example.com/avatar.jpg',
-      memberId: 'member789',
-      memberName: 'John Doe',
-      memberAvatar: 'https://example.com/john.jpg',
+      organization: {
+        id: 'org456',
+        name: 'Test Org',
+        avatar: 'https://example.com/avatar.jpg',
+      },
+      member: {
+        id: 'member789',
+        name: 'John Doe',
+        avatar: 'https://example.com/john.jpg',
+      },
       lastMessage: {
         content: 'Hello world',
         senderId: 'member789',
@@ -19,22 +23,26 @@ describe('ConversationListItemDTO', () => {
     };
 
     expect(dto.id).toBe('conv123');
-    expect(dto.organizationId).toBe('org456');
-    expect(dto.organizationName).toBe('Test Org');
-    expect(dto.memberId).toBe('member789');
-    expect(dto.lastMessage.content).toBe('Hello world');
+    expect(dto.organization.id).toBe('org456');
+    expect(dto.organization.name).toBe('Test Org');
+    expect(dto.member.id).toBe('member789');
+    expect(dto.lastMessage?.content).toBe('Hello world');
     expect(dto.unreadCount).toBe(5);
   });
 
   it('should allow unreadCount to be 0', () => {
     const dto: ConversationListItemDTO = {
       id: 'conv123',
-      organizationId: 'org456',
-      organizationName: 'Test Org',
-      organizationAvatar: 'https://example.com/avatar.jpg',
-      memberId: 'member789',
-      memberName: 'John Doe',
-      memberAvatar: 'https://example.com/john.jpg',
+      organization: {
+        id: 'org456',
+        name: 'Test Org',
+        avatar: 'https://example.com/avatar.jpg',
+      },
+      member: {
+        id: 'member789',
+        name: 'John Doe',
+        avatar: 'https://example.com/john.jpg',
+      },
       lastMessage: {
         content: 'Hello world',
         senderId: 'member789',
@@ -49,12 +57,16 @@ describe('ConversationListItemDTO', () => {
   it('should support lastMessage from different senders', () => {
     const dtoFromOrg: ConversationListItemDTO = {
       id: 'conv123',
-      organizationId: 'org456',
-      organizationName: 'Test Org',
-      organizationAvatar: 'https://example.com/avatar.jpg',
-      memberId: 'member789',
-      memberName: 'John Doe',
-      memberAvatar: 'https://example.com/john.jpg',
+      organization: {
+        id: 'org456',
+        name: 'Test Org',
+        avatar: 'https://example.com/avatar.jpg',
+      },
+      member: {
+        id: 'member789',
+        name: 'John Doe',
+        avatar: 'https://example.com/john.jpg',
+      },
       lastMessage: {
         content: 'Message from org',
         senderId: 'org456',
@@ -65,12 +77,16 @@ describe('ConversationListItemDTO', () => {
 
     const dtoFromMember: ConversationListItemDTO = {
       id: 'conv123',
-      organizationId: 'org456',
-      organizationName: 'Test Org',
-      organizationAvatar: 'https://example.com/avatar.jpg',
-      memberId: 'member789',
-      memberName: 'John Doe',
-      memberAvatar: 'https://example.com/john.jpg',
+      organization: {
+        id: 'org456',
+        name: 'Test Org',
+        avatar: 'https://example.com/avatar.jpg',
+      },
+      member: {
+        id: 'member789',
+        name: 'John Doe',
+        avatar: 'https://example.com/john.jpg',
+      },
       lastMessage: {
         content: 'Message from member',
         senderId: 'member789',
@@ -79,7 +95,7 @@ describe('ConversationListItemDTO', () => {
       unreadCount: 0,
     };
 
-    expect(dtoFromOrg.lastMessage.senderId).toBe('org456');
-    expect(dtoFromMember.lastMessage.senderId).toBe('member789');
+    expect(dtoFromOrg.lastMessage?.senderId).toBe('org456');
+    expect(dtoFromMember.lastMessage?.senderId).toBe('member789');
   });
 });
