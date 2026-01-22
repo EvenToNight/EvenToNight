@@ -73,7 +73,7 @@ export class UserEventConsumer {
 
   private async handleUserCreated(envelope: EventEnvelope<UserPayload>) {
     this.logger.log(`Processing user.created: ${envelope.payload.id}`);
-    await this.userRepository.save(
+    await this.userRepository.update(
       User.create(
         UserId.fromString(envelope.payload.id),
         envelope.payload.language,
