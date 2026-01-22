@@ -6,34 +6,35 @@ import { createFeedApi } from './services/feed'
 import { mockInteractionsApi } from './mock-services/interactions'
 import { createInteractionsApi } from './services/interactions'
 import { mockUsersApi } from './mock-services/users'
+import { createChatApi } from './services/chat'
 import { createPaymentsApi } from './services/payments'
 import { mockPaymentsApi } from './mock-services/payments'
-// import { createUsersApi } from './services/users'
+import { createUsersApi } from './services/users'
 import {
   createEventsClient,
   createInteractionsClient,
+  createChatClient,
   createPaymentsClient,
   // createFeedClient,
-  // createUsersClient,
+  createUsersClient,
 } from './client'
-import { mockSupportApi } from './mock-services/support'
+import { mockChatApi } from './mock-services/chat'
 import { mockNotificationApi } from './mock-services/notification'
 
 const useRealApi: boolean = import.meta.env.VITE_USE_MOCK_API === 'false'
 console.log('Using real API:', useRealApi)
-
+const paymentsApi = useRealApi ? createPaymentsApi(createPaymentsClient()) : mockPaymentsApi
 export const api = {
-  events: useRealApi ? createEventsApi(createEventsClient()) : mockEventsApi,
+  events: useRealApi ? createEventsApi(createEventsClient(), paymentsApi) : mockEventsApi,
   media: mediaApi,
   feed: useRealApi ? createFeedApi(createEventsClient()) : mockFeedApi,
   interactions: useRealApi
     ? createInteractionsApi(createInteractionsClient())
     : mockInteractionsApi,
-  users: mockUsersApi,
-  support: mockSupportApi,
+  chat: useRealApi ? createChatApi(createChatClient()) : mockChatApi,
   notification: mockNotificationApi,
-  payments: useRealApi ? createPaymentsApi(createPaymentsClient()) : mockPaymentsApi,
+  payments: paymentsApi,
   // media: useMockApi ? mockMediaApi : createMediaApi(createMediaClient()),
   // feed: useMockApi ? mockFeedApi : createFeedApi(createFeedClient()),
-  // users: useRealApi ? createUsersApi(createUsersClient()) : mockUsersApi,
+  users: useRealApi ? createUsersApi(createUsersClient()) : mockUsersApi,
 }

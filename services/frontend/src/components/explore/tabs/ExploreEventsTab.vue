@@ -11,16 +11,16 @@ import { useI18n } from 'vue-i18n'
 const { t } = useI18n()
 
 interface Props {
-  events: { event: Event; isFavorite: boolean }[]
+  events: (Event & { liked?: boolean })[]
   searchQuery: string
   hasMore?: boolean
   onLoadMore?: () => void | Promise<void>
+  onAuthRequired?: () => void
 }
 const loading = ref(false)
 const props = defineProps<Props>()
 
 const emit = defineEmits<{
-  'favorite-toggle': [eventId: string]
   'filters-changed': [filters: EventFilters]
 }>()
 
@@ -54,11 +54,10 @@ const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
     >
       <div class="events-grid">
         <EventCard
-          v-for="item in events"
-          :key="item.event.eventId"
-          :event="item.event"
-          :favorite="item.isFavorite"
-          @favorite-toggle="emit('favorite-toggle', item.event.eventId)"
+          v-for="(event, index) in events"
+          :key="event.eventId"
+          v-model="events[index]!"
+          @auth-required="onAuthRequired?.()"
         />
       </div>
 

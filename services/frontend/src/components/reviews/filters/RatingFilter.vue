@@ -18,10 +18,8 @@ const ratingOptions = ref<Array<{ label: string; value: number | null }>>(allRat
 
 const filterRatings = (val: string, update: (callback: () => void) => void) => {
   update(() => {
-    console.log(val)
     if (val === '') {
       ratingOptions.value = allRatingOptions
-      console.log(ratingOptions.value)
     } else {
       const needle = val.toLowerCase()
       ratingOptions.value = allRatingOptions.filter(

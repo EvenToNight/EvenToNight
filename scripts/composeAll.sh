@@ -134,6 +134,7 @@ for file in $COMPOSE_FILES; do
     COMPOSE_ARGS+=(-f "$file")
 done
 
+export COMPOSE_PROJECT_NAME="$PROJECT_NAME"
 docker compose \
     --project-name "$PROJECT_NAME" \
     --project-directory . \

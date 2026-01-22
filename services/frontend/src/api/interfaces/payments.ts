@@ -1,5 +1,5 @@
 import type { EventID } from '../types/events'
-import type { EventTicketType, TicketType } from '../types/payments'
+import type { EventTicketType, EventTicketTypeData, TicketType } from '../types/payments'
 
 export interface CreateCheckoutSessionResponse {
   sessionId: string
@@ -20,19 +20,12 @@ export interface CreateCheckoutSessionRequest {
   cancelUrl?: string
 }
 
-export interface CreateEventTicketTypeRequest {
-  type: TicketType
-  description?: string
-  price: number
-  currency?: string
-  quantity: number
-}
-
 export interface PaymentsAPI {
   getTicketTypes(): Promise<TicketType[]>
-  createEventTicketType(
-    eventId: EventID,
-    request: CreateEventTicketTypeRequest
+  createEventTicketType(eventId: EventID, request: EventTicketTypeData): Promise<EventTicketType>
+  updateEventTicketType(
+    ticketTypeId: string,
+    request: EventTicketTypeData
   ): Promise<EventTicketType>
   getEventTicketType(eventId: EventID): Promise<EventTicketType[]>
   createCheckoutSession(

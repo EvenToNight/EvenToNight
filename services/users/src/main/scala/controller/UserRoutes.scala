@@ -75,7 +75,7 @@ class UserRoutes(
     userService.getUsers() match
       case Left(err) => Response(err, 400)
       case Right(users) =>
-        val dtoList = users.map { case (userId, role, user) =>
+        val dtoList = users.map { case (role, userId, user) =>
           user.toUserDTO(userId, role)
         }
         Response(dtoList.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))

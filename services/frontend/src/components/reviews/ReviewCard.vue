@@ -40,7 +40,7 @@ const loadUserInfo = async () => {
   try {
     const user = await api.users.getUserById(props.review.userId)
     userName.value = user.name
-    userAvatar.value = user.avatarUrl || null
+    userAvatar.value = user.avatar || null
   } catch (error) {
     console.error('Failed to load user info:', error)
     userName.value = 'Unknown User'

@@ -23,14 +23,96 @@ interface Props {
   showSearch?: boolean
 }
 
+interface Notification {
+  id: string
+  icon: string
+  iconColor: string
+  message: string
+  timestamp: string
+}
+
 const props = defineProps<Props>()
 const $q = useQuasar()
 const { t } = useI18n()
 const authStore = useAuthStore()
-const { goToHome, goToUserProfile } = useNavigation()
+const { goToHome, goToUserProfile, goToCreateEvent, goToChat } = useNavigation()
+
+const isOrganization = computed(() => authStore.user?.role === 'organization')
+
+// Notifications management
+const notifications = ref<Notification[]>([
+  {
+    id: '1',
+    icon: 'event',
+    iconColor: 'primary',
+    message: 'New event near you',
+    timestamp: '2 hours ago',
+  },
+  {
+    id: '2',
+    icon: 'person_add',
+    iconColor: 'primary',
+    message: 'New follower',
+    timestamp: '5 hours ago',
+  },
+  {
+    id: '3',
+    icon: 'chat',
+    iconColor: 'primary',
+    message: 'New message',
+    timestamp: '1 day ago',
+  },
+])
+const notificationsPage = ref(1)
+const hasMoreNotifications = ref(true)
+const loadingNotifications = ref(false)
+
+const loadMoreNotifications = async (index: number, done: (stop?: boolean) => void) => {
+  if (loadingNotifications.value || !hasMoreNotifications.value) {
+    done(true)
+    return
+  }
+
+  loadingNotifications.value = true
+
+  // Simula chiamata API
+  setTimeout(() => {
+    const newNotifications: Notification[] = []
+    const startId = notifications.value.length + 1
+
+    for (let i = 0; i < 5; i++) {
+      const id = startId + i
+      newNotifications.push({
+        id: String(id),
+        icon: ['event', 'person_add', 'chat', 'favorite', 'info'][i % 5]!,
+        iconColor: 'primary',
+        message: `Notification ${id}`,
+        timestamp: `${id} days ago`,
+      })
+    }
+
+    notifications.value.push(...newNotifications)
+    notificationsPage.value++
+
+    // Simula fine delle notifiche dopo 20 item
+    if (notifications.value.length >= 20) {
+      hasMoreNotifications.value = false
+      done(true)
+    } else {
+      done()
+    }
+
+    loadingNotifications.value = false
+  }, 1000)
+}
 
 const mobileSearchOpen = ref(false) //TODO evaluate usage
 const mobileMenuOpen = ref(false)
+
+const toggleDarkMode = () => {
+  $q.dark.toggle()
+  localStorage.setItem('darkMode', String($q.dark.isActive))
+}
 
 watch(
   () => searchBarHasFocus.value,
@@ -93,14 +175,79 @@ const goToProfile = () => {
           <q-btn flat dense icon="menu" @click="toggleMobileMenu" />
         </template>
         <template v-else>
-          <div v-if="showSearch" class="search-container">
+          <div
+            v-if="showSearch"
+            class="search-container"
+            :class="{ 'search-container--narrow': !authStore.isAuthenticated }"
+          >
             <SearchBar />
           </div>
-          <div v-if="authStore.isAuthenticated">
+          <div
+            v-if="authStore.isAuthenticated"
+            class="authenticated-actions authenticated-actions--left-space"
+          >
+            <!-- Create Event Button (Organizations only) -->
+            <q-btn
+              v-if="isOrganization"
+              flat
+              round
+              icon="add"
+              class="create-event-btn"
+              @click="goToCreateEvent()"
+            >
+              <q-tooltip>Create Event</q-tooltip>
+            </q-btn>
+
+            <!-- Notifications Button -->
+            <q-btn flat round icon="notifications">
+              <q-badge color="red" floating>{{ String(notifications.length) }}</q-badge>
+              <q-tooltip>Notifications</q-tooltip>
+              <q-menu class="notifications-menu">
+                <q-list style="min-width: 300px; max-width: 400px" class="notifications-list">
+                  <q-item-label header>Notifications</q-item-label>
+                  <q-separator />
+                  <q-scroll-area
+                    class="notifications-scroll-area"
+                    :thumb-style="{ width: '4px', borderRadius: '2px', opacity: '0.5' }"
+                  >
+                    <q-infinite-scroll :offset="50" @load="loadMoreNotifications">
+                      <template
+                        v-for="(notification, index) in notifications"
+                        :key="notification.id"
+                      >
+                        <q-item clickable>
+                          <q-item-section avatar>
+                            <q-icon :name="notification.icon" :color="notification.iconColor" />
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label>{{ notification.message }}</q-item-label>
+                            <q-item-label caption>{{ notification.timestamp }}</q-item-label>
+                          </q-item-section>
+                        </q-item>
+                        <q-separator v-if="index < notifications.length - 1" />
+                      </template>
+                      <template #loading>
+                        <div class="row justify-center q-my-md">
+                          <q-spinner-dots color="primary" size="40px" />
+                        </div>
+                      </template>
+                    </q-infinite-scroll>
+                  </q-scroll-area>
+                </q-list>
+              </q-menu>
+            </q-btn>
+
+            <!-- Chat Button -->
+            <q-btn flat round icon="chat_bubble" @click="goToChat()">
+              <q-badge color="red" floating>{{ String(2) }}</q-badge>
+              <q-tooltip>Chat</q-tooltip>
+            </q-btn>
+
+            <!-- User Profile Avatar -->
             <q-btn flat round>
               <q-avatar size="40px">
                 <img
-                  :src="authStore.user?.avatarUrl || '/default-avatar.png'"
+                  :src="authStore.user?.avatar || '/default-avatar.png'"
                   :alt="authStore.user?.name"
                 />
               </q-avatar>
@@ -123,7 +270,16 @@ const goToProfile = () => {
               </q-menu>
             </q-btn>
           </div>
-          <div v-else>
+          <div v-else class="unauthenticated-actions">
+            <q-btn
+              flat
+              round
+              class="theme-toggle"
+              :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+              @click="toggleDarkMode"
+            >
+              <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
+            </q-btn>
             <AuthButtons />
           </div>
         </template>
@@ -135,7 +291,7 @@ const goToProfile = () => {
         <div class="drawer-user-info">
           <q-avatar size="60px">
             <img
-              :src="authStore.user?.avatarUrl || '/default-avatar.png'"
+              :src="authStore.user?.avatar || '/default-avatar.png'"
               :alt="authStore.user?.name"
             />
           </q-avatar>
@@ -155,7 +311,21 @@ const goToProfile = () => {
           />
         </div>
       </div>
-      <div v-else>
+      <div v-else class="drawer-unauthenticated">
+        <div class="drawer-theme-toggle">
+          <div class="toggle-field">
+            <div class="toggle-label">
+              <q-icon :name="$q.dark.isActive ? 'light_mode' : 'dark_mode'" size="24px" />
+              <span>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</span>
+            </div>
+            <q-toggle
+              :model-value="$q.dark.isActive"
+              color="primary"
+              @update:model-value="toggleDarkMode"
+            />
+          </div>
+        </div>
+        <q-separator class="q-my-md" />
         <AuthButtons variant="vertical" />
       </div>
     </DrawerMenu>
@@ -229,7 +399,11 @@ const goToProfile = () => {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  width: clamp(200px, 40vw, 500px);
+  width: clamp(100px, 36vw, 600px);
+
+  &--narrow {
+    width: clamp(100px, 22vw, 220px);
+  }
 }
 
 .drawer-user-info {
@@ -265,5 +439,120 @@ const goToProfile = () => {
 .drawer-user-buttons {
   @include flex-column;
   gap: $spacing-3;
+}
+
+.authenticated-actions {
+  @include flex-center;
+  gap: $spacing-4;
+
+  :deep(.q-badge) {
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.authenticated-actions--left-space {
+  margin-left: $spacing-4;
+}
+
+.unauthenticated-actions {
+  @include flex-center;
+  gap: $spacing-1;
+}
+
+.create-event-btn,
+.notifications-btn,
+.chat-btn {
+  transition: all $transition-base;
+
+  :deep(.q-icon) {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover :deep(.q-icon) {
+    transform: scale(1.1);
+  }
+}
+
+.create-event-btn {
+  &:hover :deep(.q-icon) {
+    transform: rotate(90deg);
+  }
+}
+
+.notifications-btn,
+.chat-btn {
+  position: relative;
+
+  :deep(.q-badge) {
+    font-size: 10px;
+    min-width: 18px;
+    height: 18px;
+    padding: 2px 4px;
+    font-weight: $font-weight-semibold;
+  }
+}
+
+.notifications-list,
+.profile-menu-list {
+  :deep(.q-item) {
+    @include dark-mode {
+      background: $color-background-dark;
+      &:hover {
+        background: color-alpha($color-background-dark, 0.5);
+      }
+    }
+  }
+}
+
+.notifications-scroll-area {
+  height: 400px;
+  max-height: 60vh;
+}
+
+.theme-toggle {
+  transition: all $transition-base;
+
+  :deep(.q-icon) {
+    transition: transform 0.3s ease;
+  }
+
+  &:hover :deep(.q-icon) {
+    transform: rotate(20deg);
+  }
+}
+
+.drawer-unauthenticated {
+  .drawer-theme-toggle {
+    padding: $spacing-2 0;
+  }
+
+  .toggle-field {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: $spacing-2 0;
+  }
+
+  .toggle-label {
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    color: $color-text-primary;
+
+    @include dark-mode {
+      color: $color-white;
+    }
+
+    .q-icon {
+      color: $color-gray-600;
+      transition: transform 0.3s ease;
+
+      @include dark-mode {
+        color: $color-gray-400;
+      }
+    }
+  }
 }
 </style>

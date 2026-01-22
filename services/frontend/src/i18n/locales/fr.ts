@@ -1,4 +1,8 @@
 export default {
+  meta: {
+    description:
+      "Trouvez l'événement pour vous. Recherchez les événements à venir et découvrez des expériences incroyables.",
+  },
   date: 'Date',
   time: 'Temps',
   location: 'Emplacement',

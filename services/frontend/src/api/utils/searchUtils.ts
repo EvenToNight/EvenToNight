@@ -93,7 +93,7 @@ const processUserSearchResults = async (users: User[], query: string): Promise<S
         type: user.role,
         id: user.id,
         name: user.name,
-        avatarUrl: user.avatarUrl,
+        avatarUrl: user.avatar,
         relevance: relevance,
       }
     }
@@ -109,8 +109,9 @@ export const getSearchResult = async (
 ): Promise<SearchResult[]> => {
   const [eventsResponse, usersResponse] = await Promise.all([
     api.events.searchEvents({ title: query }),
-    api.users.searchUsers({ name: query }),
+    api.users.searchUsers({ prefix: query }),
   ])
+  console.log('User search response:', usersResponse)
   const processedEvents = await processEventSearchResults(eventsResponse.items, query)
   const processedUsers = await processUserSearchResults(usersResponse.items, query)
   const results: SearchResult[] = processedEvents.concat(processedUsers)

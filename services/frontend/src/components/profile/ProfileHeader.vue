@@ -15,11 +15,11 @@ import { api } from '@/api'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 interface Props {
-  user: User
   reviewsStatistics?: OrganizationReviewsStatistics
 }
 
-const props = defineProps<Props>()
+const user = defineModel<User>({ required: true })
+defineProps<Props>()
 const isFollowing = ref(false)
 
 const userInteractionsInfo = ref<UserInteractionsInfo>({
@@ -36,30 +36,31 @@ const { t } = useI18n()
 const authStore = useAuthStore()
 
 const avatarCropUploadRef = ref<InstanceType<typeof AvatarCropUpload> | null>(null)
-const newAvatar = ref<File | null>(null)
+const currentAvatarUrl = ref<string | undefined>(undefined)
 
 const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
-const isOwnProfile = computed(() => authStore.isOwnProfile(props.user.id))
+const isOwnProfile = computed(() => authStore.isOwnProfile(user.value.id))
 const isOrganization = computed(() => {
-  return props.user.role === 'organization'
+  return user.value.role === 'organization'
 })
 
 const defaultIcon = computed(() => {
   return isOrganization.value ? 'business' : 'person'
 })
 
-//TODO: handle loading
 onMounted(async () => {
+  console.log('ProfileHeader mounted for user:', { ...user.value })
+  currentAvatarUrl.value = user.value.avatar
   if (authStore.isAuthenticated && !isOwnProfile.value && authStore.user?.id) {
     try {
-      isFollowing.value = await api.interactions.isFollowing(authStore.user.id, props.user.id)
+      isFollowing.value = await api.interactions.isFollowing(authStore.user.id, user.value.id)
     } catch (error) {
       console.error('Failed to load following status:', error)
     }
   }
   const [followers, following] = await Promise.all([
-    api.interactions.followers(props.user.id),
-    api.interactions.following(props.user.id),
+    api.interactions.followers(user.value.id),
+    api.interactions.following(user.value.id),
   ])
 
   const userInteractionsInfoResponse = {
@@ -77,11 +78,11 @@ const handleFollowToggle = async () => {
 
   try {
     if (isFollowing.value) {
-      await api.interactions.unfollowUser(authStore.user.id, props.user.id)
+      await api.interactions.unfollowUser(authStore.user.id, user.value.id)
       isFollowing.value = false
       userInteractionsInfo.value.followers -= 1
     } else {
-      await api.interactions.followUser(authStore.user.id, props.user.id)
+      await api.interactions.followUser(authStore.user.id, user.value.id)
       isFollowing.value = true
       userInteractionsInfo.value.followers += 1
     }
@@ -109,9 +110,12 @@ const handleAvatarError = (message: string) => {
 
 const handleAvatarChange = async (file: File | null) => {
   if (!file) return
+  URL.revokeObjectURL(currentAvatarUrl.value || '')
+  const localPreviewUrl = URL.createObjectURL(file)
+  currentAvatarUrl.value = localPreviewUrl
 
-  // TODO: Implement API call to update avatar
-  // await api.users.updateAvatar(authStore.user.id, file)
+  const updatedUser = await authStore.updateUserById(authStore.user!.id, { avatarFile: file })
+  user.value.avatar = updatedUser.avatar
 
   $q.notify({
     color: 'positive',
@@ -126,10 +130,9 @@ const handleAvatarChange = async (file: File | null) => {
     <div v-if="isOwnProfile" style="display: none">
       <AvatarCropUpload
         ref="avatarCropUploadRef"
-        v-model="newAvatar"
-        :preview-url="user.avatarUrl"
+        :preview-url="currentAvatarUrl"
         :default-icon="defaultIcon"
-        @update:model-value="handleAvatarChange"
+        @update:imageFile="handleAvatarChange"
         @error="handleAvatarError"
       />
     </div>
@@ -137,8 +140,8 @@ const handleAvatarChange = async (file: File | null) => {
     <div class="profile-header">
       <div class="avatar-container" :class="{ clickable: isOwnProfile }" @click="handleAvatarClick">
         <img
-          v-if="user.avatarUrl"
-          :src="user.avatarUrl"
+          v-if="currentAvatarUrl"
+          :src="currentAvatarUrl"
           :alt="t('userProfile.userAvatarAlt')"
           class="profile-avatar"
         />
@@ -150,7 +153,10 @@ const handleAvatarChange = async (file: File | null) => {
 
       <template v-if="isMobile">
         <div class="user-info">
-          <h1 class="user-name">{{ user.name }}</h1>
+          <div class="name-username-container">
+            <h1 class="user-name">{{ user.name }}</h1>
+            <p class="user-username">@{{ user.username }}</p>
+          </div>
           <UserInfo :user="user" :user-interactions-info="userInteractionsInfo" />
           <template v-if="isOrganization && reviewsStatistics">
             <RatingInfo :reviews-statistics="reviewsStatistics" />
@@ -168,7 +174,10 @@ const handleAvatarChange = async (file: File | null) => {
       <template v-else>
         <div class="user-info">
           <div class="name-action-row">
-            <h1 class="user-name">{{ user.name }}</h1>
+            <div class="name-username-container">
+              <h1 class="user-name">{{ user.name }}</h1>
+              <p class="user-username">@{{ user.username }}</p>
+            </div>
             <ProfileActions
               :is-own-profile="isOwnProfile"
               :is-organization="isOrganization"
@@ -280,6 +289,10 @@ const handleAvatarChange = async (file: File | null) => {
   @include flex-between;
 }
 
+.name-username-container {
+  @include flex-column;
+}
+
 .user-name {
   font-size: $font-size-4xl;
   font-weight: $font-weight-bold;
@@ -288,6 +301,21 @@ const handleAvatarChange = async (file: File | null) => {
 
   @media (max-width: $breakpoint-mobile) {
     font-size: $font-size-xl;
+    text-align: center;
+  }
+}
+
+.user-username {
+  font-size: $font-size-base;
+  color: $color-gray-600;
+  margin: $spacing-1 0 0 0;
+  font-weight: $font-weight-normal;
+
+  @include dark-mode {
+    color: $color-gray-400;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
     text-align: center;
   }
 }

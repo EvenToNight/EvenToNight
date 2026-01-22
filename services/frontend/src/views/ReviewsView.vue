@@ -50,7 +50,7 @@ const loadOrganizationInfo = async () => {
   try {
     const user = await api.users.getUserById(organizationId.value)
     organizationName.value = user.name
-    organizationAvatar.value = user.avatarUrl || ''
+    organizationAvatar.value = user.avatar || ''
   } catch (error) {
     console.error('Failed to load organization:', error)
   }
