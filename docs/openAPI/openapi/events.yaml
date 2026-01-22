@@ -12,6 +12,7 @@ paths:
         and optionally a `poster` file if the event is in DRAFT status.
         If the event status is DRAFT, the poster is optional, and also all the fields in 'event' JSON are optional.
         If the event status is not DRAFT, both the event data and the poster file are required.
+        The creator and collaborators must exist as organizations.
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
@@ -96,6 +97,7 @@ paths:
                       - "Invalid JSON format: expected } got , at index 45"
                       - "Invalid request: Missing required field 'title'"
                       - "Event validation failed: Invalid date format"
+                      - "Only organizations can create events. Creator ID 'user-123' is not an organization."
       tags:
         - Event Command API
 
