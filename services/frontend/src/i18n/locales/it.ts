@@ -84,8 +84,9 @@ export default {
   footer: {
     about: 'Chi siamo',
     events: 'Eventi',
-    contact: 'Contatto',
-    privacy: 'politica sulla riservatezza',
+    contact: 'Contatti',
+    privacy: 'Privacy Policy',
+    terms: 'Termini e Condizioni',
     copyright: 'Tutti i diritti riservati.',
   },
 

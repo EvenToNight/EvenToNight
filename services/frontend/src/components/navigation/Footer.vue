@@ -22,9 +22,9 @@ const selectLanguage = (langCode: string) => {
 
         <div class="footer-links">
           <a href="#" class="footer-link">{{ t('footer.about') }}</a>
-          <a href="#" class="footer-link">{{ t('footer.events') }}</a>
           <a href="#" class="footer-link">{{ t('footer.contact') }}</a>
           <a href="#" class="footer-link">{{ t('footer.privacy') }}</a>
+          <a href="#" class="footer-link">{{ t('footer.terms') }}</a>
         </div>
 
         <div class="footer-language">
