@@ -67,11 +67,16 @@ export class ConversationsController {
 
   @Post('conversations/:conversationId/messages')
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
   async sendMessage(
     @Param('userId') userId: string,
     @Param('conversationId') conversationId: string,
     @Body() sendMessageDto: SendMessageDto,
+    @CurrentUser('userId') currentUserId: string,
   ) {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException('You can only send messages for yourself');
+    }
     const message = await this.conversationsService.sendMessageToConversation(
       userId,
       conversationId,
