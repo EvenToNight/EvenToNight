@@ -3,7 +3,7 @@ package controller
 import cask.MainRoutes
 import cask.main.Routes
 import io.undertow.server.HttpHandler
-import middleware.CorsHandler
+import middleware.cors.CorsHandler
 import service.EventService
 
 import routes.*
