@@ -50,20 +50,12 @@ export class TicketRepositoryImpl implements TicketRepository {
   async findByUserIdAndEventId(
     userId: string,
     eventId: string,
-    pagination?: PaginationParams,
-  ): Promise<PaginatedResult<Ticket>> {
-    const totalItems = await this.ticketModel
-      .countDocuments({ userId, eventId })
-      .exec();
-    pagination = Pagination.parse(pagination?.limit, pagination?.offset);
+  ): Promise<Ticket[]> {
     const documents = await this.ticketModel
       .find({ userId, eventId })
       .sort({ purchaseDate: -1 })
-      .limit(pagination.limit)
-      .skip(pagination.offset)
       .exec();
-    const items = documents.map((doc) => TicketMapper.toDomain(doc));
-    return Pagination.createResult(items, totalItems, pagination);
+    return documents.map((doc) => TicketMapper.toDomain(doc));
   }
 
   async findEventsByUserId(

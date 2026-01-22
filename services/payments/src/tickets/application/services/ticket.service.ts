@@ -60,16 +60,8 @@ export class TicketService {
     return this.ticketRepository.findByUserId(userId, pagination);
   }
 
-  findByUserIdAndEventId(
-    userId: string,
-    eventId: string,
-    pagination: PaginationParams,
-  ): Promise<PaginatedResult<Ticket>> {
-    return this.ticketRepository.findByUserIdAndEventId(
-      userId,
-      eventId,
-      pagination,
-    );
+  findByUserIdAndEventId(userId: string, eventId: string): Promise<Ticket[]> {
+    return this.ticketRepository.findByUserIdAndEventId(userId, eventId);
   }
 
   findEventsByUserId(

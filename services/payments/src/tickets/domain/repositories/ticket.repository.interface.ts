@@ -16,11 +16,7 @@ export interface TicketRepository {
     eventId: string,
     pagination?: PaginationParams,
   ): Promise<PaginatedResult<Ticket>>;
-  findByUserIdAndEventId(
-    userId: string,
-    eventId: string,
-    pagination?: PaginationParams,
-  ): Promise<PaginatedResult<Ticket>>;
+  findByUserIdAndEventId(userId: string, eventId: string): Promise<Ticket[]>;
   findEventsByUserId(
     userId: string,
     pagination?: PaginationParams,
