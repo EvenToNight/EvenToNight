@@ -2,7 +2,7 @@ package service
 
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventCommand}
 import domain.models.{Event, EventStatus, EventTag, Location}
-import infrastructure.db.{EventRepository, MongoEventRepository}
+import infrastructure.db.{EventRepository, MongoEventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.{EventPublisher, MockEventPublisher}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -38,9 +38,10 @@ class FailingEventRepository extends EventRepository:
     Left(new RuntimeException("Database connection failed"))
 
 class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
-  var repo: EventRepository       = uninitialized
-  var publisher: EventPublisher   = uninitialized
-  var service: DomainEventService = uninitialized
+  var repo: EventRepository                 = uninitialized
+  var userRepo: MongoUserMetadataRepository = uninitialized
+  var publisher: EventPublisher             = uninitialized
+  var service: DomainEventService           = uninitialized
 
   override def beforeEach(): Unit =
     super.beforeEach()
@@ -49,8 +50,13 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       "eventonight_test",
       messageBroker = new MockEventPublisher()
     )
+    userRepo = new MongoUserMetadataRepository(
+      "mongodb://localhost:27017",
+      "eventonight_test",
+      messageBroker = new MockEventPublisher()
+    )
     publisher = new MockEventPublisher()
-    service = new DomainEventService(repo, publisher)
+    service = new DomainEventService(repo, userRepo, publisher)
 
   private def validCreateEventCommand(
       title: Option[String] = Some("Test Event"),
@@ -108,7 +114,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
 
   it should "fail when database save operation fails" in:
     val failingRepo    = new FailingEventRepository()
-    val failingService = new DomainEventService(failingRepo, publisher)
+    val failingService = new DomainEventService(failingRepo, userRepo, publisher)
 
     val cmd    = validCreateEventCommand()
     val result = failingService.execCommand(cmd)
@@ -147,7 +153,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
 
   it should "fail when database update operation fails" in:
     val failingRepo    = new FailingEventRepository()
-    val failingService = new DomainEventService(failingRepo, publisher)
+    val failingService = new DomainEventService(failingRepo, userRepo, publisher)
     val updateCmd = validUpdateEventCommand(
       eventId = "some-event-id",
       title = Some("Updated Event Title")
@@ -212,7 +218,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
 
   it should "fail when database delete operation fails" in:
     val failingRepo    = new FailingEventRepository()
-    val failingService = new DomainEventService(failingRepo, publisher)
+    val failingService = new DomainEventService(failingRepo, userRepo, publisher)
     val deleteCmd      = DeleteEventCommand("some-event-id")
     val deleteResult   = failingService.execCommand(deleteCmd)
     deleteResult.isLeft shouldBe true

@@ -5,37 +5,51 @@ import domain.events.{EventDeleted, EventPublished, EventUpdated}
 import domain.models.{Event, EventStatus}
 import infrastructure.db.{EventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.EventPublisher
+import utils.Utils
 
-class DomainEventService(eventRepository: EventRepository, userMetadataRepository: MongoUserMetadataRepository, publisher: EventPublisher):
+class DomainEventService(
+    eventRepository: EventRepository,
+    userMetadataRepository: MongoUserMetadataRepository,
+    publisher: EventPublisher
+):
 
   def execCommand(cmd: CreateEventCommand): Either[String, String] =
-    val newEvent =
-      Event.create(
-        title = cmd.title,
-        description = cmd.description,
-        poster = cmd.poster,
-        tags = cmd.tags,
-        location = cmd.location,
-        date = cmd.date,
-        price = cmd.price,
-        status = cmd.status,
-        creatorId = cmd.creatorId,
-        collaboratorIds = cmd.collaboratorIds
-      )
-    eventRepository.save(newEvent) match
-      case Left(_) =>
-        Left("Failed to save new event")
-      case Right(_) =>
-        if cmd.status == EventStatus.PUBLISHED then
-          publisher.publish(
-            EventPublished(
-              eventId = newEvent._id,
+    if !Utils.checkUserIsOrganization(cmd.creatorId, userMetadataRepository) then
+      Left(s"Only organizations can create events. ${cmd.creatorId} is not an organization.")
+    else
+      cmd.collaboratorIds.getOrElse(List()).find(collaboratorId =>
+        !Utils.checkUserIsOrganization(collaboratorId, userMetadataRepository)
+      ) match
+        case Some(collaboratorId) =>
+          Left(s"Only organizations can be collaborators. $collaboratorId is not an organization.")
+        case None =>
+          val newEvent =
+            Event.create(
+              title = cmd.title,
+              description = cmd.description,
+              poster = cmd.poster,
+              tags = cmd.tags,
+              location = cmd.location,
+              date = cmd.date,
+              price = cmd.price,
+              status = cmd.status,
               creatorId = cmd.creatorId,
-              collaboratorIds = cmd.collaboratorIds,
-              name = cmd.title.getOrElse("Unnamed Event")
+              collaboratorIds = cmd.collaboratorIds
             )
-          )
-        Right(newEvent._id)
+          eventRepository.save(newEvent) match
+            case Left(_) =>
+              Left("Failed to save new event")
+            case Right(_) =>
+              if cmd.status == EventStatus.PUBLISHED then
+                publisher.publish(
+                  EventPublished(
+                    eventId = newEvent._id,
+                    creatorId = cmd.creatorId,
+                    collaboratorIds = cmd.collaboratorIds,
+                    name = cmd.title.getOrElse("Unnamed Event")
+                  )
+                )
+              Right(newEvent._id)
 
   def execCommand(cmd: UpdateEventCommand): Either[String, Unit] =
     eventRepository.findById(cmd.eventId) match
