@@ -3,10 +3,10 @@ package service
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventCommand}
 import domain.events.{EventDeleted, EventPublished, EventUpdated}
 import domain.models.{Event, EventStatus}
-import infrastructure.db.EventRepository
+import infrastructure.db.{EventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.EventPublisher
 
-class DomainEventService(repo: EventRepository, publisher: EventPublisher):
+class DomainEventService(eventRepository: EventRepository, userMetadataRepository: MongoUserMetadataRepository, publisher: EventPublisher):
 
   def execCommand(cmd: CreateEventCommand): Either[String, String] =
     val newEvent =
@@ -22,7 +22,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         creatorId = cmd.creatorId,
         collaboratorIds = cmd.collaboratorIds
       )
-    repo.save(newEvent) match
+    eventRepository.save(newEvent) match
       case Left(_) =>
         Left("Failed to save new event")
       case Right(_) =>
@@ -38,7 +38,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         Right(newEvent._id)
 
   def execCommand(cmd: UpdateEventCommand): Either[String, Unit] =
-    repo.findById(cmd.eventId) match
+    eventRepository.findById(cmd.eventId) match
       case Some(event) =>
         val updatedEvent = event.copy(
           title = cmd.title,
@@ -50,7 +50,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
           status = cmd.status,
           collaboratorIds = cmd.collaboratorIds.orElse(event.collaboratorIds)
         )
-        repo.update(updatedEvent) match
+        eventRepository.update(updatedEvent) match
           case Left(_) =>
             Left(s"Failed to update event with id ${cmd.eventId}")
           case Right(_) =>
@@ -75,13 +75,13 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
         Left(s"Event with id ${cmd.eventId} not found")
 
   def execCommand(cmd: DeleteEventCommand): Either[String, Unit] =
-    repo.findById(cmd.eventId) match
+    eventRepository.findById(cmd.eventId) match
       case None =>
         Left(s"Event with id ${cmd.eventId} not found")
       case Some(event) =>
         event.status match
           case EventStatus.PUBLISHED =>
-            repo.update(event.copy(status = EventStatus.CANCELLED)) match
+            eventRepository.update(event.copy(status = EventStatus.CANCELLED)) match
               case Left(_) =>
                 Left(s"Failed to cancel event with id ${cmd.eventId}")
               case Right(_) =>
@@ -92,7 +92,7 @@ class DomainEventService(repo: EventRepository, publisher: EventPublisher):
                 )
                 Right(())
           case _ =>
-            repo.delete(cmd.eventId) match
+            eventRepository.delete(cmd.eventId) match
               case Left(_) =>
                 Left(s"Failed to delete event with id ${cmd.eventId}")
               case Right(_) =>

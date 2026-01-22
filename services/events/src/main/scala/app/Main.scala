@@ -33,7 +33,7 @@ object Main extends App:
     messageBroker
   )
 
-  val eventService: EventService = new EventService(eventDatabase, messageBroker)
+  val eventService: EventService = new EventService(eventDatabase, userDatabase, messageBroker)
 
   val externalEventHandler: ExternalEventHandler = new ExternalEventHandler(userDatabase)
   val messageConsumer: RabbitEventConsumer = new RabbitEventConsumer(

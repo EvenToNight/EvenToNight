@@ -12,15 +12,16 @@ import domain.commands.{
 }
 import domain.commands.validators.Validator
 import domain.commands.validators.ValidatorsInstances.given
-import infrastructure.db.EventRepository
+import infrastructure.db.{EventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.EventPublisher
 
 class EventService(
     eventRepository: EventRepository,
+    userMetadataRepository: MongoUserMetadataRepository,
     publisher: EventPublisher
 ):
   val eventQueryService: EventQueryService    = EventQueryService(eventRepository)
-  val eventCommandService: DomainEventService = DomainEventService(eventRepository, publisher)
+  val eventCommandService: DomainEventService = DomainEventService(eventRepository, userMetadataRepository, publisher)
 
   def handleCommand(cmd: Commands): Either[String, Any] =
     cmd match
