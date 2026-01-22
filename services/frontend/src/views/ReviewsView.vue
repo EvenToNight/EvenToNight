@@ -16,7 +16,7 @@ import type { EventID } from '@/api/types/events'
 import type { Rating } from '@/api/types/interaction'
 import { useAuthStore } from '@/stores/auth'
 
-const { query, params, goToUserProfile } = useNavigation()
+const { query, params, goToUserProfile, goToSettings } = useNavigation()
 const authStore = useAuthStore()
 const organizationId = computed(() => params.organizationId as string)
 const tempEventId = ref<EventID | null>((query.eventId as EventID) || null)
@@ -172,7 +172,11 @@ onMounted(() => {
               <span class="event-title">Lascia una recensione</span>
             </div>
             <span v-if="canUserLeaveReview && userHasReviews" class="separator">oppure</span>
-            <span v-if="userHasReviews" class="modify-link" @click="showReviewDialog = true">
+            <span
+              v-if="userHasReviews"
+              class="modify-link"
+              @click="goToSettings(false, '#reviews')"
+            >
               modifica le tue recensioni
             </span>
           </div>
