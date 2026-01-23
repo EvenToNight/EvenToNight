@@ -111,6 +111,17 @@ paths:
                     type: string
                     description: Error message
                     example: "Unauthorized: Missing or invalid authentication token"
+        '403':
+          description: Forbidden - creator ID does not match authenticated user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:  
+                    type: string
+                    description: Error message
+                    example: "Forbidden: Creator ID does not match authenticated user"
       tags:
         - Event Command API
 
@@ -716,6 +727,8 @@ paths:
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
