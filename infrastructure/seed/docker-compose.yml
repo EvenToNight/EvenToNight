@@ -1,0 +1,14 @@
+services:
+  drop-db:
+    build: .
+    networks:
+      - eventonight-network
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - USER_HOST=http://users:9000
+
+networks:
+  eventonight-network:
+    external: true
+    name: eventonight-frontend-environment_eventonight-network

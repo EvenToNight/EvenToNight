@@ -1,6 +1,13 @@
 import { UserSeed, UserSeedSchema } from "../schemas/user.schema";
 const mediaBaseUrl = process.env.MEDIA_BASE_URL || "localhost:9020";
 
+const payments_seed_users = [
+  username: "john_doe",
+  language: "it",
+]
+
+
+
 export const usersSeedData: UserSeed[] = [
   // ---------- MEMBERS ----------
   UserSeedSchema.parse({

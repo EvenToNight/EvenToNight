@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "seed:generate": "tsx generateSeed.ts",
+    "seed": "tsx seed.ts",
     "check": "tsc --noEmit"
   },
   "dependencies": {
