@@ -13,6 +13,12 @@ export class EventDocument {
 
   @Prop({ required: true })
   creatorId: string;
+
+  @Prop({ required: true })
+  date: Date;
+
+  @Prop({ required: true })
+  status: string;
 }
 
 export type EventDocumentType = HydratedDocument<EventDocument>;
