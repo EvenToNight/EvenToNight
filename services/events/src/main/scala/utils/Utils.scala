@@ -74,9 +74,9 @@ object Utils:
     val date: Option[LocalDateTime] = eventData.obj.get("date") match
       case Some(d) => Some(LocalDateTime.parse(d.str))
       case None    => None
-    val status                = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
-    val creatorId             = eventData("creatorId").str
-    val collaboratorIds       = eventData.obj.get("collaboratorIds").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
+    val status          = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
+    val creatorId       = eventData("creatorId").str
+    val collaboratorIds = eventData.obj.get("collaboratorIds").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
     CreateEventCommand(
       title = title,

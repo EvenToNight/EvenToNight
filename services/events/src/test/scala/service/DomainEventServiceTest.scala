@@ -31,7 +31,6 @@ class FailingEventRepository extends EventRepository:
       organizationId: Option[String],
       city: Option[String],
       location_name: Option[String],
-      priceRange: Option[(Double, Double)],
       sortBy: Option[String],
       sortOrder: Option[String]
   ): Either[Throwable, (List[Event], Boolean)] =
@@ -79,13 +78,12 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
         lon = Some(90.0),
         link = Some("http://example.com/location")
       )),
-      price: Option[Double] = Some(15.0),
       date: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(10)),
       status: EventStatus = EventStatus.DRAFT,
       creatorId: String = creatorId,
       collaboratorIds: Option[List[String]] = None
   ): CreateEventCommand =
-    CreateEventCommand(title, description, poster, tags, location, date, price, status, creatorId, collaboratorIds)
+    CreateEventCommand(title, description, poster, tags, location, date, status, creatorId, collaboratorIds)
 
   private def validUpdateEventCommand(
       eventId: String,
@@ -94,7 +92,6 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       tags: Option[List[EventTag]] = None,
       location: Option[Location] = None,
       date: Option[LocalDateTime] = None,
-      price: Option[Double] = None,
       status: EventStatus = EventStatus.DRAFT,
       collaboratorIds: Option[List[String]] = None
   ): UpdateEventCommand =
@@ -105,7 +102,6 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       tags,
       location,
       date,
-      price,
       status,
       collaboratorIds
     )
@@ -140,8 +136,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     )
     val updateCmd = validUpdateEventCommand(
       eventId = eventId,
-      title = Some("Updated Event Title"),
-      price = Some(25.0)
+      title = Some("Updated Event Title")
     )
     val updateResult = service.execCommand(updateCmd)
     updateResult.isRight shouldBe true

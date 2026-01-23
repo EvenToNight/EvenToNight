@@ -164,7 +164,7 @@ case class MongoEventRepository(
       endDate: Option[String],
       organizationId: Option[String],
       city: Option[String],
-      location_name: Option[String],
+      location_name: Option[String]
   ): org.bson.conversions.Bson =
     val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
 

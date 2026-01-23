@@ -56,13 +56,12 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
         lon = Some(90.0),
         link = Some("http://example.com/location")
       )),
-      price: Option[Double] = Some(15.0),
       date: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(10)),
       status: EventStatus = EventStatus.DRAFT,
       creatorId: String = "creator-123",
       collaboratorIds: Option[List[String]] = None
   ): CreateEventCommand =
-    CreateEventCommand(title, description, poster, tags, location, date, price, status, creatorId, collaboratorIds)
+    CreateEventCommand(title, description, poster, tags, location, date, status, creatorId, collaboratorIds)
 
   private def validGetEventCommand(eventId: String = "event-123"): GetEventCommand =
     GetEventCommand(eventId)
@@ -83,11 +82,10 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       tags: Option[List[EventTag]] = None,
       location: Option[Location] = None,
       date: Option[LocalDateTime] = None,
-      price: Option[Double] = None,
       status: EventStatus = EventStatus.DRAFT,
       collaboratorIds: Option[List[String]] = None
   ): UpdateEventCommand =
-    UpdateEventCommand(eventId, title, description, tags, location, date, price, status, collaboratorIds)
+    UpdateEventCommand(eventId, title, description, tags, location, date, status, collaboratorIds)
 
   private def validDeleteEventCommand(eventId: String): DeleteEventCommand =
     DeleteEventCommand(eventId)
@@ -103,7 +101,6 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       organizationId: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None,
-      priceRange: Option[(Double, Double)] = None,
       sortBy: Option[String] = None,
       sortOrder: Option[String] = None
   ): GetFilteredEventsCommand =
@@ -118,7 +115,6 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       organizationId,
       city,
       location_name,
-      priceRange,
       sortBy,
       sortOrder
     )
@@ -253,8 +249,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       case _                 => fail("Expected event ID as String")
     val command = validUpdateEventCommand(
       eventId = eventId,
-      title = Some("Updated Event Title"),
-      price = Some(20.0)
+      title = Some("Updated Event Title")
     )
     val result = service.handleCommand(command)
     result.isRight shouldBe true
