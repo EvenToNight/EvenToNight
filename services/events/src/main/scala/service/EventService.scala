@@ -39,3 +39,8 @@ class EventService(
     Validator.validateCommand(cmd) match
       case Left(errors) => Left(errors.mkString(", "))
       case Right(_)     => f(cmd)
+
+  def getEventInfo(eventId: String): Either[String, domain.models.Event] =
+    eventRepository.findById(eventId) match
+      case Some(event) => Right(event)
+      case None        => Left(s"Event with id $eventId not found")
