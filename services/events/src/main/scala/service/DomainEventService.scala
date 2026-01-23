@@ -52,42 +52,48 @@ class DomainEventService(
               Right(newEvent._id)
 
   def execCommand(cmd: UpdateEventCommand): Either[String, Unit] =
-    eventRepository.findById(cmd.eventId) match
-      case Some(event) =>
-        val updatedEvent = event.copy(
-          title = cmd.title,
-          description = cmd.description,
-          tags = cmd.tags,
-          location = cmd.location,
-          date = cmd.date,
-          price = cmd.price,
-          status = cmd.status,
-          collaboratorIds = cmd.collaboratorIds.orElse(event.collaboratorIds)
-        )
-        eventRepository.update(updatedEvent) match
-          case Left(_) =>
-            Left(s"Failed to update event with id ${cmd.eventId}")
-          case Right(_) =>
-            if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
-              publisher.publish(
-                EventPublished(
-                  eventId = updatedEvent._id,
-                  creatorId = updatedEvent.creatorId,
-                  collaboratorIds = updatedEvent.collaboratorIds,
-                  name = updatedEvent.title.getOrElse("Unnamed Event")
-                )
-              )
-            else
-              publisher.publish(
-                EventUpdated(
-                  eventId = updatedEvent._id,
-                  collaboratorIds = updatedEvent.collaboratorIds,
-                  name = updatedEvent.title.getOrElse("Unnamed Event")
-                )
-              )
-            Right(())
+    cmd.collaboratorIds.getOrElse(List()).find(collaboratorId =>
+      !Utils.checkUserIsOrganization(collaboratorId, userMetadataRepository)
+    ) match
+      case Some(collaboratorId) =>
+        Left(s"Only organizations can be collaborators. $collaboratorId is not an organization.")
       case None =>
-        Left(s"Event with id ${cmd.eventId} not found")
+        eventRepository.findById(cmd.eventId) match
+          case Some(event) =>
+            val updatedEvent = event.copy(
+              title = cmd.title,
+              description = cmd.description,
+              tags = cmd.tags,
+              location = cmd.location,
+              date = cmd.date,
+              price = cmd.price,
+              status = cmd.status,
+              collaboratorIds = cmd.collaboratorIds.orElse(event.collaboratorIds)
+            )
+            eventRepository.update(updatedEvent) match
+              case Left(_) =>
+                Left(s"Failed to update event with id ${cmd.eventId}")
+              case Right(_) =>
+                if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
+                  publisher.publish(
+                    EventPublished(
+                      eventId = updatedEvent._id,
+                      creatorId = updatedEvent.creatorId,
+                      collaboratorIds = updatedEvent.collaboratorIds,
+                      name = updatedEvent.title.getOrElse("Unnamed Event")
+                    )
+                  )
+                else
+                  publisher.publish(
+                    EventUpdated(
+                      eventId = updatedEvent._id,
+                      collaboratorIds = updatedEvent.collaboratorIds,
+                      name = updatedEvent.title.getOrElse("Unnamed Event")
+                    )
+                  )
+                Right(())
+          case None =>
+            Left(s"Event with id ${cmd.eventId} not found")
 
   def execCommand(cmd: DeleteEventCommand): Either[String, Unit] =
     eventRepository.findById(cmd.eventId) match
