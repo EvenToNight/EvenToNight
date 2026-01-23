@@ -31,7 +31,6 @@ class DomainEventService(
               tags = cmd.tags,
               location = cmd.location,
               date = cmd.date,
-              price = cmd.price,
               status = cmd.status,
               creatorId = cmd.creatorId,
               collaboratorIds = cmd.collaboratorIds
@@ -66,7 +65,6 @@ class DomainEventService(
               tags = cmd.tags,
               location = cmd.location,
               date = cmd.date,
-              price = cmd.price,
               status = cmd.status,
               collaboratorIds = cmd.collaboratorIds.orElse(event.collaboratorIds)
             )
