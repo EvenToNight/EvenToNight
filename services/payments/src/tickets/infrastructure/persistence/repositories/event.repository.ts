@@ -5,6 +5,8 @@ import { EventRepository } from 'src/tickets/domain/repositories/event.repositor
 import { EventMapper } from '../mappers/event.mapper';
 import { EventDocument } from '../schemas/event.schema';
 import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
+import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 
 @Injectable()
 export class EventRepositoryImpl implements EventRepository {
@@ -25,13 +27,25 @@ export class EventRepositoryImpl implements EventRepository {
     return document ? EventMapper.toDomain(document) : null;
   }
 
-  async update(event: Event): Promise<Event> {
-    const document = EventMapper.toPersistence(event);
+  async update(event: {
+    eventId: EventId;
+    date: Date;
+    status: EventStatus;
+  }): Promise<Event> {
     const updated = await this.eventModel
-      .findByIdAndUpdate(event.getId().toString(), document, { new: true })
+      .findByIdAndUpdate(
+        event.eventId.toString(),
+        {
+          $set: {
+            date: event.date,
+            status: event.status.toString(),
+          },
+        },
+        { new: true },
+      )
       .exec();
     if (!updated) {
-      throw new Error(`Event with id ${event.getId().toString()} not found`);
+      throw new Error(`Event with id ${event.eventId.toString()} not found`);
     }
     return EventMapper.toDomain(updated);
   }

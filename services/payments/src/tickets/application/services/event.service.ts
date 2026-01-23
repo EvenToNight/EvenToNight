@@ -30,7 +30,11 @@ export class EventService {
     if (!(await this.eventRepository.findById(eventId))) {
       return this.eventRepository.save(event);
     }
-    return this.eventRepository.update(event);
+    return this.eventRepository.update({
+      eventId: EventId.fromString(eventId),
+      date,
+      status: EventStatus.fromString(status),
+    });
   }
 
   async findById(id: string): Promise<Event | null> {
