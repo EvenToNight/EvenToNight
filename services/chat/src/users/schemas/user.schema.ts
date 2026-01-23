@@ -8,10 +8,10 @@ export enum UserRole {
   ORGANIZATION = 'organization',
 }
 
-@Schema({ timestamps: true })
+@Schema({ timestamps: true, versionKey: false })
 export class User {
   @Prop({ required: true, unique: true })
-  userId: string;
+  id: string;
 
   @Prop({ required: true, enum: UserRole })
   role: UserRole;
@@ -25,5 +25,5 @@ export class User {
 
 export const UserSchema = SchemaFactory.createForClass(User);
 
-UserSchema.index({ userId: 1 }, { unique: true });
+UserSchema.index({ id: 1 }, { unique: true });
 UserSchema.index({ role: 1 });

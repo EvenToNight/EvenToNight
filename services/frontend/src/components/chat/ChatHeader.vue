@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { Conversation } from '@/api/types/support'
+import type { ChatUser } from '@/api/types/chat'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
+import { useNavigation } from '@/router/utils'
 
 interface Props {
-  conversation: Conversation
+  selectedChatUser: ChatUser
   showBackButton?: boolean
 }
 
@@ -14,6 +15,8 @@ withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   back: []
 }>()
+
+const { goToUserProfile } = useNavigation()
 </script>
 
 <template>
@@ -29,16 +32,12 @@ const emit = defineEmits<{
       <q-tooltip>Indietro</q-tooltip>
     </q-btn>
     <q-avatar size="40px">
-      <img
-        v-if="conversation?.organizationAvatar"
-        :src="conversation.organizationAvatar"
-        :alt="conversation.organizationName"
-        style="object-fit: cover"
-      />
-      <q-icon v-else name="business" size="md" />
+      <img :src="selectedChatUser.avatar" :alt="selectedChatUser.name" style="object-fit: cover" />
     </q-avatar>
     <div class="header-info">
-      <div class="organization-name">{{ conversation?.organizationName }}</div>
+      <div class="user-name cursor-pointer" @click="goToUserProfile(selectedChatUser.id)">
+        {{ selectedChatUser.name }}
+      </div>
       <div class="status">Online</div>
     </div>
     <q-space />
@@ -65,10 +64,16 @@ const emit = defineEmits<{
   .header-info {
     margin-left: 12px;
 
-    .organization-name {
+    .user-name {
       font-size: 16px;
       font-weight: 600;
       color: var(--q-text-primary);
+
+      transition: all $transition-base;
+
+      &:hover {
+        text-decoration: underline;
+      }
     }
 
     .status {

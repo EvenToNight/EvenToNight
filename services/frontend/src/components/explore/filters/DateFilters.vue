@@ -1,9 +1,12 @@
+<script lang="ts">
+export const DATE_FILTERS = ['today', 'this_week', 'this_month'] as const
+</script>
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
 
-export type DateFilter = 'today' | 'this_week' | 'this_month'
+export type DateFilter = (typeof DATE_FILTERS)[number]
 
 export interface DateFilterValue {
   dateFilter?: DateFilter | null

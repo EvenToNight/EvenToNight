@@ -1,8 +1,11 @@
 package infrastructure.messaging
 import com.rabbitmq.client.{AMQP, Channel, Connection, ConnectionFactory}
-import domain.events.{DomainEvent, EventDeleted, EventPublished, EventUpdated}
-import io.circe.generic.auto.*
+import domain.events.{DomainEvent, EventCompleted, EventDeleted, EventEnvelope, EventPublished, EventUpdated}
+import io.circe.Encoder
+import io.circe.generic.semiauto.*
 import io.circe.syntax.*
+given eventEnvelopeEncoder[T <: DomainEvent](using enc: Encoder[T]): Encoder[EventEnvelope[T]] =
+  deriveEncoder[EventEnvelope[T]]
 
 import scala.compiletime.uninitialized
 import scala.jdk.CollectionConverters.*
@@ -45,8 +48,13 @@ class RabbitEventPublisher(
 
   override def publish(event: DomainEvent): Unit =
     try
-      val key  = routingKey(event)
-      val body = event.asJson.noSpaces.getBytes("UTF-8")
+      val key = routingKey(event)
+      val envelope = EventEnvelope(
+        eventType = key,
+        occurredAt = java.time.Instant.now(),
+        payload = event
+      )
+      val body = envelope.asJson.noSpaces.getBytes("UTF-8")
 
       val props = new AMQP.BasicProperties.Builder()
         .contentType("application/json")
@@ -71,6 +79,7 @@ class RabbitEventPublisher(
     case _: EventPublished => "event.published"
     case _: EventUpdated   => "event.updated"
     case _: EventDeleted   => "event.deleted"
+    case _: EventCompleted => "event.completed"
 
   def close(): Unit =
     try

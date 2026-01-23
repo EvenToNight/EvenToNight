@@ -10,11 +10,13 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
       - MONGO_HOST=mongo-chat
+      - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.chat.rule=Host(`chat.${HOST}`)"
       - "traefik.http.routers.chat.entrypoints=web"
       - "traefik.http.services.chat.loadbalancer.server.port=${CHAT_SERVICE_PORT}"
+      - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     restart: unless-stopped
     depends_on:
       mongo-chat:

@@ -11,7 +11,7 @@ import { Review } from '../schemas/review.schema';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
 import { UpdateReviewDto } from '../dto/update-review.dto';
-import { PaginatedResponseDto } from 'src/common/dto/paginated-response.dto';
+import { PaginatedResponseDto } from 'src/commons/dto/paginated-response.dto';
 import { ReviewStatsDto } from '../dto/review-stats.dto';
 
 @Injectable()
@@ -34,14 +34,19 @@ export class ReviewService {
     if (existing) {
       throw new ConflictException('You have already reviewed this event');
     }
+    const { creatorId, collaboratorIds } =
+      await this.metadataService.getEventInfo(eventId);
     const review = new this.reviewModel({
       eventId,
       ...createReviewDto,
+      creatorId,
+      collaboratorIds,
     });
     return review.save();
   }
 
   async deleteReview(eventId: string, userId: string): Promise<void> {
+    await this.metadataService.validateReviewDeletionAllowed(eventId, userId);
     const result = await this.reviewModel.deleteOne({ eventId, userId });
 
     if (result.deletedCount === 0) {
@@ -54,6 +59,7 @@ export class ReviewService {
     userId: string,
     updateReviewDto: UpdateReviewDto,
   ): Promise<Review> {
+    await this.metadataService.validateReviewUpdateAllowed(eventId, userId);
     const review = await this.reviewModel.findOneAndUpdate(
       { eventId, userId },
       { rating: updateReviewDto.rating, comment: updateReviewDto.comment },
@@ -72,10 +78,26 @@ export class ReviewService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
+    await this.metadataService.validateEventExistence(eventId);
     return this.getReviewsWithStats({ eventId }, limit, offset);
   }
 
-  async getUserReviews(userId: string, limit?: number, offset?: number) {
+  async getUserReviews(
+    userId: string,
+    limit?: number,
+    offset?: number,
+    search?: string,
+  ) {
+    await this.metadataService.validateUserExistence(userId);
+
+    if (search) {
+      return this.getFilteredUserReviewsWithStats(
+        userId,
+        search,
+        limit,
+        offset,
+      );
+    }
     return this.getReviewsWithStats({ userId }, limit, offset);
   }
 
@@ -85,6 +107,7 @@ export class ReviewService {
     limit?: number,
     offset?: number,
   ): Promise<PaginatedResponseDto<Review>> {
+    await this.metadataService.validateUserExistence(organizationId);
     return this.getReviewsWithStats(
       role === 'creator'
         ? { creatorId: organizationId }
@@ -127,6 +150,126 @@ export class ReviewService {
     return {
       ...new PaginatedResponseDto(items, total, limit || total, offset || 0),
       ...stats,
+    };
+  }
+
+  private async getFilteredUserReviewsWithStats(
+    userId: string,
+    search: string,
+    limit?: number,
+    offset?: number,
+  ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
+    const allReviews = await this.reviewModel.find({ userId }).lean();
+
+    if (allReviews.length === 0) {
+      return {
+        ...new PaginatedResponseDto([], 0, limit || 0, offset || 0),
+        averageRating: 0,
+        ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+      };
+    }
+
+    const eventIds = [...new Set(allReviews.map((r) => r.eventId))];
+    const eventsInfo = await Promise.all(
+      eventIds.map((id) => this.metadataService.getEventInfo(id)),
+    );
+
+    const eventInfoMap = new Map();
+    eventIds.forEach((id, index) => {
+      eventInfoMap.set(id, eventsInfo[index]);
+    });
+
+    const organizationIds = [
+      ...new Set([
+        ...allReviews.map((r) => r.creatorId),
+        ...allReviews.flatMap((r) => r.collaboratorIds || []),
+      ]),
+    ];
+
+    const organizationsInfo = await Promise.all(
+      organizationIds.map((id) => this.metadataService.getUserInfo(id)),
+    );
+
+    const orgInfoMap = new Map();
+    organizationIds.forEach((id, index) => {
+      orgInfoMap.set(id, organizationsInfo[index]);
+    });
+
+    const searchLower = search.toLowerCase();
+    const filteredReviews = allReviews.filter((review) => {
+      const eventInfo = eventInfoMap.get(review.eventId);
+      const creatorInfo = orgInfoMap.get(review.creatorId);
+
+      if (eventInfo?.name?.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+
+      if (creatorInfo?.name?.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+
+      if (creatorInfo?.username?.toLowerCase().includes(searchLower)) {
+        return true;
+      }
+
+      if (review.collaboratorIds) {
+        for (const collabId of review.collaboratorIds) {
+          const collabInfo = orgInfoMap.get(collabId);
+          if (
+            collabInfo?.name?.toLowerCase().includes(searchLower) ||
+            collabInfo?.username?.toLowerCase().includes(searchLower)
+          ) {
+            return true;
+          }
+        }
+      }
+
+      return false;
+    });
+
+    const total = filteredReviews.length;
+    const startIndex = offset || 0;
+    const endIndex = limit ? startIndex + limit : total;
+    const paginatedReviews = filteredReviews.slice(startIndex, endIndex);
+
+    const reviewDocuments = paginatedReviews.map(
+      (r) => new this.reviewModel(r),
+    );
+
+    const stats = this.calculateRatingStatsFromReviews(filteredReviews);
+
+    return {
+      ...new PaginatedResponseDto(
+        reviewDocuments,
+        total,
+        limit || total,
+        offset || 0,
+      ),
+      ...stats,
+    };
+  }
+
+  private calculateRatingStatsFromReviews(reviews: any[]): ReviewStatsDto {
+    const ratingDistribution: Record<number, number> = {
+      1: 0,
+      2: 0,
+      3: 0,
+      4: 0,
+      5: 0,
+    };
+
+    let sumRating = 0;
+    reviews.forEach((review) => {
+      ratingDistribution[review.rating] =
+        (ratingDistribution[review.rating] || 0) + 1;
+      sumRating += review.rating;
+    });
+
+    const averageRating = reviews.length > 0 ? sumRating / reviews.length : 0;
+
+    return {
+      averageRating: Math.round(averageRating * 100) / 100,
+      ratingDistribution,
     };
   }
 
@@ -183,15 +326,46 @@ export class ReviewService {
     userId: string,
     eventId: string,
   ): Promise<boolean> {
+    await this.metadataService.validateUserExistence(userId);
+    await this.metadataService.validateEventExistence(eventId);
     const review = await this.reviewModel.findOne({ userId, eventId });
     return !!review;
   }
 
   async deleteEvent(eventId: string): Promise<void> {
+    await this.metadataService.validateEventExistence(eventId);
     await this.reviewModel.deleteMany({ eventId });
   }
 
   async deleteUser(userId: string): Promise<void> {
+    await this.metadataService.validateUserExistence(userId);
     await this.reviewModel.deleteMany({ userId });
+  }
+
+  async getUserReviewedEventIds(
+    userId: string,
+    eventIds: string[],
+  ): Promise<string[]> {
+    if (eventIds.length === 0) return [];
+
+    const reviews = await this.reviewModel
+      .find({
+        userId,
+        eventId: { $in: eventIds },
+      })
+      .select({ eventId: 1, _id: 0 })
+      .lean();
+
+    return reviews.map((r) => r.eventId);
+  }
+
+  async getReview(userId: string, eventId: string): Promise<Review> {
+    await this.metadataService.validateUserExistence(userId);
+    await this.metadataService.validateEventExistence(eventId);
+    const review = await this.reviewModel.findOne({ userId, eventId });
+    if (!review) {
+      throw new NotFoundException('Review not found');
+    }
+    return review;
   }
 }

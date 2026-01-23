@@ -24,7 +24,7 @@ object Main extends App:
     exchangeName = "eventonight"
   )
 
-  val database: MongoEventRepository = MongoEventRepository(mongoUri, "eventonight")
+  val database: MongoEventRepository = MongoEventRepository(mongoUri, "eventonight", "events", messageBroker)
 
   val eventService: EventService = new EventService(database, messageBroker)
 

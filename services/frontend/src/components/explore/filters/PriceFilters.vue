@@ -1,7 +1,10 @@
+<script lang="ts">
+export const PRICE_FILTERS = ['free', 'paid'] as const
+</script>
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-export type PriceFilter = 'free' | 'paid'
+export type PriceFilter = (typeof PRICE_FILTERS)[number]
 
 export interface PriceFilterValue {
   priceFilter?: PriceFilter | null

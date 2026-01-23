@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import type { SearchResultUser } from '@/api/utils'
+import type { SearchResultUser } from '@/api/utils/searchUtils'
 import SearchResultCard from '@/components/cards/SearchResultCard.vue'
 import { ref } from 'vue'
 import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 import { useNavigation } from '@/router/utils'
-import type { SearchResult } from '@/api/utils'
+import type { SearchResult } from '@/api/utils/searchUtils'
 
 const { goToEventDetails, goToUserProfile } = useNavigation()
 

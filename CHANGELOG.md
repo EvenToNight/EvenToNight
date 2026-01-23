@@ -1,3 +1,28 @@
+## [1.20.1](https://github.com/EvenToNight/EvenToNight/compare/v1.20.0...v1.20.1) (2026-01-21)
+
+### Bug Fixes
+
+* **autologin:** fix role setup in register ([f49ac6f](https://github.com/EvenToNight/EvenToNight/commit/f49ac6fbe569f291cf7f694803c77de23858b67a))
+* **avatar:** fix avatar refresh ([57deb25](https://github.com/EvenToNight/EvenToNight/commit/57deb2567407d364160526f1092635f8801236e0))
+* **chat:** fix mocked chat conversation handling ([bf1bb2d](https://github.com/EvenToNight/EvenToNight/commit/bf1bb2d417f15315cac27a3c5107368ae035d158))
+* **chat:** fix mocked conversation search ([3ab7b6a](https://github.com/EvenToNight/EvenToNight/commit/3ab7b6abc043298e4638a230954f71e5162654cc))
+* **chat:** fix total count update in mocked readConversationMessages ([e5a5d84](https://github.com/EvenToNight/EvenToNight/commit/e5a5d849668278232b640bffeddb4ba6952f4999))
+* **chat:** leave sidebar open when click search on mobile ([9797e4c](https://github.com/EvenToNight/EvenToNight/commit/9797e4c2d730396f3b78e8e5ebce6d46e34b3975))
+* **editProfile:** fix form validation ([2a56b6e](https://github.com/EvenToNight/EvenToNight/commit/2a56b6e6cb9bb6ce58156e4dd38eb665730ff0c7))
+* **gateway:** specify docker network to watch for discover services ([4066eb7](https://github.com/EvenToNight/EvenToNight/commit/4066eb7133e80f2c46b0620e98290bed026703f8))
+* **home:** fix dark mode background ([d6acea1](https://github.com/EvenToNight/EvenToNight/commit/d6acea1130356c1dae1c2b92787ce07b32ba681b))
+* **users:** adapt search api to standard paginatedResponse ([6dba81a](https://github.com/EvenToNight/EvenToNight/commit/6dba81a07bdae275fe0bf5f0bf5969ee5db3b11c))
+* **users:** change http method for passsword update ([16de72a](https://github.com/EvenToNight/EvenToNight/commit/16de72aa0643d3b334cf7193587b3041031ed8b6))
+* **users:** check if profile foto has been changed before upload new one ([aafb964](https://github.com/EvenToNight/EvenToNight/commit/aafb9644ab8cb7e14e7eecd0acaa82fbbc85dda7))
+* **users:** fix mediaServiceClient impl and getAllUsers ([904444b](https://github.com/EvenToNight/EvenToNight/commit/904444b4e25acd0328c6a860b23dbb9afbb36de6))
+
+## [1.20.0](https://github.com/EvenToNight/EvenToNight/compare/v1.19.0...v1.20.0) (2026-01-21)
+
+### Features
+
+* **user-check:** implement existence check of user in interaction service ([564d74d](https://github.com/EvenToNight/EvenToNight/commit/564d74dc17ea99f701872987e95d387cb60e6ac0))
+* **user-participations:** update response to user participations request ([d6fcaf4](https://github.com/EvenToNight/EvenToNight/commit/d6fcaf49b92ec6c3efb98b061a86c30d9a51fd7d))
+
 ## [1.19.0](https://github.com/EvenToNight/EvenToNight/compare/v1.18.0...v1.19.0) (2026-01-20)
 
 ### Features

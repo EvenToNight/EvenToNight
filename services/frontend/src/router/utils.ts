@@ -1,6 +1,11 @@
 import { DEFAULT_LOCALE } from '@/i18n'
 import { computed, ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import {
+  useRouter,
+  useRoute,
+  type RouteLocationAsPathGeneric,
+  type RouteLocationAsRelativeGeneric,
+} from 'vue-router'
 import {
   HOME_ROUTE_NAME,
   LOGIN_ROUTE_NAME,
@@ -13,7 +18,7 @@ import {
   EXPLORE_ROUTE_NAME,
   SETTINGS_ROUTE_NAME,
   EDIT_PROFILE_ROUTE_NAME,
-  SUPPORT_ROUTE_NAME,
+  CHAT_ROUTE_NAME,
 } from '@/router'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
 
@@ -26,6 +31,7 @@ export const useNavigation = () => {
   const locale = computed(() => (route.params.locale as string) || DEFAULT_LOCALE)
   const params = route.params
   const query = route.query
+  const hash = computed(() => route.hash)
   const routeName = computed(() => route.name as string)
   const redirect = computed(() => {
     return route.query.redirect as string | undefined
@@ -132,11 +138,53 @@ export const useNavigation = () => {
     }
   }
 
-  const goToExplore = (swap: boolean = false) => {
+  const goToExplore = (initialFilter?: EventFilters, swap: boolean = false) => {
+    const queryParams: Record<string, string> = {}
+
+    if (initialFilter) {
+      if (initialFilter.dateFilter) {
+        queryParams.dateFilter = initialFilter.dateFilter
+      }
+      if (initialFilter.dateRange) {
+        queryParams.dateFrom = initialFilter.dateRange.from.toISOString()
+        queryParams.dateTo = initialFilter.dateRange.to.toISOString()
+      }
+      if (initialFilter.priceFilter) {
+        queryParams.priceFilter = initialFilter.priceFilter
+      }
+      if (initialFilter.customPriceRange) {
+        if (
+          initialFilter.customPriceRange.min !== undefined &&
+          initialFilter.customPriceRange.min !== null
+        ) {
+          queryParams.priceMin = String(initialFilter.customPriceRange.min)
+        }
+        if (
+          initialFilter.customPriceRange.max !== undefined &&
+          initialFilter.customPriceRange.max !== null
+        ) {
+          queryParams.priceMax = String(initialFilter.customPriceRange.max)
+        }
+      }
+      if (initialFilter.tags && initialFilter.tags.length > 0) {
+        const tagsString = initialFilter.tags.filter((tag) => tag && tag.trim()).join(',')
+
+        if (tagsString) {
+          queryParams.tags = tagsString
+        }
+      }
+      if (initialFilter.sortBy) {
+        queryParams.sortBy = initialFilter.sortBy
+      }
+      if (initialFilter.otherFilter) {
+        queryParams.otherFilter = String(initialFilter.otherFilter)
+      }
+    }
+
     if (swap) {
-      replaceWithLocale(EXPLORE_ROUTE_NAME)
+      replaceWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams)
     } else {
-      pushWithLocale(EXPLORE_ROUTE_NAME)
+      pushWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams)
     }
   }
 
@@ -180,40 +228,37 @@ export const useNavigation = () => {
     }
   }
 
-  const goToSupport = (organizationId?: string, swap: boolean = false) => {
+  const goToChat = (userId?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(SUPPORT_ROUTE_NAME, undefined, { organizationId })
+      replaceWithLocale(CHAT_ROUTE_NAME, undefined, { userId })
     } else {
-      pushWithLocale(SUPPORT_ROUTE_NAME, undefined, { organizationId })
+      pushWithLocale(CHAT_ROUTE_NAME, undefined, { userId })
     }
   }
 
-  const changeLocale = (newLocale: string, swap: boolean = false) => {
-    if (swap) {
-      router.replace({
-        name: route.name as string,
-        params: {
-          ...route.params,
-          locale: newLocale,
-        },
-        query: route.query,
-      })
-    } else {
-      router.push({
-        name: route.name as string,
-        params: {
-          ...route.params,
-          locale: newLocale,
-        },
-        query: route.query,
-      })
-    }
+  const replaceRoute = (
+    to: string | RouteLocationAsRelativeGeneric | RouteLocationAsPathGeneric
+  ) => {
+    router.replace(to)
+  }
+
+  const changeLocale = (newLocale: string) => {
+    router.replace({
+      name: route.name as string,
+      params: {
+        ...route.params,
+        locale: newLocale,
+      },
+      query: route.query,
+      hash: route.hash,
+    })
   }
 
   return {
     locale,
     params,
     query,
+    hash,
     routeName,
     goBack,
     goToRedirect,
@@ -228,7 +273,8 @@ export const useNavigation = () => {
     goToUserProfile,
     goToSettings,
     goToEditProfile,
-    goToSupport,
+    goToChat,
+    replaceRoute,
     changeLocale,
     removeQuery,
   }

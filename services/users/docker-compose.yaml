@@ -20,6 +20,7 @@ services:
       - "traefik.http.routers.users.rule=Host(`users.${HOST}`)"
       - "traefik.http.routers.users.entrypoints=web"
       - "traefik.http.services.users.loadbalancer.server.port=${USERS_SERVICE_PORT}"
+      - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${USERS_SERVICE_PORT}/health"]

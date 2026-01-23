@@ -17,6 +17,7 @@ services:
       - "traefik.http.routers.events.rule=Host(`events.${HOST}`)"
       - "traefik.http.routers.events.entrypoints=web"
       - "traefik.http.services.events.loadbalancer.server.port=${EVENTS_SERVICE_PORT}"
+      - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     restart: unless-stopped
     depends_on:
       mongo-events:

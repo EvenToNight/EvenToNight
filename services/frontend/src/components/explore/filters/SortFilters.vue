@@ -1,8 +1,11 @@
+<script lang="ts">
+export const SORT_BY_OPTIONS = ['date_asc', 'date_desc', 'price_asc', 'price_desc'] as const
+</script>
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 
-export type SortBy = 'date_asc' | 'date_desc' | 'price_asc' | 'price_desc'
+export type SortBy = (typeof SORT_BY_OPTIONS)[number]
 
 interface Props {
   modelValue?: SortBy | null

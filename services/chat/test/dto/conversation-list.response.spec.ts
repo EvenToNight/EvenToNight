@@ -5,12 +5,16 @@ describe('ConversationListResponse', () => {
   it('should conform to PaginatedResponse structure', () => {
     const item: ConversationListItemDTO = {
       id: 'conv123',
-      organizationId: 'org456',
-      organizationName: 'Test Org',
-      organizationAvatar: 'https://example.com/avatar.jpg',
-      memberId: 'member789',
-      memberName: 'John Doe',
-      memberAvatar: 'https://example.com/john.jpg',
+      organization: {
+        id: 'org456',
+        name: 'Test Org',
+        avatar: 'https://example.com/avatar.jpg',
+      },
+      member: {
+        id: 'member789',
+        name: 'John Doe',
+        avatar: 'https://example.com/john.jpg',
+      },
       lastMessage: {
         content: 'Hello',
         senderId: 'member789',
@@ -50,12 +54,16 @@ describe('ConversationListResponse', () => {
       { length: 20 },
       (_, i) => ({
         id: `conv${i}`,
-        organizationId: 'org456',
-        organizationName: 'Test Org',
-        organizationAvatar: 'https://example.com/avatar.jpg',
-        memberId: 'member789',
-        memberName: 'John Doe',
-        memberAvatar: 'https://example.com/john.jpg',
+        organization: {
+          id: 'org456',
+          name: 'Test Org',
+          avatar: 'https://example.com/avatar.jpg',
+        },
+        member: {
+          id: 'member789',
+          name: 'John Doe',
+          avatar: 'https://example.com/john.jpg',
+        },
         lastMessage: {
           content: `Message ${i}`,
           senderId: 'member789',

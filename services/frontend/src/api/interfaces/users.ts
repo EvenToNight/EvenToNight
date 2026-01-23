@@ -1,4 +1,4 @@
-import type { User, UserID, UserRole } from '../types/users'
+import type { Account, Profile, User, UserID, UserRole } from '../types/users'
 import type { PaginatedRequest, PaginatedResponse } from './commons'
 
 export interface RegistrationRequest {
@@ -12,37 +12,65 @@ export interface LoginRequest {
   password: string
 }
 
+//TODO: confirm password is needed?
 export interface ChangePasswordRequest {
   currentPassword: string
   newPassword: string
+  confirmPassword: string
 }
 
 export type AccessToken = string
+export type RefreshToken = string
 
-//TODO: add refresh token expiry(?) and user
-export interface LoginResponse {
-  token: AccessToken
+export type ProfileAPI = Omit<Profile, 'website'> & {
+  contacts: string[]
+}
+export interface TokenResponse {
+  accessToken: AccessToken
+  expiresIn: number
+  refreshToken: RefreshToken
+  refreshExpiresIn: number
 }
 
-export interface RefreshTokenResponse {
-  accessToken: string
-  expiresIn: number
+export interface UserAPIResponse {
+  id: UserID
+  username: string
+  profile: ProfileAPI
+  role: UserRole
+}
+
+export interface LoginAPIResponse extends TokenResponse {
+  role: UserRole
+  account: Account
+  profile: ProfileAPI
+}
+
+export interface UpdateUserAPIRequest {
+  accountDTO: Account
+  profileDTO: ProfileAPI
+}
+
+export interface LoginResponse extends TokenResponse {
   user: User
 }
 
-export interface LogoutResponse {
-  success: boolean
-}
-
 export interface UsersAPI {
-  getUserById(id: UserID): Promise<User>
-  register(data: RegistrationRequest): Promise<LoginResponse>
   login(credentials: LoginRequest): Promise<LoginResponse>
-  logout(): Promise<LogoutResponse>
-  refreshToken(): Promise<RefreshTokenResponse>
+  //TODO update with current darkmode and lang settings
+  register(data: RegistrationRequest): Promise<LoginResponse>
+  refreshToken(refreshToken: RefreshToken): Promise<TokenResponse>
+  logout(refreshToken: RefreshToken): Promise<void>
+
+  //TODO: add pagination to backend
+  getUsers(pagination?: PaginatedRequest): Promise<PaginatedResponse<User>>
+  getUserById(id: UserID): Promise<User>
+  deleteUserById(id: UserID): Promise<void>
+  updateUserById(id: UserID, data: Partial<User>): Promise<void>
+  updateUserAvatarById(id: UserID, avatarFile: File | null): Promise<{ avatarUrl: string }>
+
   changePassword(userId: UserID, data: ChangePasswordRequest): Promise<void>
   searchUsers(params: {
-    name?: string
+    prefix?: string
     pagination?: PaginatedRequest
     role?: UserRole
   }): Promise<PaginatedResponse<User>>

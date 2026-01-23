@@ -3,8 +3,8 @@ import { ref, watch, onMounted, inject, type Ref } from 'vue'
 import type { QInput } from 'quasar'
 import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
-import type { SearchResult } from '@/api/utils'
-import { getSearchResult } from '@/api/utils'
+import type { SearchResult } from '@/api/utils/searchUtils'
+import { getSearchResult } from '@/api/utils/searchUtils'
 import SearchResultCard from '../cards/SearchResultCard.vue'
 
 const { t } = useI18n()
@@ -20,7 +20,7 @@ const inputRef = ref<QInput | null>(null)
 const isSearching = ref(false)
 const maxResults = 5
 
-let searchDebounceTimer: number | null = null
+let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(searchQuery, (value) => {
   showSuggestions.value = !hideDropdown && value.length > 0

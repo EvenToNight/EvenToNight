@@ -33,7 +33,8 @@ infrastructure/seed/seed-output/
 # IDEs / Editors
 # ----------------------
 .idea/
-.vscode/
+#.vscode/
+.vscode/launch.json
 *.iml
 
 .metals/

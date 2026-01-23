@@ -23,11 +23,16 @@ export class UserSuggestionService {
   ): Promise<ConversationListResponse> {
     const currentUser = await this.usersService.getUserInfo(userId);
 
-    // TODO: implement check of currentUser
-    // if (!currentUser) {
-    //   return { items: [], limit: options.limit, offset: options.offset, hasMore: false };
-    // }
-    const currentRole = currentUser ? currentUser.role : UserRole.MEMBER;
+    if (!currentUser) {
+      return {
+        items: [],
+        limit: options.limit,
+        offset: options.offset,
+        hasMore: false,
+      };
+    }
+
+    const currentRole = currentUser.role;
 
     const targetRole = this.getOppositeRole(currentRole);
 

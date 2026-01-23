@@ -8,7 +8,7 @@ import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
 import FormField from '@/components/forms/FormField.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
-import { required } from '@/components/forms/validationUtils'
+import { notEmpty } from '@/components/forms/validationUtils'
 
 const authStore = useAuthStore()
 const { goToUserProfile } = useNavigation()
@@ -17,9 +17,10 @@ const $q = useQuasar()
 const name = ref('')
 const bio = ref('')
 const website = ref('')
-const avatar = ref<File | null>(null)
 const loading = ref(false)
+const avatar = ref<File | null>(null)
 const currentAvatarUrl = ref<string | undefined>(undefined)
+const avatarModified = ref(false)
 
 const isOrganization = computed(() => authStore.user?.role === 'organization')
 
@@ -32,7 +33,7 @@ onMounted(() => {
     name.value = authStore.user.name || ''
     bio.value = authStore.user.bio || ''
     website.value = authStore.user.website || ''
-    currentAvatarUrl.value = authStore.user.avatarUrl || undefined
+    currentAvatarUrl.value = authStore.user.avatar || undefined
   }
 })
 
@@ -43,33 +44,37 @@ const handleAvatarError = (message: string) => {
   })
 }
 
+const handleAvatar = (file: File | null) => {
+  avatarModified.value = true
+  avatar.value = file
+  if (file === null) {
+    currentAvatarUrl.value = undefined
+  }
+}
+
 const handleSave = async () => {
+  console.log('Saving profile')
   if (!authStore.user?.id) return
 
   loading.value = true
   try {
-    // TODO: Implement API call to update user profile
-    // await api.users.updateProfile(authStore.user.id, {
-    //   name: name.value,
-    //   bio: bio.value,
-    //   website: website.value,
-    //   avatar: avatar.value,
-    // })
+    const updateReq = {
+      name: name.value.trim(),
+      bio: bio.value.trim() || undefined,
+      website: website.value.trim() || undefined,
+    }
+
+    const updatedUser = await authStore.updateUserById(authStore.user.id, {
+      ...updateReq,
+      avatarFile: avatarModified.value ? avatar.value : undefined,
+    })
+    currentAvatarUrl.value = updatedUser.avatar
 
     $q.notify({
       color: 'positive',
       message: 'Profile updated successfully',
       icon: 'check_circle',
     })
-
-    // Update auth store with new data
-    if (authStore.user) {
-      authStore.user.name = name.value
-      authStore.user.bio = bio.value
-      authStore.user.website = website.value
-    }
-
-    // Navigate back to profile
     goToUserProfile(authStore.user.id)
   } catch (error) {
     console.error('Failed to update profile:', error)
@@ -100,48 +105,49 @@ const handleCancel = () => {
           <h1 class="page-title">Edit Profile</h1>
         </div>
 
-        <div class="card-body">
-          <div class="avatar-section">
-            <AvatarCropUpload
-              v-model="avatar"
-              :preview-url="currentAvatarUrl"
-              :default-icon="defaultIcon"
-              @error="handleAvatarError"
-            />
-            <p class="avatar-hint">You can upload a profile photo here.</p>
+        <q-form greedy @submit.prevent="handleSave">
+          <div class="card-body">
+            <div class="avatar-section">
+              <AvatarCropUpload
+                :preview-url="currentAvatarUrl"
+                :default-icon="defaultIcon"
+                @error="handleAvatarError"
+                @update:imageFile="handleAvatar"
+              />
+            </div>
+
+            <div class="form-section">
+              <FormField
+                v-model="name"
+                :label="'Name'"
+                :placeholder="'Enter your name'"
+                :rules="[notEmpty('Name is required')]"
+              />
+
+              <FormField
+                v-model="bio"
+                :label="'Bio'"
+                :placeholder="'Enter your bio'"
+                type="textarea"
+                :rows="4"
+                :maxlength="150"
+                counter
+              />
+
+              <FormField
+                v-if="isOrganization"
+                v-model="website"
+                :label="'Website'"
+                :placeholder="'https://example.com'"
+              />
+            </div>
           </div>
 
-          <div class="form-section">
-            <FormField
-              v-model="name"
-              :label="'Name'"
-              :placeholder="'Enter your name'"
-              :rules="[required]"
-            />
-
-            <FormField
-              v-model="bio"
-              :label="'Bio'"
-              :placeholder="'Enter your bio'"
-              type="textarea"
-              :rows="4"
-              :maxlength="150"
-              counter
-            />
-
-            <FormField
-              v-if="isOrganization"
-              v-model="website"
-              :label="'Website'"
-              :placeholder="'https://example.com'"
-            />
+          <div class="card-actions">
+            <Button :label="'Cancel'" variant="secondary" type="button" @click="handleCancel" />
+            <Button :label="'Save'" variant="primary" type="submit" :loading="loading" />
           </div>
-        </div>
-
-        <div class="card-actions">
-          <Button :label="'Cancel'" variant="secondary" @click="handleCancel" />
-          <Button :label="'Save'" variant="primary" :loading="loading" @click="handleSave" />
-        </div>
+        </q-form>
       </div>
     </div>
   </div>
@@ -233,17 +239,6 @@ const handleCancel = () => {
 
   @include dark-mode {
     border-bottom-color: rgba($color-white, 0.1);
-  }
-}
-
-.avatar-hint {
-  font-size: $font-size-sm;
-  color: $color-gray-600;
-  text-align: center;
-  margin: 0;
-
-  @include dark-mode {
-    color: $color-gray-400;
   }
 }
 

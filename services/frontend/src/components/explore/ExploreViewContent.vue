@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import type { User } from '@/api/types/users'
-import type { SearchResult } from '@/api/utils'
+import type { SearchResult } from '@/api/utils/searchUtils'
 import { useAuthStore } from '@/stores/auth'
 import SearchBar from '@/components/navigation/SearchBar.vue'
 import TabView, { type Tab } from '@/components/navigation/TabView.vue'
@@ -12,13 +12,31 @@ import ExploreEventsTab from '@/components/explore/tabs/ExploreEventsTab.vue'
 import ExplorePeopleTab from '@/components/explore/tabs/ExplorePeopleTab.vue'
 import type { EventFilters } from './filters/FiltersButton.vue'
 import type { EventsQueryParams } from '@/api/interfaces/events'
-import { convertFiltersToEventsQueryParams } from '@/api/utils'
-import { pendingExploreFilters } from '@/router/utils'
+import { buildExploreFiltersFromQuery, buildExploreRouteQuery } from '@/api/utils/filtersUtils'
 import { useI18n } from 'vue-i18n'
+import { useRouter, useRoute } from 'vue-router'
 
 const { t } = useI18n()
+const router = useRouter()
+const route = useRoute()
 
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
+
+const normalizeQuery = (queryObj: any) => {
+  return typeof queryObj === 'object' && queryObj !== null
+    ? Object.fromEntries(
+        Object.entries(queryObj).map(([k, v]) => [k, Array.isArray(v) ? (v[0] ?? '') : (v ?? '')])
+      )
+    : {}
+}
+
+const normalizedQuery = normalizeQuery(route.query)
+const initialEventFilters = buildExploreFiltersFromQuery(normalizedQuery)
+
+// Reactive filters from URL for sync with FiltersButton
+const filtersFromUrl = ref<EventFilters>(initialEventFilters)
+provide('initialEventFilters', initialEventFilters)
+provide('filtersFromUrl', filtersFromUrl)
 
 const emit = defineEmits(['auth-required'])
 const authStore = useAuthStore()
@@ -29,7 +47,7 @@ const ITEMS_PER_PAGE = 20
 type ExploreTab = 'events' | 'organizations' | 'people'
 const activeTab = ref<ExploreTab>('events')
 
-const events = ref<{ event: Event; isFavorite: boolean }[]>([])
+const events = ref<(Event & { liked?: boolean })[]>([])
 const hasMoreEvents = ref(true)
 const loadingEvents = ref(false)
 
@@ -42,19 +60,56 @@ const hasMorePeople = ref(true)
 const loadingPeople = ref(false)
 
 const eventFilters = ref<EventsQueryParams>({})
-
-const initialEventFilters = pendingExploreFilters.value || {}
-pendingExploreFilters.value = null
-provide('initialEventFilters', initialEventFilters)
+const currentFilters = ref<EventFilters>(initialEventFilters)
+const isUpdatingFromUrl = ref(false)
 
 const handleFiltersChanged = (newFilters: EventFilters) => {
-  eventFilters.value = convertFiltersToEventsQueryParams(newFilters)
-  console.log('Filters changed:', eventFilters.value, newFilters)
+  currentFilters.value = newFilters
+  eventFilters.value = buildExploreRouteQuery(newFilters)
+
+  // Update URL with new filters
+  if (!isUpdatingFromUrl.value) {
+    const queryParams = buildExploreRouteQuery(newFilters)
+    router.replace({
+      name: route.name as string,
+      params: route.params,
+      query: queryParams,
+    })
+  }
+
   searchEvents()
 }
 
+// Watch for URL changes (e.g., browser back/forward)
+watch(
+  () => route.query,
+  (newQuery) => {
+    const normalized = normalizeQuery(newQuery)
+    const filtersFromQuery = buildExploreFiltersFromQuery(normalized)
+
+    // Only update if filters actually changed
+    const newFiltersJson = JSON.stringify(filtersFromQuery)
+    const currentFiltersJson = JSON.stringify(currentFilters.value)
+
+    if (newFiltersJson !== currentFiltersJson) {
+      isUpdatingFromUrl.value = true
+      currentFilters.value = filtersFromQuery
+      eventFilters.value = buildExploreRouteQuery(filtersFromQuery)
+
+      // Update the reactive filters so FiltersButton can sync
+      filtersFromUrl.value = filtersFromQuery
+
+      searchEvents()
+
+      // Reset flag after a tick to allow new changes
+      setTimeout(() => {
+        isUpdatingFromUrl.value = false
+      }, 0)
+    }
+  }
+)
+
 const searchEvents = async () => {
-  console.log('Searching events for query:', searchQuery.value)
   if (!searchQuery.value.trim() && !eventFilters.value) {
     events.value = []
     return
@@ -67,18 +122,17 @@ const searchEvents = async () => {
       pagination: { limit: ITEMS_PER_PAGE },
       ...eventFilters.value,
     })
-    events.value = response.items.map((event) => ({ event, isFavorite: false }))
+    events.value = response.items.map((event) => ({ ...event, liked: false }))
     hasMoreEvents.value = response.hasMore
     if (authStore.user?.id) {
       const userId = authStore.user.id
-      const likePromises = response.items.map(async (event) => {
+      const likePromises = events.value.map(async (event) => {
         try {
           const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
-          console.log(`Event ${event.eventId} is liked by user: ${isLiked}`)
-          return { event, isFavorite: isLiked }
+          return { ...event, liked: isLiked }
         } catch (error) {
           console.error(`Failed to load like status for event ${event.eventId}:`, error)
-          return { event, isFavorite: false }
+          return { ...event, liked: false }
         }
       })
       events.value = await Promise.all(likePromises)
@@ -99,7 +153,7 @@ const searchOrganizations = async () => {
   loadingOrganizations.value = true
   try {
     const response = await api.users.searchUsers({
-      name: searchQuery.value,
+      prefix: searchQuery.value,
       pagination: { limit: ITEMS_PER_PAGE },
       role: 'organization',
     })
@@ -120,7 +174,7 @@ const searchPeople = async () => {
   loadingPeople.value = true
   try {
     const response = await api.users.searchUsers({
-      name: searchQuery.value,
+      prefix: searchQuery.value,
       pagination: { limit: ITEMS_PER_PAGE },
       role: 'member',
     })
@@ -147,43 +201,18 @@ const onSearch = () => {
   }
 }
 
-const onTabChange = (tabId: string) => {
-  activeTab.value = tabId as ExploreTab
+watch(activeTab, (_tabId) => {
   if (searchQuery.value.trim()) {
     onSearch()
   }
-}
-
-const handleFavoriteToggle = async (eventId: string) => {
-  if (!authStore.isAuthenticated || !authStore.user) {
-    emit('auth-required')
-    return
-  }
-  const isFavorite = !(
-    events.value.find((event) => event.event.eventId === eventId)?.isFavorite ?? false
-  )
-  try {
-    if (isFavorite) {
-      await api.interactions.likeEvent(eventId, authStore.user.id)
-      console.log(`Event ${eventId} liked`)
-    } else {
-      await api.interactions.unlikeEvent(eventId, authStore.user.id)
-      console.log(`Event ${eventId} unliked`)
-    }
-    events.value = events.value.map((event) =>
-      event.event.eventId === eventId ? { ...event, isFavorite } : event
-    )
-  } catch (error) {
-    console.error('Failed to toggle favorite:', error)
-  }
-}
+})
 
 const organizationsAsSearchResults = computed<SearchResult[]>(() => {
   return organizations.value.map((org) => ({
     type: 'organization',
     id: org.id,
     name: org.name,
-    avatarUrl: org.avatarUrl,
+    avatarUrl: org.avatar,
     relevance: 0,
   }))
 })
@@ -193,7 +222,7 @@ const peopleAsSearchResults = computed<SearchResult[]>(() => {
     type: 'member',
     id: person.id,
     name: person.name,
-    avatarUrl: person.avatarUrl,
+    avatarUrl: person.avatar,
     relevance: 0,
   }))
 })
@@ -207,7 +236,7 @@ const tabs = computed<Tab[]>(() => [
       events: events.value,
       loading: loadingEvents.value,
       searchQuery: searchQuery.value,
-      onFavoriteToggle: handleFavoriteToggle,
+      onAuthRequired: () => emit('auth-required'),
       onFiltersChanged: handleFiltersChanged,
     },
   },
@@ -258,10 +287,10 @@ watch(searchQuery, () => {
       :class="{ 'padded-content': !searchQuery, 'hide-tabs': !searchQuery }"
     >
       <TabView
+        v-model:activeTab="activeTab"
         :variant="'explore'"
         :tabs="tabs"
-        default-tab="events"
-        @update:active-tab="onTabChange"
+        :default-tab="'events'"
       />
       <div class="colored-box"></div>
     </div>

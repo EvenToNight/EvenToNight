@@ -49,8 +49,8 @@ onMounted(async () => {
     <h3 class="section-subtitle">{{ t('eventDetails.organizer') }}</h3>
     <div class="organizer-card" @click="goToUserProfile(event.creatorId)">
       <img
-        v-if="organizer.avatarUrl"
-        :src="organizer.avatarUrl"
+        v-if="organizer.avatar"
+        :src="organizer.avatar"
         :alt="organizer.name"
         class="organizer-avatar"
       />
@@ -73,8 +73,8 @@ onMounted(async () => {
         @click="goToUserProfile(collab.id)"
       >
         <img
-          v-if="collab.avatarUrl"
-          :src="collab.avatarUrl"
+          v-if="collab.avatar"
+          :src="collab.avatar"
           :alt="collab.name"
           class="collaborator-avatar"
         />

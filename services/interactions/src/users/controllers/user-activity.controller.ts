@@ -1,8 +1,10 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { LikeService } from '../../events/services/like.service';
-import { PaginatedQueryDto } from '../../common/dto/paginated-query.dto';
+import { PaginatedQueryDto } from '../../commons/dto/paginated-query.dto';
 import { ReviewService } from '../../events/services/review.service';
 import { ParticipationService } from '../../events/services/participation.service';
+import { UserParticipationsQueryDto } from '../dto/user-participations-query.dto';
+import { PaginatedSearchQueryDto } from 'src/commons/dto/paginated-search-query.dto';
 
 @Controller('users/:userId')
 export class UserActivityController {
@@ -33,10 +35,10 @@ export class UserActivityController {
   @Get('reviews')
   async getUserReviews(
     @Param('userId') userId: string,
-    @Query() paginatedQuery: PaginatedQueryDto,
+    @Query() paginatedSearchQuery: PaginatedSearchQueryDto,
   ) {
-    const { limit, offset } = paginatedQuery;
-    return this.reviewService.getUserReviews(userId, limit, offset);
+    const { limit, offset, search } = paginatedSearchQuery;
+    return this.reviewService.getUserReviews(userId, limit, offset, search);
   }
 
   @Get('reviews/:eventId')
@@ -44,23 +46,21 @@ export class UserActivityController {
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
   ) {
-    const hasReviewed = await this.reviewService.hasUserReviewedEvent(
-      userId,
-      eventId,
-    );
-    return { hasReviewed };
+    return this.reviewService.getReview(userId, eventId);
   }
 
   @Get('participations')
   async getUserParticipations(
     @Param('userId') userId: string,
-    @Query() paginatedQuery: PaginatedQueryDto,
+    @Query() paginatedQuery: UserParticipationsQueryDto,
   ) {
-    const { limit, offset } = paginatedQuery;
+    const { limit, offset, organizationId, reviewed } = paginatedQuery;
     return this.participationService.getUserParticipations(
       userId,
       limit,
       offset,
+      organizationId,
+      reviewed,
     );
   }
 
@@ -73,6 +73,10 @@ export class UserActivityController {
       userId,
       eventId,
     );
-    return { hasParticipated };
+    const hasReviewed = await this.reviewService.hasUserReviewedEvent(
+      userId,
+      eventId,
+    );
+    return { hasParticipated, hasReviewed };
   }
 }

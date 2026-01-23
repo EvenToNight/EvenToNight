@@ -8,6 +8,8 @@ import {
   HttpCode,
   HttpStatus,
   Query,
+  UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { SendMessageDto } from '../dto/send-message.dto';
 import { ConversationsService } from '../services/conversations.service';
@@ -18,17 +20,25 @@ import { MessageListResponse } from '../dto/message-list.response';
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
 import { ConversationDetailDTO } from '../dto/conversation-details.dto';
 import { SearchConversationsQueryDto } from '../dto/search-conversation-query.dto';
+import { JwtAuthGuard } from 'src/common/auth/jwt-auth.guard';
+import { CurrentUser } from 'src/common/auth';
 
 @Controller('users/:userId')
 export class ConversationsController {
   constructor(private readonly conversationsService: ConversationsService) {}
 
   @Post('conversations')
-  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
   async createConversation(
     @Param('userId') userId: string,
     @Body() dto: CreateConversationMessageDto,
+    @CurrentUser('userId') currentUserId: string,
   ) {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException(
+        'You can only create conversations for yourself',
+      );
+    }
     const message =
       await this.conversationsService.createConversationWithMessage(
         userId,
@@ -57,11 +67,16 @@ export class ConversationsController {
 
   @Post('conversations/:conversationId/messages')
   @HttpCode(HttpStatus.CREATED)
+  @UseGuards(JwtAuthGuard)
   async sendMessage(
     @Param('userId') userId: string,
     @Param('conversationId') conversationId: string,
     @Body() sendMessageDto: SendMessageDto,
+    @CurrentUser('userId') currentUserId: string,
   ) {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException('You can only send messages for yourself');
+    }
     const message = await this.conversationsService.sendMessageToConversation(
       userId,
       conversationId,
@@ -116,10 +131,15 @@ export class ConversationsController {
 
   @Patch('conversations/:conversationId/read')
   @HttpCode(HttpStatus.NO_CONTENT)
+  @UseGuards(JwtAuthGuard)
   async markAsRead(
     @Param('userId') userId: string,
     @Param('conversationId') conversationId: string,
+    @CurrentUser('userId') currentUserId: string,
   ): Promise<void> {
+    if (userId !== currentUserId) {
+      throw new ForbiddenException('You can only mark as read for yourself');
+    }
     await this.conversationsService.markAsRead(conversationId, userId);
   }
 }

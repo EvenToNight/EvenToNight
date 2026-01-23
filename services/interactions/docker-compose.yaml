@@ -10,16 +10,20 @@ services:
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
       - MONGO_HOST=mongo-interactions
+      - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.interactions.rule=Host(`interactions.${HOST}`)"
       - "traefik.http.routers.interactions.entrypoints=web"
       - "traefik.http.services.interactions.loadbalancer.server.port=${INTERACTIONS_SERVICE_PORT}"
+      - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     restart: unless-stopped
     depends_on:
       mongo-interactions:
         condition: service_healthy
       rabbitmq:
+        condition: service_healthy
+      users:
         condition: service_healthy
 
   mongo-interactions:

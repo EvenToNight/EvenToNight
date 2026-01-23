@@ -22,7 +22,7 @@ export const CREATE_EVENT_ROUTE_NAME = 'create-event'
 export const EDIT_EVENT_ROUTE_NAME = 'edit-event'
 export const SETTINGS_ROUTE_NAME = 'settings'
 export const EDIT_PROFILE_ROUTE_NAME = 'edit-profile'
-export const SUPPORT_ROUTE_NAME = 'support'
+export const CHAT_ROUTE_NAME = 'chat'
 export const FORBIDDEN_ROUTE_NAME = 'forbidden'
 export const TICKET_PURCHASE_ROUTE_NAME = 'ticket-purchase'
 
@@ -133,9 +133,9 @@ const router = createRouter({
           beforeEnter: requireEventCreator,
         },
         {
-          path: 'support',
-          name: SUPPORT_ROUTE_NAME,
-          component: () => import('../views/SupportView.vue'),
+          path: 'chat',
+          name: CHAT_ROUTE_NAME,
+          component: () => import('../views/ChatView.vue'),
           beforeEnter: requireAuth,
         },
         {

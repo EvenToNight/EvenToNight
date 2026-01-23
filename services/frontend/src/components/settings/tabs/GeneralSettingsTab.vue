@@ -6,13 +6,15 @@ import type { Tag } from '@/api/types/events'
 import type { TagCategory } from '@/api/interfaces/events'
 import FormField from '@/components/forms/FormField.vue'
 import FormSelectorField from '@/components/forms/FormSelectorField.vue'
+import { useAuthStore } from '@/stores/auth'
+import type { Gender } from '@/api/types/users'
 
 const $q = useQuasar()
+const authStore = useAuthStore()
 
 // Form fields
 const birthDate = ref<string>('')
-const gender = ref<'male' | 'female' | 'other' | null>(null)
-const notificationsEnabled = ref(true)
+const gender = ref<Gender | null>(null)
 const selectedTags = ref<Tag[]>([])
 const isDarkMode = ref($q.dark.isActive)
 
@@ -105,13 +107,13 @@ onMounted(async () => {
   try {
     await loadTags()
 
-    isDarkMode.value = $q.dark.isActive
-    notificationsEnabled.value = localStorage.getItem('notifications-enabled') !== 'false'
+    isDarkMode.value = authStore.user!.darkMode as boolean
 
     // TODO: Load from user profile when backend is ready
-    // birthDate.value = authStore.user?.birthDate || ''
-    // gender.value = authStore.user?.gender || null
-    // selectedTags.value = authStore.user?.tags || []
+    birthDate.value = authStore.user?.birthDate?.toDateString() || ''
+    gender.value = authStore.user?.gender || null
+    selectedTags.value = authStore.user?.interests || []
+    isDarkMode.value = authStore.user?.darkMode || $q.dark.isActive
   } catch (error) {
     console.error('Failed to load settings:', error)
     $q.notify({
@@ -126,22 +128,18 @@ onMounted(async () => {
 const handleThemeToggle = (value: boolean) => {
   $q.dark.set(value)
   isDarkMode.value = value
-  localStorage.setItem('theme', value ? 'dark' : 'light')
 }
 
 const handleSave = async () => {
   saving.value = true
   try {
-    // Save to localStorage for now
-    localStorage.setItem('notifications-enabled', String(notificationsEnabled.value))
-
     // TODO: Save to backend when API is ready
-    // await api.users.updateProfile(authStore.user!.id, {
-    //   birthDate: birthDate.value,
-    //   gender: gender.value,
-    //   tags: selectedTags.value,
-    //   notificationsEnabled: notificationsEnabled.value,
-    // })
+    await authStore.updateUserById(authStore.user!.id, {
+      birthDate: new Date(birthDate.value),
+      gender: gender.value || undefined,
+      interests: selectedTags.value || undefined,
+      darkMode: isDarkMode.value,
+    })
 
     $q.notify({
       type: 'positive',
@@ -176,16 +174,12 @@ const handleDeleteProfile = () => {
     persistent: true,
   }).onOk(async () => {
     try {
-      // TODO: Implement API call to delete profile
-      // await api.users.deleteProfile(authStore.user!.id)
-
+      await api.users.deleteUserById(authStore.user!.id)
       $q.notify({
         type: 'positive',
         message: 'Profile deleted successfully',
       })
-
-      // TODO: Logout and redirect to home
-      // authStore.logout()
+      authStore.logout()
     } catch (error) {
       console.error('Failed to delete profile:', error)
       $q.notify({
@@ -289,21 +283,6 @@ const handleDeleteProfile = () => {
               </q-item>
             </template>
           </FormSelectorField>
-        </section>
-
-        <!-- Notifications Section -->
-        <section class="settings-section">
-          <h3 class="section-title">Notifications</h3>
-
-          <div class="form-field">
-            <div class="toggle-field">
-              <div class="toggle-label">
-                <q-icon name="notifications" size="24px" class="toggle-icon" />
-                <span>Enable Notifications</span>
-              </div>
-              <q-toggle v-model="notificationsEnabled" color="primary" />
-            </div>
-          </div>
         </section>
 
         <!-- Save Button -->
