@@ -35,7 +35,7 @@ const locationAddress = computed(() => {
 })
 
 const formattedPrice = computed(() => {
-  return props.event.price === 0 ? t('eventDetails.freePrice') : `€${props.event.price}`
+  return t('eventDetails.freePrice')
 })
 </script>
 <template>

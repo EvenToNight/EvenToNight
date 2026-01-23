@@ -339,7 +339,6 @@ const buildEventData = (status: CreationEventStatus): PartialEventData => {
     tags: tags.value.length > 0 ? tags.value : undefined,
     location: location.value?.value || undefined,
     date: date.value && time.value ? new Date(`${date.value}T${time.value}`) : undefined,
-    price: 0, //TODO: deprecated field, to be removed
     status: status,
     creatorId: currentUserId!,
     collaboratorIds: collaborators.value.length > 0 ? collaborators.value : undefined,

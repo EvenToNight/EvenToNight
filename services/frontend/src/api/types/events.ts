@@ -15,7 +15,6 @@ export interface EventData {
   tags: Tag[]
   location: Location
   date: Date // send ISO 8601 format to backend
-  price: number
   status: EventStatus
   creatorId: UserID
   collaboratorIds: UserID[]
