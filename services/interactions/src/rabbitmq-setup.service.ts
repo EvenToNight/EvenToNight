@@ -16,6 +16,7 @@ export class RabbitMqSetupService {
       'payments.order.confirmed',
       'event.completed',
       'user.updated',
+      'event.updated',
     ];
 
     await channel.assertExchange(exchange, 'topic', {

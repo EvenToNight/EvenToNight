@@ -11,6 +11,7 @@ import { UserDeletedDto } from '../dto/user-deleted.dto';
 import { EventCompletedDto } from '../dto/event-completed.dto';
 import { UserUpdatedDto } from '../dto/user-updated.dto';
 import { OrderConfirmedDto } from '../dto/order-confirmed.dto';
+import { EventUpdatedDto } from '../dto/event-updated.dto';
 
 @Controller()
 export class MetadataController {
@@ -59,6 +60,9 @@ export class MetadataController {
           break;
         case 'user.updated':
           await this.handleUserUpdated(payload);
+          break;
+        case 'event.updated':
+          await this.handleEventUpdated(payload);
           break;
         case 'payments.order.confirmed':
           await this.handleOrderConfirmed(payload);
@@ -109,6 +113,11 @@ export class MetadataController {
   private async handleUserUpdated(payload: unknown): Promise<void> {
     const dto = await this.validateAndTransform(UserUpdatedDto, payload);
     await this.metadataService.handleUserUpdated(dto);
+  }
+
+  private async handleEventUpdated(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventUpdatedDto, payload);
+    await this.metadataService.handleEventUpdated(dto);
   }
 
   private async handleOrderConfirmed(payload: unknown): Promise<void> {

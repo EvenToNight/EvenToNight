@@ -23,6 +23,7 @@ import { EventCompletedDto } from '../dto/event-completed.dto';
 import { UserInfoDto } from 'src/commons/dto/user-info-dto';
 import { UserUpdatedDto } from '../dto/user-updated.dto';
 import { OrderConfirmedDto } from '../dto/order-confirmed.dto';
+import { EventUpdatedDto } from '../dto/event-updated.dto';
 
 @Injectable()
 export class MetadataService {
@@ -190,6 +191,28 @@ export class MetadataService {
       }
     } catch (error) {
       this.logger.error(`Failed to handle user.updated: ${error}`);
+      throw error;
+    }
+  }
+
+  async handleEventUpdated(payload: EventUpdatedDto) {
+    try {
+      this.logger.debug(`Processing event.updated: ${JSON.stringify(payload)}`);
+
+      const updateResult = await this.eventModel.updateOne(
+        { eventId: payload.eventId },
+        {
+          collaboratorIds: payload.collaboratorIds || [],
+          name: payload.name,
+        },
+      );
+      if (updateResult.modifiedCount === 0) {
+        this.logger.warn(`Event ${payload.eventId} not found for update`);
+      } else {
+        this.logger.log(`Event ${payload.eventId} updated from metadata`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to handle event.updated: ${error}`);
       throw error;
     }
   }
