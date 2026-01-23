@@ -9,6 +9,7 @@ import EventReviewsPreview from './EventReviewsPreview.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { TICKET_PURCHASE_ROUTE_NAME } from '@/router'
 import type { EventTicketType } from '@/api/types/payments'
+import { useAuthStore } from '@/stores/auth'
 
 interface Props {
   event: Event
@@ -21,8 +22,13 @@ const emit = defineEmits<{
 }>()
 const { t } = useI18n()
 const router = useRouter()
+const authStore = useAuthStore()
 
 const handleBuyTickets = () => {
+  if (!authStore.user?.id) {
+    emit('update:isAuthRequired', true)
+    return
+  }
   router.push({
     name: TICKET_PURCHASE_ROUTE_NAME,
     params: {
