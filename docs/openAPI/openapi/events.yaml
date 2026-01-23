@@ -523,6 +523,8 @@ paths:
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
+      security:
+        - BearerAuth: []      
       parameters:
         - in: path
           name: eventId
