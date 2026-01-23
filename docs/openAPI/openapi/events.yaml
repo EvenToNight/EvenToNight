@@ -26,7 +26,6 @@ paths:
               type: object
               required:
                 - event
-                - poster
               properties:
                 event:
                   type: string
@@ -569,6 +568,47 @@ paths:
                     type: string
                     description: Error message
                     example: "Failed to update poster: Invalid file format"
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Event not found"
+      tags:
+        - Event Query API
+    delete:
+      summary: Delete event poster
+      description: Deletes the poster image for a specific event.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+      security:
+        - BearerAuth: []      
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+          description: The ID of the event to delete the poster for
+          example: "evt_789xyz"
+      responses:
+        '200':
+          description: Event poster deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Poster deleted successfully"
         '404':
           description: Event not found
           content:
