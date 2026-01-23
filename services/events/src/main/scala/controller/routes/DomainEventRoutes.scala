@@ -151,17 +151,45 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
             )
 
   @cask.delete("/:eventId/")
-  def deleteEvent(eventId: String): cask.Response[ujson.Value] =
-    eventService.handleCommand(DeleteEventCommand(eventId)) match
-      case Right(_) =>
+  def deleteEvent(eventId: String, req: cask.Request): cask.Response[ujson.Value] =
+    val authOpt = req.headers.get("authorization").flatMap(_.headOption).flatMap { auth =>
+      if auth.startsWith("Bearer ") then Some(auth.drop(7)) else None
+    }
+
+    val validationResult = authOpt match
+      case Some(token) => JwtService.validateToken(token)
+      case None        => Left("No authorization token provided")
+
+    validationResult match
+      case Left(error) =>
         cask.Response(
-          Obj("message" -> "Event deleted successfully"),
-          statusCode = 200
+          Obj("error" -> "Unauthorized", "message" -> error),
+          statusCode = 401
         )
-      case Left(value) =>
-        cask.Response(
-          Obj("error" -> value),
-          statusCode = 400
-        )
+      case Right(user) =>
+        val eventInfoResult = eventService.getEventInfo(eventId)
+        val authenticatedUser = eventInfoResult match
+          case Left(_) =>
+            false
+          case Right(event) =>
+            user.userId == event.creatorId
+        authenticatedUser match
+          case false =>
+            cask.Response(
+              Obj("error" -> "Forbidden", "message" -> "User is not authorized to delete this event"),
+              statusCode = 403
+            )
+          case true =>
+            eventService.handleCommand(DeleteEventCommand(eventId)) match
+              case Right(_) =>
+                cask.Response(
+                  Obj("message" -> "Event deleted successfully"),
+                  statusCode = 200
+                )
+              case Left(value) =>
+                cask.Response(
+                  Obj("error" -> value),
+                  statusCode = 400
+                )
 
   initialize()
