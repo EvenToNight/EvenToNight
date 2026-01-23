@@ -16,6 +16,8 @@ paths:
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -98,6 +100,17 @@ paths:
                       - "Invalid request: Missing required field 'title'"
                       - "Event validation failed: Invalid date format"
                       - "Only organizations can create events. Creator ID 'user-123' is not an organization."
+        '401':
+          description: Unauthorized - missing or invalid authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Unauthorized: Missing or invalid authentication token"
       tags:
         - Event Command API
 
@@ -976,3 +989,11 @@ paths:
                   type: string
       tags:
         - Event Tag Routes
+  
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Enter your JWT token in the format: Bearer <token>'
