@@ -49,11 +49,10 @@ paths:
                       - lon (number): Decimal degrees (longitude), e.g. -73.968285
                       - link (string): Optional URL or external reference
                     - `date` (string, ISO 8601 format): Event date and time (e.g., "2026-07-15T20:00:00")
-                    - `price` (number): Event ticket price
                     - `status` (string): Event status, must be "DRAFT" or "PUBLISHED"
                     - `creatorId` (string): ID of the event creator
                     - `collaboratorIds` (List of strings): IDs of collaborators. Optional
-                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","creatorId":"user-123","collaboratorIds":["user-456"]}'
+                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","status":"DRAFT","creatorId":"user-123","collaboratorIds":["user-456"]}'
                 poster:
                   type: string
                   format: binary
@@ -202,10 +201,6 @@ paths:
                           type: string
                           format: date-time
                           description: Event date and time
-                        price:
-                          type: number
-                          format: double
-                          description: Event ticket price  
                         status:
                           type: string
                           enum: [PUBLISHED]
@@ -225,7 +220,7 @@ paths:
                           nullable: true
               example:
                 events:
-                  - _id: "evt123"
+                  - eventId: "evt123"
                     title: "Summer Concert"
                     description: "Amazing outdoor concert"
                     status: "PUBLISHED"
@@ -351,31 +346,15 @@ paths:
           required: false
           schema:
             type: string
-        - name: priceMin
-          in: query
-          description: Minimum price filter. If not provided when priceMax is set, it defaults to 0.0.
-          required: false
-          schema:
-            type: number
-            format: double
-          example: 10.0
-        - name: priceMax
-          in: query
-          description: Maximum price filter. If not provided when priceMin is set, it defaults to Double.MaxValue.
-          required: false
-          schema:
-            type: number
-            format: double
-          example: 50.0
         - name: sortBy
           in: query
           description: Field to sort results by. Secondary sort is always by date (ascending).
           required: false
           schema:
             type: string
-            enum: [date, price, title, instant]
+            enum: [date, title, instant]
             default: date
-          example: price
+          example: title
         - name: sortOrder
           in: query
           description: Sort order for the primary sort field
@@ -398,7 +377,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        _id:
+                        eventId:
                           type: string
                           description: Event ID
                         title:
@@ -455,7 +434,7 @@ paths:
                   summary: Successful search with results
                   value:
                     events:
-                      - _id: "evt123"
+                      - eventId: "evt123"
                         title: "Summer Concert"
                         status: "PUBLISHED"
                         date: "2025-07-15T20:00:00"
@@ -477,7 +456,7 @@ paths:
                   summary: Second page of results
                   value:
                     events:
-                      - _id: "evt456"
+                      - eventId: "evt456"
                         title: "Art Exhibition"
                         status: "PUBLISHED"
                     limit: 10
@@ -697,10 +676,6 @@ paths:
                     type: string
                     format: date-time
                     description: Event date and time
-                  price:
-                    type: number
-                    format: double
-                    description: Event ticket price
                   status:
                     type: string
                     enum: [DRAFT, PUBLISHED, CANCELLED]
@@ -804,7 +779,6 @@ paths:
                   - `lon` (number)
                   - `link` (string)
                 - `date` (string, ISO 8601 format): Event date and time
-                - `price` (number): Event ticket price
                 - `status` (string): Event status ("DRAFT", "PUBLISHED", or "CANCELLED")
                 - `collaboratorIds` (array of strings): IDs of collaborators
               properties:
@@ -826,9 +800,21 @@ paths:
                   type: object
                   description: Event location object (optional)
                   properties:
-                    address:
+                    name:
                       type: string
                       example: "Central Park"
+                    state:
+                      type: string
+                      example: "New York"
+                    road:
+                      type: string
+                      example: "5th Ave"
+                    postcode:
+                      type: string
+                      example: "10022"
+                    house_number:
+                      type: string
+                      example: "1"
                     city:
                       type: string
                       example: "New York"
@@ -838,24 +824,25 @@ paths:
                     country:
                       type: string
                       example: "USA"
-                    latitude:
+                    country_code:
+                      type: string
+                      example: "US"
+                    lat:
                       type: number
                       format: double
                       example: 40.785091
-                    longitude:
+                    lon:
                       type: number
                       format: double
                       example: -73.968285
+                    link:
+                      type: string
+                      example: "https://maps.example.com/?q=central+park"
                 date:
                   type: string
                   format: date-time
                   description: Event date and time (optional)
                   example: "2026-07-20T20:00:00"
-                price:
-                  type: number
-                  format: double
-                  description: Event ticket price (optional)
-                  example: 30.00
                 status:
                   type: string
                   enum: [DRAFT, PUBLISHED, CANCELLED]
@@ -867,18 +854,11 @@ paths:
                     type: string
                   description: IDs of collaborators (optional)
                   example: ["user-789"]
-            examples:
-              updateTitle:
-                summary: Update only title
-                value:
-                  title: "New Event Title"
-                  status: "DRAFT"
               updateMultipleFields:
                 summary: Update multiple fields
                 value:
                   title: "Updated Summer Music Festival"
                   description: "An amazing updated summer music festival"
-                  price: 30.00
                   status: "DRAFT"
               updateComplete:
                 summary: Update all fields
@@ -900,7 +880,6 @@ paths:
                     lon: -73.968285
                     link: "https://maps.example.com/?q=central+park"
                   date: "2026-07-20T20:00:00"
-                  price: 30.00
                   status: "PUBLISHED"
       responses:
         '200':
