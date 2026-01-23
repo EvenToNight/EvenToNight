@@ -94,32 +94,61 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
 
   @cask.put("/:eventId/")
   def updateEvent(eventId: String, request: cask.Request): cask.Response[ujson.Value] =
-    try
-      val event   = request.text()
-      val command = Utils.getUpdateCommandFromJson(eventId, event)
 
-      eventService.handleCommand(command) match
-        case Right(_) =>
-          cask.Response(
-            Obj("message" -> "Event updated successfully"),
-            statusCode = 200
-          )
-        case Left(value) =>
-          cask.Response(
-            Obj("error" -> value),
-            statusCode = 400
-          )
-    catch
-      case e: ujson.ParseException =>
+    val authOpt = request.headers.get("authorization").flatMap(_.headOption).flatMap { auth =>
+      if auth.startsWith("Bearer ") then Some(auth.drop(7)) else None
+    }
+
+    val validationResult = authOpt match
+      case Some(token) => JwtService.validateToken(token)
+      case None        => Left("No authorization token provided")
+
+    validationResult match
+      case Left(error) =>
         cask.Response(
-          Obj("error" -> s"Invalid JSON format: ${e.getMessage}"),
-          statusCode = 400
+          Obj("error" -> "Unauthorized", "message" -> error),
+          statusCode = 401
         )
-      case e: Exception =>
-        cask.Response(
-          Obj("error" -> s"Invalid request: ${e.getMessage}"),
-          statusCode = 400
-        )
+      case Right(user) =>
+        try
+          val event   = request.text()
+          val command = Utils.getUpdateCommandFromJson(eventId, event)
+
+          val authenticatedUser =
+            eventService.getEventInfo(eventId) match
+              case Left(_) =>
+                false
+              case Right(event) =>
+                user.userId == event.creatorId
+          authenticatedUser match
+            case false =>
+              cask.Response(
+                Obj("error" -> "Forbidden", "message" -> "User is not authorized to update this event"),
+                statusCode = 403
+              )
+            case true =>
+              eventService.handleCommand(command) match
+                case Right(_) =>
+                  cask.Response(
+                    Obj("message" -> "Evenxt updated successfully"),
+                    statusCode = 200
+                  )
+                case Left(value) =>
+                  cask.Response(
+                    Obj("error" -> value),
+                    statusCode = 400
+                  )
+        catch
+          case e: ujson.ParseException =>
+            cask.Response(
+              Obj("error" -> s"Invalid JSON format: ${e.getMessage}"),
+              statusCode = 400
+            )
+          case e: Exception =>
+            cask.Response(
+              Obj("error" -> s"Invalid request: ${e.getMessage}"),
+              statusCode = 400
+            )
 
   @cask.delete("/:eventId/")
   def deleteEvent(eventId: String): cask.Response[ujson.Value] =
