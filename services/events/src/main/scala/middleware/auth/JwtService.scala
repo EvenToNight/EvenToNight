@@ -11,7 +11,6 @@ object JwtService:
   private var fallbackKey: Option[String]     = None
   private val isDevelopment                   = sys.env.getOrElse("NODE_ENV", "production") == "development"
 
-  // Inizializza le chiavi pubbliche all'avvio - restituisce Either invece di throw
   def initialize(): Either[String, Unit] =
     val publicKeyUrl = sys.env.get("AUTH_PUBLIC_KEY_URL")
 
@@ -89,7 +88,6 @@ object JwtService:
 
   def validateToken(token: String): Either[String, AuthUser] =
     if isDevelopment then
-      // In development, decode senza validare la firma
       Try {
         val parts       = token.split("\\.")
         val payloadJson = new String(Base64.getUrlDecoder.decode(parts(1)))

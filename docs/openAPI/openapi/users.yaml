@@ -479,10 +479,10 @@ components:
     ValidLogin:
       type: object
       required:
-        - usernameOrEmail
+        - username
         - password
       properties:
-        usernameOrEmail:
+        username:
           type: string
           example: johndoe
         password:
