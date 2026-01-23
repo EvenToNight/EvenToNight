@@ -3,9 +3,11 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
 import type { Event } from '@/api/types/events'
+import type { EventTicketType } from '@/api/types/payments'
 
 interface Props {
   event: Event
+  eventTickets: EventTicketType[]
 }
 const { t } = useI18n()
 const { locale } = useNavigation()

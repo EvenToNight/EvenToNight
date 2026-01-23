@@ -8,9 +8,11 @@ import OrganizationInfo from './OrganizationInfo.vue'
 import EventReviewsPreview from './EventReviewsPreview.vue'
 import Button from '@/components/buttons/basicButtons/Button.vue'
 import { TICKET_PURCHASE_ROUTE_NAME } from '@/router'
+import type { EventTicketType } from '@/api/types/payments'
 
 interface Props {
   event: Event
+  eventTickets: EventTicketType[]
   isAuthRequired: boolean
 }
 const props = defineProps<Props>()
@@ -38,7 +40,7 @@ const handleBuyTickets = () => {
         :isAuthRequired="isAuthRequired"
         @update:is-auth-required="emit('update:isAuthRequired', $event)"
       />
-      <EventInfo :event="event" />
+      <EventInfo :event="event" :eventTickets="eventTickets" />
       <OrganizationInfo :event="event" />
       <Button
         v-if="event.status === 'PUBLISHED'"
