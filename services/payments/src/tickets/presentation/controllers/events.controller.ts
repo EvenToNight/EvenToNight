@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Put,
   Get,
   Param,
   Body,
@@ -18,6 +19,7 @@ import { DeleteEventTicketTypesHandler } from 'src/tickets/application/handlers/
 import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
 // import { CurrentUser, JwtAuthGuard } from 'src/commons/infrastructure/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
+import { EventDto } from '../../application/dto/event.dto';
 
 @Controller('events/:eventId')
 export class EventController {
@@ -27,6 +29,33 @@ export class EventController {
     private readonly createHandler: CreateEventTicketTypeHandler,
     private readonly deleteHandler: DeleteEventTicketTypesHandler,
   ) {}
+
+  /**
+   * PUT /events/:eventId
+   * Creates or updates an event (idempotent).
+   */
+  @Put('')
+  @HttpCode(HttpStatus.OK)
+  // @UseGuards(JwtAuthGuard)
+  //TODO Add Auth
+  async createOrUpdateEvent(
+    @Param('eventId') eventId: string,
+    @Body(ValidationPipe) dto: EventDto,
+    // @CurrentUser('userId') userId: string,
+  ): Promise<void> {
+    // if (dto.creatorId !== userId) {
+    //   throw new ForbiddenException(
+    //     'User ID in token does not match creator ID in request body',
+    //   );
+    // }
+    console.log('DTO received in controller:', dto);
+    await this.eventService.createOrUpdate(
+      eventId,
+      dto.creatorId,
+      dto.date,
+      dto.status,
+    );
+  }
 
   /**
    * GET /events/:eventId/ticket-types

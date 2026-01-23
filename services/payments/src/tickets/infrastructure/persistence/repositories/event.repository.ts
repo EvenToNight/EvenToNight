@@ -25,6 +25,17 @@ export class EventRepositoryImpl implements EventRepository {
     return document ? EventMapper.toDomain(document) : null;
   }
 
+  async update(event: Event): Promise<Event> {
+    const document = EventMapper.toPersistence(event);
+    const updated = await this.eventModel
+      .findByIdAndUpdate(event.getId().toString(), document, { new: true })
+      .exec();
+    if (!updated) {
+      throw new Error(`Event with id ${event.getId().toString()} not found`);
+    }
+    return EventMapper.toDomain(updated);
+  }
+
   async delete(id: string): Promise<void> {
     await this.eventModel.findByIdAndDelete(id).exec();
   }
