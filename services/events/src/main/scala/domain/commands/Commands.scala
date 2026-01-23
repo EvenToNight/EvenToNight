@@ -12,7 +12,6 @@ case class CreateEventCommand(
     tags: Option[List[EventTag]] = None,
     location: Option[Location] = None,
     date: Option[LocalDateTime] = None,
-    price: Option[Double] = None,
     status: EventStatus,
     creatorId: String,
     collaboratorIds: Option[List[String]] = None
@@ -36,7 +35,6 @@ case class UpdateEventCommand(
     tags: Option[List[EventTag]],
     location: Option[Location],
     date: Option[LocalDateTime],
-    price: Option[Double],
     status: EventStatus,
     collaboratorIds: Option[List[String]]
 ) extends Commands
@@ -56,7 +54,6 @@ case class GetFilteredEventsCommand(
     organizationId: Option[String],
     city: Option[String],
     location_name: Option[String],
-    priceRange: Option[(Double, Double)],
     sortBy: Option[String],
     sortOrder: Option[String]
 ) extends Commands

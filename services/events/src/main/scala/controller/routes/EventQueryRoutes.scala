@@ -67,8 +67,6 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       organizationId: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None,
-      priceMin: Option[Double] = None,
-      priceMax: Option[Double] = None,
       sortBy: Option[String] = None,
       sortOrder: Option[String] = None
   ): cask.Response[ujson.Value] =
@@ -84,8 +82,6 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       organizationId,
       city,
       location_name,
-      priceMin,
-      priceMax,
       sortBy,
       sortOrder
     )

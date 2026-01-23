@@ -30,7 +30,6 @@ trait EventRepository:
       organizationId: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None,
-      priceRange: Option[(Double, Double)] = None,
       sortBy: Option[String] = None,
       sortOrder: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)]
@@ -125,14 +124,13 @@ case class MongoEventRepository(
       organizationId: Option[String] = None,
       city: Option[String] = None,
       location_name: Option[String] = None,
-      priceRange: Option[(Double, Double)] = None,
       sortBy: Option[String] = None,
       sortOrder: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)] =
     Try {
 
       val combinedFilter =
-        buildFilterQuery(status, title, tags, startDate, endDate, organizationId, city, location_name, priceRange)
+        buildFilterQuery(status, title, tags, startDate, endDate, organizationId, city, location_name)
 
       val sortField     = sortBy.getOrElse("date")
       val sortDirection = if sortOrder.contains("desc") then -1 else 1
@@ -167,7 +165,6 @@ case class MongoEventRepository(
       organizationId: Option[String],
       city: Option[String],
       location_name: Option[String],
-      priceRange: Option[(Double, Double)]
   ): org.bson.conversions.Bson =
     val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
 
@@ -189,13 +186,6 @@ case class MongoEventRepository(
 
     startDate.foreach(start => filters += Filters.gte("date", start))
     endDate.foreach(end => filters += Filters.lte("date", end))
-
-    priceRange.foreach { case (min, max) =>
-      filters += Filters.and(
-        Filters.gte("price", min),
-        Filters.lte("price", max)
-      )
-    }
     if filters.isEmpty then
       new Document()
     else if filters.size == 1 then
