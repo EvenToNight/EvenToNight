@@ -4,6 +4,7 @@ import cask.Routes
 import domain.commands.{GetAllEventsCommand, GetEventCommand, GetFilteredEventsCommand, UpdateEventPosterCommand}
 import domain.models.Event
 import domain.models.EventConversions.*
+import middleware.auth.JwtService
 import service.EventService
 import ujson.Obj
 import utils.Utils
@@ -108,29 +109,57 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
         )
 
   @cask.postForm("/:eventId/poster")
-  def updateEventPoster(eventId: String, poster: cask.FormFile): cask.Response[ujson.Value] =
-    eventService.handleCommand(GetEventCommand(eventId)) match
-      case Left(value) =>
+  def updateEventPoster(eventId: String, poster: cask.FormFile, req: cask.Request): cask.Response[ujson.Value] =
+    val authOpt = req.headers.get("authorization").flatMap(_.headOption).flatMap { auth =>
+      if auth.startsWith("Bearer ") then Some(auth.drop(7)) else None
+    }
+
+    val validationResult = authOpt match
+      case Some(token) => JwtService.validateToken(token)
+      case None        => Left("No authorization token provided")
+
+    validationResult match
+      case Left(error) =>
         cask.Response(
-          Obj("error" -> s"$value"),
-          statusCode = 404
+          Obj("error" -> "Unauthorized", "message" -> error),
+          statusCode = 401
         )
-      case _ =>
-        val posterUrl = Utils.uploadPosterToMediaService(eventId, Some(poster), mediaServiceUrl)
-        val updateCommand = UpdateEventPosterCommand(
-          eventId = eventId,
-          posterUrl = s"http://media.$host/$posterUrl"
-        )
-        eventService.handleCommand(updateCommand) match
-          case Right(_) =>
+      case Right(user) =>
+        val eventInfoResult = eventService.getEventInfo(eventId)
+        val authenticatedUser = eventInfoResult match
+          case Left(_) =>
+            false
+          case Right(event) =>
+            user.userId == event.creatorId
+        authenticatedUser match
+          case false =>
             cask.Response(
-              Obj("message" -> "Poster updated successfully"),
-              statusCode = 200
+              Obj("error" -> "Forbidden", "message" -> "User is not authorized to delete this event"),
+              statusCode = 403
             )
-          case Left(value) =>
-            cask.Response(
-              Obj("error" -> value),
-              statusCode = 400
-            )
+          case true =>
+            eventService.handleCommand(GetEventCommand(eventId)) match
+              case Left(value) =>
+                cask.Response(
+                  Obj("error" -> s"$value"),
+                  statusCode = 404
+                )
+              case _ =>
+                val posterUrl = Utils.uploadPosterToMediaService(eventId, Some(poster), mediaServiceUrl)
+                val updateCommand = UpdateEventPosterCommand(
+                  eventId = eventId,
+                  posterUrl = s"http://media.$host/$posterUrl"
+                )
+                eventService.handleCommand(updateCommand) match
+                  case Right(_) =>
+                    cask.Response(
+                      Obj("message" -> "Poster updated successfully"),
+                      statusCode = 200
+                    )
+                  case Left(value) =>
+                    cask.Response(
+                      Obj("error" -> value),
+                      statusCode = 400
+                    )
 
   initialize()
