@@ -2,7 +2,7 @@ import { IsString, IsNotEmpty, IsDate, IsIn } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 
-export class EventDto {
+export class CreateEventDto {
   @IsString()
   @IsNotEmpty()
   creatorId: string;

@@ -1,7 +1,6 @@
 import {
   Controller,
   Post,
-  Put,
   Get,
   Param,
   Body,
@@ -19,9 +18,13 @@ import { DeleteEventTicketTypesHandler } from 'src/tickets/application/handlers/
 import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
 // import { CurrentUser, JwtAuthGuard } from 'src/commons/infrastructure/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
-import { EventDto } from '../../application/dto/event.dto';
+import { CreateEventDto } from '../../application/dto/create-event.dto';
+import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
+import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
+import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 
-@Controller('events/:eventId')
+@Controller('events')
 export class EventController {
   constructor(
     private readonly eventTicketTypeService: EventTicketTypeService,
@@ -31,16 +34,16 @@ export class EventController {
   ) {}
 
   /**
-   * PUT /events/:eventId
-   * Creates or updates an event (idempotent).
+   * POST /events
+   * Creates a new event.
    */
-  @Put('')
+  @Post(':eventId')
   @HttpCode(HttpStatus.OK)
   // @UseGuards(JwtAuthGuard)
   //TODO Add Auth
   async createOrUpdateEvent(
     @Param('eventId') eventId: string,
-    @Body(ValidationPipe) dto: EventDto,
+    @Body(ValidationPipe) dto: CreateEventDto,
     // @CurrentUser('userId') userId: string,
   ): Promise<void> {
     // if (dto.creatorId !== userId) {
@@ -48,12 +51,13 @@ export class EventController {
     //     'User ID in token does not match creator ID in request body',
     //   );
     // }
-    console.log('DTO received in controller:', dto);
-    await this.eventService.createOrUpdate(
-      eventId,
-      dto.creatorId,
-      dto.date,
-      dto.status,
+    await this.eventService.save(
+      Event.create({
+        id: EventId.fromString(eventId),
+        creatorId: UserId.fromString(dto.creatorId),
+        date: dto.date,
+        status: EventStatus.fromString(dto.status),
+      }),
     );
   }
 
@@ -61,7 +65,7 @@ export class EventController {
    * GET /events/:eventId/ticket-types
    * Returns the ticket types for the specified event.
    */
-  @Get('ticket-types')
+  @Get(':eventId/ticket-types')
   @HttpCode(HttpStatus.OK)
   async getEventTicketTypes(
     @Param('eventId') eventId: string,
@@ -77,7 +81,7 @@ export class EventController {
    * POST /events/:eventId/ticket-types
    * Creates a new ticket type for the specified event.
    */
-  @Post('ticket-types')
+  @Post(':eventId/ticket-types')
   @HttpCode(HttpStatus.CREATED)
   // @UseGuards(JwtAuthGuard)
   //TODO Add Auth
@@ -100,7 +104,7 @@ export class EventController {
    * Deletes all ticket types for the specified event.
    */
   //TODO Add Auth
-  @Delete('ticket-types')
+  @Delete(':eventId/ticket-types')
   @HttpCode(HttpStatus.NO_CONTENT)
   // @UseGuards(JwtAuthGuard)
   async deleteEventTicketTypes(
