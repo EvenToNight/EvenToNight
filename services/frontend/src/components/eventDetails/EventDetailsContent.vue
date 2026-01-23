@@ -30,6 +30,10 @@ const handleBuyTickets = () => {
     },
   })
 }
+
+const ticketsAvailable = () => {
+  return props.eventTickets.some((ticket) => ticket.availableQuantity > 0)
+}
 </script>
 
 <template>
@@ -42,14 +46,17 @@ const handleBuyTickets = () => {
       />
       <EventInfo :event="event" :eventTickets="eventTickets" />
       <OrganizationInfo :event="event" />
-      <Button
-        v-if="event.status === 'PUBLISHED'"
-        variant="primary"
-        :label="t('eventDetails.buyTickets')"
-        :class="'full-width'"
-        size="lg"
-        @click="handleBuyTickets"
-      />
+      <template v-if="event.status === 'PUBLISHED'">
+        <Button
+          v-if="ticketsAvailable()"
+          variant="primary"
+          :label="t('eventDetails.buyTickets')"
+          :class="'full-width'"
+          size="lg"
+          @click="handleBuyTickets"
+        />
+        <div v-else class="sold-out-message full-width">Sold Out</div>
+      </template>
       <EventReviewsPreview
         v-else-if="event.status === 'COMPLETED'"
         :eventId="event.eventId"
@@ -80,6 +87,23 @@ const handleBuyTickets = () => {
 
   @include dark-mode {
     background: $color-background-dark;
+  }
+}
+
+.sold-out-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-gray-100;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  border-radius: $radius-lg;
+  padding: $spacing-4 0;
+  margin-top: $spacing-4;
+  margin-bottom: $spacing-4;
+
+  @include dark-mode {
+    background: $color-background-dark-soft;
   }
 }
 </style>
