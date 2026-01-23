@@ -32,46 +32,54 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
       case Right(user) =>
         try
           val command: CreateEventCommand = Utils.getCreateCommandFromJson(event)
-          val posterOpt                   = Option(poster)
-          val posterValidation = (command.status, posterOpt) match
-            case (status, None) if status != EventStatus.DRAFT =>
-              Left("Poster is required for events with status other than DRAFT")
-            case _ =>
-              Right(())
-
-          posterValidation match
-            case Left(error) =>
+          val authenticatedUser           = user.userId == command.creatorId
+          authenticatedUser match
+            case false =>
               cask.Response(
-                Obj("error" -> error),
-                statusCode = 400
+                Obj("error" -> "Forbidden", "message" -> "Creator ID does not match authenticated user"),
+                statusCode = 403
               )
-            case Right(_) =>
-              eventService.handleCommand(command) match
-                case Right(eventId: String) =>
-                  val posterUrl = Utils.uploadPosterToMediaService(eventId, posterOpt, mediaServiceUrl)
-                  val updateCommand =
-                    UpdateEventPosterCommand(eventId = eventId, posterUrl = s"http://media.$host/$posterUrl")
-                  eventService.handleCommand(updateCommand) match
-                    case Right(_) =>
-                      cask.Response(
-                        Obj("eventId" -> eventId),
-                        statusCode = 201
-                      )
-                    case Left(error) =>
-                      cask.Response(
-                        Obj("error" -> s"Event created but poster upload failed: $error"),
-                        statusCode = 207
-                      )
-                case Left(value) =>
+            case true =>
+              val posterOpt = Option(poster)
+              val posterValidation = (command.status, posterOpt) match
+                case (status, None) if status != EventStatus.DRAFT =>
+                  Left("Poster is required for events with status other than DRAFT")
+                case _ =>
+                  Right(())
+
+              posterValidation match
+                case Left(error) =>
                   cask.Response(
-                    Obj("error" -> value),
+                    Obj("error" -> error),
                     statusCode = 400
                   )
-                case _ =>
-                  cask.Response(
-                    Obj("error" -> "Unknown error occurred during event creation"),
-                    statusCode = 500
-                  )
+                case Right(_) =>
+                  eventService.handleCommand(command) match
+                    case Right(eventId: String) =>
+                      val posterUrl = Utils.uploadPosterToMediaService(eventId, posterOpt, mediaServiceUrl)
+                      val updateCommand =
+                        UpdateEventPosterCommand(eventId = eventId, posterUrl = s"http://media.$host/$posterUrl")
+                      eventService.handleCommand(updateCommand) match
+                        case Right(_) =>
+                          cask.Response(
+                            Obj("eventId" -> eventId),
+                            statusCode = 201
+                          )
+                        case Left(error) =>
+                          cask.Response(
+                            Obj("error" -> s"Event created but poster upload failed: $error"),
+                            statusCode = 207
+                          )
+                    case Left(value) =>
+                      cask.Response(
+                        Obj("error" -> value),
+                        statusCode = 400
+                      )
+                    case _ =>
+                      cask.Response(
+                        Obj("error" -> "Unknown error occurred during event creation"),
+                        statusCode = 500
+                      )
         catch
           case e: ujson.ParseException =>
             cask.Response(
@@ -81,8 +89,8 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
           case e: Exception =>
             cask.Response(
               Obj("error" -> s"Invalid request: ${e.getMessage}"),
-          statusCode = 400
-        )
+              statusCode = 400
+            )
 
   @cask.put("/:eventId/")
   def updateEvent(eventId: String, request: cask.Request): cask.Response[ujson.Value] =
