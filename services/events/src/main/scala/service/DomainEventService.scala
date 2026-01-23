@@ -81,7 +81,8 @@ class DomainEventService(
               publisher.publish(
                 EventUpdated(
                   eventId = updatedEvent._id,
-                  collaboratorIds = updatedEvent.collaboratorIds
+                  collaboratorIds = updatedEvent.collaboratorIds,
+                  name = updatedEvent.title.getOrElse("Unnamed Event")
                 )
               )
             Right(())

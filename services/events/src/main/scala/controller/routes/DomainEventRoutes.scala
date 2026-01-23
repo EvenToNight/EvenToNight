@@ -130,7 +130,7 @@ class DomainEventRoutes(eventService: EventService) extends Routes:
               eventService.handleCommand(command) match
                 case Right(_) =>
                   cask.Response(
-                    Obj("message" -> "Evenxt updated successfully"),
+                    Obj("message" -> "Event updated successfully"),
                     statusCode = 200
                   )
                 case Left(value) =>
