@@ -5,7 +5,7 @@ import model.organization.OrganizationAccount
 import model.organization.OrganizationProfile
 
 trait OrganizationRepository:
-  def insert(org: Organization, userId: String): String
+  def insert(org: Organization, userId: String): Unit
   def getAllOrganizations(): List[(String, Organization)]
   def findById(userId: String): Option[Organization]
   def delete(userId: String): Unit

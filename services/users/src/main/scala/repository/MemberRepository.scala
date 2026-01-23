@@ -5,7 +5,7 @@ import model.member.MemberAccount
 import model.member.MemberProfile
 
 trait MemberRepository:
-  def insert(member: Member, userId: String): String
+  def insert(member: Member, userId: String): Unit
   def getAllMembers(): List[(String, Member)]
   def findById(userId: String): Option[Member]
   def delete(userId: String): Unit
