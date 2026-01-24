@@ -14,7 +14,7 @@ export class EventDocument {
   @Prop({ required: true })
   creatorId: string;
 
-  @Prop({ required: true })
+  @Prop()
   date: Date;
 
   @Prop({ required: true })
