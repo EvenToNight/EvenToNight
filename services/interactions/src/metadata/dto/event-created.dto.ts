@@ -14,8 +14,8 @@ export class EventCreatedDto {
   @IsString({ each: true })
   collaboratorIds?: string[];
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   name: string;
 
   @IsString()

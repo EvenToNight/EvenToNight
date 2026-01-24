@@ -345,7 +345,9 @@ export class MetadataService {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
     if (event.status !== EventStatus.PUBLISHED) {
-      throw new BadRequestException(`Event with ID ${eventId} is not published`);
+      throw new BadRequestException(
+        `Event with ID ${eventId} is not published`,
+      );
     }
   }
 
