@@ -14,6 +14,7 @@ import {
 } from 'src/tickets/domain/repositories/event.repository.interface';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
+import { DeleteEventTicketTypesHandler } from 'src/tickets/application/handlers/delete-event-ticket-types.handler';
 
 interface EventUpdatedPayload {
   eventId: string;
@@ -44,6 +45,7 @@ export class EventEventConsumer {
   constructor(
     @Inject(EVENT_REPOSITORY)
     private readonly eventRepository: EventRepository,
+    private readonly deleteHandler: DeleteEventTicketTypesHandler,
   ) {}
 
   @MessagePattern()
@@ -152,6 +154,7 @@ export class EventEventConsumer {
     envelope: EventEnvelope<EventDeletedPayload>,
   ) {
     this.logger.log(`Processing event.deleted: ${envelope.payload.eventId}`);
+    await this.deleteHandler.handle(envelope.payload.eventId);
     await this.eventRepository.delete(envelope.payload.eventId);
     this.logger.log(`Event deleted: ${envelope.payload.eventId}`);
   }
