@@ -777,8 +777,36 @@ paths:
                 redirectUrl: "https://checkout.stripe.com/pay/cs_test_123"
                 expiresAt: 1712345678
                 orderId: "ord_123e4567-e89b-12d3-a456-426614174000"
+        '400':
+          description: Bad Request - Event is not published or tickets not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: Cannot reserve tickets for event with id evt_550e8400-e29b-41d4-a716-446655440000 because it is not published
+                error: Bad Request
         '403':
-          description: Forbidden
+          description: Forbidden - User ID mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User ID in token does not match user ID in request body
+                error: Forbidden
+        '404':
+          description: Not Found - Event or ticket type not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Event with id evt_550e8400-e29b-41d4-a716-446655440000 not found
+                error: Not Found
       tags:
         - Checkout
 
