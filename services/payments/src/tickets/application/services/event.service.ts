@@ -8,6 +8,7 @@ import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
+import { ClientSession } from 'mongoose';
 @Injectable()
 export class EventService {
   constructor(
@@ -39,6 +40,13 @@ export class EventService {
 
   async findById(id: string): Promise<Event | null> {
     return this.eventRepository.findById(id);
+  }
+
+  async findByIdWithLock(
+    id: EventId,
+    session: ClientSession,
+  ): Promise<Event | null> {
+    return this.eventRepository.findByIdWithLock(id, session);
   }
 
   async save(event: Event): Promise<Event> {

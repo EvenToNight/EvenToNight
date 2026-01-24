@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { ClientSession, Model } from 'mongoose';
 import { EventRepository } from 'src/tickets/domain/repositories/event.repository.interface';
 import { EventMapper } from '../mappers/event.mapper';
 import { EventDocument } from '../schemas/event.schema';
@@ -24,6 +24,17 @@ export class EventRepositoryImpl implements EventRepository {
 
   async findById(id: string): Promise<Event | null> {
     const document = await this.eventModel.findById(id).exec();
+    return document ? EventMapper.toDomain(document) : null;
+  }
+
+  async findByIdWithLock(
+    id: EventId,
+    session: ClientSession,
+  ): Promise<Event | null> {
+    const document = await this.eventModel
+      .findById(id.toString())
+      .session(session)
+      .exec();
     return document ? EventMapper.toDomain(document) : null;
   }
 
