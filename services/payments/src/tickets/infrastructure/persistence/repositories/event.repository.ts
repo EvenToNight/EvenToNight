@@ -29,7 +29,7 @@ export class EventRepositoryImpl implements EventRepository {
 
   async update(event: {
     eventId: EventId;
-    date: Date;
+    date?: Date;
     status: EventStatus;
   }): Promise<Event> {
     const updated = await this.eventModel
@@ -46,6 +46,24 @@ export class EventRepositoryImpl implements EventRepository {
       .exec();
     if (!updated) {
       throw new Error(`Event with id ${event.eventId.toString()} not found`);
+    }
+    return EventMapper.toDomain(updated);
+  }
+
+  async updateStatus(eventId: EventId, status: EventStatus): Promise<Event> {
+    const updated = await this.eventModel
+      .findByIdAndUpdate(
+        eventId.toString(),
+        {
+          $set: {
+            status: status.toString(),
+          },
+        },
+        { new: true },
+      )
+      .exec();
+    if (!updated) {
+      throw new Error(`Event with id ${eventId.toString()} not found`);
     }
     return EventMapper.toDomain(updated);
   }

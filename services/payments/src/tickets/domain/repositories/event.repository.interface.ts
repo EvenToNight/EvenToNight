@@ -7,9 +7,10 @@ export interface EventRepository {
   findById(id: string): Promise<Event | null>;
   update(event: {
     eventId: EventId;
-    date: Date;
+    date?: Date;
     status: EventStatus;
   }): Promise<Event>;
+  updateStatus(eventId: EventId, status: EventStatus);
   delete(id: string): Promise<void>;
   deleteAll(): Promise<void>;
 }
