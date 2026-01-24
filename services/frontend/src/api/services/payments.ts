@@ -10,8 +10,8 @@ import type {
   UpdateEventTicketTypeData,
   EventTicketTypeData,
 } from '../types/payments'
-import type { EventID } from '../types/events'
-import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
+import type { EventID, EventStatus } from '../types/events'
+import type { PaginatedRequest, PaginatedResponse, SortOrder } from '../interfaces/commons'
 import { buildQueryParams } from '../utils/requestUtils'
 
 export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
@@ -42,12 +42,21 @@ export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
     return paymentsClient.post<CreateCheckoutSessionResponse>(`/checkout-sessions`, request)
   },
 
-  async findEventsWithUserTickets(
+  findEventsWithUserTickets(
     userId: string,
-    pagination?: PaginatedRequest
+    params?: {
+      status?: Omit<EventStatus, 'DRAFT'>
+      order?: SortOrder
+      pagination?: PaginatedRequest
+    }
   ): Promise<PaginatedResponse<EventID>> {
+    const queryParams = {
+      ...params?.pagination,
+      status: params?.status,
+      order: params?.order,
+    }
     return paymentsClient.get<PaginatedResponse<EventID>>(
-      `/users/${userId}/events${buildQueryParams({ ...pagination })}`
+      `/users/${userId}/events${buildQueryParams(queryParams)}`
     )
   },
 

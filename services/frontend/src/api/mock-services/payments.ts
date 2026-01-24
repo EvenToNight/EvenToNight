@@ -1,11 +1,11 @@
 import type { EventTicketType, EventTicketTypeData, TicketType } from '../types/payments'
-import type { EventID } from '../types/events'
+import type { EventID, EventStatus } from '../types/events'
 import type {
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
   PaymentsAPI,
 } from '../interfaces/payments'
-import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
+import type { PaginatedRequest, PaginatedResponse, SortOrder } from '../interfaces/commons'
 import { createMockEventTicketType, mockEventTicketTypes } from './data/payments'
 import { getPaginatedItems } from '../utils/requestUtils'
 import { mockEvents } from './data/events'
@@ -95,11 +95,15 @@ export const mockPaymentsApi: PaymentsAPI = {
 
   async findEventsWithUserTickets(
     _userId: string,
-    pagination?: PaginatedRequest
+    params?: {
+      order?: SortOrder
+      status?: Omit<EventStatus, 'DRAFT'>
+      pagination?: PaginatedRequest
+    }
   ): Promise<PaginatedResponse<EventID>> {
     return getPaginatedItems(
       mockEvents.filter((e) => e.status !== 'DRAFT').map((event) => event.eventId),
-      pagination
+      params?.pagination
     )
   },
 

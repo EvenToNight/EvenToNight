@@ -1,6 +1,6 @@
-import type { EventID } from '../types/events'
+import type { EventID, EventStatus } from '../types/events'
 import type { EventTicketType, EventTicketTypeData, TicketType } from '../types/payments'
-import type { PaginatedRequest, PaginatedResponse } from './commons'
+import type { PaginatedRequest, PaginatedResponse, SortOrder } from './commons'
 
 export interface CreateCheckoutSessionResponse {
   sessionId: string
@@ -35,7 +35,11 @@ export interface PaymentsAPI {
   //TODO: evaluate order or get from interactions
   findEventsWithUserTickets(
     userId: string,
-    pagination?: PaginatedRequest
+    params?: {
+      status?: Omit<EventStatus, 'DRAFT'>
+      order?: SortOrder
+      pagination?: PaginatedRequest
+    }
   ): Promise<PaginatedResponse<EventID>>
   getEventPdfTickets(userId: string, eventId: string): Promise<Blob>
 }

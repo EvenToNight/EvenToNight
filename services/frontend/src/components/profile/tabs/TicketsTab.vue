@@ -25,7 +25,11 @@ const loadItems = async (offset: number, limit: number): Promise<PaginatedRespon
     }
   }
 
-  const response = await api.payments.findEventsWithUserTickets(userId.value, { offset, limit })
+  const response = await api.payments.findEventsWithUserTickets(userId.value, {
+    status: 'PUBLISHED',
+    order: 'asc',
+    pagination: { offset, limit },
+  })
 
   if (response.items.length > 0) {
     const eventsData = await api.events.getEventsByIds(response.items)
