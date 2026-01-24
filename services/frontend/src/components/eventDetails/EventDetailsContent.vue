@@ -38,7 +38,7 @@ const handleBuyTickets = () => {
 }
 
 const ticketsAvailable = () => {
-  return props.eventTickets.some((ticket) => ticket.availableQuantity > 0)
+  return props.eventTickets.some((ticket) => !ticket.isSoldOut)
 }
 </script>
 

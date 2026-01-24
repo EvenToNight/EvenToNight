@@ -31,7 +31,7 @@ const getQuantity = (ttId: string) => {
 
 const incrementQuantity = (tt: EventTicketType) => {
   const current = getQuantity(tt.id)
-  const max = getAvailableQuantity(tt)
+  const max = tt.availableQuantity
   if (current < max) {
     ticketQuantities.value[tt.id] = current + 1
   }
@@ -199,15 +199,15 @@ const handlePurchase = async () => {
               class="ticket-type-card"
               :class="{
                 'has-quantity': getQuantity(tt.id) > 0,
-                'sold-out': getAvailableQuantity(tt) === 0,
+                'sold-out': tt.isSoldOut,
               }"
             >
               <div class="ticket-type-main">
                 <div class="ticket-type-info">
                   <div class="ticket-type-name">{{ tt.type }}</div>
                   <div class="ticket-type-availability">
-                    <span v-if="getAvailableQuantity(tt) > 0">
-                      {{ getAvailableQuantity(tt) }} available
+                    <span v-if="tt.availableQuantity > 0">
+                      {{ tt.availableQuantity }} available
                     </span>
                     <span v-else class="sold-out-text">Sold out</span>
                   </div>
