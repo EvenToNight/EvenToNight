@@ -1,5 +1,10 @@
 import type { EventID, EventStatus } from '../types/events'
-import type { EventTicketType, EventTicketTypeData, TicketType } from '../types/payments'
+import type {
+  EventTicketType,
+  EventTicketTypeData,
+  TicketType,
+  UpdateEventTicketTypeData,
+} from '../types/payments'
 import type { PaginatedRequest, PaginatedResponse, SortOrder } from './commons'
 
 export interface CreateCheckoutSessionResponse {
@@ -26,7 +31,7 @@ export interface PaymentsAPI {
   createEventTicketType(eventId: EventID, request: EventTicketTypeData): Promise<EventTicketType>
   updateEventTicketType(
     ticketTypeId: string,
-    request: EventTicketTypeData
+    request: UpdateEventTicketTypeData
   ): Promise<EventTicketType>
   getEventTicketsType(eventId: EventID): Promise<EventTicketType[]>
   createCheckoutSession(

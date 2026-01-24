@@ -109,6 +109,9 @@ const loadTickets = async () => {
       currency: ticket.price.currency,
       quantity: ticket.totalQuantity.toString(),
     }))
+    if (ticketEntries.value.length === 0) {
+      addTicketEntry()
+    }
   } catch (error) {
     console.error('Failed to load event tickets:', error)
   }
@@ -376,7 +379,6 @@ const createOrUpdateEventTicketTypes = async () => {
       })
     } else {
       await api.payments.updateEventTicketType(entry.id, {
-        type: entry.type!,
         price: {
           amount: Number(entry.price),
           currency: entry.currency,

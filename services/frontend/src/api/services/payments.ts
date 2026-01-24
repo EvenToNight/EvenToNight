@@ -23,6 +23,7 @@ export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
     ticketTypeId: string,
     request: UpdateEventTicketTypeData
   ): Promise<EventTicketType> {
+    console.log('Updating ticket type:', ticketTypeId, request)
     return paymentsClient.put<EventTicketType>(`/ticket-types/${ticketTypeId}`, request)
   },
   async createEventTicketType(
