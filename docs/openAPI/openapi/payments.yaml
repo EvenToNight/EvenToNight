@@ -69,7 +69,14 @@ paths:
       summary: Get all ticket types for an event
       description: |
         Retrieve all available ticket types for a specific event.
-        Authentication is optional. If not authenticated or not authorized, only ticket types for published events can be accessed.
+        Authentication is optional. Access rules:
+        - Unauthenticated users: can only access ticket types for published events
+        - Authenticated users: can access their own events (any status) or published events from others
+
+        To test with authentication, use the "Authorize" button and provide a Bearer token.
+      security:
+        - BearerAuth: []
+        - {}
       parameters:
         - name: eventId
           in: path
@@ -286,7 +293,14 @@ paths:
       summary: Get a specific ticket type by ID
       description: |
         Retrieve detailed information about a specific ticket type.
-        Authentication is optional. If not authenticated or not authorized and the event is not published, access will be denied.
+        Authentication is optional. Access rules:
+        - Unauthenticated users: can only access ticket types for published events
+        - Authenticated users: can access their own events (any status) or published events from others
+
+        To test with authentication, use the "Authorize" button and provide a Bearer token.
+      security:
+        - BearerAuth: []
+        - {}
       servers:
         - url: http://localhost:3000
           description: Local server
