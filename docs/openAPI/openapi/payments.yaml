@@ -61,7 +61,9 @@ paths:
 
     post:
       summary: Create a new ticket type for an event
-      description: Define a new ticket type with pricing and quantity for a specific event
+      description: Define a new ticket type with pricing and quantity for a specific event (creator only)
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -79,10 +81,10 @@ paths:
             example:
               type: STANDARD
               description: "General admission ticket"
-              price: 29.99
-              currency: EUR
+              price:
+                amount: 29.99
+                currency: EUR
               quantity: 100
-              creatorId: usr_123e4567-e89b-12d3-a456-426614174000
       responses:
         '201':
           description: Ticket type created successfully
@@ -127,6 +129,16 @@ paths:
                     statusCode: 400
                     message: ["quantity must not be less than 1"]
                     error: Bad Request
+        '403':
+          description: Forbidden - User is not the event creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User ID in token does not match event creator ID
+                error: Forbidden
         '409':
           description: Conflict - Ticket type already exists for this event
           content:
@@ -143,19 +155,38 @@ paths:
     delete:
       summary: Delete all ticket types for an event
       description: Delete all ticket types for a specific event (creator only)
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
           required: true
           schema:
             type: string
+          example: evt_550e8400-e29b-41d4-a716-446655440000
       responses:
         '204':
-          description: Ticket types deleted
+          description: Ticket types deleted successfully
         '403':
-          description: Forbidden
+          description: Forbidden - User is not the event creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User ID in token does not match event creator ID
+                error: Forbidden
         '404':
           description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Event not found
+                error: Not Found
       tags:
         - Event
 
@@ -228,12 +259,15 @@ paths:
     put:
       summary: Update ticket type
       description: Update details of a ticket type (creator only)
+      security:
+        - BearerAuth: []
       parameters:
         - name: ticketTypeId
           in: path
           required: true
           schema:
             type: string
+          example: ett_123e4567-e89b-12d3-a456-426614174000
       requestBody:
         required: true
         content:
@@ -291,19 +325,38 @@ paths:
     delete:
       summary: Delete ticket type
       description: Delete a ticket type (creator only)
+      security:
+        - BearerAuth: []
       parameters:
         - name: ticketTypeId
           in: path
           required: true
           schema:
             type: string
+          example: ett_123e4567-e89b-12d3-a456-426614174000
       responses:
         '204':
-          description: Ticket type deleted
+          description: Ticket type deleted successfully
         '403':
-          description: Forbidden
+          description: Forbidden - User is not the event creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User ID in token does not match event creator ID
+                error: Forbidden
         '404':
           description: Ticket type or event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: EventTicketType with id ett_123e4567-e89b-12d3-a456-426614174000 not found
+                error: Not Found
       tags:
         - Event Ticket Types
 
@@ -442,6 +495,7 @@ paths:
           required: true
           schema:
             type: string
+          example: usr_123e4567-e89b-12d3-a456-426614174000
         - name: eventId
           in: query
           required: false
@@ -487,18 +541,22 @@ paths:
                 offset: 0
                 hasMore: false
         '403':
-          description: Forbidden
+          description: Forbidden - User can only access their own tickets
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: "Forbidden: Cannot access tickets of other users"
+                error: Forbidden
       tags:
         - User Tickets
 
   /users/{userId}/events/:
     get:
       summary: Get all events for which a user has tickets
-      description: List all distinct event IDs for which the user has purchased at least one ticket (only self)
+      description: List all distinct event IDs for which the user has purchased at least one ticket (only self). Optionally filter by event status and order by event date.
       security:
         - BearerAuth: []
       parameters:
@@ -522,6 +580,22 @@ paths:
             type: integer
             minimum: 0
           description: Offset for pagination (optional)
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PUBLISHED, COMPLETED, CANCELLED]
+          description: Filter events by status (optional)
+          example: PUBLISHED
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Order events by date - ascending or descending (optional)
+          example: desc
       responses:
         '200':
           description: Paginated list of event IDs
@@ -891,38 +965,27 @@ components:
           example: STANDARD
         description:
           type: string
-          description: Description of the ticket type
+          description: Description of the ticket type (optional)
           example: "General admission ticket"
         price:
-          type: number
-          format: float
+          $ref: '#/components/schemas/MoneyDto'
           description: Price of the ticket
-          example: 29.99
-        currency:
-          type: string
-          description: Currency code (ISO 4217, optional)
-          example: EUR
         quantity:
           type: integer
           minimum: 1
           description: Total quantity of tickets available
           example: 100
-        creatorId:
-          type: string
-          description: ID of the creator of the event ticket type
-          example: usr_123e4567-e89b-12d3-a456-426614174000
       required:
         - type
         - price
         - quantity
-        - creatorId
       example:
         type: STANDARD
         description: "General admission ticket"
-        price: 29.99
-        currency: EUR
+        price:
+          amount: 29.99
+          currency: EUR
         quantity: 100
-        creatorId: usr_123e4567-e89b-12d3-a456-426614174000
 
     EventTicketTypeResponseDto:
       type: object
@@ -1150,6 +1213,22 @@ components:
         offset:
           type: integer
           minimum: 0
+
+    UserEventsQueryDto:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedQueryDto'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum: [PUBLISHED, COMPLETED, CANCELLED]
+              description: Filter events by status (optional)
+              example: PUBLISHED
+            order:
+              type: string
+              enum: [asc, desc]
+              description: Order events by date - ascending or descending (optional)
+              example: desc
 
     PaginatedResponseDto:
       type: object
