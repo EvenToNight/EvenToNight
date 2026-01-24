@@ -210,7 +210,9 @@ paths:
   /ticket-types/{ticketTypeId}:
     get:
       summary: Get a specific ticket type by ID
-      description: Retrieve detailed information about a specific ticket type
+      description: |
+        Retrieve detailed information about a specific ticket type.
+        Authentication is optional. If authenticated and the event is not published, access will be denied.
       servers:
         - url: http://localhost:3000
           description: Local server
@@ -243,8 +245,18 @@ paths:
                 soldQuantity: 15
                 totalQuantity: 100
                 isSoldOut: false
+        '403':
+          description: Forbidden - Authenticated user cannot access ticket type for non-published event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User ID in token cannot access this ticket type
+                error: Forbidden
         '404':
-          description: Not Found - Ticket type does not exist
+          description: Not Found - Ticket type or event does not exist
           content:
             application/json:
               schema:
