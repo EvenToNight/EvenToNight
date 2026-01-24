@@ -90,7 +90,9 @@ class DomainEventService(
                     EventUpdated(
                       eventId = updatedEvent._id,
                       collaboratorIds = updatedEvent.collaboratorIds,
-                      name = updatedEvent.title.getOrElse("Unnamed Event")
+                      name = updatedEvent.title,
+                      date = updatedEvent.date,
+                      status = updatedEvent.status.asString
                     )
                   )
                 Right(())

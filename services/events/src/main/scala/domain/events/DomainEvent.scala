@@ -32,7 +32,9 @@ case class EventPublished(
 case class EventUpdated(
     eventId: String,
     collaboratorIds: Option[List[String]],
-    name: String
+    name: Option[String],
+    date: Option[LocalDateTime],
+    status: String
 ) extends DomainEvent
 
 case class EventDeleted(

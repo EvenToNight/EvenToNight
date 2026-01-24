@@ -20,7 +20,9 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     eventUpdated = EventUpdated(
       eventId = "event-updated-1",
       collaboratorIds = None,
-      name = "Sample Event Updated"
+      name = Some("Sample Event Updated"),
+      date = None,
+      status = "DRAFT"
     )
     eventDeleted = EventDeleted(
       eventId = "event-deleted-1"
@@ -44,13 +46,17 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   it should "store all provided data correctly" in:
     eventUpdated.eventId shouldBe "event-updated-1"
     eventUpdated.collaboratorIds shouldBe None
-    eventUpdated.name shouldBe "Sample Event Updated"
+    eventUpdated.name shouldBe Some("Sample Event Updated")
+    eventUpdated.date shouldBe None
+    eventUpdated.status shouldBe "DRAFT"
 
   it should "be comparable with itself" in:
     val event2 = EventUpdated(
       eventId = "event-updated-1",
       collaboratorIds = None,
-      name = "Sample Event Updated"
+      name = Some("Sample Event Updated"),
+      date = None,
+      status = "DRAFT"
     )
     eventUpdated shouldBe event2
 
