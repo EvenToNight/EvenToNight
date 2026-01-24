@@ -52,10 +52,7 @@ class DomainEventService(
               if cmd.status == EventStatus.PUBLISHED then
                 publisher.publish(
                   EventPublished(
-                    eventId = newEvent._id,
-                    creatorId = cmd.creatorId,
-                    collaboratorIds = cmd.collaboratorIds,
-                    name = cmd.title.getOrElse("Unnamed Event")
+                    eventId = newEvent._id
                   )
                 )
               Right(newEvent._id)
@@ -85,10 +82,7 @@ class DomainEventService(
                 if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
                   publisher.publish(
                     EventPublished(
-                      eventId = updatedEvent._id,
-                      creatorId = updatedEvent.creatorId,
-                      collaboratorIds = updatedEvent.collaboratorIds,
-                      name = updatedEvent.title.getOrElse("Unnamed Event")
+                      eventId = updatedEvent._id
                     )
                   )
                 else
