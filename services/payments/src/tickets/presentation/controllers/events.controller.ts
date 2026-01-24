@@ -10,13 +10,18 @@ import {
   Delete,
   UseGuards,
   ForbiddenException,
+  NotFoundException,
 } from '@nestjs/common';
 import { CreateEventTicketTypeHandler } from '../../application/handlers/create-event-ticket-type.handler';
 import { CreateEventTicketTypeDto } from '../../application/dto/create-event-ticket-type.dto';
 import { EventTicketTypeResponseDto } from '../../application/dto/event-ticket-type-response.dto';
 import { DeleteEventTicketTypesHandler } from 'src/tickets/application/handlers/delete-event-ticket-types.handler';
 import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
-import { CurrentUser, JwtAuthGuard } from 'src/commons/infrastructure/auth';
+import {
+  CurrentUser,
+  JwtAuthGuard,
+  OptionalJwtAuthGuard,
+} from 'src/commons/infrastructure/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { CreateEventDto } from '../../application/dto/create-event.dto';
 import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
@@ -66,9 +71,20 @@ export class EventController {
    */
   @Get(':eventId/ticket-types')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(OptionalJwtAuthGuard)
   async getEventTicketTypes(
     @Param('eventId') eventId: string,
+    @CurrentUser('userId') userId?: string,
   ): Promise<EventTicketTypeResponseDto[]> {
+    const event = await this.eventService.findById(eventId);
+    if (!event) {
+      throw new NotFoundException(`Event with id ${eventId} not found`);
+    }
+    if (!userId && event.getStatus() !== EventStatus.PUBLISHED) {
+      throw new ForbiddenException(
+        'Current user cannot access this event ticket types',
+      );
+    }
     const ticketTypes =
       await this.eventTicketTypeService.findByEventId(eventId);
     return ticketTypes.map((type) =>

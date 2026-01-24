@@ -67,9 +67,9 @@ export class EventTicketTypesController {
         `Event with id ${ticketType.getEventId().toString()} not found`,
       );
     }
-    if (userId && event.getStatus() !== EventStatus.PUBLISHED) {
+    if (!userId && event.getStatus() !== EventStatus.PUBLISHED) {
       throw new ForbiddenException(
-        'User ID in token cannot access this ticket type',
+        'Current user cannot access this ticket type',
       );
     }
     return EventTicketTypeResponseDto.fromDomain(ticketType);
