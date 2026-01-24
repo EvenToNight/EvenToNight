@@ -25,6 +25,44 @@ paths:
       tags:
         - Health
 
+  /events/{eventId}:
+    post:
+      summary: Create or update an event
+      description: Creates or updates an event in the payments service
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event
+          schema:
+            type: string
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventDto'
+            example:
+              creatorId: "usr_123e4567-e89b-12d3-a456-426614174000"
+              date: "2024-12-31T20:00:00Z"
+              status: "PUBLISHED"
+      responses:
+        '200':
+          description: Event created or updated successfully
+        '400':
+          description: Bad Request - Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: status must be one of DRAFT, PUBLISHED, COMPLETED, CANCELLED
+                error: Bad Request
+      tags:
+        - Event
+
   # Event Ticket Types endpoints (per-event)
   /events/{eventId}/ticket-types:
     get:
@@ -1097,6 +1135,31 @@ components:
           amount: 49.99
           currency: EUR
         quantity: 150
+    CreateEventDto:
+      type: object
+      description: Data required to create or update an event
+      properties:
+        creatorId:
+          type: string
+          description: ID of the user creating the event
+          example: "usr_123e4567-e89b-12d3-a456-426614174000"
+        date:
+          type: string
+          format: date-time
+          description: Date and time of the event. Required when status is not DRAFT, optional when status is DRAFT
+          example: "2024-12-31T20:00:00Z"
+        status:
+          type: string
+          description: Status of the event
+          enum: [DRAFT, PUBLISHED, COMPLETED, CANCELLED]
+          example: PUBLISHED
+      required:
+        - creatorId
+        - status
+      example:
+        creatorId: "usr_123e4567-e89b-12d3-a456-426614174000"
+        date: "2024-12-31T20:00:00Z"
+        status: PUBLISHED
     CreateEventTicketTypeDto:
       type: object
       description: Data required to create a new event ticket type
