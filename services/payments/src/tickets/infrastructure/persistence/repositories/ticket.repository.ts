@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, PipelineStage } from 'mongoose';
 import { Ticket } from '../../../domain/aggregates/ticket.aggregate';
 import { TicketRepository } from '../../../domain/repositories/ticket.repository.interface';
 import { TicketMapper } from '../mappers/ticket.mapper';
@@ -61,15 +61,56 @@ export class TicketRepositoryImpl implements TicketRepository {
   async findEventsByUserId(
     userId: string,
     pagination?: PaginationParams,
+    status?: string,
+    order?: 'asc' | 'desc',
   ): Promise<PaginatedResult<EventId>> {
-    const distinctEventIds = await this.ticketModel
-      .distinct('eventId', { userId })
-      .exec();
-    const totalItems = distinctEventIds.length;
     pagination = Pagination.parse(pagination?.limit, pagination?.offset);
-    const paginatedEventIds = distinctEventIds
-      .slice(pagination.offset, pagination.offset + pagination.limit)
-      .map((id: string) => EventId.fromString(id));
+    const pipeline: PipelineStage[] = [
+      { $match: { userId } },
+      {
+        $lookup: {
+          from: 'events',
+          localField: 'eventId',
+          foreignField: '_id',
+          as: 'event',
+        },
+      },
+      { $unwind: '$event' },
+    ];
+
+    if (status) {
+      pipeline.push({ $match: { 'event.status': status } });
+    }
+
+    pipeline.push({
+      $group: {
+        _id: '$eventId',
+        eventDate: { $first: '$event.date' },
+      },
+    });
+
+    if (order) {
+      pipeline.push({
+        $sort: { eventDate: order === 'asc' ? 1 : -1 },
+      });
+    }
+
+    const countPipeline: PipelineStage[] = [...pipeline, { $count: 'total' }];
+    const countResult = await this.ticketModel
+      .aggregate<{ total: number }>(countPipeline)
+      .exec();
+    const totalItems = countResult.length > 0 ? countResult[0].total : 0;
+
+    pipeline.push({ $skip: pagination.offset });
+    pipeline.push({ $limit: pagination.limit });
+
+    const results = await this.ticketModel
+      .aggregate<{ _id: string; eventDate: Date }>(pipeline)
+      .exec();
+    const paginatedEventIds = results.map((result) =>
+      EventId.fromString(result._id),
+    );
+
     return Pagination.createResult(paginatedEventIds, totalItems, pagination);
   }
 

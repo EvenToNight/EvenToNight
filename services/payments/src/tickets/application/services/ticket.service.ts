@@ -67,8 +67,15 @@ export class TicketService {
   findEventsByUserId(
     userId: string,
     pagination: PaginationParams,
+    status?: string,
+    order?: 'asc' | 'desc',
   ): Promise<PaginatedResult<EventId>> {
-    return this.ticketRepository.findEventsByUserId(userId, pagination);
+    return this.ticketRepository.findEventsByUserId(
+      userId,
+      pagination,
+      status,
+      order,
+    );
   }
 
   revokeTickets(eventTicketTypeIds: string[]): Promise<void> {

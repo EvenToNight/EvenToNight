@@ -20,6 +20,8 @@ export interface TicketRepository {
   findEventsByUserId(
     userId: string,
     pagination?: PaginationParams,
+    status?: string,
+    order?: 'asc' | 'desc',
   ): Promise<PaginatedResult<EventId>>;
   findByTicketTypeId(ticketTypeId: string): Promise<Ticket[]>;
   update(ticket: Ticket): Promise<Ticket>;

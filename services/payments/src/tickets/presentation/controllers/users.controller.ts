@@ -13,6 +13,7 @@ import {
 import type { Response } from 'express';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { PaginatedQueryDto } from 'src/commons/application/dto/paginated-query.dto';
+import { UserEventsQueryDto } from 'src/tickets/application/dto/user-events-query.dto';
 import { Pagination } from 'src/commons/utils/pagination.utils';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { PaginatedResponseDto } from 'src/commons/application/dto/paginated-response.dto';
@@ -68,13 +69,14 @@ export class UserController {
   /**
    * GET /users/:userId/events
    * Returns all events where the specified user has bought tickets.
+   * Optional query parameters: status (filter by event status), order (asc/desc for date ordering)
    */
   @Get('events/')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async getUserEvents(
     @Param('userId') userId: string,
-    @Query() query: PaginatedQueryDto,
+    @Query() query: UserEventsQueryDto,
     @CurrentUser('userId') currentUserId: string,
   ): Promise<PaginatedResponseDto<EventId>> {
     if (userId !== currentUserId) {
@@ -85,6 +87,8 @@ export class UserController {
     return await this.ticketService.findEventsByUserId(
       userId,
       Pagination.parse(query.limit, query.offset),
+      query.status,
+      query.order,
     );
   }
 
