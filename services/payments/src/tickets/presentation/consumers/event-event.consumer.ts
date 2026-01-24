@@ -21,6 +21,18 @@ interface EventUpdatedPayload {
   status: string;
 }
 
+interface EventPublishedPayload {
+  eventId: string;
+}
+
+interface EventCompletedPayload {
+  eventId: string;
+}
+
+interface EventCancelledPayload {
+  eventId: string;
+}
+
 interface EventDeletedPayload {
   eventId: string;
 }
@@ -50,6 +62,21 @@ export class EventEventConsumer {
         case 'event.updated':
           await this.handleEventUpdated(
             envelope as EventEnvelope<EventUpdatedPayload>,
+          );
+          break;
+        case 'event.published':
+          await this.handleEventPublished(
+            envelope as EventEnvelope<EventPublishedPayload>,
+          );
+          break;
+        case 'event.completed':
+          await this.handleEventCompleted(
+            envelope as EventEnvelope<EventCompletedPayload>,
+          );
+          break;
+        case 'event.cancelled':
+          await this.handleEventCancelled(
+            envelope as EventEnvelope<EventCancelledPayload>,
           );
           break;
         case 'event.deleted':
@@ -86,6 +113,39 @@ export class EventEventConsumer {
     });
 
     this.logger.log(`Event updated: ${envelope.payload.eventId}`);
+  }
+
+  private async handleEventPublished(
+    envelope: EventEnvelope<EventPublishedPayload>,
+  ) {
+    this.logger.log(`Processing event.published: ${envelope.payload.eventId}`);
+    await this.eventRepository.updateStatus(
+      EventId.fromString(envelope.payload.eventId),
+      EventStatus.PUBLISHED,
+    );
+    this.logger.log(`Event published: ${envelope.payload.eventId}`);
+  }
+
+  private async handleEventCompleted(
+    envelope: EventEnvelope<EventCompletedPayload>,
+  ) {
+    this.logger.log(`Processing event.completed: ${envelope.payload.eventId}`);
+    await this.eventRepository.updateStatus(
+      EventId.fromString(envelope.payload.eventId),
+      EventStatus.COMPLETED,
+    );
+    this.logger.log(`Event completed: ${envelope.payload.eventId}`);
+  }
+
+  private async handleEventCancelled(
+    envelope: EventEnvelope<EventCancelledPayload>,
+  ) {
+    this.logger.log(`Processing event.cancelled: ${envelope.payload.eventId}`);
+    await this.eventRepository.updateStatus(
+      EventId.fromString(envelope.payload.eventId),
+      EventStatus.CANCELLED,
+    );
+    this.logger.log(`Event deleted: ${envelope.payload.eventId}`);
   }
 
   private async handleEventDeleted(

@@ -18,8 +18,8 @@ export class EventService {
   async createOrUpdate(
     eventId: string,
     creatorId: string,
-    date: Date,
     status: string,
+    date?: Date,
   ): Promise<Event> {
     const event = Event.create({
       id: EventId.fromString(eventId),

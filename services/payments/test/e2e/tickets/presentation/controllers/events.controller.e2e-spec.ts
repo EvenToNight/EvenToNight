@@ -84,8 +84,18 @@ describe('EventController (e2e)', () => {
   beforeEach(async () => {
     await eventTicketTypeService.deleteAll();
     await eventService.deleteAll();
-    await eventService.create(eventId, creatorId);
-    await eventService.create('no-ticket-event', creatorId);
+    await eventService.createOrUpdate(
+      eventId,
+      creatorId,
+      'PUBLISHED',
+      new Date(),
+    );
+    await eventService.createOrUpdate(
+      'no-ticket-event',
+      creatorId,
+      'PUBLISHED',
+      new Date(),
+    );
     soldTicketsIds = [];
 
     ticketType1 = await eventTicketTypeService.create({

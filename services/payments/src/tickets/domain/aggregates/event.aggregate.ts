@@ -5,7 +5,7 @@ import { EventStatus } from '../value-objects/event-status.vo';
 export interface EventCreateParams {
   id: EventId;
   creatorId: UserId;
-  date: Date;
+  date?: Date;
   status: EventStatus;
 }
 
@@ -13,12 +13,12 @@ export class Event {
   private constructor(
     private readonly id: EventId,
     private creatorId: UserId,
-    private date: Date,
     private status: EventStatus,
+    private date?: Date,
   ) {}
 
   static create(params: EventCreateParams): Event {
-    return new Event(params.id, params.creatorId, params.date, params.status);
+    return new Event(params.id, params.creatorId, params.status, params.date);
   }
 
   // Getters
@@ -30,7 +30,7 @@ export class Event {
     return this.creatorId;
   }
 
-  getDate(): Date {
+  getDate(): Date | undefined {
     return this.date;
   }
 

@@ -7,7 +7,7 @@ export class EventStatus {
   static readonly CANCELLED = new EventStatus('CANCELLED');
 
   static fromString(value: string): EventStatus {
-    switch (value) {
+    switch (value.toUpperCase()) {
       case 'DRAFT':
         return EventStatus.DRAFT;
       case 'PUBLISHED':
