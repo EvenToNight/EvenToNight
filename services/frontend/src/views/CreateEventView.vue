@@ -677,7 +677,7 @@ const onSubmit = async () => {
             </div>
             <div class="action-buttons">
               <Button
-                v-if="isDraft"
+                v-if="!isEditMode || isDraft"
                 :label="isEditMode ? 'Update Draft' : t('eventCreationForm.saveDraft')"
                 outline
                 variant="primary"
