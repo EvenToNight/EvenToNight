@@ -11,7 +11,7 @@ paths:
       summary: Get all ticket types for an event
       description: |
         Retrieve all available ticket types for a specific event.
-        Authentication is optional. If not authenticated, only ticket types for published events can be accessed.
+        Authentication is optional. If not authenticated or not authorized, only ticket types for published events can be accessed.
       parameters:
         - name: eventId
           in: path
@@ -228,7 +228,7 @@ paths:
       summary: Get a specific ticket type by ID
       description: |
         Retrieve detailed information about a specific ticket type.
-        Authentication is optional. If not authenticated and the event is not published, access will be denied.
+        Authentication is optional. If not authenticated or not authorized and the event is not published, access will be denied.
       servers:
         - url: http://localhost:3000
           description: Local server

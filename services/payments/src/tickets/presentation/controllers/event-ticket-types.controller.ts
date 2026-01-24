@@ -67,11 +67,17 @@ export class EventTicketTypesController {
         `Event with id ${ticketType.getEventId().toString()} not found`,
       );
     }
-    if (!userId && event.getStatus() !== EventStatus.PUBLISHED) {
+    if (
+      (!userId && event.getStatus() !== EventStatus.PUBLISHED) ||
+      (userId &&
+        event.getCreatorId().toString() !== userId &&
+        event.getStatus() !== EventStatus.PUBLISHED)
+    ) {
       throw new ForbiddenException(
         'Current user cannot access this ticket type',
       );
     }
+
     return EventTicketTypeResponseDto.fromDomain(ticketType);
   }
 
