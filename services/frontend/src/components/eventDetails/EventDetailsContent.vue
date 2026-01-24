@@ -61,6 +61,7 @@ const ticketsAvailable = () => {
           size="lg"
           @click="handleBuyTickets"
         />
+        <!-- TODO: show message when no tickets are available -->
         <div v-else class="sold-out-message full-width">Sold Out</div>
       </template>
       <EventReviewsPreview

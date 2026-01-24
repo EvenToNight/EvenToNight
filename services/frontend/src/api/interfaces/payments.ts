@@ -32,7 +32,6 @@ export interface PaymentsAPI {
   createCheckoutSession(
     request: CreateCheckoutSessionRequest
   ): Promise<CreateCheckoutSessionResponse>
-  //TODO: evaluate order or get from interactions
   findEventsWithUserTickets(
     userId: string,
     params?: {
