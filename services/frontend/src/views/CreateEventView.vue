@@ -3,12 +3,7 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
 import { api } from '@/api'
-import type {
-  CreationEventStatus,
-  PartialEventData,
-  PartialEventDataWithTickets,
-  PartialEventDataWithTicketsForUpdate,
-} from '@/api/types/events'
+import type { CreationEventStatus, PartialEventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
 import { parseLocation, buildLocationDisplayName } from '@/api/utils/locationUtils'
 import type { TicketType } from '@/api/types/payments'
@@ -282,55 +277,6 @@ const handleLocationInputValue = (val: string) => {
   }
 }
 
-const saveDraft = async () => {
-  const partiaEventData: PartialEventData = buildEventData('PUBLISHED')
-
-  if (isEditMode.value) {
-    const eventData: PartialEventDataWithTicketsForUpdate = {
-      ...partiaEventData,
-      ticketTypes: ticketEntries.value
-        .filter((entry) => entry.type && entry.price && entry.quantity && entry.currency)
-        .map((entry) => ({
-          id: entry.id || 'will-be-generated',
-          type: entry.type!,
-          price: {
-            amount: Number(entry.price),
-            currency: entry.currency,
-          },
-          quantity: Number(entry.quantity),
-        })),
-    }
-    await api.events.updateEventData(eventId.value, eventData)
-    if (poster.value) {
-      await api.events.updateEventPoster(eventId.value, poster.value)
-    }
-    $q.notify({
-      color: 'positive',
-      message: t('eventCreationForm.successForEventUpdate'),
-    })
-  } else {
-    const eventData: PartialEventDataWithTickets = {
-      ...partiaEventData,
-      ticketTypes: ticketEntries.value
-        .filter((entry) => entry.type && entry.price && entry.quantity && entry.currency)
-        .map((entry) => ({
-          type: entry.type!,
-          price: {
-            amount: Number(entry.price),
-            currency: entry.currency,
-          },
-          quantity: Number(entry.quantity),
-        })),
-    }
-    await api.events.createEvent(eventData)
-    $q.notify({
-      color: 'positive',
-      message: t('eventCreationForm.successForEventPublication'),
-    })
-  }
-  goToUserProfile(partiaEventData.creatorId)
-}
-
 const buildEventData = (status: CreationEventStatus): PartialEventData => {
   return {
     title: title.value || undefined,
@@ -378,49 +324,69 @@ const handleDelete = async () => {
   })
 }
 
+const saveDraft = async () => {
+  const partialEventData: PartialEventData = buildEventData('DRAFT')
+
+  if (isEditMode.value) {
+    await api.events.updateEventData(eventId.value, partialEventData)
+    if (poster.value) {
+      await api.events.updateEventPoster(eventId.value, poster.value)
+    }
+    await createOrUpdateEventTicketTypes()
+    $q.notify({
+      color: 'positive',
+      message: t('eventCreationForm.successForEventUpdate'),
+    })
+  } else {
+    await api.events.createEvent(partialEventData)
+    await createOrUpdateEventTicketTypes()
+    $q.notify({
+      color: 'positive',
+      message: t('eventCreationForm.successForEventPublication'),
+    })
+  }
+  goToUserProfile(partialEventData.creatorId)
+}
+
+const createOrUpdateEventTicketTypes = async () => {
+  ticketEntries.value.forEach(async (entry) => {
+    if (entry.id === null) {
+      await api.payments.createEventTicketType(eventId.value, {
+        type: entry.type!,
+        price: {
+          amount: Number(entry.price),
+          currency: entry.currency,
+        },
+        quantity: Number(entry.quantity),
+      })
+    } else {
+      await api.payments.updateEventTicketType(entry.id, {
+        type: entry.type!,
+        price: {
+          amount: Number(entry.price),
+          currency: entry.currency,
+        },
+        quantity: Number(entry.quantity),
+      })
+    }
+  })
+}
+
 const onSubmit = async () => {
   try {
     const partiaEventData: PartialEventData = buildEventData('PUBLISHED')
-
     if (isEditMode.value) {
-      const eventData: PartialEventDataWithTicketsForUpdate = {
-        ...partiaEventData,
-        ticketTypes: ticketEntries.value
-          .filter((entry) => entry.type && entry.price && entry.quantity && entry.currency)
-          .map((entry) => ({
-            id: entry.id || 'will-be-generated',
-            type: entry.type!,
-            price: {
-              amount: Number(entry.price),
-              currency: entry.currency,
-            },
-            quantity: Number(entry.quantity),
-          })),
-      }
-      await api.events.updateEventData(eventId.value, eventData)
+      await api.events.updateEventData(eventId.value, partiaEventData)
       await api.events.updateEventPoster(eventId.value, poster.value!)
-      // await createTicketTypesForEvent(eventId.value)
+      await createOrUpdateEventTicketTypes()
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventUpdate'),
       })
       goToEventDetails(eventId.value)
     } else {
-      const eventData: PartialEventDataWithTickets = {
-        ...partiaEventData,
-        ticketTypes: ticketEntries.value
-          .filter((entry) => entry.type && entry.price && entry.quantity && entry.currency)
-          .map((entry) => ({
-            type: entry.type!,
-            price: {
-              amount: Number(entry.price),
-              currency: entry.currency,
-            },
-            quantity: Number(entry.quantity),
-          })),
-      }
-      const response = await api.events.createEvent(eventData)
-      // await createTicketTypesForEvent(response.eventId)
+      const response = await api.events.createEvent(partiaEventData)
+      await createOrUpdateEventTicketTypes()
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventPublication'),

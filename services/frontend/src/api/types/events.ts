@@ -1,6 +1,5 @@
 import type { UserID } from './users'
 import type { Location } from './common'
-import type { EventTicketTypeData } from './payments'
 
 export type Tag = string
 export type CreationEventStatus = 'DRAFT' | 'PUBLISHED'
@@ -27,10 +26,10 @@ export interface Event extends Omit<EventData, 'poster'> {
 
 export type PartialEventData = Partial<EventData> & Pick<EventData, 'creatorId' | 'status'>
 
-export type PartialEventDataWithTickets = PartialEventData & {
-  ticketTypes: Array<Omit<EventTicketTypeData, 'creatorId'>>
-}
+// export type PartialEventDataWithTickets = PartialEventData & {
+//   ticketTypes: Array<Omit<EventTicketTypeData, 'creatorId'>>
+// }
 
-export type PartialEventDataWithTicketsForUpdate = PartialEventData & {
-  ticketTypes: Array<Omit<EventTicketTypeData, 'creatorId'> & { id: string }>
-}
+// export type PartialEventDataWithTicketsForUpdate = PartialEventData & {
+//   ticketTypes: Array<Omit<EventTicketTypeData, 'creatorId'> & { id: string }>
+// }

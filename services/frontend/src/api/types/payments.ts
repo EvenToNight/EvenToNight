@@ -1,5 +1,4 @@
 import type { EventID } from '../types/events'
-import type { UserID } from './users'
 import { api } from '@/api'
 
 export interface Money {
@@ -21,7 +20,6 @@ export interface EventTicketTypeData {
   description?: string
   price: Money
   quantity: number
-  creatorId: UserID
 }
 
 export interface EventTicketType extends Omit<EventTicketTypeData, 'creatorId' | 'quantity'> {
