@@ -18,8 +18,10 @@ import { EventTicketTypeService } from 'src/tickets/application/services/event-t
 import { UpdateEventTicketTypeDto } from 'src/tickets/application/dto/update-event-ticket-type.dto';
 import { UpdateTicketTypeHandler } from 'src/tickets/application/handlers/update-ticket-type.handler';
 import { JwtAuthGuard } from 'src/commons/infrastructure/auth/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from 'src/commons/infrastructure/auth/optional-jwt-auth.guard';
 import { CurrentUser } from 'src/commons/infrastructure/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
+import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 
 @Controller('ticket-types')
 export class EventTicketTypesController {
@@ -46,13 +48,28 @@ export class EventTicketTypesController {
    */
   @Get(':ticketTypeId')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(OptionalJwtAuthGuard)
   async getEventTicketType(
     @Param('ticketTypeId') ticketTypeId: string,
+    @CurrentUser('userId') userId?: string,
   ): Promise<EventTicketTypeResponseDto> {
     const ticketType = await this.eventTicketTypeService.findById(ticketTypeId);
     if (!ticketType) {
       throw new NotFoundException(
         `EventTicketType with id ${ticketTypeId} not found`,
+      );
+    }
+    const event = await this.eventService.findById(
+      ticketType.getEventId().toString(),
+    );
+    if (!event) {
+      throw new NotFoundException(
+        `Event with id ${ticketType.getEventId().toString()} not found`,
+      );
+    }
+    if (userId && event.getStatus() !== EventStatus.PUBLISHED) {
+      throw new ForbiddenException(
+        'User ID in token cannot access this ticket type',
       );
     }
     return EventTicketTypeResponseDto.fromDomain(ticketType);
