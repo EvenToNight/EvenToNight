@@ -426,6 +426,7 @@ paths:
           required: true
           schema:
             type: string
+          example: tkt_123e4567-e89b-12d3-a456-426614174000
       requestBody:
         required: true
         content:
@@ -446,30 +447,41 @@ paths:
                     type: boolean
                     example: true
         '403':
-          description: Forbidden
+          description: Forbidden - User is not the event creator
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: Not authorized to view this ticket
+                error: Forbidden
         '404':
           description: Ticket or event not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Ticket not found
+                error: Not Found
       tags:
         - Tickets
 
   /tickets/{ticketId}/pdf:
     get:
       summary: Get ticket PDF
-      description: Download a PDF for the specified ticket
+      description: Download a PDF for the specified ticket (user must own the ticket)
+      security:
+        - BearerAuth: []
       parameters:
         - name: ticketId
           in: path
           required: true
           schema:
             type: string
+          example: tkt_123e4567-e89b-12d3-a456-426614174000
       responses:
         '200':
           description: Ticket PDF
@@ -478,8 +490,26 @@ paths:
               schema:
                 type: string
                 format: binary
+        '403':
+          description: Forbidden - User not authorized to view this ticket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: Not authorized to view this ticket
+                error: Forbidden
         '404':
           description: Ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Ticket not found
+                error: Not Found
       tags:
         - Tickets
 
