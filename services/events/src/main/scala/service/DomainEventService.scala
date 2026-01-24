@@ -1,7 +1,7 @@
 package service
 
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventCommand}
-import domain.events.{EventDeleted, EventPublished, EventUpdated}
+import domain.events.{EventCancelled, EventDeleted, EventPublished, EventUpdated}
 import domain.models.{Event, EventStatus}
 import infrastructure.db.{EventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.EventPublisher
@@ -105,7 +105,7 @@ class DomainEventService(
                 Left(s"Failed to cancel event with id ${cmd.eventId}")
               case Right(_) =>
                 publisher.publish(
-                  EventDeleted(
+                  EventCancelled(
                     eventId = cmd.eventId
                   )
                 )

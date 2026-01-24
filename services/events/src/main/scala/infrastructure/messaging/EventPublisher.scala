@@ -1,6 +1,14 @@
 package infrastructure.messaging
 import com.rabbitmq.client.{AMQP, Channel, Connection, ConnectionFactory}
-import domain.events.{DomainEvent, EventCompleted, EventDeleted, EventEnvelope, EventPublished, EventUpdated}
+import domain.events.{
+  DomainEvent,
+  EventCancelled,
+  EventCompleted,
+  EventDeleted,
+  EventEnvelope,
+  EventPublished,
+  EventUpdated
+}
 import io.circe.Encoder
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
@@ -80,6 +88,7 @@ class RabbitEventPublisher(
     case _: EventUpdated   => "event.updated"
     case _: EventDeleted   => "event.deleted"
     case _: EventCompleted => "event.completed"
+    case _: EventCancelled => "event.cancelled"
 
   def close(): Unit =
     try

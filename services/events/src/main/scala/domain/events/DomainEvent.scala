@@ -6,10 +6,11 @@ sealed trait DomainEvent
 
 object DomainEvent:
   implicit val encoder: Encoder[DomainEvent] = Encoder.instance {
-    case event: EventPublished => deriveEncoder[EventPublished].apply(event)
-    case event: EventUpdated   => deriveEncoder[EventUpdated].apply(event)
-    case event: EventDeleted   => deriveEncoder[EventDeleted].apply(event)
-    case event: EventCompleted => deriveEncoder[EventCompleted].apply(event)
+    case event: EventPublished   => deriveEncoder[EventPublished].apply(event)
+    case event: EventUpdated     => deriveEncoder[EventUpdated].apply(event)
+    case event: EventDeleted     => deriveEncoder[EventDeleted].apply(event)
+    case event: EventCompleted   => deriveEncoder[EventCompleted].apply(event)
+    case EventCancelled(eventId) => deriveEncoder[EventCancelled].apply(EventCancelled(eventId))
   }
 
 case class EventPublished(
@@ -26,6 +27,10 @@ case class EventUpdated(
 ) extends DomainEvent
 
 case class EventDeleted(
+    eventId: String
+) extends DomainEvent
+
+case class EventCancelled(
     eventId: String
 ) extends DomainEvent
 
