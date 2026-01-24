@@ -6,7 +6,7 @@ import { EventCreatedDto } from '../dto/event-created.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { UserCreatedDto } from '../dto/user-created.dto';
-import { EventDeletedDto } from '../dto/event-deleted.dto';
+import { EventCancelledDto } from '../dto/event-cancelled.dto';
 import { UserDeletedDto } from '../dto/user-deleted.dto';
 import { EventCompletedDto } from '../dto/event-completed.dto';
 import { UserUpdatedDto } from '../dto/user-updated.dto';
@@ -53,8 +53,8 @@ export class MetadataController {
         case 'user.created':
           await this.handleUserCreated(payload);
           break;
-        case 'event.deleted':
-          await this.handleEventDeleted(payload);
+        case 'event.cancelled':
+          await this.handleEventCancelled(payload);
           break;
         case 'user.deleted':
           await this.handleUserDeleted(payload);
@@ -104,9 +104,9 @@ export class MetadataController {
     await this.metadataService.handleUserCreated(dto);
   }
 
-  private async handleEventDeleted(payload: unknown): Promise<void> {
-    const dto = await this.validateAndTransform(EventDeletedDto, payload);
-    await this.metadataService.handleEventDeleted(dto);
+  private async handleEventCancelled(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventCancelledDto, payload);
+    await this.metadataService.handleEventCancelled(dto);
   }
 
   private async handleUserDeleted(payload: unknown): Promise<void> {

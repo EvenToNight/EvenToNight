@@ -17,7 +17,7 @@ import { FollowService } from '../../users/services/follow.service';
 import { CreateReviewDto } from 'src/events/dto/create-review.dto';
 import { EventCreatedDto } from '../dto/event-created.dto';
 import { UserCreatedDto } from '../dto/user-created.dto';
-import { EventDeletedDto } from '../dto/event-deleted.dto';
+import { EventCancelledDto } from '../dto/event-cancelled.dto';
 import { UserDeletedDto } from '../dto/user-deleted.dto';
 import { EventCompletedDto } from '../dto/event-completed.dto';
 import { UserInfoDto } from 'src/commons/dto/user-info-dto';
@@ -122,9 +122,11 @@ export class MetadataService {
     }
   }
 
-  async handleEventDeleted(payload: EventDeletedDto): Promise<void> {
+  async handleEventCancelled(payload: EventCancelledDto): Promise<void> {
     try {
-      this.logger.debug(`Processing event.deleted: ${JSON.stringify(payload)}`);
+      this.logger.debug(
+        `Processing event.cancelled: ${JSON.stringify(payload)}`,
+      );
 
       const deleteResult = await this.eventModel.updateOne(
         { eventId: payload.eventId },
@@ -132,12 +134,12 @@ export class MetadataService {
       );
 
       if (deleteResult.modifiedCount === 0) {
-        this.logger.warn(`Event ${payload.eventId} not found for deletion`);
+        this.logger.warn(`Event ${payload.eventId} not found for cancellation`);
       } else {
-        this.logger.log(`Event ${payload.eventId} deleted from metadata`);
+        this.logger.log(`Event ${payload.eventId} cancelled in metadata`);
       }
     } catch (error) {
-      this.logger.error(`Failed to handle event.deleted: ${error}`);
+      this.logger.error(`Failed to handle event.cancelled: ${error}`);
       throw error;
     }
   }
