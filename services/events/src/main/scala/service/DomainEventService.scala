@@ -79,20 +79,19 @@ class DomainEventService(
               case Left(_) =>
                 Left(s"Failed to update event with id ${cmd.eventId}")
               case Right(_) =>
+                publisher.publish(
+                  EventUpdated(
+                    eventId = updatedEvent._id,
+                    collaboratorIds = updatedEvent.collaboratorIds,
+                    name = updatedEvent.title,
+                    date = updatedEvent.date,
+                    status = updatedEvent.status.asString
+                  )
+                )
                 if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
                   publisher.publish(
                     EventPublished(
                       eventId = updatedEvent._id
-                    )
-                  )
-                else
-                  publisher.publish(
-                    EventUpdated(
-                      eventId = updatedEvent._id,
-                      collaboratorIds = updatedEvent.collaboratorIds,
-                      name = updatedEvent.title,
-                      date = updatedEvent.date,
-                      status = updatedEvent.status.asString
                     )
                   )
                 Right(())
