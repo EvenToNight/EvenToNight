@@ -39,6 +39,7 @@ const tags = ref<string[]>([])
 const collaborators = ref<string[]>([])
 const location = ref<LocationOption | null>(null)
 const poster = ref<File | null>(null)
+const isDraft = ref(false)
 
 // Ticket types
 interface TicketEntry {
@@ -169,6 +170,7 @@ const loadEvent = async () => {
 
   try {
     const event = await api.events.getEventById(eventId.value)
+    isDraft.value = event.status === 'DRAFT'
     title.value = event.title ?? ''
     if (event.date) {
       const eventDate = new Date(event.date)
@@ -675,7 +677,8 @@ const onSubmit = async () => {
             </div>
             <div class="action-buttons">
               <Button
-                :label="t('eventCreationForm.saveDraft')"
+                v-if="isDraft"
+                :label="isEditMode ? 'Update Draft' : t('eventCreationForm.saveDraft')"
                 outline
                 variant="primary"
                 size="md"
@@ -684,9 +687,11 @@ const onSubmit = async () => {
               />
               <Button
                 :label="
-                  isEditMode
-                    ? t('eventCreationForm.updateEvent')
-                    : t('eventCreationForm.publishEvent')
+                  isDraft
+                    ? t('eventCreationForm.publishEvent')
+                    : isEditMode
+                      ? t('eventCreationForm.updateEvent')
+                      : t('eventCreationForm.publishEvent')
                 "
                 variant="primary"
                 type="submit"
