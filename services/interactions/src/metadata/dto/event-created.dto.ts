@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty, IsOptional, IsArray } from 'class-validator';
 
-export class EventPublishedDto {
+export class EventCreatedDto {
   @IsString()
   @IsNotEmpty()
   eventId: string;
@@ -17,4 +17,8 @@ export class EventPublishedDto {
   @IsString()
   @IsNotEmpty()
   name: string;
+
+  @IsString()
+  @IsNotEmpty()
+  status: string;
 }

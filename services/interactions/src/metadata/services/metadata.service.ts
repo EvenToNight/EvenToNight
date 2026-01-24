@@ -15,7 +15,7 @@ import { ReviewService } from '../../events/services/review.service';
 import { ParticipationService } from '../../events/services/participation.service';
 import { FollowService } from '../../users/services/follow.service';
 import { CreateReviewDto } from 'src/events/dto/create-review.dto';
-import { EventPublishedDto } from '../dto/event-published.dto';
+import { EventCreatedDto } from '../dto/event-created.dto';
 import { UserCreatedDto } from '../dto/user-created.dto';
 import { EventDeletedDto } from '../dto/event-deleted.dto';
 import { UserDeletedDto } from '../dto/user-deleted.dto';
@@ -42,11 +42,9 @@ export class MetadataService {
     private readonly followService: FollowService,
   ) {}
 
-  async handleEventPublished(payload: EventPublishedDto): Promise<void> {
+  async handleEventCreated(payload: EventCreatedDto): Promise<void> {
     try {
-      this.logger.debug(
-        `Processing event.published: ${JSON.stringify(payload)}`,
-      );
+      this.logger.debug(`Processing event.created: ${JSON.stringify(payload)}`);
       const result = await this.eventModel.updateOne(
         { eventId: payload.eventId },
         {
@@ -54,7 +52,7 @@ export class MetadataService {
             eventId: payload.eventId,
             creatorId: payload.creatorId,
             collaboratorIds: payload.collaboratorIds ?? [],
-            status: EventStatus.PUBLISHED,
+            status: payload.status,
             name: payload.name,
           },
         },
@@ -67,7 +65,7 @@ export class MetadataService {
         this.logger.log(`Event ${payload.eventId} already exists`);
       }
     } catch (error) {
-      this.logger.error(`Failed to handle event.published: ${error}`);
+      this.logger.error(`Failed to handle event.created: ${error}`);
       throw error;
     }
   }

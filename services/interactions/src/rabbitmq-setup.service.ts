@@ -9,6 +9,7 @@ export class RabbitMqSetupService {
     const exchange = 'eventonight';
     const queue = 'interactions_queue';
     const routingKeys = [
+      'event.created',
       'event.published',
       'user.created',
       'event.deleted',

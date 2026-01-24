@@ -2,7 +2,7 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MetadataService } from '../services/metadata.service';
 import { RmqContext, Ctx } from '@nestjs/microservices';
-import { EventPublishedDto } from '../dto/event-published.dto';
+import { EventCreatedDto } from '../dto/event-created.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { UserCreatedDto } from '../dto/user-created.dto';
@@ -43,8 +43,8 @@ export class MetadataController {
 
     try {
       switch (routingKey) {
-        case 'event.published':
-          await this.handleEventPublished(payload);
+        case 'event.created':
+          await this.handleEventCreated(payload);
           break;
         case 'user.created':
           await this.handleUserCreated(payload);
@@ -85,9 +85,9 @@ export class MetadataController {
     }
   }
 
-  private async handleEventPublished(payload: unknown): Promise<void> {
-    const dto = await this.validateAndTransform(EventPublishedDto, payload);
-    await this.metadataService.handleEventPublished(dto);
+  private async handleEventCreated(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventCreatedDto, payload);
+    await this.metadataService.handleEventCreated(dto);
   }
 
   private async handleUserCreated(payload: unknown): Promise<void> {
