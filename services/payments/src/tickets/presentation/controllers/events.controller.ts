@@ -8,15 +8,15 @@ import {
   HttpStatus,
   ValidationPipe,
   Delete,
-  // UseGuards,
-  // ForbiddenException,
+  UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import { CreateEventTicketTypeHandler } from '../../application/handlers/create-event-ticket-type.handler';
 import { CreateEventTicketTypeDto } from '../../application/dto/create-event-ticket-type.dto';
 import { EventTicketTypeResponseDto } from '../../application/dto/event-ticket-type-response.dto';
 import { DeleteEventTicketTypesHandler } from 'src/tickets/application/handlers/delete-event-ticket-types.handler';
 import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
-// import { CurrentUser, JwtAuthGuard } from 'src/commons/infrastructure/auth';
+import { CurrentUser, JwtAuthGuard } from 'src/commons/infrastructure/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { CreateEventDto } from '../../application/dto/create-event.dto';
 import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
@@ -40,7 +40,6 @@ export class EventController {
   @Post(':eventId')
   @HttpCode(HttpStatus.OK)
   // @UseGuards(JwtAuthGuard)
-  //TODO Add Auth
   async createOrUpdateEvent(
     @Param('eventId') eventId: string,
     @Body(ValidationPipe) dto: CreateEventDto,
@@ -83,18 +82,18 @@ export class EventController {
    */
   @Post(':eventId/ticket-types')
   @HttpCode(HttpStatus.CREATED)
-  // @UseGuards(JwtAuthGuard)
-  //TODO Add Auth
+  @UseGuards(JwtAuthGuard)
   async createEventTicketType(
     @Param('eventId') eventId: string,
     @Body(ValidationPipe) dto: CreateEventTicketTypeDto,
-    // @CurrentUser('userId') userId: string,
+    @CurrentUser('userId') userId: string,
   ): Promise<EventTicketTypeResponseDto> {
-    // if (dto.creatorId !== userId) {
-    //   throw new ForbiddenException(
-    //     'User ID in token does not match creator ID in request body',
-    //   );
-    // }
+    const event = await this.eventService.findById(eventId);
+    if (event?.getCreatorId().toString() !== userId) {
+      throw new ForbiddenException(
+        'User ID in token does not match event creator ID',
+      );
+    }
     const ticketType = await this.createHandler.handle(eventId, dto);
     return EventTicketTypeResponseDto.fromDomain(ticketType);
   }
@@ -103,20 +102,19 @@ export class EventController {
    * DELETE /events/:eventId/ticket-types
    * Deletes all ticket types for the specified event.
    */
-  //TODO Add Auth
   @Delete(':eventId/ticket-types')
   @HttpCode(HttpStatus.NO_CONTENT)
-  // @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard)
   async deleteEventTicketTypes(
     @Param('eventId') eventId: string,
-    // @CurrentUser('userId') userId: string,
+    @CurrentUser('userId') userId: string,
   ): Promise<void> {
-    // const event = await this.eventService.findById(eventId);
-    // if (event?.getCreatorId().toString() !== userId) {
-    //   throw new ForbiddenException(
-    //     'User ID in token does not match event creator ID',
-    //   );
-    // }
+    const event = await this.eventService.findById(eventId);
+    if (event?.getCreatorId().toString() !== userId) {
+      throw new ForbiddenException(
+        'User ID in token does not match event creator ID',
+      );
+    }
     return this.deleteHandler.handle(eventId);
   }
 }
