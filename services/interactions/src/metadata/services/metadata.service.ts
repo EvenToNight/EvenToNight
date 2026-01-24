@@ -25,6 +25,7 @@ import { UserUpdatedDto } from '../dto/user-updated.dto';
 import { OrderConfirmedDto } from '../dto/order-confirmed.dto';
 import { EventUpdatedDto } from '../dto/event-updated.dto';
 import { EventPublishedDto } from '../dto/event-published.dto';
+import { EventDeletedDto } from '../dto/event-deleted.dto';
 
 @Injectable()
 export class MetadataService {
@@ -140,6 +141,27 @@ export class MetadataService {
       }
     } catch (error) {
       this.logger.error(`Failed to handle event.cancelled: ${error}`);
+      throw error;
+    }
+  }
+
+  async handleEventDeleted(payload: EventDeletedDto): Promise<void> {
+    try {
+      this.logger.debug(`Processing event.deleted: ${JSON.stringify(payload)}`);
+
+      const deleteResult = await this.eventModel.deleteOne({
+        eventId: payload.eventId,
+      });
+
+      if (deleteResult.deletedCount === 0) {
+        this.logger.warn(`Event ${payload.eventId} not found for deletion`);
+      } else {
+        this.logger.log(`🗑️  Event ${payload.eventId} deleted from metadata`);
+      }
+
+      this.logger.log(`🧹 Cleanup completed for event ${payload.eventId}`);
+    } catch (error) {
+      this.logger.error(`Failed to handle event.deleted: ${error}`);
       throw error;
     }
   }
