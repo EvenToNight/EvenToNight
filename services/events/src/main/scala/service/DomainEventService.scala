@@ -1,7 +1,7 @@
 package service
 
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventCommand}
-import domain.events.{EventCancelled, EventDeleted, EventPublished, EventUpdated}
+import domain.events.{EventCancelled, EventCreated, EventDeleted, EventPublished, EventUpdated}
 import domain.models.{Event, EventStatus}
 import infrastructure.db.{EventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.EventPublisher
@@ -39,6 +39,16 @@ class DomainEventService(
             case Left(_) =>
               Left("Failed to save new event")
             case Right(_) =>
+              publisher.publish(
+                EventCreated(
+                  eventId = newEvent._id,
+                  creatorId = cmd.creatorId,
+                  collaboratorIds = cmd.collaboratorIds,
+                  name = cmd.title,
+                  date = cmd.date,
+                  status = cmd.status.asString
+                )
+              )
               if cmd.status == EventStatus.PUBLISHED then
                 publisher.publish(
                   EventPublished(

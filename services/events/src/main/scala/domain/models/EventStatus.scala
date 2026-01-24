@@ -11,3 +11,10 @@ object EventStatus:
       case "CANCELLED" => Some(EventStatus.CANCELLED)
       case "COMPLETED" => Some(EventStatus.COMPLETED)
       case _           => None
+
+  extension (status: EventStatus)
+    def asString: String = status match
+      case EventStatus.DRAFT     => "DRAFT"
+      case EventStatus.PUBLISHED => "PUBLISHED"
+      case EventStatus.CANCELLED => "CANCELLED"
+      case EventStatus.COMPLETED => "COMPLETED"

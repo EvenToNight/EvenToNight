@@ -4,6 +4,7 @@ import domain.events.{
   DomainEvent,
   EventCancelled,
   EventCompleted,
+  EventCreated,
   EventDeleted,
   EventEnvelope,
   EventPublished,
@@ -84,6 +85,7 @@ class RabbitEventPublisher(
         println(s"[RABBITMQ] Error publishing event: ${e.getMessage}")
 
   private def routingKey(event: DomainEvent): String = event match
+    case _: EventCreated   => "event.created"
     case _: EventPublished => "event.published"
     case _: EventUpdated   => "event.updated"
     case _: EventDeleted   => "event.deleted"
