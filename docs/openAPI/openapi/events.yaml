@@ -264,6 +264,8 @@ paths:
           description: Events service (local development)
         - url: https://events.eventonight.site
           description: Events service (production)
+      security:
+        - BearerAuth: []
       parameters:
         - name: limit
           in: query

@@ -68,43 +68,83 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       city: Option[String] = None,
       location_name: Option[String] = None,
       sortBy: Option[String] = None,
-      sortOrder: Option[String] = None
+      sortOrder: Option[String] = None,
+      req: cask.Request
   ): cask.Response[ujson.Value] =
-    val tagsList: Option[List[String]] = tags.map(_.toList)
-    val command: GetFilteredEventsCommand = Utils.parseEventFilters(
-      limit,
-      offset,
-      status,
-      title,
-      tagsList,
-      startDate,
-      endDate,
-      organizationId,
-      city,
-      location_name,
-      sortBy,
-      sortOrder
-    )
-    eventService.handleCommand(command) match
-      case Right((events: List[?], hasMore: Boolean)) =>
-        val eventList = events.collect { case e: Event => e }
-        val response = Utils.createPaginatedResponse(
-          eventList,
-          limit,
-          offset,
-          hasMore
-        )
-        cask.Response(response, statusCode = 200)
-      case Left(errors) =>
-        cask.Response(
-          ujson.Obj("error" -> s"Could not retrieve events $errors"),
-          statusCode = 400
-        )
-      case _ =>
-        cask.Response(
-          ujson.Obj("error" -> "Error"),
-          statusCode = 404
-        )
+    val authOpt = req.headers.get("authorization").flatMap(_.headOption).flatMap { auth =>
+      if auth.startsWith("Bearer ") then Some(auth.drop(7)) else None
+    }
+
+    var isAuthenticated = false
+
+    val authenticatedUserId: Option[String] = authOpt.flatMap { token =>
+      JwtService.validateToken(token).toOption.map(_.userId)
+    }
+
+    val authCheckResponse: Option[cask.Response[ujson.Value]] =
+      if status.map(_.toUpperCase).contains("DRAFT") then
+        authenticatedUserId match
+          case None =>
+            Some(cask.Response(
+              Obj("error" -> "Unauthorized", "message" -> "No authorization token provided"),
+              statusCode = 401
+            ))
+          case Some(userId) =>
+            if (organizationId.isDefined && organizationId.get != userId) || (organizationId.isEmpty) then
+              Some(cask.Response(
+                Obj("error" -> "Forbidden", "message" -> "User is not authorized to access draft events"),
+                statusCode = 403
+              ))
+            else
+              None
+      else
+        None
+
+    if authCheckResponse.isDefined then
+      authCheckResponse.get
+    else
+      organizationId.foreach { orgId =>
+        if authenticatedUserId.isDefined && authenticatedUserId.get == orgId then
+          isAuthenticated = true
+      }
+
+      println(s"Is Authenticated: $isAuthenticated")
+
+      val tagsList: Option[List[String]] = tags.map(_.toList)
+      val command: GetFilteredEventsCommand = Utils.parseEventFilters(
+        limit,
+        offset,
+        status,
+        title,
+        tagsList,
+        startDate,
+        endDate,
+        organizationId,
+        city,
+        location_name,
+        sortBy,
+        sortOrder
+      )
+      eventService.handleCommand(command) match
+        case Right((events: List[?], hasMore: Boolean)) =>
+          val eventList = events.collect { case e: Event => e }
+          val response = Utils.createPaginatedResponse(
+            eventList,
+            limit,
+            offset,
+            hasMore
+          )
+          cask.Response(response, statusCode = 200)
+        case Left(errors) =>
+          cask.Response(
+            ujson.Obj("error" -> s"Could not retrieve events $errors"),
+            statusCode = 400
+          )
+        case _ =>
+          cask.Response(
+            ujson.Obj("error" -> "Error"),
+            statusCode = 404
+          )
 
   @cask.postForm("/:eventId/poster")
   def updateEventPoster(eventId: String, poster: cask.FormFile, req: cask.Request): cask.Response[ujson.Value] =
