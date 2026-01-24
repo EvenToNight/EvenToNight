@@ -94,7 +94,7 @@ onMounted(async () => {
     loading.value = true
     const [eventData, ticketsAvailable] = await Promise.all([
       api.events.getEventById(eventId.value),
-      api.payments.getEventTicketType(eventId.value),
+      api.payments.getEventTicketsType(eventId.value),
     ])
     event.value = eventData
     ticketTypes.value = ticketsAvailable

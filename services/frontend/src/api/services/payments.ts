@@ -32,7 +32,7 @@ export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
     return paymentsClient.post<EventTicketType>(`/events/${eventId}/ticket-types`, request)
   },
 
-  async getEventTicketType(eventId: EventID): Promise<EventTicketType[]> {
+  async getEventTicketsType(eventId: EventID): Promise<EventTicketType[]> {
     return paymentsClient.get<EventTicketType[]>(`/events/${eventId}/ticket-types`)
   },
 

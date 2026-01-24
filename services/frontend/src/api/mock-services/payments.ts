@@ -65,7 +65,7 @@ export const mockPaymentsApi: PaymentsAPI = {
     return updatedTicketType
   },
 
-  async getEventTicketType(eventId: EventID): Promise<EventTicketType[]> {
+  async getEventTicketsType(eventId: EventID): Promise<EventTicketType[]> {
     const filteredTicketTypes = mockEventTicketTypes.filter((t) => t.eventId === eventId)
     if (filteredTicketTypes.length === 0)
       return [

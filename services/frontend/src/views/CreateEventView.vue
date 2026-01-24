@@ -99,6 +99,21 @@ const loadTicketTypes = async () => {
   }
 }
 
+const loadTickets = async () => {
+  try {
+    const ticketTypes = await api.payments.getEventTicketsType(eventId.value)
+    ticketEntries.value = ticketTypes.map((ticket) => ({
+      id: ticket.id,
+      type: ticket.type,
+      price: ticket.price.amount.toString(),
+      currency: ticket.price.currency,
+      quantity: ticket.totalQuantity.toString(),
+    }))
+  } catch (error) {
+    console.error('Failed to load event tickets:', error)
+  }
+}
+
 const handleImageError = (message: string) => {
   $q.notify({
     color: 'negative',
@@ -181,7 +196,7 @@ const loadEvent = async () => {
 onMounted(async () => {
   await Promise.all([loadTags(), loadTicketTypes()])
   if (isEditMode.value) {
-    await loadEvent()
+    await Promise.all([loadEvent(), loadTickets()])
   }
 })
 

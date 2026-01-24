@@ -28,7 +28,7 @@ export interface PaymentsAPI {
     ticketTypeId: string,
     request: EventTicketTypeData
   ): Promise<EventTicketType>
-  getEventTicketType(eventId: EventID): Promise<EventTicketType[]>
+  getEventTicketsType(eventId: EventID): Promise<EventTicketType[]>
   createCheckoutSession(
     request: CreateCheckoutSessionRequest
   ): Promise<CreateCheckoutSessionResponse>
