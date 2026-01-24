@@ -3,6 +3,11 @@ info:
   title: EvenToNight - Payments API
   version: 1.0.0
   description: API for managing event ticket types, pricing, and availability
+servers:
+  - url: http://localhost:9050
+    description: Local server
+  - url: https://payments.eventonight.site
+    description: Production server
 paths:
 
   /health:
@@ -301,11 +306,6 @@ paths:
       security:
         - BearerAuth: []
         - {}
-      servers:
-        - url: http://localhost:3000
-          description: Local server
-        - url: https://payments.eventonight.site
-          description: Production server
       parameters:
         - name: ticketTypeId
           in: path
