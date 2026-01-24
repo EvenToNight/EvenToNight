@@ -747,13 +747,16 @@ paths:
   /orders/{orderId}:
     get:
       summary: Get order details
-      description: Get details for a specific order
+      description: Get details for a specific order (user must own the order)
+      security:
+        - BearerAuth: []
       parameters:
         - name: orderId
           in: path
           required: true
           schema:
             type: string
+          example: order_123e4567-e89b-12d3-a456-426614174000
       responses:
         '200':
           description: Order details
@@ -789,6 +792,16 @@ paths:
                   - tick_456e7890-e89b-12d3-a456-426614174111
                 status: COMPLETED
                 createdAt: 2024-01-01T12:00:00Z
+        '403':
+          description: Forbidden - User is not authorized to access this order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User is not authorized to access this order
+                error: Forbidden
         '404':
           description: Order not found
           content:
@@ -805,13 +818,16 @@ paths:
   /orders/{orderId}/pdf:
     get:
       summary: Get order PDF
-      description: Download a PDF for the specified order
+      description: Download a PDF for the specified order (user must own the order)
+      security:
+        - BearerAuth: []
       parameters:
         - name: orderId
           in: path
           required: true
           schema:
             type: string
+          example: order_123e4567-e89b-12d3-a456-426614174000
       responses:
         '200':
           description: Order PDF
@@ -820,8 +836,26 @@ paths:
               schema:
                 type: string
                 format: binary
+        '403':
+          description: Forbidden - User is not authorized to access this order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User is not authorized to access this order
+                error: Forbidden
         '404':
           description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Order not found
+                error: Not Found
       tags:
         - Orders
 
