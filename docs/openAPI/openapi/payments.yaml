@@ -1058,16 +1058,19 @@ components:
       properties:
         description:
           type: string
-          description: (Optional) Description of the ticket type
+          description: Optional description of the ticket type
           example: "Updated ticket description"
         price:
           $ref: '#/components/schemas/MoneyDto'
-          description: (Optional) Updated price of the ticket
+          description: Updated price of the ticket
         quantity:
           type: integer
           minimum: 1
-          description: (Optional) Updated total quantity of tickets
+          description: Updated total quantity of tickets
           example: 150
+      required:
+        - price
+        - quantity
       example:
         description: "Updated ticket description"
         price:

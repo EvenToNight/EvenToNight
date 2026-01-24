@@ -106,7 +106,7 @@ export class EventTicketType {
     return this.availableQuantity + this.soldQuantity;
   }
 
-  setDescription(description: string): void {
+  setDescription(description?: string): void {
     this.description = description;
   }
 
