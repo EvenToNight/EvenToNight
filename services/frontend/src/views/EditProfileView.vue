@@ -7,7 +7,6 @@ import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
 import FormField from '@/components/forms/FormField.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { notEmpty } from '@/components/forms/validationUtils'
 
 const authStore = useAuthStore()
@@ -144,8 +143,21 @@ const handleCancel = () => {
           </div>
 
           <div class="card-actions">
-            <Button :label="'Cancel'" variant="secondary" type="button" @click="handleCancel" />
-            <Button :label="'Save'" variant="primary" type="submit" :loading="loading" />
+            <q-btn
+              flat
+              :label="'Cancel'"
+              class="base-button base-button--secondary"
+              type="button"
+              @click="handleCancel"
+            />
+            <q-btn
+              unelevated
+              color="primary"
+              :label="'Save'"
+              class="base-button base-button--primary"
+              type="submit"
+              :loading="loading"
+            />
           </div>
         </q-form>
       </div>

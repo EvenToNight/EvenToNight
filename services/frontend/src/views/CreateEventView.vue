@@ -12,7 +12,6 @@ import { useAuthStore } from '@/stores/auth'
 import FormField from '@/components/forms/FormField.vue'
 import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import type { Tag } from '@/api/types/events'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useI18n } from 'vue-i18n'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { notEmpty, required } from '@/components/forms/validationUtils'
@@ -661,31 +660,32 @@ const onSubmit = async () => {
           </q-field>
           <div class="form-actions">
             <div class="action-buttons">
-              <Button
-                variant="tertiary"
+              <q-btn
+                flat
                 :label="t('eventCreationForm.cancel')"
+                class="base-button base-button--tertiary"
                 @click="goToUserProfile(currentUserId!)"
               />
-              <Button
+              <q-btn
                 v-if="isEditMode"
                 :label="t('eventCreationForm.deleteEvent')"
                 color="negative"
-                variant="tertiary"
                 flat
                 @click="handleDelete"
               />
             </div>
             <div class="action-buttons">
-              <Button
+              <q-btn
                 v-if="!isEditMode || isDraft"
                 :label="isEditMode ? 'Update Draft' : t('eventCreationForm.saveDraft')"
                 outline
-                variant="primary"
+                unelevated
+                color="primary"
                 size="md"
-                class="outline-btn-fix"
+                class="base-button base-button--primary outline-btn-fix"
                 @click="saveDraft"
               />
-              <Button
+              <q-btn
                 :label="
                   isDraft
                     ? t('eventCreationForm.publishEvent')
@@ -693,7 +693,9 @@ const onSubmit = async () => {
                       ? t('eventCreationForm.updateEvent')
                       : t('eventCreationForm.publishEvent')
                 "
-                variant="primary"
+                unelevated
+                color="primary"
+                class="base-button base-button--primary"
                 type="submit"
               />
             </div>

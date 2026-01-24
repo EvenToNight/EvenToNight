@@ -6,7 +6,6 @@ import EventDetailsHeader from './EventDetailsHeader.vue'
 import EventInfo from './EventInfo.vue'
 import OrganizationInfo from './OrganizationInfo.vue'
 import EventReviewsPreview from './EventReviewsPreview.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { TICKET_PURCHASE_ROUTE_NAME } from '@/router'
 import type { EventTicketType } from '@/api/types/payments'
 import { useAuthStore } from '@/stores/auth'
@@ -53,11 +52,12 @@ const ticketsAvailable = () => {
       <EventInfo :event="event" :eventTickets="eventTickets" />
       <OrganizationInfo :event="event" />
       <template v-if="event.status === 'PUBLISHED'">
-        <Button
+        <q-btn
           v-if="ticketsAvailable()"
-          variant="primary"
+          unelevated
+          color="primary"
           :label="t('eventDetails.buyTickets')"
-          :class="'full-width'"
+          :class="'full-width base-button base-button--primary'"
           size="lg"
           @click="handleBuyTickets"
         />

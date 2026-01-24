@@ -14,7 +14,6 @@ import { useNavigation } from '@/router/utils'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import AuthButtons from '../auth/AuthButtons.vue'
 import DrawerMenu from './DrawerMenu.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { api } from '@/api'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
@@ -371,12 +370,20 @@ const goToProfile = () => {
         </div>
         <q-separator class="q-my-md" />
         <div class="drawer-user-buttons">
-          <Button icon="person" :label="t('profile')" variant="secondary" @click="goToProfile" />
-          <Button
+          <q-btn
+            flat
+            icon="person"
+            :label="t('profile')"
+            class="base-button base-button--secondary"
+            @click="goToProfile"
+          />
+          <q-btn
             v-if="isOrganization"
+            unelevated
+            color="primary"
             icon="add"
             label="Create Event"
-            variant="primary"
+            class="base-button base-button--primary"
             @click="
               () => {
                 goToCreateEvent()
@@ -384,10 +391,11 @@ const goToProfile = () => {
               }
             "
           />
-          <Button
+          <q-btn
+            flat
             icon="logout"
             :label="t('auth.logout')"
-            variant="secondary"
+            class="base-button base-button--secondary"
             @click="handleLogout"
           />
         </div>

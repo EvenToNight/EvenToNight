@@ -7,7 +7,6 @@ import type { EventTicketType } from '@/api/types/payments'
 import { useQuasar } from 'quasar'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const { params, goBack } = useNavigation()
@@ -263,13 +262,19 @@ const handlePurchase = async () => {
 
           <!-- Actions -->
           <div class="actions-section">
-            <Button label="Cancel" variant="tertiary" class="cancel-btn" @click="goBack" />
-            <Button
+            <q-btn
+              flat
+              label="Cancel"
+              class="cancel-btn base-button base-button--tertiary"
+              @click="goBack"
+            />
+            <q-btn
+              unelevated
+              color="primary"
               label="Continue to Payment"
-              variant="primary"
               :loading="purchasing"
               :disable="!hasAnyTickets"
-              class="purchase-btn"
+              class="purchase-btn base-button base-button--primary"
               @click="handlePurchase"
             />
           </div>

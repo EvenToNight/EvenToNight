@@ -3,7 +3,6 @@ import { useI18n } from 'vue-i18n'
 import { watch } from 'vue'
 import { useNavigation } from '@/router/utils'
 import CloseButton from '@/components/buttons/actionButtons/CloseButton.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 
 interface Props {
   isOpen: boolean
@@ -58,16 +57,17 @@ watch(
         </q-card-section>
 
         <q-card-actions class="dialog-actions">
-          <Button
-            variant="primary"
+          <q-btn
+            unelevated
+            color="primary"
             :label="t('auth.login')"
-            class="full-width"
+            class="full-width base-button base-button--primary"
             @click="openLogin"
           />
-          <Button
-            variant="secondary"
+          <q-btn
+            flat
             :label="t('auth.register')"
-            class="full-width"
+            class="full-width base-button base-button--secondary"
             @click="openRegister"
           />
         </q-card-actions>
