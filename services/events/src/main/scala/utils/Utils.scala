@@ -132,10 +132,14 @@ object Utils:
       city: Option[String],
       location_name: Option[String],
       sortBy: Option[String],
-      sortOrder: Option[String]
+      sortOrder: Option[String],
+      isAuthenticated: Boolean
   ): GetFilteredEventsCommand =
-    val parsedStatus: Option[EventStatus] =
-      status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
+    var parsedStatus: Option[EventStatus] = None
+    isAuthenticated match
+      case true  => parsedStatus = status.flatMap(s => EventStatus.withNameOpt(s))
+      case false => parsedStatus  = status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
+      
     val parsedTags: Option[List[EventTag]] = tags.map(_.map(t => EventTag.fromString(t)))
     val parsedStartDate: Option[LocalDateTime] = startDate.flatMap { sd =>
       Try(LocalDateTime.parse(sd)).toOption

@@ -108,8 +108,6 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
           isAuthenticated = true
       }
 
-      println(s"Is Authenticated: $isAuthenticated")
-
       val tagsList: Option[List[String]] = tags.map(_.toList)
       val command: GetFilteredEventsCommand = Utils.parseEventFilters(
         limit,
@@ -123,7 +121,8 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
         city,
         location_name,
         sortBy,
-        sortOrder
+        sortOrder,
+        isAuthenticated
       )
       eventService.handleCommand(command) match
         case Right((events: List[?], hasMore: Boolean)) =>
