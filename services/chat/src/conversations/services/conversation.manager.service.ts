@@ -23,10 +23,10 @@ export class ConversationManagerService {
     userId1: string,
     userId2: string,
   ): Promise<any> {
-    // TODO: implement real roles assignments
-    // const {organizationId, memberId} = await this.determineRoles(userId1, userId2);
-    const organizationId = userId2;
-    const memberId = userId1;
+    const { organizationId, memberId } = await this.determineRoles(
+      userId1,
+      userId2,
+    );
 
     let conversation = await this.findConversationBetweenUsers(
       organizationId,

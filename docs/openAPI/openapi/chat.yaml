@@ -8,6 +8,8 @@ paths:
       summary: Send first message and create a new conversation with an organization
       servers:
         - url: http://localhost:9040
+      security:
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -337,6 +339,8 @@ paths:
       summary: Send a message in an existing conversation for a user
       servers:
         - url: http://localhost:9040
+      security:
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
@@ -464,6 +468,8 @@ paths:
       summary: Mark messages in a conversation as read for a user
       servers:
         - url: http://localhost:9040
+      security:
+        - BearerAuth: []
       parameters:
         - name: conversationId
           in: path
@@ -705,4 +711,10 @@ components:
         - senderId
         - content
         - createdAt
-    
+  
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Enter your JWT token in the format: Bearer <token>'
