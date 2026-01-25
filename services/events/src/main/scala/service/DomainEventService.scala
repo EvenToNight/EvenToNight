@@ -66,35 +66,40 @@ class DomainEventService(
       case None =>
         eventRepository.findById(cmd.eventId) match
           case Some(event) =>
-            val updatedEvent = event.copy(
-              title = cmd.title,
-              description = cmd.description,
-              tags = cmd.tags,
-              location = cmd.location,
-              date = cmd.date,
-              status = cmd.status,
-              collaboratorIds = cmd.collaboratorIds.orElse(event.collaboratorIds)
-            )
-            eventRepository.update(updatedEvent) match
-              case Left(_) =>
-                Left(s"Failed to update event with id ${cmd.eventId}")
-              case Right(_) =>
-                publisher.publish(
-                  EventUpdated(
-                    eventId = updatedEvent._id,
-                    collaboratorIds = updatedEvent.collaboratorIds,
-                    name = updatedEvent.title,
-                    date = updatedEvent.date,
-                    status = updatedEvent.status.asString
-                  )
+            event.status != EventStatus.DRAFT && cmd.status == EventStatus.DRAFT match
+              case true =>
+                Left("Cannot change event status back to DRAFT once it has been published or cancelled")
+              case false =>
+
+                val updatedEvent = event.copy(
+                  title = cmd.title,
+                  description = cmd.description,
+                  tags = cmd.tags,
+                  location = cmd.location,
+                  date = cmd.date,
+                  status = cmd.status,
+                  collaboratorIds = cmd.collaboratorIds.orElse(event.collaboratorIds)
                 )
-                if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
-                  publisher.publish(
-                    EventPublished(
-                      eventId = updatedEvent._id
+                eventRepository.update(updatedEvent) match
+                  case Left(_) =>
+                    Left(s"Failed to update event with id ${cmd.eventId}")
+                  case Right(_) =>
+                    publisher.publish(
+                      EventUpdated(
+                        eventId = updatedEvent._id,
+                        collaboratorIds = updatedEvent.collaboratorIds,
+                        name = updatedEvent.title,
+                        date = updatedEvent.date,
+                        status = updatedEvent.status.asString
+                      )
                     )
-                  )
-                Right(())
+                    if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
+                      publisher.publish(
+                        EventPublished(
+                          eventId = updatedEvent._id
+                        )
+                      )
+                    Right(())
           case None =>
             Left(s"Event with id ${cmd.eventId} not found")
 
