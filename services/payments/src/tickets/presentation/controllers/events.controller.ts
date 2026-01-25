@@ -11,6 +11,7 @@ import {
   UseGuards,
   ForbiddenException,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { CreateEventTicketTypeHandler } from '../../application/handlers/create-event-ticket-type.handler';
 import { CreateEventTicketTypeDto } from '../../application/dto/create-event-ticket-type.dto';
@@ -28,6 +29,8 @@ import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
+import { GetEventsByPriceQueryDto } from '../../application/dto/get-events-by-price-query.dto';
+import { PaginatedResult } from 'src/commons/domain/types/pagination.types';
 
 @Controller('events')
 export class EventController {
@@ -39,11 +42,25 @@ export class EventController {
   ) {}
 
   /**
+   * GET /events
+   * Returns event IDs paginated by minimum price.
+   */
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  async getEventsIds(
+    @Query(ValidationPipe) query: GetEventsByPriceQueryDto,
+  ): Promise<PaginatedResult<EventId>> {
+    return this.eventTicketTypeService.findEventIds({
+      ...query,
+    });
+  }
+
+  /**
    * POST /events
    * Creates a new event.
    */
   @Post(':eventId')
-  @HttpCode(HttpStatus.OK)
+  @HttpCode(HttpStatus.CREATED)
   // @UseGuards(JwtAuthGuard)
   async createOrUpdateEvent(
     @Param('eventId') eventId: string,

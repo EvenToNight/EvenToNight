@@ -5,6 +5,13 @@ import { EventTicketType } from '../../../domain/aggregates/event-ticket-type.ag
 import { EventTicketTypeRepository } from '../../../domain/repositories/event-ticket-type.repository.interface';
 import { EventTicketTypeMapper } from '../mappers/event-ticket-type.mapper';
 import { EventTicketTypeDocument } from '../schemas/event-ticket-type.schema';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/commons/domain/types/pagination.types';
+import { Pagination } from 'src/commons/utils/pagination.utils';
+import { CurrencyConverter } from 'src/commons/utils/currency-converter.utils';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 
 @Injectable()
 export class EventTicketTypeRepositoryImpl implements EventTicketTypeRepository {
@@ -93,5 +100,45 @@ export class EventTicketTypeRepositoryImpl implements EventTicketTypeRepository 
     });
     const saved = await created.save({ session });
     return EventTicketTypeMapper.toDomain(saved);
+  }
+
+  async findEventIds(params?: {
+    minPrice?: number;
+    maxPrice?: number;
+    currency?: string;
+    sortOrder?: 'asc' | 'desc';
+    pagination?: PaginationParams;
+  }): Promise<PaginatedResult<EventId>> {
+    const allTicketTypes = await this.model.find().exec();
+    const pagination = Pagination.parse(
+      params?.pagination?.limit,
+      params?.pagination?.offset,
+    );
+
+    const eventIdsSet = new Set<string>();
+
+    for (const ticket of allTicketTypes) {
+      const convertedPrice = await CurrencyConverter.convertAmount(
+        ticket.price.amount,
+        ticket.price.currency,
+        params?.currency || 'USD',
+      );
+
+      const meetsMinPrice =
+        params?.minPrice === undefined || convertedPrice >= params.minPrice;
+      const meetsMaxPrice =
+        params?.maxPrice === undefined || convertedPrice <= params.maxPrice;
+
+      if (meetsMinPrice && meetsMaxPrice) {
+        eventIdsSet.add(ticket.eventId);
+      }
+    }
+
+    const allEventIds: EventId[] = Array.from(eventIdsSet).map((id) =>
+      EventId.fromString(id),
+    );
+    const totalItems = allEventIds.length;
+
+    return Pagination.createResult(allEventIds, totalItems, pagination);
   }
 }

@@ -11,6 +11,11 @@ import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
 import { UpdateEventTicketTypeDto } from '../dto/update-event-ticket-type.dto';
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import { TransactionManager } from 'src/tickets/infrastructure/database/transaction.manager';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/commons/domain/types/pagination.types';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 
 @Injectable()
 export class EventTicketTypeService {
@@ -121,5 +126,15 @@ export class EventTicketTypeService {
 
   getAllTicketTypeValues(): string[] {
     return TicketType.getAllValues();
+  }
+
+  async findEventIds(params?: {
+    minPrice?: number;
+    maxPrice?: number;
+    currency?: string;
+    sortOrder?: 'asc' | 'desc';
+    pagination?: PaginationParams;
+  }): Promise<PaginatedResult<EventId>> {
+    return this.eventTicketTypeRepository.findEventIds(params);
   }
 }
