@@ -9,7 +9,8 @@ import type { EventID, Event, EventStatus, PartialEventData } from '../types/eve
 import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { UserID } from '../types/users'
-import { createPaymentsClient, type ApiClient } from '../client'
+import type { ApiClient } from '../client'
+// import { createPaymentsClient } from '../client'
 
 export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async getTags(): Promise<GetTagResponse> {
@@ -33,16 +34,16 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     const backendEventData = {
       ...rest,
       date: date?.toISOString().replace(/\.\d{3}Z$/, ''),
-      price: 0,
+      // price: 0,
     }
     formData.append('event', JSON.stringify(backendEventData))
     const event = await eventsClient.post<PublishEventResponse>('/', formData)
     //TODO: remove, event service will handle event creation on payment service
-    await createPaymentsClient().post<void>(`/events/${event.eventId}`, {
-      creatorId: eventData.creatorId,
-      date: eventData.date,
-      status: eventData.status,
-    })
+    // await createPaymentsClient().post<void>(`/events/${event.eventId}`, {
+    //   creatorId: eventData.creatorId,
+    //   date: eventData.date,
+    //   status: eventData.status,
+    // })
     return event
   },
   async updateEventData(eventId: EventID, eventData: PartialEventData): Promise<void> {
@@ -51,7 +52,7 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     const backendEventData = {
       ...rest,
       date: date?.toISOString().replace(/\.\d{3}Z$/, ''),
-      price: 0,
+      // price: 0,
     }
     await eventsClient.put(`/${eventId}`, backendEventData)
   },
