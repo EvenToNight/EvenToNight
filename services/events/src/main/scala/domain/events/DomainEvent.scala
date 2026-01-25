@@ -22,7 +22,10 @@ case class EventCreated(
     collaboratorIds: Option[List[String]],
     name: Option[String],
     date: Option[LocalDateTime],
-    status: String
+    status: String,
+    tags: Option[List[String]] = None,
+    instant: Option[Long] = None,
+    locationName: Option[String] = None
 ) extends DomainEvent
 
 case class EventPublished(
@@ -34,7 +37,10 @@ case class EventUpdated(
     collaboratorIds: Option[List[String]],
     name: Option[String],
     date: Option[LocalDateTime],
-    status: String
+    status: String,
+    tags: Option[List[String]] = None,
+    instant: Option[Long] = None,
+    locationName: Option[String] = None
 ) extends DomainEvent
 
 case class EventDeleted(

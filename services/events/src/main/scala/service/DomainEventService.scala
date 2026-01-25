@@ -95,7 +95,10 @@ class DomainEventService(
                         collaboratorIds = cmd.collaboratorIds,
                         name = cmd.title,
                         date = cmd.date,
-                        status = cmd.status.asString
+                        status = cmd.status.asString,
+                        tags = cmd.tags.map(_.map(_.displayName)),
+                        instant = Some(newEvent.instant.toEpochMilli),
+                        locationName = cmd.location.flatMap(l => l.name.orElse(l.city))
                       )
                     )
                     if cmd.status == EventStatus.PUBLISHED then
@@ -139,7 +142,10 @@ class DomainEventService(
                         collaboratorIds = updatedEvent.collaboratorIds,
                         name = updatedEvent.title,
                         date = updatedEvent.date,
-                        status = updatedEvent.status.asString
+                        status = updatedEvent.status.asString,
+                        tags = cmd.tags.map(_.map(_.displayName)),
+                        instant = Some(updatedEvent.instant.toEpochMilli),
+                        locationName = cmd.location.flatMap(l => l.name.orElse(l.city))
                       )
                     )
                     if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
