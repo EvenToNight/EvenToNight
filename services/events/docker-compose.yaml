@@ -13,7 +13,7 @@ services:
       - RABBITMQ_PORT=${RABBITMQ_PORT}
       - HOST=${HOST}
       - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
-      - PAYMENTS_SERVICE_URL=http://payments:${PAYMENTS_SERVICE_PORT}/
+      - PAYMENTS_SERVICE_URL=http://payments:${PAYMENTS_SERVICE_PORT}
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.events.rule=Host(`events.${HOST}`)"

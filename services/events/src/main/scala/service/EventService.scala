@@ -19,7 +19,7 @@ class EventService(
     eventRepository: EventRepository,
     userMetadataRepository: MongoUserMetadataRepository,
     publisher: EventPublisher,
-    paymentsServiceUrl: String = sys.env.getOrElse("PAYMENTS_SERVICE_URL", "http://payments:9050")
+    paymentsServiceUrl: String = sys.env.getOrElse("PAYMENTS_SERVICE_URL", "http://localhost:9050")
 ):
   val eventQueryService: EventQueryService = EventQueryService(eventRepository)
   val eventCommandService: DomainEventService =

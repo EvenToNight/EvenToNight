@@ -7,6 +7,7 @@ import infrastructure.db.{EventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.EventPublisher
 import utils.Utils
 
+import scala.collection.mutable.Map
 import scala.util.{Failure, Success, Try}
 
 class DomainEventService(
@@ -61,18 +62,20 @@ class DomainEventService(
                   )
                 Right(newEvent._id)
               else
+                val basePayload = Map(
+                  "creatorId" -> ujson.Str(cmd.creatorId),
+                  "status"    -> ujson.Str(cmd.status.asString)
+                )
+                cmd.date.foreach(d => basePayload("date") = ujson.Str(s"${d}Z"))
+
+                val payload     = ujson.Obj.from(basePayload)
+                val payloadJson = ujson.write(payload)
+                println(s"Registering event ${newEvent._id} with payload: $payloadJson")
+
                 val postResult = Try {
                   requests.post(
                     s"$paymentsServiceUrl/events/${newEvent._id}",
-                    data = ujson.write(
-                      ujson.Obj(
-                        "eventId"   -> newEvent._id,
-                        "creatorId" -> cmd.creatorId,
-                        "title"     -> cmd.title.getOrElse(""),
-                        "date"      -> cmd.date.map(_.toString),
-                        "status"    -> cmd.status.asString
-                      )
-                    ),
+                    data = payloadJson,
                     headers = Map("Content-Type" -> "application/json")
                   )
                 }
