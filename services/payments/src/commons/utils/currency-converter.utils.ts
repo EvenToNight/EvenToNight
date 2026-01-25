@@ -1,39 +1,36 @@
 import { Converter } from 'easy-currencies';
 import { rateObject } from 'easy-currencies/dist/converter';
-import codes from 'currency-codes';
 
 export class CurrencyConverter {
-  private static rates: Record<string, rateObject> = {};
-  private static lastFetch: number = 0;
+  private static rates: Record<
+    string,
+    { rates: rateObject; fetchedAt: number }
+  > = {};
   private static readonly CACHE_DURATION = 24 * 60 * 60 * 1000; // 24 hours
   private static converter = new Converter();
 
-  private static async fetchRates(): Promise<void> {
+  private static async fetchRatesForCurrency(
+    currency: string,
+  ): Promise<rateObject> {
     const now = Date.now();
-    if (
-      Object.keys(this.rates).length > 0 &&
-      now - this.lastFetch < this.CACHE_DURATION
-    ) {
-      return;
+    const cached = this.rates[currency];
+
+    if (cached && now - cached.fetchedAt < this.CACHE_DURATION) {
+      return cached.rates;
     }
 
-    const allCodes = codes.codes();
+    console.log(`Fetching rates for currency: ${currency}`);
+    const rates = await this.converter.getRates(currency, '', true);
+    console.log(`Fetched rates for ${currency}`);
 
-    const ratesPromises = allCodes.map(async (code) => {
-      const rates = await this.converter.getRates(code, '', true);
-      return { code, rates };
-    });
+    this.rates[currency] = {
+      rates,
+      fetchedAt: now,
+    };
 
-    const ratesResults = await Promise.all(ratesPromises);
-    ratesResults.forEach(({ code, rates }) => {
-      this.rates[code] = rates;
-    });
-    this.lastFetch = now;
+    return rates;
   }
 
-  /**
-   * Converts an amount from one currency to another
-   */
   static async convertAmount(
     amount: number,
     fromCurrency: string,
@@ -44,12 +41,7 @@ export class CurrencyConverter {
 
     if (from === to) return amount;
 
-    await this.fetchRates();
-    const fromRates = this.rates[from];
-    if (!fromRates) {
-      throw new Error(`No rates found for currency: ${from}`);
-    }
-
+    const fromRates = await this.fetchRatesForCurrency(from);
     const conversion = await this.converter.convert(
       amount,
       from,
