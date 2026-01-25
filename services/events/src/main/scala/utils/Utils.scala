@@ -138,8 +138,8 @@ object Utils:
     var parsedStatus: Option[EventStatus] = None
     isAuthenticated match
       case true  => parsedStatus = status.flatMap(s => EventStatus.withNameOpt(s))
-      case false => parsedStatus  = status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
-      
+      case false => parsedStatus = status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
+
     val parsedTags: Option[List[EventTag]] = tags.map(_.map(t => EventTag.fromString(t)))
     val parsedStartDate: Option[LocalDateTime] = startDate.flatMap { sd =>
       Try(LocalDateTime.parse(sd)).toOption

@@ -255,6 +255,8 @@ paths:
       summary: Search and filter events
       description: |
         Search events with various filters and pagination support
+        If the org is authenticated, DRAFT events created by that org are also included in the results.
+        If no authentication is provided, only PUBLISHED events are returned.
         **Sorting behavior:**
         - Results are sorted by the specified `sortBy` field first
         - If multiple events have the same value for the primary sort field, they are sorted by date (ascending) as a secondary criterion
