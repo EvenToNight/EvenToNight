@@ -311,6 +311,17 @@ const goToProfile = () => {
               <q-tooltip>Chat</q-tooltip>
             </q-btn>
 
+            <!-- Theme Toggle -->
+            <q-btn
+              flat
+              round
+              class="theme-toggle"
+              :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+              @click="toggleDarkMode"
+            >
+              <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
+            </q-btn>
+
             <!-- User Profile Avatar -->
             <q-btn flat round>
               <q-avatar size="40px">
@@ -369,6 +380,20 @@ const goToProfile = () => {
           </div>
         </div>
         <q-separator class="q-my-md" />
+        <div class="drawer-theme-toggle">
+          <div class="toggle-field">
+            <div class="toggle-label">
+              <q-icon :name="'dark_mode'" size="24px" />
+              <span>Dark Mode</span>
+            </div>
+            <q-toggle
+              :model-value="$q.dark.isActive"
+              color="primary"
+              @update:model-value="toggleDarkMode"
+            />
+          </div>
+        </div>
+        <q-separator class="q-my-md" />
         <div class="drawer-user-buttons">
           <q-btn
             flat
@@ -404,8 +429,8 @@ const goToProfile = () => {
         <div class="drawer-theme-toggle">
           <div class="toggle-field">
             <div class="toggle-label">
-              <q-icon :name="$q.dark.isActive ? 'light_mode' : 'dark_mode'" size="24px" />
-              <span>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</span>
+              <q-icon :name="'dark_mode'" size="24px" />
+              <span>Dark Mode</span>
             </div>
             <q-toggle
               :model-value="$q.dark.isActive"
@@ -610,37 +635,35 @@ const goToProfile = () => {
   }
 }
 
-.drawer-unauthenticated {
-  .drawer-theme-toggle {
-    padding: $spacing-2 0;
+.drawer-theme-toggle {
+  padding: $spacing-2 0;
+}
+
+.toggle-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: $spacing-2 0;
+}
+
+.toggle-label {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  color: $color-text-primary;
+
+  @include dark-mode {
+    color: $color-white;
   }
 
-  .toggle-field {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: $spacing-2 0;
-  }
-
-  .toggle-label {
-    display: flex;
-    align-items: center;
-    gap: $spacing-3;
-    font-size: $font-size-base;
-    font-weight: $font-weight-medium;
-    color: $color-text-primary;
+  .q-icon {
+    color: $color-gray-600;
+    transition: transform 0.3s ease;
 
     @include dark-mode {
-      color: $color-white;
-    }
-
-    .q-icon {
-      color: $color-gray-600;
-      transition: transform 0.3s ease;
-
-      @include dark-mode {
-        color: $color-gray-400;
-      }
+      color: $color-gray-400;
     }
   }
 }
