@@ -6,9 +6,13 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
-      - USER_HOST=http://users:9000
+      - USER_HOST=http://users:${USERS_SERVICE_PORT}
+      - EVENTS_HOST=http://events:${EVENTS_SERVICE_PORT}
+      - INTERACTIONS_HOST=http://interactions:${INTERACTIONS_SERVICE_PORT}
+      - CHAT_HOST=http://chat:${CHAT_SERVICE_PORT}
+      - PAYMENTS_HOST=http://payments:${PAYMENTS_SERVICE_PORT}
 
 networks:
   eventonight-network:
     external: true
-    name: eventonight-frontend-environment_eventonight-network
+    name: ${COMPOSE_PROJECT_NAME}_eventonight-network

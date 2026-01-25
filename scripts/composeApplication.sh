@@ -39,4 +39,4 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   exit 0
 fi
 
-./scripts/composeAll.sh --project-name eventonight -p ./services -p ./infrastructure "$@"
+./scripts/composeAll.sh --project-name eventonight -p ./services -p ./infrastructure -eP ./infrastructure/seed "$@"
