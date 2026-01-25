@@ -24,6 +24,7 @@ import {
 } from 'src/commons/infrastructure/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { UserService } from 'src/tickets/application/services/user.service';
+import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 
 @Controller('tickets/:ticketId')
 export class TicketsController {
@@ -45,7 +46,7 @@ export class TicketsController {
   async getUserTicket(
     @Param('ticketId') ticketId: string,
     @CurrentUser() user: AuthUser,
-  ) {
+  ): Promise<Ticket> {
     const ticket = await this.ticketService.findById(ticketId);
     if (!ticket) {
       throw new NotFoundException('Ticket not found');
@@ -67,7 +68,7 @@ export class TicketsController {
     @Param('ticketId') ticketId: string,
     @Body(ValidationPipe) _dto: InvalidateTicketStatusDto,
     @CurrentUser('userId') userId: string,
-  ) {
+  ): Promise<Ticket> {
     const ticket = await this.ticketService.findById(ticketId);
     if (!ticket) {
       throw new NotFoundException('Ticket not found');

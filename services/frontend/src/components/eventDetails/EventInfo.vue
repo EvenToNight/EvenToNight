@@ -41,17 +41,16 @@ const formattedPrice = computed(() => {
   if (ticketTypes.length > 0) {
     //TODO handle different currencies
     //TODO update based on availability of tickets?
-    const prices = ticketTypes.map((ticket) => ticket.price.amount)
-    const currency = ticketTypes[0]!.price.currency
+    const prices = ticketTypes.map((ticket) => ticket.price)
     const minPrice = Math.min(...prices)
     const maxPrice = Math.max(...prices)
     if (minPrice === 0) {
       return t('eventDetails.freePrice')
     }
     if (minPrice === maxPrice) {
-      return `${minPrice} ${currency}`
+      return `${minPrice} USD`
     }
-    return `Starting from ${minPrice} ${currency}`
+    return `Starting from ${minPrice} USD`
   }
   return 'Not available'
 })

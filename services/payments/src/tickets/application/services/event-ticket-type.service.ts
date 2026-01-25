@@ -65,9 +65,7 @@ export class EventTicketTypeService {
       }
       if (dto.description) ticketType.setDescription(dto.description);
 
-      ticketType.setPrice(
-        Money.fromAmount(dto.price.amount, dto.price.currency),
-      );
+      ticketType.setPrice(Money.fromAmount(dto.price, 'USD'));
       ticketType.setTotalQuantity(dto.quantity);
       return this.eventTicketTypeRepository.update(ticketType, session);
     });
@@ -84,10 +82,7 @@ export class EventTicketTypeService {
       }
       dto.quantity = ticketType.getSoldQuantity();
       if (dto.description) ticketType.setDescription(dto.description);
-      if (dto.price)
-        ticketType.setPrice(
-          Money.fromAmount(dto.price.amount, dto.price.currency),
-        );
+      if (dto.price) ticketType.setPrice(Money.fromAmount(dto.price, 'USD'));
       if (dto.quantity) ticketType.setTotalQuantity(dto.quantity);
       return this.eventTicketTypeRepository.update(ticketType, session);
     });

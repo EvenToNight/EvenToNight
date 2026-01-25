@@ -45,15 +45,8 @@ interface TicketEntry {
   id: string | null
   type: TicketType | null
   price: string
-  currency: string
   quantity: string
 }
-
-const CURRENCY_OPTIONS = [
-  { label: 'EUR (€)', value: 'EUR' },
-  { label: 'USD ($)', value: 'USD' },
-  { label: 'GBP (£)', value: 'GBP' },
-]
 
 const availableTicketTypes = ref<TicketType[]>([])
 const ticketEntries = ref<TicketEntry[]>([])
@@ -62,7 +55,6 @@ const createEmptyTicketEntry = (): TicketEntry => ({
   id: null,
   type: null,
   price: '',
-  currency: 'EUR',
   quantity: '',
 })
 
@@ -105,8 +97,7 @@ const loadTickets = async () => {
     ticketEntries.value = ticketTypes.map((ticket) => ({
       id: ticket.id,
       type: ticket.type,
-      price: ticket.price.amount.toString(),
-      currency: ticket.price.currency,
+      price: ticket.price.toString(),
       quantity: ticket.totalQuantity.toString(),
     }))
     if (ticketEntries.value.length === 0) {
@@ -372,18 +363,12 @@ const createOrUpdateEventTicketTypes = async () => {
     if (entry.id === null) {
       await api.payments.createEventTicketType(eventId.value, {
         type: entry.type!,
-        price: {
-          amount: Number(entry.price),
-          currency: entry.currency,
-        },
+        price: Number(entry.price),
         quantity: Number(entry.quantity),
       })
     } else {
       await api.payments.updateEventTicketType(entry.id, {
-        price: {
-          amount: Number(entry.price),
-          currency: entry.currency,
-        },
+        price: Number(entry.price),
         quantity: Number(entry.quantity),
       })
     }
@@ -493,6 +478,7 @@ const onSubmit = async () => {
                 label="Type"
                 outlined
                 dense
+                lazy-rules="ondemand"
                 class="ticket-type-select"
                 :rules="[notEmpty('Please select a ticket type')]"
               />
@@ -500,25 +486,13 @@ const onSubmit = async () => {
               <q-input
                 v-model="entry.price"
                 type="number"
-                label="Price"
+                label="Price ($)"
+                prefix="$"
                 outlined
                 dense
+                lazy-rules="ondemand"
                 class="ticket-price-input"
                 :rules="[notEmpty('Please enter a price')]"
-              />
-
-              <q-select
-                v-model="entry.currency"
-                :options="CURRENCY_OPTIONS"
-                option-value="value"
-                option-label="label"
-                emit-value
-                map-options
-                label="Currency"
-                outlined
-                dense
-                class="ticket-currency-select"
-                :rules="[notEmpty('Please select a currency')]"
               />
 
               <q-input
@@ -527,6 +501,7 @@ const onSubmit = async () => {
                 label="Quantity"
                 outlined
                 dense
+                lazy-rules="ondemand"
                 class="ticket-quantity-input"
                 :rules="[notEmpty('Please enter a quantity')]"
               />

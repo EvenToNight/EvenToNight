@@ -32,8 +32,8 @@ paths:
 
   /events/{eventId}:
     post:
-      summary: Create or update an event
-      description: Creates or updates an event in the payments service
+      summary: Create an event
+      description: Creates an event in the payments service
       parameters:
         - name: eventId
           in: path
@@ -54,7 +54,7 @@ paths:
               status: "PUBLISHED"
       responses:
         '200':
-          description: Event created or updated successfully
+          description: Event created successfully
         '400':
           description: Bad Request - Invalid input data
           content:
@@ -104,9 +104,7 @@ paths:
                   eventId: evt_550e8400-e29b-41d4-a716-446655440000
                   type: STANDARD
                   description: "General admission ticket"
-                  price:
-                    amount: 29.99
-                    currency: EUR
+                  price: 29.99
                   availableQuantity: 85
                   soldQuantity: 15
                   totalQuantity: 100
@@ -115,9 +113,7 @@ paths:
                   eventId: evt_550e8400-e29b-41d4-a716-446655440000
                   type: VIP
                   description: "VIP access with backstage pass"
-                  price:
-                    amount: 99.99
-                    currency: EUR
+                  price: 99.99
                   availableQuantity: 0
                   soldQuantity: 20
                   totalQuantity: 20
@@ -167,9 +163,7 @@ paths:
             example:
               type: STANDARD
               description: "General admission ticket"
-              price:
-                amount: 29.99
-                currency: EUR
+              price: 29.99
               quantity: 100
       responses:
         '201':
@@ -183,9 +177,7 @@ paths:
                 eventId: evt_550e8400-e29b-41d4-a716-446655440000
                 type: STANDARD
                 description: "General admission ticket"
-                price:
-                  amount: 29.99
-                  currency: EUR
+                price: 29.99
                 availableQuantity: 100
                 soldQuantity: 0
                 totalQuantity: 100
@@ -326,9 +318,7 @@ paths:
                 eventId: evt_550e8400-e29b-41d4-a716-446655440000
                 type: STANDARD
                 description: "General admission ticket"
-                price:
-                  amount: 29.99
-                  currency: EUR
+                price: 29.99
                 availableQuantity: 85
                 soldQuantity: 15
                 totalQuantity: 100
@@ -376,9 +366,7 @@ paths:
               $ref: '#/components/schemas/UpdateEventTicketTypeDto'
             example:
               description: "Updated ticket description"
-              price:
-                amount: 49.99
-                currency: EUR
+              price: 49.99
               quantity: 150
       responses:
         '200':
@@ -392,9 +380,7 @@ paths:
                 eventId: evt_550e8400-e29b-41d4-a716-446655440000
                 type: STANDARD
                 description: "Updated ticket description"
-                price:
-                  amount: 49.99
-                  currency: EUR
+                price: 49.99
                 availableQuantity: 150
                 soldQuantity: 0
                 totalQuantity: 150
@@ -487,9 +473,7 @@ paths:
                 userId: usr_789e0123-e89b-12d3-a456-426614174222
                 attendeeName: John Doe
                 ticketTypeId: ett_123e4567-e89b-12d3-a456-426614174000
-                price:
-                  amount: 29.99
-                  currency: EUR
+                price: 29.99
                 purchaseDate: "2024-03-15T10:30:00Z"
                 status: ACTIVE
         '403':
@@ -661,9 +645,7 @@ paths:
                     userId: usr_123e4567-e89b-12d3-a456-426614174000
                     attendeeName: John Doe
                     ticketTypeId: ett_123e4567-e89b-12d3-a456-426614174000
-                    price:
-                      amount: 29.99
-                      currency: EUR
+                    price: 29.99
                     purchaseDate: 2024-01-01T12:00:00Z
                     status: ACTIVE
                 totalItems: 1
@@ -1133,8 +1115,9 @@ components:
           description: Optional description of the ticket type
           example: "Updated ticket description"
         price:
-          $ref: '#/components/schemas/MoneyDto'
-          description: Updated price of the ticket
+          type: number
+          format: float
+          description: Updated price (USD)of the ticket
         quantity:
           type: integer
           minimum: 1
@@ -1145,9 +1128,7 @@ components:
         - quantity
       example:
         description: "Updated ticket description"
-        price:
-          amount: 49.99
-          currency: EUR
+        price: 49.99
         quantity: 150
     CreateEventDto:
       type: object
@@ -1188,8 +1169,9 @@ components:
           description: Description of the ticket type (optional)
           example: "General admission ticket"
         price:
-          $ref: '#/components/schemas/MoneyDto'
-          description: Price of the ticket
+          type: number
+          format: float
+          description: Price (USD) of the ticket
         quantity:
           type: integer
           minimum: 1
@@ -1202,9 +1184,7 @@ components:
       example:
         type: STANDARD
         description: "General admission ticket"
-        price:
-          amount: 29.99
-          currency: EUR
+        price: 29.99
         quantity: 100
 
     EventTicketTypeResponseDto:
@@ -1229,21 +1209,10 @@ components:
           description: Description of the ticket type
           example: "General admission ticket"
         price:
-          type: object
-          description: Price information
-          properties:
-            amount:
-              type: number
-              format: float
-              description: Price amount
-              example: 29.99
-            currency:
-              type: string
-              description: Currency code (ISO 4217)
-              example: EUR
-          required:
-            - amount
-            - currency
+          type: number
+          format: float
+          description: Price (USD) of the ticket
+          example: 29.99
         availableQuantity:
           type: integer
           description: Number of tickets still available for purchase
@@ -1367,7 +1336,8 @@ components:
         ticketTypeId:
           type: string
         price:
-          $ref: '#/components/schemas/MoneyDto'
+          type: number
+          format: float
         purchaseDate:
           type: string
           format: date-time

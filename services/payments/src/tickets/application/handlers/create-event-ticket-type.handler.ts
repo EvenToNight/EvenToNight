@@ -48,7 +48,7 @@ export class CreateEventTicketTypeHandler {
       eventId: EventId.fromString(eventId),
       type: TicketType.fromString(dto.type),
       description: dto.description,
-      price: Money.fromAmount(dto.price.amount, dto.price.currency),
+      price: Money.fromAmount(dto.price, 'USD'),
       availableQuantity: dto.quantity,
       soldQuantity: 0,
     });

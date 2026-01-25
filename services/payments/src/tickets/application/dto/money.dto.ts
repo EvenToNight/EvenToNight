@@ -24,5 +24,5 @@ export class MoneyDto {
   @IsString()
   @Length(3, 3, { message: 'Currency must be a valid 3-letter code' })
   @Validate(IsCurrencyCodeConstraint)
-  currency: string = 'EUR';
+  currency: string = 'USD';
 }

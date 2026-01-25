@@ -52,19 +52,10 @@ const totalPrice = computed(() => {
   for (const tt of ticketTypes.value) {
     const qty = getQuantity(tt.id)
     if (qty > 0) {
-      total += tt.price.amount * qty
+      total += tt.price * qty
     }
   }
   return total
-})
-
-const totalCurrency = computed(() => {
-  for (const tt of ticketTypes.value) {
-    if (getQuantity(tt.id) > 0) {
-      return tt.price.currency
-    }
-  }
-  return ticketTypes.value[0]?.price.currency || 'EUR'
 })
 
 const selectedTickets = computed(() => {
@@ -212,8 +203,8 @@ const handlePurchase = async () => {
                   </div>
                 </div>
                 <div class="ticket-type-price">
-                  {{ tt.price.amount.toFixed(2) }}
-                  <span class="currency">{{ tt.price.currency }}</span>
+                  {{ tt.price.toFixed(2) }}
+                  <span class="currency">USD</span>
                 </div>
               </div>
 
@@ -246,17 +237,14 @@ const handlePurchase = async () => {
           <div v-if="hasAnyTickets" class="summary-section">
             <div v-for="item in selectedTickets" :key="item.ticketType.id" class="summary-row">
               <span>{{ item.ticketType.type }} x {{ item.quantity }}</span>
-              <span
-                >{{ (item.ticketType.price.amount * item.quantity).toFixed(2) }}
-                {{ item.ticketType.price.currency }}</span
-              >
+              <span>{{ (item.ticketType.price * item.quantity).toFixed(2) }} USD</span>
             </div>
             <div class="summary-divider"></div>
             <div class="summary-row total">
               <span
                 >Total ({{ totalTicketCount }} ticket{{ totalTicketCount > 1 ? 's' : '' }})</span
               >
-              <span class="total-amount">{{ totalPrice.toFixed(2) }} {{ totalCurrency }}</span>
+              <span class="total-amount">{{ totalPrice.toFixed(2) }} USD</span>
             </div>
           </div>
 

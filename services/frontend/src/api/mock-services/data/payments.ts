@@ -3,10 +3,7 @@ import type { EventTicketType, TicketType } from '@/api/types/payments'
 export const DEFAULT_TICKET_TYPE: Omit<EventTicketType, 'eventId' | 'type'> = {
   id: '1',
   description: 'Standard ticket',
-  price: {
-    amount: 100,
-    currency: 'USD',
-  },
+  price: 100,
   availableQuantity: 100,
   soldQuantity: 50,
   totalQuantity: 150,
@@ -24,10 +21,7 @@ export const createMockEventTicketType = (
   id: `mock-ticket-${++mockTicketIdCounter}`,
   eventId,
   type,
-  price: {
-    ...DEFAULT_TICKET_TYPE.price,
-    amount: amount ?? DEFAULT_TICKET_TYPE.price.amount,
-  },
+  price: amount ?? DEFAULT_TICKET_TYPE.price,
 })
 
 export const mockEventTicketTypes: EventTicketType[] = []
