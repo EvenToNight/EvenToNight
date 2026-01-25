@@ -65,6 +65,7 @@ import { UserController } from './presentation/controllers/users.controller';
 
 // Consumers
 import { UserEventConsumer } from './presentation/consumers/user-event.consumer';
+import { EventEventConsumer } from './presentation/consumers/event-event.consumer';
 
 // Services
 import { PdfService } from './application/services/pdf.service';
@@ -92,6 +93,7 @@ import { EventService } from './application/services/event.service';
     OrderController,
     EventController,
     UserEventConsumer,
+    EventEventConsumer,
     UserController,
   ],
   providers: [

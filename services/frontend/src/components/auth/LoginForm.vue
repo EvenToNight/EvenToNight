@@ -4,7 +4,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import BaseAuthForm from './BaseAuthForm.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import FormField from '@/components/forms/FormField.vue'
 import { useNavigation } from '@/router/utils'
 import { notEmpty } from '@/components/forms/validationUtils'
@@ -76,12 +75,13 @@ const handleLogin = async () => {
     </template>
 
     <template #submit-button="{ isLoading }">
-      <Button
+      <q-btn
+        unelevated
+        color="primary"
         type="submit"
-        variant="primary"
         :label="t('auth.login')"
         :loading="isLoading"
-        :class="['full-width', 'q-mb-md']"
+        :class="['full-width', 'q-mb-md', 'base-button', 'base-button--primary']"
       />
     </template>
   </BaseAuthForm>

@@ -84,7 +84,12 @@ describe('EventTicketTypesController (e2e)', () => {
     await eventTicketTypeService.deleteAll();
     await ticketService.deleteAll();
     await eventService.deleteAll();
-    await eventService.create(eventId, creatorId);
+    await eventService.createOrUpdate(
+      eventId,
+      creatorId,
+      'PUBLISHED',
+      new Date(),
+    );
     soldTicketsIds = [];
 
     const ticketType = await eventTicketTypeService.create({

@@ -4,7 +4,7 @@ export const NAVBAR_HEIGHT_CSS = `${NAVBAR_HEIGHT}px`
 </script>
 
 <script setup lang="ts">
-import { computed, ref, inject, type Ref, watch } from 'vue'
+import { computed, ref, inject, type Ref, watch, onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
@@ -14,7 +14,7 @@ import { useNavigation } from '@/router/utils'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import AuthButtons from '../auth/AuthButtons.vue'
 import DrawerMenu from './DrawerMenu.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
+import { api } from '@/api'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 const searchQuery = inject<Ref<string>>('searchQuery')
@@ -66,6 +66,24 @@ const notifications = ref<Notification[]>([
 const notificationsPage = ref(1)
 const hasMoreNotifications = ref(true)
 const loadingNotifications = ref(false)
+
+const unreadMessagesCount = ref(0)
+
+const loadUnreadMessagesCount = async () => {
+  if (authStore.user?.id) {
+    try {
+      const response = await api.chat.unreadMessageCountFor(authStore.user.id)
+      unreadMessagesCount.value = response.unreadCount
+    } catch (error) {
+      console.error('Failed to load unread messages count:', error)
+      unreadMessagesCount.value = 0
+    }
+  }
+}
+
+onMounted(() => {
+  loadUnreadMessagesCount()
+})
 
 const loadMoreNotifications = async (index: number, done: (stop?: boolean) => void) => {
   if (loadingNotifications.value || !hasMoreNotifications.value) {
@@ -172,6 +190,54 @@ const goToProfile = () => {
           <template v-if="showSearch">
             <q-btn flat dense icon="search" @click="toggleMobileSearch" />
           </template>
+          <template v-if="authStore.isAuthenticated">
+            <!-- Notifications Button Mobile -->
+            <q-btn flat dense icon="notifications">
+              <q-badge color="red" floating>{{ String(notifications.length) }}</q-badge>
+              <q-tooltip>Notifications</q-tooltip>
+              <q-menu class="notifications-menu">
+                <q-list style="min-width: 300px; max-width: 400px" class="notifications-list">
+                  <q-item-label header>Notifications</q-item-label>
+                  <q-separator />
+                  <q-scroll-area
+                    class="notifications-scroll-area"
+                    :thumb-style="{ width: '4px', borderRadius: '2px', opacity: '0.5' }"
+                  >
+                    <q-infinite-scroll :offset="50" @load="loadMoreNotifications">
+                      <template
+                        v-for="(notification, index) in notifications"
+                        :key="notification.id"
+                      >
+                        <q-item clickable>
+                          <q-item-section avatar>
+                            <q-icon :name="notification.icon" :color="notification.iconColor" />
+                          </q-item-section>
+                          <q-item-section>
+                            <q-item-label>{{ notification.message }}</q-item-label>
+                            <q-item-label caption>{{ notification.timestamp }}</q-item-label>
+                          </q-item-section>
+                        </q-item>
+                        <q-separator v-if="index < notifications.length - 1" />
+                      </template>
+                      <template #loading>
+                        <div class="row justify-center q-my-md">
+                          <q-spinner-dots color="primary" size="40px" />
+                        </div>
+                      </template>
+                    </q-infinite-scroll>
+                  </q-scroll-area>
+                </q-list>
+              </q-menu>
+            </q-btn>
+
+            <!-- Chat Button Mobile -->
+            <q-btn flat dense icon="chat" @click="goToChat()">
+              <q-badge v-if="unreadMessagesCount > 0" color="red" floating>{{
+                String(unreadMessagesCount)
+              }}</q-badge>
+              <q-tooltip>Chat</q-tooltip>
+            </q-btn>
+          </template>
           <q-btn flat dense icon="menu" @click="toggleMobileMenu" />
         </template>
         <template v-else>
@@ -238,8 +304,10 @@ const goToProfile = () => {
             </q-btn>
 
             <!-- Chat Button -->
-            <q-btn flat round icon="chat_bubble" @click="goToChat()">
-              <q-badge color="red" floating>{{ String(2) }}</q-badge>
+            <q-btn flat round icon="chat" @click="goToChat()">
+              <q-badge v-if="unreadMessagesCount > 0" color="red" floating>{{
+                String(unreadMessagesCount)
+              }}</q-badge>
               <q-tooltip>Chat</q-tooltip>
             </q-btn>
 
@@ -302,11 +370,32 @@ const goToProfile = () => {
         </div>
         <q-separator class="q-my-md" />
         <div class="drawer-user-buttons">
-          <Button icon="person" :label="t('profile')" variant="secondary" @click="goToProfile" />
-          <Button
+          <q-btn
+            flat
+            icon="person"
+            :label="t('profile')"
+            class="base-button base-button--secondary"
+            @click="goToProfile"
+          />
+          <q-btn
+            v-if="isOrganization"
+            unelevated
+            color="primary"
+            icon="add"
+            label="Create Event"
+            class="base-button base-button--primary"
+            @click="
+              () => {
+                goToCreateEvent()
+                mobileMenuOpen = false
+              }
+            "
+          />
+          <q-btn
+            flat
             icon="logout"
             :label="t('auth.logout')"
-            variant="secondary"
+            class="base-button base-button--secondary"
             @click="handleLogout"
           />
         </div>

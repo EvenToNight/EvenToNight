@@ -122,7 +122,8 @@ const submitReview = async () => {
   <q-dialog v-model="isOpen">
     <q-card class="modal-dialog relative-position">
       <q-card-section>
-        <div class="text-h6">Lascia una recensione</div>
+        <div v-if="existingReview" class="text-h6">Modifica la tua recensione</div>
+        <div v-else class="text-h6">Lascia una recensione</div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">

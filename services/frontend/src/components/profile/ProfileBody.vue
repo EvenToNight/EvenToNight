@@ -11,6 +11,7 @@ import type { Event, EventStatus } from '@/api/types/events'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import { useNavigation } from '@/router/utils'
+import type { PaginatedResponseWithTotalCount } from '@/api/interfaces/commons'
 
 interface Props {
   user: User
@@ -28,14 +29,15 @@ const isOrganization = computed(() => {
 
 const organizationEvents = ref<Event[]>([])
 const organizationDraftedEvents = ref<Event[]>([])
-const memberAttendedEvents = ref<Event[]>([])
+const userAttendedEvents = ref<Event[]>([])
 
 const hasMorePublished = ref(true)
 const hasMoreDraft = ref(true)
+const hasMoreAttended = ref(true)
 
-const EVENTS_PER_PAGE = 5
+const EVENTS_PER_PAGE = 20
 
-const activeTab = ref<string>('likes')
+const activeTab = ref<string>(isOrganization.value ? 'publishedEvents' : 'likes')
 
 onMounted(() => {
   if (hash.value) {
@@ -74,6 +76,20 @@ onMounted(async () => {
         pagination: { limit: EVENTS_PER_PAGE },
       }),
     ])
+    const response = await api.interactions.userParticipations(props.user.id, {
+      pagination: {
+        limit: EVENTS_PER_PAGE,
+        offset: userAttendedEvents.value.length,
+      },
+    })
+    const events: PaginatedResponseWithTotalCount<Event> = {
+      ...response,
+      items: await Promise.all(
+        response.items.map((partecipation) => api.events.getEventById(partecipation.eventId))
+      ),
+    }
+    userAttendedEvents.value = events.items
+    hasMoreAttended.value = response.hasMore
     organizationEvents.value = publishedResponse.items
     organizationDraftedEvents.value = draftResponse.items
     hasMorePublished.value = publishedResponse.hasMore
@@ -108,36 +124,48 @@ const createLoadMoreFunction = (
 
 const loadMorePublished = createLoadMoreFunction(organizationEvents, hasMorePublished, 'PUBLISHED')
 const loadMoreDraft = createLoadMoreFunction(organizationDraftedEvents, hasMoreDraft, 'DRAFT')
+const loadMoreAttended = async () => {
+  try {
+    const response = await api.interactions.userParticipations(props.user.id, {
+      pagination: {
+        limit: EVENTS_PER_PAGE,
+        offset: userAttendedEvents.value.length,
+      },
+    })
+    console.log('Fetched more attended events:', response)
+    const events: PaginatedResponseWithTotalCount<Event> = {
+      ...response,
+      items: await Promise.all(
+        response.items.map((partecipation) => api.events.getEventById(partecipation.eventId))
+      ),
+    }
+    userAttendedEvents.value.push(...events.items)
+    hasMoreAttended.value = response.hasMore
+  } catch (error) {
+    console.error('Failed to load more attended events:', error)
+  }
+}
 
 const tabs = computed<Tab[]>(() => {
   const baseTabs: Tab[] = []
 
-  baseTabs.push({
-    id: 'likes',
-    label: isOwnProfile.value ? 'My Likes' : 'Likes',
-    icon: 'favorite',
-    component: MyLikesTab,
-  })
-
-  baseTabs.push({
-    id: 'events',
-    label: isOwnProfile.value ? t('userProfile.myEvents') : t('userProfile.events'),
-    icon: 'event',
-    component: EventsTab,
-    props: {
-      events: isOrganization.value ? organizationEvents.value : memberAttendedEvents.value,
-      hasMore: isOrganization.value ? hasMorePublished.value : false,
-      onLoadMore: isOrganization.value ? loadMorePublished : undefined,
-      emptyText: isOwnProfile.value
-        ? isOrganization.value
+  if (isOrganization.value) {
+    baseTabs.push({
+      id: 'publishedEvents',
+      label: t('userProfile.myEvents'),
+      icon: 'event',
+      component: EventsTab,
+      props: {
+        events: organizationEvents.value,
+        hasMore: hasMorePublished.value,
+        onLoadMore: loadMorePublished,
+        emptyText: isOwnProfile.value
           ? t('userProfile.noEventCreated')
-          : t('userProfile.noEventJoined')
-        : isOrganization.value
-          ? t('userProfile.noEventCreatedExternal')
-          : t('userProfile.noEventJoinedExternal'),
-      emptyIconName: 'event_busy',
-    },
-  })
+          : t('userProfile.noEventCreatedExternal'),
+        emptyIconName: 'event_busy',
+      },
+    })
+  }
 
   if (isOrganization.value && isOwnProfile.value) {
     baseTabs.push({
@@ -154,8 +182,30 @@ const tabs = computed<Tab[]>(() => {
       },
     })
   }
+  baseTabs.push({
+    id: 'likes',
+    label: isOwnProfile.value ? 'My Likes' : 'Likes',
+    icon: 'favorite',
+    component: MyLikesTab,
+  })
 
-  if (!isOrganization.value && isOwnProfile.value) {
+  if (!isOwnProfile.value) {
+    baseTabs.push({
+      id: 'events',
+      label: 'Partecipations',
+      icon: 'event',
+      component: EventsTab,
+      props: {
+        events: userAttendedEvents.value,
+        hasMore: hasMoreAttended.value,
+        onLoadMore: loadMoreAttended,
+        emptyText: t('userProfile.noEventJoinedExternal'),
+        emptyIconName: 'event_busy',
+      },
+    })
+  }
+
+  if (isOwnProfile.value) {
     baseTabs.push({
       id: 'tickets',
       label: t('userProfile.myTickets'),

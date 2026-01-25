@@ -3,6 +3,7 @@ import {
   PaginatedResult,
   PaginationParams,
 } from '../../../commons/domain/types/pagination.types';
+import { EventId } from '../value-objects/event-id.vo';
 
 export interface TicketRepository {
   save(ticket: Ticket): Promise<Ticket>;
@@ -15,6 +16,13 @@ export interface TicketRepository {
     eventId: string,
     pagination?: PaginationParams,
   ): Promise<PaginatedResult<Ticket>>;
+  findByUserIdAndEventId(userId: string, eventId: string): Promise<Ticket[]>;
+  findEventsByUserId(
+    userId: string,
+    pagination?: PaginationParams,
+    status?: string,
+    order?: 'asc' | 'desc',
+  ): Promise<PaginatedResult<EventId>>;
   findByTicketTypeId(ticketTypeId: string): Promise<Ticket[]>;
   update(ticket: Ticket): Promise<Ticket>;
   delete(id: string): Promise<void>;
