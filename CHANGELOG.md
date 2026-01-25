@@ -1,3 +1,15 @@
+## [1.20.2](https://github.com/EvenToNight/EvenToNight/compare/v1.20.1...v1.20.2) (2026-01-25)
+
+### Bug Fixes
+
+* **event:** remove required option to date field of event schema ([f1278fb](https://github.com/EvenToNight/EvenToNight/commit/f1278fb70730c5a0f4693bf9ad9907b7c0111337))
+* **events:** fix draft button show condition ([6635c47](https://github.com/EvenToNight/EvenToNight/commit/6635c47e0dcbaaa7dc501d120f6670bf82914b07))
+* **likes:** update data type for eventCard in home ([443e05d](https://github.com/EvenToNight/EvenToNight/commit/443e05d22d17e3b7afad18b93d3e543b7da5d564))
+* **payments:** fix ticketType update ([642fdb9](https://github.com/EvenToNight/EvenToNight/commit/642fdb9876f595d8982f8eed2cc3e454f3681aaa))
+* **payments:** update CurrentUser decorator to accout for null user ([133405b](https://github.com/EvenToNight/EvenToNight/commit/133405b38b2f8c88cd6d83d10bddd06bbfa3b7fe))
+* **tickets:** authorize only event creators to access tickets for non-published events ([c7577cf](https://github.com/EvenToNight/EvenToNight/commit/c7577cf5eda52ae28ae74dc8e3960dfc734f4a5a))
+* **users:** fix idempotency implementation of user.create event handler ([0962d78](https://github.com/EvenToNight/EvenToNight/commit/0962d781da6d06801b4407e41d6a50bee9ec7d63))
+
 ## [1.20.1](https://github.com/EvenToNight/EvenToNight/compare/v1.20.0...v1.20.1) (2026-01-21)
 
 ### Bug Fixes
