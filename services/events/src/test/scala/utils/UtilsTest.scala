@@ -353,7 +353,8 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       city = Some("New York"),
       location_name = Some("Madison Square Garden"),
       sortBy = Some("date"),
-      sortOrder = Some("asc")
+      sortOrder = Some("asc"),
+      isAuthenticated = false
     )
     commands.title shouldBe Some("Music Fest")
     commands.tags.getOrElse(List()) should contain allElementsOf List(
@@ -384,7 +385,8 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       city = None,
       location_name = Some("Madison Square Garden"),
       sortBy = None,
-      sortOrder = None
+      sortOrder = None,
+      isAuthenticated = false
     )
     commands.limit shouldBe Some(2)
     commands.offset shouldBe Some(5)
@@ -415,7 +417,8 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       city = None,
       location_name = None,
       sortBy = None,
-      sortOrder = None
+      sortOrder = None,
+      isAuthenticated = false
     )
     commands.limit shouldBe Some(Utils.DEFAULT_LIMIT)
     commands.offset shouldBe None
