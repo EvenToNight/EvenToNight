@@ -73,6 +73,7 @@ import { EventTicketTypeService } from './application/services/event-ticket-type
 import { TicketService } from './application/services/ticket.service';
 import { OrderService } from './application/services/order.service';
 import { EventService } from './application/services/event.service';
+import { UserService } from './application/services/user.service';
 
 @Module({
   imports: [
@@ -145,6 +146,7 @@ import { EventService } from './application/services/event.service';
     TicketService,
     OrderService,
     EventService,
+    UserService,
   ],
   exports: [EVENT_TICKET_TYPE_REPOSITORY, ORDER_REPOSITORY, USER_REPOSITORY],
 })

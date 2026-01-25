@@ -1,4 +1,5 @@
-export type SupportedLocale = 'it' | 'en' | 'es' | 'fr' | 'de';
+export const SUPPORTED_LOCALES = ['it', 'en', 'es', 'fr', 'de'] as const;
+export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 export interface TicketTranslations {
   title: string;

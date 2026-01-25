@@ -15,12 +15,14 @@ import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { OrderService } from 'src/tickets/application/services/order.service';
 import { JwtAuthGuard } from 'src/commons/infrastructure/auth/jwt-auth.guard';
 import { CurrentUser } from 'src/commons/infrastructure/auth/current-user.decorator';
+import { UserService } from 'src/tickets/application/services/user.service';
 
 @Controller('orders/:orderId')
 export class OrderController {
   constructor(
     private readonly pdfService: PdfService,
     private readonly orderService: OrderService,
+    private readonly userService: UserService,
     private readonly ticketService: TicketService,
   ) {}
 
@@ -69,6 +71,7 @@ export class OrderController {
         'User is not authorized to access this order',
       );
     }
+    const userLanguage = await this.userService.getUserLanguage(userId);
     const ticketIds = order.getTicketIds();
     const tickets = await this.ticketService.findByIds(ticketIds);
 
@@ -80,7 +83,10 @@ export class OrderController {
       priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
     }));
 
-    const buffer = await this.pdfService.generateTicketsPdf(ticketPdfData);
+    const buffer = await this.pdfService.generateTicketsPdf(
+      ticketPdfData,
+      userLanguage,
+    );
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(

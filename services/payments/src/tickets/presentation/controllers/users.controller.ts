@@ -20,12 +20,14 @@ import { PaginatedResponseDto } from 'src/commons/application/dto/paginated-resp
 import { CurrentUser, JwtAuthGuard } from 'src/commons/infrastructure/auth';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { PdfService } from 'src/tickets/application/services/pdf.service';
+import { UserService } from 'src/tickets/application/services/user.service';
 
 @Controller('users/:userId')
 export class UserController {
   constructor(
     private readonly ticketService: TicketService,
     private readonly pdfService: PdfService,
+    private readonly userService: UserService,
   ) {}
 
   /**
@@ -120,6 +122,8 @@ export class UserController {
       throw new NotFoundException('No tickets found for this event');
     }
 
+    const userLanguage = await this.userService.getUserLanguage(userId);
+
     const ticketPdfData = result.map((ticket) => ({
       ticketId: ticket.getId(),
       eventId: ticket.getEventId().toString(),
@@ -128,7 +132,10 @@ export class UserController {
       priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
     }));
 
-    const buffer = await this.pdfService.generateTicketsPdf(ticketPdfData);
+    const buffer = await this.pdfService.generateTicketsPdf(
+      ticketPdfData,
+      userLanguage,
+    );
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(

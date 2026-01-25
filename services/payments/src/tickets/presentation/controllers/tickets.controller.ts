@@ -23,6 +23,7 @@ import {
   type AuthUser,
 } from 'src/commons/infrastructure/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
+import { UserService } from 'src/tickets/application/services/user.service';
 
 @Controller('tickets/:ticketId')
 export class TicketsController {
@@ -31,6 +32,7 @@ export class TicketsController {
     private readonly ticketService: TicketService,
     private readonly eventService: EventService,
     private readonly invalidateTicketStatusHandler: InvalidateTicketStatusHandler,
+    private readonly userService: UserService,
   ) {}
 
   /**
@@ -102,16 +104,20 @@ export class TicketsController {
     if (ticket.getUserId().toString() !== userId) {
       throw new ForbiddenException('Not authorized to view this ticket');
     }
+    const userLanguage = await this.userService.getUserLanguage(userId);
 
-    const buffer = await this.pdfService.generateTicketsPdf([
-      {
-        ticketId: ticket.getId(),
-        eventId: ticket.getEventId().toString(),
-        attendeeName: ticket.getAttendeeName(),
-        purchaseDate: ticket.getPurchaseDate(),
-        priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
-      },
-    ]);
+    const buffer = await this.pdfService.generateTicketsPdf(
+      [
+        {
+          ticketId: ticket.getId(),
+          eventId: ticket.getEventId().toString(),
+          attendeeName: ticket.getAttendeeName(),
+          purchaseDate: ticket.getPurchaseDate(),
+          priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
+        },
+      ],
+      userLanguage,
+    );
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(

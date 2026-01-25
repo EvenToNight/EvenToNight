@@ -25,7 +25,7 @@ export class PdfService {
 
     doc.fontSize(12).text(`${t.ticketId}: ${ticket.ticketId}`);
     doc.text(`${t.event}: ${ticket.eventId}`);
-    doc.text(`${t.attendee}: ${ticket.attendeeName}`);
+    // doc.text(`${t.attendee}: ${ticket.attendeeName}`);
     doc.text(
       `${t.purchase}: ${
         typeof ticket.purchaseDate === 'string'
