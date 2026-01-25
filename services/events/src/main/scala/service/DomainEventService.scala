@@ -12,9 +12,9 @@ import scala.util.{Failure, Success, Try}
 class DomainEventService(
     eventRepository: EventRepository,
     userMetadataRepository: MongoUserMetadataRepository,
-    publisher: EventPublisher
+    publisher: EventPublisher,
+    paymentsServiceUrl: String
 ):
-  private val paymentsServiceUrl: String = sys.env.getOrElse("PAYMENTS_SERVICE_URL", "http://payments:9050")
 
   def execCommand(cmd: CreateEventCommand): Either[String, String] =
     if !Utils.checkUserIsOrganization(cmd.creatorId, userMetadataRepository) then
@@ -42,47 +42,66 @@ class DomainEventService(
             case Left(_) =>
               Left("Failed to save new event")
             case Right(_) =>
-              val postResult = Try {
-                requests.post(
-                  s"$paymentsServiceUrl/events/${newEvent._id}",
-                  data = ujson.write(
-                    ujson.Obj(
-                      "eventId"   -> newEvent._id,
-                      "creatorId" -> cmd.creatorId,
-                      "title"     -> cmd.title.getOrElse(""),
-                      "date"      -> cmd.date.map(_.toString),
-                      "status"    -> cmd.status.asString
-                    )
-                  ),
-                  headers = Map("Content-Type" -> "application/json")
+              if paymentsServiceUrl == "mock" then
+                publisher.publish(
+                  EventCreated(
+                    eventId = newEvent._id,
+                    creatorId = cmd.creatorId,
+                    collaboratorIds = cmd.collaboratorIds,
+                    name = cmd.title,
+                    date = cmd.date,
+                    status = cmd.status.asString
+                  )
                 )
-              }
-
-              postResult match
-                case Failure(_) =>
-                  eventRepository.delete(newEvent._id)
-                  Left("Failed to register event in payments service")
-                case Success(response) if response.statusCode != 200 =>
-                  eventRepository.delete(newEvent._id)
-                  Left(s"Payments service error: ${response.statusCode}")
-                case Success(_) =>
+                if cmd.status == EventStatus.PUBLISHED then
                   publisher.publish(
-                    EventCreated(
-                      eventId = newEvent._id,
-                      creatorId = cmd.creatorId,
-                      collaboratorIds = cmd.collaboratorIds,
-                      name = cmd.title,
-                      date = cmd.date,
-                      status = cmd.status.asString
+                    EventPublished(
+                      eventId = newEvent._id
                     )
                   )
-                  if cmd.status == EventStatus.PUBLISHED then
+                Right(newEvent._id)
+              else
+                val postResult = Try {
+                  requests.post(
+                    s"$paymentsServiceUrl/events/${newEvent._id}",
+                    data = ujson.write(
+                      ujson.Obj(
+                        "eventId"   -> newEvent._id,
+                        "creatorId" -> cmd.creatorId,
+                        "title"     -> cmd.title.getOrElse(""),
+                        "date"      -> cmd.date.map(_.toString),
+                        "status"    -> cmd.status.asString
+                      )
+                    ),
+                    headers = Map("Content-Type" -> "application/json")
+                  )
+                }
+
+                postResult match
+                  case Failure(_) =>
+                    eventRepository.delete(newEvent._id)
+                    Left("Failed to register event in payments service")
+                  case Success(response) if response.statusCode != 200 =>
+                    eventRepository.delete(newEvent._id)
+                    Left(s"Payments service error: ${response.statusCode}")
+                  case Success(_) =>
                     publisher.publish(
-                      EventPublished(
-                        eventId = newEvent._id
+                      EventCreated(
+                        eventId = newEvent._id,
+                        creatorId = cmd.creatorId,
+                        collaboratorIds = cmd.collaboratorIds,
+                        name = cmd.title,
+                        date = cmd.date,
+                        status = cmd.status.asString
                       )
                     )
-                  Right(newEvent._id)
+                    if cmd.status == EventStatus.PUBLISHED then
+                      publisher.publish(
+                        EventPublished(
+                          eventId = newEvent._id
+                        )
+                      )
+                    Right(newEvent._id)
 
   def execCommand(cmd: UpdateEventCommand): Either[String, Unit] =
     cmd.collaboratorIds.getOrElse(List()).find(collaboratorId =>

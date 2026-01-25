@@ -61,7 +61,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     ))
 
     publisher = new MockEventPublisher()
-    service = new DomainEventService(repo, userRepo, publisher)
+    service = new DomainEventService(repo, userRepo, publisher, "mock")
 
   private def validCreateEventCommand(
       title: Option[String] = Some("Test Event"),
@@ -116,7 +116,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
 
   it should "fail when database save operation fails" in:
     val failingRepo    = new FailingEventRepository()
-    val failingService = new DomainEventService(failingRepo, userRepo, publisher)
+    val failingService = new DomainEventService(failingRepo, userRepo, publisher, "mock")
 
     val cmd    = validCreateEventCommand()
     val result = failingService.execCommand(cmd)
@@ -154,7 +154,7 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
 
   it should "fail when database update operation fails" in:
     val failingRepo    = new FailingEventRepository()
-    val failingService = new DomainEventService(failingRepo, userRepo, publisher)
+    val failingService = new DomainEventService(failingRepo, userRepo, publisher, "mock")
     val updateCmd = validUpdateEventCommand(
       eventId = "some-event-id",
       title = Some("Updated Event Title")
@@ -219,10 +219,23 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
 
   it should "fail when database delete operation fails" in:
     val failingRepo    = new FailingEventRepository()
-    val failingService = new DomainEventService(failingRepo, userRepo, publisher)
+    val failingService = new DomainEventService(failingRepo, userRepo, publisher, "mock")
     val deleteCmd      = DeleteEventCommand("some-event-id")
     val deleteResult   = failingService.execCommand(deleteCmd)
     deleteResult.isLeft shouldBe true
     deleteResult match
       case Left(error) => error shouldBe "Event with id some-event-id not found"
       case Right(_)    => fail("Expected failure when database delete fails")
+
+  "execCommand" should "rollback event creation when payments service call fails" in:
+    val nonExistentPaymentsServiceUrl = "http://localhost:9999"
+    val failingPaymentsService        = new DomainEventService(repo, userRepo, publisher, nonExistentPaymentsServiceUrl)
+    val createCmd                     = validCreateEventCommand()
+    val createResult                  = failingPaymentsService.execCommand(createCmd)
+
+    // Should fail due to payments service unavailable
+    createResult.isLeft shouldBe true
+    createResult match
+      case Left(error) => error shouldBe "Failed to register event in payments service"
+      case Right(_)    => fail("Expected failure when payments service is unavailable")
+    succeed

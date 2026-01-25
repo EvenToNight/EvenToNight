@@ -39,7 +39,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       messageBroker = new MockEventPublisher()
     )
     publisher = new MockEventPublisher
-    service = new EventService(repo, userRepo, publisher)
+    service = new EventService(repo, userRepo, publisher, "mock")
 
   private def validCreateEventCommand(
       title: Option[String] = Some("Test Event"),

@@ -18,10 +18,12 @@ import infrastructure.messaging.EventPublisher
 class EventService(
     eventRepository: EventRepository,
     userMetadataRepository: MongoUserMetadataRepository,
-    publisher: EventPublisher
+    publisher: EventPublisher,
+    paymentsServiceUrl: String = sys.env.getOrElse("PAYMENTS_SERVICE_URL", "http://payments:9050")
 ):
-  val eventQueryService: EventQueryService    = EventQueryService(eventRepository)
-  val eventCommandService: DomainEventService = DomainEventService(eventRepository, userMetadataRepository, publisher)
+  val eventQueryService: EventQueryService = EventQueryService(eventRepository)
+  val eventCommandService: DomainEventService =
+    DomainEventService(eventRepository, userMetadataRepository, publisher, paymentsServiceUrl)
 
   def handleCommand(cmd: Commands): Either[String, Any] =
     cmd match
