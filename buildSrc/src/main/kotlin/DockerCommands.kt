@@ -8,7 +8,7 @@ object DockerCommands {
     const val TEARDOWN_PAYMENTS_ENVIRONMENT = "$TEARDOWN_APPLICATION_ENVIRONMENT -eP services/payments --project-name eventonight-payments-environment"
     const val SETUP_TEST_ENVIRONMENT = "./scripts/composeDevEnvironment.sh --project-name eventonight-test-environment up -d --force-recreate --wait"
     const val SETUP_DEV_ENVIRONMENT = "./scripts/composeDevEnvironment.sh --dev up -d --force-recreate --wait"
-    const val SETUP_APPLICATION_ENVIRONMENT = "./scripts/composeApplication.sh --dev up -d --build --force-recreate --wait"
+    const val SETUP_APPLICATION_ENVIRONMENT = "./scripts/composeApplication.sh --dev --init-db up -d --build --force-recreate --wait"
     const val SETUP_KEYCLOAK = "./scripts/composeAll.sh -p ./infrastructure/authentication/ --dev up --force-recreate --build -d --wait --project-name keycloak-stack && docker wait keycloak-stack-keycloak-provision-1"
     const val SETUP_FRONTEND_ENVIRONMENT = "$SETUP_APPLICATION_ENVIRONMENT -eP services/frontend --project-name eventonight-frontend-environment"
     const val SETUP_MEDIA_SERVICE = "./scripts/composeAll.sh -p ./services/media/ --dev up --force-recreate --build -d --wait --project-name media-service"

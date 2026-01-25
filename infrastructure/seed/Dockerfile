@@ -7,6 +7,6 @@ COPY ./infrastructure/seed/package.json ./
 RUN npm install
 
 COPY ./infrastructure/seed/tsconfig.json ./
-COPY ./infrastructure/seed/src ./src
+COPY ./infrastructure/seed/generateSeed.ts ./
 
 CMD ["npm", "run", "seed:generate"]

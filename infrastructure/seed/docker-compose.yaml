@@ -1,8 +1,8 @@
 services:
-  drop-db:
-    build: .
+  seed:
+    image: ghcr.io/eventonight/eventonight/seed:latest
     networks:
-      - eventonight-network
+      - eventonight-network  
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
@@ -14,5 +14,4 @@ services:
 
 networks:
   eventonight-network:
-    external: true
-    name: ${COMPOSE_PROJECT_NAME}_eventonight-network
+    driver: bridge
