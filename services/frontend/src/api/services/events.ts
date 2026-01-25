@@ -5,21 +5,14 @@ import type {
   EventsDataResponse,
 } from '../interfaces/events'
 import type { GetTagResponse } from '../interfaces/events'
-import type {
-  EventID,
-  Event,
-  EventStatus,
-  PartialEventDataWithTickets,
-  PartialEventDataWithTicketsForUpdate,
-} from '../types/events'
+import type { EventID, Event, EventStatus, PartialEventData } from '../types/events'
 import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { UserID } from '../types/users'
-import type { PaymentsAPI } from '../interfaces/payments'
 import type { ApiClient } from '../client'
-import type { EventTicketTypeData } from '../types/payments'
+// import { createPaymentsClient } from '../client'
 
-export const createEventsApi = (eventsClient: ApiClient, paymentsApi: PaymentsAPI): EventAPI => ({
+export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async getTags(): Promise<GetTagResponse> {
     return eventsClient.get<GetTagResponse>('/tags')
   },
@@ -30,47 +23,38 @@ export const createEventsApi = (eventsClient: ApiClient, paymentsApi: PaymentsAP
     const eventsResponses = await Promise.all(eventIds.map((eventId) => this.getEventById(eventId)))
     return { events: eventsResponses }
   },
-  async createEvent(eventData: PartialEventDataWithTickets): Promise<PublishEventResponse> {
+  async createEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
     const { poster, date, ...rest } = eventData
     const formData = new FormData()
     if (poster) {
       formData.append('poster', poster)
     }
+
+    //TODO: remove price
     const backendEventData = {
       ...rest,
       date: date?.toISOString().replace(/\.\d{3}Z$/, ''),
-    }
-    const tickets: EventTicketTypeData[] = []
-    for (const ticket of eventData.ticketTypes) {
-      tickets.push({ ...ticket, creatorId: eventData.creatorId })
+      // price: 0,
     }
     formData.append('event', JSON.stringify(backendEventData))
     const event = await eventsClient.post<PublishEventResponse>('/', formData)
-    for (const ticket of tickets) {
-      await paymentsApi.createEventTicketType(event.eventId, ticket)
-    }
+    //TODO: remove, event service will handle event creation on payment service
+    // await createPaymentsClient().post<void>(`/events/${event.eventId}`, {
+    //   creatorId: eventData.creatorId,
+    //   date: eventData.date,
+    //   status: eventData.status,
+    // })
     return event
   },
-  async updateEventData(
-    eventId: EventID,
-    eventData: PartialEventDataWithTicketsForUpdate
-  ): Promise<void> {
+  async updateEventData(eventId: EventID, eventData: PartialEventData): Promise<void> {
     const { poster, date, ...rest } = eventData
+    //TODO: remove price
     const backendEventData = {
       ...rest,
       date: date?.toISOString().replace(/\.\d{3}Z$/, ''),
+      // price: 0,
     }
-    console.log('createEvent backendEventData1', date?.toISOString())
-
-    console.log('updateEventData backendEventData', backendEventData)
     await eventsClient.put(`/${eventId}`, backendEventData)
-    const tickets: (EventTicketTypeData & { id: string })[] = []
-    for (const ticket of eventData.ticketTypes) {
-      tickets.push({ ...ticket, creatorId: eventData.creatorId })
-    }
-    for (const ticket of tickets) {
-      await paymentsApi.updateEventTicketType(ticket.id!, ticket)
-    }
   },
   async updateEventPoster(eventId: EventID, poster: File): Promise<void> {
     const formData = new FormData()

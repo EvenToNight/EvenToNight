@@ -41,4 +41,13 @@ export class UserRepositoryImpl implements UserRepository {
   async delete(id: string): Promise<void> {
     await this.userModel.findByIdAndDelete(id).exec();
   }
+
+  isDuplicateError(error: unknown): boolean {
+    return (
+      typeof error === 'object' &&
+      error !== null &&
+      'code' in error &&
+      error.code === 11000
+    );
+  }
 }

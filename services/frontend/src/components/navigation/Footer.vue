@@ -1,16 +1,25 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
+import { ABOUT_ROUTE_NAME, PRIVACY_ROUTE_NAME, TERMS_ROUTE_NAME } from '@/router'
 import AppBrand from '@/components/common/AppBrand.vue'
+import ContactDialog from '@/components/dialogs/ContactDialog.vue'
 
 const { t, locale, availableLocales } = useI18n()
-const { changeLocale } = useNavigation()
+const { changeLocale, goToRoute } = useNavigation()
+
+const showContactDialog = ref(false)
 
 const selectLanguage = (langCode: string) => {
   locale.value = langCode
   localStorage.setItem('user-locale', langCode)
   //TODO as to update user lang settings?
   changeLocale(langCode)
+}
+
+const openContact = () => {
+  showContactDialog.value = true
 }
 </script>
 
@@ -21,11 +30,15 @@ const selectLanguage = (langCode: string) => {
         <AppBrand />
 
         <div class="footer-links">
-          <a href="#" class="footer-link">{{ t('footer.about') }}</a>
-          <a href="#" class="footer-link">{{ t('footer.events') }}</a>
-          <a href="#" class="footer-link">{{ t('footer.contact') }}</a>
-          <a href="#" class="footer-link">{{ t('footer.privacy') }}</a>
+          <a class="footer-link" @click="goToRoute(ABOUT_ROUTE_NAME)">{{ t('footer.about') }}</a>
+          <a class="footer-link" @click="openContact">{{ t('footer.contact') }}</a>
+          <a class="footer-link" @click="goToRoute(PRIVACY_ROUTE_NAME)">{{
+            t('footer.privacy')
+          }}</a>
+          <a class="footer-link" @click="goToRoute(TERMS_ROUTE_NAME)">{{ t('footer.terms') }}</a>
         </div>
+
+        <ContactDialog v-model="showContactDialog" />
 
         <div class="footer-language">
           <span
@@ -133,6 +146,7 @@ const selectLanguage = (langCode: string) => {
   text-decoration: none;
   font-size: $font-size-base;
   transition: color $transition-base;
+  cursor: pointer;
 
   @include light-mode {
     color: $color-text-secondary;

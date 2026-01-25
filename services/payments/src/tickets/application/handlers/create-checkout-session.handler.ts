@@ -1,4 +1,9 @@
-import { Inject, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { Ticket } from '../../domain/aggregates/ticket.aggregate';
 import { UserId } from '../../domain/value-objects/user-id.vo';
 import { TransactionManager } from '../../infrastructure/database/transaction.manager';
@@ -19,6 +24,7 @@ import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
 import { PAYMENT_SERVICE_BASE_URL } from '../constants';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
+import { EventService } from '../services/event.service';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -38,6 +44,7 @@ export class CreateCheckoutSessionHandler {
     private readonly ticketTypeService: EventTicketTypeService,
     private readonly ticketService: TicketService,
     private readonly orderService: OrderService,
+    private readonly eventService: EventService,
   ) {}
 
   private async getTicketTypeWithLock(
@@ -71,6 +78,25 @@ export class CreateCheckoutSessionHandler {
             );
           }
           ticketTypeMap.get(item.ticketTypeId)!.reserveTicket();
+        }
+
+        for (const item of ticketTypeMap.values()) {
+          const res = await this.eventService.findByIdWithLock(
+            item.getEventId(),
+            session,
+          );
+          if (!res) {
+            throw new NotFoundException(
+              `Event with id ${item.getEventId().toString()} not found`,
+            );
+          }
+          if (res.getStatus().toString() !== 'PUBLISHED') {
+            throw new BadRequestException(
+              `Cannot reserve tickets for event with id ${item
+                .getEventId()
+                .toString()} because it is not published`,
+            );
+          }
         }
 
         for (const item of dto.items) {

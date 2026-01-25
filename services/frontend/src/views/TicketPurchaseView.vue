@@ -7,7 +7,6 @@ import type { EventTicketType } from '@/api/types/payments'
 import { useQuasar } from 'quasar'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const { params, goBack } = useNavigation()
@@ -31,7 +30,7 @@ const getQuantity = (ttId: string) => {
 
 const incrementQuantity = (tt: EventTicketType) => {
   const current = getQuantity(tt.id)
-  const max = getAvailableQuantity(tt)
+  const max = tt.availableQuantity
   if (current < max) {
     ticketQuantities.value[tt.id] = current + 1
   }
@@ -94,7 +93,7 @@ onMounted(async () => {
     loading.value = true
     const [eventData, ticketsAvailable] = await Promise.all([
       api.events.getEventById(eventId.value),
-      api.payments.getEventTicketType(eventId.value),
+      api.payments.getEventTicketsType(eventId.value),
     ])
     event.value = eventData
     ticketTypes.value = ticketsAvailable
@@ -199,15 +198,15 @@ const handlePurchase = async () => {
               class="ticket-type-card"
               :class="{
                 'has-quantity': getQuantity(tt.id) > 0,
-                'sold-out': getAvailableQuantity(tt) === 0,
+                'sold-out': tt.isSoldOut,
               }"
             >
               <div class="ticket-type-main">
                 <div class="ticket-type-info">
                   <div class="ticket-type-name">{{ tt.type }}</div>
                   <div class="ticket-type-availability">
-                    <span v-if="getAvailableQuantity(tt) > 0">
-                      {{ getAvailableQuantity(tt) }} available
+                    <span v-if="tt.availableQuantity > 0">
+                      {{ tt.availableQuantity }} available
                     </span>
                     <span v-else class="sold-out-text">Sold out</span>
                   </div>
@@ -263,13 +262,19 @@ const handlePurchase = async () => {
 
           <!-- Actions -->
           <div class="actions-section">
-            <Button label="Cancel" variant="tertiary" class="cancel-btn" @click="goBack" />
-            <Button
+            <q-btn
+              flat
+              label="Cancel"
+              class="cancel-btn base-button base-button--tertiary"
+              @click="goBack"
+            />
+            <q-btn
+              unelevated
+              color="primary"
               label="Continue to Payment"
-              variant="primary"
               :loading="purchasing"
               :disable="!hasAnyTickets"
-              class="purchase-btn"
+              class="purchase-btn base-button base-button--primary"
               @click="handlePurchase"
             />
           </div>

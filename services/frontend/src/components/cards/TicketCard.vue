@@ -1,27 +1,18 @@
 <script setup lang="ts">
-import Button from '@/components/buttons/basicButtons/Button.vue'
-import { useI18n } from 'vue-i18n'
-
-interface Ticket {
-  id: string
-  eventName: string
-  eventImageLink: string
-  ticketNumber: string
-}
+import type { Event } from '@/api/types/events'
 
 interface Props {
-  ticket: Ticket
+  event: Event
 }
 
 defineProps<Props>()
 
-const { t } = useI18n()
 const emit = defineEmits<{
-  download: [ticketId: string]
+  download: [eventId: string]
 }>()
 
-const handleDownload = (ticketId: string) => {
-  emit('download', ticketId)
+const handleDownload = (eventId: string) => {
+  emit('download', eventId)
 }
 </script>
 
@@ -29,27 +20,15 @@ const handleDownload = (ticketId: string) => {
   <div class="ticket-card">
     <div class="ticket-content">
       <div class="event-image-wrapper">
-        <img :src="ticket.eventImageLink" :alt="ticket.eventName" class="event-image" />
+        <img :src="event.poster" :alt="event.title" class="event-image" />
       </div>
 
       <div class="event-info">
-        <h3 class="event-name">{{ ticket.eventName }}</h3>
-        <p class="ticket-number">{{ t('cards.ticketCard.ticket') }} #{{ ticket.ticketNumber }}</p>
+        <h3 class="event-name">{{ event.title }}</h3>
+        <p class="event-date">{{ new Date(event.date).toLocaleDateString() }}</p>
       </div>
 
-      <Button
-        icon="download"
-        variant="primary"
-        class="download-button download-button-desktop"
-        :label="t('download')"
-        @click="handleDownload(ticket.id)"
-      />
-      <Button
-        icon="download"
-        variant="primary"
-        class="download-button download-button-mobile"
-        @click="handleDownload(ticket.id)"
-      />
+      <q-btn flat round icon="download" @click="handleDownload(event.eventId)" />
     </div>
   </div>
 </template>
@@ -118,7 +97,7 @@ const handleDownload = (ticketId: string) => {
   }
 }
 
-.ticket-number {
+.event-date {
   font-size: $font-size-sm;
   margin: 0;
   color: $color-text-secondary;
@@ -129,26 +108,6 @@ const handleDownload = (ticketId: string) => {
 
   @media (max-width: $breakpoint-mobile) {
     font-size: $font-size-xs;
-  }
-}
-
-.download-button {
-  flex-shrink: 0;
-}
-
-.download-button-mobile {
-  display: none;
-
-  @media (max-width: $breakpoint-mobile) {
-    display: inline-flex;
-  }
-}
-
-.download-button-desktop {
-  display: inline-flex;
-
-  @media (max-width: $breakpoint-mobile) {
-    display: none;
   }
 }
 </style>

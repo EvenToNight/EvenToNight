@@ -43,6 +43,7 @@ export class UserEventConsumer {
     this.logger.log(`📨 Received event: ${routingKey}`);
     this.logger.debug(`Payload: ${JSON.stringify(envelope?.payload)}`);
     const channel = context.getChannelRef() as Channel;
+
     try {
       switch (routingKey) {
         case 'user.created':
@@ -72,15 +73,27 @@ export class UserEventConsumer {
   }
 
   private async handleUserCreated(envelope: EventEnvelope<UserPayload>) {
-    this.logger.log(`Processing user.created: ${envelope.payload.id}`);
-    await this.userRepository.save(
-      User.create(
-        UserId.fromString(envelope.payload.id),
-        envelope.payload.language,
-      ),
+    this.logger.log(
+      `Processing user.created: ${JSON.stringify(envelope.payload)}`,
     );
+    try {
+      await this.userRepository.save(
+        User.create(
+          UserId.fromString(envelope.payload.id),
+          envelope.payload.language,
+        ),
+      );
 
-    this.logger.log(`User created: ${envelope.payload.id}`);
+      this.logger.log(`User created: ${envelope.payload.id}`);
+    } catch (err: unknown) {
+      if (this.userRepository.isDuplicateError(err)) {
+        this.logger.warn(
+          `User with id ${envelope.payload.id} already exists. Skipping creation.`,
+        );
+        return;
+      }
+      throw err;
+    }
   }
 
   private async handleUserUpdated(envelope: EventEnvelope<UserPayload>) {

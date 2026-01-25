@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Component } from 'vue'
+import { computed } from 'vue'
 
 export interface Tab {
   id: string
@@ -26,13 +27,13 @@ const selectTab = (tabId: string) => {
   activeTab.value = tabId
 }
 
-const getCurrentTabComponent = (): Tab => {
+const getCurrentTabComponent = computed((): Tab => {
   const tab = props.tabs.find((t) => t.id === activeTab.value)
   if (!tab) {
     selectTab(props.tabs[0]!.id)
   }
   return tab ?? props.tabs[0]!
-}
+})
 </script>
 
 <template>
@@ -54,8 +55,8 @@ const getCurrentTabComponent = (): Tab => {
 
     <div class="explore-tab-content">
       <component
-        :is="getCurrentTabComponent().component"
-        v-bind="getCurrentTabComponent().props || {}"
+        :is="getCurrentTabComponent.component"
+        v-bind="getCurrentTabComponent.props || {}"
       />
     </div>
   </template>
@@ -76,8 +77,8 @@ const getCurrentTabComponent = (): Tab => {
 
     <div class="profile-tab-content">
       <component
-        :is="getCurrentTabComponent().component"
-        v-bind="getCurrentTabComponent().props || {}"
+        :is="getCurrentTabComponent.component"
+        v-bind="getCurrentTabComponent.props || {}"
       />
     </div>
   </div>

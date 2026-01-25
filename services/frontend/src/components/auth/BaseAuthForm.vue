@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import BackHomeButton from '@/components/buttons/actionButtons/BackHomeButton.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 
 interface Props {
   title: string
@@ -47,10 +46,10 @@ const handleSwitch = () => {
         <slot name="fields" />
         <slot name="submit-button" :is-loading="isLoading" />
         <div class="text-center">
-          <Button
-            variant="secondary"
+          <q-btn
+            flat
             :label="switchButtonLabel"
-            :class="['full-width']"
+            :class="['full-width', 'base-button', 'base-button--secondary']"
             @click="handleSwitch"
           />
         </div>

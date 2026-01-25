@@ -6,11 +6,13 @@ import EventDetailsHeader from './EventDetailsHeader.vue'
 import EventInfo from './EventInfo.vue'
 import OrganizationInfo from './OrganizationInfo.vue'
 import EventReviewsPreview from './EventReviewsPreview.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { TICKET_PURCHASE_ROUTE_NAME } from '@/router'
+import type { EventTicketType } from '@/api/types/payments'
+import { useAuthStore } from '@/stores/auth'
 
 interface Props {
   event: Event
+  eventTickets: EventTicketType[]
   isAuthRequired: boolean
 }
 const props = defineProps<Props>()
@@ -19,14 +21,23 @@ const emit = defineEmits<{
 }>()
 const { t } = useI18n()
 const router = useRouter()
+const authStore = useAuthStore()
 
 const handleBuyTickets = () => {
+  if (!authStore.user?.id) {
+    emit('update:isAuthRequired', true)
+    return
+  }
   router.push({
     name: TICKET_PURCHASE_ROUTE_NAME,
     params: {
       id: props.event.eventId,
     },
   })
+}
+
+const ticketsAvailable = () => {
+  return props.eventTickets.some((ticket) => !ticket.isSoldOut)
 }
 </script>
 
@@ -38,16 +49,21 @@ const handleBuyTickets = () => {
         :isAuthRequired="isAuthRequired"
         @update:is-auth-required="emit('update:isAuthRequired', $event)"
       />
-      <EventInfo :event="event" />
+      <EventInfo :event="event" :eventTickets="eventTickets" />
       <OrganizationInfo :event="event" />
-      <Button
-        v-if="event.status === 'PUBLISHED'"
-        variant="primary"
-        :label="t('eventDetails.buyTickets')"
-        :class="'full-width'"
-        size="lg"
-        @click="handleBuyTickets"
-      />
+      <template v-if="event.status === 'PUBLISHED'">
+        <q-btn
+          v-if="ticketsAvailable()"
+          unelevated
+          color="primary"
+          :label="t('eventDetails.buyTickets')"
+          :class="'full-width base-button base-button--primary'"
+          size="lg"
+          @click="handleBuyTickets"
+        />
+        <!-- TODO: show message when no tickets are available -->
+        <div v-else class="sold-out-message full-width">Sold Out</div>
+      </template>
       <EventReviewsPreview
         v-else-if="event.status === 'COMPLETED'"
         :eventId="event.eventId"
@@ -78,6 +94,23 @@ const handleBuyTickets = () => {
 
   @include dark-mode {
     background: $color-background-dark;
+  }
+}
+
+.sold-out-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: $color-gray-100;
+  font-size: $font-size-lg;
+  font-weight: $font-weight-semibold;
+  border-radius: $radius-lg;
+  padding: $spacing-4 0;
+  margin-top: $spacing-4;
+  margin-bottom: $spacing-4;
+
+  @include dark-mode {
+    background: $color-background-dark-soft;
   }
 }
 </style>

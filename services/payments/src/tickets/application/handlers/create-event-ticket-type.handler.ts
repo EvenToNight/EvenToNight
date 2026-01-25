@@ -1,4 +1,9 @@
-import { Injectable, Inject, ConflictException } from '@nestjs/common';
+import {
+  Injectable,
+  Inject,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { EventTicketType } from '../../domain/aggregates/event-ticket-type.aggregate';
 import { EventId } from '../../domain/value-objects/event-id.vo';
 import { Money } from '../../domain/value-objects/money.vo';
@@ -6,8 +11,6 @@ import { TicketType } from '../../domain/value-objects/ticket-type.vo';
 import { EVENT_TICKET_TYPE_REPOSITORY } from '../../domain/repositories/event-ticket-type.repository.interface';
 import { CreateEventTicketTypeDto } from '../dto/create-event-ticket-type.dto';
 import { EventService } from '../services/event.service';
-import { Event } from '../../domain/aggregates/event.aggregate';
-import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
 import { MessageEvent } from 'src/commons/domain/events/message.event';
@@ -25,7 +28,11 @@ export class CreateEventTicketTypeHandler {
     eventId: string,
     dto: CreateEventTicketTypeDto,
   ): Promise<EventTicketType> {
-    // Check for duplicates
+    const event = await this.eventService.findById(eventId);
+    if (!event) {
+      throw new NotFoundException(`Event with id '${eventId}' not found`);
+    }
+
     const existingTicketTypes =
       await this.eventTicketTypeService.findByEventId(eventId);
     const duplicate = existingTicketTypes.find(
@@ -46,14 +53,7 @@ export class CreateEventTicketTypeHandler {
       soldQuantity: 0,
     });
 
-    if ((await this.eventService.findById(eventId)) === null) {
-      await this.eventService.save(
-        Event.create(
-          EventId.fromString(eventId),
-          UserId.fromString(dto.creatorId),
-        ),
-      );
-    }
+    // TODO: remove
     this.eventPublisher.publish(
       new MessageEvent({ message: 'Event ticket type created' }),
       'message.event',

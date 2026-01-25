@@ -73,6 +73,13 @@ export class ApiClient {
     return new File([blob], filename, { type: blob.type })
   }
 
+  async getBlob(endpoint: string, options?: { credentials?: boolean }): Promise<Blob> {
+    return this.requestBlob(endpoint, {
+      method: 'GET',
+      ...(options?.credentials && { credentials: 'include' }),
+    })
+  }
+
   private async requestBlob(endpoint: string, options: RequestInit): Promise<Blob> {
     return (await this.request(endpoint, options)).blob()
   }

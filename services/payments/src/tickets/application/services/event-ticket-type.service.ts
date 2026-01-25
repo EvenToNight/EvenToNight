@@ -59,11 +59,11 @@ export class EventTicketTypeService {
         throw new Error(`EventTicketType with id ${id} not found`);
       }
       if (dto.description) ticketType.setDescription(dto.description);
-      if (dto.price)
-        ticketType.setPrice(
-          Money.fromAmount(dto.price.amount, dto.price.currency),
-        );
-      if (dto.quantity) ticketType.setTotalQuantity(dto.quantity);
+
+      ticketType.setPrice(
+        Money.fromAmount(dto.price.amount, dto.price.currency),
+      );
+      ticketType.setTotalQuantity(dto.quantity);
       return this.eventTicketTypeRepository.update(ticketType, session);
     });
   }

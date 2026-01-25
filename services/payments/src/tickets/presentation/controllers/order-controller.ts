@@ -6,11 +6,15 @@ import {
   NotFoundException,
   HttpStatus,
   HttpCode,
+  UseGuards,
+  ForbiddenException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { PdfService } from '../../application/services/pdf.service';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { OrderService } from 'src/tickets/application/services/order.service';
+import { JwtAuthGuard } from 'src/commons/infrastructure/auth/jwt-auth.guard';
+import { CurrentUser } from 'src/commons/infrastructure/auth/current-user.decorator';
 
 @Controller('orders/:orderId')
 export class OrderController {
@@ -26,10 +30,19 @@ export class OrderController {
    */
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getOrder(@Param('orderId') orderId: string) {
+  @UseGuards(JwtAuthGuard)
+  async getOrder(
+    @Param('orderId') orderId: string,
+    @CurrentUser('userId') userId: string,
+  ) {
     const order = await this.orderService.findById(orderId);
     if (!order) {
       throw new NotFoundException('Order not found');
+    }
+    if (order.getUserId().toString() !== userId) {
+      throw new ForbiddenException(
+        'User is not authorized to access this order',
+      );
     }
     return order;
   }
@@ -41,10 +54,20 @@ export class OrderController {
   //TODO: test endpoint and add auth
   @Get('pdf')
   @HttpCode(HttpStatus.OK)
-  async getOrderPdf(@Param('orderId') orderId: string, @Res() res: Response) {
+  @UseGuards(JwtAuthGuard)
+  async getOrderPdf(
+    @Param('orderId') orderId: string,
+    @CurrentUser('userId') userId: string,
+    @Res() res: Response,
+  ) {
     const order = await this.orderService.findById(orderId);
     if (!order) {
       throw new NotFoundException('Order not found');
+    }
+    if (order.getUserId().toString() !== userId) {
+      throw new ForbiddenException(
+        'User is not authorized to access this order',
+      );
     }
     const ticketIds = order.getTicketIds();
     const tickets = await this.ticketService.findByIds(ticketIds);
