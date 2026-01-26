@@ -37,7 +37,10 @@ export class PdfService {
 
     doc.moveDown();
 
-    const qrUrl = 'https://eventonight.site';
+    const host = process.env.HOST || 'localhost';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const qrUrl =
+      `${protocol}://${host}/tickets/` + ticket.ticketId + '/verify';
     const qrDataUrl = await toDataURL(qrUrl);
     const qrImage = qrDataUrl.replace(/^data:image\/png;base64,/, '');
     const qrBuffer = Buffer.from(qrImage, 'base64');
