@@ -15,10 +15,8 @@ const { goToHome, goToRegister, goToRedirect } = useNavigation()
 
 const usernameOrEmail = ref('')
 const password = ref('')
-const errorMessage = ref('')
 
 const onSuccessfulLogin = () => {
-  errorMessage.value = ''
   $q.notify({
     type: 'positive',
     message: t('auth.loginForm.successfulLogin'),
@@ -29,15 +27,13 @@ const onSuccessfulLogin = () => {
 }
 
 const onFailedLogin = (errorMsg?: string) => {
-  errorMessage.value = errorMsg || t('auth.loginForm.failedLogin')
   $q.notify({
     type: 'negative',
-    message: errorMessage.value,
+    message: errorMsg || t('auth.loginForm.failedLogin'),
   })
 }
 
 const handleLogin = async () => {
-  errorMessage.value = ''
   const result = await authStore.login(usernameOrEmail.value, password.value)
   if (result.success) {
     onSuccessfulLogin()
@@ -52,7 +48,6 @@ const handleLogin = async () => {
     :title="t('auth.login')"
     :switch-button-label="t('auth.loginForm.switchToRegister')"
     :is-loading="authStore.isLoading"
-    :error-message="errorMessage"
     @submit="handleLogin"
     @switch-mode="goToRegister"
   >
