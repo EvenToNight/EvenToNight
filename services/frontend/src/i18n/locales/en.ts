@@ -85,6 +85,7 @@ export default {
     events: 'Events',
     contact: 'Contact',
     privacy: 'Privacy Policy',
+    terms: 'Terms and Conditions',
     copyright: 'All rights reserved.',
   },
 

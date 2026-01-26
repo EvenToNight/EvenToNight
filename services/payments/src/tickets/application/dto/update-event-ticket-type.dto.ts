@@ -17,11 +17,9 @@ export class UpdateEventTicketTypeDto {
 
   @ValidateNested()
   @Type(() => MoneyDto)
-  @IsOptional()
-  price?: MoneyDto;
+  price: MoneyDto;
 
   @IsNumber()
-  @IsOptional()
   @Min(1)
-  quantity?: number;
+  quantity: number;
 }

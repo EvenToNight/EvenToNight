@@ -3,7 +3,6 @@ import { ref } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
 import FormField from '@/components/forms/FormField.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { notEmpty, matching } from '@/components/forms/validationUtils'
 
 const authStore = useAuthStore()
@@ -79,12 +78,13 @@ const handleChangePassword = async () => {
       />
 
       <div class="form-actions">
-        <Button
+        <q-btn
+          unelevated
+          color="primary"
           type="submit"
-          variant="primary"
           label="Change Password"
           :loading="authStore.isLoading"
-          class="submit-button"
+          class="submit-button base-button base-button--primary"
         />
       </div>
     </q-form>

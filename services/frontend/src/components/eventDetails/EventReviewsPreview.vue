@@ -23,7 +23,11 @@ const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 const loadReviews = async () => {
   try {
     loading.value = true
-    reviews.value = (await api.interactions.getEventReviews(props.eventId)).items
+    reviews.value = (
+      await api.interactions.getEventReviews(props.eventId, {
+        limit: 4,
+      })
+    ).items
     reviewsStatistics.value = await api.interactions.getOrganizationReviews(props.organizationId)
   } catch (error) {
     console.error('Failed to load reviews:', error)

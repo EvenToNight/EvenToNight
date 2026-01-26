@@ -12,15 +12,18 @@ import domain.commands.{
 }
 import domain.commands.validators.Validator
 import domain.commands.validators.ValidatorsInstances.given
-import infrastructure.db.EventRepository
+import infrastructure.db.{EventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.EventPublisher
 
 class EventService(
-    repo: EventRepository,
-    publisher: EventPublisher
+    eventRepository: EventRepository,
+    userMetadataRepository: MongoUserMetadataRepository,
+    publisher: EventPublisher,
+    paymentsServiceUrl: String = sys.env.getOrElse("PAYMENTS_SERVICE_URL", "http://localhost:9050")
 ):
-  val eventQueryService: EventQueryService    = EventQueryService(repo)
-  val eventCommandService: DomainEventService = DomainEventService(repo, publisher)
+  val eventQueryService: EventQueryService = EventQueryService(eventRepository)
+  val eventCommandService: DomainEventService =
+    DomainEventService(eventRepository, userMetadataRepository, publisher, paymentsServiceUrl)
 
   def handleCommand(cmd: Commands): Either[String, Any] =
     cmd match
@@ -38,3 +41,8 @@ class EventService(
     Validator.validateCommand(cmd) match
       case Left(errors) => Left(errors.mkString(", "))
       case Right(_)     => f(cmd)
+
+  def getEventInfo(eventId: String): Either[String, domain.models.Event] =
+    eventRepository.findById(eventId) match
+      case Some(event) => Right(event)
+      case None        => Left(s"Event with id $eventId not found")

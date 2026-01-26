@@ -11,10 +11,17 @@
       background: #fafafa;
       margin: 2rem;
     }
+    .header-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      margin-bottom: 2rem;
+    }
     h1 {
-      text-align: center;
       font-size: 2.5rem;
       color: #222;
+      margin: 0;
     }
     .service-list {
       max-width: 500px;
@@ -38,10 +45,37 @@
       font-size: 1.2rem;
       font-weight: 500;
     }
+    .back-button {
+      position: absolute;
+      left: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 40px;
+      height: 40px;
+      background: white;
+      border-radius: 50%;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .back-button:hover {
+      background: #f8f9fa;
+      transform: scale(1.1);
+    }
+    .back-button a {
+      font-size: 1.5rem;
+      line-height: 1;
+    }
   </style>
 </head>
 <body>
-  <h1>EvenToNight - Open API</h1>
+  <div class="header-container">
+    <div class="back-button" onclick="let url = window.location.href; let index = url.indexOf('openAPI/'); if(index !== -1) { window.location.href = url.substring(0, index); }">
+      <a href="javascript:void(0)">←</a>
+    </div>
+    <h1>EvenToNight - Open API</h1>
+  </div>
 
   <div class="service-list">
     <div class="service">

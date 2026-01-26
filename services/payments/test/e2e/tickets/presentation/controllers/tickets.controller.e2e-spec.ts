@@ -127,7 +127,12 @@ describe('TicketsController (e2e)', () => {
             price: Money.fromAmount(1, 'USD'),
             status: TicketStatus.ACTIVE,
           });
-          await eventService.create(eventId, eventCreatorId);
+          await eventService.createOrUpdate(
+            eventId,
+            eventCreatorId,
+            'PUBLISHED',
+            new Date(),
+          );
         });
         describe('When the user owner requests the ticket details', () => {
           it('Then returns the ticket details', async () => {

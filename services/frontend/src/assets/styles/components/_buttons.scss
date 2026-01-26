@@ -1,41 +1,15 @@
-<script setup lang="ts">
-export type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
+// =============================================================================
+// Button Component Styles
+// =============================================================================
 
-interface Props {
-  label?: string
-  icon?: string
-  variant?: ButtonVariant
-  loading?: boolean
-  type?: 'button' | 'submit'
-}
-
-withDefaults(defineProps<Props>(), {
-  variant: 'primary',
-  label: '',
-  icon: '',
-  loading: false,
-  type: 'button',
-})
-</script>
-
-<template>
-  <q-btn
-    :label="label"
-    :icon="icon || undefined"
-    :loading="loading"
-    :type="type"
-    :unelevated="variant === 'primary'"
-    :flat="variant !== 'primary'"
-    :color="variant === 'primary' ? 'primary' : undefined"
-    :class="['base-button', `base-button--${variant}`]"
-  />
-</template>
-
-<style lang="scss" scoped>
 @use 'sass:color';
+@use '../abstracts' as *;
+
+// Base button styles (formerly from Button.vue component)
 .base-button {
   padding: $spacing-3;
   font-size: $font-size-base;
+
   &--primary {
     background: $color-primary;
     color: $color-white;
@@ -48,9 +22,11 @@ withDefaults(defineProps<Props>(), {
   &--secondary {
     border: 1px solid color-alpha($color-black, 0.12);
     color: $color-text-primary;
+
     &:hover {
       background: color-alpha($color-black, 0.04);
     }
+
     @include dark-mode {
       color: $color-text-dark;
       border-color: color-alpha($color-white, 0.12);
@@ -61,9 +37,8 @@ withDefaults(defineProps<Props>(), {
     }
   }
 }
-</style>
 
-<style lang="scss">
+// Outline button fix styles (formerly from Button.vue global styles)
 .outline-btn-fix.q-btn.q-btn--outline {
   color: #6f00ff !important;
   border-color: #6f00ff !important;
@@ -202,4 +177,3 @@ body.body--dark .outline-btn-fix.q-btn.q-btn--outline {
     }
   }
 }
-</style>

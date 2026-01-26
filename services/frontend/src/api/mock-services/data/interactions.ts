@@ -75,6 +75,7 @@ export const mockUserInteractions: UserInteraction[] = [
 
 export const mockEventReviews: EventReview[] = [
   {
+    id: '1',
     eventId: '1',
     creatorId: 'organization_1',
     collaboratorsId: ['organization_2', 'organization_3'],
@@ -82,8 +83,11 @@ export const mockEventReviews: EventReview[] = [
     rating: 4,
     title: 'Great event title!1',
     comment: 'Great event!1',
+    createdAt: new Date('2024-01-01T10:00:00Z'),
+    updatedAt: new Date('2024-01-01T11:00:00Z'),
   },
   {
+    id: '2',
     eventId: '1',
     creatorId: 'organization_1',
     collaboratorsId: ['organization_2', 'organization_3'],
@@ -91,8 +95,11 @@ export const mockEventReviews: EventReview[] = [
     rating: 4,
     title: 'Great event title!2',
     comment: 'Great event!2',
+    createdAt: new Date('2024-01-02T10:00:00Z'),
+    updatedAt: new Date('2024-01-02T10:00:00Z'),
   },
   {
+    id: '3',
     eventId: '1',
     creatorId: 'organization_1',
     collaboratorsId: ['organization_2', 'organization_3'],
@@ -100,8 +107,11 @@ export const mockEventReviews: EventReview[] = [
     rating: 2,
     title: 'Great event title!3',
     comment: 'Great event!3',
+    createdAt: new Date('2024-01-03T10:00:00Z'),
+    updatedAt: new Date('2024-01-03T10:00:00Z'),
   },
   {
+    id: '4',
     eventId: '1',
     creatorId: 'organization_1',
     collaboratorsId: ['organization_2', 'organization_3'],
@@ -109,5 +119,7 @@ export const mockEventReviews: EventReview[] = [
     rating: 4,
     title: 'Great event title!4',
     comment: 'Great event!4',
+    createdAt: new Date('2024-01-04T10:00:00Z'),
+    updatedAt: new Date('2024-01-04T10:00:00Z'),
   },
 ]

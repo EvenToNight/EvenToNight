@@ -20,6 +20,8 @@ dependencies {
     implementation("org.mongodb:mongodb-driver-sync:5.5.1")
     implementation("com.rabbitmq:amqp-client:5.26.0")
     implementation("com.lihaoyi:cask_3:0.11.3")
+    implementation("com.github.jwt-scala:jwt-core_3:10.0.1")
+    implementation("com.lihaoyi:upickle_3:4.0.2")
     implementation("com.lihaoyi:requests_3:0.8.0")
     implementation("io.circe:circe-core_3:0.14.7")
     implementation("io.circe:circe-generic_3:0.14.7")

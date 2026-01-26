@@ -32,8 +32,4 @@ export class CreateEventTicketTypeDto {
   @IsNumber()
   @Min(1)
   quantity: number;
-
-  @IsString()
-  @IsNotEmpty()
-  creatorId: string;
 }

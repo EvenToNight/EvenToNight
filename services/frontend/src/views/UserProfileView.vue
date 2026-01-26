@@ -77,13 +77,17 @@ const defaultIcon = computed(() => {
   if (!user.value) return 'person'
   return user.value.role === 'organization' ? 'business' : 'person'
 })
+
+const scrollToTop = () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
 </script>
 
 <template>
   <NavigationButtons>
     <!-- TODO: improve username screen exiting detection -->
     <template v-if="user && showNavbarCustomContent" #left-custom-content>
-      <div class="navbar-user-info">
+      <div class="navbar-user-info" @click="scrollToTop">
         <q-avatar size="32px">
           <img v-if="user.avatar" :src="user.avatar" :alt="user.name" class="navbar-avatar" />
           <q-icon v-else :name="defaultIcon" size="24px" />
@@ -118,6 +122,11 @@ const defaultIcon = computed(() => {
   min-width: 0;
   flex: 1;
   color: $color-text-primary;
+  cursor: pointer;
+
+  // &:hover {
+  //   text-decoration: underline;
+  // }
 
   @include dark-mode {
     color: $color-text-dark;

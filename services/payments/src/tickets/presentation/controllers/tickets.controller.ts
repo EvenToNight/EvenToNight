@@ -89,13 +89,18 @@ export class TicketsController {
   //TODO: test this endpoint
   @Get('pdf')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   async getTicketPdf(
     @Param('ticketId') ticketId: string,
+    @CurrentUser('userId') userId: string,
     @Res() res: Response,
   ) {
     const ticket = await this.ticketService.findById(ticketId);
     if (!ticket) {
       throw new NotFoundException('Ticket not found');
+    }
+    if (ticket.getUserId().toString() !== userId) {
+      throw new ForbiddenException('Not authorized to view this ticket');
     }
 
     const buffer = await this.pdfService.generateTicketsPdf([

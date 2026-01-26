@@ -6,16 +6,19 @@ import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useNavigation } from '@/router/utils'
+import type { EventTicketType } from '@/api/types/payments'
 
 const { params, goToHome } = useNavigation()
 const eventId = computed(() => params.id as string)
 const showAuthDialog = ref(false)
 
 const event = ref<Event | null>(null)
+const eventTickets = ref<EventTicketType[]>([])
 
 const loadEvent = async () => {
   try {
     event.value = await api.events.getEventById(eventId.value)
+    eventTickets.value = await api.payments.getEventTicketsType(eventId.value)
   } catch (error) {
     console.error('Failed to load event:', error)
     goToHome()
@@ -31,7 +34,11 @@ onMounted(async () => {
   <div v-if="event" class="event-details-view">
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
     <NavigationWithParallaxEffect :posterLink="event.poster" :title="event.title">
-      <EventDetailsContent v-model:isAuthRequired="showAuthDialog" :event="event" />
+      <EventDetailsContent
+        v-model:isAuthRequired="showAuthDialog"
+        :event="event"
+        :eventTickets="eventTickets"
+      />
     </NavigationWithParallaxEffect>
   </div>
 </template>

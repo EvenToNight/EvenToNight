@@ -8,9 +8,18 @@ import LanguageTab from '@/components/settings/tabs/LanguageTab.vue'
 import ChangePasswordTab from '@/components/settings/tabs/ChangePasswordTab.vue'
 import type { Tab } from '@/components/navigation/TabView.vue'
 import { useNavigation } from '@/router/utils'
+import { useQuasar } from 'quasar'
+import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
+
+const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 const { hash, replaceRoute } = useNavigation()
+const $q = useQuasar()
 const activeTabId = ref('general')
+const layoutRef = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
+const showingContent = ref(false)
+
+const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
 
 const tabs = computed<Tab[]>(() => [
   {
@@ -45,6 +54,14 @@ const activeTab = computed(() => {
 
 const selectTab = (tabId: string) => {
   activeTabId.value = tabId
+  if (isMobile.value && layoutRef.value) {
+    layoutRef.value.showContent()
+    showingContent.value = true
+  }
+}
+
+const handleBack = () => {
+  showingContent.value = false
 }
 
 function updateTabIdFromHash() {
@@ -52,6 +69,12 @@ function updateTabIdFromHash() {
   const exists = tabs.value.some((tab) => tab.id === tabId)
   activeTabId.value = exists ? tabId : tabs.value[0]!.id
   replaceRoute({ hash: `#${activeTabId.value}` })
+
+  // Show content on mobile if navigating with hash
+  if (isMobile.value && layoutRef.value && hash.value) {
+    layoutRef.value.showContent()
+    showingContent.value = true
+  }
 }
 onMounted(() => {
   updateTabIdFromHash()
@@ -72,14 +95,14 @@ watch(activeTab, (newTab) => {
 <template>
   <div class="settings-view">
     <div class="settings-container">
-      <TwoColumnLayout :sidebar-title="'Settings'">
+      <TwoColumnLayout ref="layoutRef" :sidebar-title="'Settings'" @back="handleBack">
         <template #sidebar>
           <div class="settings-menu">
             <button
               v-for="tab in tabs"
               :key="tab.id"
               class="settings-menu-item"
-              :class="{ active: activeTabId === tab.id }"
+              :class="{ active: activeTabId === tab.id && (!isMobile || showingContent) }"
               @click="selectTab(tab.id)"
             >
               <q-icon :name="tab.icon" size="24px" class="menu-icon" />

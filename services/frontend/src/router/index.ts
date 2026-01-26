@@ -25,6 +25,9 @@ export const EDIT_PROFILE_ROUTE_NAME = 'edit-profile'
 export const CHAT_ROUTE_NAME = 'chat'
 export const FORBIDDEN_ROUTE_NAME = 'forbidden'
 export const TICKET_PURCHASE_ROUTE_NAME = 'ticket-purchase'
+export const PRIVACY_ROUTE_NAME = 'privacy'
+export const TERMS_ROUTE_NAME = 'terms'
+export const ABOUT_ROUTE_NAME = 'about'
 
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')
@@ -78,8 +81,18 @@ const router = createRouter({
         },
         {
           path: 'about',
-          name: 'about',
+          name: ABOUT_ROUTE_NAME,
           component: () => import('../views/AboutView.vue'),
+        },
+        {
+          path: 'privacy',
+          name: PRIVACY_ROUTE_NAME,
+          component: () => import('../views/PrivacyView.vue'),
+        },
+        {
+          path: 'terms',
+          name: TERMS_ROUTE_NAME,
+          component: () => import('../views/TermsView.vue'),
         },
         {
           path: 'events/:id',

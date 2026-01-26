@@ -2,7 +2,6 @@
 import { ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import { Cropper, RectangleStencil } from 'vue-advanced-cropper'
-import Button from '../buttons/basicButtons/Button.vue'
 import 'vue-advanced-cropper/dist/style.css'
 
 const $q = useQuasar()
@@ -150,13 +149,14 @@ const closeCropper = () => {
     </div>
 
     <div v-else class="upload-button-container">
-      <Button
+      <q-btn
+        unelevated
+        color="primary"
         :label="buttonLabel"
         :icon="'add_photo_alternate'"
         outline
-        variant="primary"
         size="sm"
-        class="outline-btn-fix upload-trigger-btn"
+        class="base-button base-button--primary outline-btn-fix upload-trigger-btn"
         @click="triggerFileInput"
       />
       <input
