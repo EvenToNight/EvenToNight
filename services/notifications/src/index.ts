@@ -29,9 +29,8 @@ async function bootstrap() {
       },
     });
 
-    //eslint-disable-next-line @typescript-eslint/no-unused-vars
     const socketGateway = new SocketIOGateway(io);
-    const rabbitmqConsumer = new RabbitMQConsumer();
+    const rabbitmqConsumer = new RabbitMQConsumer(socketGateway);
     await rabbitmqConsumer.connect();
     httpServer.listen(config.port, () => {
       console.log(`🚀 Notification service running on port ${config.port}`);

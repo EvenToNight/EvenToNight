@@ -19,7 +19,7 @@ export class RabbitMQConsumer {
   private connection: AmqpConnectionManager | null = null;
   private channelWrapper: ChannelWrapper | null = null;
 
-  constructor() {}
+  constructor(private readonly notificationGateway: NotificationGateway) {}
 
   async connect(): Promise<void> {
     try {
