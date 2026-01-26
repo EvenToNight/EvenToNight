@@ -10,6 +10,7 @@ import { NotificationController } from "./notifications/presentation/controllers
 import { createNotificationRoutes } from "./notifications/presentation/routes/notification.routes";
 
 import { RabbitMQConsumer } from "./notifications/presentation/consumers/rabbitmq.consumer";
+import { SocketIOGateway } from "./notifications/presentation/gateways/socket-io.gateway";
 
 async function bootstrap() {
   try {
@@ -21,13 +22,15 @@ async function bootstrap() {
     const app = createApp(routes);
     const httpServer = createServer(app);
 
-    //eslint-disable-next-line @typescript-eslint/no-unused-vars
     const io = new Server(httpServer, {
       cors: {
         origin: true,
         credentials: true,
       },
     });
+
+    //eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const socketGateway = new SocketIOGateway(io);
     const rabbitmqConsumer = new RabbitMQConsumer();
     await rabbitmqConsumer.connect();
     httpServer.listen(config.port, () => {
