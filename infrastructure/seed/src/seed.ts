@@ -25,14 +25,10 @@ function dropDatabase() {
 }
 
 async function seed() {
-  //dropDatabase();
   const { users } = await new UserSeed().populate();
   console.log("Users list:\n", JSON.stringify(users, null, 2));
   
-  const events = await new EventSeed(users).populate();
-  // upload in event db
-  
-  // upload to media api
+  const { events } = await new EventSeed(users).populate();
 
   console.log("Events list:\n", JSON.stringify(events, null, 2));
   // Add other seeders here
