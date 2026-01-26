@@ -252,6 +252,17 @@ const goToProfile = () => {
             v-if="authStore.isAuthenticated"
             class="authenticated-actions authenticated-actions--left-space"
           >
+            <!-- Theme Toggle -->
+            <q-btn
+              flat
+              round
+              class="theme-toggle"
+              :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+              @click="toggleDarkMode"
+            >
+              <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
+            </q-btn>
+
             <!-- Create Event Button (Organizations only) -->
             <q-btn
               v-if="isOrganization"
@@ -309,17 +320,6 @@ const goToProfile = () => {
                 String(unreadMessagesCount)
               }}</q-badge>
               <q-tooltip>Chat</q-tooltip>
-            </q-btn>
-
-            <!-- Theme Toggle -->
-            <q-btn
-              flat
-              round
-              class="theme-toggle"
-              :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
-              @click="toggleDarkMode"
-            >
-              <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
             </q-btn>
 
             <!-- User Profile Avatar -->
