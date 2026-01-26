@@ -9,6 +9,8 @@ import { config } from "./config/env.config";
 import { NotificationController } from "./notifications/presentation/controllers/notification.controller";
 import { createNotificationRoutes } from "./notifications/presentation/routes/notification.routes";
 
+import { RabbitMQConsumer } from "./notifications/presentation/consumers/rabbitmq.consumer";
+
 async function bootstrap() {
   try {
     await MongoDB.connect();
@@ -26,7 +28,8 @@ async function bootstrap() {
         credentials: true,
       },
     });
-
+    const rabbitmqConsumer = new RabbitMQConsumer();
+    await rabbitmqConsumer.connect();
     httpServer.listen(config.port, () => {
       console.log(`🚀 Notification service running on port ${config.port}`);
     });

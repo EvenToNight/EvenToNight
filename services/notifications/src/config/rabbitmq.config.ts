@@ -1,5 +1,5 @@
-import * as amqp from 'amqplib';
-import { config } from './env.config';
+import * as amqp from "amqplib";
+import { config } from "./env.config";
 
 export class RabbitMQ {
   static async setup(): Promise<void> {
@@ -11,10 +11,11 @@ export class RabbitMQ {
       const queue = config.rabbitmq.queue;
 
       const routingKeys = [
+        "user.created",
         //TODO: Add routing keys
       ];
 
-      await channel.assertExchange(exchange, 'topic', {
+      await channel.assertExchange(exchange, "topic", {
         durable: true,
       });
 
@@ -32,9 +33,9 @@ export class RabbitMQ {
       console.log(
         `✅ RabbitMQ setup: queue "${queue}" bound to exchange "${exchange}"`,
       );
-      console.log(`📋 Routing keys: ${routingKeys.join(', ')}`);
+      console.log(`📋 Routing keys: ${routingKeys.join(", ")}`);
     } catch (error) {
-      console.error('❌ RabbitMQ setup failed:', error);
+      console.error("❌ RabbitMQ setup failed:", error);
       throw error;
     }
   }
