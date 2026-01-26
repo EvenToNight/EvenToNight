@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useQuasar } from 'quasar'
 import type { Event } from '@/api/types/events'
 import EventDetailsHeader from './EventDetailsHeader.vue'
 import EventInfo from './EventInfo.vue'
@@ -9,6 +11,8 @@ import EventReviewsPreview from './EventReviewsPreview.vue'
 import { TICKET_PURCHASE_ROUTE_NAME } from '@/router'
 import type { EventTicketType } from '@/api/types/payments'
 import { useAuthStore } from '@/stores/auth'
+import { api } from '@/api'
+import { useNavigation } from '@/router/utils'
 
 interface Props {
   event: Event
@@ -22,6 +26,29 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
+const $q = useQuasar()
+const { goToUserProfile } = useNavigation()
+const userHasTickets = ref(false)
+
+onMounted(async () => {
+  await checkUserHasTickets()
+})
+
+const checkUserHasTickets = async () => {
+  if (!authStore.user?.id) {
+    userHasTickets.value = false
+    return
+  }
+
+  try {
+    userHasTickets.value = (
+      await api.interactions.userParticipatedToEvent(authStore.user.id, props.event.eventId)
+    ).hasParticipated
+  } catch (error) {
+    console.error('Failed to check user tickets:', error)
+    userHasTickets.value = false
+  }
+}
 
 const handleBuyTickets = () => {
   if (!authStore.user?.id) {
@@ -34,6 +61,43 @@ const handleBuyTickets = () => {
       id: props.event.eventId,
     },
   })
+}
+
+const handleDownloadTickets = async () => {
+  if (!authStore.user?.id) return
+
+  try {
+    const blob = await api.payments.getEventPdfTickets(authStore.user.id, props.event.eventId)
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `tickets-${props.event.title}.pdf`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+
+    $q.notify({
+      type: 'positive',
+      message: 'Tickets downloaded successfully',
+      icon: 'download',
+    })
+  } catch (error) {
+    console.error('Failed to download tickets:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Failed to download tickets',
+      icon: 'error',
+    })
+  }
+}
+
+const handleViewMyTickets = () => {
+  if (!authStore.user?.id) return
+  goToUserProfile(authStore.user.id)
+  setTimeout(() => {
+    window.location.hash = '#tickets'
+  }, 100)
 }
 
 const ticketsAvailable = () => {
@@ -52,17 +116,48 @@ const ticketsAvailable = () => {
       <EventInfo :event="event" :eventTickets="eventTickets" />
       <OrganizationInfo :event="event" />
       <template v-if="event.status === 'PUBLISHED'">
-        <q-btn
-          v-if="ticketsAvailable()"
-          unelevated
-          color="primary"
-          :label="t('eventDetails.buyTickets')"
-          :class="'full-width base-button base-button--primary'"
-          size="lg"
-          @click="handleBuyTickets"
-        />
-        <!-- TODO: show message when no tickets are available -->
-        <div v-else class="sold-out-message full-width">Sold Out</div>
+        <!-- User already has tickets -->
+        <div v-if="userHasTickets" class="ticket-actions">
+          <q-btn
+            unelevated
+            color="primary"
+            icon="download"
+            label="Download Tickets"
+            class="full-width base-button base-button--primary"
+            size="lg"
+            @click="handleDownloadTickets"
+          />
+          <q-btn
+            outline
+            color="primary"
+            icon="confirmation_number"
+            label="View My Tickets"
+            class="full-width base-button"
+            size="lg"
+            @click="handleViewMyTickets"
+          />
+          <q-btn
+            v-if="ticketsAvailable()"
+            flat
+            color="primary"
+            label="Buy More Tickets"
+            class="full-width"
+            @click="handleBuyTickets"
+          />
+        </div>
+        <!-- User doesn't have tickets yet -->
+        <template v-else>
+          <q-btn
+            v-if="ticketsAvailable()"
+            unelevated
+            color="primary"
+            :label="t('eventDetails.buyTickets')"
+            :class="'full-width base-button base-button--primary'"
+            size="lg"
+            @click="handleBuyTickets"
+          />
+          <div v-else class="sold-out-message full-width">Sold Out</div>
+        </template>
       </template>
       <EventReviewsPreview
         v-else-if="event.status === 'COMPLETED'"
@@ -95,6 +190,13 @@ const ticketsAvailable = () => {
   @include dark-mode {
     background: $color-background-dark;
   }
+}
+
+.ticket-actions {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+  margin-top: $spacing-4;
 }
 
 .sold-out-message {
