@@ -30,9 +30,11 @@ const loadItems = async (offset: number, limit: number): Promise<PaginatedRespon
     order: 'asc',
     pagination: { offset, limit },
   })
+  console.log('Fetching events for UserId:', userId.value, response)
 
   if (response.items.length > 0) {
     const eventsData = await api.events.getEventsByIds(response.items)
+    console.log('Fetched events data:', eventsData)
     return {
       items: eventsData.events,
       limit: response.limit,

@@ -80,18 +80,25 @@ export class UserController {
     @Param('userId') userId: string,
     @Query() query: UserEventsQueryDto,
     @CurrentUser('userId') currentUserId: string,
-  ): Promise<PaginatedResponseDto<EventId>> {
+  ): Promise<PaginatedResponseDto<string>> {
     if (userId !== currentUserId) {
       throw new ForbiddenException(
         'Forbidden: Cannot access tickets of other users',
       );
     }
-    return await this.ticketService.findEventsByUserId(
+    const response = await this.ticketService.findEventsByUserId(
       userId,
       Pagination.parse(query.limit, query.offset),
       query.status,
       query.order,
     );
+    return {
+      items: response.items.map((eventId: EventId) => eventId.toString()),
+      totalItems: response.totalItems,
+      hasMore: response.hasMore,
+      limit: response.limit,
+      offset: response.offset,
+    };
   }
 
   /**
