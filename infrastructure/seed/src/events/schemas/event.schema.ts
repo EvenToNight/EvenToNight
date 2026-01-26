@@ -2,10 +2,10 @@ import { z } from "zod";
 import { TagsSchema } from "../../tags.schema";
 
 const EventStatusSchema = z.enum([
-  "draft",
-  "published",
-  "cancelled",
-  "completed"
+  "DRAFT",
+  "PUBLISHED",
+  "CANCELLED",
+  "COMPLETED"
 ]);
 
 const BaseEventSeedSchema = z.object({
@@ -24,12 +24,12 @@ const BaseEventSeedSchema = z.object({
 });
 
 const DraftEventSeedSchema = BaseEventSeedSchema.extend({
-  status: z.literal("draft"),
+  status: z.literal("DRAFT"),
   poster: z.string().optional()
 });
 
 const NonDraftEventSeedSchema = BaseEventSeedSchema.extend({
-  status: EventStatusSchema.exclude(["draft"]),
+  status: EventStatusSchema.exclude(["DRAFT"]),
   poster: z.string()
 });
 
