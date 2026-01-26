@@ -15,7 +15,7 @@ export interface EventToCreate {
 }
 
 export type SeedEvent = EventToCreate & {
-  id: string;
+  _id: string;
   instant: string;
 };
 

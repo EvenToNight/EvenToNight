@@ -9,9 +9,13 @@ services:
       - HOST=${HOST}
       - USER_HOST=http://users:${USERS_SERVICE_PORT}
       - EVENTS_HOST=http://events:${EVENTS_SERVICE_PORT}
+      - MEDIA_HOST=http://media:${MEDIA_SERVICE_PORT}
       - INTERACTIONS_HOST=http://interactions:${INTERACTIONS_SERVICE_PORT}
       - CHAT_HOST=http://chat:${CHAT_SERVICE_PORT}
       - PAYMENTS_HOST=http://payments:${PAYMENTS_SERVICE_PORT}
+      - EVENT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-events-1
+      - EVENTS_DB_NAME=eventonight_events
+
 
 networks:
   eventonight-network:
