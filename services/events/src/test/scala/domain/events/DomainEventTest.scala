@@ -15,14 +15,14 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   override def beforeEach(): Unit =
     super.beforeEach()
     eventPublished = EventPublished(
-      eventId = "event-published-1",
-      creatorId = "creator-1",
-      collaboratorIds = Some(List("collab-1", "collab-2")),
-      name = "Sample Event"
+      eventId = "event-published-1"
     )
     eventUpdated = EventUpdated(
       eventId = "event-updated-1",
-      collaboratorIds = None
+      collaboratorIds = None,
+      name = Some("Sample Event Updated"),
+      date = None,
+      status = "DRAFT"
     )
     eventDeleted = EventDeleted(
       eventId = "event-deleted-1"
@@ -33,15 +33,10 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store all provided data correctly" in:
     eventPublished.eventId shouldBe "event-published-1"
-    eventPublished.creatorId shouldBe "creator-1"
-    eventPublished.collaboratorIds shouldBe Some(List("collab-1", "collab-2"))
-    eventPublished.name shouldBe "Sample Event"
+
   it should "be comparable with itself" in:
     val event2 = EventPublished(
-      eventId = "event-published-1",
-      creatorId = "creator-1",
-      collaboratorIds = Some(List("collab-1", "collab-2")),
-      name = "Sample Event"
+      eventId = "event-published-1"
     )
     eventPublished shouldBe event2
 
@@ -51,11 +46,17 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   it should "store all provided data correctly" in:
     eventUpdated.eventId shouldBe "event-updated-1"
     eventUpdated.collaboratorIds shouldBe None
+    eventUpdated.name shouldBe Some("Sample Event Updated")
+    eventUpdated.date shouldBe None
+    eventUpdated.status shouldBe "DRAFT"
 
   it should "be comparable with itself" in:
     val event2 = EventUpdated(
       eventId = "event-updated-1",
-      collaboratorIds = None
+      collaboratorIds = None,
+      name = Some("Sample Event Updated"),
+      date = None,
+      status = "DRAFT"
     )
     eventUpdated shouldBe event2
 

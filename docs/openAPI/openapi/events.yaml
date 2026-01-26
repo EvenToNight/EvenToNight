@@ -12,9 +12,12 @@ paths:
         and optionally a `poster` file if the event is in DRAFT status.
         If the event status is DRAFT, the poster is optional, and also all the fields in 'event' JSON are optional.
         If the event status is not DRAFT, both the event data and the poster file are required.
+        The creator and collaborators must exist as organizations.
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -23,7 +26,6 @@ paths:
               type: object
               required:
                 - event
-                - poster
               properties:
                 event:
                   type: string
@@ -47,11 +49,10 @@ paths:
                       - lon (number): Decimal degrees (longitude), e.g. -73.968285
                       - link (string): Optional URL or external reference
                     - `date` (string, ISO 8601 format): Event date and time (e.g., "2026-07-15T20:00:00")
-                    - `price` (number): Event ticket price
                     - `status` (string): Event status, must be "DRAFT" or "PUBLISHED"
                     - `creatorId` (string): ID of the event creator
                     - `collaboratorIds` (List of strings): IDs of collaborators. Optional
-                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","price":25.50,"status":"DRAFT","creatorId":"user-123","collaboratorIds":["user-456"]}'
+                  example: '{"title":"Summer Music Festival","description":"An amazing summer music festival with top artists","tags":["Concert","Festival","Live Music"],"location":{"name":"Central Park","country":"United States","country_code":"US","state":"New York","province":"NY","city":"New York","road":"5th Ave","postcode":"10022","house_number":"1","lat":40.785091,"lon":-73.968285,"link":"https://maps.example.com/?q=central+park"},"date":"2026-07-15T20:00:00","status":"DRAFT","creatorId":"user-123","collaboratorIds":["user-456"]}'
                 poster:
                   type: string
                   format: binary
@@ -96,6 +97,29 @@ paths:
                       - "Invalid JSON format: expected } got , at index 45"
                       - "Invalid request: Missing required field 'title'"
                       - "Event validation failed: Invalid date format"
+                      - "Only organizations can create events. Creator ID 'user-123' is not an organization."
+        '401':
+          description: Unauthorized - missing or invalid authentication token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Unauthorized: Missing or invalid authentication token"
+        '403':
+          description: Forbidden - creator ID does not match authenticated user
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:  
+                    type: string
+                    description: Error message
+                    example: "Forbidden: Creator ID does not match authenticated user"
       tags:
         - Event Command API
 
@@ -177,10 +201,6 @@ paths:
                           type: string
                           format: date-time
                           description: Event date and time
-                        price:
-                          type: number
-                          format: double
-                          description: Event ticket price  
                         status:
                           type: string
                           enum: [PUBLISHED]
@@ -200,7 +220,7 @@ paths:
                           nullable: true
               example:
                 events:
-                  - _id: "evt123"
+                  - eventId: "evt123"
                     title: "Summer Concert"
                     description: "Amazing outdoor concert"
                     status: "PUBLISHED"
@@ -235,6 +255,8 @@ paths:
       summary: Search and filter events
       description: |
         Search events with various filters and pagination support
+        If the org is authenticated, DRAFT events created by that org are also included in the results.
+        If no authentication is provided, only PUBLISHED events are returned.
         **Sorting behavior:**
         - Results are sorted by the specified `sortBy` field first
         - If multiple events have the same value for the primary sort field, they are sorted by date (ascending) as a secondary criterion
@@ -244,6 +266,8 @@ paths:
           description: Events service (local development)
         - url: https://events.eventonight.site
           description: Events service (production)
+      security:
+        - BearerAuth: []
       parameters:
         - name: limit
           in: query
@@ -326,31 +350,15 @@ paths:
           required: false
           schema:
             type: string
-        - name: priceMin
-          in: query
-          description: Minimum price filter. If not provided when priceMax is set, it defaults to 0.0.
-          required: false
-          schema:
-            type: number
-            format: double
-          example: 10.0
-        - name: priceMax
-          in: query
-          description: Maximum price filter. If not provided when priceMin is set, it defaults to Double.MaxValue.
-          required: false
-          schema:
-            type: number
-            format: double
-          example: 50.0
         - name: sortBy
           in: query
           description: Field to sort results by. Secondary sort is always by date (ascending).
           required: false
           schema:
             type: string
-            enum: [date, price, title, instant]
+            enum: [date, title, instant]
             default: date
-          example: price
+          example: title
         - name: sortOrder
           in: query
           description: Sort order for the primary sort field
@@ -373,7 +381,7 @@ paths:
                     items:
                       type: object
                       properties:
-                        _id:
+                        eventId:
                           type: string
                           description: Event ID
                         title:
@@ -430,7 +438,7 @@ paths:
                   summary: Successful search with results
                   value:
                     events:
-                      - _id: "evt123"
+                      - eventId: "evt123"
                         title: "Summer Concert"
                         status: "PUBLISHED"
                         date: "2025-07-15T20:00:00"
@@ -452,7 +460,7 @@ paths:
                   summary: Second page of results
                   value:
                     events:
-                      - _id: "evt456"
+                      - eventId: "evt456"
                         title: "Art Exhibition"
                         status: "PUBLISHED"
                     limit: 10
@@ -497,6 +505,8 @@ paths:
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
+      security:
+        - BearerAuth: []      
       parameters:
         - in: path
           name: eventId
@@ -541,6 +551,47 @@ paths:
                     type: string
                     description: Error message
                     example: "Failed to update poster: Invalid file format"
+        '404':
+          description: Event not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    description: Error message
+                    example: "Event not found"
+      tags:
+        - Event Query API
+    delete:
+      summary: Delete event poster
+      description: Deletes the poster image for a specific event.
+      servers:
+        - url: http://localhost:9010
+          description: Events service (local development)
+      security:
+        - BearerAuth: []      
+      parameters:
+        - in: path
+          name: eventId
+          required: true
+          schema:
+            type: string
+          description: The ID of the event to delete the poster for
+          example: "evt_789xyz"
+      responses:
+        '200':
+          description: Event poster deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    description: Success message
+                    example: "Poster deleted successfully"
         '404':
           description: Event not found
           content:
@@ -629,10 +680,6 @@ paths:
                     type: string
                     format: date-time
                     description: Event date and time
-                  price:
-                    type: number
-                    format: double
-                    description: Event ticket price
                   status:
                     type: string
                     enum: [DRAFT, PUBLISHED, CANCELLED]
@@ -701,6 +748,8 @@ paths:
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -734,7 +783,6 @@ paths:
                   - `lon` (number)
                   - `link` (string)
                 - `date` (string, ISO 8601 format): Event date and time
-                - `price` (number): Event ticket price
                 - `status` (string): Event status ("DRAFT", "PUBLISHED", or "CANCELLED")
                 - `collaboratorIds` (array of strings): IDs of collaborators
               properties:
@@ -756,9 +804,21 @@ paths:
                   type: object
                   description: Event location object (optional)
                   properties:
-                    address:
+                    name:
                       type: string
                       example: "Central Park"
+                    state:
+                      type: string
+                      example: "New York"
+                    road:
+                      type: string
+                      example: "5th Ave"
+                    postcode:
+                      type: string
+                      example: "10022"
+                    house_number:
+                      type: string
+                      example: "1"
                     city:
                       type: string
                       example: "New York"
@@ -768,24 +828,25 @@ paths:
                     country:
                       type: string
                       example: "USA"
-                    latitude:
+                    country_code:
+                      type: string
+                      example: "US"
+                    lat:
                       type: number
                       format: double
                       example: 40.785091
-                    longitude:
+                    lon:
                       type: number
                       format: double
                       example: -73.968285
+                    link:
+                      type: string
+                      example: "https://maps.example.com/?q=central+park"
                 date:
                   type: string
                   format: date-time
                   description: Event date and time (optional)
                   example: "2026-07-20T20:00:00"
-                price:
-                  type: number
-                  format: double
-                  description: Event ticket price (optional)
-                  example: 30.00
                 status:
                   type: string
                   enum: [DRAFT, PUBLISHED, CANCELLED]
@@ -797,18 +858,11 @@ paths:
                     type: string
                   description: IDs of collaborators (optional)
                   example: ["user-789"]
-            examples:
-              updateTitle:
-                summary: Update only title
-                value:
-                  title: "New Event Title"
-                  status: "DRAFT"
               updateMultipleFields:
                 summary: Update multiple fields
                 value:
                   title: "Updated Summer Music Festival"
                   description: "An amazing updated summer music festival"
-                  price: 30.00
                   status: "DRAFT"
               updateComplete:
                 summary: Update all fields
@@ -830,7 +884,6 @@ paths:
                     lon: -73.968285
                     link: "https://maps.example.com/?q=central+park"
                   date: "2026-07-20T20:00:00"
-                  price: 30.00
                   status: "PUBLISHED"
       responses:
         '200':
@@ -869,6 +922,8 @@ paths:
       servers:
         - url: http://localhost:9010
           description: Events service (local development)
+      security:
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -974,3 +1029,11 @@ paths:
                   type: string
       tags:
         - Event Tag Routes
+  
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Enter your JWT token in the format: Bearer <token>'

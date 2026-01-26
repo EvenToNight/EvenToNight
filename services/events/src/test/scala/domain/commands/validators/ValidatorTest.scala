@@ -34,7 +34,6 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
         link = Some("http://valid-link.com")
       ),
       date: LocalDateTime = LocalDateTime.now().plusDays(10),
-      price: Double = 20.0,
       status: EventStatus = EventStatus.DRAFT,
       creatorId: String = "valid-creator-id"
   ): CreateEventCommand =
@@ -45,7 +44,6 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       tags = Some(List(EventTag.Venue.Bar)),
       location = Some(location),
       date = Some(date),
-      price = Some(price),
       status = status,
       creatorId = creatorId,
       collaboratorIds = None
@@ -62,7 +60,6 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       organizationId: Option[String] = Some("org-123"),
       city: Option[String] = Some("Sample City"),
       location_name: Option[String] = Some("Sample Venue"),
-      priceRange: Option[(Double, Double)] = Some((10.0, 100.0)),
       sortBy: Option[String] = Some("date"),
       sortOrder: Option[String] = Some("asc")
   ): GetFilteredEventsCommand =
@@ -77,7 +74,6 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       organizationId = organizationId,
       city = city,
       location_name = location_name,
-      priceRange = priceRange,
       sortBy = sortBy,
       sortOrder = sortOrder
     )
@@ -239,7 +235,6 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       None,
       None,
       None,
-      None,
       EventStatus.DRAFT,
       None
     )
@@ -249,13 +244,13 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "reject empty event ID" in:
     import domain.commands.UpdateEventCommand
-    val command = UpdateEventCommand("", Some("Updated Title"), None, None, None, None, None, EventStatus.DRAFT, None)
+    val command = UpdateEventCommand("", Some("Updated Title"), None, None, None, None, EventStatus.DRAFT, None)
     val result  = UpdateEventValidator.validate(command)
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Event ID cannot be empty")
 
   it should "reject empty title when status is Published" in:
-    val command = UpdateEventCommand("valid-event-123", None, None, None, None, None, None, EventStatus.PUBLISHED, None)
+    val command = UpdateEventCommand("valid-event-123", None, None, None, None, None, EventStatus.PUBLISHED, None)
     val result  = UpdateEventValidator.validate(command)
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Title cannot be empty")
@@ -268,7 +263,6 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       None,
       None,
       None,
-      None,
       EventStatus.PUBLISHED,
       None
     )
@@ -277,15 +271,13 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     result.left.value should contain("Description cannot be empty")
 
   it should "collect multiple validation errors when status is Published" in:
-    val command = UpdateEventCommand("valid-event-123", None, None, None, None, None, None, EventStatus.PUBLISHED, None)
+    val command = UpdateEventCommand("valid-event-123", None, None, None, None, None, EventStatus.PUBLISHED, None)
     val result  = UpdateEventValidator.validate(command)
     result shouldBe a[Left[?, ?]]
     val errors = result.left.value
-    errors should have length 5
     errors should contain allOf (
       "Title cannot be empty",
       "Description cannot be empty",
-      "Price cannot be empty",
       "Location has invalid parameters",
       "Date must be in the future"
     )
@@ -337,15 +329,3 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val result = GetFilteredEventsValidator.validate(command)
     result shouldBe a[Left[?, ?]]
     result.left.value should contain("Date range: start date must be before end date")
-
-  it should "reject negative prices in price range" in:
-    val command = validGetFilteredEventsCommand(priceRange = Some((-10.0, 50.0)))
-    val result  = GetFilteredEventsValidator.validate(command)
-    result shouldBe a[Left[?, ?]]
-    result.left.value should contain("Price range: prices cannot be negative")
-
-  it should "reject min greater than max in price range" in:
-    val command = validGetFilteredEventsCommand(priceRange = Some((100.0, 50.0)))
-    val result  = GetFilteredEventsValidator.validate(command)
-    result shouldBe a[Left[?, ?]]
-    result.left.value should contain("Price range: minimum price must be less than or equal to maximum price")
