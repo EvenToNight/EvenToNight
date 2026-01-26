@@ -9,8 +9,6 @@ import service.EventService
 import ujson.Obj
 import utils.Utils
 
-import scala.util.Try
-
 class EventQueryRoutes(eventService: EventService) extends Routes:
 
   private val mediaServiceUrl = "http://media:9020"
@@ -75,11 +73,11 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       if auth.startsWith("Bearer ") then Some(auth.drop(7)) else None
     }
 
-    var isAuthenticated = false
-
     val authenticatedUserId: Option[String] = authOpt.flatMap { token =>
       JwtService.validateToken(token).toOption.map(_.userId)
     }
+
+    val isAuthenticated = organizationId.exists(orgId => authenticatedUserId.contains(orgId))
 
     val authCheckResponse: Option[cask.Response[ujson.Value]] =
       if status.map(_.toUpperCase).contains("DRAFT") then
@@ -103,10 +101,6 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
     if authCheckResponse.isDefined then
       authCheckResponse.get
     else
-      organizationId.foreach { orgId =>
-        if authenticatedUserId.isDefined && authenticatedUserId.get == orgId then
-          isAuthenticated = true
-      }
 
       val tagsList: Option[List[String]] = tags.map(_.toList)
       val command: GetFilteredEventsCommand = Utils.parseEventFilters(
@@ -171,7 +165,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
         authenticatedUser match
           case false =>
             cask.Response(
-              Obj("error" -> "Forbidden", "message" -> "User is not authorized to delete this event"),
+              Obj("error" -> "Forbidden", "message" -> "User is not authorized to update the poster for this event"),
               statusCode = 403
             )
           case true =>
@@ -225,14 +219,11 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
         authenticatedUser match
           case false =>
             cask.Response(
-              Obj("error" -> "Forbidden", "message" -> "User is not authorized to delete this event"),
+              Obj("error" -> "Forbidden", "message" -> "User is not authorized to delete the poster for this event"),
               statusCode = 403
             )
           case true =>
             val defaultUrl = "events/default.jpg"
-            Try(
-              requests.delete(s"$mediaServiceUrl/events/$eventId")
-            ).toEither
 
             val updateCommand = UpdateEventPosterCommand(
               eventId = eventId,

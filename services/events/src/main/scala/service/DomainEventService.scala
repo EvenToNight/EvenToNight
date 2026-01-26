@@ -2,7 +2,7 @@ package service
 
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventCommand}
 import domain.events.{EventCancelled, EventCreated, EventDeleted, EventPublished, EventUpdated}
-import domain.models.{Event, EventStatus}
+import domain.models.{Event, EventStatus, EventStatusTransitions}
 import infrastructure.db.{EventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.EventPublisher
 import utils.Utils
@@ -81,9 +81,11 @@ class DomainEventService(
                 }
 
                 postResult match
-                  case Failure(_) =>
+                  case Failure(exception) =>
                     eventRepository.delete(newEvent._id)
-                    Left("Failed to register event in payments service")
+                    Left(
+                      s"Failed to register event in payments service: ${Option(exception.getMessage).getOrElse(exception.toString)}"
+                    )
                   case Success(response) if response.statusCode != 200 =>
                     eventRepository.delete(newEvent._id)
                     Left(s"Payments service error: ${response.statusCode}")
@@ -118,43 +120,50 @@ class DomainEventService(
       case None =>
         eventRepository.findById(cmd.eventId) match
           case Some(event) =>
-            event.status != EventStatus.DRAFT && cmd.status == EventStatus.DRAFT match
-              case true =>
-                Left("Cannot change event status back to DRAFT once it has been published or cancelled")
-              case false =>
+            if !EventStatusTransitions.isValidTransition(event.status, cmd.status) then
+              Left(EventStatusTransitions.getTransitionErrorMessage(event.status, cmd.status))
+            else
 
-                val updatedEvent = event.copy(
-                  title = cmd.title,
-                  description = cmd.description,
-                  tags = cmd.tags,
-                  location = cmd.location,
-                  date = cmd.date,
-                  status = cmd.status,
-                  collaboratorIds = cmd.collaboratorIds.orElse(event.collaboratorIds)
-                )
-                eventRepository.update(updatedEvent) match
-                  case Left(_) =>
-                    Left(s"Failed to update event with id ${cmd.eventId}")
-                  case Right(_) =>
+              val updatedEvent = event.copy(
+                title = cmd.title,
+                description = cmd.description,
+                tags = cmd.tags,
+                location = cmd.location,
+                date = cmd.date,
+                status = cmd.status,
+                collaboratorIds = cmd.collaboratorIds.orElse(event.collaboratorIds)
+              )
+              eventRepository.update(updatedEvent) match
+                case Left(_) =>
+                  Left(s"Failed to update event with id ${cmd.eventId}")
+                case Right(_) =>
+                  publisher.publish(
+                    EventUpdated(
+                      eventId = updatedEvent._id,
+                      collaboratorIds = updatedEvent.collaboratorIds,
+                      name = updatedEvent.title,
+                      date = updatedEvent.date,
+                      status = updatedEvent.status.asString,
+                      tags = cmd.tags.map(_.map(_.displayName)),
+                      instant = Some(updatedEvent.instant.toEpochMilli),
+                      locationName = cmd.location.flatMap(l => l.name.orElse(l.city))
+                    )
+                  )
+                  if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
                     publisher.publish(
-                      EventUpdated(
-                        eventId = updatedEvent._id,
-                        collaboratorIds = updatedEvent.collaboratorIds,
-                        name = updatedEvent.title,
-                        date = updatedEvent.date,
-                        status = updatedEvent.status.asString,
-                        tags = cmd.tags.map(_.map(_.displayName)),
-                        instant = Some(updatedEvent.instant.toEpochMilli),
-                        locationName = cmd.location.flatMap(l => l.name.orElse(l.city))
+                      EventPublished(
+                        eventId = updatedEvent._id
                       )
                     )
-                    if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
-                      publisher.publish(
-                        EventPublished(
-                          eventId = updatedEvent._id
-                        )
+
+                  if event.status != EventStatus.CANCELLED && updatedEvent.status == EventStatus.CANCELLED then
+                    publisher.publish(
+                      EventCancelled(
+                        eventId = updatedEvent._id
                       )
-                    Right(())
+                    )
+
+                  Right(())
           case None =>
             Left(s"Event with id ${cmd.eventId} not found")
 

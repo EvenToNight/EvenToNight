@@ -3,6 +3,7 @@ package app
 import controller.Controller
 import infrastructure.db.{MongoEventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.{ExternalEventHandler, RabbitEventConsumer, RabbitEventPublisher}
+import middleware.auth.JwtService
 import service.EventService
 
 object Main extends App:
@@ -47,6 +48,8 @@ object Main extends App:
     handler = externalEventHandler
   )
   messageConsumer.start()
+
+  JwtService.initialize()
 
   val routes: Controller = new Controller(eventService)
   routes.main(Array())

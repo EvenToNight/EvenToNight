@@ -2,6 +2,7 @@ import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 
 export enum EventStatus {
+  DRAFT = 'DRAFT',
   PUBLISHED = 'PUBLISHED',
   COMPLETED = 'COMPLETED',
   CANCELLED = 'CANCELLED',
