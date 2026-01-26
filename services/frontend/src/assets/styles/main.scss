@@ -66,6 +66,11 @@ body.body--dark {
     color: $color-white;
   }
 
+  // Fix checkbox checkmark color in dark mode
+  .q-checkbox__svg .q-checkbox__truthy {
+    stroke: #000000 !important;
+  }
+
 //   // Chat support component CSS variables
 //   --q-background: #202c33;
 //   --q-text-primary: #e9edef;
