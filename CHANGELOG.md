@@ -1,3 +1,20 @@
+## [1.21.0](https://github.com/EvenToNight/EvenToNight/compare/v1.20.2...v1.21.0) (2026-01-26)
+
+### Features
+
+* **create-event:** implement check if creatorId and collaboratorIds are organizations ([8887136](https://github.com/EvenToNight/EvenToNight/commit/88871366cf04aed474e5c1f976deb5654da1bfd0))
+* **create-event:** set authentication in event creation ([a2e82df](https://github.com/EvenToNight/EvenToNight/commit/a2e82df15632e8b6a806d395fe62a891e3b8811d))
+* **event-delete:** add authentication for delete an event ([6e02f33](https://github.com/EvenToNight/EvenToNight/commit/6e02f3350d4f35e09694497d47eb530a5d9b7f3d))
+* **event-price:** delete event price in event service ([ad49e39](https://github.com/EvenToNight/EvenToNight/commit/ad49e394d62e8a88da02082861d919ff6483996a))
+* **search-draft:** set authentication for searching event draft ([8c86f8c](https://github.com/EvenToNight/EvenToNight/commit/8c86f8cbaf5407d7d5d47cda058c6dded92eba0d))
+* **search-organization-event:** set authorizations for return draft event of a organization ([70add40](https://github.com/EvenToNight/EvenToNight/commit/70add401d3abaf92ca59396ca664ee98022b80bf))
+
+### Bug Fixes
+
+* **create-draft:** fix bug in created event message in interactions ([8846689](https://github.com/EvenToNight/EvenToNight/commit/88466891828cddb08a72600857914a69a7aec238))
+* **event-test:** fix bug in test ([af4cdd8](https://github.com/EvenToNight/EvenToNight/commit/af4cdd82ba08979064ca6e5514d64e26fc849825))
+* **update-event:** denied change status to draft from published ([d51d0f3](https://github.com/EvenToNight/EvenToNight/commit/d51d0f3b4f98304ded33dd6cac6437408e398caf))
+
 ## [1.20.2](https://github.com/EvenToNight/EvenToNight/compare/v1.20.1...v1.20.2) (2026-01-25)
 
 ### Bug Fixes
