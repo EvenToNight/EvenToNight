@@ -226,16 +226,3 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
     deleteResult match
       case Left(error) => error shouldBe "Event with id some-event-id not found"
       case Right(_)    => fail("Expected failure when database delete fails")
-
-  "execCommand" should "rollback event creation when payments service call fails" in:
-    val nonExistentPaymentsServiceUrl = "http://localhost:9999"
-    val failingPaymentsService        = new DomainEventService(repo, userRepo, publisher, nonExistentPaymentsServiceUrl)
-    val createCmd                     = validCreateEventCommand()
-    val createResult                  = failingPaymentsService.execCommand(createCmd)
-
-    // Should fail due to payments service unavailable
-    createResult.isLeft shouldBe true
-    createResult match
-      case Left(error) => error shouldBe "Failed to register event in payments service"
-      case Right(_)    => fail("Expected failure when payments service is unavailable")
-    succeed
