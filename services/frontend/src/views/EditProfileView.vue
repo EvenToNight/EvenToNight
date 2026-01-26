@@ -63,7 +63,7 @@ const handleSave = async () => {
       website: website.value.trim() || undefined,
     }
 
-    const updatedUser = await authStore.updateUserById(authStore.user.id, {
+    const updatedUser = await authStore.updateUser({
       ...updateReq,
       avatarFile: avatarModified.value ? avatar.value : undefined,
     })

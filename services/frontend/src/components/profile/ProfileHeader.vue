@@ -114,7 +114,7 @@ const handleAvatarChange = async (file: File | null) => {
   const localPreviewUrl = URL.createObjectURL(file)
   currentAvatarUrl.value = localPreviewUrl
 
-  const updatedUser = await authStore.updateUserById(authStore.user!.id, { avatarFile: file })
+  const updatedUser = await authStore.updateUser({ avatarFile: file })
   user.value.avatar = updatedUser.avatar
 
   $q.notify({

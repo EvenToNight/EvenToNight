@@ -83,7 +83,7 @@ export const useAuthStore = defineStore('auth', () => {
           role: isOrganization ? 'organization' : 'member',
         })
       )
-      await updateUserById(user.value!.id, {
+      await updateUser({
         language: locale.value,
         darkMode: $q.dark.isActive,
       })
@@ -145,20 +145,17 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const updateUserById = async (
-    id: UserID,
-    data: Partial<User> & { avatarFile?: File | null }
-  ): Promise<User> => {
-    if (user.value && user.value.id === id) {
+  const updateUser = async (data: Partial<User> & { avatarFile?: File | null }): Promise<User> => {
+    if (user.value?.id) {
       const { avatarFile, ...userData } = data
       const updatedUser = { ...user.value, ...userData }
 
       if (avatarFile !== undefined) {
-        const response = await api.users.updateUserAvatarById(id, avatarFile)
+        const response = await api.users.updateUserAvatarById(user.value.id, avatarFile)
         updatedUser.avatar = response.avatarUrl
       }
 
-      await api.users.updateUserById(id, updatedUser)
+      await api.users.updateUserById(user.value.id, updatedUser)
       if (userData.language) {
         await changeLocale(userData.language)
       }
@@ -249,7 +246,7 @@ export const useAuthStore = defineStore('auth', () => {
     login,
     logout,
     refreshAccessToken,
-    updateUserById,
+    updateUser,
     initializeAuth,
     setupAutoRefresh,
     clearAuth,

@@ -134,7 +134,7 @@ const handleSave = async () => {
   saving.value = true
   try {
     // TODO: Save to backend when API is ready
-    await authStore.updateUserById(authStore.user!.id, {
+    await authStore.updateUser({
       birthDate: new Date(birthDate.value),
       gender: gender.value || undefined,
       interests: selectedTags.value || undefined,
