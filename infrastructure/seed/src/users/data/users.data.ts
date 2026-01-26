@@ -1,5 +1,5 @@
 import { UserSeedInput } from "../schemas/user.schema";
-import { mediaBaseUrl } from "../../config/env";
+import { MEDIA_BASE_URL } from "../../config/env";
 
 export const usersSeedData: UserSeedInput[] = [
   // ---------- MEMBERS ----------
@@ -23,7 +23,7 @@ export const usersSeedData: UserSeedInput[] = [
     gender: "female",
     interests: ["Free Entry", "Students"],
     name: "Jane Smith",
-    avatar: `http://${mediaBaseUrl}/users/default.png`
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`
   },
   {
     username: "alice95",
@@ -36,7 +36,7 @@ export const usersSeedData: UserSeedInput[] = [
     birthDate: new Date("1995-05-10").toISOString(),
     interests: ["Live Music", "Club"],
     name: "Alice Rossi",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "Artist and musician"
   },
   {
@@ -46,7 +46,7 @@ export const usersSeedData: UserSeedInput[] = [
     role: "member",
     interests: ["Bar", "Restaurant"],
     name: "Bob Bianchi",
-    avatar: `http://${mediaBaseUrl}/users/default.png`
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`
   },
   {
     username: "carol",
@@ -55,7 +55,7 @@ export const usersSeedData: UserSeedInput[] = [
     role: "member",
     darkMode: true,
     interests: ["Dinner", "Party"],
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "Loves good food and fun nights out"
   },
   {
@@ -67,7 +67,7 @@ export const usersSeedData: UserSeedInput[] = [
     gender: "male",
     interests: ["Students", "Outdoor"],
     name: "Davide Neri",
-    avatar: `http://${mediaBaseUrl}/users/default.png`
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`
   },
   {
     username: "emma_lopez",
@@ -78,7 +78,7 @@ export const usersSeedData: UserSeedInput[] = [
     language: "es",
     interests: ["Reggaeton", "DJ Set"],
     name: "Emma Lopez",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "Music lover"
   },
   {
@@ -90,14 +90,14 @@ export const usersSeedData: UserSeedInput[] = [
     birthDate: new Date("1988-07-15").toISOString(),
     interests: ["Pub", "Theatre"],
     name: "Francesco Bianchi",
-    avatar: `http://${mediaBaseUrl}/users/default.png`
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`
   },
   {
     username: "grace",
     email: "grace@example.com",
     password: "password123",
     role: "member",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "Traveler and foodie"
   },
   {
@@ -109,7 +109,7 @@ export const usersSeedData: UserSeedInput[] = [
     language: "de",
     gender: "male",
     name: "Henry Neri",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "Engineer and hobbyist photographer"
   },
 
@@ -122,7 +122,7 @@ export const usersSeedData: UserSeedInput[] = [
     language: "it",
     interests: ["DJ Set", "Over 18"],
     name: "Cocoricò",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "Nightlife club in Italy",
     contacts: ["https://www.cocorico.it"]
   },
@@ -135,7 +135,7 @@ export const usersSeedData: UserSeedInput[] = [
     language: "it",
     interests: ["Concert"],
     name: "D'Alessandro & Galli",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "Leader in business music sector"
   },
   {
@@ -145,7 +145,7 @@ export const usersSeedData: UserSeedInput[] = [
     role: "organization",
     interests: ["Show", "Live Music"],
     name: "Stage Vibes",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "We bring live shows and music to the stage"
   },
   {
@@ -156,7 +156,7 @@ export const usersSeedData: UserSeedInput[] = [
     language: "it",
     interests: ["Bar"],
     name: "Corner Bar",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "A cozy bar for drinks, chats and good vibes"
   },
   {
@@ -166,7 +166,7 @@ export const usersSeedData: UserSeedInput[] = [
     role: "organization",
     interests: ["Party", "Outdoor"],
     name: "Open Air Fest",
-    avatar: `http://${mediaBaseUrl}/users/default.png`
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`
   },
   {
     username: "sing&fun",
@@ -176,7 +176,7 @@ export const usersSeedData: UserSeedInput[] = [
     darkMode: true,
     interests: ["Karaoke", "Party"],
     name: "Sing & Fun",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "Join us for fun karaoke nights and lively parties"
   },
   {
@@ -197,7 +197,7 @@ export const usersSeedData: UserSeedInput[] = [
     language: "fr",
     interests: ["Party", "Outdoor"],
     name: "Sunset Vibes",
-    avatar: `http://${mediaBaseUrl}/users/default.png`
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`
   },
   {
     username: "exclusive_nights",
@@ -206,7 +206,7 @@ export const usersSeedData: UserSeedInput[] = [
     role: "organization",
     interests: ["Private Event", "Over 18"],
     name: "Exclusive Nights",
-    avatar: `http://${mediaBaseUrl}/users/default.png`
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`
   },
   {
     username: "electric_rockers",
@@ -215,7 +215,7 @@ export const usersSeedData: UserSeedInput[] = [
     role: "organization",
     language: "en",
     interests: ["Rock", "Electronic", "Live Music"],
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    avatar: `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: "Bringing electrifying rock and electronic live shows to the stage"
   }
 ];

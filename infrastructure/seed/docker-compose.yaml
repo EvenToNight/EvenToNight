@@ -6,6 +6,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
+      - HOST=${HOST}
       - USER_HOST=http://users:${USERS_SERVICE_PORT}
       - EVENTS_HOST=http://events:${EVENTS_SERVICE_PORT}
       - INTERACTIONS_HOST=http://interactions:${INTERACTIONS_SERVICE_PORT}

@@ -1,4 +1,4 @@
-import { DataProvider } from './../seed';
+import { DataProvider } from '../seed';
 import { usersSeedData } from "./data/users.data";
 import { registerUser, updateAvatar, updateUser } from './services/users.service';
 import { UserSeedInput, UserSeedSchema } from './schemas/user.schema';
@@ -21,7 +21,6 @@ export class UserSeed implements DataProvider<UserSeedResult> {
       try {
         const parsedUser: UserSeedInput = UserSeedSchema.parse(user);
         const { userId, token } = await registerUser(parsedUser);
-
         await updateUser(userId, parsedUser, token)
 
         const usersWithCustomAvatar = ["jane_smith", "alice95", "emma_lopez", "henry_photographer"];

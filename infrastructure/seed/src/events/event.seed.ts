@@ -28,7 +28,7 @@ export class EventSeed implements DataProvider<EventSeedResult> {
         successCount++;
         console.log(`✓ Event created: ${eventId}`);
 
-        const posterUrl = posterPath ? `http://media.${MEDIA_HOST}/${eventId}/${path.basename(posterPath)}` : undefined;
+        const posterUrl = posterPath ? `http://media.${HOST}/${eventId}/${path.basename(posterPath)}` : undefined;
         
         createdEvents.push(
           removeUndefined({

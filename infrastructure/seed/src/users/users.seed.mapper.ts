@@ -1,4 +1,4 @@
-import { mediaBaseUrl } from "../config/env";
+import { MEDIA_BASE_URL } from "../config/env";
 import { UserSeedInput } from "./schemas/user.schema";
 import { SeedUser } from "./types/users.types";
 
@@ -15,7 +15,7 @@ export function toSeedUser(
     language: input.language ?? "en",
     interests: input.interests,
     name: input.name ?? input.username,
-    avatar: input.avatar ?? `http://${mediaBaseUrl}/users/default.png`,
+    avatar: input.avatar ?? `http://${MEDIA_BASE_URL}/users/default.png`,
     bio: input.bio
   };
 

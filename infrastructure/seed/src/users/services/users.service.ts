@@ -15,7 +15,6 @@ export async function registerUser(user: UserSeedInput): Promise<{userId: string
       role: user.role
     }
     const response = await axios.post<LoginResponseDTO>(`${USERS_BASE_URL}/register`, body);
-
     return { userId: response.data.id, token: response.data.accessToken };
 
   } catch (err: any) {

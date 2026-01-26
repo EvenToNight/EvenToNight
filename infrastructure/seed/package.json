@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "seed": "tsx seed.ts",
+    "seed": "tsx src/seed.ts",
     "check": "tsc --noEmit"
   },
   "dependencies": {
