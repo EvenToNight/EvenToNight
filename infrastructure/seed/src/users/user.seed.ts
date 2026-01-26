@@ -25,7 +25,7 @@ export class UserSeed implements DataProvider<UserSeedResult> {
 
         const usersWithCustomAvatar = ["jane_smith", "alice95", "emma_lopez", "henry_photographer"];
         if (usersWithCustomAvatar.includes(user.username)) {
-          const avatarPath = path.resolve("users/data/avatars", `${user.username}.jpg`);
+          const avatarPath = path.resolve("src/users/data/avatars", `${user.username}.jpg`);
           const avatarResult = await updateAvatar(userId, token, avatarPath);
           parsedUser.avatar = avatarResult.avatarUrl;
         }
