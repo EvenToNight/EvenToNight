@@ -1,8 +1,9 @@
-import { UserSeed } from "./user";
+import { EventSeed } from "./events/event.seed";
+import { UserSeed } from "./users/user.seed";
 import { execSync } from "child_process";
 
-export interface DataProvider {
-  populate: () => Promise<void>;
+export interface DataProvider<T=void> {
+  populate: () => Promise<T>;
 }
 
 const DOCKER_CONTAINER =
@@ -24,8 +25,12 @@ function dropDatabase() {
 }
 
 async function seed() {
-  dropDatabase();
-  await new UserSeed().populate();
+  //dropDatabase();
+  const { users } = await new UserSeed().populate();
+  console.log("Users list:\n", JSON.stringify(users, null, 2));
+  
+  const events = await new EventSeed(users).populate();
+  console.log("Events list:\n", JSON.stringify(events, null, 2));
   // Add other seeders here
 }
 

@@ -1,17 +1,9 @@
-import { UserSeed, UserSeedSchema } from "../schemas/user.schema";
-const mediaBaseUrl = process.env.MEDIA_BASE_URL || "localhost:9020";
+import { UserSeedInput } from "../schemas/user.schema";
+import { mediaBaseUrl } from "../../config/env";
 
-const payments_seed_users = [
-  username: "john_doe",
-  language: "it",
-]
-
-
-
-export const usersSeedData: UserSeed[] = [
+export const usersSeedData: UserSeedInput[] = [
   // ---------- MEMBERS ----------
-  UserSeedSchema.parse({
-    ref: "member1",
+  {
     username: "john_doe",
     email: "john@example.com",
     password: "password123",
@@ -20,25 +12,21 @@ export const usersSeedData: UserSeed[] = [
     language: "en",
     gender: "male",
     birthDate: new Date("1990-01-01").toISOString(),
-    interests: ["gaming", "coding"],
-    name: "John Doe",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
-    bio: "Loves technology"
-  }),
-  UserSeedSchema.parse({
-    ref: "member2",
+    interests: ["Dinner", "Restaurant", "Pub"],
+    name: "John Doe"
+  },
+  {
     username: "jane_smith",
     email: "jane@example.com",
     password: "password123",
     role: "member",
     gender: "female",
-    interests: ["reading", "traveling"],
+    interests: ["Free Entry", "Students"],
     name: "Jane Smith",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
-  }),
-  UserSeedSchema.parse({
-    ref: "member3",
-    username: "alice",
+    avatar: `http://${mediaBaseUrl}/users/default.png`
+  },
+  {
+    username: "alice95",
     email: "alice@example.com",
     password: "password123",
     role: "member",
@@ -46,79 +34,74 @@ export const usersSeedData: UserSeed[] = [
     language: "it",
     gender: "female",
     birthDate: new Date("1995-05-10").toISOString(),
-    interests: ["music", "art"],
+    interests: ["Live Music", "Club"],
     name: "Alice Rossi",
     avatar: `http://${mediaBaseUrl}/users/default.png`,
     bio: "Artist and musician"
-  }),
-  UserSeedSchema.parse({
-    ref: "member4",
+  },
+  {
     username: "bob",
     email: "bob@example.com",
     password: "password123",
     role: "member",
+    interests: ["Bar", "Restaurant"],
     name: "Bob Bianchi",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
-  }),
-  UserSeedSchema.parse({
-    ref: "member5",
+    avatar: `http://${mediaBaseUrl}/users/default.png`
+  },
+  {
     username: "carol",
     email: "carol@example.com",
     password: "password123",
     role: "member",
     darkMode: true,
-    interests: ["sports", "gaming"],
-    name: "Carol Verdi",
+    interests: ["Dinner", "Party"],
     avatar: `http://${mediaBaseUrl}/users/default.png`,
-    bio: "Avid gamer"
-  }),
-  UserSeedSchema.parse({
-    ref: "member6",
+    bio: "Loves good food and fun nights out"
+  },
+  {
     username: "dave",
     email: "dave@example.com",
     password: "password123",
     role: "member",
-    language: "fr",
+    language: "it",
     gender: "male",
-    name: "Dave Neri",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
-  }),
-  UserSeedSchema.parse({
-    ref: "member7",
-    username: "emma",
-    email: "emma@example.com",
+    interests: ["Students", "Outdoor"],
+    name: "Davide Neri",
+    avatar: `http://${mediaBaseUrl}/users/default.png`
+  },
+  {
+    username: "emma_lopez",
+    email: "emmalopez@example.com",
     password: "password123",
     role: "member",
     darkMode: true,
     language: "es",
-    name: "Emma Rossi",
+    interests: ["Reggaeton", "DJ Set"],
+    name: "Emma Lopez",
     avatar: `http://${mediaBaseUrl}/users/default.png`,
-    bio: "Traveler and foodie"
-  }),
-  UserSeedSchema.parse({
-    ref: "member8",
+    bio: "Music lover"
+  },
+  {
     username: "frank",
     email: "frank@example.com",
     password: "password123",
     role: "member",
     gender: "male",
     birthDate: new Date("1988-07-15").toISOString(),
-    name: "Frank Bianchi",
+    interests: ["Pub", "Theatre"],
+    name: "Francesco Bianchi",
     avatar: `http://${mediaBaseUrl}/users/default.png`
-  }),
-  UserSeedSchema.parse({
-    ref: "member9",
+  },
+  {
     username: "grace",
     email: "grace@example.com",
     password: "password123",
     role: "member",
-    interests: ["reading", "cooking"],
-    name: "Grace Verde",
-    avatar: `http://${mediaBaseUrl}/users/default.png`
-  }),
-  UserSeedSchema.parse({
-    ref: "member10",
-    username: "henry",
+    avatar: `http://${mediaBaseUrl}/users/default.png`,
+    bio: "Traveler and foodie"
+  },
+  {
+    username: "henry_photographer",
     email: "henry@example.com",
     password: "password123",
     role: "member",
@@ -128,120 +111,111 @@ export const usersSeedData: UserSeed[] = [
     name: "Henry Neri",
     avatar: `http://${mediaBaseUrl}/users/default.png`,
     bio: "Engineer and hobbyist photographer"
-  }),
+  },
 
   // ---------- ORGANIZATIONS ----------
-  UserSeedSchema.parse({
-    ref: "org1",
+  {
     username: "Cocoricò",
     email: "contact@cocorico.com",
     password: "p@ssword123",
     role: "organization",
     language: "it",
-    interests: ["dance", "music"],
+    interests: ["DJ Set", "Over 18"],
     name: "Cocoricò",
     avatar: `http://${mediaBaseUrl}/users/default.png`,
     bio: "Nightlife club in Italy",
     contacts: ["https://www.cocorico.it"]
-  }),
-  UserSeedSchema.parse({
-    ref: "org2",
+  },
+  {
     username: "Di and Gi Srl",
     email: "contact@diandgi.com",
     password: "password123",
     role: "organization",
     darkMode: true,
     language: "it",
-    interests: ["concerts", "festivals"],
+    interests: ["Concert"],
     name: "D'Alessandro & Galli",
     avatar: `http://${mediaBaseUrl}/users/default.png`,
     bio: "Leader in business music sector"
-  }),
-  UserSeedSchema.parse({
-    ref: "org3",
-    username: "initech_org",
-    email: "contact@initech.com",
+  },
+  {
+    username: "stagevibes",
+    email: "contact@stagevibes.com",
     password: "password123",
     role: "organization",
-    name: "Initech",
+    interests: ["Show", "Live Music"],
+    name: "Stage Vibes",
     avatar: `http://${mediaBaseUrl}/users/default.png`,
-    interests: ["software", "it services"]
-  }),
-  UserSeedSchema.parse({
-    ref: "org4",
-    username: "umbrella_org",
-    email: "contact@umbrella.com",
+    bio: "We bring live shows and music to the stage"
+  },
+  {
+    username: "cornerbar",
+    email: "info@cornerbar.it",
     password: "password123",
     role: "organization",
     language: "it",
-    interests: ["pharma", "research"],
-    name: "Umbrella Corporation",
+    interests: ["Bar"],
+    name: "Corner Bar",
     avatar: `http://${mediaBaseUrl}/users/default.png`,
-    bio: "Global pharmaceutical company"
-  }),
-  UserSeedSchema.parse({
-    ref: "org5",
-    username: "wayne_org",
-    email: "info@wayne.com",
-    password: "password123",
+    bio: "A cozy bar for drinks, chats and good vibes"
+  },
+  {
+    username: "openair_fest",
+    email: "info@openair.com",
+    password: "F3st!v@l#",
     role: "organization",
-    interests: ["finance", "real estate"],
-    name: "Wayne Enterprises",
+    interests: ["Party", "Outdoor"],
+    name: "Open Air Fest",
     avatar: `http://${mediaBaseUrl}/users/default.png`
-  }),
-  UserSeedSchema.parse({
-    ref: "org6",
-    username: "stark_org",
-    email: "contact@stark.com",
+  },
+  {
+    username: "sing&fun",
+    email: "hello@singandfun.com",
     password: "password123",
     role: "organization",
     darkMode: true,
-    name: "Stark Industries",
+    interests: ["Karaoke", "Party"],
+    name: "Sing & Fun",
     avatar: `http://${mediaBaseUrl}/users/default.png`,
-    bio: "Technology and defense company",
-    contacts: ["www.starkindustries.com"]
-  }),
-  UserSeedSchema.parse({
-    ref: "org7",
-    username: "piedpiper",
-    email: "contact@piedpiper.com",
+    bio: "Join us for fun karaoke nights and lively parties"
+  },
+  {
+    username: "taste_nightlife",
+    email: "contact@tastenightlife.com",
     password: "password123",
     role: "organization",
-    name: "Pied Piper",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
-    interests: ["tech", "software"]
-  }),
-  UserSeedSchema.parse({
-    ref: "org8",
-    username: "hooli_org",
-    email: "contact@hooli.com",
-    password: "password123",
+    language: "en",
+    interests: ["Dinner", "Show", "Live Music"],
+    name: "Taste & Nightlife",
+    bio: "Combining delicious dinners with live music and entertaining shows"
+  },
+  {
+    username: "sunset_vibes",
+    email: "contact@sunsetvibes.com",
+    password: "Suns3t!2026",
     role: "organization",
     language: "fr",
-    name: "Hooli",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
-    bio: "Innovative tech company"
-  }),
-  UserSeedSchema.parse({
-    ref: "org9",
-    username: "vega_org",
-    email: "contact@vega.com",
-    password: "password123",
+    interests: ["Party", "Outdoor"],
+    name: "Sunset Vibes",
+    avatar: `http://${mediaBaseUrl}/users/default.png`
+  },
+  {
+    username: "exclusive_nights",
+    email: "contact@exclusivenights.com",
+    password: "hD9#sQ4!jZ6p",
     role: "organization",
-    name: "Vega Tech",
-    avatar: `http://${mediaBaseUrl}/users/default.png`,
-  }),
-  UserSeedSchema.parse({
-    ref: "org10",
-    username: "globex_org",
-    email: "contact@globex.com",
-    password: "password123",
+    interests: ["Private Event", "Over 18"],
+    name: "Exclusive Nights",
+    avatar: `http://${mediaBaseUrl}/users/default.png`
+  },
+  {
+    username: "electric_rockers",
+    email: "contact@electricrockers.com",
+    password: "G@l@xyR0ck!",
     role: "organization",
-    darkMode: true,
     language: "en",
-    interests: ["finance", "consulting"],
-    name: "Globex Inc",
+    interests: ["Rock", "Electronic", "Live Music"],
     avatar: `http://${mediaBaseUrl}/users/default.png`,
-    bio: "Global business solutions"
-  }),
+    bio: "Bringing electrifying rock and electronic live shows to the stage"
+  }
 ];
