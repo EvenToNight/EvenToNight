@@ -9,9 +9,9 @@ import org.bson.Document
 import scala.util.{Failure, Success, Try}
 
 trait UserMetadataRepository:
-  def save(user: UserMetadata): Unit
+  def save(user: UserMetadata): Either[Throwable, Unit]
   def findById(id: String): Option[UserMetadata]
-  def delete(id: String): Unit
+  def delete(id: String): Either[Throwable, Unit]
 
 case class MongoUserMetadataRepository(
     connectionString: String,
@@ -24,7 +24,7 @@ case class MongoUserMetadataRepository(
   private val database: MongoDatabase               = mongoClient.getDatabase(databaseName)
   private val collection: MongoCollection[Document] = database.getCollection(collectionName)
 
-  def save(user: UserMetadata): Unit =
+  def save(user: UserMetadata): Either[Throwable, Unit] =
     val replaceOptions = new ReplaceOptions().upsert(true)
 
     Try {
@@ -37,8 +37,14 @@ case class MongoUserMetadataRepository(
         Left(ex)
 
   def findById(id: String): Option[UserMetadata] =
-    val docOption = Option(collection.find(Filters.eq("id", id)).first())
+    val docOption = Option(collection.find(Filters.eq("_id", id)).first())
     docOption.map(UserMetadata.fromDocument)
 
-  def delete(id: String): Unit =
-    collection.deleteOne(Filters.eq("id", id))
+  def delete(id: String): Either[Throwable, Unit] =
+    Try {
+      collection.deleteOne(Filters.eq("_id", id))
+    } match
+      case Success(_) => Right(())
+      case Failure(ex) =>
+        println(s"[MongoDB][Error] Failed to delete User ID: $id - ${ex.getMessage}")
+        Left(ex)

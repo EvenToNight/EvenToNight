@@ -11,6 +11,6 @@ export class EventUpdatedDto {
   collaboratorIds?: string[];
 
   @IsString()
-  @IsNotEmpty()
+  @IsOptional()
   name: string;
 }
