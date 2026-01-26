@@ -25,7 +25,6 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
         link = Some("http://example.com/location")
       )),
       date: Option[LocalDateTime] = Some(LocalDateTime.of(2024, 12, 31, 22, 0)),
-      price: Option[Double] = Some(15.0),
       status: EventStatus = EventStatus.DRAFT,
       creatorId: String = "creator123",
       collaboratorIds: Option[List[String]] = None
@@ -37,7 +36,6 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       tags = tags,
       location = location,
       date = date,
-      price = price,
       status = status,
       creatorId = creatorId,
       collaboratorIds = collaboratorIds
@@ -49,7 +47,6 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     event.description shouldBe Some("Test description")
     event.poster shouldBe Some("poster.jpg")
     event.tags shouldBe Some(List(EventTag.EventType.Concert))
-    event.price shouldBe Some(15.0)
     event.location.get.country shouldBe Some("Test Country")
     event.location.get.country_code shouldBe Some("TC")
     event.location.get.road shouldBe Some("Test Road")
@@ -64,7 +61,6 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   "Event.createDraft" should "create draft with generated ID and current time" in:
     val event = createEvent()
     event.status shouldBe EventStatus.DRAFT
-    event.price shouldBe Some(15.0)
     event.location.get.country shouldBe Some("Test Country")
     event.location.get.postcode shouldBe Some("12345")
     event._id should not be empty
@@ -85,7 +81,6 @@ class EventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     nilEvent.description shouldBe None
     nilEvent.poster shouldBe None
     nilEvent.tags shouldBe None
-    nilEvent.price shouldBe None
     nilEvent.location shouldBe None
     nilEvent.date shouldBe None
     nilEvent.status shouldBe EventStatus.DRAFT

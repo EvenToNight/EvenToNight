@@ -1,6 +1,6 @@
 import { IsString, IsNotEmpty } from 'class-validator';
 
-export class EventPublishedDto {
+export class EventCancelledDto {
   @IsString()
   @IsNotEmpty()
   eventId: string;

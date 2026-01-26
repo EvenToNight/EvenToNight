@@ -1,4 +1,4 @@
-package middleware
+package middleware.cors
 
 import io.undertow.server.{HttpHandler, HttpServerExchange}
 import io.undertow.util.HttpString

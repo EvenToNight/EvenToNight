@@ -1,8 +1,9 @@
 package app
 
 import controller.Controller
-import infrastructure.db.MongoEventRepository
-import infrastructure.messaging.RabbitEventPublisher
+import infrastructure.db.{MongoEventRepository, MongoUserMetadataRepository}
+import infrastructure.messaging.{ExternalEventHandler, RabbitEventConsumer, RabbitEventPublisher}
+import middleware.auth.JwtService
 import service.EventService
 
 object Main extends App:
@@ -24,9 +25,31 @@ object Main extends App:
     exchangeName = "eventonight"
   )
 
-  val database: MongoEventRepository = MongoEventRepository(mongoUri, "eventonight", "events", messageBroker)
+  val eventDatabase: MongoEventRepository = MongoEventRepository(mongoUri, "eventonight", "events", messageBroker)
 
-  val eventService: EventService = new EventService(database, messageBroker)
+  val userDatabase: MongoUserMetadataRepository = new MongoUserMetadataRepository(
+    mongoUri,
+    "eventonight",
+    "user_metadata",
+    messageBroker
+  )
+
+  val eventService: EventService = new EventService(eventDatabase, userDatabase, messageBroker)
+
+  val externalEventHandler: ExternalEventHandler = new ExternalEventHandler(userDatabase)
+  val messageConsumer: RabbitEventConsumer = new RabbitEventConsumer(
+    host = rabbitHost,
+    port = rabbitPort,
+    username = rabbitUser,
+    password = rabbitPass,
+    exchangeName = "eventonight",
+    queueName = "events-service-queue",
+    routingKeys = List("user.created", "user.deleted"),
+    handler = externalEventHandler
+  )
+  messageConsumer.start()
+
+  JwtService.initialize()
 
   val routes: Controller = new Controller(eventService)
   routes.main(Array())

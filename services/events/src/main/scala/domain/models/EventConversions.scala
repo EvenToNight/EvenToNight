@@ -22,7 +22,6 @@ object EventConversions:
       appendIfPresent("tags", event.tags, (t: List[EventTag]) => t.map(_.displayName).asJava)
       appendIfPresent("location", event.location, localityToDocument(_))
       appendIfPresent("date", event.date, _.toString)
-      appendIfPresent("price", event.price)
       doc.append("status", event.status.toString)
       doc.append("instant", event.instant.toString)
       doc.append("creatorId", event.creatorId)
@@ -47,7 +46,6 @@ object EventConversions:
       addIfPresent("tags", event.tags, (tags: List[EventTag]) => ujson.Arr(tags.map(t => ujson.Str(t.displayName))*))
       addIfPresent("location", event.location, localityToJson)
       addIfPresent("date", event.date, (d: LocalDateTime) => ujson.Str(d.toString))
-      addIfPresent("price", event.price, ujson.Num(_))
       addIfPresent("collaboratorIds", event.collaboratorIds, (c: List[String]) => ujson.Arr(c.map(ujson.Str(_))*))
       obj
 
@@ -62,7 +60,6 @@ object EventConversions:
       tags = tagList,
       location = Option(doc.get("location", classOf[Document])).map(localityFromDocument),
       date = Option(doc.getString("date")).flatMap(s => Try(LocalDateTime.parse(s)).toOption),
-      price = Option(doc.getDouble("price")).map(_.doubleValue),
       status = EventStatus.valueOf(doc.getString("status")),
       instant = Instant.parse(doc.getString("instant")),
       creatorId = doc.getString("creatorId"),

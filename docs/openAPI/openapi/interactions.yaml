@@ -1414,11 +1414,16 @@ components:
           type: integer
           description: Number of items skipped
           example: 0
+        hasMore:
+          type: boolean
+          description: Whether there are more items available
+          example: true
       required:
         - items
         - totalItems
         - limit
         - offset
+        - hasMore
 
     UserParticipationDto:
       type: object

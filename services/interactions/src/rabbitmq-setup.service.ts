@@ -9,13 +9,16 @@ export class RabbitMqSetupService {
     const exchange = 'eventonight';
     const queue = 'interactions_queue';
     const routingKeys = [
+      'event.created',
       'event.published',
       'user.created',
+      'event.cancelled',
       'event.deleted',
       'user.deleted',
       'payments.order.confirmed',
       'event.completed',
       'user.updated',
+      'event.updated',
     ];
 
     await channel.assertExchange(exchange, 'topic', {
