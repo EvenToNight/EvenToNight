@@ -123,7 +123,7 @@ export class EventTicketTypeService {
     return TicketType.getAllValues();
   }
 
-  async findEventIds(params?: {
+  findEventIds(params?: {
     minPrice?: number;
     maxPrice?: number;
     currency?: string;

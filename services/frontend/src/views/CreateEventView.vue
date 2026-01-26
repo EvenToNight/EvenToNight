@@ -342,14 +342,14 @@ const saveDraft = async () => {
     if (poster.value) {
       await api.events.updateEventPoster(eventId.value, poster.value)
     }
-    await createOrUpdateEventTicketTypes()
+    await createOrUpdateEventTicketTypes(eventId.value)
     $q.notify({
       color: 'positive',
       message: t('eventCreationForm.successForEventUpdate'),
     })
   } else {
-    await api.events.createEvent(partialEventData)
-    await createOrUpdateEventTicketTypes()
+    const response = await api.events.createEvent(partialEventData)
+    await createOrUpdateEventTicketTypes(response.eventId)
     $q.notify({
       color: 'positive',
       message: t('eventCreationForm.successForEventPublication'),
@@ -358,10 +358,10 @@ const saveDraft = async () => {
   goToUserProfile(partialEventData.creatorId)
 }
 
-const createOrUpdateEventTicketTypes = async () => {
+const createOrUpdateEventTicketTypes = async (eventId: string) => {
   ticketEntries.value.forEach(async (entry) => {
     if (entry.id === null) {
-      await api.payments.createEventTicketType(eventId.value, {
+      await api.payments.createEventTicketType(eventId, {
         type: entry.type!,
         price: Number(entry.price),
         quantity: Number(entry.quantity),
@@ -381,7 +381,7 @@ const onSubmit = async () => {
     if (isEditMode.value) {
       await api.events.updateEventData(eventId.value, partiaEventData)
       await api.events.updateEventPoster(eventId.value, poster.value!)
-      await createOrUpdateEventTicketTypes()
+      await createOrUpdateEventTicketTypes(eventId.value)
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventUpdate'),
@@ -389,7 +389,7 @@ const onSubmit = async () => {
       goToEventDetails(eventId.value)
     } else {
       const response = await api.events.createEvent(partiaEventData)
-      await createOrUpdateEventTicketTypes()
+      await createOrUpdateEventTicketTypes(response.eventId)
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventPublication'),

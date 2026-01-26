@@ -47,7 +47,7 @@ export class EventController {
    */
   @Get()
   @HttpCode(HttpStatus.OK)
-  async getEventsIds(
+  getEventsIds(
     @Query(ValidationPipe) query: GetEventsByPriceQueryDto,
   ): Promise<PaginatedResult<EventId>> {
     return this.eventTicketTypeService.findEventIds({

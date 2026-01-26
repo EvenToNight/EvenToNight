@@ -53,7 +53,7 @@ paths:
               date: "2024-12-31T20:00:00Z"
               status: "PUBLISHED"
       responses:
-        '200':
+        '201':
           description: Event created successfully
         '400':
           description: Bad Request - Invalid input data
