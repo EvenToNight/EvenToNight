@@ -30,6 +30,7 @@ const handleKeyboardShortcut = (event: KeyboardEvent) => {
   if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
     event.preventDefault()
     $q.dark.toggle()
+    authStore.updateUser({ darkMode: $q.dark.isActive })
     localStorage.setItem('darkMode', String($q.dark.isActive))
   }
 }

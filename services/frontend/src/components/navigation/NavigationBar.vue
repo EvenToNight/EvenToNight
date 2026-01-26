@@ -129,6 +129,7 @@ const mobileMenuOpen = ref(false)
 
 const toggleDarkMode = () => {
   $q.dark.toggle()
+  authStore.updateUser({ darkMode: $q.dark.isActive })
   localStorage.setItem('darkMode', String($q.dark.isActive))
 }
 
