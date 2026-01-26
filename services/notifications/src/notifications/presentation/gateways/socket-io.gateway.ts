@@ -1,5 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { NotificationGateway } from "../consumers/rabbitmq.consumer";
+import { JwtService } from "../../../config/jwt.config";
+import { config } from "config/env.config";
 
 export class SocketIOGateway implements NotificationGateway {
   private io: Server;
@@ -7,16 +9,66 @@ export class SocketIOGateway implements NotificationGateway {
 
   constructor(io: Server) {
     this.io = io;
+    this.setupAuthMiddleware();
     this.setupSocketHandlers();
+  }
+
+  private setupAuthMiddleware(): void {
+    this.io.use((socket: Socket, next) => {
+      void this.authenticateSocket(socket, next);
+    });
+  }
+
+  private async authenticateSocket(
+    socket: Socket,
+    next: (err?: Error) => void,
+  ): Promise<void> {
+    if (!config.jwtAuthPublicKeyUrl) {
+      console.log("⚠️  Socket.io authentication skipped");
+      next();
+      return;
+    }
+
+    const token =
+      (socket.handshake.auth as { token?: string }).token ||
+      socket.handshake.headers.authorization?.replace("Bearer ", "");
+
+    if (!token) {
+      console.log("❌ No token provided");
+      next(new Error("Authentication error: No token provided"));
+      return;
+    }
+
+    try {
+      const payload = await JwtService.verifyToken(token);
+
+      if (!payload || !payload.user_id) {
+        next(new Error("Authentication error: Invalid token"));
+        return;
+      }
+
+      // TODO: maybe verify token user_is matches with socket.data userId
+      const data = socket.data as { userId?: string };
+      data.userId = payload.user_id;
+      next();
+    } catch (err) {
+      console.error("JWT verification error:", err);
+      next(new Error("Authentication error: Invalid token"));
+    }
   }
 
   private setupSocketHandlers(): void {
     this.io.on("connection", (socket: Socket) => {
-      console.log(`Client connected: ${socket.id}`);
+      const data = socket.data as { userId?: string };
+      const userId = data.userId;
 
-      socket.on("register", (userId: string) => {
+      console.log(
+        `Client connected: ${socket.id}${userId ? ` (user: ${userId})` : ""}`,
+      );
+
+      if (userId) {
         void this.registerUser(socket, userId);
-      });
+      }
 
       socket.on("disconnect", () => {
         this.handleDisconnect(socket);
