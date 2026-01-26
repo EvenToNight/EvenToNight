@@ -48,9 +48,9 @@ const formattedPrice = computed(() => {
       return t('eventDetails.freePrice')
     }
     if (minPrice === maxPrice) {
-      return `${minPrice} USD`
+      return `${minPrice} $`
     }
-    return `Starting from ${minPrice} USD`
+    return `Starting from ${minPrice} $`
   }
   return 'Not available'
 })

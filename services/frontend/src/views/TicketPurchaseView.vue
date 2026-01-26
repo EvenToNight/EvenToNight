@@ -204,7 +204,7 @@ const handlePurchase = async () => {
                 </div>
                 <div class="ticket-type-price">
                   {{ tt.price.toFixed(2) }}
-                  <span class="currency">USD</span>
+                  <span class="currency">$</span>
                 </div>
               </div>
 
@@ -237,14 +237,14 @@ const handlePurchase = async () => {
           <div v-if="hasAnyTickets" class="summary-section">
             <div v-for="item in selectedTickets" :key="item.ticketType.id" class="summary-row">
               <span>{{ item.ticketType.type }} x {{ item.quantity }}</span>
-              <span>{{ (item.ticketType.price * item.quantity).toFixed(2) }} USD</span>
+              <span>{{ (item.ticketType.price * item.quantity).toFixed(2) }} $</span>
             </div>
             <div class="summary-divider"></div>
             <div class="summary-row total">
               <span
                 >Total ({{ totalTicketCount }} ticket{{ totalTicketCount > 1 ? 's' : '' }})</span
               >
-              <span class="total-amount">{{ totalPrice.toFixed(2) }} USD</span>
+              <span class="total-amount">{{ totalPrice.toFixed(2) }} $</span>
             </div>
           </div>
 
