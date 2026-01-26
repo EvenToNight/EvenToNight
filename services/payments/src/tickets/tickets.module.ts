@@ -64,6 +64,7 @@ import { EventController } from './presentation/controllers/events.controller';
 import { UserController } from './presentation/controllers/users.controller';
 
 // Consumers
+import { EventDispatcher } from './presentation/consumers/event.dispatcher';
 import { UserEventConsumer } from './presentation/consumers/user-event.consumer';
 import { EventEventConsumer } from './presentation/consumers/event-event.consumer';
 
@@ -93,8 +94,7 @@ import { UserService } from './application/services/user.service';
     TicketsController,
     OrderController,
     EventController,
-    UserEventConsumer,
-    EventEventConsumer,
+    EventDispatcher,
     UserController,
   ],
   providers: [
@@ -147,6 +147,10 @@ import { UserService } from './application/services/user.service';
     OrderService,
     EventService,
     UserService,
+
+    // Event Consumers
+    UserEventConsumer,
+    EventEventConsumer,
   ],
   exports: [EVENT_TICKET_TYPE_REPOSITORY, ORDER_REPOSITORY, USER_REPOSITORY],
 })
