@@ -15,6 +15,9 @@ export class FollowSeed implements DataProvider<FollowSeedResult> {
     async populate(): Promise<FollowSeedResult> {
         const followToCreate: FollowToCreate[] = filterFollows(this.users);
         const createdFollows = []; 
+        
+        console.log(`Starting creating follows...`);
+
         for (const follow of followToCreate) {
             const f = await createFollow(follow);
             createdFollows.push(f);
