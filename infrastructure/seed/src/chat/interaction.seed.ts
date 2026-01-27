@@ -1,40 +1,18 @@
 import { DataProvider } from './../seed'
 import { SeedUser } from "../users/types/users.types";
+import { ChatSeedResult, SeedChat } from './types/chat.types';
 import { SeedEvent } from '../events/types/events.types';
-import { InteractionSeedResult } from './types/interactions.types';
-import { SeedInteraction } from './types/interactions.types';
-import { EventInteractionSeed } from './events/event.interaction.seed';
-import { FollowSeed } from './follows/follow.seed';
-import { LikeSeed } from './likes/like.seed';
-import { ParticipationSeed } from './participations/participation.seed';
-import { ReviewSeed } from './reviews/review.seed';
 
-export class InteractionSeed implements DataProvider<InteractionSeedResult> {
+export class ChatSeed implements DataProvider<ChatSeedResult> {
     private users: SeedUser[];
-    private events: SeedEvent[];
 
     constructor(users: SeedUser[], events: SeedEvent[]) {
         this.users = users
-        this.events = events
     }
 
-    async populate(): Promise<InteractionSeedResult> {
-        const interactions: SeedInteraction[] = [];
-        interactions.push(
-            await new EventInteractionSeed(this.events).populate()
-        )
-        interactions.push(
-            await new FollowSeed(this.users).populate()
-        )
-        interactions.push(
-            await new LikeSeed(this.events, this.users).populate()
-        )
-        interactions.push(
-            await new ParticipationSeed(this.events, this.users).populate()
-        )
-        interactions.push(
-            await new ReviewSeed(this.events, this.users).populate()
-        )
+    async populate(): Promise<ChatSeedResult> {
+        const interactions: SeedChat[] = [];
+        
         return { interactions: interactions };
     }
 }
