@@ -341,6 +341,8 @@ const saveDraft = async () => {
     await api.events.updateEventData(eventId.value, partialEventData)
     if (poster.value) {
       await api.events.updateEventPoster(eventId.value, poster.value)
+    } else {
+      await api.events.deleteEventPoster(eventId.value)
     }
     await createOrUpdateEventTicketTypes(eventId.value)
     $q.notify({

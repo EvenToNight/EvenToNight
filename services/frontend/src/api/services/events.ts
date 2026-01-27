@@ -36,29 +36,18 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
       formData.append('poster', poster)
     }
 
-    //TODO: remove price
     const backendEventData = {
       ...rest,
       date: date?.toISOString().replace(/\.\d{3}Z$/, ''),
-      // price: 0,
     }
     formData.append('event', JSON.stringify(backendEventData))
-    const event = await eventsClient.post<PublishEventResponse>('/', formData)
-    //TODO: remove, event service will handle event creation on payment service
-    // await createPaymentsClient().post<void>(`/events/${event.eventId}`, {
-    //   creatorId: eventData.creatorId,
-    //   date: eventData.date,
-    //   status: eventData.status,
-    // })
-    return event
+    return await eventsClient.post<PublishEventResponse>('/', formData)
   },
   async updateEventData(eventId: EventID, eventData: PartialEventData): Promise<void> {
     const { poster, date, ...rest } = eventData
-    //TODO: remove price
     const backendEventData = {
       ...rest,
       date: date?.toISOString().replace(/\.\d{3}Z$/, ''),
-      // price: 0,
     }
     await eventsClient.put(`/${eventId}`, backendEventData)
   },
@@ -66,6 +55,9 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     const formData = new FormData()
     formData.append('poster', poster)
     await eventsClient.post(`/${eventId}/poster`, formData)
+  },
+  async deleteEventPoster(eventId: EventID): Promise<void> {
+    await eventsClient.delete(`/${eventId}/poster`)
   },
   async deleteEvent(eventId: EventID): Promise<void> {
     await eventsClient.delete(`/${eventId}`)
