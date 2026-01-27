@@ -367,6 +367,43 @@ paths:
                   summary: User does not exist
                   value: "User not found"
 
+  /{userId}/avatar:
+    delete:
+      tags: [Users]
+      summary: Delete user avatar by ID
+      description: >
+        Deletes the avatar of the authenticated user.
+        The userId in the path must match the user_id claim in the access token.
+        The avatar is reset to the default image.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user whose avatar will be deleted
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Avatar deleted successfully
+        '400':
+          description: Bad request or update failed
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                updateFailed:
+                  summary: Avatar update failed
+                  value: "Failed to update user avatar"
+
   /{userId}/password:
     put:
       tags: [Users]

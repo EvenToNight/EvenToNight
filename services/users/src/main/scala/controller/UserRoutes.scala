@@ -182,6 +182,18 @@ class UserRoutes(
                   Seq("Content-Type" -> "application/json")
                 )
 
+  @cask.delete("/:userId/avatar")
+  def deleteAvatar(userId: String, req: Request): Response[String] =
+    (
+      for
+        _ <- authenticateAndAuthorize(req, userId)
+        defaultAvatar = uploadAvatarToMediaService(userId, None)
+        _ <- userService.updateAvatar(userId, defaultAvatar)
+      yield ()
+    ) match
+      case Right(_)  => Response("", 204)
+      case Left(err) => Response(err, 400)
+
   @cask.put("/:userId/password")
   def updatePassword(userId: String, req: Request): Response[String] =
     (

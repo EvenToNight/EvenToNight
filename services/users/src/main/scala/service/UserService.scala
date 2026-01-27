@@ -57,3 +57,11 @@ class UserService(memberRepo: MemberRepository, orgRepo: OrganizationRepository)
             catch
               case e: Exception => Left(s"Failed to update organization: ${e.getMessage}")
           case None => Left(s"Organization with ID $userId not found")
+
+  def updateAvatar(userId: String, avatarUrl: String): Either[String, Unit] =
+    if memberRepo.updateAvatar(userId, avatarUrl) then
+      Right(())
+    else if orgRepo.updateAvatar(userId, avatarUrl) then
+      Right(())
+    else
+      Left(s"User with ID $userId not found")

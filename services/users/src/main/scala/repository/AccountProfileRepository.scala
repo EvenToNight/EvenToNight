@@ -2,6 +2,7 @@ package repository
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.Filters
+import com.mongodb.client.model.Updates
 import model.UserReferences
 import org.bson.types.ObjectId
 
@@ -14,6 +15,7 @@ trait AccountProfileRepository[A, P]:
   def findById(userId: String): Option[(A, P)]
   def delete(userId: String): Unit
   def update(account: A, profile: P, userId: String): Unit
+  def updateProfileAvatar(userId: String, avatarUrl: String): Boolean
   def search(prefix: Option[String], limit: Int, getUsername: A => String, getName: P => String): List[(String, A, P)]
 
 class MongoAccountProfileRepository[A, P](
@@ -63,6 +65,16 @@ class MongoAccountProfileRepository[A, P](
       accountsColl.replaceOne(Filters.eq("_id", ObjectId(reference.accountId)), account)
       profilesColl.replaceOne(Filters.eq("_id", ObjectId(reference.profileId)), profile)
     )
+
+  override def updateProfileAvatar(userId: String, avatarUrl: String) =
+    val referenceOpt = Option(referencesColl.find(Filters.eq("_id", userId)).first())
+    referenceOpt.exists { reference =>
+      val result = profilesColl.updateOne(
+        Filters.eq("_id", new ObjectId(reference.profileId)),
+        Updates.set("avatar", avatarUrl)
+      )
+      result.getMatchedCount == 1
+    }
 
   override def search(prefix: Option[String], limit: Int, getUsername: A => String, getName: P => String) =
     val all = getAll()

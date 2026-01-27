@@ -10,6 +10,7 @@ trait MemberRepository:
   def findById(userId: String): Option[Member]
   def delete(userId: String): Unit
   def update(updatedMember: Member, userId: String): Unit
+  def updateAvatar(userId: String, avatarUrl: String): Boolean
   def search(prefix: Option[String], limit: Int): List[(String, Member)]
 
 class MongoMemberRepository(
@@ -33,6 +34,9 @@ class MongoMemberRepository(
 
   override def update(updatedMember: Member, userId: String) =
     memberAccountProfileRepo.update(updatedMember.account, updatedMember.profile, userId)
+
+  override def updateAvatar(userId: String, avatarUrl: String) =
+    memberAccountProfileRepo.updateProfileAvatar(userId, avatarUrl)
 
   override def search(prefix: Option[String], limit: Int) =
     memberAccountProfileRepo.search(
