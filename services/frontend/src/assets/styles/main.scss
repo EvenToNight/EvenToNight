@@ -43,9 +43,26 @@ body {
 body.body--light {
   background-color: $color-white;
   color: $color-black;
+  color-scheme: light;
 
   h1, h2, h3, h4, h5, h6, p, div, a {
     color: $color-black;
+  }
+
+  // Fix autocomplete dropdown styling in light mode
+  input,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    // Force white background for autofill
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+      -webkit-text-fill-color: $color-text-primary !important;
+      -webkit-box-shadow: 0 0 0 1000px $color-white inset !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
   }
 
   // // Chat support component CSS variables
@@ -61,9 +78,28 @@ body.body--light {
 body.body--dark {
   background-color: $color-background-dark;
   color: $color-white;
+  color-scheme: dark;
 
   h1, h2, h3, h4, h5, h6, p, div {
     color: $color-white;
+  }
+
+  // Fix autocomplete dropdown styling in dark mode
+  input,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"] {
+    color-scheme: dark;
+
+    // Force dark background for autofill
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+      -webkit-text-fill-color: $color-white !important;
+      -webkit-box-shadow: 0 0 0 1000px #1d1d1d inset !important;
+      transition: background-color 5000s ease-in-out 0s;
+    }
   }
 
   // Fix checkbox checkmark color in dark mode
