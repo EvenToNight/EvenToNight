@@ -84,11 +84,10 @@ class UserRoutes(
   def deleteUser(userId: String, req: Request): Response[String] =
     (
       for
-        userAccessToken <- AuthHeaderExtractor.extractBearer(req)
-        payload         <- verifyToken(userAccessToken)
-        _               <- authorizeUser(payload, userId)
-        keycloakId      <- extractSub(payload)
-        _               <- authService.deleteUser(keycloakId)
+        payload    <- authenticateAndAuthorize(req, userId)
+        keycloakId <- extractSub(payload)
+        _          <- authService.deleteUser(keycloakId)
+        _          <- userService.deleteUser(userId)
       yield ()
     ) match
       case Right(_) =>
