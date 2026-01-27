@@ -32,6 +32,8 @@ async function seed() {
 
   console.log("Events list:\n", JSON.stringify(events, null, 2));
   // Add other seeders here
+
+  
 }
 
 seed();
