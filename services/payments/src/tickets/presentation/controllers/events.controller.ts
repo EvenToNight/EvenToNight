@@ -77,6 +77,7 @@ export class EventController {
         id: EventId.fromString(eventId),
         creatorId: UserId.fromString(dto.creatorId),
         date: dto.date,
+        title: dto.title,
         status: EventStatus.fromString(dto.status),
       }),
     );

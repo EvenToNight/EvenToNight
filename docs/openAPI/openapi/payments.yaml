@@ -51,6 +51,7 @@ paths:
             example:
               creatorId: "usr_123e4567-e89b-12d3-a456-426614174000"
               date: "2024-12-31T20:00:00Z"
+              title: "New Year's Eve Party"
               status: "PUBLISHED"
       responses:
         '201':
@@ -1164,6 +1165,10 @@ components:
           format: date-time
           description: Date and time of the event. Required when status is not DRAFT, optional when status is DRAFT
           example: "2024-12-31T20:00:00Z"
+        title:
+          type: string
+          description: Title of the event (optional, but if provided must not be empty)
+          example: "New Year's Eve Party"
         status:
           type: string
           description: Status of the event
@@ -1175,6 +1180,7 @@ components:
       example:
         creatorId: "usr_123e4567-e89b-12d3-a456-426614174000"
         date: "2024-12-31T20:00:00Z"
+        title: "New Year's Eve Party"
         status: PUBLISHED
     CreateEventTicketTypeDto:
       type: object
