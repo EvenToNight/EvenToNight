@@ -1,4 +1,5 @@
 import { EventSeed } from "./events/event.seed";
+import { InteractionSeed } from "./interactions/interaction.seed";
 import { UserSeed } from "./users/user.seed";
 import { execSync } from "child_process";
 
@@ -31,8 +32,10 @@ async function seed() {
   const { events } = await new EventSeed(users).populate();
 
   console.log("Events list:\n", JSON.stringify(events, null, 2));
-  // Add other seeders here
 
+  const { interactions } = await new InteractionSeed(users, events).populate();
+  
+  console.log("Interactions list:\n", JSON.stringify(interactions, null, 2));
   
 }
 

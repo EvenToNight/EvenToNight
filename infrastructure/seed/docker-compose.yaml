@@ -13,9 +13,9 @@ services:
       - INTERACTIONS_HOST=http://interactions:${INTERACTIONS_SERVICE_PORT}
       - CHAT_HOST=http://chat:${CHAT_SERVICE_PORT}
       - PAYMENTS_HOST=http://payments:${PAYMENTS_SERVICE_PORT}
+      - MONGO_DB=eventonight
       - EVENT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-events-1
-      - EVENTS_DB_NAME=eventonight_events
-
+      - INTERACTIONS_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-interactions-1
 
 networks:
   eventonight-network:
