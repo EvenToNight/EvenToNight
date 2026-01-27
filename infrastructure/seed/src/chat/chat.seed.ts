@@ -5,6 +5,7 @@ import { SeedEvent } from '../events/types/events.types';
 import { ConversationSeed } from './conversations/conversation.seed';
 import { SeedConversation } from './conversations/types/conversation.types';
 import { ParticipantSeed } from './participants/participant.seed';
+import { MessageSeed } from './messages/message.seed';
 
 export class ChatSeed implements DataProvider<ChatSeedResult> {
     private users: SeedUser[];
@@ -22,7 +23,10 @@ export class ChatSeed implements DataProvider<ChatSeedResult> {
         chat.push(
             await new ParticipantSeed(conversations, this.users).populate()
         )
-
+        chat.push(
+            await new MessageSeed(conversations).populate()
+        )
+        
         return { chat: chat };
     }
 }
