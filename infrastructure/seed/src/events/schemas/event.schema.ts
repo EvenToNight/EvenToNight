@@ -29,7 +29,6 @@ const BaseEventSeedSchema = z.object({
   }).optional(),
   date: z.string().datetime().optional(),
   instant: z.string().datetime().optional(),
-  price: z.number().optional(),
   collaborators: z.array(z.string()).optional()
 });
 

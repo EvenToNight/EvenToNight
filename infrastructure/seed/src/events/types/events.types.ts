@@ -21,7 +21,6 @@ export interface EventToCreate {
     link?: string;
   };
   date?: string;
-  price?: number;
   status: EventStatus;
   creatorId: string;
   collaboratorsIds?: string[];

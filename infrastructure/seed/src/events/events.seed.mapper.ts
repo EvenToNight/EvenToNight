@@ -23,7 +23,6 @@ export function filterEvents(users: SeedUser[]): EventToCreate[] {
           tags: e.tags,
           location: e.location,
           date: e.date,
-          price: e.price,
           status: e.status,
           creatorId: orgsIdMap[e.creator],
           collaboratorsIds: collaboratorsIds
