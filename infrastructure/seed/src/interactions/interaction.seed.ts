@@ -4,6 +4,7 @@ import { SeedEvent } from '../events/types/events.types';
 import { InteractionSeedResult } from './types/interactions.types';
 import { SeedInteraction } from './types/interactions.types';
 import { EventInteractionSeed } from './events/event.interaction.seed';
+import { FollowSeed } from './follows/follow.seed';
 
 export class InteractionSeed implements DataProvider<InteractionSeedResult> {
     private users: SeedUser[];
@@ -18,6 +19,9 @@ export class InteractionSeed implements DataProvider<InteractionSeedResult> {
         const interactions: SeedInteraction[] = [];
         interactions.push(
             await new EventInteractionSeed(this.events).populate()
+        )
+        interactions.push(
+            await new FollowSeed(this.users).populate()
         )
         return { interactions: interactions };
     }
