@@ -25,6 +25,7 @@ import { OrderService } from '../services/order.service';
 import { PAYMENT_SERVICE_BASE_URL } from '../constants';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { EventService } from '../services/event.service';
+import { CheckoutSessionExpiredHandler } from './checkout-session-expired.handler';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -45,6 +46,7 @@ export class CreateCheckoutSessionHandler {
     private readonly ticketService: TicketService,
     private readonly orderService: OrderService,
     private readonly eventService: EventService,
+    private readonly checkoutSessionExpiredHandler: CheckoutSessionExpiredHandler,
   ) {}
 
   private async getTicketTypeWithLock(
@@ -202,25 +204,31 @@ export class CreateCheckoutSessionHandler {
       };
     }
 
-    const session = await this.paymentService.createCheckoutSessionWithItems({
-      userId: dto.userId,
-      orderId: order.getId(),
-      lineItems,
-      ticketIds: ticketIds,
-      ticketTypeIds: ticketTypeIds,
-      eventId,
-      successUrl: dto.successUrl,
-      cancelUrl: `${PAYMENT_SERVICE_BASE_URL}/checkout-sessions/{CHECKOUT_SESSION_ID}/cancel?redirect_to=${encodeURIComponent(dto.cancelUrl)}`,
-    });
+    try {
+      const session = await this.paymentService.createCheckoutSessionWithItems({
+        userId: dto.userId,
+        orderId: order.getId(),
+        lineItems,
+        ticketIds: ticketIds,
+        ticketTypeIds: ticketTypeIds,
+        eventId,
+        successUrl: dto.successUrl,
+        cancelUrl: `${PAYMENT_SERVICE_BASE_URL}/checkout-sessions/{CHECKOUT_SESSION_ID}/cancel?redirect_to=${encodeURIComponent(dto.cancelUrl)}`,
+      });
 
-    const expiresAt = new Date();
-    expiresAt.setFullYear(expiresAt.getFullYear() + 1);
-
-    return {
-      sessionId: session.id,
-      redirectUrl: session.redirectUrl!,
-      expiresAt: session.expiresAt,
-      orderId: order.getId(),
-    };
+      return {
+        sessionId: session.id,
+        redirectUrl: session.redirectUrl!,
+        expiresAt: session.expiresAt,
+        orderId: order.getId(),
+      };
+    } catch (error) {
+      await this.checkoutSessionExpiredHandler.handle(
+        'NO_SESSION_CREATED',
+        order.getId(),
+        'Failed to create checkout session',
+      );
+      throw error;
+    }
   }
 }

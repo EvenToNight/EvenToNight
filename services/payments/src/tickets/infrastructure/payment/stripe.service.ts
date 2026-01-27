@@ -139,16 +139,17 @@ export class StripeService implements PaymentService {
         this.webhookSecret,
       );
       const session = event.data.object as Stripe.Checkout.Session;
+      //TODO evaluate to parametrize webhook event data
       return {
         sessionId: session.id,
         type: event.type,
-        orderId: session.metadata!.orderId,
+        orderId: session.metadata?.orderId || '',
       };
     } catch (error) {
       this.logger.error('Failed to construct webhook event', error);
       const message = error instanceof Error ? error.message : 'Unknown error';
       throw new PaymentException(
-        `Webhook signature verification failed: ${message}`,
+        `Failed to construct webhook event: ${message}`,
       );
     }
   }
