@@ -9,12 +9,22 @@ import {
   CreateCheckoutSessionParams,
   WebhookEvent,
 } from 'src/tickets/domain/types/payment-service.types';
+import type { SupportedLocale } from 'src/tickets/application/services/ticket.translations';
 
 @Injectable()
 export class StripeService implements PaymentService {
   private readonly stripe: Stripe;
   private readonly webhookSecret: string;
   private readonly logger = new Logger(StripeService.name);
+
+  private readonly checkoutMessages: Record<SupportedLocale, string> = {
+    it: 'Acquisto biglietti per:',
+    en: 'Purchasing tickets for:',
+    es: 'Compra de entradas para:',
+    fr: 'Achat de billets pour:',
+    de: 'Ticketkauf für:',
+  };
+
   constructor() {
     const apiKey = process.env.STRIPE_SECRET_KEY;
     const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -47,15 +57,25 @@ export class StripeService implements PaymentService {
         },
         quantity: item.quantity,
       }));
+      const checkoutMessage = this.checkoutMessages[params.language];
+
       const session = await this.stripe.checkout.sessions.create({
         mode: 'payment',
         line_items: lineItems,
+        custom_text: params.eventTitle
+          ? {
+              submit: {
+                message: `${checkoutMessage} ${params.eventTitle}`,
+              },
+            }
+          : undefined,
         metadata: {
           userId: params.userId,
           ticketIds: JSON.stringify(params.ticketIds),
           ticketTypeIds: JSON.stringify(params.ticketTypeIds),
           eventId: params.eventId,
           orderId: params.orderId,
+          eventTitle: params.eventTitle || '',
         },
         success_url: params.successUrl,
         cancel_url: params.cancelUrl,

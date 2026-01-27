@@ -26,6 +26,7 @@ import { PAYMENT_SERVICE_BASE_URL } from '../constants';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { EventService } from '../services/event.service';
 import { CheckoutSessionExpiredHandler } from './checkout-session-expired.handler';
+import { UserService } from '../services/user.service';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -46,6 +47,7 @@ export class CreateCheckoutSessionHandler {
     private readonly ticketService: TicketService,
     private readonly orderService: OrderService,
     private readonly eventService: EventService,
+    private readonly userService: UserService,
     private readonly checkoutSessionExpiredHandler: CheckoutSessionExpiredHandler,
   ) {}
 
@@ -187,6 +189,8 @@ export class CreateCheckoutSessionHandler {
       .ticketType.getEventId()
       .toString();
 
+    const event = await this.eventService.findById(eventId);
+    const userLanguage = await this.userService.getUserLanguage(dto.userId);
     const order = await this.orderService.createOrder(
       UserId.fromString(dto.userId),
       EventId.fromString(eventId),
@@ -212,6 +216,8 @@ export class CreateCheckoutSessionHandler {
         ticketIds: ticketIds,
         ticketTypeIds: ticketTypeIds,
         eventId,
+        eventTitle: event?.getTitle(),
+        language: userLanguage,
         successUrl: dto.successUrl,
         cancelUrl: `${PAYMENT_SERVICE_BASE_URL}/checkout-sessions/{CHECKOUT_SESSION_ID}/cancel?redirect_to=${encodeURIComponent(dto.cancelUrl)}`,
       });
