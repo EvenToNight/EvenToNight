@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
+import PosterCropUpload from '@/components/imageUpload/PosterCropUpload.vue'
 import { api } from '@/api'
 import type { CreationEventStatus, PartialEventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
@@ -624,7 +624,7 @@ const onSubmit = async () => {
             class="q-my-md"
           >
             <template #control>
-              <ImageCropUploadTest
+              <PosterCropUpload
                 v-model="poster"
                 :label="t('eventCreationForm.eventPoster') + ' *'"
                 :button-label="t('eventCreationForm.uploadPoster')"

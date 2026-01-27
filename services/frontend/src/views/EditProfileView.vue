@@ -5,7 +5,7 @@ import { useNavigation } from '@/router/utils'
 import { useQuasar } from 'quasar'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
-import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
+import AvatarCropUpload from '@/components/imageUpload/AvatarCropUpload.vue'
 import FormField from '@/components/forms/FormField.vue'
 import { notEmpty } from '@/components/forms/validationUtils'
 

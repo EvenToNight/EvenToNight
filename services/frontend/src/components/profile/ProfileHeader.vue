@@ -8,7 +8,7 @@ import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import UserInfo from './UserInfo.vue'
 import ProfileActions from './ProfileActions.vue'
-import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
+import AvatarCropUpload from '@/components/imageUpload/AvatarCropUpload.vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '@/api'
 
