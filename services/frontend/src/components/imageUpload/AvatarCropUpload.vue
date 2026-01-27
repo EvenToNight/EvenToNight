@@ -1,17 +1,15 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { CircleStencil } from 'vue-advanced-cropper'
 import BaseCropUpload from './BaseCropUpload.vue'
+import { DEFAULT_AVATAR_URL } from '@/stores/auth'
 
 interface Props {
-  previewUrl?: string
-  defaultIcon?: string
+  previewUrl: string
   maxSize?: number
 }
 
-withDefaults(defineProps<Props>(), {
-  previewUrl: undefined,
-  defaultIcon: 'person',
+const props = withDefaults(defineProps<Props>(), {
   maxSize: 5000000,
 })
 
@@ -20,6 +18,10 @@ const emit = defineEmits<{
   error: [message: string]
   remove: []
 }>()
+
+const isDefault = computed(() => {
+  return props.previewUrl === DEFAULT_AVATAR_URL
+})
 
 const baseCropUploadRef = ref<InstanceType<typeof BaseCropUpload> | null>(null)
 const croppedImage = ref<string | null>(null)
@@ -76,14 +78,8 @@ defineExpose({
     >
       <template #empty-state="{ triggerFileInput: trigger }">
         <div class="avatar-preview-container" @click="trigger">
-          <div v-if="croppedImage || previewUrl" class="avatar-preview">
+          <div class="avatar-preview">
             <img :src="croppedImage || previewUrl" alt="Avatar preview" class="avatar-image" />
-            <div class="avatar-overlay">
-              <q-icon name="photo_camera" size="32px" color="white" />
-            </div>
-          </div>
-          <div v-else class="avatar-preview">
-            <q-icon :name="defaultIcon" size="48px" class="avatar-image" />
             <div class="avatar-overlay">
               <q-icon name="photo_camera" size="32px" color="white" />
             </div>
@@ -93,7 +89,7 @@ defineExpose({
     </BaseCropUpload>
 
     <q-btn
-      v-if="croppedImage || previewUrl"
+      v-if="!isDefault"
       flat
       dense
       size="sm"

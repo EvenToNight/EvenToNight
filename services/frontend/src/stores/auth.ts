@@ -11,6 +11,7 @@ import type {
   TokenResponse,
 } from '@/api/interfaces/users'
 import { useNavigation } from '@/router/utils'
+export const DEFAULT_AVATAR_URL = `http://media.${import.meta.env.VITE_HOST || 'localhost'}/users/default.png`
 
 const ACCESS_TOKEN_SESSION_KEY = 'access_token_session'
 const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
@@ -152,8 +153,13 @@ export const useAuthStore = defineStore('auth', () => {
       const updatedUser = { ...user.value, ...userData }
 
       if (avatarFile !== undefined) {
-        const response = await api.users.updateUserAvatarById(user.value.id, avatarFile)
-        updatedUser.avatar = response.avatarUrl
+        if (avatarFile === null) {
+          await api.users.deleteUserAvatarById(user.value.id)
+          updatedUser.avatar = DEFAULT_AVATAR_URL
+        } else {
+          const response = await api.users.updateUserAvatarById(user.value.id, avatarFile)
+          updatedUser.avatar = response.avatarUrl
+        }
       }
 
       await api.users.updateUserById(user.value.id, updatedUser)

@@ -112,6 +112,10 @@ export const mockUsersApi: UsersAPI = {
     return this.getUserById(id).then((user) => ({ avatarUrl: user.avatar }))
   },
 
+  async deleteUserAvatarById(_id: UserID): Promise<void> {
+    return
+  },
+
   async changePassword(_userId: UserID, _data: ChangePasswordRequest): Promise<void> {
     return
   },

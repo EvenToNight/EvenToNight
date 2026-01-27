@@ -32,7 +32,7 @@ onMounted(() => {
     name.value = authStore.user.name || ''
     bio.value = authStore.user.bio || ''
     website.value = authStore.user.website || ''
-    currentAvatarUrl.value = authStore.user.avatar || undefined
+    currentAvatarUrl.value = authStore.user.avatar
   }
 })
 
@@ -108,7 +108,7 @@ const handleCancel = () => {
           <div class="card-body">
             <div class="avatar-section">
               <AvatarCropUpload
-                :preview-url="currentAvatarUrl"
+                :preview-url="currentAvatarUrl || ''"
                 :default-icon="defaultIcon"
                 @error="handleAvatarError"
                 @update:imageFile="handleAvatar"

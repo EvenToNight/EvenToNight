@@ -61,8 +61,12 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
     if (avatarFile) {
       formData.append('avatar', avatarFile)
     }
-    //TODO: handle deletion of avatar when no file is provided
+    //TODO: handle deletion of avatar when no file is provided (add /avatar to the endpoint)
     return usersClient.post<{ avatarUrl: string }>(`/${id}`, formData)
+  },
+
+  async deleteUserAvatarById(id: UserID): Promise<void> {
+    return usersClient.delete<void>(`/${id}/avatar`)
   },
 
   async changePassword(userId: UserID, data: ChangePasswordRequest): Promise<void> {

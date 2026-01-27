@@ -130,7 +130,7 @@ const handleAvatarChange = async (file: File | null) => {
     <div v-if="isOwnProfile" style="display: none">
       <AvatarCropUpload
         ref="avatarCropUploadRef"
-        :preview-url="currentAvatarUrl"
+        :preview-url="currentAvatarUrl || ''"
         :default-icon="defaultIcon"
         @update:imageFile="handleAvatarChange"
         @error="handleAvatarError"
