@@ -6,19 +6,21 @@ import path from "path";
 import { EventToCreate, SeedEvent } from "../types/events.types";
 import crypto from "crypto";
 import { execSync } from "child_process";
+import { HOST } from "../../config/env";
 
 
 export async function createEvent(event: EventToCreate): Promise<SeedEvent> {
   const eventId = crypto.randomUUID();
 
   const posterPath = event.poster ? path.resolve("src/events/data/posters", event.poster) : undefined;
-  const defaultPosterUrl = `http://media.${process.env.HOST}/event-default.jpg`;
+  const prevUrl = `http://media.${HOST}`
+  const defaultPosterUrl = prevUrl + `/event-default.jpg`;
 
   let posterUrl = defaultPosterUrl;
 
   if (posterPath) {
     if (fs.existsSync(posterPath)) {
-      posterUrl = (await axios.post(
+      posterUrl = prevUrl + "/" + (await axios.post(
         `${MEDIA_BASE_URL}/events/${eventId}`,
         (() => {
           const form = new FormData();
@@ -57,20 +59,3 @@ export async function createEvent(event: EventToCreate): Promise<SeedEvent> {
     throw new Error(`Failed to insert event ${eventId}: ${errorMessage}`);
   }
 }
-
-
-import { mockUploadPoster } from "./mock.media.service";
-
-export async function createMockEvent(
-  event: EventToCreate,
-  posterPath?: string
-): Promise<{ eventId: string; posterUrl?: string }> {
-  const eventId = crypto.randomUUID();
-
-  const posterUrl = mockUploadPoster(eventId, posterPath);
-
-  console.log(`[MOCK] Created event ${eventId} with poster: ${posterUrl}`);
-
-  return { eventId, posterUrl };
-}
-

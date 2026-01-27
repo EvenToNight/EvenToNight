@@ -1,9 +1,7 @@
-import path from 'path';
 import { EventSeedResult, SeedEvent } from './types/events.types';
 import { filterEvents } from './events.seed.mapper';
 import { DataProvider } from './../seed';
-import { createEvent, createMockEvent } from './services/events.service';
-import { removeUndefined } from './../utils';
+import { createEvent } from './services/events.service';
 import { SeedUser } from '../users/types/users.types';
 
 export class EventSeed implements DataProvider<EventSeedResult> {

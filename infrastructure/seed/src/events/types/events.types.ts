@@ -6,7 +6,20 @@ export interface EventToCreate {
   description?: string;
   poster?: string;
   tags?: Tag[];
-  location?: { address: string; city: string; country: string };
+  location?: { 
+    name: string;
+    country: string;
+    country_code: string;
+    state?: string;
+    province?: string;
+    city: string;
+    road?: string;
+    postcode?: string;
+    house_number?: string;
+    lat?: number;
+    lon?: number;
+    link?: string;
+  };
   date?: string;
   price?: number;
   status: EventStatus;

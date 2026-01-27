@@ -14,11 +14,21 @@ const BaseEventSeedSchema = z.object({
   description: z.string().optional(),
   tags: z.array(TagsSchema).optional(),
   location: z.object({
-    address: z.string(),
-    city: z.string(),
+    name: z.string(),
     country: z.string(),
+    country_code: z.string(),
+    state: z.string().optional(),
+    province: z.string().optional(),
+    city: z.string(),
+    road: z.string().optional(),
+    postcode: z.string().optional(),
+    house_number: z.string().optional(),
+    lat: z.number().optional(),
+    lon: z.number().optional(),
+    link: z.string().url().optional(),
   }).optional(),
   date: z.string().datetime().optional(),
+  instant: z.string().datetime().optional(),
   price: z.number().optional(),
   collaborators: z.array(z.string()).optional()
 });
