@@ -36,23 +36,21 @@ const handleKeyboardShortcut = (event: KeyboardEvent) => {
 }
 
 onMounted(() => {
-  // Add keyboard shortcut listener
   window.addEventListener('keydown', handleKeyboardShortcut)
 
-  // Load dark mode preference from localStorage
   const savedDarkMode = localStorage.getItem('darkMode')
   console.log('Saved dark mode preference:', savedDarkMode)
   if (savedDarkMode === 'true') {
     $q.dark.set(true)
   } else if (savedDarkMode === 'false') {
     $q.dark.set(false)
+  } else {
+    $q.dark.set('auto')
   }
-  // If null, use system preference (Quasar default)
 
-  authStore.initializeAuth()
-  authStore.setupAutoRefresh()
+  const refreshed = authStore.refreshCurrentSessionUserData()
 
-  if (import.meta.env.VITE_AUTO_LOGIN === 'true') {
+  if (!refreshed && import.meta.env.VITE_AUTO_LOGIN === 'true') {
     try {
       authStore.register(
         import.meta.env.VITE_DEV_EMAIL.split('@')[0],
@@ -61,17 +59,18 @@ onMounted(() => {
         import.meta.env.VITE_DEV_ROLE === 'organization'
       )
     } catch (error) {
-      console.error('Error reading auto login env variables:', error)
+      console.error('Error when try to auto register user:', error)
     }
-    authStore.login(import.meta.env.VITE_DEV_EMAIL, import.meta.env.VITE_DEV_PASSWORD)
+    try {
+      authStore.login(import.meta.env.VITE_DEV_EMAIL, import.meta.env.VITE_DEV_PASSWORD)
+    } catch (error) {
+      console.error('Error when try to auto login user:', error)
+    }
   }
+
   setTokenProvider(() => authStore.accessToken)
   setTokenExpiredCallback(async () => {
-    const success = await authStore.refreshAccessToken()
-    if (success) {
-      authStore.setupAutoRefresh()
-    }
-    return success
+    return authStore.refreshAccessToken()
   })
 
   // Dev logging

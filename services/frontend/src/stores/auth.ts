@@ -35,6 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
   const refreshExpiredAt = ref<number | null>(null)
 
   const setTokens = (tokenResponse: TokenResponse) => {
+    console.log('Setting tokens', tokenResponse)
     accessToken.value = tokenResponse.accessToken
     expiredAt.value = Date.now() + tokenResponse.expiresIn * 1000
     refreshToken.value = tokenResponse.refreshToken
@@ -53,6 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
   const setAuthData = async (authData: LoginResponse) => {
     setTokens(authData)
     setUser(authData.user)
+    setupAutoRefresh()
   }
 
   const clearAuth = () => {
@@ -176,48 +178,58 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value!
   }
 
-  const initializeAuth = () => {
+  const refreshCurrentSessionUserData = () => {
     const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
     const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
     const storedRefreshToken = sessionStorage.getItem(REFRESH_TOKEN_SESSION_KEY)
     const storedRefreshExpiry = sessionStorage.getItem(REFRESH_TOKEN_EXPIRY_SESSION_KEY)
-    const expiresAt = storedExpiry ? parseInt(storedExpiry, 10) : 0
-    const refreshExpiresAt = storedRefreshExpiry ? parseInt(storedRefreshExpiry, 10) : 0
+    const expiresAt = storedExpiry ? parseInt(storedExpiry, 10) : undefined
+    const expiresIn = expiresAt ? (expiresAt - Date.now()) / 1000 : undefined
+    const refreshExpiresAt = storedRefreshExpiry ? parseInt(storedRefreshExpiry, 10) : undefined
+    const refreshExpiresIn = refreshExpiresAt ? (refreshExpiresAt - Date.now()) / 1000 : undefined
     const storedUser = sessionStorage.getItem(USER_SESSION_KEY)
-    if (storedAccessToken && expiresAt > Date.now()) {
+    if (
+      storedAccessToken &&
+      storedRefreshToken &&
+      expiresIn &&
+      expiresIn >= 0 &&
+      refreshExpiresIn &&
+      refreshExpiresIn >= 0 &&
+      storedUser
+    ) {
       setTokens({
         accessToken: storedAccessToken,
-        expiresIn: (expiresAt - Date.now()) / 1000,
-        refreshToken: storedRefreshToken || '',
-        refreshExpiresIn: (refreshExpiresAt - Date.now()) / 1000,
+        expiresIn: expiresIn,
+        refreshToken: storedRefreshToken,
+        refreshExpiresIn: refreshExpiresIn,
       })
-      if (storedUser) {
-        try {
-          user.value = JSON.parse(storedUser)
-        } catch (error) {
-          console.error('Failed to parse stored user:', error)
-          refreshAccessToken()
-        }
-      }
-    } else {
-      refreshAccessToken()
+      setUser(JSON.parse(storedUser))
+      return true
     }
+    return false
   }
 
   const setupAutoRefresh = () => {
-    if (!expiredAt.value) return
+    if (!refreshExpiredAt.value) return
 
-    const timeUntilExpiry = expiredAt.value - Date.now()
+    const timeUntilExpiry = refreshExpiredAt.value - Date.now()
     const refreshTime = timeUntilExpiry - 5 * 60 * 1000 // 5 minutes before expiry
-
     if (refreshTime > 0) {
       setTimeout(() => {
-        refreshAccessToken().then((success) => {
-          if (success) {
-            setupAutoRefresh()
-          }
-        })
+        refreshAccessToken()
+          .then((success) => {
+            if (success) {
+              setupAutoRefresh()
+            }
+          })
+          .catch(() => {
+            console.log('Failed to refresh token, logging out')
+            logout()
+          })
       }, refreshTime)
+    } else {
+      console.log('Refresh token already expired or about to expire, logging out')
+      logout()
     }
   }
 
@@ -254,7 +266,7 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     refreshAccessToken,
     updateUser,
-    initializeAuth,
+    refreshCurrentSessionUserData,
     setupAutoRefresh,
     clearAuth,
     isOwnProfile,
