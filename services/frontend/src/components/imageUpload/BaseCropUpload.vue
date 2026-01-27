@@ -130,7 +130,6 @@ defineExpose({
             />
           </div>
         </q-card-section>
-
         <slot name="actions" :crop-image="cropImage" :close-cropper="closeCropper">
           <q-card-actions align="right" class="dialog-actions">
             <q-btn flat label="Cancel" @click="closeCropper" />
@@ -168,6 +167,7 @@ defineExpose({
 
 .dialog-header {
   border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+  padding: $spacing-2 $spacing-3;
 
   @include dark-mode {
     border-bottom-color: rgba(255, 255, 255, 0.12);
@@ -175,29 +175,30 @@ defineExpose({
 }
 
 .cropper-container {
-  height: calc(100vh - 150px);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: $spacing-4;
+  overflow: hidden;
+
+  @media (max-width: $breakpoint-mobile) {
+    height: calc(100vh - 120px);
+  }
 
   @media (min-width: $breakpoint-mobile) {
-    height: auto;
-    min-height: 400px;
-    max-height: calc(90vh - 150px);
+    min-height: 300px;
+    max-height: 500px;
   }
 }
 
 .cropper-wrapper {
   width: 100%;
-  height: 100%;
-  max-width: 600px;
-  max-height: 600px;
+  max-width: min(500px, 80vw);
   aspect-ratio: 1;
+  position: relative;
 
   @media (max-width: $breakpoint-mobile) {
-    max-width: 95vw;
-    max-height: 70vh;
+    max-width: 90vw;
+    max-height: calc(100vh - 160px);
   }
 }
 
@@ -208,7 +209,16 @@ defineExpose({
 
 .dialog-actions {
   border-top: 1px solid rgba(0, 0, 0, 0.12);
-  padding: $spacing-3 $spacing-4;
+  padding: $spacing-2 !important;
+  gap: $spacing-2;
+  min-height: unset !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+
+  :deep(.q-btn) {
+    margin: 0 !important;
+  }
 
   @include dark-mode {
     border-top-color: rgba(255, 255, 255, 0.12);

@@ -176,8 +176,6 @@ const removeImage = () => {
 
 .dialog-actions {
   border-top: 1px solid rgba(0, 0, 0, 0.12);
-  padding: $spacing-3 $spacing-4;
-
   @include dark-mode {
     border-top-color: rgba(255, 255, 255, 0.12);
   }
