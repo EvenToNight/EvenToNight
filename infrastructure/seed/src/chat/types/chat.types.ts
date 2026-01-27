@@ -1,6 +1,7 @@
+import { ConversationSeedResult } from "../conversations/types/conversation.types";
 
-export type SeedChat = string
+export type SeedChat = ConversationSeedResult
 
 export interface ChatSeedResult {
-  interactions: SeedChat[];
+  chat: SeedChat[];
 }

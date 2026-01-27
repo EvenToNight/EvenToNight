@@ -16,6 +16,7 @@ services:
       - MONGO_DB=eventonight
       - EVENT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-events-1
       - INTERACTIONS_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-interactions-1
+      - CHAT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-chat-1
 
 networks:
   eventonight-network:

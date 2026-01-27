@@ -1,3 +1,4 @@
+import { ChatSeed } from "./chat/chat.seed";
 import { EventSeed } from "./events/event.seed";
 import { InteractionSeed } from "./interactions/interaction.seed";
 import { UserSeed } from "./users/user.seed";
@@ -36,6 +37,10 @@ async function seed() {
   const { interactions } = await new InteractionSeed(users, events).populate();
   
   console.log("Interactions list:\n", JSON.stringify(interactions, null, 2));
+
+  const { chat } = await new ChatSeed(users).populate();
+  
+  console.log("Chat list:\n", JSON.stringify(chat, null, 2));
   
 }
 
