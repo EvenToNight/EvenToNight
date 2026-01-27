@@ -35,7 +35,7 @@ import { GetEventsByPriceQueryDto } from '../../application/dto/get-events-by-pr
 import { PaginatedResult } from 'src/commons/domain/types/pagination.types';
 
 @Controller('events')
-export class EventController {
+export class EventsController {
   constructor(
     private readonly eventTicketTypeService: EventTicketTypeService,
     private readonly eventService: EventService,
@@ -58,22 +58,16 @@ export class EventController {
   }
 
   /**
-   * POST /events
+   * POST /events/:eventId
    * Creates a new event.
+   * @deprecated Use /internal/events/:eventId instead for internal microservice communication
    */
   @Post(':eventId')
   @HttpCode(HttpStatus.CREATED)
-  // @UseGuards(JwtAuthGuard)
   async createOrUpdateEvent(
     @Param('eventId') eventId: string,
     @Body(ValidationPipe) dto: CreateEventDto,
-    // @CurrentUser('userId') userId: string,
   ): Promise<void> {
-    // if (dto.creatorId !== userId) {
-    //   throw new ForbiddenException(
-    //     'User ID in token does not match creator ID in request body',
-    //   );
-    // }
     try {
       await this.eventService.save(
         Event.create({

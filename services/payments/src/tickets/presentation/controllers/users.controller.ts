@@ -24,7 +24,7 @@ import { UserService } from 'src/tickets/application/services/user.service';
 import { EventService } from 'src/tickets/application/services/event.service';
 
 @Controller('users/:userId')
-export class UserController {
+export class UsersController {
   constructor(
     private readonly ticketService: TicketService,
     private readonly pdfService: PdfService,

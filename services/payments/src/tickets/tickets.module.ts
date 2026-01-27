@@ -60,8 +60,9 @@ import { MockedStripeWebhookController } from './presentation/controllers/mocked
 import { StripeWebhookController } from './presentation/controllers/stripe-webhook.controller';
 import { TicketsController } from './presentation/controllers/tickets.controller';
 import { OrderController } from './presentation/controllers/order-controller';
-import { EventController } from './presentation/controllers/events.controller';
-import { UserController } from './presentation/controllers/users.controller';
+import { EventsController } from './presentation/controllers/events.controller';
+import { InternalEventsController } from './presentation/controllers/internal-events.controller';
+import { UsersController } from './presentation/controllers/users.controller';
 
 // Consumers
 import { EventDispatcher } from './presentation/consumers/event.dispatcher';
@@ -93,9 +94,10 @@ import { UserService } from './application/services/user.service';
     StripeWebhookController,
     TicketsController,
     OrderController,
-    EventController,
+    EventsController,
+    InternalEventsController,
     EventDispatcher,
-    UserController,
+    UsersController,
   ],
   providers: [
     // Repositories
