@@ -35,14 +35,14 @@ onMounted(async () => {
 })
 
 const checkUserHasTickets = async () => {
-  if (!authStore.user?.id) {
+  if (!authStore.isAuthenticated) {
     userHasTickets.value = false
     return
   }
 
   try {
     userHasTickets.value = (
-      await api.interactions.userParticipatedToEvent(authStore.user.id, props.event.eventId)
+      await api.interactions.userParticipatedToEvent(authStore.user!.id, props.event.eventId)
     ).hasParticipated
   } catch (error) {
     console.error('Failed to check user tickets:', error)
@@ -51,7 +51,7 @@ const checkUserHasTickets = async () => {
 }
 
 const handleBuyTickets = () => {
-  if (!authStore.user?.id) {
+  if (!authStore.isAuthenticated) {
     emit('update:isAuthRequired', true)
     return
   }
@@ -64,10 +64,10 @@ const handleBuyTickets = () => {
 }
 
 const handleDownloadTickets = async () => {
-  if (!authStore.user?.id) return
+  if (!authStore.isAuthenticated) return
 
   try {
-    const blob = await api.payments.getEventPdfTickets(authStore.user.id, props.event.eventId)
+    const blob = await api.payments.getEventPdfTickets(authStore.user!.id, props.event.eventId)
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -93,8 +93,8 @@ const handleDownloadTickets = async () => {
 }
 
 const handleViewMyTickets = () => {
-  if (!authStore.user?.id) return
-  goToUserProfile(authStore.user.id)
+  if (!authStore.isAuthenticated) return
+  goToUserProfile(authStore.user!.id)
   setTimeout(() => {
     window.location.hash = '#tickets'
   }, 100)

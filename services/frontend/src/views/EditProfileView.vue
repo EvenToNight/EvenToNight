@@ -53,7 +53,7 @@ const handleAvatar = (file: File | null) => {
 
 const handleSave = async () => {
   console.log('Saving profile')
-  if (!authStore.user?.id) return
+  if (!authStore.isAuthenticated) return
 
   loading.value = true
   try {
@@ -74,7 +74,7 @@ const handleSave = async () => {
       message: 'Profile updated successfully',
       icon: 'check_circle',
     })
-    goToUserProfile(authStore.user.id)
+    goToUserProfile(authStore.user!.id)
   } catch (error) {
     console.error('Failed to update profile:', error)
     $q.notify({
@@ -88,8 +88,8 @@ const handleSave = async () => {
 }
 
 const handleCancel = () => {
-  if (authStore.user?.id) {
-    goToUserProfile(authStore.user.id)
+  if (authStore.isAuthenticated) {
+    goToUserProfile(authStore.user!.id)
   }
 }
 </script>

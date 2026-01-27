@@ -31,10 +31,9 @@ onMounted(async () => {
     const eventsResponse = await api.events.getEventsByIds(feedResponse.items)
     upcomingEvents.value = eventsResponse.events
 
-    // Load like status for each event in parallel
-    if (authStore.user?.id) {
+    if (authStore.isAuthenticated) {
       console.log('Loading likes for upcoming events')
-      const userId = authStore.user.id
+      const userId = authStore.user!.id
       const likePromises = upcomingEvents.value.map(async (event) => {
         try {
           const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)

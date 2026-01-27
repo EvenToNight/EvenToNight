@@ -72,9 +72,9 @@ const loadOrganizationInfo = async () => {
 }
 
 const loadCurrentUserReviewInfo = async () => {
-  if (!authStore.user?.id) return
+  if (!authStore.isAuthenticated) return
   try {
-    const userId = authStore.user?.id as string
+    const userId = authStore.user!.id
     //TODO improve to filterby organization
     const reviewsResponse = await api.interactions.getUserReviews(userId, {
       pagination: {

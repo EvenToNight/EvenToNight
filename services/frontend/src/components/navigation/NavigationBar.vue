@@ -70,9 +70,9 @@ const loadingNotifications = ref(false)
 const unreadMessagesCount = ref(0)
 
 const loadUnreadMessagesCount = async () => {
-  if (authStore.user?.id) {
+  if (authStore.isAuthenticated) {
     try {
-      const response = await api.chat.unreadMessageCountFor(authStore.user.id)
+      const response = await api.chat.unreadMessageCountFor(authStore.user!.id)
       unreadMessagesCount.value = response.unreadCount
     } catch (error) {
       console.error('Failed to load unread messages count:', error)

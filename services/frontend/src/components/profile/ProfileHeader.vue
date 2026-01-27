@@ -51,9 +51,9 @@ const defaultIcon = computed(() => {
 onMounted(async () => {
   console.log('ProfileHeader mounted for user:', { ...user.value })
   currentAvatarUrl.value = user.value.avatar
-  if (authStore.isAuthenticated && !isOwnProfile.value && authStore.user?.id) {
+  if (authStore.isAuthenticated && !isOwnProfile.value) {
     try {
-      isFollowing.value = await api.interactions.isFollowing(authStore.user.id, user.value.id)
+      isFollowing.value = await api.interactions.isFollowing(authStore.user!.id, user.value.id)
     } catch (error) {
       console.error('Failed to load following status:', error)
     }
@@ -71,18 +71,18 @@ onMounted(async () => {
 })
 
 const handleFollowToggle = async () => {
-  if (!authStore.isAuthenticated || !authStore.user?.id) {
+  if (!authStore.isAuthenticated) {
     emit('authRequired')
     return
   }
 
   try {
     if (isFollowing.value) {
-      await api.interactions.unfollowUser(authStore.user.id, user.value.id)
+      await api.interactions.unfollowUser(authStore.user!.id, user.value.id)
       isFollowing.value = false
       userInteractionsInfo.value.followers -= 1
     } else {
-      await api.interactions.followUser(authStore.user.id, user.value.id)
+      await api.interactions.followUser(authStore.user!.id, user.value.id)
       isFollowing.value = true
       userInteractionsInfo.value.followers += 1
     }
