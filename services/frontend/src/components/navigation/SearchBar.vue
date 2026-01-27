@@ -13,6 +13,7 @@ const hideDropdown = inject<boolean>('hideDropdown', false)
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 const searchResults = inject<Ref<SearchResult[]>>('searchResults', ref([]))
 const hasFocus = inject<Ref<boolean>>('searchBarHasFocus', ref(false))
+const onSearch = inject<(() => void) | undefined>('onSearch', undefined)
 
 const { goToEventDetails, goToUserProfile } = useNavigation()
 const showSuggestions = ref(false)
@@ -83,7 +84,10 @@ const performSearch = async () => {
 }
 
 const handleSearch = () => {
-  // TODO improve on Enter key press during search behavior
+  if (onSearch) {
+    onSearch()
+    return
+  }
   const firstResult = searchResults.value[0]
   if (firstResult) {
     selectResult(firstResult)

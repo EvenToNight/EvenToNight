@@ -201,6 +201,12 @@ const onSearch = () => {
   }
 }
 
+const initialSearchQuery = route.query.search as string | undefined
+if (initialSearchQuery && initialSearchQuery.trim()) {
+  searchQuery.value = initialSearchQuery.trim()
+  onSearch()
+}
+
 watch(activeTab, (_tabId) => {
   if (searchQuery.value.trim()) {
     onSearch()

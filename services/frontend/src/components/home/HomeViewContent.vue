@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, inject } from 'vue'
+import { ref, onMounted, inject, provide } from 'vue'
 import type { Ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
@@ -20,7 +20,10 @@ const authStore = useAuthStore()
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
 const upcomingEvents = ref<(Event & { liked?: boolean })[]>([])
-
+const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
+provide<(() => void) | undefined>('onSearch', () =>
+  goToExplore(searchQuery.value ? { searchQuery: searchQuery.value } : undefined)
+)
 const handleSeeAllEvents = () => {
   goToExplore({ otherFilter: 'upcoming' })
 }
