@@ -51,7 +51,7 @@ export const eventsSeedData: EventSeedInput[] = [
   },
 
   {
-    creator: "sunset_vibes",
+    creator: "sunset",
     title: "Golden Hour White Party",
     description: "Sunset beach party dressed in white.",
     tags: ["Outdoor", "Party", "White Party"],
@@ -99,7 +99,7 @@ export const eventsSeedData: EventSeedInput[] = [
   },
 
   {
-    creator: "sunset_vibes",
+    creator: "sunset",
     title: "Sunset on the Beach",
     description: "Relaxing sunset party on the beach.",
     tags: ["Outdoor"],
@@ -240,5 +240,54 @@ export const eventsSeedData: EventSeedInput[] = [
     status: "PUBLISHED",
     date: new Date("2026-09-18T21:00:00").toISOString().slice(0, -1),
     poster: "luxury-night.jpg"
-  }
+  },
+
+  {
+    creator: "sunset",
+    title: "Sunset Cesena 06/06",
+    description: "Relaxing sunset party in Cesena.",
+    tags: ["Outdoor", "Party"],
+    location: {
+      name: "Central Park",
+      country: "United States",
+      country_code: "US",
+      state: "New York",
+      province: "NY",
+      city: "New York",
+      road: "5th Ave",
+      postcode: "10022",
+      house_number: "1",
+      lat: 40.785091,
+      lon: -73.968285,
+      link: "https://maps.example.com/?q=central+park"
+    },
+    status: "PUBLISHED",
+    date: new Date("2026-06-06T18:00:00").toISOString().slice(0, -1),
+    poster: "sunset-cesena.jpg"
+  },
+
+  {
+    creator: "sunset",
+    title: "Sunset Cesena",
+    description: "Relaxing sunset party in Cesena.",
+    tags: ["Outdoor", "Party"],
+    location: {
+      name: "Central Park",
+      country: "United States",
+      country_code: "US",
+      state: "New York",
+      province: "NY",
+      city: "New York",
+      road: "5th Ave",
+      postcode: "10022",
+      house_number: "1",
+      lat: 40.785091,
+      lon: -73.968285,
+      link: "https://maps.example.com/?q=central+park"
+    },
+    status: "DRAFT",
+    date: new Date("2026-07-04T18:00:00").toISOString().slice(0, -1),
+    poster: "sunset-cesena2.jpg"
+  },
+
 ];
