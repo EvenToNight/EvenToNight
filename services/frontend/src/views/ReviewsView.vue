@@ -21,13 +21,10 @@ const authStore = useAuthStore()
 const organizationId = computed(() => params.organizationId as string)
 const tempEventId = ref<EventID | null>((query.eventId as EventID) || null)
 const tempEventIdForDialog = ref<EventID | null>(null)
-//TODO: missing endpoint for checking if user has partecipated in any event of the organization
 const canUserLeaveReview = ref(false)
 const userHasReviews = ref(true)
 
-//TODO: missing endpoint for retriving user's review to show in dialog for editing (when clicking on modify ok the review is alreay loaded), evaluate moving inside dialog
 const tempReview = ref<EventReview | null>(null)
-//TODO: query param for preselecting event in dialog
 const getRatingFromQuery = (): Rating | null => {
   if (typeof query.rating !== 'string') return null
   const num = Number(query.rating)
@@ -75,7 +72,6 @@ const loadCurrentUserReviewInfo = async () => {
   if (!authStore.isAuthenticated) return
   try {
     const userId = authStore.user!.id
-    //TODO improve to filterby organization
     const reviewsResponse = await api.interactions.getUserReviews(userId, {
       pagination: {
         limit: 1,

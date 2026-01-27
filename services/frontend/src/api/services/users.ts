@@ -78,7 +78,7 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
     pagination?: PaginatedRequest
     role?: string
   }): Promise<PaginatedResponse<User>> {
-    //TODO uniform API?
+    //TODO uniform API to match getUserById response?
     const { pagination = { ...evaluatePagination(params.pagination) }, ...rest } = params
     const response = await usersClient.get<PaginatedResponse<User> & { data: User[] }>(
       `/search${buildQueryParams({ ...pagination, ...rest })}`

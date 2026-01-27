@@ -55,7 +55,6 @@ export class OrderController {
    * GET /orders/:orderId/pdf
    * Returns a PDF for the specified order containing all tickets.
    */
-  //TODO: test endpoint and add auth
   @Get('pdf')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)

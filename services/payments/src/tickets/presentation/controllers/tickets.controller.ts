@@ -88,7 +88,6 @@ export class TicketsController {
    * GET /tickets/:ticketId/pdf
    * Returns a PDF for the specified ticket.
    */
-  //TODO: test this endpoint
   @Get('pdf')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)

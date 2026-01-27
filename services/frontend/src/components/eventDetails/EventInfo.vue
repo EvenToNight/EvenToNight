@@ -39,7 +39,6 @@ const locationAddress = computed(() => {
 const formattedPrice = computed(() => {
   const ticketTypes = props.eventTickets
   if (ticketTypes.length > 0) {
-    //TODO handle different currencies
     //TODO update based on availability of tickets?
     const prices = ticketTypes.map((ticket) => ticket.price)
     const minPrice = Math.min(...prices)

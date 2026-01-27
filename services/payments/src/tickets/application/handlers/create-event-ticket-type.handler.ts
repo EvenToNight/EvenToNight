@@ -53,7 +53,6 @@ export class CreateEventTicketTypeHandler {
       soldQuantity: 0,
     });
 
-    // TODO: remove
     this.eventPublisher.publish(
       new TicketTypeCreatedEvent({
         eventId: eventId,

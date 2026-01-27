@@ -55,7 +55,6 @@ export interface LoginResponse extends TokenResponse {
 
 export interface UsersAPI {
   login(credentials: LoginRequest): Promise<LoginResponse>
-  //TODO update with current darkmode and lang settings
   register(data: RegistrationRequest): Promise<LoginResponse>
   refreshToken(refreshToken: RefreshToken): Promise<TokenResponse>
   logout(refreshToken: RefreshToken): Promise<void>

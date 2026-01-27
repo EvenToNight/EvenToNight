@@ -16,7 +16,6 @@ export class CreateEventTicketTypeDto {
   })
   type: string;
 
-  //TODO: make required?
   @IsString()
   @IsNotEmpty()
   @IsOptional()
