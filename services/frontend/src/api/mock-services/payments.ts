@@ -110,4 +110,8 @@ export const mockPaymentsApi: PaymentsAPI = {
   async getEventPdfTickets(_userId: string, _eventId: string): Promise<Blob> {
     return new Blob(['Mock PDF content'], { type: 'application/pdf' })
   },
+
+  async verifyTicket(_ticketId: string): Promise<boolean> {
+    return true
+  },
 }

@@ -28,6 +28,7 @@ export const TICKET_PURCHASE_ROUTE_NAME = 'ticket-purchase'
 export const PRIVACY_ROUTE_NAME = 'privacy'
 export const TERMS_ROUTE_NAME = 'terms'
 export const ABOUT_ROUTE_NAME = 'about'
+export const VERIFY_TICKET_ROUTE_NAME = 'verify-ticket'
 
 const getInitialLocale = (): string => {
   const savedLocale = localStorage.getItem('user-locale')
@@ -149,6 +150,12 @@ const router = createRouter({
           path: 'chat',
           name: CHAT_ROUTE_NAME,
           component: () => import('../views/ChatView.vue'),
+          beforeEnter: requireAuth,
+        },
+        {
+          path: 'verify/:ticketId',
+          name: VERIFY_TICKET_ROUTE_NAME,
+          component: () => import('../views/VerifyTicketView.vue'),
           beforeEnter: requireAuth,
         },
         {

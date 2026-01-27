@@ -46,4 +46,5 @@ export interface PaymentsAPI {
     }
   ): Promise<PaginatedResponse<EventID>>
   getEventPdfTickets(userId: string, eventId: string): Promise<Blob>
+  verifyTicket(ticketId: string): Promise<boolean>
 }
