@@ -21,7 +21,7 @@ const ticketTypes = ref<EventTicketType[]>([])
 const ticketQuantities = ref<Record<string, number>>({})
 
 const getAvailableQuantity = (tt: EventTicketType) => {
-  return tt.availableQuantity - tt.soldQuantity
+  return tt.availableQuantity
 }
 
 const getQuantity = (ttId: string) => {
@@ -237,7 +237,7 @@ const handlePurchase = async () => {
           <div v-if="hasAnyTickets" class="summary-section">
             <div v-for="item in selectedTickets" :key="item.ticketType.id" class="summary-row">
               <span>{{ item.ticketType.type }} x {{ item.quantity }}</span>
-              <span>{{ (item.ticketType.price * item.quantity).toFixed(2) }} $</span>
+              <span>{{ (item.ticketType.price * item.quantity).toFixed(2) }} USD</span>
             </div>
             <div class="summary-divider"></div>
             <div class="summary-row total">
