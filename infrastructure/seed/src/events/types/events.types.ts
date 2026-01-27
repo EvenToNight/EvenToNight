@@ -2,7 +2,7 @@ import { Tag } from "../../tags.schema";
 import { EventStatus } from "../schemas/event.schema";
 
 export interface EventToCreate {
-  title?: string;
+  title: string;
   description?: string;
   poster?: string;
   tags?: Tag[];

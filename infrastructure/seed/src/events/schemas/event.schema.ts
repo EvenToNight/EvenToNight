@@ -10,7 +10,7 @@ const EventStatusSchema = z.enum([
 
 const BaseEventSeedSchema = z.object({
   creator: z.string(),
-  title: z.string().optional(),
+  title: z.string(),
   description: z.string().optional(),
   tags: z.array(TagsSchema).optional(),
   location: z.object({
