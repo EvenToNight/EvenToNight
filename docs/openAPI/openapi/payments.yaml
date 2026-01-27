@@ -499,37 +499,49 @@ paths:
       tags:
         - Tickets
 
-    patch:
-      summary: Invalidate ticket status
-      description: Invalidate a ticket (event creator only)
+  /tickets/{ticketId}/verify:
+    put:
+      summary: Verify a ticket
+      description: |
+        Verifies a ticket by marking it as USED.
+        Returns true if the ticket was newly verified (first time).
+        Returns false if the ticket was already used previously.
+        Only the event creator can verify tickets.
       security:
         - BearerAuth: []
       parameters:
         - name: ticketId
           in: path
           required: true
+          description: ID of the ticket to verify
           schema:
             type: string
           example: tkt_123e4567-e89b-12d3-a456-426614174000
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/InvalidateTicketStatusDto'
-            example:
-              status: USED
       responses:
         '200':
-          description: Ticket invalidated
+          description: Ticket verification result
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
+                type: boolean
+                description: True if ticket was newly verified, false if already used
+              examples:
+                newlyVerified:
+                  summary: Ticket verified for the first time
+                  value: true
+                alreadyUsed:
+                  summary: Ticket was already used
+                  value: false
+        '400':
+          description: Bad Request - Ticket cannot be verified (invalid status)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: Cannot use ticket with status CANCELLED
+                error: Bad Request
         '403':
           description: Forbidden - User is not the event creator
           content:
@@ -538,18 +550,27 @@ paths:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 statusCode: 403
-                message: Not authorized to view this ticket
+                message: Not authorized to verify this ticket
                 error: Forbidden
         '404':
-          description: Ticket or event not found
+          description: Ticket not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
-              example:
-                statusCode: 404
-                message: Ticket not found
-                error: Not Found
+              examples:
+                ticketNotFound:
+                  summary: Ticket not found
+                  value:
+                    statusCode: 404
+                    message: Ticket not found
+                    error: Not Found
+                eventNotFound:
+                  summary: Event not found
+                  value:
+                    statusCode: 404
+                    message: Event not found
+                    error: Not Found
       tags:
         - Tickets
 
