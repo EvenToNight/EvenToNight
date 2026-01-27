@@ -16,6 +16,7 @@ import { OrderService } from 'src/tickets/application/services/order.service';
 import { JwtAuthGuard } from 'src/commons/infrastructure/auth/jwt-auth.guard';
 import { CurrentUser } from 'src/commons/infrastructure/auth/current-user.decorator';
 import { UserService } from 'src/tickets/application/services/user.service';
+import { EventService } from 'src/tickets/application/services/event.service';
 
 @Controller('orders/:orderId')
 export class OrderController {
@@ -24,6 +25,7 @@ export class OrderController {
     private readonly orderService: OrderService,
     private readonly userService: UserService,
     private readonly ticketService: TicketService,
+    private readonly eventService: EventService,
   ) {}
 
   /**
@@ -74,6 +76,14 @@ export class OrderController {
     const userLanguage = await this.userService.getUserLanguage(userId);
     const ticketIds = order.getTicketIds();
     const tickets = await this.ticketService.findByIds(ticketIds);
+    const event = await this.eventService.findById(
+      tickets[0].getEventId().toString(),
+    );
+    if (!event) {
+      throw new NotFoundException(
+        `Event with id ${tickets[0].getEventId().toString()} not found`,
+      );
+    }
 
     const ticketPdfData = tickets.map((ticket) => ({
       ticketId: ticket.getId(),
@@ -81,6 +91,7 @@ export class OrderController {
       attendeeName: ticket.getAttendeeName(),
       purchaseDate: ticket.getPurchaseDate(),
       priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
+      eventTitle: event.getTitle() || 'EventoNight',
     }));
 
     const buffer = await this.pdfService.generateTicketsPdf(

@@ -10,6 +10,7 @@ export interface EventRepository {
   update(event: {
     eventId: EventId;
     date?: Date;
+    title?: string;
     status: EventStatus;
   }): Promise<Event>;
   updateStatus(eventId: EventId, status: EventStatus);

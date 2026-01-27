@@ -6,6 +6,7 @@ import { SupportedLocale, TICKET_TRANSLATIONS } from './ticket.translations';
 export interface TicketPdfData {
   ticketId: string;
   eventId: string;
+  eventTitle: string;
   attendeeName: string;
   purchaseDate: Date | string;
   priceLabel?: string;
@@ -20,7 +21,9 @@ export class PdfService {
   ): Promise<void> {
     const t = TICKET_TRANSLATIONS[locale];
 
-    doc.fontSize(22).text(t.title, { align: 'center' });
+    doc
+      .fontSize(22)
+      .text(ticket.eventTitle + ' - ' + t.ticket, { align: 'center' });
     doc.moveDown();
 
     doc.fontSize(12).text(`${t.ticketId}: ${ticket.ticketId}`);

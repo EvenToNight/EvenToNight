@@ -13,7 +13,8 @@ import { DeleteEventTicketTypesHandler } from 'src/tickets/application/handlers/
 
 interface EventUpdatedPayload {
   eventId: string;
-  date: Date;
+  date?: Date;
+  name?: string;
   status: string;
 }
 
@@ -36,6 +37,8 @@ interface EventDeletedPayload {
 @Injectable()
 export class EventEventConsumer {
   private readonly logger = new Logger(EventEventConsumer.name);
+  private readonly MAX_RETRIES = 3;
+  private readonly INITIAL_RETRY_DELAY_MS = 1000;
 
   constructor(
     @Inject(EVENT_REPOSITORY)
@@ -52,6 +55,12 @@ export class EventEventConsumer {
 
     try {
       switch (routingKey) {
+        // TODO: remove and get title from REST endpoint
+        case 'event.created':
+          await this.handleEventCreated(
+            envelope as EventEnvelope<EventUpdatedPayload>,
+          );
+          break;
         case 'event.updated':
           await this.handleEventUpdated(
             envelope as EventEnvelope<EventUpdatedPayload>,
@@ -92,6 +101,58 @@ export class EventEventConsumer {
     }
   }
 
+  private async retryWithBackoff<T>(
+    operation: () => Promise<T>,
+    operationName: string,
+  ): Promise<T> {
+    let lastError: Error | undefined;
+
+    for (let attempt = 1; attempt <= this.MAX_RETRIES; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error as Error;
+
+        if (attempt === this.MAX_RETRIES) {
+          this.logger.error(
+            `${operationName} failed after ${this.MAX_RETRIES} attempts`,
+          );
+          throw lastError;
+        }
+
+        const delay = this.INITIAL_RETRY_DELAY_MS * Math.pow(2, attempt - 1);
+        this.logger.warn(
+          `${operationName} failed (attempt ${attempt}/${this.MAX_RETRIES}), retrying in ${delay}ms...`,
+        );
+
+        await new Promise((resolve) => setTimeout(resolve, delay));
+      }
+    }
+
+    throw lastError || new Error(`${operationName} failed with unknown error`);
+  }
+
+  private async handleEventCreated(
+    envelope: EventEnvelope<EventUpdatedPayload>,
+  ) {
+    this.logger.log(
+      `Processing event.created: ${JSON.stringify(envelope.payload)}`,
+    );
+
+    await this.retryWithBackoff(
+      () =>
+        this.eventRepository.update({
+          eventId: EventId.fromString(envelope.payload.eventId),
+          date: envelope.payload.date,
+          title: envelope.payload.name,
+          status: EventStatus.fromString(envelope.payload.status),
+        }),
+      `event.created for ${envelope.payload.eventId}`,
+    );
+
+    this.logger.log(`Event created: ${envelope.payload.eventId}`);
+  }
+
   private async handleEventUpdated(
     envelope: EventEnvelope<EventUpdatedPayload>,
   ) {
@@ -102,6 +163,7 @@ export class EventEventConsumer {
     await this.eventRepository.update({
       eventId: EventId.fromString(envelope.payload.eventId),
       date: envelope.payload.date,
+      title: envelope.payload.name,
       status: EventStatus.fromString(envelope.payload.status),
     });
 

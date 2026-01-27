@@ -41,6 +41,7 @@ export class EventRepositoryImpl implements EventRepository {
   async update(event: {
     eventId: EventId;
     date?: Date;
+    title?: string;
     status: EventStatus;
   }): Promise<Event> {
     const updated = await this.eventModel
@@ -49,6 +50,7 @@ export class EventRepositoryImpl implements EventRepository {
         {
           $set: {
             date: event.date,
+            title: event.title,
             status: event.status.toString(),
           },
         },

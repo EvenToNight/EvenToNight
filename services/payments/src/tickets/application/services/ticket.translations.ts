@@ -2,7 +2,7 @@ export const SUPPORTED_LOCALES = ['it', 'en', 'es', 'fr', 'de'] as const;
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number];
 
 export interface TicketTranslations {
-  title: string;
+  ticket: string;
   ticketId: string;
   event: string;
   attendee: string;
@@ -13,7 +13,7 @@ export interface TicketTranslations {
 export const TICKET_TRANSLATIONS: Record<SupportedLocale, TicketTranslations> =
   {
     it: {
-      title: 'EventoNight - Biglietto',
+      ticket: 'Biglietto',
       ticketId: 'ID Biglietto',
       event: 'Evento',
       attendee: 'Partecipante',
@@ -21,7 +21,7 @@ export const TICKET_TRANSLATIONS: Record<SupportedLocale, TicketTranslations> =
       price: 'Prezzo',
     },
     en: {
-      title: 'EventoNight - Ticket',
+      ticket: 'Ticket',
       ticketId: 'Ticket ID',
       event: 'Event',
       attendee: 'Attendee',
@@ -29,7 +29,7 @@ export const TICKET_TRANSLATIONS: Record<SupportedLocale, TicketTranslations> =
       price: 'Price',
     },
     es: {
-      title: 'EventoNight - Entrada',
+      ticket: 'Entrada',
       ticketId: 'ID de Entrada',
       event: 'Evento',
       attendee: 'Asistente',
@@ -37,7 +37,7 @@ export const TICKET_TRANSLATIONS: Record<SupportedLocale, TicketTranslations> =
       price: 'Precio',
     },
     fr: {
-      title: 'EventoNight - Billet',
+      ticket: 'Billet',
       ticketId: 'ID du Billet',
       event: 'Événement',
       attendee: 'Participant',
@@ -45,7 +45,7 @@ export const TICKET_TRANSLATIONS: Record<SupportedLocale, TicketTranslations> =
       price: 'Prix',
     },
     de: {
-      title: 'EventoNight - Ticket',
+      ticket: 'Ticket',
       ticketId: 'Ticket-ID',
       event: 'Veranstaltung',
       attendee: 'Teilnehmer',

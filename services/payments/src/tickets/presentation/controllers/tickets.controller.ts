@@ -104,6 +104,15 @@ export class TicketsController {
     if (ticket.getUserId().toString() !== userId) {
       throw new ForbiddenException('Not authorized to view this ticket');
     }
+    const event = await this.eventService.findById(
+      ticket.getEventId().toString(),
+    );
+    if (!event) {
+      throw new NotFoundException(
+        `Event with id ${ticket.getEventId().toString()} not found`,
+      );
+    }
+
     const userLanguage = await this.userService.getUserLanguage(userId);
 
     const buffer = await this.pdfService.generateTicketsPdf(
@@ -114,6 +123,7 @@ export class TicketsController {
           attendeeName: ticket.getAttendeeName(),
           purchaseDate: ticket.getPurchaseDate(),
           priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
+          eventTitle: event.getTitle() || 'EventoNight',
         },
       ],
       userLanguage,

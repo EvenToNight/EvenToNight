@@ -11,6 +11,7 @@ export class RabbitMqSetupService {
       'user.created',
       'user.updated',
       'user.deleted',
+      'event.created', // TODO: remove and get title from REST endpoint
       'event.updated',
       'event.published',
       'event.completed',

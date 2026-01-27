@@ -21,6 +21,7 @@ import { CurrentUser, JwtAuthGuard } from 'src/commons/infrastructure/auth';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { PdfService } from 'src/tickets/application/services/pdf.service';
 import { UserService } from 'src/tickets/application/services/user.service';
+import { EventService } from 'src/tickets/application/services/event.service';
 
 @Controller('users/:userId')
 export class UserController {
@@ -28,6 +29,7 @@ export class UserController {
     private readonly ticketService: TicketService,
     private readonly pdfService: PdfService,
     private readonly userService: UserService,
+    private readonly eventService: EventService,
   ) {}
 
   /**
@@ -129,6 +131,10 @@ export class UserController {
       throw new NotFoundException('No tickets found for this event');
     }
 
+    const event = await this.eventService.findById(eventId);
+    if (!event) {
+      throw new NotFoundException(`Event with id ${eventId} not found`);
+    }
     const userLanguage = await this.userService.getUserLanguage(userId);
 
     const ticketPdfData = result.map((ticket) => ({
@@ -137,6 +143,7 @@ export class UserController {
       attendeeName: ticket.getAttendeeName(),
       purchaseDate: ticket.getPurchaseDate(),
       priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
+      eventTitle: event.getTitle() || 'EventoNight',
     }));
 
     const buffer = await this.pdfService.generateTicketsPdf(
