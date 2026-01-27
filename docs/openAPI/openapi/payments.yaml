@@ -66,6 +66,26 @@ paths:
                 statusCode: 400
                 message: status must be one of DRAFT, PUBLISHED, COMPLETED, CANCELLED
                 error: Bad Request
+        '409':
+          description: Conflict - Event with this ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 409
+                message: Event with id evt_550e8400-e29b-41d4-a716-446655440000 already exists
+                error: Conflict
+        '500':
+          description: Internal Server Error - Failed to create or update event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 500
+                message: Failed to create or update event
+                error: Internal Server Error
       tags:
         - Event
 

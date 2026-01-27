@@ -12,6 +12,8 @@ import {
   ForbiddenException,
   NotFoundException,
   Query,
+  ConflictException,
+  InternalServerErrorException,
 } from '@nestjs/common';
 import { CreateEventTicketTypeHandler } from '../../application/handlers/create-event-ticket-type.handler';
 import { CreateEventTicketTypeDto } from '../../application/dto/create-event-ticket-type.dto';
@@ -72,15 +74,24 @@ export class EventController {
     //     'User ID in token does not match creator ID in request body',
     //   );
     // }
-    await this.eventService.save(
-      Event.create({
-        id: EventId.fromString(eventId),
-        creatorId: UserId.fromString(dto.creatorId),
-        date: dto.date,
-        title: dto.title,
-        status: EventStatus.fromString(dto.status),
-      }),
-    );
+    try {
+      await this.eventService.save(
+        Event.create({
+          id: EventId.fromString(eventId),
+          creatorId: UserId.fromString(dto.creatorId),
+          date: dto.date,
+          title: dto.title,
+          status: EventStatus.fromString(dto.status),
+        }),
+      );
+    } catch (error) {
+      if (this.eventService.isDuplicateError(error)) {
+        throw new ConflictException(`Event with id ${eventId} already exists`);
+      }
+      throw new InternalServerErrorException(
+        `Failed to create or update event: ${error}`,
+      );
+    }
   }
 
   /**

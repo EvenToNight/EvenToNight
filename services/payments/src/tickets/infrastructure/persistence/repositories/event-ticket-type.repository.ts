@@ -12,13 +12,19 @@ import {
 import { Pagination } from 'src/commons/utils/pagination.utils';
 import { CurrencyConverter } from 'src/commons/utils/currency-converter.utils';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
+import { BaseMongoRepository } from './base-mongo.repository';
 
 @Injectable()
-export class EventTicketTypeRepositoryImpl implements EventTicketTypeRepository {
+export class EventTicketTypeRepositoryImpl
+  extends BaseMongoRepository
+  implements EventTicketTypeRepository
+{
   constructor(
     @InjectModel(EventTicketTypeDocument.name)
     private readonly model: Model<EventTicketTypeDocument>,
-  ) {}
+  ) {
+    super();
+  }
 
   async save(ticketType: EventTicketType): Promise<EventTicketType> {
     const document = EventTicketTypeMapper.toPersistence(ticketType);
