@@ -183,11 +183,11 @@ const goToProfile = () => {
       </div>
 
       <template v-else>
-        <q-toolbar-title class="brand-title">
-          <AppBrand />
-        </q-toolbar-title>
-        <q-space />
         <template v-if="isMobile">
+          <div class="brand-title">
+            <AppBrand />
+          </div>
+          <q-space />
           <template v-if="showSearch">
             <q-btn flat dense icon="search" @click="toggleMobileSearch" />
           </template>
@@ -242,125 +242,132 @@ const goToProfile = () => {
           <q-btn flat dense icon="menu" @click="toggleMobileMenu" />
         </template>
         <template v-else>
-          <div
-            v-if="showSearch"
-            class="search-container"
-            :class="{ 'search-container--narrow': !authStore.isAuthenticated }"
-          >
+          <!-- Left Section: Logo -->
+          <div class="brand-title">
+            <AppBrand />
+          </div>
+
+          <q-space />
+
+          <!-- Center Section: Search Bar -->
+          <div v-if="showSearch" class="search-wrapper">
             <SearchBar />
           </div>
-          <div
-            v-if="authStore.isAuthenticated"
-            class="authenticated-actions authenticated-actions--left-space"
-          >
-            <!-- Theme Toggle -->
-            <q-btn
-              flat
-              round
-              class="theme-toggle"
-              :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
-              @click="toggleDarkMode"
-            >
-              <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
-            </q-btn>
 
-            <!-- Create Event Button (Organizations only) -->
-            <q-btn
-              v-if="isOrganization"
-              flat
-              round
-              icon="add"
-              class="create-event-btn"
-              @click="goToCreateEvent()"
-            >
-              <q-tooltip>Create Event</q-tooltip>
-            </q-btn>
+          <q-space />
 
-            <!-- Notifications Button -->
-            <q-btn flat round icon="notifications">
-              <q-badge color="red" floating>{{ String(notifications.length) }}</q-badge>
-              <q-tooltip>Notifications</q-tooltip>
-              <q-menu class="notifications-menu">
-                <q-list style="min-width: 300px; max-width: 400px" class="notifications-list">
-                  <q-item-label header>Notifications</q-item-label>
-                  <q-separator />
-                  <q-scroll-area
-                    class="notifications-scroll-area"
-                    :thumb-style="{ width: '4px', borderRadius: '2px', opacity: '0.5' }"
-                  >
-                    <q-infinite-scroll :offset="50" @load="loadMoreNotifications">
-                      <template
-                        v-for="(notification, index) in notifications"
-                        :key="notification.id"
-                      >
-                        <q-item clickable>
-                          <q-item-section avatar>
-                            <q-icon :name="notification.icon" :color="notification.iconColor" />
-                          </q-item-section>
-                          <q-item-section>
-                            <q-item-label>{{ notification.message }}</q-item-label>
-                            <q-item-label caption>{{ notification.timestamp }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
-                        <q-separator v-if="index < notifications.length - 1" />
-                      </template>
-                      <template #loading>
-                        <div class="row justify-center q-my-md">
-                          <q-spinner-dots color="primary" size="40px" />
-                        </div>
-                      </template>
-                    </q-infinite-scroll>
-                  </q-scroll-area>
-                </q-list>
-              </q-menu>
-            </q-btn>
+          <!-- Right Section: Actions -->
+          <div class="actions-wrapper">
+            <div v-if="authStore.isAuthenticated" class="authenticated-actions">
+              <!-- Theme Toggle -->
+              <q-btn
+                flat
+                round
+                class="theme-toggle"
+                :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+                @click="toggleDarkMode"
+              >
+                <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
+              </q-btn>
 
-            <!-- Chat Button -->
-            <q-btn flat round icon="chat" @click="goToChat()">
-              <q-badge v-if="unreadMessagesCount > 0" color="red" floating>{{
-                String(unreadMessagesCount)
-              }}</q-badge>
-              <q-tooltip>Chat</q-tooltip>
-            </q-btn>
+              <!-- Create Event Button (Organizations only) -->
+              <q-btn
+                v-if="isOrganization"
+                flat
+                round
+                icon="add"
+                class="create-event-btn"
+                @click="goToCreateEvent()"
+              >
+                <q-tooltip>Create Event</q-tooltip>
+              </q-btn>
 
-            <!-- User Profile Avatar -->
-            <q-btn flat round>
-              <q-avatar size="40px">
-                <img
-                  :src="authStore.user?.avatar || '/default-avatar.png'"
-                  :alt="authStore.user?.name"
-                />
-              </q-avatar>
-              <q-menu>
-                <q-list style="min-width: 200px" class="profile-menu-list">
-                  <q-item clickable @click="goToProfile">
-                    <q-item-section avatar>
-                      <q-icon name="person" />
-                    </q-item-section>
-                    <q-item-section>{{ t('profile') }}</q-item-section>
-                  </q-item>
-                  <q-separator />
-                  <q-item clickable @click="handleLogout">
-                    <q-item-section avatar>
-                      <q-icon name="logout" />
-                    </q-item-section>
-                    <q-item-section>{{ t('auth.logout') }}</q-item-section>
-                  </q-item>
-                </q-list>
-              </q-menu>
-            </q-btn>
-          </div>
-          <div v-else class="unauthenticated-actions">
-            <q-btn
-              flat
-              round
-              class="theme-toggle"
-              :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
-              @click="toggleDarkMode"
-            >
-              <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
-            </q-btn>
-            <AuthButtons />
+              <!-- Notifications Button -->
+              <q-btn flat round icon="notifications">
+                <q-badge color="red" floating>{{ String(notifications.length) }}</q-badge>
+                <q-tooltip>Notifications</q-tooltip>
+                <q-menu class="notifications-menu">
+                  <q-list style="min-width: 300px; max-width: 400px" class="notifications-list">
+                    <q-item-label header>Notifications</q-item-label>
+                    <q-separator />
+                    <q-scroll-area
+                      class="notifications-scroll-area"
+                      :thumb-style="{ width: '4px', borderRadius: '2px', opacity: '0.5' }"
+                    >
+                      <q-infinite-scroll :offset="50" @load="loadMoreNotifications">
+                        <template
+                          v-for="(notification, index) in notifications"
+                          :key="notification.id"
+                        >
+                          <q-item clickable>
+                            <q-item-section avatar>
+                              <q-icon :name="notification.icon" :color="notification.iconColor" />
+                            </q-item-section>
+                            <q-item-section>
+                              <q-item-label>{{ notification.message }}</q-item-label>
+                              <q-item-label caption>{{ notification.timestamp }}</q-item-label>
+                            </q-item-section>
+                          </q-item>
+                          <q-separator v-if="index < notifications.length - 1" />
+                        </template>
+                        <template #loading>
+                          <div class="row justify-center q-my-md">
+                            <q-spinner-dots color="primary" size="40px" />
+                          </div>
+                        </template>
+                      </q-infinite-scroll>
+                    </q-scroll-area>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+
+              <!-- Chat Button -->
+              <q-btn flat round icon="chat" @click="goToChat()">
+                <q-badge v-if="unreadMessagesCount > 0" color="red" floating>{{
+                  String(unreadMessagesCount)
+                }}</q-badge>
+                <q-tooltip>Chat</q-tooltip>
+              </q-btn>
+
+              <!-- User Profile Avatar -->
+              <q-btn flat round>
+                <q-avatar size="40px">
+                  <img
+                    :src="authStore.user?.avatar || '/default-avatar.png'"
+                    :alt="authStore.user?.name"
+                  />
+                </q-avatar>
+                <q-menu>
+                  <q-list style="min-width: 200px" class="profile-menu-list">
+                    <q-item clickable @click="goToProfile">
+                      <q-item-section avatar>
+                        <q-icon name="person" />
+                      </q-item-section>
+                      <q-item-section>{{ t('profile') }}</q-item-section>
+                    </q-item>
+                    <q-separator />
+                    <q-item clickable @click="handleLogout">
+                      <q-item-section avatar>
+                        <q-icon name="logout" />
+                      </q-item-section>
+                      <q-item-section>{{ t('auth.logout') }}</q-item-section>
+                    </q-item>
+                  </q-list>
+                </q-menu>
+              </q-btn>
+            </div>
+            <div v-else class="unauthenticated-actions">
+              <q-btn
+                flat
+                round
+                class="theme-toggle"
+                :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+                @click="toggleDarkMode"
+              >
+                <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
+              </q-btn>
+              <AuthButtons />
+            </div>
           </div>
         </template>
       </template>
@@ -464,9 +471,17 @@ const goToProfile = () => {
   transition: background-color $transition-base;
   position: relative;
   background-color: $color-white;
+  display: flex;
+  align-items: center;
+  gap: $spacing-8;
 
   @include dark-mode {
     background-color: $color-background-dark;
+  }
+
+  @media (max-width: $breakpoint-mobile) {
+    padding: 0 $spacing-2;
+    gap: $spacing-2;
   }
 }
 
@@ -499,9 +514,9 @@ const goToProfile = () => {
 }
 
 .brand-title {
-  flex: 0 1 auto;
-  margin-right: $spacing-2;
-  min-width: 0;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 
   :deep(.brand-text) {
     @media (max-width: $breakpoint-mobile) {
@@ -510,15 +525,19 @@ const goToProfile = () => {
   }
 }
 
-.search-container {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
-  width: clamp(100px, 36vw, 600px);
+.search-wrapper {
+  flex-shrink: 1;
+  flex-grow: 0;
+  max-width: 600px;
+  min-width: 0;
+  width: 100%;
+}
 
-  &--narrow {
-    width: clamp(100px, 22vw, 220px);
-  }
+.actions-wrapper {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
 }
 
 .drawer-user-info {
@@ -558,20 +577,18 @@ const goToProfile = () => {
 
 .authenticated-actions {
   @include flex-center;
-  gap: $spacing-4;
+  gap: $spacing-2;
+  flex-wrap: nowrap;
 
   :deep(.q-badge) {
     font-weight: $font-weight-semibold;
   }
 }
 
-.authenticated-actions--left-space {
-  margin-left: $spacing-4;
-}
-
 .unauthenticated-actions {
   @include flex-center;
   gap: $spacing-1;
+  flex-wrap: nowrap;
 }
 
 .create-event-btn,
