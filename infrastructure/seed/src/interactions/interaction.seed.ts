@@ -6,6 +6,7 @@ import { SeedInteraction } from './types/interactions.types';
 import { EventInteractionSeed } from './events/event.interaction.seed';
 import { FollowSeed } from './follows/follow.seed';
 import { LikeSeed } from './likes/like.seed';
+import { ParticipationSeed } from './participations/participation.seed';
 
 export class InteractionSeed implements DataProvider<InteractionSeedResult> {
     private users: SeedUser[];
@@ -26,6 +27,9 @@ export class InteractionSeed implements DataProvider<InteractionSeedResult> {
         )
         interactions.push(
             await new LikeSeed(this.events, this.users).populate()
+        )
+        interactions.push(
+            await new ParticipationSeed(this.events, this.users).populate()
         )
         return { interactions: interactions };
     }
