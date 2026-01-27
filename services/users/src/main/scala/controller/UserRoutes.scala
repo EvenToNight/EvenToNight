@@ -11,11 +11,8 @@ import api.utils.UserQueryParser
 import cask.FormFile
 import cask.Request
 import cask.Response
-import http.AuthHeaderExtractor
 import http.HttpSecurity.authenticateAndAuthorize
-import infrastructure.keycloak.KeycloakJwtVerifier.authorizeUser
 import infrastructure.keycloak.KeycloakJwtVerifier.extractSub
-import infrastructure.keycloak.KeycloakJwtVerifier.verifyToken
 import infrastructure.media.MediaServiceClient.uploadAvatarToMediaService
 import infrastructure.rabbitmq.EventPublisher
 import io.circe.Json
@@ -42,14 +39,7 @@ class UserRoutes(
     userService.getUserById(userId) match
       case Left(err) => Response(err, 404)
       case Right(role, user) =>
-        val isOwner: Boolean =
-          (
-            for
-              userAccessToken <- AuthHeaderExtractor.extractBearer(req)
-              payload         <- verifyToken(userAccessToken)
-              _               <- authorizeUser(payload, userId)
-            yield ()
-          ).isRight
+        val isOwner: Boolean = authenticateAndAuthorize(req, userId).isRight
         val json = if isOwner then
           user match
             case m: Member =>
@@ -102,9 +92,7 @@ class UserRoutes(
       case Right((_, user)) =>
         (
           for
-            userAccessToken <- AuthHeaderExtractor.extractBearer(req)
-            payload         <- verifyToken(userAccessToken)
-            _               <- authorizeUser(payload, userId)
+            _ <- authenticateAndAuthorize(req, userId)
 
             dto <- parseRequestBody[UpdateUserRequestDTO](req)
             updatedUser <- Right(user match
@@ -198,9 +186,7 @@ class UserRoutes(
   def updatePassword(userId: String, req: Request): Response[String] =
     (
       for
-        token   <- AuthHeaderExtractor.extractBearer(req)
-        payload <- verifyToken(token)
-        _       <- authorizeUser(payload, userId)
+        payload <- authenticateAndAuthorize(req, userId)
 
         dto <- parseRequestBody[UpdatePasswordRequestDTO](req)
         _ <- if dto.newPassword == dto.confirmPassword then Right(())
