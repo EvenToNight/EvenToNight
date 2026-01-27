@@ -144,6 +144,7 @@ const ticketsAvailable = () => {
             class="full-width"
             @click="handleBuyTickets"
           />
+          <div v-else class="ticket-status-message full-width">Sold Out</div>
         </div>
         <!-- User doesn't have tickets yet -->
         <template v-else>
@@ -156,6 +157,9 @@ const ticketsAvailable = () => {
             size="lg"
             @click="handleBuyTickets"
           />
+          <div v-else-if="eventTickets.length === 0" class="sold-out-message full-width">
+            No Tickets Available
+          </div>
           <div v-else class="sold-out-message full-width">Sold Out</div>
         </template>
       </template>
@@ -214,5 +218,18 @@ const ticketsAvailable = () => {
   @include dark-mode {
     background: $color-background-dark-soft;
   }
+}
+
+.ticket-status-message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: $color-primary;
+  font-size: $font-size-base;
+  font-weight: $font-weight-medium;
+  padding: $spacing-2;
+  text-align: center;
+  opacity: 0.6;
+  cursor: default;
 }
 </style>
