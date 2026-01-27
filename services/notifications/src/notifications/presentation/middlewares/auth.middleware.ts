@@ -1,6 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { JwtService } from "../../../config/jwt.config";
-import { config } from "config/env.config";
+import { config } from "../../../config/env.config";
 
 export function createAuthMiddleware(options: { optional?: boolean } = {}) {
   return (req: Request, res: Response, next: NextFunction): void => {

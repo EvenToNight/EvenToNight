@@ -1,7 +1,7 @@
 import { Server, Socket } from "socket.io";
 import { NotificationGateway } from "../consumers/rabbitmq.consumer";
 import { JwtService } from "../../../config/jwt.config";
-import { config } from "config/env.config";
+import { config } from "../../../config/env.config";
 
 export class SocketIOGateway implements NotificationGateway {
   private io: Server;

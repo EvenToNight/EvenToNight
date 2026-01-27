@@ -7,12 +7,8 @@ dotenv.config({
   processEnv: envFromRoot,
 });
 
-if (
-  !process.env.NOTIFICATIONS_SERVICE_PORT &&
-  envFromRoot["NOTIFICATIONS_SERVICE_PORT"]
-) {
-  process.env.NOTIFICATIONS_SERVICE_PORT =
-    envFromRoot["NOTIFICATIONS_SERVICE_PORT"];
+if (!process.env.PORT && envFromRoot["NOTIFICATIONS_SERVICE_PORT"]) {
+  process.env.PORT = envFromRoot["NOTIFICATIONS_SERVICE_PORT"];
 }
 
 if (
@@ -36,7 +32,7 @@ const rabbitMQUser = process.env.RABBITMQ_USER || "guest";
 const rabbitMQPass = process.env.RABBITMQ_PASS || "guest";
 
 export const config = {
-  port: process.env.NOTIFICATIONS_SERVICE_PORT!,
+  port: process.env.PORT!,
   mongodbUri: `mongodb://${process.env.MONGO_HOST || "localhost"}:27017/eventonight-notifications`,
   jwtAuthPublicKeyUrl: process.env.AUTH_PUBLIC_KEY_URL || "",
   rabbitmq: {
