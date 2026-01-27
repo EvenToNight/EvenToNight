@@ -102,7 +102,6 @@ const removeImage = () => {
             :label="buttonLabel"
             icon="add_photo_alternate"
             outline
-            size="sm"
             class="base-button base-button--primary outline-btn-fix upload-trigger-btn"
             @click="trigger"
           />
