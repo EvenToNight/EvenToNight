@@ -190,9 +190,15 @@ class UserRoutes(
 
         dto <- parseRequestBody[UpdatePasswordRequestDTO](req)
         _ <- if dto.newPassword == dto.confirmPassword then Right(())
-        else Left("Passwords do not match")
+        else Left("New password and confirm password do not match")
+
+        (_, user) <- userService.getUserById(userId)
+        username = user match
+          case m: Member       => m.account.username
+          case o: Organization => o.account.username
+
         keycloakId <- extractSub(payload)
-        _          <- authService.updatePassword(keycloakId, dto.newPassword)
+        _          <- authService.updatePassword(username, keycloakId, dto.currentPassword, dto.newPassword)
       yield ()
     ) match
       case Right(_)  => Response("", 204)

@@ -370,11 +370,13 @@ paths:
   /{userId}/password:
     put:
       tags: [Users]
-      summary: Update user password
+      summary: Update user password by ID
       description: >
         Updates the authenticated user's password.
-        Password management is handled by the identity provider.
+        The current password must be provided and correct.
+        The new password must match the confirm password field.
         The userId in the path must match the user_id claim in the access token.
+
       servers:
         - url: http://localhost:9000
           description: Users service (local development)

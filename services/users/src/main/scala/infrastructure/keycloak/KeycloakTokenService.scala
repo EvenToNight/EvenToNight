@@ -29,3 +29,8 @@ class KeycloakTokenService(connection: KeycloakConnection):
 
   def requestRefreshTokenRevocation(form: Map[String, String]): Either[String, Unit] =
     connection.sendLogoutRequest(form)
+
+  def verifyUserCredentials(form: Map[String, String]): Boolean =
+    connection.sendTokenRequest(form) match
+      case Right(_) => true
+      case Left(_)  => false
