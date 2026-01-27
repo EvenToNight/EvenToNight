@@ -20,11 +20,13 @@ const showSuggestions = ref(false)
 const inputRef = ref<QInput | null>(null)
 const isSearching = ref(false)
 const maxResults = 5
+const selectedIndex = ref(-1)
 
 let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
 watch(searchQuery, (value) => {
   showSuggestions.value = !hideDropdown && value.length > 0
+  selectedIndex.value = -1
 
   if (searchDebounceTimer) {
     clearTimeout(searchDebounceTimer)
@@ -42,6 +44,10 @@ watch(searchQuery, (value) => {
   } else {
     searchResults.value = []
   }
+})
+
+watch(searchResults, () => {
+  selectedIndex.value = -1
 })
 
 watch(
@@ -84,13 +90,20 @@ const performSearch = async () => {
 }
 
 const handleSearch = () => {
-  if (onSearch) {
+  if (selectedIndex.value < 0 && onSearch) {
     onSearch()
     return
   }
-  const firstResult = searchResults.value[0]
-  if (firstResult) {
-    selectResult(firstResult)
+
+  const selectedResult =
+    selectedIndex.value >= 0 ? searchResults.value[selectedIndex.value] : undefined
+  if (selectedResult) {
+    selectResult(selectedResult)
+  } else if (searchResults.value.length > 0) {
+    const firstResult = searchResults.value[0]
+    if (firstResult) {
+      selectResult(firstResult)
+    }
   }
 }
 
@@ -103,8 +116,21 @@ const selectResult = (result: SearchResult) => {
   }
 }
 
+const handleArrowDown = () => {
+  if (searchResults.value.length === 0) return
+  selectedIndex.value = Math.min(selectedIndex.value + 1, searchResults.value.length - 1)
+  console.log('Arrow down - selected:', selectedIndex.value)
+}
+
+const handleArrowUp = () => {
+  if (searchResults.value.length === 0) return
+  selectedIndex.value = Math.max(selectedIndex.value - 1, -1)
+  console.log('Arrow up - selected:', selectedIndex.value)
+}
+
 const hideSuggestions = () => {
   showSuggestions.value = false
+  selectedIndex.value = -1
 }
 
 const handleFocus = () => {
@@ -129,6 +155,8 @@ const handleBlur = () => {
       :autofocus="hasFocus"
       class="search-input"
       @keyup.enter="handleSearch"
+      @keydown.down.prevent="handleArrowDown"
+      @keydown.up.prevent="handleArrowUp"
       @focus="handleFocus"
       @blur="handleBlur"
     >
@@ -140,9 +168,10 @@ const handleBlur = () => {
     <Transition name="fade">
       <div v-if="showSuggestions && searchResults.length > 0" class="suggestions-dropdown">
         <SearchResultCard
-          v-for="result in searchResults"
+          v-for="(result, index) in searchResults"
           :key="`${result.type}-${result.id}`"
           :result="result"
+          :is-selected="index === selectedIndex"
           @mousedown="selectResult(result)"
         />
       </div>
