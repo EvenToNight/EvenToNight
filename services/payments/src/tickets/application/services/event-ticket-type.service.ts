@@ -11,6 +11,11 @@ import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
 import { UpdateEventTicketTypeDto } from '../dto/update-event-ticket-type.dto';
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import { TransactionManager } from 'src/tickets/infrastructure/database/transaction.manager';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/commons/domain/types/pagination.types';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 
 @Injectable()
 export class EventTicketTypeService {
@@ -59,11 +64,9 @@ export class EventTicketTypeService {
         throw new Error(`EventTicketType with id ${id} not found`);
       }
       if (dto.description) ticketType.setDescription(dto.description);
-      if (dto.price)
-        ticketType.setPrice(
-          Money.fromAmount(dto.price.amount, dto.price.currency),
-        );
-      if (dto.quantity) ticketType.setTotalQuantity(dto.quantity);
+
+      ticketType.setPrice(Money.fromAmount(dto.price, 'USD'));
+      ticketType.setTotalQuantity(dto.quantity);
       return this.eventTicketTypeRepository.update(ticketType, session);
     });
   }
@@ -79,10 +82,7 @@ export class EventTicketTypeService {
       }
       dto.quantity = ticketType.getSoldQuantity();
       if (dto.description) ticketType.setDescription(dto.description);
-      if (dto.price)
-        ticketType.setPrice(
-          Money.fromAmount(dto.price.amount, dto.price.currency),
-        );
+      if (dto.price) ticketType.setPrice(Money.fromAmount(dto.price, 'USD'));
       if (dto.quantity) ticketType.setTotalQuantity(dto.quantity);
       return this.eventTicketTypeRepository.update(ticketType, session);
     });
@@ -121,5 +121,15 @@ export class EventTicketTypeService {
 
   getAllTicketTypeValues(): string[] {
     return TicketType.getAllValues();
+  }
+
+  findEventIds(params?: {
+    minPrice?: number;
+    maxPrice?: number;
+    currency?: string;
+    sortOrder?: 'asc' | 'desc';
+    pagination?: PaginationParams;
+  }): Promise<PaginatedResult<EventId>> {
+    return this.eventTicketTypeRepository.findEventIds(params);
   }
 }

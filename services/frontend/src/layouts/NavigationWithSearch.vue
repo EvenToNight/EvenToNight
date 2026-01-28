@@ -3,6 +3,9 @@ import { ref, provide, onMounted, onUnmounted } from 'vue'
 import type { SearchResult } from '@/api/utils/searchUtils'
 import NavigationBar, { NAVBAR_HEIGHT } from '@/components/navigation/NavigationBar.vue'
 import Footer from '@/components/navigation/Footer.vue'
+import { useNavigation } from '@/router/utils'
+
+const { goToExplore } = useNavigation()
 
 const searchQuery = ref('')
 const searchResults = ref<SearchResult[]>([])
@@ -32,6 +35,9 @@ provide('searchQuery', searchQuery)
 provide('searchResults', searchResults)
 provide('searchBarHasFocus', searchBarHasFocus)
 provide('showSearchInNavbar', showSearchInNavbar)
+provide<(() => void) | undefined>('onSearch', () =>
+  goToExplore(searchQuery.value ? { searchQuery: searchQuery.value } : undefined)
+)
 </script>
 
 <template>

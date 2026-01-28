@@ -3,9 +3,11 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
 import type { Event } from '@/api/types/events'
+import type { EventTicketType } from '@/api/types/payments'
 
 interface Props {
   event: Event
+  eventTickets: EventTicketType[]
 }
 const { t } = useI18n()
 const { locale } = useNavigation()
@@ -35,7 +37,21 @@ const locationAddress = computed(() => {
 })
 
 const formattedPrice = computed(() => {
-  return props.event.price === 0 ? t('eventDetails.freePrice') : `€${props.event.price}`
+  const ticketTypes = props.eventTickets
+  if (ticketTypes.length > 0) {
+    //TODO update based on availability of tickets?
+    const prices = ticketTypes.map((ticket) => ticket.price)
+    const minPrice = Math.min(...prices)
+    const maxPrice = Math.max(...prices)
+    if (minPrice === 0) {
+      return t('eventDetails.freePrice')
+    }
+    if (minPrice === maxPrice) {
+      return `${minPrice} $`
+    }
+    return `Starting from ${minPrice} $`
+  }
+  return 'Not available'
 })
 </script>
 <template>

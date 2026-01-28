@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import { ref, onMounted } from 'vue'
 import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth'
+import { api } from '@/api'
 
 const { t } = useI18n()
 const { goToCreateEvent, goToEditProfile, goToSettings, goToChat } = useNavigation()
+const authStore = useAuthStore()
 
 interface Props {
   isOwnProfile: boolean
@@ -17,6 +21,24 @@ const props = defineProps<Props>()
 const emit = defineEmits<{
   followToggle: []
 }>()
+
+const unreadMessagesCount = ref(0)
+
+const loadUnreadMessagesCount = async () => {
+  if (authStore.isAuthenticated) {
+    try {
+      const response = await api.chat.unreadMessageCountFor(authStore.user!.id)
+      unreadMessagesCount.value = response.unreadCount
+    } catch (error) {
+      console.error('Failed to load unread messages count:', error)
+      unreadMessagesCount.value = 0
+    }
+  }
+}
+
+onMounted(() => {
+  loadUnreadMessagesCount()
+})
 
 const handleEditProfile = () => {
   goToEditProfile()
@@ -43,7 +65,11 @@ const handleOpenChat = () => {
   <div class="profile-actions">
     <template v-if="isOwnProfile">
       <q-btn icon="edit" flat class="action-btn action-btn--secondary" @click="handleEditProfile" />
-      <q-btn icon="chat" flat class="action-btn action-btn--secondary" @click="handleOpenChat" />
+      <q-btn icon="chat" flat class="action-btn action-btn--secondary" @click="handleOpenChat">
+        <q-badge v-if="unreadMessagesCount > 0" color="red" floating>{{
+          String(unreadMessagesCount)
+        }}</q-badge>
+      </q-btn>
       <q-btn
         icon="settings"
         flat

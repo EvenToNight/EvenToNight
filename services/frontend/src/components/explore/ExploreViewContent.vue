@@ -124,8 +124,8 @@ const searchEvents = async () => {
     })
     events.value = response.items.map((event) => ({ ...event, liked: false }))
     hasMoreEvents.value = response.hasMore
-    if (authStore.user?.id) {
-      const userId = authStore.user.id
+    if (authStore.isAuthenticated) {
+      const userId = authStore.user!.id
       const likePromises = events.value.map(async (event) => {
         try {
           const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
@@ -199,6 +199,12 @@ const onSearch = () => {
       searchPeople()
       break
   }
+}
+
+const initialSearchQuery = route.query.search as string | undefined
+if (initialSearchQuery && initialSearchQuery.trim()) {
+  searchQuery.value = initialSearchQuery.trim()
+  onSearch()
 }
 
 watch(activeTab, (_tabId) => {

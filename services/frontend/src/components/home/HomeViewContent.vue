@@ -19,9 +19,7 @@ const authStore = useAuthStore()
 
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
-const upcomingEvents = ref<Event[]>([])
-const eventLikes = ref<Record<string, boolean>>({})
-
+const upcomingEvents = ref<(Event & { liked?: boolean })[]>([])
 const handleSeeAllEvents = () => {
   goToExplore({ otherFilter: 'upcoming' })
 }
@@ -32,16 +30,17 @@ onMounted(async () => {
     const eventsResponse = await api.events.getEventsByIds(feedResponse.items)
     upcomingEvents.value = eventsResponse.events
 
-    // Load like status for each event in parallel
-    if (authStore.user?.id) {
-      const userId = authStore.user.id
+    if (authStore.isAuthenticated) {
+      console.log('Loading likes for upcoming events')
+      const userId = authStore.user!.id
       const likePromises = upcomingEvents.value.map(async (event) => {
         try {
           const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
-          eventLikes.value[event.eventId] = isLiked
+          console.log(`Event ${event.eventId} liked: ${isLiked}`)
+          event.liked = isLiked
         } catch (error) {
           console.error(`Failed to load like status for event ${event.eventId}:`, error)
-          eventLikes.value[event.eventId] = false
+          event.liked = false
         }
       })
       await Promise.all(likePromises)

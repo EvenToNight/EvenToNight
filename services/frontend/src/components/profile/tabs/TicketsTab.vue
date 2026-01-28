@@ -1,45 +1,105 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TicketCard from '@/components/cards/TicketCard.vue'
-import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
+import InfiniteScrollList from '@/components/common/InfiniteScrollList.vue'
+import { api } from '@/api'
+import { useAuthStore } from '@/stores/auth'
+import type { PaginatedResponse } from '@/api/interfaces/commons'
+import type { Event } from '@/api/types/events'
 
 const { t } = useI18n()
+const authStore = useAuthStore()
 
-const myTickets = ref([
-  {
-    id: '1',
-    eventName: 'Techno vibes',
-    eventImageLink: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=800&q=80',
-    ticketNumber: '001234',
-  },
-  {
-    id: '2',
-    eventName: 'Summer Music Festival',
-    eventImageLink: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=800&q=80',
-    ticketNumber: '001235',
-  },
-])
+const events = ref<Event[]>([])
 
-const handleDownload = (ticketId: string) => {
-  console.log('Downloading ticket:', ticketId)
+const userId = computed(() => authStore.user?.id)
+
+const loadItems = async (offset: number, limit: number): Promise<PaginatedResponse<Event>> => {
+  if (!userId.value) {
+    return {
+      items: [],
+      limit,
+      offset,
+      hasMore: false,
+    }
+  }
+
+  const response = await api.payments.findEventsWithUserTickets(userId.value, {
+    status: 'PUBLISHED',
+    order: 'asc',
+    pagination: { offset, limit },
+  })
+  console.log('Fetching events for UserId:', userId.value, response)
+
+  if (response.items.length > 0) {
+    const eventsData = await api.events.getEventsByIds(response.items)
+    console.log('Fetched events data:', eventsData)
+    return {
+      items: eventsData.events,
+      limit: response.limit,
+      offset: response.offset,
+      hasMore: response.hasMore,
+    }
+  }
+
+  return {
+    items: [],
+    limit: response.limit,
+    offset: response.offset,
+    hasMore: response.hasMore,
+  }
+}
+
+const handleDownload = async (eventId: string) => {
+  if (!userId.value) {
+    console.error('User not logged in')
+    return
+  }
+
+  const event = events.value.find((e) => e.eventId === eventId)
+  if (!event) {
+    console.error('Event not found')
+    return
+  }
+
+  try {
+    const blob = await api.payments.getEventPdfTickets(userId.value, eventId)
+
+    const url = window.URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `tickets-${event.title.replace(/\s+/g, '-')}.pdf`
+    document.body.appendChild(link)
+    link.click()
+
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Error downloading ticket PDF:', error)
+  }
 }
 </script>
 
 <template>
   <div class="tickets-tab">
-    <div v-if="myTickets.length > 0" class="tickets-list">
-      <TicketCard
-        v-for="ticket in myTickets"
-        :key="ticket.id"
-        :ticket="ticket"
-        @download="handleDownload"
-      />
-    </div>
-
-    <template v-else>
-      <EmptyTab :emptyText="t('userProfile.noTickets')" emptyIconName="confirmation_number" />
-    </template>
+    <InfiniteScrollList
+      v-model="events"
+      :load-items="loadItems"
+      :empty-text="t('userProfile.noTickets')"
+      empty-icon-name="confirmation_number"
+    >
+      <template #default>
+        <div class="tickets-list">
+          <TicketCard
+            v-for="event in events"
+            :key="event.eventId"
+            :event="event"
+            @download="handleDownload"
+          />
+        </div>
+      </template>
+    </InfiniteScrollList>
   </div>
 </template>
 

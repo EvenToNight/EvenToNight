@@ -1,14 +1,9 @@
 <script setup lang="ts">
 import { ref, onMounted, watch, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import ImageCropUploadTest from '@/components/upload/ImageCropUploadTest.vue'
+import PosterCropUpload from '@/components/imageUpload/PosterCropUpload.vue'
 import { api } from '@/api'
-import type {
-  CreationEventStatus,
-  PartialEventData,
-  PartialEventDataWithTickets,
-  PartialEventDataWithTicketsForUpdate,
-} from '@/api/types/events'
+import type { CreationEventStatus, PartialEventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
 import { parseLocation, buildLocationDisplayName } from '@/api/utils/locationUtils'
 import type { TicketType } from '@/api/types/payments'
@@ -17,7 +12,6 @@ import { useAuthStore } from '@/stores/auth'
 import FormField from '@/components/forms/FormField.vue'
 import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import type { Tag } from '@/api/types/events'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import { useI18n } from 'vue-i18n'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { notEmpty, required } from '@/components/forms/validationUtils'
@@ -44,21 +38,15 @@ const tags = ref<string[]>([])
 const collaborators = ref<string[]>([])
 const location = ref<LocationOption | null>(null)
 const poster = ref<File | null>(null)
+const isDraft = ref(false)
 
 // Ticket types
 interface TicketEntry {
   id: string | null
   type: TicketType | null
   price: string
-  currency: string
   quantity: string
 }
-
-const CURRENCY_OPTIONS = [
-  { label: 'EUR (€)', value: 'EUR' },
-  { label: 'USD ($)', value: 'USD' },
-  { label: 'GBP (£)', value: 'GBP' },
-]
 
 const availableTicketTypes = ref<TicketType[]>([])
 const ticketEntries = ref<TicketEntry[]>([])
@@ -67,7 +55,6 @@ const createEmptyTicketEntry = (): TicketEntry => ({
   id: null,
   type: null,
   price: '',
-  currency: 'EUR',
   quantity: '',
 })
 
@@ -101,6 +88,23 @@ const loadTicketTypes = async () => {
     }
   } catch (error) {
     console.error('Failed to load ticket types:', error)
+  }
+}
+
+const loadTickets = async () => {
+  try {
+    const ticketTypes = await api.payments.getEventTicketsType(eventId.value)
+    ticketEntries.value = ticketTypes.map((ticket) => ({
+      id: ticket.id,
+      type: ticket.type,
+      price: ticket.price.toString(),
+      quantity: ticket.totalQuantity.toString(),
+    }))
+    if (ticketEntries.value.length === 0) {
+      addTicketEntry()
+    }
+  } catch (error) {
+    console.error('Failed to load event tickets:', error)
   }
 }
 
@@ -156,6 +160,7 @@ const loadEvent = async () => {
 
   try {
     const event = await api.events.getEventById(eventId.value)
+    isDraft.value = event.status === 'DRAFT'
     title.value = event.title ?? ''
     if (event.date) {
       const eventDate = new Date(event.date)
@@ -186,7 +191,7 @@ const loadEvent = async () => {
 onMounted(async () => {
   await Promise.all([loadTags(), loadTicketTypes()])
   if (isEditMode.value) {
-    await loadEvent()
+    await Promise.all([loadEvent(), loadTickets()])
   }
 })
 
@@ -282,55 +287,6 @@ const handleLocationInputValue = (val: string) => {
   }
 }
 
-const saveDraft = async () => {
-  const partiaEventData: PartialEventData = buildEventData('PUBLISHED')
-
-  if (isEditMode.value) {
-    const eventData: PartialEventDataWithTicketsForUpdate = {
-      ...partiaEventData,
-      ticketTypes: ticketEntries.value
-        .filter((entry) => entry.type && entry.price && entry.quantity && entry.currency)
-        .map((entry) => ({
-          id: entry.id || 'will-be-generated',
-          type: entry.type!,
-          price: {
-            amount: Number(entry.price),
-            currency: entry.currency,
-          },
-          quantity: Number(entry.quantity),
-        })),
-    }
-    await api.events.updateEventData(eventId.value, eventData)
-    if (poster.value) {
-      await api.events.updateEventPoster(eventId.value, poster.value)
-    }
-    $q.notify({
-      color: 'positive',
-      message: t('eventCreationForm.successForEventUpdate'),
-    })
-  } else {
-    const eventData: PartialEventDataWithTickets = {
-      ...partiaEventData,
-      ticketTypes: ticketEntries.value
-        .filter((entry) => entry.type && entry.price && entry.quantity && entry.currency)
-        .map((entry) => ({
-          type: entry.type!,
-          price: {
-            amount: Number(entry.price),
-            currency: entry.currency,
-          },
-          quantity: Number(entry.quantity),
-        })),
-    }
-    await api.events.createEvent(eventData)
-    $q.notify({
-      color: 'positive',
-      message: t('eventCreationForm.successForEventPublication'),
-    })
-  }
-  goToUserProfile(partiaEventData.creatorId)
-}
-
 const buildEventData = (status: CreationEventStatus): PartialEventData => {
   return {
     title: title.value || undefined,
@@ -339,7 +295,6 @@ const buildEventData = (status: CreationEventStatus): PartialEventData => {
     tags: tags.value.length > 0 ? tags.value : undefined,
     location: location.value?.value || undefined,
     date: date.value && time.value ? new Date(`${date.value}T${time.value}`) : undefined,
-    price: 0, //TODO: deprecated field, to be removed
     status: status,
     creatorId: currentUserId!,
     collaboratorIds: collaborators.value.length > 0 ? collaborators.value : undefined,
@@ -379,49 +334,64 @@ const handleDelete = async () => {
   })
 }
 
+const saveDraft = async () => {
+  const partialEventData: PartialEventData = buildEventData('DRAFT')
+
+  if (isEditMode.value) {
+    await api.events.updateEventData(eventId.value, partialEventData)
+    if (poster.value) {
+      await api.events.updateEventPoster(eventId.value, poster.value)
+    } else {
+      await api.events.deleteEventPoster(eventId.value)
+    }
+    await createOrUpdateEventTicketTypes(eventId.value)
+    $q.notify({
+      color: 'positive',
+      message: t('eventCreationForm.successForEventUpdate'),
+    })
+  } else {
+    const response = await api.events.createEvent(partialEventData)
+    await createOrUpdateEventTicketTypes(response.eventId)
+    $q.notify({
+      color: 'positive',
+      message: t('eventCreationForm.successForEventPublication'),
+    })
+  }
+  goToUserProfile(partialEventData.creatorId)
+}
+
+const createOrUpdateEventTicketTypes = async (eventId: string) => {
+  ticketEntries.value.forEach(async (entry) => {
+    if (entry.id === null) {
+      await api.payments.createEventTicketType(eventId, {
+        type: entry.type!,
+        price: Number(entry.price),
+        quantity: Number(entry.quantity),
+      })
+    } else {
+      await api.payments.updateEventTicketType(entry.id, {
+        price: Number(entry.price),
+        quantity: Number(entry.quantity),
+      })
+    }
+  })
+}
+
 const onSubmit = async () => {
   try {
     const partiaEventData: PartialEventData = buildEventData('PUBLISHED')
-
     if (isEditMode.value) {
-      const eventData: PartialEventDataWithTicketsForUpdate = {
-        ...partiaEventData,
-        ticketTypes: ticketEntries.value
-          .filter((entry) => entry.type && entry.price && entry.quantity && entry.currency)
-          .map((entry) => ({
-            id: entry.id || 'will-be-generated',
-            type: entry.type!,
-            price: {
-              amount: Number(entry.price),
-              currency: entry.currency,
-            },
-            quantity: Number(entry.quantity),
-          })),
-      }
-      await api.events.updateEventData(eventId.value, eventData)
+      await api.events.updateEventData(eventId.value, partiaEventData)
       await api.events.updateEventPoster(eventId.value, poster.value!)
-      // await createTicketTypesForEvent(eventId.value)
+      await createOrUpdateEventTicketTypes(eventId.value)
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventUpdate'),
       })
       goToEventDetails(eventId.value)
     } else {
-      const eventData: PartialEventDataWithTickets = {
-        ...partiaEventData,
-        ticketTypes: ticketEntries.value
-          .filter((entry) => entry.type && entry.price && entry.quantity && entry.currency)
-          .map((entry) => ({
-            type: entry.type!,
-            price: {
-              amount: Number(entry.price),
-              currency: entry.currency,
-            },
-            quantity: Number(entry.quantity),
-          })),
-      }
-      const response = await api.events.createEvent(eventData)
-      // await createTicketTypesForEvent(response.eventId)
+      const response = await api.events.createEvent(partiaEventData)
+      await createOrUpdateEventTicketTypes(response.eventId)
       $q.notify({
         color: 'positive',
         message: t('eventCreationForm.successForEventPublication'),
@@ -510,6 +480,7 @@ const onSubmit = async () => {
                 label="Type"
                 outlined
                 dense
+                lazy-rules="ondemand"
                 class="ticket-type-select"
                 :rules="[notEmpty('Please select a ticket type')]"
               />
@@ -517,25 +488,13 @@ const onSubmit = async () => {
               <q-input
                 v-model="entry.price"
                 type="number"
-                label="Price"
+                label="Price ($)"
+                prefix="$"
                 outlined
                 dense
+                lazy-rules="ondemand"
                 class="ticket-price-input"
                 :rules="[notEmpty('Please enter a price')]"
-              />
-
-              <q-select
-                v-model="entry.currency"
-                :options="CURRENCY_OPTIONS"
-                option-value="value"
-                option-label="label"
-                emit-value
-                map-options
-                label="Currency"
-                outlined
-                dense
-                class="ticket-currency-select"
-                :rules="[notEmpty('Please select a currency')]"
               />
 
               <q-input
@@ -544,6 +503,7 @@ const onSubmit = async () => {
                 label="Quantity"
                 outlined
                 dense
+                lazy-rules="ondemand"
                 class="ticket-quantity-input"
                 :rules="[notEmpty('Please enter a quantity')]"
               />
@@ -666,7 +626,7 @@ const onSubmit = async () => {
             class="q-my-md"
           >
             <template #control>
-              <ImageCropUploadTest
+              <PosterCropUpload
                 v-model="poster"
                 :label="t('eventCreationForm.eventPoster') + ' *'"
                 :button-label="t('eventCreationForm.uploadPoster')"
@@ -677,36 +637,42 @@ const onSubmit = async () => {
           </q-field>
           <div class="form-actions">
             <div class="action-buttons">
-              <Button
-                variant="tertiary"
+              <q-btn
+                flat
                 :label="t('eventCreationForm.cancel')"
+                class="base-button base-button--tertiary"
                 @click="goToUserProfile(currentUserId!)"
               />
-              <Button
+              <q-btn
                 v-if="isEditMode"
                 :label="t('eventCreationForm.deleteEvent')"
                 color="negative"
-                variant="tertiary"
                 flat
                 @click="handleDelete"
               />
             </div>
             <div class="action-buttons">
-              <Button
-                :label="t('eventCreationForm.saveDraft')"
+              <q-btn
+                v-if="!isEditMode || isDraft"
+                :label="isEditMode ? 'Update Draft' : t('eventCreationForm.saveDraft')"
                 outline
-                variant="primary"
+                unelevated
+                color="primary"
                 size="md"
-                class="outline-btn-fix"
+                class="base-button base-button--primary outline-btn-fix"
                 @click="saveDraft"
               />
-              <Button
+              <q-btn
                 :label="
-                  isEditMode
-                    ? t('eventCreationForm.updateEvent')
-                    : t('eventCreationForm.publishEvent')
+                  isDraft
+                    ? t('eventCreationForm.publishEvent')
+                    : isEditMode
+                      ? t('eventCreationForm.updateEvent')
+                      : t('eventCreationForm.publishEvent')
                 "
-                variant="primary"
+                unelevated
+                color="primary"
+                class="base-button base-button--primary"
                 type="submit"
               />
             </div>

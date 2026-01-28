@@ -5,11 +5,8 @@ import {
   Min,
   IsOptional,
   IsIn,
-  ValidateNested,
 } from 'class-validator';
 import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
-import { MoneyDto } from './money.dto';
-import { Type } from 'class-transformer';
 
 export class CreateEventTicketTypeDto {
   @IsString()
@@ -19,21 +16,16 @@ export class CreateEventTicketTypeDto {
   })
   type: string;
 
-  //TODO: make required?
   @IsString()
   @IsNotEmpty()
   @IsOptional()
   description?: string;
 
-  @ValidateNested()
-  @Type(() => MoneyDto)
-  price: MoneyDto;
+  @IsNumber()
+  @Min(0)
+  price: number;
 
   @IsNumber()
   @Min(1)
   quantity: number;
-
-  @IsString()
-  @IsNotEmpty()
-  creatorId: string;
 }

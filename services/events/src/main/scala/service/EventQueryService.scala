@@ -33,7 +33,6 @@ class EventQueryService(repo: EventRepository):
       organizationId = cmd.organizationId,
       city = cmd.city,
       location_name = cmd.location_name,
-      priceRange = cmd.priceRange,
       sortBy = cmd.sortBy,
       sortOrder = cmd.sortOrder
     ).left.map(err => s"Error in ${cmd.getClass.getSimpleName}: ${err.getMessage}")

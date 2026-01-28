@@ -160,7 +160,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
         "link": "http://example.com/location"
       },
       "date": "2025-11-15T19:30:00",
-      "price": 20.0,
       "status": "DRAFT",
       "creatorId": "creator-001",
       "collaboratorIds": ["collab-001"]
@@ -173,7 +172,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.tags.get should contain allElementsOf List(EventTag.Venue.Bar, EventTag.MusicStyle.Rock)
     command.location.get.country shouldBe Some("USA")
     command.date shouldBe Some(java.time.LocalDateTime.parse("2025-11-15T19:30:00"))
-    command.price shouldBe Some(20.0)
     command.status shouldBe EventStatus.DRAFT
     command.creatorId shouldBe "creator-001"
     command.collaboratorIds shouldBe Some(List("collab-001"))
@@ -194,7 +192,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
         "link": "http://example.com/location"
       },
       "date": "2025-12-01T10:00:00",
-      "price": 0.0,
       "status": "PUBLISHED",
       "creatorId": "creator-002"
     }"""
@@ -204,7 +201,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.tags.get should contain(EventTag.EventType.Concert)
     command.location.get.country shouldBe Some("UK")
     command.date shouldBe Some(java.time.LocalDateTime.parse("2025-12-01T" + "10:00:00"))
-    command.price shouldBe Some(0.0)
     command.status shouldBe EventStatus.PUBLISHED
     command.creatorId shouldBe "creator-002"
     command.collaboratorIds shouldBe None
@@ -242,7 +238,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
         "link": "http://example.com/location"
       },
       "date": "2026-01-20T18:00:00",
-      "price": 30.0,
       "status": "CANCELLED",
       "collaboratorIds": ["collab-002"]
     }"""
@@ -255,7 +250,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.tags.getOrElse(List()) should contain allElementsOf List(EventTag.Venue.Club, EventTag.MusicStyle.Rock)
     command.location.map(_.country).flatten shouldBe Some("Canada")
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-01-20T18:00:00"))
-    command.price shouldBe Some(30.0)
     command.status shouldBe EventStatus.CANCELLED
     command.collaboratorIds shouldBe Some(List("collab-002"))
 
@@ -273,7 +267,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     command.tags.get should contain(EventTag.EventType.Concert)
     command.location shouldBe None
     command.date shouldBe Some(java.time.LocalDateTime.parse("2026-02-10" + "T12:00:00"))
-    command.price shouldBe None
     command.status shouldBe EventStatus.DRAFT
     command.collaboratorIds shouldBe None
 
@@ -303,7 +296,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       tags = Some(List(EventTag.EventType.Concert)),
       location = None,
       date = Some(java.time.LocalDateTime.now().minusDays(5)),
-      price = Some(10.0),
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
       creatorId = "creator-past",
@@ -323,7 +315,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       tags = Some(List(EventTag.EventType.Concert)),
       location = None,
       date = Some(java.time.LocalDateTime.now().plusDays(10)),
-      price = Some(15.0),
       status = EventStatus.PUBLISHED,
       instant = java.time.Instant.now(),
       creatorId = "creator-future",
@@ -341,7 +332,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       tags = Some(List(EventTag.EventType.Party)),
       location = None,
       date = Some(java.time.LocalDateTime.now().minusDays(15)),
-      price = Some(20.0),
       status = EventStatus.COMPLETED,
       instant = java.time.Instant.now(),
       creatorId = "creator-completed",
@@ -362,10 +352,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       organizationId = Some("123"),
       city = Some("New York"),
       location_name = Some("Madison Square Garden"),
-      priceMin = Some(10.0),
-      priceMax = Some(50.0),
       sortBy = Some("date"),
-      sortOrder = Some("asc")
+      sortOrder = Some("asc"),
+      isAuthenticated = false
     )
     commands.title shouldBe Some("Music Fest")
     commands.tags.getOrElse(List()) should contain allElementsOf List(
@@ -380,7 +369,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.location_name shouldBe Some("Madison Square Garden")
     commands.limit shouldBe Some(2)
     commands.offset shouldBe Some(5)
-    commands.priceRange shouldBe Some((10.0, 50.0))
     commands.sortBy shouldBe Some("date")
     commands.sortOrder shouldBe Some("asc")
 
@@ -396,10 +384,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       organizationId = Some("123"),
       city = None,
       location_name = Some("Madison Square Garden"),
-      priceMin = None,
-      priceMax = None,
       sortBy = None,
-      sortOrder = None
+      sortOrder = None,
+      isAuthenticated = false
     )
     commands.limit shouldBe Some(2)
     commands.offset shouldBe Some(5)
@@ -414,7 +401,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.organizationId shouldBe Some("123")
     commands.city shouldBe None
     commands.location_name shouldBe Some("Madison Square Garden")
-    commands.priceRange shouldBe None
     commands.sortBy shouldBe Some("date")
     commands.sortOrder shouldBe Some("asc")
 
@@ -430,10 +416,9 @@ class UtilsTest extends AnyFlatSpec with Matchers:
       organizationId = None,
       city = None,
       location_name = None,
-      priceMin = None,
-      priceMax = None,
       sortBy = None,
-      sortOrder = None
+      sortOrder = None,
+      isAuthenticated = false
     )
     commands.limit shouldBe Some(Utils.DEFAULT_LIMIT)
     commands.offset shouldBe None
@@ -445,47 +430,8 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     commands.organizationId shouldBe None
     commands.city shouldBe None
     commands.location_name shouldBe None
-    commands.priceRange shouldBe None
     commands.sortBy shouldBe Some("date")
     commands.sortOrder shouldBe Some("asc")
-
-  it should "handle null max price with min price provided" in:
-    val commands = Utils.parseEventFilters(
-      limit = None,
-      offset = None,
-      status = None,
-      title = None,
-      tags = None,
-      startDate = None,
-      endDate = None,
-      organizationId = None,
-      city = None,
-      location_name = None,
-      priceMin = Some(20.0),
-      priceMax = None,
-      sortBy = None,
-      sortOrder = None
-    )
-    commands.priceRange shouldBe Some((20.0, Double.MaxValue))
-
-  it should "handle null min price with max price provided" in:
-    val commands = Utils.parseEventFilters(
-      limit = None,
-      offset = None,
-      status = None,
-      title = None,
-      tags = None,
-      startDate = None,
-      endDate = None,
-      organizationId = None,
-      city = None,
-      location_name = None,
-      priceMin = None,
-      priceMax = Some(50.0),
-      sortBy = None,
-      sortOrder = None
-    )
-    commands.priceRange shouldBe Some((0.0, 50.0))
 
   "Utils.createPaginatedResponse" should "create correct paginated response JSON" in:
     val events = List(
@@ -497,7 +443,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
         tags = Some(List(EventTag.EventType.Concert)),
         location = None,
         date = Some(java.time.LocalDateTime.now().plusDays(1)),
-        price = Some(10.0),
         status = EventStatus.PUBLISHED,
         instant = java.time.Instant.now(),
         creatorId = "creator-1",
@@ -511,7 +456,6 @@ class UtilsTest extends AnyFlatSpec with Matchers:
         tags = Some(List(EventTag.EventType.Party)),
         location = None,
         date = Some(java.time.LocalDateTime.now().plusDays(2)),
-        price = Some(15.0),
         status = EventStatus.PUBLISHED,
         instant = java.time.Instant.now(),
         creatorId = "creator-2",

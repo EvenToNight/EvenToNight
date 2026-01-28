@@ -139,5 +139,5 @@ docker compose \
     --project-name "$PROJECT_NAME" \
     --project-directory . \
     --env-file ./.env \
-    "${COMPOSE_ARGS[@]}" \
-    "${FILTERED_ARGS[@]}"
+    ${COMPOSE_ARGS[@]+"${COMPOSE_ARGS[@]}"} \
+    ${FILTERED_ARGS[@]+"${FILTERED_ARGS[@]}"}

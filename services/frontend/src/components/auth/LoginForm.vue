@@ -4,7 +4,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
 import BaseAuthForm from './BaseAuthForm.vue'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 import FormField from '@/components/forms/FormField.vue'
 import { useNavigation } from '@/router/utils'
 import { notEmpty } from '@/components/forms/validationUtils'
@@ -16,10 +15,8 @@ const { goToHome, goToRegister, goToRedirect } = useNavigation()
 
 const usernameOrEmail = ref('')
 const password = ref('')
-const errorMessage = ref('')
 
 const onSuccessfulLogin = () => {
-  errorMessage.value = ''
   $q.notify({
     type: 'positive',
     message: t('auth.loginForm.successfulLogin'),
@@ -30,15 +27,13 @@ const onSuccessfulLogin = () => {
 }
 
 const onFailedLogin = (errorMsg?: string) => {
-  errorMessage.value = errorMsg || t('auth.loginForm.failedLogin')
   $q.notify({
     type: 'negative',
-    message: errorMessage.value,
+    message: errorMsg || t('auth.loginForm.failedLogin'),
   })
 }
 
 const handleLogin = async () => {
-  errorMessage.value = ''
   const result = await authStore.login(usernameOrEmail.value, password.value)
   if (result.success) {
     onSuccessfulLogin()
@@ -53,7 +48,6 @@ const handleLogin = async () => {
     :title="t('auth.login')"
     :switch-button-label="t('auth.loginForm.switchToRegister')"
     :is-loading="authStore.isLoading"
-    :error-message="errorMessage"
     @submit="handleLogin"
     @switch-mode="goToRegister"
   >
@@ -76,12 +70,13 @@ const handleLogin = async () => {
     </template>
 
     <template #submit-button="{ isLoading }">
-      <Button
+      <q-btn
+        unelevated
+        color="primary"
         type="submit"
-        variant="primary"
         :label="t('auth.login')"
         :loading="isLoading"
-        :class="['full-width', 'q-mb-md']"
+        :class="['full-width', 'q-mb-md', 'base-button', 'base-button--primary']"
       />
     </template>
   </BaseAuthForm>

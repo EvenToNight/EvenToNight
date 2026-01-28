@@ -40,7 +40,6 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     tags = Some(List(EventTag.EventType.Concert, EventTag.MusicStyle.Rock)),
     location = Some(validLocation),
     date = Some(LocalDateTime.now().plusDays(7)),
-    price = Some(25.0),
     status = EventStatus.PUBLISHED,
     creatorId = "creator123",
     collaboratorIds = Some(List("collaborator456"))
@@ -60,7 +59,6 @@ class ValidatorInstancesTest extends AnyFlatSpec with Matchers:
     tags = Some(List(EventTag.EventType.Concert, EventTag.MusicStyle.Rock)),
     location = Some(validLocation),
     date = Some(LocalDateTime.now().plusDays(14)),
-    price = Some(30.0),
     status = EventStatus.PUBLISHED,
     collaboratorIds = Some(List("collaborator789"))
   )

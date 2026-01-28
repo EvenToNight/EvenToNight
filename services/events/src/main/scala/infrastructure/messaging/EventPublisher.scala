@@ -1,6 +1,15 @@
 package infrastructure.messaging
 import com.rabbitmq.client.{AMQP, Channel, Connection, ConnectionFactory}
-import domain.events.{DomainEvent, EventCompleted, EventDeleted, EventEnvelope, EventPublished, EventUpdated}
+import domain.events.{
+  DomainEvent,
+  EventCancelled,
+  EventCompleted,
+  EventCreated,
+  EventDeleted,
+  EventEnvelope,
+  EventPublished,
+  EventUpdated
+}
 import io.circe.Encoder
 import io.circe.generic.semiauto.*
 import io.circe.syntax.*
@@ -76,10 +85,12 @@ class RabbitEventPublisher(
         println(s"[RABBITMQ] Error publishing event: ${e.getMessage}")
 
   private def routingKey(event: DomainEvent): String = event match
+    case _: EventCreated   => "event.created"
     case _: EventPublished => "event.published"
     case _: EventUpdated   => "event.updated"
     case _: EventDeleted   => "event.deleted"
     case _: EventCompleted => "event.completed"
+    case _: EventCancelled => "event.cancelled"
 
   def close(): Unit =
     try

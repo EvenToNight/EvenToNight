@@ -2,7 +2,11 @@
 import { ref, computed, onMounted, provide } from 'vue'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
-import type { EventReview, OrganizationReviewsStatistics } from '@/api/types/interaction'
+import {
+  RATING_VALUES,
+  type EventReview,
+  type OrganizationReviewsStatistics,
+} from '@/api/types/interaction'
 import ReviewsList from '@/components/reviews/ReviewsList.vue'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import SubmitReviewDialog from '@/components/reviews/SubmitReviewDialog.vue'
@@ -10,16 +14,24 @@ import ReviewsStatistics from '@/components/reviews/ReviewsStatistics.vue'
 import ReviewsFilters from '@/components/reviews/ReviewsFilters.vue'
 import type { EventID } from '@/api/types/events'
 import type { Rating } from '@/api/types/interaction'
+import { useAuthStore } from '@/stores/auth'
 
-const { query, params, goToUserProfile } = useNavigation()
+const { query, params, goToUserProfile, goToSettings } = useNavigation()
+const authStore = useAuthStore()
 const organizationId = computed(() => params.organizationId as string)
 const tempEventId = ref<EventID | null>((query.eventId as EventID) || null)
-//TODO: missing endpoint for checking if user has partecipated in any event of the organization
-const canUserLeaveReview = ref(true)
+const tempEventIdForDialog = ref<EventID | null>(null)
+const canUserLeaveReview = ref(false)
+const userHasReviews = ref(true)
 
-//TODO: missing endpoint for retriving user's review to show in dialog for editing (when clicking on modify ok the review is alreay loaded), evaluate moving inside dialog
 const tempReview = ref<EventReview | null>(null)
-const tempSelectedRating = ref<Rating | null>(null)
+const getRatingFromQuery = (): Rating | null => {
+  if (typeof query.rating !== 'string') return null
+  const num = Number(query.rating)
+  if (RATING_VALUES.includes(num as Rating)) return num as Rating
+  return null
+}
+const tempSelectedRating = ref<Rating | null>(getRatingFromQuery())
 const reviews = ref<EventReview[]>([])
 const loading = ref(true)
 const organizationName = ref<string>('')
@@ -56,9 +68,56 @@ const loadOrganizationInfo = async () => {
   }
 }
 
+const loadCurrentUserReviewInfo = async () => {
+  if (!authStore.isAuthenticated) return
+  try {
+    const userId = authStore.user!.id
+    const reviewsResponse = await api.interactions.getUserReviews(userId, {
+      pagination: {
+        limit: 1,
+      },
+    })
+    const canReviewResponse = await api.interactions.userParticipations(userId, {
+      organizationId: organizationId.value,
+      reviewed: false,
+      pagination: {
+        limit: 1,
+      },
+    })
+    if (query.eventId as EventID) {
+      const tempEventIdForDialogResponse = await api.interactions.userParticipatedToEvent(
+        userId,
+        query.eventId as EventID
+      )
+      if (tempEventIdForDialogResponse) {
+        const canAddReview =
+          tempEventIdForDialogResponse.hasParticipated && !tempEventIdForDialogResponse.hasReviewed
+        tempEventIdForDialog.value = canAddReview ? (query.eventId as EventID) : null
+      }
+    }
+
+    if (query.eventId as EventID) {
+      const existingReview = reviewsResponse.items.find(
+        (review) => review.eventId === (query.eventId as EventID)
+      )
+      if (existingReview) {
+        tempReview.value = existingReview
+      }
+    }
+    if (reviewsResponse.totalItems > 0) {
+      userHasReviews.value = true
+    }
+    if (canReviewResponse.totalItems > 0) {
+      canUserLeaveReview.value = true
+    }
+  } catch (error) {
+    console.error('Failed to load current user review info:', error)
+  }
+}
 const handleUpdateReview = async (eventId: string, userId: string) => {
   console.log('review deleted', eventId, userId)
   await loadReviews()
+  await loadCurrentUserReviewInfo()
   console.log('reviews reloaded')
   // allReviews.value = allReviews.value.filter((review) => review.id !== reviewId)
 }
@@ -69,6 +128,7 @@ provide('updateReview', handleUpdateReview)
 onMounted(() => {
   loadReviews()
   loadOrganizationInfo()
+  loadCurrentUserReviewInfo()
 })
 </script>
 
@@ -102,11 +162,19 @@ onMounted(() => {
             v-model:selectedRating="tempSelectedRating"
             :organizationId="organizationId"
           />
-          <div v-if="canUserLeaveReview" class="add-review-section">
-            <div class="event-info" @click="showReviewDialog = true">
+          <div v-if="canUserLeaveReview || userHasReviews" class="add-review-section">
+            <div v-if="canUserLeaveReview" class="event-info" @click="showReviewDialog = true">
               <q-icon name="rate_review" class="event-icon" />
               <span class="event-title">Lascia una recensione</span>
             </div>
+            <span v-if="canUserLeaveReview && userHasReviews" class="separator">oppure</span>
+            <span
+              v-if="userHasReviews"
+              class="modify-link"
+              @click="goToSettings(false, '#reviews')"
+            >
+              modifica le tue recensioni
+            </span>
           </div>
         </div>
         <ReviewsList
@@ -120,8 +188,7 @@ onMounted(() => {
       v-if="organizationId"
       v-model:isOpen="showReviewDialog"
       :creator-id="organizationId"
-      :selected-event-id="tempEventId ?? undefined"
-      :existing-review="tempReview ?? undefined"
+      :selected-event-id="tempEventIdForDialog ?? undefined"
     />
   </div>
 </template>
@@ -241,8 +308,36 @@ onMounted(() => {
 
 .add-review-section {
   display: flex;
+  flex-direction: column;
   justify-content: center;
+  align-items: center;
   padding-top: $spacing-4;
+}
+
+.separator {
+  color: $color-text-secondary;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  margin: $spacing-2 0;
+  @include dark-mode {
+    color: $color-text-dark;
+  }
+}
+
+.modify-link {
+  color: $color-text-primary;
+  font-size: $font-size-sm;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all $transition-base;
+
+  @include dark-mode {
+    color: $color-white;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .add-review-btn {
@@ -276,7 +371,7 @@ onMounted(() => {
   align-items: center;
   gap: $spacing-2;
   color: $color-text-primary;
-  margin-bottom: $spacing-3;
+  // margin-bottom: $spacing-3;
   padding: $spacing-2 $spacing-4;
   cursor: pointer;
   transition: all $transition-base;

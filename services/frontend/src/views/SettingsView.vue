@@ -8,9 +8,18 @@ import LanguageTab from '@/components/settings/tabs/LanguageTab.vue'
 import ChangePasswordTab from '@/components/settings/tabs/ChangePasswordTab.vue'
 import type { Tab } from '@/components/navigation/TabView.vue'
 import { useNavigation } from '@/router/utils'
+import { useQuasar } from 'quasar'
+import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
+
+const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 const { hash, replaceRoute } = useNavigation()
-const activeTabId = ref('general')
+const $q = useQuasar()
+const activeTabId = ref<string | null>(null)
+const layoutRef = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
+const showingContent = ref(false)
+
+const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
 
 const tabs = computed<Tab[]>(() => [
   {
@@ -40,18 +49,48 @@ const tabs = computed<Tab[]>(() => [
 ])
 
 const activeTab = computed(() => {
-  return tabs.value.find((tab) => tab.id === activeTabId.value) ?? tabs.value[0]!
+  const desiredTabId = tabs.value.find((tab) => tab.id === activeTabId.value)
+  if (!desiredTabId && activeTabId.value === null && !isMobile.value) {
+    return tabs.value[0]!
+  }
+  return desiredTabId || null
 })
 
 const selectTab = (tabId: string) => {
   activeTabId.value = tabId
+  if (isMobile.value && layoutRef.value) {
+    layoutRef.value.showContent()
+    showingContent.value = true
+  }
+}
+
+const handleBack = () => {
+  showingContent.value = false
+  activeTabId.value = null
+  replaceRoute({ hash: '' })
 }
 
 function updateTabIdFromHash() {
   const tabId = hash.value.replace('#', '')
   const exists = tabs.value.some((tab) => tab.id === tabId)
-  activeTabId.value = exists ? tabId : tabs.value[0]!.id
-  replaceRoute({ hash: `#${activeTabId.value}` })
+  console.log('Updating tab from hash:', tabId, exists)
+
+  if (layoutRef.value) {
+    if (isMobile.value) {
+      if (exists) {
+        layoutRef.value.showContent()
+        activeTabId.value = exists ? tabId : tabs.value[0]!.id
+        replaceRoute({ hash: `#${activeTabId.value}` })
+        showingContent.value = true
+      } else {
+        layoutRef.value.showSidebar()
+        showingContent.value = false
+      }
+    } else {
+      activeTabId.value = exists ? tabId : tabs.value[0]!.id
+      replaceRoute({ hash: `#${activeTabId.value}` })
+    }
+  }
 }
 onMounted(() => {
   updateTabIdFromHash()
@@ -63,7 +102,7 @@ watch(
 )
 
 watch(activeTab, (newTab) => {
-  if (hash.value !== `#${newTab.id}`) {
+  if (newTab && hash.value !== `#${newTab.id}`) {
     replaceRoute({ hash: `#${newTab.id}` })
   }
 })
@@ -72,14 +111,14 @@ watch(activeTab, (newTab) => {
 <template>
   <div class="settings-view">
     <div class="settings-container">
-      <TwoColumnLayout :sidebar-title="'Settings'">
+      <TwoColumnLayout ref="layoutRef" :sidebar-title="'Settings'" @back="handleBack">
         <template #sidebar>
           <div class="settings-menu">
             <button
               v-for="tab in tabs"
               :key="tab.id"
               class="settings-menu-item"
-              :class="{ active: activeTabId === tab.id }"
+              :class="{ active: activeTabId === tab.id && (!isMobile || showingContent) }"
               @click="selectTab(tab.id)"
             >
               <q-icon :name="tab.icon" size="24px" class="menu-icon" />
@@ -90,11 +129,11 @@ watch(activeTab, (newTab) => {
         </template>
 
         <template #content>
-          <component :is="activeTab.component" />
+          <component :is="activeTab.component" v-if="activeTab" />
         </template>
 
         <template #mobile-title>
-          <h3 class="mobile-tab-title">{{ activeTab.label }}</h3>
+          <h3 v-if="activeTab" class="mobile-tab-title">{{ activeTab.label }}</h3>
         </template>
       </TwoColumnLayout>
     </div>

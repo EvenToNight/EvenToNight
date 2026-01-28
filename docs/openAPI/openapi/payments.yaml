@@ -3,13 +3,110 @@ info:
   title: EvenToNight - Payments API
   version: 1.0.0
   description: API for managing event ticket types, pricing, and availability
+servers:
+  - url: http://localhost:9050
+    description: Local server
+  - url: https://payments.eventonight.site
+    description: Production server
 paths:
 
+  /health:
+    get:
+      summary: Health check endpoint
+      description: Returns the health status of the service
+      responses:
+        '200':
+          description: Service is healthy
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+              example:
+                status: ok
+      tags:
+        - Health
+
+  /internal/events/{eventId}:
+    post:
+      summary: Create an event (Internal)
+      description: |
+        Creates an event in the payments service.
+
+        **🔒 INTERNAL ENDPOINT**: This endpoint is only accessible to internal microservices.
+        It is blocked from external access by Traefik.
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event
+          schema:
+            type: string
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateEventDto'
+            example:
+              creatorId: "usr_123e4567-e89b-12d3-a456-426614174000"
+              date: "2024-12-31T20:00:00Z"
+              title: "New Year's Eve Party"
+              status: "PUBLISHED"
+      responses:
+        '201':
+          description: Event created successfully
+        '400':
+          description: Bad Request - Invalid input data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: status must be one of DRAFT, PUBLISHED, COMPLETED, CANCELLED
+                error: Bad Request
+        '409':
+          description: Conflict - Event with this ID already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 409
+                message: Event with id evt_550e8400-e29b-41d4-a716-446655440000 already exists
+                error: Conflict
+        '500':
+          description: Internal Server Error - Failed to create or update event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 500
+                message: Failed to create or update event
+                error: Internal Server Error
+      tags:
+        - Event Internal
+        
   # Event Ticket Types endpoints (per-event)
   /events/{eventId}/ticket-types:
     get:
       summary: Get all ticket types for an event
-      description: Retrieve all available ticket types for a specific event
+      description: |
+        Retrieve all available ticket types for a specific event.
+        Authentication is optional. Access rules:
+        - Unauthenticated users: can only access ticket types for published events
+        - Authenticated users: can access their own events (any status) or published events from others
+
+        To test with authentication, use the "Authorize" button and provide a Bearer token.
+      security:
+        - BearerAuth: []
+        - {}
       parameters:
         - name: eventId
           in: path
@@ -32,9 +129,7 @@ paths:
                   eventId: evt_550e8400-e29b-41d4-a716-446655440000
                   type: STANDARD
                   description: "General admission ticket"
-                  price:
-                    amount: 29.99
-                    currency: EUR
+                  price: 29.99
                   availableQuantity: 85
                   soldQuantity: 15
                   totalQuantity: 100
@@ -43,27 +138,39 @@ paths:
                   eventId: evt_550e8400-e29b-41d4-a716-446655440000
                   type: VIP
                   description: "VIP access with backstage pass"
-                  price:
-                    amount: 99.99
-                    currency: EUR
+                  price: 99.99
                   availableQuantity: 0
                   soldQuantity: 20
                   totalQuantity: 20
                   isSoldOut: true
-        '400':
-          description: Bad Request
+        '403':
+          description: Forbidden - Unauthenticated user cannot access ticket types for non-published event
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: Current user cannot access this event ticket types
+                error: Forbidden
+        '404':
+          description: Not Found - Event does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Event with id evt_550e8400-e29b-41d4-a716-446655440000 not found
+                error: Not Found
       tags:
         - Event
 
     post:
       summary: Create a new ticket type for an event
-      description: Define a new ticket type with pricing and quantity for a specific event
+      description: Define a new ticket type with pricing and quantity for a specific event (creator only)
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
@@ -82,9 +189,7 @@ paths:
               type: STANDARD
               description: "General admission ticket"
               price: 29.99
-              currency: EUR
               quantity: 100
-              creatorId: usr_123e4567-e89b-12d3-a456-426614174000
       responses:
         '201':
           description: Ticket type created successfully
@@ -97,9 +202,7 @@ paths:
                 eventId: evt_550e8400-e29b-41d4-a716-446655440000
                 type: STANDARD
                 description: "General admission ticket"
-                price:
-                  amount: 29.99
-                  currency: EUR
+                price: 29.99
                 availableQuantity: 100
                 soldQuantity: 0
                 totalQuantity: 100
@@ -129,6 +232,16 @@ paths:
                     statusCode: 400
                     message: ["quantity must not be less than 1"]
                     error: Bad Request
+        '403':
+          description: Forbidden - User is not the event creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User ID in token does not match event creator ID
+                error: Forbidden
         '409':
           description: Conflict - Ticket type already exists for this event
           content:
@@ -146,20 +259,37 @@ paths:
       summary: Delete all ticket types for an event
       description: Delete all ticket types for a specific event (creator only)
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: eventId
           in: path
           required: true
           schema:
             type: string
+          example: evt_550e8400-e29b-41d4-a716-446655440000
       responses:
         '204':
-          description: Ticket types deleted
+          description: Ticket types deleted successfully
         '403':
-          description: Forbidden
+          description: Forbidden - User is not the event creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User ID in token does not match event creator ID
+                error: Forbidden
         '404':
           description: Event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Event not found
+                error: Not Found
       tags:
         - Event
 
@@ -183,12 +313,16 @@ paths:
   /ticket-types/{ticketTypeId}:
     get:
       summary: Get a specific ticket type by ID
-      description: Retrieve detailed information about a specific ticket type
-      servers:
-        - url: http://localhost:3000
-          description: Local server
-        - url: https://payments.eventonight.site
-          description: Production server
+      description: |
+        Retrieve detailed information about a specific ticket type.
+        Authentication is optional. Access rules:
+        - Unauthenticated users: can only access ticket types for published events
+        - Authenticated users: can access their own events (any status) or published events from others
+
+        To test with authentication, use the "Authorize" button and provide a Bearer token.
+      security:
+        - BearerAuth: []
+        - {}
       parameters:
         - name: ticketTypeId
           in: path
@@ -209,15 +343,23 @@ paths:
                 eventId: evt_550e8400-e29b-41d4-a716-446655440000
                 type: STANDARD
                 description: "General admission ticket"
-                price:
-                  amount: 29.99
-                  currency: EUR
+                price: 29.99
                 availableQuantity: 85
                 soldQuantity: 15
                 totalQuantity: 100
                 isSoldOut: false
+        '403':
+          description: Forbidden - Current user cannot access ticket type for non-published event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: Current user cannot access this event ticket types
+                error: Forbidden
         '404':
-          description: Not Found - Ticket type does not exist
+          description: Not Found - Ticket type or event does not exist
           content:
             application/json:
               schema:
@@ -233,13 +375,14 @@ paths:
       summary: Update ticket type
       description: Update details of a ticket type (creator only)
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: ticketTypeId
           in: path
           required: true
           schema:
             type: string
+          example: ett_123e4567-e89b-12d3-a456-426614174000
       requestBody:
         required: true
         content:
@@ -248,9 +391,7 @@ paths:
               $ref: '#/components/schemas/UpdateEventTicketTypeDto'
             example:
               description: "Updated ticket description"
-              price:
-                amount: 49.99
-                currency: EUR
+              price: 49.99
               quantity: 150
       responses:
         '200':
@@ -264,9 +405,7 @@ paths:
                 eventId: evt_550e8400-e29b-41d4-a716-446655440000
                 type: STANDARD
                 description: "Updated ticket description"
-                price:
-                  amount: 49.99
-                  currency: EUR
+                price: 49.99
                 availableQuantity: 150
                 soldQuantity: 0
                 totalQuantity: 150
@@ -298,79 +437,181 @@ paths:
       summary: Delete ticket type
       description: Delete a ticket type (creator only)
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: ticketTypeId
           in: path
           required: true
           schema:
             type: string
+          example: ett_123e4567-e89b-12d3-a456-426614174000
       responses:
         '204':
-          description: Ticket type deleted
+          description: Ticket type deleted successfully
         '403':
-          description: Forbidden
+          description: Forbidden - User is not the event creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User ID in token does not match event creator ID
+                error: Forbidden
         '404':
           description: Ticket type or event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: EventTicketType with id ett_123e4567-e89b-12d3-a456-426614174000 not found
+                error: Not Found
       tags:
         - Event Ticket Types
 
   /tickets/{ticketId}:
-    patch:
-      summary: Invalidate ticket status
-      description: Invalidate a ticket (event creator only)
+    get:
+      summary: Get ticket details
+      description: Retrieve details for a specific ticket (user must own the ticket)
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: ticketId
           in: path
           required: true
+          description: ID of the ticket
           schema:
             type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/InvalidateTicketStatusDto'
-            example:
-              status: USED
+          example: tkt_123e4567-e89b-12d3-a456-426614174000
       responses:
         '200':
-          description: Ticket invalidated
+          description: Ticket details
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  success:
-                    type: boolean
-                    example: true
+                $ref: '#/components/schemas/TicketResponseDto'
+              example:
+                id: tkt_123e4567-e89b-12d3-a456-426614174000
+                eventId: evt_550e8400-e29b-41d4-a716-446655440000
+                userId: usr_789e0123-e89b-12d3-a456-426614174222
+                attendeeName: John Doe
+                ticketTypeId: ett_123e4567-e89b-12d3-a456-426614174000
+                price: 29.99
+                purchaseDate: "2024-03-15T10:30:00Z"
+                status: ACTIVE
         '403':
-          description: Forbidden
+          description: Forbidden - User not authorized to view this ticket
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: Not authorized to view this ticket
+                error: Forbidden
         '404':
-          description: Ticket or event not found
+          description: Ticket not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Ticket not found
+                error: Not Found
+      tags:
+        - Tickets
+
+  /tickets/{ticketId}/verify:
+    put:
+      summary: Verify a ticket
+      description: |
+        Verifies a ticket by marking it as USED.
+        Returns true if the ticket was newly verified (first time).
+        Returns false if the ticket was already used previously.
+        Only the event creator can verify tickets.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: ticketId
+          in: path
+          required: true
+          description: ID of the ticket to verify
+          schema:
+            type: string
+          example: tkt_123e4567-e89b-12d3-a456-426614174000
+      responses:
+        '200':
+          description: Ticket verification result
+          content:
+            application/json:
+              schema:
+                type: boolean
+                description: True if ticket was newly verified, false if already used
+              examples:
+                newlyVerified:
+                  summary: Ticket verified for the first time
+                  value: true
+                alreadyUsed:
+                  summary: Ticket was already used
+                  value: false
+        '400':
+          description: Bad Request - Ticket cannot be verified (invalid status)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: Cannot use ticket with status CANCELLED
+                error: Bad Request
+        '403':
+          description: Forbidden - User is not the event creator
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: Not authorized to verify this ticket
+                error: Forbidden
+        '404':
+          description: Ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                ticketNotFound:
+                  summary: Ticket not found
+                  value:
+                    statusCode: 404
+                    message: Ticket not found
+                    error: Not Found
+                eventNotFound:
+                  summary: Event not found
+                  value:
+                    statusCode: 404
+                    message: Event not found
+                    error: Not Found
       tags:
         - Tickets
 
   /tickets/{ticketId}/pdf:
     get:
       summary: Get ticket PDF
-      description: Download a PDF for the specified ticket
+      description: Download a PDF for the specified ticket (user must own the ticket)
+      security:
+        - BearerAuth: []
       parameters:
         - name: ticketId
           in: path
           required: true
           schema:
             type: string
+          example: tkt_123e4567-e89b-12d3-a456-426614174000
       responses:
         '200':
           description: Ticket PDF
@@ -379,23 +620,49 @@ paths:
               schema:
                 type: string
                 format: binary
+        '403':
+          description: Forbidden - User not authorized to view this ticket
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: Not authorized to view this ticket
+                error: Forbidden
         '404':
           description: Ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Ticket not found
+                error: Not Found
       tags:
         - Tickets
 
   /users/{userId}/tickets/:
     get:
       summary: Get all tickets for a user
-      description: List all tickets for a user (only self)
+      description: List all tickets for a user (only self). Optionally filter by event ID.
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       parameters:
         - name: userId
           in: path
           required: true
           schema:
             type: string
+          example: usr_123e4567-e89b-12d3-a456-426614174000
+        - name: eventId
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter tickets by event ID (optional)
+          example: evt_550e8400-e29b-41d4-a716-446655440000
         - name: limit
           in: query
           required: false
@@ -424,9 +691,7 @@ paths:
                     userId: usr_123e4567-e89b-12d3-a456-426614174000
                     attendeeName: John Doe
                     ticketTypeId: ett_123e4567-e89b-12d3-a456-426614174000
-                    price:
-                      amount: 29.99
-                      currency: EUR
+                    price: 29.99
                     purchaseDate: 2024-01-01T12:00:00Z
                     status: ACTIVE
                 totalItems: 1
@@ -434,20 +699,157 @@ paths:
                 offset: 0
                 hasMore: false
         '403':
-          description: Forbidden
+          description: Forbidden - User can only access their own tickets
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: "Forbidden: Cannot access tickets of other users"
+                error: Forbidden
       tags:
         - User Tickets
+
+  /users/{userId}/events/:
+    get:
+      summary: Get all events for which a user has tickets
+      description: List all distinct event IDs for which the user has purchased at least one ticket (only self). Optionally filter by event status and order by event date.
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: usr_123e4567-e89b-12d3-a456-426614174000
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Max results per page (optional)
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: Offset for pagination (optional)
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [PUBLISHED, COMPLETED, CANCELLED]
+          description: Filter events by status (optional)
+          example: PUBLISHED
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+          description: Order events by date - ascending or descending (optional)
+          example: desc
+      responses:
+        '200':
+          description: Paginated list of event IDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: string
+                    example:
+                      - evt_550e8400-e29b-41d4-a716-446655440000
+                      - evt_660f9511-f30c-52e5-b827-557766551111
+                  totalItems:
+                    type: integer
+                    example: 2
+                  limit:
+                    type: integer
+                    example: 10
+                  offset:
+                    type: integer
+                    example: 0
+                  hasMore:
+                    type: boolean
+                    example: false
+        '403':
+          description: Forbidden - User can only access their own events
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: "Forbidden: Cannot access tickets of other users"
+                error: Forbidden
+      tags:
+        - User Events
+
+  /users/{userId}/events/{eventId}/pdf:
+    get:
+      summary: Get PDF with all tickets for a user and event
+      description: Download a PDF containing all tickets for the specified user and event
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: usr_123e4567-e89b-12d3-a456-426614174000
+        - name: eventId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: PDF with all tickets
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+        '403':
+          description: Forbidden - User can only access their own tickets
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: "Forbidden: Cannot access tickets of other users"
+                error: Forbidden
+        '404':
+          description: No tickets found for this event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: "No tickets found for this event"
+                error: Not Found
+      tags:
+        - User Events
 
   /checkout-sessions:
     post:
       summary: Create a checkout session
       description: Create a new checkout session for tickets
       security:
-        - bearerAuth: []
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -475,8 +877,36 @@ paths:
                 redirectUrl: "https://checkout.stripe.com/pay/cs_test_123"
                 expiresAt: 1712345678
                 orderId: "ord_123e4567-e89b-12d3-a456-426614174000"
+        '400':
+          description: Bad Request - Event is not published or tickets not available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 400
+                message: Cannot reserve tickets for event with id evt_550e8400-e29b-41d4-a716-446655440000 because it is not published
+                error: Bad Request
         '403':
-          description: Forbidden
+          description: Forbidden - User ID mismatch
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User ID in token does not match user ID in request body
+                error: Forbidden
+        '404':
+          description: Not Found - Event or ticket type not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Event with id evt_550e8400-e29b-41d4-a716-446655440000 not found
+                error: Not Found
       tags:
         - Checkout
 
@@ -503,13 +933,16 @@ paths:
   /orders/{orderId}:
     get:
       summary: Get order details
-      description: Get details for a specific order
+      description: Get details for a specific order (user must own the order)
+      security:
+        - BearerAuth: []
       parameters:
         - name: orderId
           in: path
           required: true
           schema:
             type: string
+          example: order_123e4567-e89b-12d3-a456-426614174000
       responses:
         '200':
           description: Order details
@@ -545,6 +978,16 @@ paths:
                   - tick_456e7890-e89b-12d3-a456-426614174111
                 status: COMPLETED
                 createdAt: 2024-01-01T12:00:00Z
+        '403':
+          description: Forbidden - User is not authorized to access this order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User is not authorized to access this order
+                error: Forbidden
         '404':
           description: Order not found
           content:
@@ -561,13 +1004,16 @@ paths:
   /orders/{orderId}/pdf:
     get:
       summary: Get order PDF
-      description: Download a PDF for the specified order
+      description: Download a PDF for the specified order (user must own the order)
+      security:
+        - BearerAuth: []
       parameters:
         - name: orderId
           in: path
           required: true
           schema:
             type: string
+          example: order_123e4567-e89b-12d3-a456-426614174000
       responses:
         '200':
           description: Order PDF
@@ -576,8 +1022,26 @@ paths:
               schema:
                 type: string
                 format: binary
+        '403':
+          description: Forbidden - User is not authorized to access this order
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: User is not authorized to access this order
+                error: Forbidden
         '404':
           description: Order not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Order not found
+                error: Not Found
       tags:
         - Orders
 
@@ -694,22 +1158,54 @@ components:
       properties:
         description:
           type: string
-          description: (Optional) Description of the ticket type
+          description: Optional description of the ticket type
           example: "Updated ticket description"
         price:
-          $ref: '#/components/schemas/MoneyDto'
-          description: (Optional) Updated price of the ticket
+          type: number
+          format: float
+          description: Updated price (USD)of the ticket
         quantity:
           type: integer
           minimum: 1
-          description: (Optional) Updated total quantity of tickets
+          description: Updated total quantity of tickets
           example: 150
+      required:
+        - price
+        - quantity
       example:
         description: "Updated ticket description"
-        price:
-          amount: 49.99
-          currency: EUR
+        price: 49.99
         quantity: 150
+    CreateEventDto:
+      type: object
+      description: Data required to create or update an event
+      properties:
+        creatorId:
+          type: string
+          description: ID of the user creating the event
+          example: "usr_123e4567-e89b-12d3-a456-426614174000"
+        date:
+          type: string
+          format: date-time
+          description: Date and time of the event. Required when status is not DRAFT, optional when status is DRAFT
+          example: "2024-12-31T20:00:00Z"
+        title:
+          type: string
+          description: Title of the event (optional, but if provided must not be empty)
+          example: "New Year's Eve Party"
+        status:
+          type: string
+          description: Status of the event
+          enum: [DRAFT, PUBLISHED, COMPLETED, CANCELLED]
+          example: PUBLISHED
+      required:
+        - creatorId
+        - status
+      example:
+        creatorId: "usr_123e4567-e89b-12d3-a456-426614174000"
+        date: "2024-12-31T20:00:00Z"
+        title: "New Year's Eve Party"
+        status: PUBLISHED
     CreateEventTicketTypeDto:
       type: object
       description: Data required to create a new event ticket type
@@ -721,38 +1217,26 @@ components:
           example: STANDARD
         description:
           type: string
-          description: Description of the ticket type
+          description: Description of the ticket type (optional)
           example: "General admission ticket"
         price:
           type: number
           format: float
-          description: Price of the ticket
-          example: 29.99
-        currency:
-          type: string
-          description: Currency code (ISO 4217, optional)
-          example: EUR
+          description: Price (USD) of the ticket
         quantity:
           type: integer
           minimum: 1
           description: Total quantity of tickets available
           example: 100
-        creatorId:
-          type: string
-          description: ID of the creator of the event ticket type
-          example: usr_123e4567-e89b-12d3-a456-426614174000
       required:
         - type
         - price
         - quantity
-        - creatorId
       example:
         type: STANDARD
         description: "General admission ticket"
         price: 29.99
-        currency: EUR
         quantity: 100
-        creatorId: usr_123e4567-e89b-12d3-a456-426614174000
 
     EventTicketTypeResponseDto:
       type: object
@@ -776,21 +1260,10 @@ components:
           description: Description of the ticket type
           example: "General admission ticket"
         price:
-          type: object
-          description: Price information
-          properties:
-            amount:
-              type: number
-              format: float
-              description: Price amount
-              example: 29.99
-            currency:
-              type: string
-              description: Currency code (ISO 4217)
-              example: EUR
-          required:
-            - amount
-            - currency
+          type: number
+          format: float
+          description: Price (USD) of the ticket
+          example: 29.99
         availableQuantity:
           type: integer
           description: Number of tickets still available for purchase
@@ -914,7 +1387,8 @@ components:
         ticketTypeId:
           type: string
         price:
-          $ref: '#/components/schemas/MoneyDto'
+          type: number
+          format: float
         purchaseDate:
           type: string
           format: date-time
@@ -981,6 +1455,22 @@ components:
           type: integer
           minimum: 0
 
+    UserEventsQueryDto:
+      allOf:
+        - $ref: '#/components/schemas/PaginatedQueryDto'
+        - type: object
+          properties:
+            status:
+              type: string
+              enum: [PUBLISHED, COMPLETED, CANCELLED]
+              description: Filter events by status (optional)
+              example: PUBLISHED
+            order:
+              type: string
+              enum: [asc, desc]
+              description: Order events by date - ascending or descending (optional)
+              example: desc
+
     PaginatedResponseDto:
       type: object
       properties:
@@ -1002,3 +1492,10 @@ components:
         - limit
         - offset
         - hasMore
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Enter your JWT token in the format: Bearer <token>'

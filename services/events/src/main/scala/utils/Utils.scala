@@ -3,6 +3,7 @@ import domain.commands.{CreateEventCommand, GetFilteredEventsCommand, UpdateEven
 import domain.models.{Event, EventStatus, EventTag, Location}
 import domain.models.EventConversions.*
 import domain.models.EventTag.validateTagList
+import infrastructure.db.MongoUserMetadataRepository
 
 import java.nio.file.Files
 import java.time.LocalDateTime
@@ -73,10 +74,9 @@ object Utils:
     val date: Option[LocalDateTime] = eventData.obj.get("date") match
       case Some(d) => Some(LocalDateTime.parse(d.str))
       case None    => None
-    val price: Option[Double] = eventData.obj.get("price").map(_.num)
-    val status                = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
-    val creatorId             = eventData("creatorId").str
-    val collaboratorIds       = eventData.obj.get("collaboratorIds").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
+    val status          = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
+    val creatorId       = eventData("creatorId").str
+    val collaboratorIds = eventData.obj.get("collaboratorIds").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
     CreateEventCommand(
       title = title,
@@ -84,7 +84,6 @@ object Utils:
       tags = tags,
       location = location,
       date = date,
-      price = price,
       status = status,
       creatorId = creatorId,
       collaboratorIds = collaboratorIds
@@ -98,7 +97,6 @@ object Utils:
     val tags            = eventData.obj.get("tags").map(t => validateTagList(t.toString())).flatten
     val location        = eventData.obj.get("location").map(l => parseLocationFromJson(l.toString())).flatten
     val date            = eventData.obj.get("date").map(d => LocalDateTime.parse(d.str))
-    val price           = eventData.obj.get("price").map(_.num)
     val status          = EventStatus.withNameOpt(eventData("status").str).getOrElse(EventStatus.DRAFT)
     val collaboratorIds = eventData.obj.get("collaboratorIds").map(_.arr.map(_.str).toList).filter(_.nonEmpty)
 
@@ -109,7 +107,6 @@ object Utils:
       tags = tags,
       location = location,
       date = date,
-      price = price,
       status = status,
       collaboratorIds = collaboratorIds
     )
@@ -134,13 +131,15 @@ object Utils:
       organizationId: Option[String],
       city: Option[String],
       location_name: Option[String],
-      priceMin: Option[Double],
-      priceMax: Option[Double],
       sortBy: Option[String],
-      sortOrder: Option[String]
+      sortOrder: Option[String],
+      isAuthenticated: Boolean
   ): GetFilteredEventsCommand =
-    val parsedStatus: Option[EventStatus] =
-      status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
+    var parsedStatus: Option[EventStatus] = None
+    isAuthenticated match
+      case true  => parsedStatus = status.flatMap(s => EventStatus.withNameOpt(s))
+      case false => parsedStatus = status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
+
     val parsedTags: Option[List[EventTag]] = tags.map(_.map(t => EventTag.fromString(t)))
     val parsedStartDate: Option[LocalDateTime] = startDate.flatMap { sd =>
       Try(LocalDateTime.parse(sd)).toOption
@@ -149,13 +148,8 @@ object Utils:
       Try(LocalDateTime.parse(ed)).toOption
     }
     val limitValue = math.min(limit.getOrElse(DEFAULT_LIMIT), MAX_LIMIT)
-    val priceRange = (priceMin, priceMax) match
-      case (Some(min), Some(max)) => Some((min, max))
-      case (Some(min), None)      => Some((min, Double.MaxValue))
-      case (None, Some(max))      => Some((0.0, max))
-      case _                      => None
     val validSortBy = sortBy.filter(s =>
-      Set("date", "price", "instant").contains(s.toLowerCase)
+      Set("date", "instant").contains(s.toLowerCase)
     ).orElse(Some("date"))
     val validSortOrder = sortOrder.filter(o =>
       Set("asc", "desc").contains(o.toLowerCase)
@@ -171,7 +165,6 @@ object Utils:
       organizationId = organizationId,
       city = city,
       location_name = location_name,
-      priceRange = priceRange,
       sortBy = validSortBy,
       sortOrder = validSortOrder
     )
@@ -189,3 +182,8 @@ object Utils:
       "offset"  -> offset.getOrElse(0),
       "hasMore" -> hasMore
     )
+
+  def checkUserIsOrganization(userId: String, userMetadataDatabase: MongoUserMetadataRepository): Boolean =
+    userMetadataDatabase.findById(userId) match
+      case Some(userMetadata) if userMetadata.role == "organization" => true
+      case _                                                         => false

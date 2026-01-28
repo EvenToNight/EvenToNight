@@ -84,15 +84,25 @@ describe('EventController (e2e)', () => {
   beforeEach(async () => {
     await eventTicketTypeService.deleteAll();
     await eventService.deleteAll();
-    await eventService.create(eventId, creatorId);
-    await eventService.create('no-ticket-event', creatorId);
+    await eventService.createOrUpdate(
+      eventId,
+      creatorId,
+      'PUBLISHED',
+      new Date(),
+    );
+    await eventService.createOrUpdate(
+      'no-ticket-event',
+      creatorId,
+      'PUBLISHED',
+      new Date(),
+    );
     soldTicketsIds = [];
 
     ticketType1 = await eventTicketTypeService.create({
       eventId: EventId.fromString(eventId),
       type: TicketType.fromString('STANDARD'),
       description: 'Standard ticket',
-      price: Money.fromAmount(50, 'EUR'),
+      price: Money.fromAmount(50, 'USD'),
       availableQuantity: 99,
       soldQuantity: 1,
     });
@@ -101,7 +111,7 @@ describe('EventController (e2e)', () => {
       eventId: EventId.fromString(eventId),
       type: TicketType.fromString('VIP'),
       description: 'VIP ticket',
-      price: Money.fromAmount(150, 'EUR'),
+      price: Money.fromAmount(150, 'USD'),
       availableQuantity: 50,
       soldQuantity: 0,
     });
@@ -164,7 +174,7 @@ describe('EventController (e2e)', () => {
             type: 'VIP',
             description: 'VIP entry ticket',
             price: 59.99,
-            currency: 'EUR',
+            currency: 'USD',
             quantity: 100,
             creatorId,
           };
@@ -262,7 +272,7 @@ describe('EventController (e2e)', () => {
             type: ticketType1.getType().toString(),
             description: 'another ticket',
             price: 1500,
-            currency: 'EUR',
+            currency: 'USD',
             quantity: 30,
             creatorId,
           };

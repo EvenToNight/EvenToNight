@@ -5,14 +5,19 @@ import { Order } from '../../../domain/aggregates/order.aggregate';
 import { OrderRepository } from '../../../domain/repositories/order.repository.interface';
 import { OrderMapper } from '../mappers/order.mapper';
 import { OrderDocument } from '../schemas/order.schema';
+import { BaseMongoRepository } from './base-mongo.repository';
 
 @Injectable()
-export class OrderRepositoryImpl implements OrderRepository {
+export class OrderRepositoryImpl
+  extends BaseMongoRepository
+  implements OrderRepository
+{
   constructor(
     @InjectModel(OrderDocument.name)
     private readonly orderModel: Model<OrderDocument>,
-  ) {}
-
+  ) {
+    super();
+  }
   async save(order: Order): Promise<Order> {
     const document = OrderMapper.toPersistence(order);
     const created = new this.orderModel(document);

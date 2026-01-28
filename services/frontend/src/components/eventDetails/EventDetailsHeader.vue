@@ -5,7 +5,6 @@ import { useAuthStore } from '@/stores/auth'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
 import { useI18n } from 'vue-i18n'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 
 interface Props {
   event: Event
@@ -30,10 +29,10 @@ const loadInteractions = async () => {
   try {
     const likes = await api.interactions.getEventLikes(props.event.eventId)
     likesCount.value = likes.totalItems
-    if (authStore.user?.id) {
+    if (authStore.isAuthenticated) {
       isFavorite.value = await api.interactions.userLikesEvent(
         props.event.eventId,
-        authStore.user.id
+        authStore.user!.id
       )
     }
   } catch (error) {
@@ -78,11 +77,12 @@ onMounted(async () => {
       <p class="event-subtitle">{{ props.event.location.name || props.event.location.city }}</p>
     </div>
     <div class="action-buttons">
-      <Button
+      <q-btn
         v-if="isOrganizer"
+        flat
         :label="t('eventDetails.editEvent')"
         icon="edit"
-        variant="secondary"
+        class="base-button base-button--secondary"
         @click="goToEditEvent(props.event.eventId)"
       />
       <button class="like-button" :class="{ liked: isFavorite }" @click="toggleLike">

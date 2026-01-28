@@ -7,6 +7,8 @@ import {
 import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
+import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
+import { ClientSession } from 'mongoose';
 @Injectable()
 export class EventService {
   constructor(
@@ -14,15 +16,37 @@ export class EventService {
     private readonly eventRepository: EventRepository,
   ) {}
 
-  async create(eventId: string, creatorId: string): Promise<Event> {
-    const event = Event.create(
-      EventId.fromString(eventId),
-      UserId.fromString(creatorId),
-    );
-    return this.eventRepository.save(event);
+  async createOrUpdate(
+    eventId: string,
+    creatorId: string,
+    status: string,
+    date?: Date,
+  ): Promise<Event> {
+    const event = Event.create({
+      id: EventId.fromString(eventId),
+      creatorId: UserId.fromString(creatorId),
+      date,
+      status: EventStatus.fromString(status),
+    });
+    if (!(await this.eventRepository.findById(eventId))) {
+      return this.eventRepository.save(event);
+    }
+    return this.eventRepository.update({
+      eventId: EventId.fromString(eventId),
+      date,
+      status: EventStatus.fromString(status),
+    });
   }
+
   async findById(id: string): Promise<Event | null> {
     return this.eventRepository.findById(id);
+  }
+
+  async findByIdWithLock(
+    id: EventId,
+    session: ClientSession,
+  ): Promise<Event | null> {
+    return this.eventRepository.findByIdWithLock(id, session);
   }
 
   async save(event: Event): Promise<Event> {
@@ -35,5 +59,9 @@ export class EventService {
 
   async deleteAll(): Promise<void> {
     return this.eventRepository.deleteAll();
+  }
+
+  isDuplicateError(error: unknown): boolean {
+    return this.eventRepository.isDuplicateError(error);
   }
 }

@@ -39,7 +39,6 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
         lon = Some(90.0),
         link = Some("http://example.com/location")
       )),
-      price = Some(15.0),
       date = Some(LocalDateTime.now().plusDays(1)),
       status = EventStatus.PUBLISHED,
       creatorId = "creator123",
@@ -132,7 +131,6 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       organizationId = None,
       city = None,
       location_name = None,
-      priceRange = None,
       sortBy = None,
       sortOrder = None
     )

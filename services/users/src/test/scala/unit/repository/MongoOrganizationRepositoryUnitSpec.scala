@@ -12,15 +12,9 @@ import repository.MongoOrganizationRepository
 import repository.OrganizationRepository
 
 class MongoOrganizationRepositoryUnitSpec extends AnyFlatSpec with Matchers:
-  "insert" should "delegate organization's account and profile insertion to the organization account-profile repository and propagate userId" in:
+  "insert" should "delegate organization's account and profile insertion to the organization account-profile repository" in:
     val orgAccountProfileRepoMock: AccountProfileRepository[OrganizationAccount, OrganizationProfile] =
       mock(classOf[AccountProfileRepository[OrganizationAccount, OrganizationProfile]])
     val orgRepo: OrganizationRepository = new MongoOrganizationRepository(orgAccountProfileRepoMock)
-    when(orgAccountProfileRepoMock.insert(
-      organization.account,
-      organization.profile,
-      organizationUserId
-    )).thenReturn(organizationUserId)
-    val result = orgRepo.insert(organization, organizationUserId)
+    orgRepo.insert(organization, organizationUserId)
     verify(orgAccountProfileRepoMock).insert(organization.account, organization.profile, organizationUserId)
-    result shouldBe organizationUserId

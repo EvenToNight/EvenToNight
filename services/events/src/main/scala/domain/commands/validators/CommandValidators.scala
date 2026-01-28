@@ -11,7 +11,7 @@ import domain.models.{EventStatus, Location}
 
 import java.time.LocalDateTime
 
-import ValidationRules.{futureDate, nonEmpty, correctLocality, positiveInt, nonNegativeInt, dateRange, priceRange}
+import ValidationRules.{futureDate, nonEmpty, correctLocality, positiveInt, nonNegativeInt, dateRange}
 import Validator.combine
 
 object CreateEventValidator extends Validator[CreateEventCommand]:
@@ -27,7 +27,6 @@ object CreateEventValidator extends Validator[CreateEventCommand]:
         val validations = combine(
           nonEmpty(cmd.title.getOrElse(""), "Title"),
           nonEmpty(cmd.description.getOrElse(""), "Description"),
-          nonEmpty(cmd.price.getOrElse(0).toString(), "Price"),
           nonEmpty(cmd.creatorId, "Creator Id"),
           correctLocality(cmd.location.getOrElse(Location.Nil()), "Location"),
           futureDate(cmd.date.getOrElse(LocalDateTime.now()), "Date")
@@ -62,7 +61,6 @@ object UpdateEventValidator extends Validator[UpdateEventCommand]:
           nonEmpty(cmd.eventId, "Event ID"),
           nonEmpty(cmd.title.getOrElse(""), "Title"),
           nonEmpty(cmd.description.getOrElse(""), "Description"),
-          nonEmpty(cmd.price.getOrElse("").toString(), "Price"),
           correctLocality(cmd.location.getOrElse(Location.Nil()), "Location"),
           futureDate(cmd.date.getOrElse(LocalDateTime.now()), "Date")
         )
@@ -79,6 +77,5 @@ object GetFilteredEventsValidator extends Validator[GetFilteredEventsCommand]:
     combine(
       positiveInt(cmd.limit, "Limit"),
       nonNegativeInt(cmd.offset, "Offset"),
-      dateRange(cmd.startDate, cmd.endDate, "Date range"),
-      priceRange(cmd.priceRange, "Price range")
+      dateRange(cmd.startDate, cmd.endDate, "Date range")
     ).map(_ => cmd)

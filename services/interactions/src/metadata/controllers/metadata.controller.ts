@@ -2,15 +2,18 @@ import { Controller, Logger } from '@nestjs/common';
 import { MessagePattern, Payload } from '@nestjs/microservices';
 import { MetadataService } from '../services/metadata.service';
 import { RmqContext, Ctx } from '@nestjs/microservices';
-import { EventPublishedDto } from '../dto/event-published.dto';
+import { EventCreatedDto } from '../dto/event-created.dto';
 import { plainToInstance } from 'class-transformer';
 import { validate } from 'class-validator';
 import { UserCreatedDto } from '../dto/user-created.dto';
-import { EventDeletedDto } from '../dto/event-deleted.dto';
+import { EventCancelledDto } from '../dto/event-cancelled.dto';
 import { UserDeletedDto } from '../dto/user-deleted.dto';
 import { EventCompletedDto } from '../dto/event-completed.dto';
 import { UserUpdatedDto } from '../dto/user-updated.dto';
 import { OrderConfirmedDto } from '../dto/order-confirmed.dto';
+import { EventUpdatedDto } from '../dto/event-updated.dto';
+import { EventPublishedDto } from '../dto/event-published.dto';
+import { EventDeletedDto } from '../dto/event-deleted.dto';
 
 @Controller()
 export class MetadataController {
@@ -42,11 +45,17 @@ export class MetadataController {
 
     try {
       switch (routingKey) {
+        case 'event.created':
+          await this.handleEventCreated(payload);
+          break;
         case 'event.published':
           await this.handleEventPublished(payload);
           break;
         case 'user.created':
           await this.handleUserCreated(payload);
+          break;
+        case 'event.cancelled':
+          await this.handleEventCancelled(payload);
           break;
         case 'event.deleted':
           await this.handleEventDeleted(payload);
@@ -59,6 +68,9 @@ export class MetadataController {
           break;
         case 'user.updated':
           await this.handleUserUpdated(payload);
+          break;
+        case 'event.updated':
+          await this.handleEventUpdated(payload);
           break;
         case 'payments.order.confirmed':
           await this.handleOrderConfirmed(payload);
@@ -81,6 +93,11 @@ export class MetadataController {
     }
   }
 
+  private async handleEventCreated(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventCreatedDto, payload);
+    await this.metadataService.handleEventCreated(dto);
+  }
+
   private async handleEventPublished(payload: unknown): Promise<void> {
     const dto = await this.validateAndTransform(EventPublishedDto, payload);
     await this.metadataService.handleEventPublished(dto);
@@ -89,6 +106,11 @@ export class MetadataController {
   private async handleUserCreated(payload: unknown): Promise<void> {
     const dto = await this.validateAndTransform(UserCreatedDto, payload);
     await this.metadataService.handleUserCreated(dto);
+  }
+
+  private async handleEventCancelled(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventCancelledDto, payload);
+    await this.metadataService.handleEventCancelled(dto);
   }
 
   private async handleEventDeleted(payload: unknown): Promise<void> {
@@ -109,6 +131,11 @@ export class MetadataController {
   private async handleUserUpdated(payload: unknown): Promise<void> {
     const dto = await this.validateAndTransform(UserUpdatedDto, payload);
     await this.metadataService.handleUserUpdated(dto);
+  }
+
+  private async handleEventUpdated(payload: unknown): Promise<void> {
+    const dto = await this.validateAndTransform(EventUpdatedDto, payload);
+    await this.metadataService.handleEventUpdated(dto);
   }
 
   private async handleOrderConfirmed(payload: unknown): Promise<void> {

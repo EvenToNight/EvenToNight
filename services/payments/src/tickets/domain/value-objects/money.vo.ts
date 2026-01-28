@@ -1,7 +1,7 @@
 export class Money {
   private constructor(
     private readonly amount: number,
-    private readonly currency: string = 'EUR',
+    private readonly currency: string = 'USD',
   ) {
     if (amount < 0) {
       throw new Error('Amount cannot be negative');
@@ -12,7 +12,7 @@ export class Money {
   }
 
   //TODO: to uppercase currency code
-  static fromAmount(amount: number, currency: string = 'EUR'): Money {
+  static fromAmount(amount: number, currency: string = 'USD'): Money {
     return new Money(amount, currency);
   }
 

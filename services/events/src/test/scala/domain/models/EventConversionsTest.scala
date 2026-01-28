@@ -40,7 +40,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       link = Some("http://example.com/location")
     )),
     date = Some(sampleDate),
-    price = Some(15.0),
     status = EventStatus.DRAFT,
     instant = sampleInstant,
     creatorId = "creator123",
@@ -59,7 +58,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     document.getString("description") shouldBe "Test description"
     document.getString("poster") shouldBe "poster.jpg"
     document.getList("tags", classOf[String]).asScala.toList shouldBe List("Party", "Christmas")
-    document.getDouble("price") shouldBe 15.0
     document.getString("status") shouldBe "DRAFT"
     document.getString("creatorId") shouldBe "creator123"
     document.getList("collaboratorIds", classOf[String]).asScala.toList shouldBe List("collab789")
@@ -84,7 +82,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       tags = None,
       location = None,
       date = None,
-      price = None,
       status = EventStatus.DRAFT,
       instant = sampleInstant,
       creatorId = "creator123",
@@ -102,7 +99,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     document.containsKey("tags") shouldBe false
     document.containsKey("location") shouldBe false
     document.containsKey("date") shouldBe false
-    document.containsKey("price") shouldBe false
     document.containsKey("collaboratorIds") shouldBe false
 
   "Event.toJson" should "convert Event to JSON with all fields present" in:
@@ -127,7 +123,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     json("location").obj("lon").num shouldBe 90.0
 
     json("date").str shouldBe sampleDate.toString
-    json("price").num shouldBe 15.0
     json("status").str shouldBe "DRAFT"
     json("instant").str shouldBe sampleInstant.toString
     json("creatorId").str shouldBe "creator123"
@@ -142,7 +137,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
       tags = None,
       location = None,
       date = None,
-      price = None,
       status = EventStatus.DRAFT,
       instant = sampleInstant,
       creatorId = "creator123",
@@ -160,7 +154,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     json.obj.contains("tags") shouldBe false
     json.obj.contains("location") shouldBe false
     json.obj.contains("date") shouldBe false
-    json.obj.contains("price") shouldBe false
     json.obj.contains("collaboratorIds") shouldBe false
 
   "EventConversions.fromDocument" should "convert Document to Event with all fields" in:
@@ -185,7 +178,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
           .append("link", "http://example.com/location")
       )
       .append("date", sampleDate.toString)
-      .append("price", 25.5)
       .append("status", "PUBLISHED")
       .append("instant", sampleInstant.toString)
       .append("creatorId", "doc-creator")
@@ -212,7 +204,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     event.location.get.link shouldBe Some("http://example.com/location")
 
     event.date shouldBe Some(sampleDate)
-    event.price shouldBe Some(25.5)
     event.status shouldBe EventStatus.PUBLISHED
     event.instant shouldBe sampleInstant
     event.creatorId shouldBe "doc-creator"
@@ -234,7 +225,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     event.tags shouldBe None
     event.location shouldBe None
     event.date shouldBe None
-    event.price shouldBe None
     event.status shouldBe EventStatus.DRAFT
     event.instant shouldBe sampleInstant
     event.creatorId shouldBe "creator123"
@@ -310,7 +300,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
           .append("lon", 11.34)
       )
       .append("date", sampleDate.toString)
-      .append("price", 20.0)
       .append("status", "PUBLISHED")
       .append("instant", sampleInstant.toString)
       .append("creatorId", "creator123")
@@ -324,7 +313,6 @@ class EventConversionsSpec extends AnyFlatSpec with Matchers:
     convertedDoc.getString("description") shouldBe originalDoc.getString("description")
     convertedDoc.getString("status") shouldBe originalDoc.getString("status")
     convertedDoc.getString("creatorId") shouldBe originalDoc.getString("creatorId")
-    convertedDoc.getDouble("price") shouldBe originalDoc.getDouble("price")
 
   it should "handle round-trip conversion Event -> JSON -> verification" in:
     val event = createEvent(

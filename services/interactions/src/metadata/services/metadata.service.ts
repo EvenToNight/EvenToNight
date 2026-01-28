@@ -15,14 +15,17 @@ import { ReviewService } from '../../events/services/review.service';
 import { ParticipationService } from '../../events/services/participation.service';
 import { FollowService } from '../../users/services/follow.service';
 import { CreateReviewDto } from 'src/events/dto/create-review.dto';
-import { EventPublishedDto } from '../dto/event-published.dto';
+import { EventCreatedDto } from '../dto/event-created.dto';
 import { UserCreatedDto } from '../dto/user-created.dto';
-import { EventDeletedDto } from '../dto/event-deleted.dto';
+import { EventCancelledDto } from '../dto/event-cancelled.dto';
 import { UserDeletedDto } from '../dto/user-deleted.dto';
 import { EventCompletedDto } from '../dto/event-completed.dto';
 import { UserInfoDto } from 'src/commons/dto/user-info-dto';
 import { UserUpdatedDto } from '../dto/user-updated.dto';
 import { OrderConfirmedDto } from '../dto/order-confirmed.dto';
+import { EventUpdatedDto } from '../dto/event-updated.dto';
+import { EventPublishedDto } from '../dto/event-published.dto';
+import { EventDeletedDto } from '../dto/event-deleted.dto';
 
 @Injectable()
 export class MetadataService {
@@ -41,11 +44,9 @@ export class MetadataService {
     private readonly followService: FollowService,
   ) {}
 
-  async handleEventPublished(payload: EventPublishedDto): Promise<void> {
+  async handleEventCreated(payload: EventCreatedDto): Promise<void> {
     try {
-      this.logger.debug(
-        `Processing event.published: ${JSON.stringify(payload)}`,
-      );
+      this.logger.debug(`Processing event.created: ${JSON.stringify(payload)}`);
       const result = await this.eventModel.updateOne(
         { eventId: payload.eventId },
         {
@@ -53,7 +54,7 @@ export class MetadataService {
             eventId: payload.eventId,
             creatorId: payload.creatorId,
             collaboratorIds: payload.collaboratorIds ?? [],
-            status: EventStatus.PUBLISHED,
+            status: payload.status,
             name: payload.name,
           },
         },
@@ -64,6 +65,28 @@ export class MetadataService {
         this.logger.log(`Event ${payload.eventId} created`);
       } else {
         this.logger.log(`Event ${payload.eventId} already exists`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to handle event.created: ${error}`);
+      throw error;
+    }
+  }
+
+  async handleEventPublished(payload: EventPublishedDto): Promise<void> {
+    try {
+      this.logger.debug(
+        `Processing event.published: ${JSON.stringify(payload)}`,
+      );
+
+      const updateResult = await this.eventModel.updateOne(
+        { eventId: payload.eventId },
+        { status: EventStatus.PUBLISHED },
+      );
+
+      if (updateResult.modifiedCount === 0) {
+        this.logger.warn(`Event ${payload.eventId} not found for publishing`);
+      } else {
+        this.logger.log(`Event ${payload.eventId} published in metadata`);
       }
     } catch (error) {
       this.logger.error(`Failed to handle event.published: ${error}`);
@@ -100,9 +123,11 @@ export class MetadataService {
     }
   }
 
-  async handleEventDeleted(payload: EventDeletedDto): Promise<void> {
+  async handleEventCancelled(payload: EventCancelledDto): Promise<void> {
     try {
-      this.logger.debug(`Processing event.deleted: ${JSON.stringify(payload)}`);
+      this.logger.debug(
+        `Processing event.cancelled: ${JSON.stringify(payload)}`,
+      );
 
       const deleteResult = await this.eventModel.updateOne(
         { eventId: payload.eventId },
@@ -110,10 +135,31 @@ export class MetadataService {
       );
 
       if (deleteResult.modifiedCount === 0) {
+        this.logger.warn(`Event ${payload.eventId} not found for cancellation`);
+      } else {
+        this.logger.log(`Event ${payload.eventId} cancelled in metadata`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to handle event.cancelled: ${error}`);
+      throw error;
+    }
+  }
+
+  async handleEventDeleted(payload: EventDeletedDto): Promise<void> {
+    try {
+      this.logger.debug(`Processing event.deleted: ${JSON.stringify(payload)}`);
+
+      const deleteResult = await this.eventModel.deleteOne({
+        eventId: payload.eventId,
+      });
+
+      if (deleteResult.deletedCount === 0) {
         this.logger.warn(`Event ${payload.eventId} not found for deletion`);
       } else {
-        this.logger.log(`Event ${payload.eventId} deleted from metadata`);
+        this.logger.log(`🗑️  Event ${payload.eventId} deleted from metadata`);
       }
+
+      this.logger.log(`🧹 Cleanup completed for event ${payload.eventId}`);
     } catch (error) {
       this.logger.error(`Failed to handle event.deleted: ${error}`);
       throw error;
@@ -194,10 +240,33 @@ export class MetadataService {
     }
   }
 
+  async handleEventUpdated(payload: EventUpdatedDto) {
+    try {
+      this.logger.debug(`Processing event.updated: ${JSON.stringify(payload)}`);
+
+      const updateResult = await this.eventModel.updateOne(
+        { eventId: payload.eventId },
+        {
+          collaboratorIds: payload.collaboratorIds || [],
+          name: payload.name,
+        },
+      );
+      if (updateResult.modifiedCount === 0) {
+        this.logger.warn(`Event ${payload.eventId} not found for update`);
+      } else {
+        this.logger.log(`Event ${payload.eventId} updated from metadata`);
+      }
+    } catch (error) {
+      this.logger.error(`Failed to handle event.updated: ${error}`);
+      throw error;
+    }
+  }
+
   async validateLikeAllowed(eventId: string, userId: string): Promise<void> {
     await Promise.all([
       this.validateEventExistence(eventId),
       this.validateUserExistence(userId),
+      this.validateEventPublished(eventId),
     ]);
   }
 
@@ -215,6 +284,7 @@ export class MetadataService {
     await Promise.all([
       this.validateEventExistence(eventId),
       this.validateUserExistence(userId),
+      this.validateEventPublished(eventId),
     ]);
   }
 
@@ -243,7 +313,6 @@ export class MetadataService {
     createReviewDto: CreateReviewDto,
   ): Promise<void> {
     await Promise.all([
-      this.validateEventExistence(eventId),
       this.validateUserExistence(createReviewDto.userId),
       this.validateEventCompleted(eventId),
       this.validateUserNotCreator(eventId, createReviewDto.userId),
@@ -258,6 +327,7 @@ export class MetadataService {
     await Promise.all([
       this.validateEventExistence(eventId),
       this.validateUserExistence(userId),
+      this.validateEventCompleted(eventId),
     ]);
   }
 
@@ -268,6 +338,7 @@ export class MetadataService {
     await Promise.all([
       this.validateEventExistence(eventId),
       this.validateUserExistence(userId),
+      this.validateEventCompleted(eventId),
     ]);
   }
 
@@ -285,8 +356,23 @@ export class MetadataService {
     }
   }
 
+  async validateEventPublished(eventId: string): Promise<void> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+    if (event.status !== EventStatus.PUBLISHED) {
+      throw new BadRequestException(
+        `Event with ID ${eventId} is not published`,
+      );
+    }
+  }
+
   private async validateEventCompleted(eventId: string): Promise<void> {
     const event = await this.eventModel.findOne({ eventId });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
     const status = event?.status || EventStatus.CANCELLED;
     if (status !== EventStatus.COMPLETED) {
       throw new BadRequestException(

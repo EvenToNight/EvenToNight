@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
-import Button from '@/components/buttons/basicButtons/Button.vue'
 
 interface Props {
   variant?: 'horizontal' | 'vertical'
@@ -17,18 +16,19 @@ const { goToLogin, goToRegister } = useNavigation()
 
 <template>
   <div :class="['auth-buttons', `auth-buttons--${variant}`]">
-    <Button
-      variant="tertiary"
+    <q-btn
+      flat
       :label="t('auth.login')"
-      :class="[{ 'full-width': variant === 'vertical' }]"
-      @click="goToLogin"
+      :class="['base-button base-button--tertiary', { 'full-width': variant === 'vertical' }]"
+      @click="() => goToLogin()"
     />
 
-    <Button
-      variant="primary"
+    <q-btn
+      unelevated
+      color="primary"
       :label="t('auth.register')"
-      :class="[{ 'full-width': variant === 'vertical' }]"
-      @click="goToRegister"
+      :class="['base-button base-button--primary', { 'full-width': variant === 'vertical' }]"
+      @click="() => goToRegister()"
     />
   </div>
 </template>

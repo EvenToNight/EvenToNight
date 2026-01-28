@@ -84,14 +84,19 @@ describe('EventTicketTypesController (e2e)', () => {
     await eventTicketTypeService.deleteAll();
     await ticketService.deleteAll();
     await eventService.deleteAll();
-    await eventService.create(eventId, creatorId);
+    await eventService.createOrUpdate(
+      eventId,
+      creatorId,
+      'PUBLISHED',
+      new Date(),
+    );
     soldTicketsIds = [];
 
     const ticketType = await eventTicketTypeService.create({
       eventId: EventId.fromString(eventId),
       type: TicketType.fromString('STANDARD'),
       description: 'Standard ticket',
-      price: Money.fromAmount(50, 'EUR'),
+      price: Money.fromAmount(50, 'USD'),
       availableQuantity: 100,
       soldQuantity: 5,
     });

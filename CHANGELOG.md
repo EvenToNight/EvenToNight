@@ -1,3 +1,59 @@
+## [1.23.0](https://github.com/EvenToNight/EvenToNight/compare/v1.22.0...v1.23.0) (2026-01-28)
+
+### Features
+
+* **seed:** implement user seeding with JSON generation in TypeScript ([b3b3593](https://github.com/EvenToNight/EvenToNight/commit/b3b3593c1b5db15bc97e697bf0f81908b441eef2))
+* **seed:** update users seeding and implement events seeding ([5e038c3](https://github.com/EvenToNight/EvenToNight/commit/5e038c384264288f2e4514894ea938838fd642ae))
+
+### Bug Fixes
+
+* **event-creation:** fix bug in event creation ([f0940bf](https://github.com/EvenToNight/EvenToNight/commit/f0940bf7448cff609dea48823ab1f81e14bc9cec))
+* **event-reviews:** fix bug in reviews creation ([fa29f37](https://github.com/EvenToNight/EvenToNight/commit/fa29f37b881954d1ca49acaf9cbd191c7cc4fdfd))
+* **profile:** load likes and partecipation info properly ([5c73d0a](https://github.com/EvenToNight/EvenToNight/commit/5c73d0a9983494aef0bf9c8fddf09af2ed6bab94))
+
+## [1.22.0](https://github.com/EvenToNight/EvenToNight/compare/v1.21.0...v1.22.0) (2026-01-28)
+
+### Features
+
+* **searchBar:** add integration with arrow keys and explore view ([67623cf](https://github.com/EvenToNight/EvenToNight/commit/67623cffa226263e804fa09b4e1a1ebc7f39fd20))
+
+### Bug Fixes
+
+* **event-consumers:** add eventDispatcher to correctly handle message from rabbit ([376240b](https://github.com/EvenToNight/EvenToNight/commit/376240bcf1eb77333e985a738c83f4df00898b3c))
+* **refresh:** update setup for auto login and auto refresh token ([7c1901c](https://github.com/EvenToNight/EvenToNight/commit/7c1901c3beae4405a5aa03b7c678b356a8c7374f))
+* **ticket-purchase:** fix available ticket handling in frontend ([d881bff](https://github.com/EvenToNight/EvenToNight/commit/d881bff67196d5857f2114da90e533f33456fb91))
+* **tickets:** fix /users/:userId/events endpoint to return list of eventIds instead of list of eventIdsObjects ([1c481db](https://github.com/EvenToNight/EvenToNight/commit/1c481dbb31281045cf54125c8e67ab92bf5f1b6d))
+* **tickets:** fix ticket creation ([9d8ae75](https://github.com/EvenToNight/EvenToNight/commit/9d8ae757e8e57178b18103e92b8167e2041fd935))
+
+## [1.21.0](https://github.com/EvenToNight/EvenToNight/compare/v1.20.2...v1.21.0) (2026-01-26)
+
+### Features
+
+* **create-event:** implement check if creatorId and collaboratorIds are organizations ([8887136](https://github.com/EvenToNight/EvenToNight/commit/88871366cf04aed474e5c1f976deb5654da1bfd0))
+* **create-event:** set authentication in event creation ([a2e82df](https://github.com/EvenToNight/EvenToNight/commit/a2e82df15632e8b6a806d395fe62a891e3b8811d))
+* **event-delete:** add authentication for delete an event ([6e02f33](https://github.com/EvenToNight/EvenToNight/commit/6e02f3350d4f35e09694497d47eb530a5d9b7f3d))
+* **event-price:** delete event price in event service ([ad49e39](https://github.com/EvenToNight/EvenToNight/commit/ad49e394d62e8a88da02082861d919ff6483996a))
+* **search-draft:** set authentication for searching event draft ([8c86f8c](https://github.com/EvenToNight/EvenToNight/commit/8c86f8cbaf5407d7d5d47cda058c6dded92eba0d))
+* **search-organization-event:** set authorizations for return draft event of a organization ([70add40](https://github.com/EvenToNight/EvenToNight/commit/70add401d3abaf92ca59396ca664ee98022b80bf))
+
+### Bug Fixes
+
+* **create-draft:** fix bug in created event message in interactions ([8846689](https://github.com/EvenToNight/EvenToNight/commit/88466891828cddb08a72600857914a69a7aec238))
+* **event-test:** fix bug in test ([af4cdd8](https://github.com/EvenToNight/EvenToNight/commit/af4cdd82ba08979064ca6e5514d64e26fc849825))
+* **update-event:** denied change status to draft from published ([d51d0f3](https://github.com/EvenToNight/EvenToNight/commit/d51d0f3b4f98304ded33dd6cac6437408e398caf))
+
+## [1.20.2](https://github.com/EvenToNight/EvenToNight/compare/v1.20.1...v1.20.2) (2026-01-25)
+
+### Bug Fixes
+
+* **event:** remove required option to date field of event schema ([f1278fb](https://github.com/EvenToNight/EvenToNight/commit/f1278fb70730c5a0f4693bf9ad9907b7c0111337))
+* **events:** fix draft button show condition ([6635c47](https://github.com/EvenToNight/EvenToNight/commit/6635c47e0dcbaaa7dc501d120f6670bf82914b07))
+* **likes:** update data type for eventCard in home ([443e05d](https://github.com/EvenToNight/EvenToNight/commit/443e05d22d17e3b7afad18b93d3e543b7da5d564))
+* **payments:** fix ticketType update ([642fdb9](https://github.com/EvenToNight/EvenToNight/commit/642fdb9876f595d8982f8eed2cc3e454f3681aaa))
+* **payments:** update CurrentUser decorator to accout for null user ([133405b](https://github.com/EvenToNight/EvenToNight/commit/133405b38b2f8c88cd6d83d10bddd06bbfa3b7fe))
+* **tickets:** authorize only event creators to access tickets for non-published events ([c7577cf](https://github.com/EvenToNight/EvenToNight/commit/c7577cf5eda52ae28ae74dc8e3960dfc734f4a5a))
+* **users:** fix idempotency implementation of user.create event handler ([0962d78](https://github.com/EvenToNight/EvenToNight/commit/0962d781da6d06801b4407e41d6a50bee9ec7d63))
+
 ## [1.20.1](https://github.com/EvenToNight/EvenToNight/compare/v1.20.0...v1.20.1) (2026-01-21)
 
 ### Bug Fixes

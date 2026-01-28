@@ -48,7 +48,7 @@ import { StripeWebhookHandler } from './application/handlers/stripe-webhook.hand
 import { CheckoutSessionCompletedHandler } from './application/handlers/checkout-session-completed.handler';
 import { CheckoutSessionExpiredHandler } from './application/handlers/checkout-session-expired.handler';
 import { UpdateTicketTypeHandler } from './application/handlers/update-ticket-type.handler';
-import { InvalidateTicketStatusHandler } from './application/handlers/invalidate-ticket-status.handler';
+import { VerifyTicketHandler } from './application/handlers/verify-ticket.handler';
 
 // Infrastructure
 import { TransactionManager } from './infrastructure/database/transaction.manager';
@@ -60,11 +60,14 @@ import { MockedStripeWebhookController } from './presentation/controllers/mocked
 import { StripeWebhookController } from './presentation/controllers/stripe-webhook.controller';
 import { TicketsController } from './presentation/controllers/tickets.controller';
 import { OrderController } from './presentation/controllers/order-controller';
-import { EventController } from './presentation/controllers/events.controller';
-import { UserController } from './presentation/controllers/users.controller';
+import { EventsController } from './presentation/controllers/events.controller';
+import { InternalEventsController } from './presentation/controllers/internal-events.controller';
+import { UsersController } from './presentation/controllers/users.controller';
 
 // Consumers
+import { EventDispatcher } from './presentation/consumers/event.dispatcher';
 import { UserEventConsumer } from './presentation/consumers/user-event.consumer';
+import { EventEventConsumer } from './presentation/consumers/event-event.consumer';
 
 // Services
 import { PdfService } from './application/services/pdf.service';
@@ -72,6 +75,7 @@ import { EventTicketTypeService } from './application/services/event-ticket-type
 import { TicketService } from './application/services/ticket.service';
 import { OrderService } from './application/services/order.service';
 import { EventService } from './application/services/event.service';
+import { UserService } from './application/services/user.service';
 
 @Module({
   imports: [
@@ -90,9 +94,10 @@ import { EventService } from './application/services/event.service';
     StripeWebhookController,
     TicketsController,
     OrderController,
-    EventController,
-    UserEventConsumer,
-    UserController,
+    EventsController,
+    InternalEventsController,
+    EventDispatcher,
+    UsersController,
   ],
   providers: [
     // Repositories
@@ -132,7 +137,7 @@ import { EventService } from './application/services/event.service';
     CheckoutSessionCompletedHandler,
     CheckoutSessionExpiredHandler,
     UpdateTicketTypeHandler,
-    InvalidateTicketStatusHandler,
+    VerifyTicketHandler,
 
     // Infrastructure
     TransactionManager,
@@ -143,6 +148,11 @@ import { EventService } from './application/services/event.service';
     TicketService,
     OrderService,
     EventService,
+    UserService,
+
+    // Event Consumers
+    UserEventConsumer,
+    EventEventConsumer,
   ],
   exports: [EVENT_TICKET_TYPE_REPOSITORY, ORDER_REPOSITORY, USER_REPOSITORY],
 })

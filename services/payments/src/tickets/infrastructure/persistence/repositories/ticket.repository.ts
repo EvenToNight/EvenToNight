@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, PipelineStage } from 'mongoose';
 import { Ticket } from '../../../domain/aggregates/ticket.aggregate';
 import { TicketRepository } from '../../../domain/repositories/ticket.repository.interface';
 import { TicketMapper } from '../mappers/ticket.mapper';
@@ -10,14 +10,20 @@ import {
   PaginationParams,
 } from 'src/commons/domain/types/pagination.types';
 import { Pagination } from 'src/commons/utils/pagination.utils';
+import { EventId } from '../../../domain/value-objects/event-id.vo';
+import { BaseMongoRepository } from './base-mongo.repository';
 
 @Injectable()
-export class TicketRepositoryImpl implements TicketRepository {
+export class TicketRepositoryImpl
+  extends BaseMongoRepository
+  implements TicketRepository
+{
   constructor(
     @InjectModel(TicketDocument.name)
     private readonly ticketModel: Model<TicketDocument>,
-  ) {}
-
+  ) {
+    super();
+  }
   async save(ticket: Ticket): Promise<Ticket> {
     const document = TicketMapper.toPersistence(ticket);
     const created = new this.ticketModel(document);
@@ -44,6 +50,73 @@ export class TicketRepositoryImpl implements TicketRepository {
       .exec();
     const items = documents.map((doc) => TicketMapper.toDomain(doc));
     return Pagination.createResult(items, totalItems, pagination);
+  }
+
+  async findByUserIdAndEventId(
+    userId: string,
+    eventId: string,
+  ): Promise<Ticket[]> {
+    const documents = await this.ticketModel
+      .find({ userId, eventId })
+      .sort({ purchaseDate: -1 })
+      .exec();
+    return documents.map((doc) => TicketMapper.toDomain(doc));
+  }
+
+  async findEventsByUserId(
+    userId: string,
+    pagination?: PaginationParams,
+    status?: string,
+    order?: 'asc' | 'desc',
+  ): Promise<PaginatedResult<EventId>> {
+    pagination = Pagination.parse(pagination?.limit, pagination?.offset);
+    const pipeline: PipelineStage[] = [
+      { $match: { userId } },
+      {
+        $lookup: {
+          from: 'events',
+          localField: 'eventId',
+          foreignField: '_id',
+          as: 'event',
+        },
+      },
+      { $unwind: '$event' },
+    ];
+
+    if (status) {
+      pipeline.push({ $match: { 'event.status': status } });
+    }
+
+    pipeline.push({
+      $group: {
+        _id: '$eventId',
+        eventDate: { $first: '$event.date' },
+      },
+    });
+
+    if (order) {
+      pipeline.push({
+        $sort: { eventDate: order === 'asc' ? 1 : -1 },
+      });
+    }
+
+    const countPipeline: PipelineStage[] = [...pipeline, { $count: 'total' }];
+    const countResult = await this.ticketModel
+      .aggregate<{ total: number }>(countPipeline)
+      .exec();
+    const totalItems = countResult.length > 0 ? countResult[0].total : 0;
+
+    pipeline.push({ $skip: pagination.offset });
+    pipeline.push({ $limit: pagination.limit });
+
+    const results = await this.ticketModel
+      .aggregate<{ _id: string; eventDate: Date }>(pipeline)
+      .exec();
+    const paginatedEventIds = results.map((result) =>
+      EventId.fromString(result._id),
+    );
+
+    return Pagination.createResult(paginatedEventIds, totalItems, pagination);
   }
 
   async findByEventId(

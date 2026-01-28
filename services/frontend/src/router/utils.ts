@@ -138,10 +138,16 @@ export const useNavigation = () => {
     }
   }
 
-  const goToExplore = (initialFilter?: EventFilters, swap: boolean = false) => {
+  const goToExplore = (
+    initialFilter?: EventFilters & { searchQuery?: string },
+    swap: boolean = false
+  ) => {
     const queryParams: Record<string, string> = {}
 
     if (initialFilter) {
+      if (initialFilter.searchQuery) {
+        queryParams.search = initialFilter.searchQuery
+      }
       if (initialFilter.dateFilter) {
         queryParams.dateFilter = initialFilter.dateFilter
       }
@@ -212,11 +218,18 @@ export const useNavigation = () => {
     }
   }
 
-  const goToSettings = (swap: boolean = false) => {
+  const goToSettings = (swap: boolean = false, hash?: string) => {
+    const routeConfig = {
+      name: SETTINGS_ROUTE_NAME,
+      params: {
+        locale: locale.value,
+      },
+      ...(hash && { hash }),
+    }
     if (swap) {
-      replaceWithLocale(SETTINGS_ROUTE_NAME)
+      router.replace(routeConfig)
     } else {
-      pushWithLocale(SETTINGS_ROUTE_NAME)
+      router.push(routeConfig)
     }
   }
 
@@ -254,6 +267,14 @@ export const useNavigation = () => {
     })
   }
 
+  const goToRoute = (routeName: string, swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(routeName)
+    } else {
+      pushWithLocale(routeName)
+    }
+  }
+
   return {
     locale,
     params,
@@ -274,6 +295,7 @@ export const useNavigation = () => {
     goToSettings,
     goToEditProfile,
     goToChat,
+    goToRoute,
     replaceRoute,
     changeLocale,
     removeQuery,
