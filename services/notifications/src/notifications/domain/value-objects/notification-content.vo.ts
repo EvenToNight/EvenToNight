@@ -5,8 +5,8 @@ export interface NotificationContentProps {
 
 export class NotificationContent {
   private constructor(
-    private readonly title: string,
-    private readonly message: string,
+    private readonly _title: string,
+    private readonly _message: string,
   ) {
     this.validate();
   }
@@ -16,26 +16,26 @@ export class NotificationContent {
   }
 
   private validate(): void {
-    if (!this.title || this.title.trim() === "") {
+    if (!this._title || this._title.trim() === "") {
       throw new Error("Title cannot be empty");
     }
-    if (!this.message || this.message.trim() === "") {
+    if (!this._message || this._message.trim() === "") {
       throw new Error("Message cannot be empty");
     }
   }
 
-  getTitle(): string {
-    return this.title;
+  get title(): string {
+    return this._title;
   }
 
-  getMessage(): string {
-    return this.message;
+  get message(): string {
+    return this._message;
   }
 
   toJson(): object {
     return {
-      title: this.title,
-      message: this.message,
+      title: this._title,
+      message: this._message,
     };
   }
 }
