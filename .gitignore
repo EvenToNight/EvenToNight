@@ -27,12 +27,14 @@ dist/
 package-lock.json
 pnpm-lock.yaml
 yarn.lock
+infrastructure/seed/seed-output/
 
 # ----------------------
 # IDEs / Editors
 # ----------------------
 .idea/
 #.vscode/
+.vscode/launch.json
 *.iml
 
 .metals/

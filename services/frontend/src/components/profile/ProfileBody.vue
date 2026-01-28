@@ -64,18 +64,23 @@ watch(activeTab, (newTab) => {
 
 onMounted(async () => {
   try {
-    const [publishedResponse, draftResponse] = await Promise.all([
-      api.events.searchEvents({
-        organizationId: props.user.id,
-        status: 'PUBLISHED',
-        pagination: { limit: EVENTS_PER_PAGE },
-      }),
-      api.events.searchEvents({
+    console.log('Fetching data for user profile:', props.user.id)
+    //TODO: pass likes info, and uniform tab props loading (internally or externally)
+    const publishedResponse = await api.events.searchEvents({
+      organizationId: props.user.id,
+      status: 'PUBLISHED',
+      pagination: { limit: EVENTS_PER_PAGE },
+    })
+
+    if (isOwnProfile.value) {
+      const draftResponse = await api.events.searchEvents({
         organizationId: props.user.id,
         status: 'DRAFT',
         pagination: { limit: EVENTS_PER_PAGE },
-      }),
-    ])
+      })
+      organizationDraftedEvents.value = draftResponse.items
+      hasMoreDraft.value = draftResponse.hasMore
+    }
     const response = await api.interactions.userParticipations(props.user.id, {
       pagination: {
         limit: EVENTS_PER_PAGE,
@@ -91,9 +96,7 @@ onMounted(async () => {
     userAttendedEvents.value = events.items
     hasMoreAttended.value = response.hasMore
     organizationEvents.value = publishedResponse.items
-    organizationDraftedEvents.value = draftResponse.items
     hasMorePublished.value = publishedResponse.hasMore
-    hasMoreDraft.value = draftResponse.hasMore
   } catch (error) {
     console.error('Failed to fetch data for user:', error)
   }
@@ -187,6 +190,9 @@ const tabs = computed<Tab[]>(() => {
     label: isOwnProfile.value ? 'My Likes' : 'Likes',
     icon: 'favorite',
     component: MyLikesTab,
+    props: {
+      userId: props.user.id,
+    },
   })
 
   if (!isOwnProfile.value) {

@@ -5,7 +5,7 @@ import EventCard from '@/components/cards/EventCard.vue'
 import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 
 interface Props {
-  events: Event[]
+  events: (Event & { liked: boolean })[]
   emptyText: string
   emptyIconName: string
   hasMore?: boolean

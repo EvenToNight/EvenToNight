@@ -86,7 +86,7 @@ class DomainEventService(
                     Left(
                       s"Failed to register event in payments service: ${Option(exception.getMessage).getOrElse(exception.toString)}"
                     )
-                  case Success(response) if response.statusCode != 201 =>
+                  case Success(response) if response.statusCode < 200 || response.statusCode >= 300 =>
                     eventRepository.delete(newEvent._id)
                     Left(s"Payments service error: ${response.statusCode}")
                   case Success(_) =>

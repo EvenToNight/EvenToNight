@@ -1,0 +1,24 @@
+services:
+  seed:
+    image: ghcr.io/eventonight/eventonight/seed:latest
+    networks:
+      - eventonight-network  
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - HOST=${HOST}
+      - USER_HOST=http://users:${USERS_SERVICE_PORT}
+      - EVENTS_HOST=http://events:${EVENTS_SERVICE_PORT}
+      - MEDIA_HOST=http://media:${MEDIA_SERVICE_PORT}
+      - INTERACTIONS_HOST=http://interactions:${INTERACTIONS_SERVICE_PORT}
+      - CHAT_HOST=http://chat:${CHAT_SERVICE_PORT}
+      - PAYMENTS_HOST=http://payments:${PAYMENTS_SERVICE_PORT}
+      - MONGO_DB=eventonight
+      - EVENT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-events-1
+      - INTERACTIONS_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-interactions-1
+      - CHAT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-chat-1
+      - PAYMENT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-payments-1
+
+networks:
+  eventonight-network:
+    driver: bridge

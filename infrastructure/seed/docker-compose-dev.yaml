@@ -1,0 +1,5 @@
+services:
+  seed:
+    build:
+      context: .
+      dockerfile: ./infrastructure/seed/Dockerfile

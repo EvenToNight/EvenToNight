@@ -266,6 +266,7 @@ export class MetadataService {
     await Promise.all([
       this.validateEventExistence(eventId),
       this.validateUserExistence(userId),
+      this.validateEventPublished(eventId),
     ]);
   }
 
@@ -283,6 +284,7 @@ export class MetadataService {
     await Promise.all([
       this.validateEventExistence(eventId),
       this.validateUserExistence(userId),
+      this.validateEventPublished(eventId),
     ]);
   }
 
@@ -311,7 +313,6 @@ export class MetadataService {
     createReviewDto: CreateReviewDto,
   ): Promise<void> {
     await Promise.all([
-      this.validateEventExistence(eventId),
       this.validateUserExistence(createReviewDto.userId),
       this.validateEventCompleted(eventId),
       this.validateUserNotCreator(eventId, createReviewDto.userId),
@@ -326,6 +327,7 @@ export class MetadataService {
     await Promise.all([
       this.validateEventExistence(eventId),
       this.validateUserExistence(userId),
+      this.validateEventCompleted(eventId),
     ]);
   }
 
@@ -336,10 +338,25 @@ export class MetadataService {
     await Promise.all([
       this.validateEventExistence(eventId),
       this.validateUserExistence(userId),
+      this.validateEventCompleted(eventId),
     ]);
   }
 
   async validateEventExistence(eventId: string): Promise<void> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+  }
+
+  async validateUserExistence(userId: string): Promise<void> {
+    const user = await this.userModel.findOne({ userId });
+    if (!user) {
+      throw new NotFoundException(`User with ID ${userId} not found`);
+    }
+  }
+
+  async validateEventPublished(eventId: string): Promise<void> {
     const event = await this.eventModel.findOne({ eventId });
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
@@ -351,15 +368,11 @@ export class MetadataService {
     }
   }
 
-  async validateUserExistence(userId: string): Promise<void> {
-    const user = await this.userModel.findOne({ userId });
-    if (!user) {
-      throw new NotFoundException(`User with ID ${userId} not found`);
-    }
-  }
-
   private async validateEventCompleted(eventId: string): Promise<void> {
     const event = await this.eventModel.findOne({ eventId });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
     const status = event?.status || EventStatus.CANCELLED;
     if (status !== EventStatus.COMPLETED) {
       throw new BadRequestException(

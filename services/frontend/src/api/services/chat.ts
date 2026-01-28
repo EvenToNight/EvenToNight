@@ -68,14 +68,14 @@ export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
     content: string
   ): Promise<SendMessageAPIResponse> {
     return chatClient.post<SendMessageAPIResponse>(
-      `/users/${senderId}/conversations/${conversationId}`,
+      `/users/${senderId}/conversations/${conversationId}/messages`,
       {
         content,
       }
     )
   },
   async unreadMessageCountFor(userId: UserID): Promise<UnreadMessageResponse> {
-    return chatClient.get<UnreadMessageResponse>(`/users/${userId}/conversations/unread/count`)
+    return chatClient.get<UnreadMessageResponse>(`/users/${userId}/unread/count`)
   },
   async getConversationMessages(
     userId: UserID,

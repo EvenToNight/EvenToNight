@@ -30,7 +30,7 @@ object Main extends App:
   val userDatabase: MongoUserMetadataRepository = new MongoUserMetadataRepository(
     mongoUri,
     "eventonight",
-    "user_metadata",
+    "users",
     messageBroker
   )
 

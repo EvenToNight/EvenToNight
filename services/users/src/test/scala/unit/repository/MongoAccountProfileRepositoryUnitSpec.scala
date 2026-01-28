@@ -83,17 +83,16 @@ class MongoAccountProfileRepositoryUnitSpec extends AnyFlatSpec with Matchers:
   ): AccountProfileRepository[A, P] =
     new MongoAccountProfileRepository(referencesColl, accountsColl, profilesColl)
 
-  "insert" should "delegate member's account and profile insertion to the respective Mongo collections and return the userId" in:
+  "insert" should "delegate member's account and profile insertion to the respective Mongo collections" in:
     val (memberReferencesCollMock, memberAccountsCollMock, memberProfilesCollMock, _, _) = setupMemberMocks()
     val repo = createAccountProfileRepo[MemberAccount, MemberProfile](
       memberReferencesCollMock,
       memberAccountsCollMock,
       memberProfilesCollMock
     )
-    val result = repo.insert(member.account, member.profile, memberUserId)
+    repo.insert(member.account, member.profile, memberUserId)
     verify(memberAccountsCollMock).insertOne(member.account)
     verify(memberProfilesCollMock).insertOne(member.profile)
-    result shouldBe memberUserId
 
   it should "persist user references for the inserted member" in:
     val (memberReferencesCollMock, memberAccountsCollMock, memberProfilesCollMock, accountId, profileId) =
@@ -111,17 +110,16 @@ class MongoAccountProfileRepositoryUnitSpec extends AnyFlatSpec with Matchers:
     insertedReferences.accountId shouldBe accountId.toHexString()
     insertedReferences.profileId shouldBe profileId.toHexString()
 
-  it should "delegate organization's account and profile insertion to the respective Mongo collections and return the userId" in:
+  it should "delegate organization's account and profile insertion to the respective Mongo collections" in:
     val (orgReferencesCollMock, orgAccountsCollMock, orgProfilesCollMock, _, _) = setupOrganizationMocks()
     val repo = createAccountProfileRepo[OrganizationAccount, OrganizationProfile](
       orgReferencesCollMock,
       orgAccountsCollMock,
       orgProfilesCollMock
     )
-    val result = repo.insert(organization.account, organization.profile, organizationUserId)
+    repo.insert(organization.account, organization.profile, organizationUserId)
     verify(orgAccountsCollMock).insertOne(organization.account)
     verify(orgProfilesCollMock).insertOne(organization.profile)
-    result shouldBe organizationUserId
 
   it should "persist user references for the inserted organization" in:
     val (orgReferencesCollMock, orgAccountsCollMock, orgProfilesCollMock, accountId, profileId) =
