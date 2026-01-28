@@ -1,6 +1,7 @@
 import { ChatSeed } from "./chat/chat.seed";
 import { EventSeed } from "./events/event.seed";
 import { InteractionSeed } from "./interactions/interaction.seed";
+import { PaymentSeed } from "./payments/payment.seed";
 import { UserSeed } from "./users/user.seed";
 import { execSync } from "child_process";
 
@@ -41,7 +42,10 @@ async function seed() {
   const { chat } = await new ChatSeed(users).populate();
   
   console.log("Chat list:\n", JSON.stringify(chat, null, 2));
+
+  const { payments } = await new PaymentSeed(users, events).populate();
   
+  console.log("Payments list:\n", JSON.stringify(payments, null, 2));
 }
 
 seed();
