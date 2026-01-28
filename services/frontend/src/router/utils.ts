@@ -138,10 +138,16 @@ export const useNavigation = () => {
     }
   }
 
-  const goToExplore = (initialFilter?: EventFilters, swap: boolean = false) => {
+  const goToExplore = (
+    initialFilter?: EventFilters & { searchQuery?: string },
+    swap: boolean = false
+  ) => {
     const queryParams: Record<string, string> = {}
 
     if (initialFilter) {
+      if (initialFilter.searchQuery) {
+        queryParams.search = initialFilter.searchQuery
+      }
       if (initialFilter.dateFilter) {
         queryParams.dateFilter = initialFilter.dateFilter
       }

@@ -18,7 +18,7 @@ const hasReviews = ref(false)
 let searchTimeout: number | null = null
 
 const loadReviews = async (isLoadingMore = false) => {
-  if (!authStore.user?.id) return
+  if (!authStore.isAuthenticated) return
 
   if (isLoadingMore) {
     loadingMore.value = true
@@ -27,7 +27,7 @@ const loadReviews = async (isLoadingMore = false) => {
   }
 
   try {
-    const response = await api.interactions.getUserReviews(authStore.user.id, {
+    const response = await api.interactions.getUserReviews(authStore.user!.id, {
       search: searchQuery.value || undefined,
       pagination: {
         limit: ITEMS_PER_PAGE,

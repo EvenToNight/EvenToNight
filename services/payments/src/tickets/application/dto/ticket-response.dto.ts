@@ -6,10 +6,7 @@ export class TicketResponseDto {
   userId: string;
   attendeeName: string;
   ticketTypeId: string;
-  price: {
-    amount: number;
-    currency: string;
-  };
+  price: number;
   purchaseDate: Date;
   status: string;
 
@@ -20,10 +17,7 @@ export class TicketResponseDto {
       userId: ticket.getUserId().toString(),
       attendeeName: ticket.getAttendeeName(),
       ticketTypeId: ticket.getTicketTypeId(),
-      price: {
-        amount: ticket.getPrice().getAmount(),
-        currency: ticket.getPrice().getCurrency(),
-      },
+      price: ticket.getPrice().getAmount(),
       purchaseDate: ticket.getPurchaseDate(),
       status: ticket.getStatus().toString(),
     };

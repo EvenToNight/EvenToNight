@@ -12,7 +12,7 @@ describe('Ticket Aggregate', () => {
       userId: UserId.fromString('user-456'),
       attendeeName: 'John Doe',
       ticketTypeId: 'type-789',
-      price: Money.fromAmount(50, 'EUR'),
+      price: Money.fromAmount(50, 'USD'),
     });
   };
 
@@ -22,7 +22,7 @@ describe('Ticket Aggregate', () => {
       userId: UserId.fromString('user-456'),
       attendeeName: 'John Doe',
       ticketTypeId: 'type-789',
-      price: Money.fromAmount(50, 'EUR'),
+      price: Money.fromAmount(50, 'USD'),
     });
   };
 
@@ -33,7 +33,7 @@ describe('Ticket Aggregate', () => {
       userId: UserId.fromString('user-456'),
       attendeeName: 'John Doe',
       ticketTypeId: 'type-789',
-      price: Money.fromAmount(50, 'EUR'),
+      price: Money.fromAmount(50, 'USD'),
       purchaseDate: new Date('2024-01-01T00:00:00Z'),
       status: TicketStatus.ACTIVE,
     });
@@ -49,7 +49,7 @@ describe('Ticket Aggregate', () => {
       expect(ticket.getAttendeeName()).toBe('John Doe');
       expect(ticket.getTicketTypeId()).toBe('type-789');
       expect(ticket.getPrice().getAmount()).toBe(50);
-      expect(ticket.getPrice().getCurrency()).toBe('EUR');
+      expect(ticket.getPrice().getCurrency()).toBe('USD');
       expect(ticket.getPurchaseDate().toISOString()).toBe(
         '2024-01-01T00:00:00.000Z',
       );
@@ -81,7 +81,7 @@ describe('Ticket Aggregate', () => {
           userId: UserId.fromString('user-456'),
           attendeeName: '        ',
           ticketTypeId: 'type-789',
-          price: Money.fromAmount(50, 'EUR'),
+          price: Money.fromAmount(50, 'USD'),
         }),
       ).toThrow('Attendee name cannot be empty');
     });
@@ -93,7 +93,7 @@ describe('Ticket Aggregate', () => {
           userId: UserId.fromString('user-456'),
           attendeeName: 'John Doe',
           ticketTypeId: '        ',
-          price: Money.fromAmount(50, 'EUR'),
+          price: Money.fromAmount(50, 'USD'),
         }),
       ).toThrow('Ticket type ID cannot be empty');
     });

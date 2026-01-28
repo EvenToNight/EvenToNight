@@ -5,7 +5,7 @@ import { useNavigation } from '@/router/utils'
 import { useQuasar } from 'quasar'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
-import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
+import AvatarCropUpload from '@/components/imageUpload/AvatarCropUpload.vue'
 import FormField from '@/components/forms/FormField.vue'
 import { notEmpty } from '@/components/forms/validationUtils'
 
@@ -32,7 +32,7 @@ onMounted(() => {
     name.value = authStore.user.name || ''
     bio.value = authStore.user.bio || ''
     website.value = authStore.user.website || ''
-    currentAvatarUrl.value = authStore.user.avatar || undefined
+    currentAvatarUrl.value = authStore.user.avatar
   }
 })
 
@@ -53,7 +53,7 @@ const handleAvatar = (file: File | null) => {
 
 const handleSave = async () => {
   console.log('Saving profile')
-  if (!authStore.user?.id) return
+  if (!authStore.isAuthenticated) return
 
   loading.value = true
   try {
@@ -63,7 +63,7 @@ const handleSave = async () => {
       website: website.value.trim() || undefined,
     }
 
-    const updatedUser = await authStore.updateUserById(authStore.user.id, {
+    const updatedUser = await authStore.updateUser({
       ...updateReq,
       avatarFile: avatarModified.value ? avatar.value : undefined,
     })
@@ -74,7 +74,7 @@ const handleSave = async () => {
       message: 'Profile updated successfully',
       icon: 'check_circle',
     })
-    goToUserProfile(authStore.user.id)
+    goToUserProfile(authStore.user!.id)
   } catch (error) {
     console.error('Failed to update profile:', error)
     $q.notify({
@@ -88,8 +88,8 @@ const handleSave = async () => {
 }
 
 const handleCancel = () => {
-  if (authStore.user?.id) {
-    goToUserProfile(authStore.user.id)
+  if (authStore.isAuthenticated) {
+    goToUserProfile(authStore.user!.id)
   }
 }
 </script>
@@ -108,7 +108,7 @@ const handleCancel = () => {
           <div class="card-body">
             <div class="avatar-section">
               <AvatarCropUpload
-                :preview-url="currentAvatarUrl"
+                :preview-url="currentAvatarUrl || ''"
                 :default-icon="defaultIcon"
                 @error="handleAvatarError"
                 @update:imageFile="handleAvatar"

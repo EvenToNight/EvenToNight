@@ -13,7 +13,7 @@ describe('EventTicketType Aggregate', () => {
       eventId: EventId.fromString('event-123'),
       type: TicketType.VIP,
       description: 'VIP Access',
-      price: Money.fromAmount(100, 'EUR'),
+      price: Money.fromAmount(100, 'USD'),
       availableQuantity: DEFAULT_AVAILABLE_QUANTITY,
     });
   };
@@ -27,7 +27,7 @@ describe('EventTicketType Aggregate', () => {
       eventId: EventId.fromString('event-123'),
       type: TicketType.VIP,
       description: 'VIP Access',
-      price: Money.fromAmount(100, 'EUR'),
+      price: Money.fromAmount(100, 'USD'),
       availableQuantity,
       soldQuantity,
     });

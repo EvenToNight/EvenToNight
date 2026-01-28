@@ -1,81 +1,98 @@
-<script lang="ts">
-import { defineComponent, onMounted, onUnmounted, reactive } from 'vue'
+<script setup lang="ts">
+import { onMounted, onUnmounted, reactive, computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { FORBIDDEN_ROUTE_NAME, NOT_FOUND_ROUTE_NAME } from '@/router'
 
-export default defineComponent({
-  name: 'PlaceHolderView',
-  setup() {
-    const state = reactive({
-      x: 100,
-      y: 100,
-      dx: 2,
-      dy: 2,
-      color: '#00ffe1',
-    })
+const route = useRoute()
+const router = useRouter()
 
-    const colors = ['#00ffe1', '#ff00c8', '#ffcc00', '#00ff6a', '#ff6a00', '#cc00ff']
-    const dvdStyle = reactive({
-      left: state.x + 'px',
-      top: state.y + 'px',
-      backgroundColor: state.color,
-      boxShadow: `0 0 20px ${state.color}`,
-    })
+const message = computed(() => {
+  if (route.name === FORBIDDEN_ROUTE_NAME) {
+    return 'FORBIDDEN 🚫'
+  }
+  if (route.name === NOT_FOUND_ROUTE_NAME) {
+    return 'NOT FOUND 🥸'
+  }
+  return 'EvenToNight🌚'
+})
 
-    function randomColor() {
-      return colors[Math.floor(Math.random() * colors.length)]
-    }
+const goHome = () => {
+  router.push('/')
+}
 
-    function move() {
-      const dvd = document.getElementById('dvd')!
-      const screenWidth = window.innerWidth
-      const screenHeight = window.innerHeight
-      const dvdWidth = dvd.offsetWidth
-      const dvdHeight = dvd.offsetHeight
+const state = reactive({
+  x: 100,
+  y: 100,
+  dx: 2,
+  dy: 2,
+  color: '#00ffe1',
+})
 
-      state.x += state.dx
-      state.y += state.dy
+const colors = ['#00ffe1', '#ff00c8', '#ffcc00', '#00ff6a', '#ff6a00', '#cc00ff']
+const dvdStyle = reactive({
+  left: state.x + 'px',
+  top: state.y + 'px',
+  backgroundColor: state.color,
+  boxShadow: `0 0 20px ${state.color}`,
+})
 
-      if (state.x + dvdWidth >= screenWidth || state.x <= 0) {
-        state.dx *= -1
-        state.color = randomColor()!
-      }
-      if (state.y + dvdHeight >= screenHeight || state.y <= 0) {
-        state.dy *= -1
-        state.color = randomColor()!
-      }
+function randomColor() {
+  return colors[Math.floor(Math.random() * colors.length)]
+}
 
-      dvdStyle.left = state.x + 'px'
-      dvdStyle.top = state.y + 'px'
-      dvdStyle.backgroundColor = state.color
-      dvdStyle.boxShadow = `0 0 20px ${state.color}`
+function move() {
+  const dvd = document.getElementById('dvd')!
+  const screenWidth = window.innerWidth
+  const screenHeight = window.innerHeight
+  const dvdWidth = dvd.offsetWidth
+  const dvdHeight = dvd.offsetHeight
 
-      requestAnimationFrame(move)
-    }
+  state.x += state.dx
+  state.y += state.dy
 
-    onMounted(() => {
-      document.body.style.backgroundColor = 'black'
-      move()
-    })
+  if (state.x + dvdWidth >= screenWidth || state.x <= 0) {
+    state.dx *= -1
+    state.color = randomColor()!
+  }
+  if (state.y + dvdHeight >= screenHeight || state.y <= 0) {
+    state.dy *= -1
+    state.color = randomColor()!
+  }
 
-    onUnmounted(() => {
-      document.body.style.backgroundColor = ''
-    })
+  dvdStyle.left = state.x + 'px'
+  dvdStyle.top = state.y + 'px'
+  dvdStyle.backgroundColor = state.color
+  dvdStyle.boxShadow = `0 0 20px ${state.color}`
 
-    return { dvdStyle }
-  },
+  requestAnimationFrame(move)
+}
+
+onMounted(() => {
+  document.body.style.backgroundColor = 'black'
+  move()
+})
+
+onUnmounted(() => {
+  document.body.style.backgroundColor = ''
 })
 </script>
 
 <template>
-  <div id="dvd" :style="dvdStyle">EvenToNight🌚</div>
+  <div id="dvd" :style="dvdStyle" @click="goHome">
+    <div class="dvd-content">
+      <div class="main-message">{{ message }}</div>
+      <div class="sub-message">Click to go home</div>
+    </div>
+  </div>
+  <!-- <div class="home-link" @click="goHome">Torna alla home</div> -->
 </template>
 
 <style scoped>
 #dvd {
   position: absolute;
-  width: 200px;
-  height: 100px;
+  width: 250px;
+  height: 120px;
   color: #000;
-  font-size: 1.5em;
   font-weight: bold;
   font-family: sans-serif;
   display: flex;
@@ -83,5 +100,49 @@ export default defineComponent({
   align-items: center;
   border-radius: 12px;
   user-select: none;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+#dvd:hover {
+  transform: scale(1.05);
+}
+
+#dvd:active {
+  transform: scale(0.95);
+}
+
+.dvd-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.main-message {
+  font-size: 1.5em;
+}
+
+.sub-message {
+  font-size: 0.7em;
+  opacity: 0.8;
+}
+
+.home-link {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: white;
+  font-family: sans-serif;
+  font-size: 1em;
+  cursor: pointer;
+  user-select: none;
+  text-decoration: none;
+  transition: text-decoration 0.2s ease;
+}
+
+.home-link:hover {
+  text-decoration: underline;
 }
 </style>

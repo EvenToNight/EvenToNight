@@ -4,6 +4,7 @@ import {
   IsDate,
   IsIn,
   ValidateIf,
+  IsOptional,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
@@ -22,6 +23,11 @@ export class CreateEventDto {
   )
   @IsNotEmpty({ message: 'date is required when status is not DRAFT' })
   date?: Date;
+
+  @IsNotEmpty()
+  @IsString()
+  @IsOptional()
+  title?: string;
 
   @IsString()
   @IsNotEmpty()

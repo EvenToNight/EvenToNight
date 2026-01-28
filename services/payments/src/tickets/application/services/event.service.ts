@@ -60,4 +60,8 @@ export class EventService {
   async deleteAll(): Promise<void> {
     return this.eventRepository.deleteAll();
   }
+
+  isDuplicateError(error: unknown): boolean {
+    return this.eventRepository.isDuplicateError(error);
+  }
 }

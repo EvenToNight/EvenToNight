@@ -13,7 +13,7 @@ import { CreateEventTicketTypeDto } from '../dto/create-event-ticket-type.dto';
 import { EventService } from '../services/event.service';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
-import { MessageEvent } from 'src/commons/domain/events/message.event';
+import { TicketTypeCreatedEvent } from 'src/tickets/domain/events/ticket-type-created.event';
 
 @Injectable()
 export class CreateEventTicketTypeHandler {
@@ -48,15 +48,18 @@ export class CreateEventTicketTypeHandler {
       eventId: EventId.fromString(eventId),
       type: TicketType.fromString(dto.type),
       description: dto.description,
-      price: Money.fromAmount(dto.price.amount, dto.price.currency),
+      price: Money.fromAmount(dto.price, 'USD'),
       availableQuantity: dto.quantity,
       soldQuantity: 0,
     });
 
-    // TODO: remove
     this.eventPublisher.publish(
-      new MessageEvent({ message: 'Event ticket type created' }),
-      'message.event',
+      new TicketTypeCreatedEvent({
+        eventId: eventId,
+        ticketTypeId: ticketType.getId(),
+        price: dto.price,
+      }),
+      'ticket-type.created',
     );
     return this.eventTicketTypeService.save(ticketType);
   }

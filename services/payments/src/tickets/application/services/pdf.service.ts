@@ -6,6 +6,7 @@ import { SupportedLocale, TICKET_TRANSLATIONS } from './ticket.translations';
 export interface TicketPdfData {
   ticketId: string;
   eventId: string;
+  eventTitle: string;
   attendeeName: string;
   purchaseDate: Date | string;
   priceLabel?: string;
@@ -20,12 +21,14 @@ export class PdfService {
   ): Promise<void> {
     const t = TICKET_TRANSLATIONS[locale];
 
-    doc.fontSize(22).text(t.title, { align: 'center' });
+    doc
+      .fontSize(22)
+      .text(ticket.eventTitle + ' - ' + t.ticket, { align: 'center' });
     doc.moveDown();
 
     doc.fontSize(12).text(`${t.ticketId}: ${ticket.ticketId}`);
     doc.text(`${t.event}: ${ticket.eventId}`);
-    doc.text(`${t.attendee}: ${ticket.attendeeName}`);
+    // doc.text(`${t.attendee}: ${ticket.attendeeName}`);
     doc.text(
       `${t.purchase}: ${
         typeof ticket.purchaseDate === 'string'
@@ -37,7 +40,10 @@ export class PdfService {
 
     doc.moveDown();
 
-    const qrUrl = 'https://eventonight.site';
+    const host = process.env.HOST || 'localhost';
+    const protocol = host.includes('localhost') ? 'http' : 'https';
+    const qrUrl =
+      `${protocol}://${host}/tickets/` + ticket.ticketId + '/verify';
     const qrDataUrl = await toDataURL(qrUrl);
     const qrImage = qrDataUrl.replace(/^data:image\/png;base64,/, '');
     const qrBuffer = Buffer.from(qrImage, 'base64');

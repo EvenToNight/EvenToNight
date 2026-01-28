@@ -5,24 +5,23 @@ import {
   Res,
   NotFoundException,
   HttpCode,
-  ValidationPipe,
   HttpStatus,
-  Patch,
-  Body,
   UseGuards,
   ForbiddenException,
+  Put,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { PdfService } from '../../application/services/pdf.service';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
-import { InvalidateTicketStatusDto } from 'src/tickets/application/dto/ticket-status.dto';
-import { InvalidateTicketStatusHandler } from 'src/tickets/application/handlers/invalidate-ticket-status.handler';
+import { VerifyTicketHandler } from 'src/tickets/application/handlers/verify-ticket.handler';
 import {
   JwtAuthGuard,
   CurrentUser,
   type AuthUser,
 } from 'src/commons/infrastructure/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
+import { UserService } from 'src/tickets/application/services/user.service';
+import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 
 @Controller('tickets/:ticketId')
 export class TicketsController {
@@ -30,7 +29,8 @@ export class TicketsController {
     private readonly pdfService: PdfService,
     private readonly ticketService: TicketService,
     private readonly eventService: EventService,
-    private readonly invalidateTicketStatusHandler: InvalidateTicketStatusHandler,
+    private readonly verifyTicketHandler: VerifyTicketHandler,
+    private readonly userService: UserService,
   ) {}
 
   /**
@@ -43,7 +43,7 @@ export class TicketsController {
   async getUserTicket(
     @Param('ticketId') ticketId: string,
     @CurrentUser() user: AuthUser,
-  ) {
+  ): Promise<Ticket> {
     const ticket = await this.ticketService.findById(ticketId);
     if (!ticket) {
       throw new NotFoundException('Ticket not found');
@@ -55,17 +55,19 @@ export class TicketsController {
   }
 
   /**
-   * PATCH /tickets/:ticketId
-   * Updates the status of the specified ticket as invalid.
+   * PUT /tickets/:ticketId/verify
+   * Verifies a ticket by marking it as USED.
+   * Returns true if ticket was newly verified (first time).
+   * Returns false if ticket was already used.
+   * Only the event creator can verify tickets.
    */
-  @Patch()
+  @Put('verify')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async updateTicketStatus(
+  async verifyTicket(
     @Param('ticketId') ticketId: string,
-    @Body(ValidationPipe) _dto: InvalidateTicketStatusDto,
     @CurrentUser('userId') userId: string,
-  ) {
+  ): Promise<boolean> {
     const ticket = await this.ticketService.findById(ticketId);
     if (!ticket) {
       throw new NotFoundException('Ticket not found');
@@ -77,16 +79,15 @@ export class TicketsController {
       throw new NotFoundException('Event not found');
     }
     if (event.getCreatorId().toString() !== userId) {
-      throw new ForbiddenException('Not authorized to view this ticket');
+      throw new ForbiddenException('Not authorized to verify this ticket');
     }
-    return await this.invalidateTicketStatusHandler.handle(ticketId);
+    return await this.verifyTicketHandler.handle(ticketId);
   }
 
   /**
    * GET /tickets/:ticketId/pdf
    * Returns a PDF for the specified ticket.
    */
-  //TODO: test this endpoint
   @Get('pdf')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -102,16 +103,30 @@ export class TicketsController {
     if (ticket.getUserId().toString() !== userId) {
       throw new ForbiddenException('Not authorized to view this ticket');
     }
+    const event = await this.eventService.findById(
+      ticket.getEventId().toString(),
+    );
+    if (!event) {
+      throw new NotFoundException(
+        `Event with id ${ticket.getEventId().toString()} not found`,
+      );
+    }
 
-    const buffer = await this.pdfService.generateTicketsPdf([
-      {
-        ticketId: ticket.getId(),
-        eventId: ticket.getEventId().toString(),
-        attendeeName: ticket.getAttendeeName(),
-        purchaseDate: ticket.getPurchaseDate(),
-        priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
-      },
-    ]);
+    const userLanguage = await this.userService.getUserLanguage(userId);
+
+    const buffer = await this.pdfService.generateTicketsPdf(
+      [
+        {
+          ticketId: ticket.getId(),
+          eventId: ticket.getEventId().toString(),
+          attendeeName: ticket.getAttendeeName(),
+          purchaseDate: ticket.getPurchaseDate(),
+          priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
+          eventTitle: event.getTitle() || 'EventoNight',
+        },
+      ],
+      userLanguage,
+    );
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(

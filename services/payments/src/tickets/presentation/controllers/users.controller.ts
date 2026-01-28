@@ -20,12 +20,16 @@ import { PaginatedResponseDto } from 'src/commons/application/dto/paginated-resp
 import { CurrentUser, JwtAuthGuard } from 'src/commons/infrastructure/auth';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { PdfService } from 'src/tickets/application/services/pdf.service';
+import { UserService } from 'src/tickets/application/services/user.service';
+import { EventService } from 'src/tickets/application/services/event.service';
 
 @Controller('users/:userId')
-export class UserController {
+export class UsersController {
   constructor(
     private readonly ticketService: TicketService,
     private readonly pdfService: PdfService,
+    private readonly userService: UserService,
+    private readonly eventService: EventService,
   ) {}
 
   /**
@@ -78,18 +82,25 @@ export class UserController {
     @Param('userId') userId: string,
     @Query() query: UserEventsQueryDto,
     @CurrentUser('userId') currentUserId: string,
-  ): Promise<PaginatedResponseDto<EventId>> {
+  ): Promise<PaginatedResponseDto<string>> {
     if (userId !== currentUserId) {
       throw new ForbiddenException(
         'Forbidden: Cannot access tickets of other users',
       );
     }
-    return await this.ticketService.findEventsByUserId(
+    const response = await this.ticketService.findEventsByUserId(
       userId,
       Pagination.parse(query.limit, query.offset),
       query.status,
       query.order,
     );
+    return {
+      items: response.items.map((eventId: EventId) => eventId.toString()),
+      totalItems: response.totalItems,
+      hasMore: response.hasMore,
+      limit: response.limit,
+      offset: response.offset,
+    };
   }
 
   /**
@@ -120,15 +131,25 @@ export class UserController {
       throw new NotFoundException('No tickets found for this event');
     }
 
+    const event = await this.eventService.findById(eventId);
+    if (!event) {
+      throw new NotFoundException(`Event with id ${eventId} not found`);
+    }
+    const userLanguage = await this.userService.getUserLanguage(userId);
+
     const ticketPdfData = result.map((ticket) => ({
       ticketId: ticket.getId(),
       eventId: ticket.getEventId().toString(),
       attendeeName: ticket.getAttendeeName(),
       purchaseDate: ticket.getPurchaseDate(),
       priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
+      eventTitle: event.getTitle() || 'EventoNight',
     }));
 
-    const buffer = await this.pdfService.generateTicketsPdf(ticketPdfData);
+    const buffer = await this.pdfService.generateTicketsPdf(
+      ticketPdfData,
+      userLanguage,
+    );
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(

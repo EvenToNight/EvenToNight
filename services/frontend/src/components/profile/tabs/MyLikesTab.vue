@@ -15,7 +15,7 @@ const loadingMore = ref(false)
 const hasMore = ref(true)
 
 const loadLikedEvents = async (isLoadingMore = false) => {
-  if (!authStore.user?.id) return
+  if (!authStore.isAuthenticated) return
 
   if (isLoadingMore) {
     loadingMore.value = true
@@ -24,7 +24,7 @@ const loadLikedEvents = async (isLoadingMore = false) => {
   }
 
   try {
-    const response = await api.interactions.getUserLikedEvents(authStore.user.id, {
+    const response = await api.interactions.getUserLikedEvents(authStore.user!.id, {
       limit: ITEMS_PER_PAGE,
       offset: isLoadingMore ? events.value.length : 0,
     })

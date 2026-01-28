@@ -8,7 +8,7 @@ import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import UserInfo from './UserInfo.vue'
 import ProfileActions from './ProfileActions.vue'
-import AvatarCropUpload from '@/components/upload/AvatarCropUpload.vue'
+import AvatarCropUpload from '@/components/imageUpload/AvatarCropUpload.vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '@/api'
 
@@ -51,9 +51,9 @@ const defaultIcon = computed(() => {
 onMounted(async () => {
   console.log('ProfileHeader mounted for user:', { ...user.value })
   currentAvatarUrl.value = user.value.avatar
-  if (authStore.isAuthenticated && !isOwnProfile.value && authStore.user?.id) {
+  if (authStore.isAuthenticated && !isOwnProfile.value) {
     try {
-      isFollowing.value = await api.interactions.isFollowing(authStore.user.id, user.value.id)
+      isFollowing.value = await api.interactions.isFollowing(authStore.user!.id, user.value.id)
     } catch (error) {
       console.error('Failed to load following status:', error)
     }
@@ -71,18 +71,18 @@ onMounted(async () => {
 })
 
 const handleFollowToggle = async () => {
-  if (!authStore.isAuthenticated || !authStore.user?.id) {
+  if (!authStore.isAuthenticated) {
     emit('authRequired')
     return
   }
 
   try {
     if (isFollowing.value) {
-      await api.interactions.unfollowUser(authStore.user.id, user.value.id)
+      await api.interactions.unfollowUser(authStore.user!.id, user.value.id)
       isFollowing.value = false
       userInteractionsInfo.value.followers -= 1
     } else {
-      await api.interactions.followUser(authStore.user.id, user.value.id)
+      await api.interactions.followUser(authStore.user!.id, user.value.id)
       isFollowing.value = true
       userInteractionsInfo.value.followers += 1
     }
@@ -114,7 +114,7 @@ const handleAvatarChange = async (file: File | null) => {
   const localPreviewUrl = URL.createObjectURL(file)
   currentAvatarUrl.value = localPreviewUrl
 
-  const updatedUser = await authStore.updateUserById(authStore.user!.id, { avatarFile: file })
+  const updatedUser = await authStore.updateUser({ avatarFile: file })
   user.value.avatar = updatedUser.avatar
 
   $q.notify({
@@ -130,7 +130,7 @@ const handleAvatarChange = async (file: File | null) => {
     <div v-if="isOwnProfile" style="display: none">
       <AvatarCropUpload
         ref="avatarCropUploadRef"
-        :preview-url="currentAvatarUrl"
+        :preview-url="currentAvatarUrl || ''"
         :default-icon="defaultIcon"
         @update:imageFile="handleAvatarChange"
         @error="handleAvatarError"

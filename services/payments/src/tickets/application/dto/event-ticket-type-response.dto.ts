@@ -5,10 +5,7 @@ export class EventTicketTypeResponseDto {
   eventId: string;
   type: string;
   description?: string;
-  price: {
-    amount: number;
-    currency: string;
-  };
+  price: number;
   availableQuantity: number;
   soldQuantity: number;
   totalQuantity: number;
@@ -20,10 +17,7 @@ export class EventTicketTypeResponseDto {
       eventId: ticketType.getEventId().toString(),
       type: ticketType.getType().toString(),
       description: ticketType.getDescription(),
-      price: {
-        amount: ticketType.getPrice().getAmount(),
-        currency: ticketType.getPrice().getCurrency(),
-      },
+      price: ticketType.getPrice().getAmount(),
       availableQuantity: ticketType.getAvailableQuantity(),
       soldQuantity: ticketType.getSoldQuantity(),
       totalQuantity: ticketType.getTotalQuantity(),
