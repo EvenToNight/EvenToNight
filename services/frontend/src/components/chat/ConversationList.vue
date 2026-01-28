@@ -47,7 +47,7 @@ function handleSelectConversation(conversation: Conversation) {
 }
 
 function isLastMessageFromMe(conversation: Conversation): boolean {
-  return authStore.user?.id === conversation.lastMessage.senderId
+  return authStore.user?.id === conversation.lastMessage?.senderId || false
 }
 
 function formatTime(date: Date | undefined): string {
@@ -251,13 +251,13 @@ defineExpose({
             </q-item-label>
             <q-item-label caption lines="1" class="last-message">
               <span v-if="isLastMessageFromMe(conversation)" class="message-prefix">Tu: </span>
-              {{ conversation.lastMessage.content }}
+              {{ conversation.lastMessage?.content }}
             </q-item-label>
           </q-item-section>
 
           <q-item-section side top>
             <q-item-label caption class="message-time">
-              {{ formatTime(conversation.lastMessage.createdAt) }}
+              {{ formatTime(conversation.lastMessage?.createdAt) }}
             </q-item-label>
             <q-badge
               v-if="conversation.unreadCount > 0 && !isLastMessageFromMe(conversation)"

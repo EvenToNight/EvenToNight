@@ -30,6 +30,6 @@ export interface Conversation {
   id: ConversationID
   organization: ChatUser
   member: ChatUser
-  lastMessage: LastMessageData
+  lastMessage?: LastMessageData
   unreadCount: number
 }

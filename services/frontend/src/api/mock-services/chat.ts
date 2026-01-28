@@ -63,7 +63,7 @@ export const mockChatApi: ChatAPI = {
     const newMessage: Message = {
       id: crypto.randomUUID(),
       conversationId: newConversation.id,
-      ...newConversation.lastMessage,
+      ...newConversation.lastMessage!,
       isRead: false,
     }
 
@@ -80,7 +80,7 @@ export const mockChatApi: ChatAPI = {
   ): Promise<PaginatedResponse<Conversation>> {
     let conversations: Conversation[] = getConversationsForUser(userId)
     conversations = conversations.map((c) => {
-      if (c.lastMessage.senderId === userId) {
+      if (c.lastMessage?.senderId === userId) {
         return { ...c, unreadCount: 0 }
       } else {
         return c
@@ -118,11 +118,7 @@ export const mockChatApi: ChatAPI = {
         id: '',
         organization: currentUser.role === 'organization' ? currentUser : u,
         member: currentUser.role === 'member' ? currentUser : u,
-        lastMessage: {
-          senderId: '',
-          content: '',
-          createdAt: new Date(0),
-        },
+        lastMessage: undefined,
         unreadCount: 0,
       }
     })
@@ -157,7 +153,7 @@ export const mockChatApi: ChatAPI = {
     saveMessages(currentMessages)
     const conversationIndex = mockConversations().findIndex((c) => c.id === conversationId)
     const conversation = mockConversations()[conversationIndex]!
-    const previousSenderId = conversation.lastMessage.senderId
+    const previousSenderId = conversation.lastMessage?.senderId
     conversation.lastMessage = message
     if (previousSenderId === senderId) {
       conversation.unreadCount += 1
@@ -177,7 +173,7 @@ export const mockChatApi: ChatAPI = {
     const unreadCount = mockConversations().reduce((count, conversation) => {
       if (
         (conversation.organization.id === userId || conversation.member.id === userId) &&
-        conversation.lastMessage.senderId !== userId
+        conversation.lastMessage?.senderId !== userId
       ) {
         return count + conversation.unreadCount
       }
