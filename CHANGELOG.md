@@ -1,3 +1,16 @@
+## [1.23.0](https://github.com/EvenToNight/EvenToNight/compare/v1.22.0...v1.23.0) (2026-01-28)
+
+### Features
+
+* **seed:** implement user seeding with JSON generation in TypeScript ([b3b3593](https://github.com/EvenToNight/EvenToNight/commit/b3b3593c1b5db15bc97e697bf0f81908b441eef2))
+* **seed:** update users seeding and implement events seeding ([5e038c3](https://github.com/EvenToNight/EvenToNight/commit/5e038c384264288f2e4514894ea938838fd642ae))
+
+### Bug Fixes
+
+* **event-creation:** fix bug in event creation ([f0940bf](https://github.com/EvenToNight/EvenToNight/commit/f0940bf7448cff609dea48823ab1f81e14bc9cec))
+* **event-reviews:** fix bug in reviews creation ([fa29f37](https://github.com/EvenToNight/EvenToNight/commit/fa29f37b881954d1ca49acaf9cbd191c7cc4fdfd))
+* **profile:** load likes and partecipation info properly ([5c73d0a](https://github.com/EvenToNight/EvenToNight/commit/5c73d0a9983494aef0bf9c8fddf09af2ed6bab94))
+
 ## [1.22.0](https://github.com/EvenToNight/EvenToNight/compare/v1.21.0...v1.22.0) (2026-01-28)
 
 ### Features
