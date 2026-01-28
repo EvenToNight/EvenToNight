@@ -12,7 +12,9 @@ import cask.FormFile
 import cask.Request
 import cask.Response
 import http.HttpSecurity.authenticateAndAuthorize
+import infrastructure.Wiring.mediaBaseUrl
 import infrastructure.keycloak.KeycloakJwtVerifier.extractSub
+import infrastructure.media.MediaServiceClient.deleteAvatarFromMediaService
 import infrastructure.media.MediaServiceClient.uploadAvatarToMediaService
 import infrastructure.rabbitmq.EventPublisher
 import io.circe.Json
@@ -184,14 +186,41 @@ class UserRoutes(
 
   @cask.delete("/:userId/avatar")
   def deleteAvatar(userId: String, req: Request): Response[String] =
+    val defaultAvatar = s"http://${mediaBaseUrl}/users/default.png"
     (
       for
-        _ <- authenticateAndAuthorize(req, userId)
-        defaultAvatar = uploadAvatarToMediaService(userId, None)
-        _ <- userService.updateAvatar(userId, defaultAvatar)
-      yield ()
+        _           <- authenticateAndAuthorize(req, userId)
+        _           <- deleteAvatarFromMediaService(userId)
+        updatedUser <- userService.updateAvatar(userId, defaultAvatar)
+      yield updatedUser
     ) match
-      case Right(_)  => Response("", 204)
+      case Right(updatedUser) =>
+        updatedUser match
+          case m: Member =>
+            eventPublisher.publish(UserUpdated(
+              id = userId,
+              username = m.account.username,
+              name = m.profile.name,
+              email = m.account.email,
+              avatar = m.profile.avatar,
+              bio = m.profile.bio,
+              interests = m.account.interests,
+              language = m.account.language,
+              role = "member"
+            ))
+          case o: Organization =>
+            eventPublisher.publish(UserUpdated(
+              id = userId,
+              username = o.account.username,
+              name = o.profile.name,
+              email = o.account.email,
+              avatar = o.profile.avatar,
+              bio = o.profile.bio,
+              interests = o.account.interests,
+              language = o.account.language,
+              role = "organization"
+            ))
+        Response("", 204)
       case Left(err) => Response(err, 400)
 
   @cask.put("/:userId/password")
