@@ -19,6 +19,9 @@ export class EventDocument {
 
   @Prop({ required: true })
   status: string;
+
+  @Prop()
+  title: string;
 }
 
 export type EventDocumentType = HydratedDocument<EventDocument>;

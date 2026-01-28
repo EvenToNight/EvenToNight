@@ -15,7 +15,7 @@ const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 const { hash, replaceRoute } = useNavigation()
 const $q = useQuasar()
-const activeTabId = ref('general')
+const activeTabId = ref<string | null>(null)
 const layoutRef = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
 const showingContent = ref(false)
 
@@ -49,7 +49,11 @@ const tabs = computed<Tab[]>(() => [
 ])
 
 const activeTab = computed(() => {
-  return tabs.value.find((tab) => tab.id === activeTabId.value) ?? tabs.value[0]!
+  const desiredTabId = tabs.value.find((tab) => tab.id === activeTabId.value)
+  if (!desiredTabId && activeTabId.value === null && !isMobile.value) {
+    return tabs.value[0]!
+  }
+  return desiredTabId || null
 })
 
 const selectTab = (tabId: string) => {
@@ -62,18 +66,30 @@ const selectTab = (tabId: string) => {
 
 const handleBack = () => {
   showingContent.value = false
+  activeTabId.value = null
+  replaceRoute({ hash: '' })
 }
 
 function updateTabIdFromHash() {
   const tabId = hash.value.replace('#', '')
   const exists = tabs.value.some((tab) => tab.id === tabId)
-  activeTabId.value = exists ? tabId : tabs.value[0]!.id
-  replaceRoute({ hash: `#${activeTabId.value}` })
+  console.log('Updating tab from hash:', tabId, exists)
 
-  // Show content on mobile if navigating with hash
-  if (isMobile.value && layoutRef.value && hash.value) {
-    layoutRef.value.showContent()
-    showingContent.value = true
+  if (layoutRef.value) {
+    if (isMobile.value) {
+      if (exists) {
+        layoutRef.value.showContent()
+        activeTabId.value = exists ? tabId : tabs.value[0]!.id
+        replaceRoute({ hash: `#${activeTabId.value}` })
+        showingContent.value = true
+      } else {
+        layoutRef.value.showSidebar()
+        showingContent.value = false
+      }
+    } else {
+      activeTabId.value = exists ? tabId : tabs.value[0]!.id
+      replaceRoute({ hash: `#${activeTabId.value}` })
+    }
   }
 }
 onMounted(() => {
@@ -86,7 +102,7 @@ watch(
 )
 
 watch(activeTab, (newTab) => {
-  if (hash.value !== `#${newTab.id}`) {
+  if (newTab && hash.value !== `#${newTab.id}`) {
     replaceRoute({ hash: `#${newTab.id}` })
   }
 })
@@ -113,11 +129,11 @@ watch(activeTab, (newTab) => {
         </template>
 
         <template #content>
-          <component :is="activeTab.component" />
+          <component :is="activeTab.component" v-if="activeTab" />
         </template>
 
         <template #mobile-title>
-          <h3 class="mobile-tab-title">{{ activeTab.label }}</h3>
+          <h3 v-if="activeTab" class="mobile-tab-title">{{ activeTab.label }}</h3>
         </template>
       </TwoColumnLayout>
     </div>

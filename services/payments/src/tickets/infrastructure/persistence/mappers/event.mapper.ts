@@ -11,6 +11,7 @@ export class EventMapper {
       creatorId: UserId.fromString(document.creatorId),
       date: document.date,
       status: EventStatus.fromString(document.status),
+      title: document.title,
     });
   }
 
@@ -20,6 +21,7 @@ export class EventMapper {
       creatorId: event.getCreatorId().toString(),
       date: event.getDate(),
       status: event.getStatus().toString(),
+      title: event.getTitle(),
     };
   }
 }

@@ -11,14 +11,19 @@ import {
 } from 'src/commons/domain/types/pagination.types';
 import { Pagination } from 'src/commons/utils/pagination.utils';
 import { EventId } from '../../../domain/value-objects/event-id.vo';
+import { BaseMongoRepository } from './base-mongo.repository';
 
 @Injectable()
-export class TicketRepositoryImpl implements TicketRepository {
+export class TicketRepositoryImpl
+  extends BaseMongoRepository
+  implements TicketRepository
+{
   constructor(
     @InjectModel(TicketDocument.name)
     private readonly ticketModel: Model<TicketDocument>,
-  ) {}
-
+  ) {
+    super();
+  }
   async save(ticket: Ticket): Promise<Ticket> {
     const document = TicketMapper.toPersistence(ticket);
     const created = new this.ticketModel(document);

@@ -110,13 +110,13 @@ onMounted(async () => {
 }
 
 .category-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  display: flex;
+  flex-wrap: wrap;
   gap: $spacing-4;
   margin-top: $spacing-6;
+  justify-content: center;
 
   @media (max-width: $breakpoint-mobile) {
-    grid-template-columns: 1fr;
     gap: $spacing-3;
   }
 }
@@ -133,6 +133,12 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: $spacing-4;
+  flex: 0 1 calc(25% - $spacing-4);
+  min-width: 280px;
+
+  @media (max-width: $breakpoint-mobile) {
+    flex: 1 1 100%;
+  }
 
   &:hover {
     transform: translateY(-4px);

@@ -23,7 +23,6 @@ export type GetReviewWithStatisticsResponse = ExtendedPaginatedResponse<
 export type GetUserInfoResponse = PaginatedResponseWithTotalCount<UserInfo>
 export type GetUserLikedEventsResponse = PaginatedResponseWithTotalCount<EventID>
 
-//TODO: find way to get user following status and if user participated to event
 export interface InteractionAPI {
   followUser(currentUserId: UserID, targetUserId: UserID): Promise<void>
   following(userId: UserID, pagination?: PaginatedRequest): Promise<GetUserInfoResponse>

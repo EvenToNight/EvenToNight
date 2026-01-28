@@ -43,6 +43,9 @@ export const mockEventsApi: EventAPI = {
   async updateEventPoster(_eventId: EventID, _poster: File): Promise<void> {
     return
   },
+  async deleteEventPoster(_eventId: EventID): Promise<void> {
+    return
+  },
   async deleteEvent(_eventId: EventID): Promise<void> {
     return
   },

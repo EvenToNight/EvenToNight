@@ -60,7 +60,7 @@ const month = computed(() => {
 const toggleFavorite = async (e: MouseEvent) => {
   e.stopPropagation()
 
-  if (!authStore.user?.id || !authStore.isAuthenticated) {
+  if (!authStore.isAuthenticated) {
     emit('authRequired')
     return
   }
@@ -69,9 +69,9 @@ const toggleFavorite = async (e: MouseEvent) => {
 
   try {
     if (event.value.liked) {
-      await api.interactions.unlikeEvent(event.value.eventId, authStore.user.id)
+      await api.interactions.unlikeEvent(event.value.eventId, authStore.user!.id)
     } else {
-      await api.interactions.likeEvent(event.value.eventId, authStore.user.id)
+      await api.interactions.likeEvent(event.value.eventId, authStore.user!.id)
     }
     event.value.liked = !event.value.liked
   } catch (error) {

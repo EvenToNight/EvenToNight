@@ -1,10 +1,5 @@
-import { Controller, Inject, Logger } from '@nestjs/common';
-import {
-  MessagePattern,
-  Payload,
-  Ctx,
-  RmqContext,
-} from '@nestjs/microservices';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { RmqContext } from '@nestjs/microservices';
 import type { EventEnvelope } from '../../../commons/domain/events/event-envelope';
 import {
   USER_REPOSITORY,
@@ -24,7 +19,7 @@ interface UserDeletedPayload {
   id: string;
 }
 
-@Controller()
+@Injectable()
 export class UserEventConsumer {
   private readonly logger = new Logger(UserEventConsumer.name);
 
@@ -33,11 +28,7 @@ export class UserEventConsumer {
     private readonly userRepository: UserRepository,
   ) {}
 
-  @MessagePattern()
-  async handleAllEvents(
-    @Payload() envelope: EventEnvelope<any>,
-    @Ctx() context: RmqContext,
-  ) {
+  async handleAllEvents(envelope: EventEnvelope<any>, context: RmqContext) {
     const message = context.getMessage() as Message;
     const routingKey = message.fields.routingKey;
     this.logger.log(`📨 Received event: ${routingKey}`);

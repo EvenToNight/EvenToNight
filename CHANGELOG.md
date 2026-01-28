@@ -1,3 +1,17 @@
+## [1.22.0](https://github.com/EvenToNight/EvenToNight/compare/v1.21.0...v1.22.0) (2026-01-28)
+
+### Features
+
+* **searchBar:** add integration with arrow keys and explore view ([67623cf](https://github.com/EvenToNight/EvenToNight/commit/67623cffa226263e804fa09b4e1a1ebc7f39fd20))
+
+### Bug Fixes
+
+* **event-consumers:** add eventDispatcher to correctly handle message from rabbit ([376240b](https://github.com/EvenToNight/EvenToNight/commit/376240bcf1eb77333e985a738c83f4df00898b3c))
+* **refresh:** update setup for auto login and auto refresh token ([7c1901c](https://github.com/EvenToNight/EvenToNight/commit/7c1901c3beae4405a5aa03b7c678b356a8c7374f))
+* **ticket-purchase:** fix available ticket handling in frontend ([d881bff](https://github.com/EvenToNight/EvenToNight/commit/d881bff67196d5857f2114da90e533f33456fb91))
+* **tickets:** fix /users/:userId/events endpoint to return list of eventIds instead of list of eventIdsObjects ([1c481db](https://github.com/EvenToNight/EvenToNight/commit/1c481dbb31281045cf54125c8e67ab92bf5f1b6d))
+* **tickets:** fix ticket creation ([9d8ae75](https://github.com/EvenToNight/EvenToNight/commit/9d8ae757e8e57178b18103e92b8167e2041fd935))
+
 ## [1.21.0](https://github.com/EvenToNight/EvenToNight/compare/v1.20.2...v1.21.0) (2026-01-26)
 
 ### Features

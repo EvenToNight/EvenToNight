@@ -1,5 +1,10 @@
 import { ClientSession } from 'mongoose';
 import { EventTicketType } from '../aggregates/event-ticket-type.aggregate';
+import {
+  PaginatedResult,
+  PaginationParams,
+} from 'src/commons/domain/types/pagination.types';
+import { EventId } from '../value-objects/event-id.vo';
 
 //TODO: remove ClientSession dependecy from domain
 export interface EventTicketTypeRepository {
@@ -29,6 +34,14 @@ export interface EventTicketTypeRepository {
   ): Promise<EventTicketType>;
 
   deleteAll(): Promise<void>;
+
+  findEventIds(params?: {
+    minPrice?: number;
+    maxPrice?: number;
+    currency?: string;
+    sortOrder?: 'asc' | 'desc';
+    pagination?: PaginationParams;
+  }): Promise<PaginatedResult<EventId>>;
 }
 
 export const EVENT_TICKET_TYPE_REPOSITORY = Symbol(

@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { TicketService } from '../services/ticket.service';
 import { EventService } from '../services/event.service';
+import { TicketTypeDeletedEvent } from 'src/tickets/domain/events/ticket-type-deleted.event';
+import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
 
 @Injectable()
 export class DeleteTicketTypeHandler {
@@ -9,6 +11,7 @@ export class DeleteTicketTypeHandler {
     private readonly eventTicketTypeService: EventTicketTypeService,
     private readonly ticketService: TicketService,
     private readonly eventService: EventService,
+    private readonly eventPublisher: EventPublisher,
   ) {}
 
   async handle(ticketTypeId: string): Promise<void> {
@@ -24,6 +27,13 @@ export class DeleteTicketTypeHandler {
       await this.eventService.delete(eventId.toString());
     }
     await this.eventTicketTypeService.delete(ticketTypeId);
+
+    this.eventPublisher.publish(
+      new TicketTypeDeletedEvent({
+        ticketTypeId: ticketTypeId,
+      }),
+      'ticket-type.deleted',
+    );
 
     return this.ticketService.revokeTickets([ticketTypeId]);
   }
