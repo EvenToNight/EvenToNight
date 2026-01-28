@@ -1,6 +1,7 @@
 import { SeedEvent } from "../events/types/events.types";
 import { DataProvider } from "../seed";
 import { SeedUser } from "../users/types/users.types";
+import { TicketTypeSeed } from "./event-ticket-types.ts/tickets-type.seed";
 import { EventPaymentSeed } from "./events/event.payments.seed";
 import { PaymentSeedResult, SeedPayment } from "./types/payment.types";
 
@@ -19,6 +20,10 @@ export class PaymentSeed implements DataProvider<PaymentSeedResult> {
         payments.push(
             await new EventPaymentSeed(this.events).populate()
         );
+
+        payments.push(
+            await new TicketTypeSeed(this.events).populate()
+        )
     
         return { payments };
     }
