@@ -7,6 +7,7 @@ import { UserSeedResult, SeedUser } from './types/users.types';
 import { removeUndefined } from './../utils';
 import path from 'path';
 import { toSeedUser } from './users.seed.mapper';
+import { DEFAULT_AVATAR } from './data/users.data';
 
 export class UserSeed implements DataProvider<UserSeedResult> {
   async populate(): Promise<UserSeedResult> {
@@ -23,9 +24,8 @@ export class UserSeed implements DataProvider<UserSeedResult> {
         const { userId, token } = await registerUser(parsedUser);
         await updateUser(userId, parsedUser, token)
 
-        const usersWithCustomAvatar = ["jane_smith", "alice95", "emma_lopez", "henry_photographer"];
-        if (usersWithCustomAvatar.includes(user.username)) {
-          const avatarPath = path.resolve("src/users/data/avatars", `${user.username}.jpg`);
+        if(user.avatar && user.avatar != DEFAULT_AVATAR) {
+          const avatarPath = path.resolve("src/users/data/avatars", `${user.avatar}`);
           const avatarResult = await updateAvatar(userId, token, avatarPath);
           parsedUser.avatar = avatarResult.avatarUrl;
         }

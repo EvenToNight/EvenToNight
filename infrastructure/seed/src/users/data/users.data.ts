@@ -1,7 +1,7 @@
 import { UserSeedInput } from "../schemas/user.schema";
 import { MEDIA_BASE_URL } from "../../config/env";
 
-const DEFAULT_AVATAR = `http://${MEDIA_BASE_URL}/users/default.png`;
+export const DEFAULT_AVATAR = `http://${MEDIA_BASE_URL}/users/default.png`;
 
 export const usersSeedData: UserSeedInput[] = [
   // ---------- MEMBERS ----------
@@ -28,7 +28,7 @@ export const usersSeedData: UserSeedInput[] = [
     language: "en",
     interests: ["Free Entry", "Students", "Party"],
     name: "Jane Smith",
-    avatar: DEFAULT_AVATAR,
+    avatar: "jane_smith.jpg",
     bio: "University student always looking for fun events on a budget.",
     gender: "female",
     birthDate: new Date("1998-03-12").toISOString(),
@@ -42,7 +42,7 @@ export const usersSeedData: UserSeedInput[] = [
     language: "it",
     interests: ["Live Music", "Club"],
     name: "Alice Rossi",
-    avatar: DEFAULT_AVATAR,
+    avatar: "alice95.jpg",
     bio: "Artist and musician passionate about live performances.",
     gender: "female",
     birthDate: new Date("1995-05-10").toISOString(),
@@ -98,7 +98,7 @@ export const usersSeedData: UserSeedInput[] = [
     language: "es",
     interests: ["Reggaeton", "DJ Set", "Party"],
     name: "Emma Lopez",
-    avatar: DEFAULT_AVATAR,
+    avatar: "emma_lopez.jpg",
     bio: "Music lover with a passion for dancing all night long.",
     gender: "female",
     birthDate: new Date("1997-09-30").toISOString(),
@@ -140,7 +140,7 @@ export const usersSeedData: UserSeedInput[] = [
     language: "de",
     interests: ["Live Music"],
     name: "Henry Neri",
-    avatar: DEFAULT_AVATAR,
+    avatar: "henry_photographer.jpg",
     bio: "Engineer by day, photographer by night.",
     gender: "male",
     birthDate: new Date("1991-12-14").toISOString(),
