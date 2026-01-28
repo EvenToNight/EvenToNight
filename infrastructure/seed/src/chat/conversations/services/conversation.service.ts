@@ -1,7 +1,6 @@
 import { execSync } from "child_process";
 import { ObjectId } from "mongodb";
 import { ConversationToCreate, SeedConversation } from "../types/conversation.types";
-import { create } from "domain";
 
 export async function createConversation(conversation: ConversationToCreate): Promise<SeedConversation> {
     const _id = new ObjectId();

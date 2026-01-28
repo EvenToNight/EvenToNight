@@ -1,6 +1,6 @@
 import { SeedUser } from "../../users/types/users.types";
 import { SeedConversation } from "../conversations/types/conversation.types";
-import { ParticipantToInsert, SeedParticipant } from "./types/participant.types";
+import { ParticipantToInsert } from "./types/participant.types";
 
 export function filterParticipants(conversations: SeedConversation[], users: SeedUser[]): ParticipantToInsert[] {
     const participantInserts: ParticipantToInsert[] = [];

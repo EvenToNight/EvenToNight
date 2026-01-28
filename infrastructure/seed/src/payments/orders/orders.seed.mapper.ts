@@ -6,7 +6,6 @@ export function filterOrder(tickets: SeedTicket[]): OrderToCreate[] {
     const ordersToCreate: OrderToCreate[] = [];
 
     for (const ticket of tickets) {
-        const ticketIds = []
         ordersToCreate.push({
             userId: ticket.userId,
             eventId: ticket.eventId,

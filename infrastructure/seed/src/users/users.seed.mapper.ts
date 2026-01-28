@@ -15,7 +15,7 @@ export function toSeedUser(
     language: input.language ?? "en",
     interests: input.interests,
     name: input.name ?? input.username,
-    avatar: input.avatar ?? `http://${MEDIA_BASE_URL}/users/default.png`,
+    avatar: input.avatar ?? `${MEDIA_BASE_URL}/users/default.png`,
     bio: input.bio
   };
 

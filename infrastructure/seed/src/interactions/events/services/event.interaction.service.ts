@@ -8,7 +8,7 @@ export async function insertEvent(event: EventInteractionToInsert): Promise<Seed
     const _id = crypto.randomUUID();
 
     const DOCKER_CONTAINER =
-        process.env.INTERACTION_MONGO_URI || "eventonight-mongo-interactions-1";
+        process.env.INTERACTIONS_MONGO_URI || "eventonight-mongo-interactions-1";
     const MONGO_DB = process.env.MONGO_DB || "eventonight";
 
     const eventInteractionToInsert = {

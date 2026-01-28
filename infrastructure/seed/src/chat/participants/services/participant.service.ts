@@ -23,7 +23,7 @@ export async function insertParticipant(participant: ParticipantToInsert): Promi
         _id: ObjectId('${_id.toString()}'),
         conversationId: ObjectId('${participant.conversationId.toString()}'),
         userId: '${participant.userId}',
-        userName: '${participant.userName.replace(/'/g, "\\'")}}',
+        userName: '${participant.userName.replace(/'/g, "\\'")}',
         role: '${participant.role}',
         unreadCount: 0,
         lastReadAt: ISODate('${now}'),
