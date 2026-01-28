@@ -4,12 +4,13 @@ export interface TicketToCreate {
     eventId: string;
     userId: string;
     attendeeName: string;
-    ticketType: string;
+    price: Object;
+    ticketTypeId: string;
 }
 
 export type SeedTicket = TicketToCreate & {
     _id: ObjectId;
-    purchasedDate: Date;
+    purchaseDate: Date;
     status: string;
     createdAt: Date;
     updatedAt: Date;

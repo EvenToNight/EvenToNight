@@ -13,13 +13,21 @@ export async function createTicket(ticketData: TicketToCreate): Promise<SeedTick
     const ticketToCreate: SeedTicket = {
         _id,
         ...ticketData,
-        purchasedDate: now,
+        purchaseDate: now,
         status: "ACTIVE",
         createdAt: now,
         updatedAt: now,
     };
 
-    const insertCommand = `db.tickets.insertOne(${JSON.stringify(ticketToCreate)})`;
+    // Converti in JSON e sostituisci con sintassi MongoDB
+    let jsonDoc = JSON.stringify(ticketToCreate)
+        .replace(/"_id":\{"\$oid":"([^"]+)"\}/g, '"_id":"$1"')
+        .replace(/"purchaseDate":"([^"]+)"/g, '"purchaseDate":ISODate("$1")')
+        .replace(/"createdAt":"([^"]+)"/g, '"createdAt":ISODate("$1")')
+        .replace(/"updatedAt":"([^"]+)"/g, '"updatedAt":ISODate("$1")')
+        .replace(/("price":\{[^}]*"_id":)"([0-9a-f]{24})"/g, '$1ObjectId("$2")');
+
+    const insertCommand = `db.tickets.insertOne(${jsonDoc})`;
 
     try {
         execSync(

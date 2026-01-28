@@ -21,6 +21,11 @@ export function filterTicket(users: SeedUser[], events: SeedEvent[], ticketTypes
         ticketTypeIdMap[ticketType.eventId] = ticketType._id.toString();
     }
 
+    const ticketTypePriceMap: Record<string, Object> = {};
+    for (const ticketType of ticketTypes) {
+        ticketTypePriceMap[ticketType.eventId] = ticketType.price;
+    }
+
     const filteredTicketSeedData = ticketSeedData
         .filter(ticket => ticket.user in userIdMap && ticket.event in eventIdMap)
         .map(ticket => ({
@@ -34,7 +39,8 @@ export function filterTicket(users: SeedUser[], events: SeedEvent[], ticketTypes
         userId: ticket.userId,
         eventId: ticket.eventId,
         attendeeName: ticket.attendeeName,
-        ticketType: ticketTypeIdMap[ticket.ticketType],
+        price: ticketTypePriceMap[ticket.eventId],
+        ticketTypeId: ticketTypeIdMap[ticket.ticketType],
     }));
     
     return ticketsToCreate;
