@@ -1,3 +1,9 @@
+## [1.23.1](https://github.com/EvenToNight/EvenToNight/compare/v1.23.0...v1.23.1) (2026-01-28)
+
+### Bug Fixes
+
+* **chatList:** handle null senderId in conversationAPI ([db12a73](https://github.com/EvenToNight/EvenToNight/commit/db12a73d0857e420e42765ae849600df5be49154))
+
 ## [1.23.0](https://github.com/EvenToNight/EvenToNight/compare/v1.22.0...v1.23.0) (2026-01-28)
 
 ### Features
