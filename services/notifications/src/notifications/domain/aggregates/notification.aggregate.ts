@@ -9,6 +9,7 @@ export interface NotificationProps {
   content: NotificationContent;
   read: boolean;
   createdAt?: Date;
+  updatedAt?: Date;
 }
 
 export class Notification {
@@ -19,6 +20,7 @@ export class Notification {
     private readonly _content: NotificationContent,
     private _read: boolean,
     private readonly _createdAt: Date,
+    private readonly _updatedAt: Date,
   ) {}
 
   static create(props: NotificationProps): Notification {
@@ -29,6 +31,7 @@ export class Notification {
       props.content,
       props.read,
       props.createdAt ?? new Date(),
+      props.updatedAt ?? new Date(),
     );
   }
 
@@ -43,6 +46,7 @@ export class Notification {
       props.content,
       props.read,
       props.createdAt ?? new Date(),
+      props.updatedAt ?? new Date(),
     );
   }
 
@@ -70,6 +74,10 @@ export class Notification {
     return this._createdAt;
   }
 
+  get updatedAt(): Date {
+    return this._updatedAt;
+  }
+
   get isRead(): boolean {
     return this._read;
   }
@@ -82,6 +90,7 @@ export class Notification {
       content: this._content.toJson(),
       read: this._read,
       createdAt: this._createdAt,
+      updatedAt: this._updatedAt,
     };
   }
 }
