@@ -1,28 +1,36 @@
-import crypto from "crypto";
 import { execSync } from "child_process";
+import { ObjectId } from "mongodb";
 import { ConversationToCreate, SeedConversation } from "../types/conversation.types";
 import { create } from "domain";
 
 export async function createConversation(conversation: ConversationToCreate): Promise<SeedConversation> {
-    const _id = crypto.randomUUID();
+    const _id = new ObjectId();
     
     const DOCKER_CONTAINER =
         process.env.CHAT_MONGO_URI || "eventonight-mongo-chat-1";
     const MONGO_DB = process.env.MONGO_DB || "eventonight";
     
+    const now = new Date().toISOString();
     const conversationToCreate = {
         _id,
         ...conversation,
-        createdAt: "Tue Jan 27 2026 19:45:51 GMT+0000 (Coordinated Universal Time)",
-        updatedAt: "Tue Jan 27 2026 19:45:51 GMT+0000 (Coordinated Universal Time)",
+        createdAt: now,
+        updatedAt: now,
         __v: 0,
     };
 
-    const insertCommand = `db.conversations.insertOne(${JSON.stringify(conversationToCreate)})`;
+    const insertCommand = `db.conversations.insertOne({
+        _id: ObjectId('${_id.toString()}'),
+        memberId: '${conversation.memberId}',
+        organizationId: '${conversation.organizationId}',
+        createdAt: ISODate('${now}'),
+        updatedAt: ISODate('${now}'),
+        __v: 0
+    })`;
 
     try {
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval '${insertCommand}'`,
+            `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval "${insertCommand}"`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Conversation inserted: ${_id}`);

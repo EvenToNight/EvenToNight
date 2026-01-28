@@ -5,12 +5,12 @@ export interface MessageData {
 }
 
 export type MessageToInsert = MessageData & {
-    conversationId: string;
+    conversationId: ObjectId;
     senderId: string;
 };
 
 export type SeedMessage = MessageToInsert & {
-    _id: string;
+    _id: ObjectId;
     createdAt: string;
     updatedAt: string;
     __v: number;

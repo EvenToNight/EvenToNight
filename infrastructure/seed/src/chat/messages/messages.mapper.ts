@@ -11,13 +11,14 @@ export function filterMessages(conversations: SeedConversation[]): MessageToInse
             content: `Hello`,
         });
     }
-    
+    let turn = true;
     for (const m of messagesSeedData) {
         messageInserts.push({
             conversationId: conversations[0]._id,
-            senderId: conversations[0].memberId,
+            senderId: turn ? conversations[0].memberId : conversations[0].organizationId,
             content: m.content,
         });
+        turn = !turn;
     }
 
     return messageInserts;

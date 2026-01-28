@@ -1,12 +1,14 @@
+import { ObjectId } from "mongodb";
+
 export interface ParticipantToInsert {
-    conversationId: string;
+    conversationId: ObjectId;
     userId: string;
     userName: string;
     role: string;
 }
 
 export type SeedParticipant = ParticipantToInsert & {
-    _id: string;
+    _id: ObjectId;
     unreadCount: number;
     lastReadAt: string;
     __v: number;
