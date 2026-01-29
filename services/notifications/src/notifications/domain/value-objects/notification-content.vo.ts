@@ -7,6 +7,7 @@ export class NotificationContent {
   private constructor(
     private readonly _title: string,
     private readonly _message: string,
+    // TODO: private readonly _metadata?: Record<string, any>
   ) {
     this.validate();
   }

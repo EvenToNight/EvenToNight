@@ -23,6 +23,7 @@ export class ExternalEventMapper {
       type: "like",
       title: "New Like",
       message: `Your post has a new like`,
+      // TODO: metadata ??
     });
   }
 }
