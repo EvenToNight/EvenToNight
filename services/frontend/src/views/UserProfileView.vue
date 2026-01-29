@@ -1,25 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, nextTick } from 'vue'
-import { api } from '@/api'
+import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
-import type { User } from '@/api/types/users'
-import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
-import { useNavigation } from '@/router/utils'
+import { type UserLoadResult, loadUser } from '@/api/utils/userUtils'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileBody from '@/components/profile/ProfileBody.vue'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 
-const { params } = useNavigation()
+const route = useRoute()
 const showAuthDialog = ref(false)
-const user = ref<User | null>(null)
-const reviewsStatistics = ref<OrganizationReviewsStatistics | undefined>(undefined)
+const user = ref<UserLoadResult | null>(null)
 const profileHeaderRef = ref<HTMLElement | null>(null)
 const showNavbarCustomContent = ref(false)
 let observer: IntersectionObserver | null = null
 
+watch(
+  () => route.params.id,
+  async (newId, oldId) => {
+    if (newId !== oldId) {
+      console.log('Route param changed from', oldId, 'to', newId)
+      user.value = await loadUser(newId as string)
+      scrollToTop()
+    }
+  }
+)
+
 onMounted(async () => {
-  await loadUser()
+  user.value = await loadUser(route.params.id as string)
   setupScrollObserver()
 })
 
@@ -30,8 +38,6 @@ onUnmounted(() => {
 })
 
 const setupScrollObserver = async () => {
-  // Wait for next tick to ensure DOM is ready
-  await nextTick()
   if (!profileHeaderRef.value) return
   observer = new IntersectionObserver(
     (entries) => {
@@ -47,39 +53,13 @@ const setupScrollObserver = async () => {
   observer.observe(profileHeaderRef.value)
 }
 
-const loadUser = async () => {
-  try {
-    const userId = params.id as string
-    console.log('Loading user with ID:', userId)
-    user.value = await api.users.getUserById(userId)
-    console.log('Loaded user:', { ...user.value })
-
-    // Load reviews statistics if organization
-    if (user.value.role === 'organization') {
-      try {
-        const reviews = await api.interactions.getOrganizationReviews(userId)
-        reviewsStatistics.value = {
-          averageRating: reviews.averageRating,
-          totalReviews: reviews.totalReviews,
-          ratingDistribution: reviews.ratingDistribution,
-        }
-      } catch (error) {
-        console.error('Failed to load organization reviews:', error)
-      }
-    }
-  } catch (error) {
-    console.error('Failed to load user:', error)
-    user.value = null
-  }
-}
-
 const defaultIcon = computed(() => {
   if (!user.value) return 'person'
   return user.value.role === 'organization' ? 'business' : 'person'
 })
 
-const scrollToTop = () => {
-  window.scrollTo({ top: 0, behavior: 'smooth' })
+const scrollToTop = (behavior: ScrollBehavior = 'auto') => {
+  window.scrollTo({ top: 0, behavior })
 }
 </script>
 
@@ -87,7 +67,7 @@ const scrollToTop = () => {
   <NavigationButtons>
     <!-- TODO: improve username screen exiting detection -->
     <template v-if="user && showNavbarCustomContent" #left-custom-content>
-      <div class="navbar-user-info" @click="scrollToTop">
+      <div class="navbar-user-info" @click="() => scrollToTop('smooth')">
         <q-avatar size="32px">
           <img v-if="user.avatar" :src="user.avatar" :alt="user.name" class="navbar-avatar" />
           <q-icon v-else :name="defaultIcon" size="24px" />
@@ -103,7 +83,7 @@ const scrollToTop = () => {
       <div ref="profileHeaderRef">
         <ProfileHeader
           v-model="user"
-          :reviews-statistics="reviewsStatistics"
+          :reviews-statistics="user.organizationReviewStatistics"
           @auth-required="showAuthDialog = true"
         />
       </div>

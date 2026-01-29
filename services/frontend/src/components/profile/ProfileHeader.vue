@@ -1,32 +1,18 @@
 <script setup lang="ts">
 import { useAuthStore } from '@/stores/auth'
-import type { User } from '@/api/types/users'
-import type { UserInteractionsInfo, OrganizationReviewsStatistics } from '@/api/types/interaction'
 import RatingInfo from '@/components/reviews/ratings/RatingInfo.vue'
-import { computed, ref, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useQuasar } from 'quasar'
-import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import UserInfo from './UserInfo.vue'
 import ProfileActions from './ProfileActions.vue'
 import AvatarCropUpload from '@/components/imageUpload/AvatarCropUpload.vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '@/api'
+import type { UserLoadResult } from '@/api/utils/userUtils'
+import { useUserProfile } from '@/composables/useUserProfile'
+import { useBreakpoints } from '@/composables/useBreakpoints'
 
-const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
-
-interface Props {
-  reviewsStatistics?: OrganizationReviewsStatistics
-}
-
-const user = defineModel<User>({ required: true })
-defineProps<Props>()
-const isFollowing = ref(false)
-
-const userInteractionsInfo = ref<UserInteractionsInfo>({
-  followers: 0,
-  following: 0,
-})
-
+const user = defineModel<UserLoadResult>({ required: true })
 const emit = defineEmits<{
   authRequired: []
 }>()
@@ -34,43 +20,14 @@ const emit = defineEmits<{
 const $q = useQuasar()
 const { t } = useI18n()
 const authStore = useAuthStore()
+const { isOwnProfile, isOrganization, defaultIcon } = useUserProfile(user)
+const { isMobile } = useBreakpoints()
+const isFollowing = computed(() => user.value.interactionsInfo?.isFollowing)
 
 const avatarCropUploadRef = ref<InstanceType<typeof AvatarCropUpload> | null>(null)
-const currentAvatarUrl = ref<string | undefined>(undefined)
-
-const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
-const isOwnProfile = computed(() => authStore.isOwnProfile(user.value.id))
-const isOrganization = computed(() => {
-  return user.value.role === 'organization'
-})
-
-const defaultIcon = computed(() => {
-  return isOrganization.value ? 'business' : 'person'
-})
-
-onMounted(async () => {
-  console.log('ProfileHeader mounted for user:', { ...user.value })
-  currentAvatarUrl.value = user.value.avatar
-  if (authStore.isAuthenticated && !isOwnProfile.value) {
-    try {
-      isFollowing.value = await api.interactions.isFollowing(authStore.user!.id, user.value.id)
-    } catch (error) {
-      console.error('Failed to load following status:', error)
-    }
-  }
-  const [followers, following] = await Promise.all([
-    api.interactions.followers(user.value.id),
-    api.interactions.following(user.value.id),
-  ])
-
-  const userInteractionsInfoResponse = {
-    followers: followers.totalItems,
-    following: following.totalItems,
-  }
-  userInteractionsInfo.value = userInteractionsInfoResponse
-})
 
 const handleFollowToggle = async () => {
+  if (isOwnProfile.value) return
   if (!authStore.isAuthenticated) {
     emit('authRequired')
     return
@@ -79,12 +36,12 @@ const handleFollowToggle = async () => {
   try {
     if (isFollowing.value) {
       await api.interactions.unfollowUser(authStore.user!.id, user.value.id)
-      isFollowing.value = false
-      userInteractionsInfo.value.followers -= 1
+      user.value.interactionsInfo!.isFollowing = false
+      user.value.interactionsInfo!.followers -= 1
     } else {
       await api.interactions.followUser(authStore.user!.id, user.value.id)
-      isFollowing.value = true
-      userInteractionsInfo.value.followers += 1
+      user.value.interactionsInfo!.isFollowing = true
+      user.value.interactionsInfo!.followers += 1
     }
   } catch (error) {
     console.error('Failed to toggle follow:', error)
@@ -110,9 +67,9 @@ const handleAvatarError = (message: string) => {
 
 const handleAvatarChange = async (file: File | null) => {
   if (!file) return
-  URL.revokeObjectURL(currentAvatarUrl.value || '')
+  URL.revokeObjectURL(user.value.avatar || '')
   const localPreviewUrl = URL.createObjectURL(file)
-  currentAvatarUrl.value = localPreviewUrl
+  user.value.avatar = localPreviewUrl
 
   const updatedUser = await authStore.updateUser({ avatarFile: file })
   user.value.avatar = updatedUser.avatar
@@ -130,7 +87,7 @@ const handleAvatarChange = async (file: File | null) => {
     <div v-if="isOwnProfile" style="display: none">
       <AvatarCropUpload
         ref="avatarCropUploadRef"
-        :preview-url="currentAvatarUrl || ''"
+        :preview-url="user.avatar || ''"
         :default-icon="defaultIcon"
         @update:imageFile="handleAvatarChange"
         @error="handleAvatarError"
@@ -140,8 +97,8 @@ const handleAvatarChange = async (file: File | null) => {
     <div class="profile-header">
       <div class="avatar-container" :class="{ clickable: isOwnProfile }" @click="handleAvatarClick">
         <img
-          v-if="currentAvatarUrl"
-          :src="currentAvatarUrl"
+          v-if="user.avatar"
+          :src="user.avatar"
           :alt="t('userProfile.userAvatarAlt')"
           class="profile-avatar"
         />
@@ -157,17 +114,11 @@ const handleAvatarChange = async (file: File | null) => {
             <h1 class="user-name">{{ user.name }}</h1>
             <p class="user-username">@{{ user.username }}</p>
           </div>
-          <UserInfo :user="user" :user-interactions-info="userInteractionsInfo" />
-          <template v-if="isOrganization && reviewsStatistics">
-            <RatingInfo :reviews-statistics="reviewsStatistics" />
+          <UserInfo :user="user" />
+          <template v-if="user.organizationReviewStatistics">
+            <RatingInfo :reviews-statistics="user.organizationReviewStatistics" />
           </template>
-          <ProfileActions
-            :is-own-profile="isOwnProfile"
-            :is-organization="isOrganization"
-            :is-following="isFollowing"
-            :user-id="user.id"
-            @follow-toggle="handleFollowToggle"
-          />
+          <ProfileActions :user="user" @follow-toggle="handleFollowToggle" />
         </div>
       </template>
 
@@ -178,18 +129,12 @@ const handleAvatarChange = async (file: File | null) => {
               <h1 class="user-name">{{ user.name }}</h1>
               <p class="user-username">@{{ user.username }}</p>
             </div>
-            <ProfileActions
-              :is-own-profile="isOwnProfile"
-              :is-organization="isOrganization"
-              :is-following="isFollowing"
-              :user-id="user.id"
-              @follow-toggle="handleFollowToggle"
-            />
+            <ProfileActions :user="user" @follow-toggle="handleFollowToggle" />
           </div>
-          <template v-if="isOrganization && reviewsStatistics">
-            <RatingInfo :reviews-statistics="reviewsStatistics" />
+          <template v-if="isOrganization && user.organizationReviewStatistics">
+            <RatingInfo :reviews-statistics="user.organizationReviewStatistics" />
           </template>
-          <UserInfo :user="user" :user-interactions-info="userInteractionsInfo" />
+          <UserInfo :user="user" />
         </div>
       </template>
     </div>
