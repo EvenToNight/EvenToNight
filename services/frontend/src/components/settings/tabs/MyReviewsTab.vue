@@ -17,12 +17,12 @@ const searchQuery = ref('')
 const hasReviews = ref(false)
 let searchTimeout: number | null = null
 
-const loadReviews = async (isLoadingMore = false) => {
+const loadReviews = async (isLoadingMore = false, isSearch = false) => {
   if (!authStore.isAuthenticated) return
 
   if (isLoadingMore) {
     loadingMore.value = true
-  } else {
+  } else if (!isSearch) {
     loading.value = true
   }
 
@@ -64,7 +64,7 @@ watch(searchQuery, () => {
   }
 
   searchTimeout = setTimeout(() => {
-    loadReviews()
+    loadReviews(false, true)
   }, 500)
 })
 
