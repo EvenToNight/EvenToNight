@@ -31,11 +31,6 @@ export class CreateNotificationFromEventHandler {
       read: false,
     });
 
-    // TODO: if type = message, publish message but not save to DB
-    await this.repository.save(notification);
-
-    console.log(`Notification created: ${notification.id.toString()}`);
-
     const domainEvent = new NotificationCreatedEvent(
       notification.id.toString(),
       notification.userId.toString(),
@@ -43,6 +38,18 @@ export class CreateNotificationFromEventHandler {
       notification.content.toJson(),
       notification.createdAt,
     );
+
+    if (type.equals(NotificationType.MESSAGE())) {
+      await this.eventPublisher.publish(domainEvent);
+      console.log(
+        `Message notification published: ${notification.id.toString()}`,
+      );
+      return notification.id.toString();
+    }
+
+    await this.repository.save(notification);
+
+    console.log(`Notification created: ${notification.id.toString()}`);
 
     await this.eventPublisher.publish(domainEvent);
 

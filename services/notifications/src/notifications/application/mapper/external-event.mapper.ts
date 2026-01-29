@@ -7,6 +7,8 @@ export class ExternalEventMapper {
   ): CreateNotificationFromEventCommand | null {
     switch (routingKey) {
       // TODO: handle all routing keys
+      case "chat.message":
+        return this.mapMessage(payload);
       case "interaction.like":
         return this.mapLike(payload);
       case "event.published":
@@ -16,6 +18,22 @@ export class ExternalEventMapper {
         return null;
     }
   }
+
+  private static mapMessage(payload: any): CreateNotificationFromEventCommand {
+    return CreateNotificationFromEventCommand.create({
+      recipientUserId: payload.receiverId,
+      type: "message",
+      metadata: {
+        conversationId: payload.conversationId,
+        senderId: payload.senderId,
+        senderName: payload.senderName,
+        message: payload.message,
+        messageId: payload.messageId,
+        senderAvatar: payload.senderAvatar,
+      },
+    });
+  }
+
   private static mapEventCreated(
     payload: any,
   ): CreateNotificationFromEventCommand {
