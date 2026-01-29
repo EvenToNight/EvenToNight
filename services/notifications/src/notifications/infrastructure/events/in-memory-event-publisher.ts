@@ -1,6 +1,5 @@
 import { EventPublisher } from "notifications/domain/events/event-publisher.interface";
 
-
 export class InMemoryEventPublisher implements EventPublisher {
   private handlers = new Map<string, Array<(event: any) => Promise<void>>>();
 
@@ -8,7 +7,7 @@ export class InMemoryEventPublisher implements EventPublisher {
     if (!this.handlers.has(eventName)) {
       this.handlers.set(eventName, []);
     }
-    
+
     this.handlers.get(eventName)!.push(handler);
     console.log(`✅ Handler subscribed to ${eventName}`);
   }
@@ -19,12 +18,12 @@ export class InMemoryEventPublisher implements EventPublisher {
 
     console.log(`📢 Publishing ${eventName} to ${handlers.length} handlers`);
 
-    const promises = handlers.map(handler => 
-      handler(event).catch(err => {
+    const promises = handlers.map((handler) =>
+      handler(event).catch((err) => {
         console.error(`Handler failed for ${eventName}:`, err);
-      })
+      }),
     );
 
     await Promise.allSettled(promises);
-  }    
+  }
 }
