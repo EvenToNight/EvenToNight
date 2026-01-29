@@ -20,9 +20,6 @@ export class CreateNotificationFromEventCommand {
   }
 
   private validate() {
-    if (!this.recipientUserId) {
-      throw new Error("Recipient user ID is required");
-    }
     if (!this.type) {
       throw new Error("Notification type is required");
     }

@@ -12,7 +12,7 @@ case class EventEnvelope(
     payload: io.circe.Json
 )
 
-case class UserCreatedEvent(id: String, role: String)
+case class UserCreatedEvent(id: String, role: String, name: String)
 
 case class UserDeletedEvent(id: String)
 
@@ -30,7 +30,7 @@ class ExternalEventHandler(userMetadataRepo: MongoUserMetadataRepository) extend
       case Right(envelope) =>
         envelope.payload.as[UserCreatedEvent] match
           case Right(event) =>
-            val userMetadata = UserMetadata(id = event.id, role = event.role)
+            val userMetadata = UserMetadata(id = event.id, role = event.role, name = event.name)
             userMetadataRepo.save(userMetadata)
           case Left(error) =>
             println(s"[HANDLER] ❌ Error parsing payload: ${error.getMessage}")

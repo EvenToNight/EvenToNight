@@ -2,7 +2,8 @@ package domain.models
 
 case class UserMetadata(
     id: String,
-    role: String
+    role: String,
+    name: String
 )
 
 object UserMetadata:
@@ -12,10 +13,12 @@ object UserMetadata:
     def toDocument: Document =
       val doc = new Document().append("_id", user.id)
       doc.append("role", user.role)
+      doc.append("name", user.name)
       doc
 
   def fromDocument(doc: Document): UserMetadata =
     UserMetadata(
       id = doc.getString("_id"),
-      role = doc.getString("role")
+      role = doc.getString("role"),
+      name = doc.getString("name")
     )

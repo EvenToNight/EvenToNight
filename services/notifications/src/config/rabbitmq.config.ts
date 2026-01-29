@@ -11,9 +11,11 @@ export class RabbitMQ {
       const queue = config.rabbitmq.queue;
 
       const routingKeys = [
-        "user.created",
-        "event.created",
-        //TODO: Add routing keys
+        "interaction.like",
+        "interaction.follow",
+        "interaction.review",
+        "chat.message",
+        "event.published",
       ];
 
       await channel.assertExchange(exchange, "topic", {
