@@ -15,7 +15,7 @@ services:
       - PAYMENTS_HOST=http://payments:${PAYMENTS_SERVICE_PORT}
       - MONGO_DB=eventonight
       - EVENT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-events-1
-      - INTERACTIONS_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-interactions-1
+      - INTERACTION_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-interactions-1
       - CHAT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-chat-1
       - PAYMENT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-payments-1
 
