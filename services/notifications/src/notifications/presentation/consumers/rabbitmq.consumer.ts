@@ -4,8 +4,8 @@ import amqp, {
 } from "amqp-connection-manager";
 import { ConfirmChannel, ConsumeMessage } from "amqplib";
 import { config } from "../../../config/env.config";
-import { CreateNotificationFromEventHandler } from "notifications/application/handlers/create-notification-from-event.handler";
-import { ExternalEventMapper } from "notifications/application/mapper/external-event.mapper";
+import { CreateNotificationFromEventHandler } from "../../application/handlers/create-notification-from-event.handler";
+import { ExternalEventMapper } from "../../application/mapper/external-event.mapper";
 
 export interface EventEnvelope<T> {
   eventType: string;

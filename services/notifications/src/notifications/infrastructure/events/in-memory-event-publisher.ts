@@ -1,4 +1,4 @@
-import { EventPublisher } from "notifications/domain/events/event-publisher.interface";
+import { EventPublisher } from "../../domain/events/event-publisher.interface";
 
 export class InMemoryEventPublisher implements EventPublisher {
   private handlers = new Map<string, Array<(event: any) => Promise<void>>>();

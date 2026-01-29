@@ -13,6 +13,10 @@ export interface NotificationDocument {
 
 const NotificationSchema = new Schema<NotificationDocument>(
   {
+    _id: {
+      type: String,
+      required: true,
+    },
     userId: {
       type: String,
       required: true,
@@ -48,6 +52,7 @@ const NotificationSchema = new Schema<NotificationDocument>(
   },
   {
     timestamps: true,
+    _id: false,
   },
 );
 

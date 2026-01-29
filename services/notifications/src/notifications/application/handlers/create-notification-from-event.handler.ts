@@ -1,11 +1,11 @@
-import { EventPublisher } from "notifications/domain/events/event-publisher.interface";
-import { NotificationRepository } from "notifications/domain/repositories/notification.repository.interface";
+import { EventPublisher } from "../../domain/events/event-publisher.interface";
+import { NotificationRepository } from "../../domain/repositories/notification.repository.interface";
 import { CreateNotificationFromEventCommand } from "../commands/create-notification-from-event.command";
-import { UserId } from "notifications/domain/value-objects/user-id.vo";
-import { NotificationType } from "notifications/domain/value-objects/notification-type.vo";
-import { NotificationContent } from "notifications/domain/value-objects/notification-content.vo";
-import { Notification } from "notifications/domain/aggregates/notification.aggregate";
-import { NotificationCreatedEvent } from "notifications/domain/events/notification-created.event";
+import { UserId } from "../../domain/value-objects/user-id.vo";
+import { NotificationType } from "../../domain/value-objects/notification-type.vo";
+import { NotificationContent } from "../../domain/value-objects/notification-content.vo";
+import { Notification } from "../../domain/aggregates/notification.aggregate";
+import { NotificationCreatedEvent } from "../../domain/events/notification-created.event";
 
 export class CreateNotificationFromEventHandler {
   constructor(

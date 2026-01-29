@@ -11,11 +11,11 @@ import { createNotificationRoutes } from "./notifications/presentation/routes/no
 
 import { RabbitMQConsumer } from "./notifications/presentation/consumers/rabbitmq.consumer";
 import { SocketIOGateway } from "./notifications/presentation/gateways/socket-io.gateway";
-import { CreateNotificationFromEventHandler } from "notifications/application/handlers/create-notification-from-event.handler";
-import { NotificationCreatedEvent } from "notifications/domain/events/notification-created.event";
-import { InMemoryEventPublisher } from "notifications/infrastructure/events/in-memory-event-publisher";
-import { SocketNotificationHandler } from "notifications/infrastructure/events/handlers/socket-notification.handler";
-import { MongoNotificationRepository } from "notifications/infrastructure/persistence/mongodb/repositories/mongo-notification.repository";
+import { CreateNotificationFromEventHandler } from "./notifications/application/handlers/create-notification-from-event.handler";
+import { NotificationCreatedEvent } from "./notifications/domain/events/notification-created.event";
+import { InMemoryEventPublisher } from "./notifications/infrastructure/events/in-memory-event-publisher";
+import { SocketNotificationHandler } from "./notifications/infrastructure/events/handlers/socket-notification.handler";
+import { MongoNotificationRepository } from "./notifications/infrastructure/persistence/mongodb/repositories/mongo-notification.repository";
 
 async function bootstrap() {
   try {

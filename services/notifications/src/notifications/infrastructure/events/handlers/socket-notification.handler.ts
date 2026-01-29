@@ -1,5 +1,5 @@
-import { NotificationCreatedEvent } from "notifications/domain/events/notification-created.event";
-import { SocketIOGateway } from "notifications/presentation/gateways/socket-io.gateway";
+import { NotificationCreatedEvent } from "../../../domain/events/notification-created.event";
+import { SocketIOGateway } from "../../../presentation/gateways/socket-io.gateway";
 
 export class SocketNotificationHandler {
   constructor(private readonly socketGateway: SocketIOGateway) {}
