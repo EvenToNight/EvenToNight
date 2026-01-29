@@ -23,7 +23,7 @@ export const useAuthStore = defineStore('auth', () => {
   const { t } = useI18n()
   const { locale, changeLocale } = useNavigation()
   const $q = useQuasar()
-  const user = ref<User | null>(null)
+  const user = ref<(User & { unreadMessagesCount?: number }) | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
     if (!expiredAt.value) return false
@@ -46,14 +46,15 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem(REFRESH_TOKEN_EXPIRY_SESSION_KEY, refreshExpiredAt.value.toString())
   }
 
-  const setUser = (authUser: User) => {
+  const setUser = async (authUser: User) => {
     user.value = authUser
+    user.value.unreadMessagesCount = await loadUnreadMessagesCount(authUser.id)
     sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(authUser))
   }
 
   const setAuthData = async (authData: LoginResponse) => {
     setTokens(authData)
-    setUser(authData.user)
+    await setUser(authData.user)
     setupAutoRefresh()
   }
 
@@ -176,6 +177,16 @@ export const useAuthStore = defineStore('auth', () => {
       throw new Error('Cannot update users')
     }
     return user.value!
+  }
+
+  const loadUnreadMessagesCount = async (userId: UserID): Promise<number | undefined> => {
+    try {
+      const response = await api.chat.unreadMessageCountFor(userId)
+      return response.unreadCount
+    } catch (error) {
+      console.error('Failed to load unread messages count:', error)
+      return undefined
+    }
   }
 
   const refreshCurrentSessionUserData = () => {

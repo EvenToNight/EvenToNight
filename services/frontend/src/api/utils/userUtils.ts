@@ -8,7 +8,6 @@ const authStore = useAuthStore()
 export interface UserLoadResult extends User {
   interactionsInfo?: UserInteractionsInfo
   organizationReviewStatistics?: OrganizationReviewsStatistics
-  unreadMessagesCount?: number
 }
 
 export const loadUser = async (userId: UserID): Promise<UserLoadResult> => {
@@ -16,11 +15,9 @@ export const loadUser = async (userId: UserID): Promise<UserLoadResult> => {
     console.log('Loading user with ID:', userId)
     const user: UserLoadResult = await api.users.getUserById(userId)
     user.interactionsInfo = await getUserInteractionsInfo(userId)
-    user.unreadMessagesCount = await loadUnreadMessagesCount(userId)
     if (user.role === 'organization') {
       user.organizationReviewStatistics = await getOrganizationReviewsStatistics(userId)
     }
-    console.log('Loaded user:', user)
     return user
   } catch (error) {
     // TODO: maybe return empty user?
@@ -53,17 +50,4 @@ const getOrganizationReviewsStatistics = async (
   organizationId: UserID
 ): Promise<OrganizationReviewsStatistics> => {
   return await api.interactions.getOrganizationReviews(organizationId)
-}
-
-const loadUnreadMessagesCount = async (userId: UserID): Promise<number | undefined> => {
-  if (authStore.isAuthenticated && authStore.user && authStore.user.id === userId) {
-    try {
-      const response = await api.chat.unreadMessageCountFor(authStore.user!.id)
-      return response.unreadCount
-    } catch (error) {
-      console.error('Failed to load unread messages count:', error)
-      return undefined
-    }
-  }
-  return undefined
 }

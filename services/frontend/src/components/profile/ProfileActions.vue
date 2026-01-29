@@ -4,9 +4,11 @@ import type { UserLoadResult } from '@/api/utils/userUtils'
 import { useUserProfile } from '@/composables/useUserProfile'
 import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
 const { goToCreateEvent, goToEditProfile, goToSettings, goToChat } = useNavigation()
+const authStore = useAuthStore()
 
 interface Props {
   user: UserLoadResult
@@ -46,10 +48,14 @@ const handleOpenChat = () => {
       <q-btn icon="edit" flat class="action-btn action-btn--secondary" @click="handleEditProfile" />
       <q-btn icon="chat" flat class="action-btn action-btn--secondary" @click="handleOpenChat">
         <q-badge
-          v-if="props.user.unreadMessagesCount && props.user.unreadMessagesCount > 0"
+          v-if="
+            authStore.user &&
+            authStore.user.unreadMessagesCount &&
+            authStore.user.unreadMessagesCount > 0
+          "
           color="red"
           floating
-          >{{ String(props.user.unreadMessagesCount) }}</q-badge
+          >{{ String(authStore.user.unreadMessagesCount) }}</q-badge
         >
       </q-btn>
       <q-btn
