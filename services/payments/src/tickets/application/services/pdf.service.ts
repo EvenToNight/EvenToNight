@@ -42,8 +42,7 @@ export class PdfService {
 
     const host = process.env.HOST || 'localhost';
     const protocol = host.includes('localhost') ? 'http' : 'https';
-    const qrUrl =
-      `${protocol}://${host}/tickets/` + ticket.ticketId + '/verify';
+    const qrUrl = `${protocol}://${host}/verify/` + ticket.ticketId;
     const qrDataUrl = await toDataURL(qrUrl);
     const qrImage = qrDataUrl.replace(/^data:image\/png;base64,/, '');
     const qrBuffer = Buffer.from(qrImage, 'base64');

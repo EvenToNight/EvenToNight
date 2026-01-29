@@ -4,6 +4,8 @@ import { api } from '@/api'
 export const TICKET_TYPE_VALUES: string[] = await api.payments.getTicketTypes()
 export type TicketType = (typeof TICKET_TYPE_VALUES)[number]
 
+export type EventTicketTypeID = string
+
 export interface UpdateEventTicketTypeData {
   description?: string
   price?: number
@@ -18,7 +20,7 @@ export interface EventTicketTypeData {
 }
 
 export interface EventTicketType extends Omit<EventTicketTypeData, 'creatorId' | 'quantity'> {
-  id: string
+  id: EventTicketTypeID
   eventId: EventID
   availableQuantity: number
   soldQuantity: number
