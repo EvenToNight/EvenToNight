@@ -1,3 +1,7 @@
-export interface UnreadCountDTO {
-  count: number;
+export class UnreadCountDTO {
+  constructor(public readonly count: number) {}
+
+  toJSON(): object {
+    return { count: this.count };
+  }
 }
