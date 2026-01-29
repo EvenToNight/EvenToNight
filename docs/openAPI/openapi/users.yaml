@@ -248,9 +248,10 @@ paths:
       tags: [Users]
       summary: Update user by ID
       description: >
-        Updates the authenticated user's account and/or profile information.
+        Updates the authenticated user's account and profile information.
         The userId in the path must match the user_id claim in the access token.
-        Only provided fields are updated; missing fields keep their current value.
+        All fields provided in the request body replace the current values.
+        Optional fields not included will be cleared.
         On success, a UserUpdated domain event is published.
       servers:
         - url: http://localhost:9000

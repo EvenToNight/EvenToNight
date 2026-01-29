@@ -22,6 +22,7 @@ import io.circe.generic.auto._
 import io.circe.syntax._
 import model.Member
 import model.Organization
+import model.RegisteredUser
 import model.events.UserDeleted
 import model.events.UserUpdated
 import model.member.MemberUpdate
@@ -92,17 +93,17 @@ class UserRoutes(
     userService.getUserById(userId) match
       case Left(err) => Response(err, 404)
       case Right((_, user)) =>
-        (
+        val result: Either[String, RegisteredUser] =
           for
             _ <- authenticateAndAuthorize(req, userId)
 
             dto <- parseRequestBody[UpdateUserRequestDTO](req)
-            updatedUser <- Right(user match
+            updatedUser <- user match
               case m: Member       => MemberUpdate.updateFromDTO(m, dto)
-              case o: Organization => OrganizationUpdate.updateFromDTO(o, dto))
+              case o: Organization => OrganizationUpdate.updateFromDTO(o, dto)
             _ <- userService.updateUser(updatedUser, userId)
           yield updatedUser
-        ) match
+        result match
           case Right(updatedUser) =>
             updatedUser match
               case m: Member =>
