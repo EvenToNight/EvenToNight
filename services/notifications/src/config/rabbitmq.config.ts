@@ -14,7 +14,7 @@ export class RabbitMQ {
         "interaction.like",
         "interaction.follow",
         "interaction.review",
-        "chat.message",
+        "chat.message.created",
         "event.published",
       ];
 

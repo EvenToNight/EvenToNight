@@ -2,7 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { RabbitMqSetupService } from './rabbitmq-setup.service';
+import { RabbitMqPublisherService } from './rabbitmq/rabbitmq-publisher.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -27,8 +27,13 @@ async function bootstrap() {
   const rabbitmqPass = process.env.RABBITMQ_PASS || 'admin';
   const rabbitmqUrl = `amqp://${rabbitmqUser}:${rabbitmqPass}@${rabbitmqHost}:5672`;
 
-  const setupService = new RabbitMqSetupService();
-  await setupService.setup(rabbitmqUrl);
+  const publisherService = app.get(RabbitMqPublisherService);
+  await publisherService.initialize({
+    url: rabbitmqUrl,
+    exchange: 'eventonight',
+    queue: 'chat_queue',
+    routingKeys: ['user.created', 'user.updated', 'user.deleted'],
+  });
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,

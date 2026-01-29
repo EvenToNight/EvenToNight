@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Message, MessageDocument } from '../schemas/message.schema';
+import { RabbitMqPublisherService } from '../../rabbitmq/rabbitmq-publisher.service';
+import { UsersService } from '../../users/services/users.service';
 
 @Injectable()
 export class MessageManagerService {
@@ -9,6 +11,8 @@ export class MessageManagerService {
     @InjectModel(Message.name) private readonly messageModel: Model<any>,
     @InjectModel('Conversation') private readonly conversationModel: Model<any>,
     @InjectModel('Participant') private readonly participantModel: Model<any>,
+    private readonly rabbitMqPublisher: RabbitMqPublisherService,
+    private readonly usersService: UsersService,
   ) {}
 
   async createMessage(
@@ -28,7 +32,25 @@ export class MessageManagerService {
 
     console.log(`✅ Message sent in conversation ${conversationId}`);
 
-    // TODO: Publish event to RabbitMQ for real-time notifications
+    // Publish event to RabbitMQ for real-time notifications
+    const recipientParticipant = await this.participantModel.findOne({
+      conversationId: new Types.ObjectId(conversationId),
+      userId: { $ne: senderId },
+    });
+
+    if (recipientParticipant) {
+      const senderInfo = await this.usersService.getUserInfo(senderId);
+
+      await this.rabbitMqPublisher.publishMessageCreated({
+        receiverId: recipientParticipant.userId,
+        conversationId,
+        senderId,
+        senderName: senderInfo?.name || '',
+        messageId: message._id.toString(),
+        message: content,
+        senderAvatar: senderInfo?.avatar || '',
+      });
+    }
 
     return message;
   }
