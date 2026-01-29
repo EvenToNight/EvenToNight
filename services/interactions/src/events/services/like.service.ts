@@ -11,6 +11,7 @@ import { Like } from '../schemas/like.schema';
 import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
 import { UserInfoDto } from '../../commons/dto/user-info-dto';
+import { RabbitMqPublisherService } from 'src/rabbitmq/rabbitmq-publisher.service';
 
 @Injectable()
 export class LikeService {
@@ -18,6 +19,7 @@ export class LikeService {
     @InjectModel(Like.name) private likeModel: Model<Like>,
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
+    private readonly rabbitMqPublisher: RabbitMqPublisherService,
   ) {}
 
   async likeEvent(eventId: string, userId: string): Promise<Like> {
@@ -29,7 +31,23 @@ export class LikeService {
     }
 
     const like = new this.likeModel({ eventId, userId });
-    return like.save();
+    await like.save();
+
+    const [eventInfo, userInfo] = await Promise.all([
+      this.metadataService.getEventInfo(eventId),
+      this.metadataService.getUserInfo(userId),
+    ]);
+
+    await this.rabbitMqPublisher.publishLikeCreated({
+      creatorId: eventInfo.creatorId,
+      eventId,
+      eventName: eventInfo.name,
+      userId,
+      userName: userInfo.name,
+      userAvatar: userInfo.avatar,
+    });
+
+    return like;
   }
 
   async unlikeEvent(eventId: string, userId: string): Promise<void> {

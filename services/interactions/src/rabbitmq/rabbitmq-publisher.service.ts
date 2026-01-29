@@ -3,6 +3,15 @@ import * as amqp from 'amqp-connection-manager';
 import { ChannelWrapper } from 'amqp-connection-manager';
 import { ConfirmChannel } from 'amqplib';
 
+export interface LikeCreatedEvent {
+  creatorId: string;
+  eventId: string;
+  eventName: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+}
+
 export interface RabbitMqConfig {
   url: string;
   exchange: string;
@@ -45,6 +54,10 @@ export class RabbitMqPublisherService implements OnModuleDestroy {
 
   async onModuleDestroy() {
     await this.channelWrapper.close();
+  }
+
+  async publishLikeCreated(event: LikeCreatedEvent): Promise<void> {
+    await this.publishEvent('interactions.like.created', event);
   }
 
   async publishEvent(routingKey: string, payload: any): Promise<void> {
