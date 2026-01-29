@@ -1,7 +1,7 @@
 import { io, type Socket } from 'socket.io-client'
 import type { ApiClient } from '../client'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
-import type { NotificationAPI } from '../interfaces/notification'
+import type { NotificationsAPI } from '../interfaces/notifications'
 import type {
   FollowRecievedEvent,
   LikeRecievedEvent,
@@ -12,13 +12,13 @@ import type {
   NotificationData,
   NotificationID,
   TicketSoldEvent,
-} from '../types/notification'
+} from '../types/notifications'
 import type { UserID } from '../types/users'
 import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 
 let socket: Socket | undefined
 
-export const createNotificationApi = (notificationClient: ApiClient): NotificationAPI => ({
+export const createNotificationsApi = (notificationClient: ApiClient): NotificationsAPI => ({
   async getNotifications(
     userId: UserID,
     pagination?: PaginatedRequest

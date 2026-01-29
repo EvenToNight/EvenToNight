@@ -7,12 +7,12 @@ import type {
   NotificationID,
   Notification,
   TicketSoldEvent,
-} from '../types/notification'
+} from '../types/notifications'
 import type { UserID } from '../types/users'
 import type { PaginatedRequest, PaginatedResponse } from './commons'
 import type { AccessToken } from './users'
 
-export interface NotificationAPI {
+export interface NotificationsAPI {
   connect(userId: UserID, token: AccessToken): Promise<void>
   disconnect(): Promise<void>
   isUserOnline: (userId: UserID) => Promise<boolean>

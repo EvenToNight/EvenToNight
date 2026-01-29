@@ -3,7 +3,7 @@ import type {
   NotificationData,
   NotificationEvent,
   NotificationType,
-} from '../types/notification'
+} from '../types/notifications'
 
 type EventCallback = (event: NotificationData) => void
 

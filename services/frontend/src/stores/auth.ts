@@ -56,6 +56,7 @@ export const useAuthStore = defineStore('auth', () => {
     setTokens(authData)
     await setUser(authData.user)
     setupAutoRefresh()
+    await api.notifications.connect(authData.user.id, authData.accessToken)
   }
 
   const clearAuth = () => {
@@ -129,6 +130,7 @@ export const useAuthStore = defineStore('auth', () => {
         await api.users.logout(refreshToken.value).catch(() => {})
       }
     } finally {
+      await api.notifications.disconnect()
       clearAuth()
       isLoading.value = false
       const currentLocale = window.location.pathname.split('/')[1]
@@ -208,13 +210,13 @@ export const useAuthStore = defineStore('auth', () => {
       refreshExpiresIn >= 0 &&
       storedUser
     ) {
-      setTokens({
+      setAuthData({
         accessToken: storedAccessToken,
         expiresIn: expiresIn,
         refreshToken: storedRefreshToken,
         refreshExpiresIn: refreshExpiresIn,
+        user: JSON.parse(storedUser),
       })
-      setUser(JSON.parse(storedUser))
       return true
     }
     return false

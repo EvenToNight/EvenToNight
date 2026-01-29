@@ -1,5 +1,5 @@
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
-import type { NotificationAPI } from '../interfaces/notification'
+import type { NotificationsAPI } from '../interfaces/notifications'
 import type {
   FollowRecievedEvent,
   LikeRecievedEvent,
@@ -9,13 +9,13 @@ import type {
   Notification,
   NotificationID,
   TicketSoldEvent,
-} from '../types/notification'
+} from '../types/notifications'
 import type { UserID } from '../types/users'
 import { createWebSocket, type WebSocket } from './webSocket'
 
 export let ws: WebSocket | undefined
 
-export const mockNotificationApi: NotificationAPI = {
+export const mockNotificationsApi: NotificationsAPI = {
   async connect(userId, _token) {
     if (ws && ws.getConnectionStatus()) return
     ws = createWebSocket(userId)
