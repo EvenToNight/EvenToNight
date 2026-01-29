@@ -7,6 +7,8 @@ export class ExternalEventMapper {
   ): CreateNotificationFromEventCommand | null {
     switch (routingKey) {
       // TODO: handle all routing keys
+      case "event.created":
+        return this.mapEventCreated(payload);
       case "interaction.like":
         return this.mapInteractionLike(payload);
       default:
@@ -24,6 +26,17 @@ export class ExternalEventMapper {
       title: "New Like",
       message: `Your post has a new like`,
       // TODO: metadata ??
+    });
+  }
+
+  private static mapEventCreated(
+    payload: any,
+  ): CreateNotificationFromEventCommand {
+    return CreateNotificationFromEventCommand.create({
+      recipientUserId: payload.organizerId,
+      type: "new_event",
+      title: "Event Created",
+      message: `Organization ${payload.organizerName} has created a new event`,
     });
   }
 }
