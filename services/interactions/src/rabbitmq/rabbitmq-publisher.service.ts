@@ -19,6 +19,14 @@ export interface FollowCreatedEvent {
   followerAvatar: string;
 }
 
+export interface ReviewCreatedEvent {
+  creatorId: string;
+  eventId: string;
+  userId: string;
+  userName: string;
+  userAvatar: string;
+}
+
 export interface RabbitMqConfig {
   url: string;
   exchange: string;
@@ -69,6 +77,10 @@ export class RabbitMqPublisherService implements OnModuleDestroy {
 
   async publishFollowCreated(event: FollowCreatedEvent): Promise<void> {
     await this.publishEvent('interactions.follow.created', event);
+  }
+
+  async publishReviewCreated(event: ReviewCreatedEvent): Promise<void> {
+    await this.publishEvent('interactions.review.created', event);
   }
 
   private async publishEvent(routingKey: string, payload: any): Promise<void> {
