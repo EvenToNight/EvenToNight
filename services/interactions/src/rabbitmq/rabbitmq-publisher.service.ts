@@ -12,6 +12,13 @@ export interface LikeCreatedEvent {
   userAvatar: string;
 }
 
+export interface FollowCreatedEvent {
+  followedId: string;
+  followerId: string;
+  followerName: string;
+  followerAvatar: string;
+}
+
 export interface RabbitMqConfig {
   url: string;
   exchange: string;
@@ -60,7 +67,11 @@ export class RabbitMqPublisherService implements OnModuleDestroy {
     await this.publishEvent('interactions.like.created', event);
   }
 
-  async publishEvent(routingKey: string, payload: any): Promise<void> {
+  async publishFollowCreated(event: FollowCreatedEvent): Promise<void> {
+    await this.publishEvent('interactions.follow.created', event);
+  }
+
+  private async publishEvent(routingKey: string, payload: any): Promise<void> {
     try {
       const message = {
         eventType: routingKey,
