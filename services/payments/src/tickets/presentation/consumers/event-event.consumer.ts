@@ -1,10 +1,5 @@
-import { Controller, Inject, Logger } from '@nestjs/common';
-import {
-  MessagePattern,
-  Payload,
-  Ctx,
-  RmqContext,
-} from '@nestjs/microservices';
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { RmqContext } from '@nestjs/microservices';
 import type { EventEnvelope } from '../../../commons/domain/events/event-envelope';
 import { Channel } from 'amqp-connection-manager';
 import { Message } from 'amqplib';
@@ -18,7 +13,8 @@ import { DeleteEventTicketTypesHandler } from 'src/tickets/application/handlers/
 
 interface EventUpdatedPayload {
   eventId: string;
-  date: Date;
+  date?: Date;
+  name?: string;
   status: string;
 }
 
@@ -38,7 +34,7 @@ interface EventDeletedPayload {
   eventId: string;
 }
 
-@Controller()
+@Injectable()
 export class EventEventConsumer {
   private readonly logger = new Logger(EventEventConsumer.name);
 
@@ -48,11 +44,7 @@ export class EventEventConsumer {
     private readonly deleteHandler: DeleteEventTicketTypesHandler,
   ) {}
 
-  @MessagePattern()
-  async handleAllEvents(
-    @Payload() envelope: EventEnvelope<any>,
-    @Ctx() context: RmqContext,
-  ) {
+  async handleAllEvents(envelope: EventEnvelope<any>, context: RmqContext) {
     const message = context.getMessage() as Message;
     const routingKey = message.fields.routingKey;
     this.logger.log(`📨 Received event: ${routingKey}`);
@@ -111,6 +103,7 @@ export class EventEventConsumer {
     await this.eventRepository.update({
       eventId: EventId.fromString(envelope.payload.eventId),
       date: envelope.payload.date,
+      title: envelope.payload.name,
       status: EventStatus.fromString(envelope.payload.status),
     });
 

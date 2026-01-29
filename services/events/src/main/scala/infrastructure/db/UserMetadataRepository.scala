@@ -16,7 +16,7 @@ trait UserMetadataRepository:
 case class MongoUserMetadataRepository(
     connectionString: String,
     databaseName: String,
-    collectionName: String = "user_metadata",
+    collectionName: String = "users",
     messageBroker: EventPublisher
 ) extends UserMetadataRepository:
 

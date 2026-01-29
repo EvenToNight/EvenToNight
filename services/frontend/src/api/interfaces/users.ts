@@ -12,7 +12,6 @@ export interface LoginRequest {
   password: string
 }
 
-//TODO: confirm password is needed?
 export interface ChangePasswordRequest {
   currentPassword: string
   newPassword: string
@@ -56,7 +55,6 @@ export interface LoginResponse extends TokenResponse {
 
 export interface UsersAPI {
   login(credentials: LoginRequest): Promise<LoginResponse>
-  //TODO update with current darkmode and lang settings
   register(data: RegistrationRequest): Promise<LoginResponse>
   refreshToken(refreshToken: RefreshToken): Promise<TokenResponse>
   logout(refreshToken: RefreshToken): Promise<void>
@@ -66,7 +64,8 @@ export interface UsersAPI {
   getUserById(id: UserID): Promise<User>
   deleteUserById(id: UserID): Promise<void>
   updateUserById(id: UserID, data: Partial<User>): Promise<void>
-  updateUserAvatarById(id: UserID, avatarFile: File | null): Promise<{ avatarUrl: string }>
+  updateUserAvatarById(id: UserID, avatarFile: File): Promise<{ avatarUrl: string }>
+  deleteUserAvatarById(id: UserID): Promise<void>
 
   changePassword(userId: UserID, data: ChangePasswordRequest): Promise<void>
   searchUsers(params: {

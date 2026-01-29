@@ -7,10 +7,20 @@ import repository.MemberRepository
 import repository.OrganizationRepository
 
 class UserService(memberRepo: MemberRepository, orgRepo: OrganizationRepository):
-  def insertUser(user: RegisteredUser, userId: String): String =
+  def insertUser(user: RegisteredUser, userId: String): Either[String, Unit] =
     user match
-      case m: Member       => memberRepo.insert(m, userId)
-      case o: Organization => orgRepo.insert(o, userId)
+      case m: Member =>
+        try
+          memberRepo.insert(m, userId)
+          Right(())
+        catch
+          case e: Exception => Left(s"Failed to insert member: ${e.getMessage}")
+      case o: Organization =>
+        try
+          orgRepo.insert(o, userId)
+          Right(())
+        catch
+          case e: Exception => Left(s"Failed to insert organization: ${e.getMessage}")
 
   def getUsers(): Either[String, List[(String, String, RegisteredUser)]] =
     val members       = memberRepo.getAllMembers().toList.map(m => ("member", m._1, m._2))

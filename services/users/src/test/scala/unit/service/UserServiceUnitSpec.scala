@@ -16,16 +16,12 @@ class UserServiceUnitSpec extends AnyFlatSpec with Matchers:
     val memberRepoMock: MemberRepository    = mock(classOf[MemberRepository])
     val orgRepoMock: OrganizationRepository = mock(classOf[OrganizationRepository])
     val service: UserService                = new UserService(memberRepoMock, orgRepoMock)
-    when(memberRepoMock.insert(member, memberUserId)).thenReturn(memberUserId)
-    val result = service.insertUser(member, memberUserId)
+    service.insertUser(member, memberUserId)
     verify(memberRepoMock).insert(member, memberUserId)
-    result shouldBe memberUserId
 
   "insertUser" should "delegate inserting an organization to the organization repository" in:
     val memberRepoMock: MemberRepository    = mock(classOf[MemberRepository])
     val orgRepoMock: OrganizationRepository = mock(classOf[OrganizationRepository])
     val service: UserService                = new UserService(memberRepoMock, orgRepoMock)
-    when(orgRepoMock.insert(organization, organizationUserId)).thenReturn(organizationUserId)
-    val result = service.insertUser(organization, organizationUserId)
+    service.insertUser(organization, organizationUserId)
     verify(orgRepoMock).insert(organization, organizationUserId)
-    result shouldBe organizationUserId

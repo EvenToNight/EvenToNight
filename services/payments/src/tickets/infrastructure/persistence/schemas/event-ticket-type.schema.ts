@@ -28,7 +28,7 @@ export class EventTicketTypeDocument extends Document<string> {
     required: true,
     type: {
       amount: { type: Number, required: true },
-      currency: { type: String, required: true, default: 'EUR' },
+      currency: { type: String, required: true, default: 'USD' },
     },
   })
   price: {

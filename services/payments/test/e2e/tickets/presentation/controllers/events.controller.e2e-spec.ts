@@ -102,7 +102,7 @@ describe('EventController (e2e)', () => {
       eventId: EventId.fromString(eventId),
       type: TicketType.fromString('STANDARD'),
       description: 'Standard ticket',
-      price: Money.fromAmount(50, 'EUR'),
+      price: Money.fromAmount(50, 'USD'),
       availableQuantity: 99,
       soldQuantity: 1,
     });
@@ -111,7 +111,7 @@ describe('EventController (e2e)', () => {
       eventId: EventId.fromString(eventId),
       type: TicketType.fromString('VIP'),
       description: 'VIP ticket',
-      price: Money.fromAmount(150, 'EUR'),
+      price: Money.fromAmount(150, 'USD'),
       availableQuantity: 50,
       soldQuantity: 0,
     });
@@ -174,7 +174,7 @@ describe('EventController (e2e)', () => {
             type: 'VIP',
             description: 'VIP entry ticket',
             price: 59.99,
-            currency: 'EUR',
+            currency: 'USD',
             quantity: 100,
             creatorId,
           };
@@ -272,7 +272,7 @@ describe('EventController (e2e)', () => {
             type: ticketType1.getType().toString(),
             description: 'another ticket',
             price: 1500,
-            currency: 'EUR',
+            currency: 'USD',
             quantity: 30,
             creatorId,
           };

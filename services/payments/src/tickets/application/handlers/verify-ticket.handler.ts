@@ -1,0 +1,24 @@
+import { Injectable } from '@nestjs/common';
+import { TicketService } from '../services/ticket.service';
+import { TransactionManager } from 'src/tickets/infrastructure/database/transaction.manager';
+
+@Injectable()
+export class VerifyTicketHandler {
+  constructor(
+    private readonly ticketService: TicketService,
+    private readonly transactionManager: TransactionManager,
+  ) {}
+
+  async handle(ticketId: string): Promise<boolean> {
+    return await this.transactionManager.executeInTransaction(async () => {
+      const ticket = await this.ticketService.findById(ticketId);
+      if (!ticket) throw new Error('Ticket not found');
+
+      if (ticket.isUsed()) return false;
+
+      ticket.use();
+      await this.ticketService.update(ticket);
+      return true;
+    });
+  }
+}

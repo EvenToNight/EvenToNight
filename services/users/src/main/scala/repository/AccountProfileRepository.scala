@@ -12,7 +12,7 @@ import java.util.ArrayList
 import scala.jdk.CollectionConverters._
 
 trait AccountProfileRepository[A, P]:
-  def insert(account: A, profile: P, userId: String): String
+  def insert(account: A, profile: P, userId: String): Unit
   def getAll(): List[(String, A, P)]
   def findById(userId: String): Option[(A, P)]
   def delete(userId: String): Unit
@@ -29,7 +29,6 @@ class MongoAccountProfileRepository[A, P](
     val accountId = accountsColl.insertOne(account).getInsertedId().asObjectId().getValue().toHexString()
     val profileId = profilesColl.insertOne(profile).getInsertedId().asObjectId().getValue().toHexString()
     referencesColl.insertOne(UserReferences(userId, accountId, profileId))
-    userId
 
   override def getAll(): List[(String, A, P)] =
     val references = referencesColl.find().into(new ArrayList[UserReferences]()).asScala.toList

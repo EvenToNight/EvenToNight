@@ -10,12 +10,12 @@ object UserMetadata:
 
   extension (user: UserMetadata)
     def toDocument: Document =
-      val doc = new Document().append("id", user.id)
+      val doc = new Document().append("_id", user.id)
       doc.append("role", user.role)
       doc
 
   def fromDocument(doc: Document): UserMetadata =
     UserMetadata(
-      id = doc.getString("id"),
+      id = doc.getString("_id"),
       role = doc.getString("role")
     )

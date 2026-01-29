@@ -4,6 +4,7 @@ import { useNavigation } from '@/router/utils'
 
 interface Props {
   result: SearchResult
+  isSelected?: boolean
 }
 
 defineProps<Props>()
@@ -37,7 +38,7 @@ const formatDate = (date: Date): string => {
 </script>
 
 <template>
-  <div class="suggestion-item">
+  <div class="suggestion-item" :class="{ selected: isSelected }">
     <q-avatar
       size="32px"
       class="result-avatar"
@@ -68,16 +69,25 @@ const formatDate = (date: Date): string => {
   gap: $spacing-3;
   padding: $spacing-3;
   cursor: pointer;
-  transition: background-color $transition-fast;
+  transition: all $transition-fast;
   color: $color-text-primary;
+
   &:hover {
-    background-color: $color-gray-100;
+    background-color: $color-gray-200;
+  }
+
+  &.selected {
+    background-color: $color-gray-200;
   }
 
   @include dark-mode {
     color: $color-text-white;
 
     &:hover {
+      background-color: $color-gray-hover;
+    }
+
+    &.selected {
       background-color: $color-gray-hover;
     }
   }

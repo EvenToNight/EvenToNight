@@ -24,11 +24,13 @@ export const Conversation = {
       id: dto.id,
       organization: dto.organization,
       member: dto.member,
-      lastMessage: {
-        senderId: dto.lastMessage.senderId,
-        content: dto.lastMessage.content,
-        createdAt: dto.lastMessage.timestamp,
-      },
+      lastMessage: dto.lastMessage
+        ? {
+            senderId: dto.lastMessage.senderId,
+            content: dto.lastMessage.content,
+            createdAt: dto.lastMessage.timestamp,
+          }
+        : undefined,
       unreadCount: dto.unreadCount,
     }
   },

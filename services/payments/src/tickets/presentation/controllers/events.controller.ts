@@ -11,6 +11,7 @@ import {
   UseGuards,
   ForbiddenException,
   NotFoundException,
+  Query,
 } from '@nestjs/common';
 import { CreateEventTicketTypeHandler } from '../../application/handlers/create-event-ticket-type.handler';
 import { CreateEventTicketTypeDto } from '../../application/dto/create-event-ticket-type.dto';
@@ -23,14 +24,13 @@ import {
   OptionalJwtAuthGuard,
 } from 'src/commons/infrastructure/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
-import { CreateEventDto } from '../../application/dto/create-event.dto';
-import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
-import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
+import { GetEventsByPriceQueryDto } from '../../application/dto/get-events-by-price-query.dto';
+import { PaginatedResult } from 'src/commons/domain/types/pagination.types';
 
 @Controller('events')
-export class EventController {
+export class EventsController {
   constructor(
     private readonly eventTicketTypeService: EventTicketTypeService,
     private readonly eventService: EventService,
@@ -39,30 +39,17 @@ export class EventController {
   ) {}
 
   /**
-   * POST /events
-   * Creates a new event.
+   * GET /events
+   * Returns event IDs paginated by minimum price.
    */
-  @Post(':eventId')
+  @Get()
   @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  async createOrUpdateEvent(
-    @Param('eventId') eventId: string,
-    @Body(ValidationPipe) dto: CreateEventDto,
-    // @CurrentUser('userId') userId: string,
-  ): Promise<void> {
-    // if (dto.creatorId !== userId) {
-    //   throw new ForbiddenException(
-    //     'User ID in token does not match creator ID in request body',
-    //   );
-    // }
-    await this.eventService.save(
-      Event.create({
-        id: EventId.fromString(eventId),
-        creatorId: UserId.fromString(dto.creatorId),
-        date: dto.date,
-        status: EventStatus.fromString(dto.status),
-      }),
-    );
+  getEventsIds(
+    @Query(ValidationPipe) query: GetEventsByPriceQueryDto,
+  ): Promise<PaginatedResult<EventId>> {
+    return this.eventTicketTypeService.findEventIds({
+      ...query,
+    });
   }
 
   /**

@@ -7,13 +7,19 @@ import { EventDocument } from '../schemas/event.schema';
 import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
+import { BaseMongoRepository } from './base-mongo.repository';
 
 @Injectable()
-export class EventRepositoryImpl implements EventRepository {
+export class EventRepositoryImpl
+  extends BaseMongoRepository
+  implements EventRepository
+{
   constructor(
     @InjectModel(EventDocument.name)
     private readonly eventModel: Model<EventDocument>,
-  ) {}
+  ) {
+    super();
+  }
 
   async save(event: Event): Promise<Event> {
     const document = EventMapper.toPersistence(event);
@@ -41,6 +47,7 @@ export class EventRepositoryImpl implements EventRepository {
   async update(event: {
     eventId: EventId;
     date?: Date;
+    title?: string;
     status: EventStatus;
   }): Promise<Event> {
     const updated = await this.eventModel
@@ -49,6 +56,7 @@ export class EventRepositoryImpl implements EventRepository {
         {
           $set: {
             date: event.date,
+            title: event.title,
             status: event.status.toString(),
           },
         },

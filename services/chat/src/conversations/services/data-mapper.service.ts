@@ -47,7 +47,7 @@ export class DataMapperService {
     );
 
     const usersInfoArr = await this.fetchMultipleUsersInfo(userIds);
-    const usersInfoMap = new Map(usersInfoArr.map((u) => [u.userId, u]));
+    const usersInfoMap = new Map(usersInfoArr.map((u) => [u.id, u]));
 
     return participants.map((participant) => {
       const conversation = participant.conversationId;
@@ -88,7 +88,7 @@ export class DataMapperService {
   ): Promise<MessageDTO[]> {
     const senderIds = [...new Set(messages.map((msg) => msg.senderId))];
     const usersInfo = await this.fetchMultipleUsersInfo(senderIds);
-    const usersMap = new Map(usersInfo.map((user) => [user.userId, user]));
+    const usersMap = new Map(usersInfo.map((user) => [user.id, user]));
 
     return messages.map((message) => {
       const senderInfo = usersMap.get(message.senderId);
@@ -193,7 +193,7 @@ export class DataMapperService {
 
     return isMatch
       ? {
-          id: user.userId,
+          id: user.id,
           name: user.name || 'Unknown',
           avatar: user.avatar || this.DEFAULT_AVATAR,
         }
@@ -239,7 +239,7 @@ export class DataMapperService {
         const user = await this.usersService.getUserInfo(id);
         return (
           user || {
-            userId: id,
+            id: id,
             name: 'Unknown User',
             avatar: this.DEFAULT_AVATAR,
           }

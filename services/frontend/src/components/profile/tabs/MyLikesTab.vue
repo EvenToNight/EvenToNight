@@ -6,6 +6,10 @@ import type { Event } from '@/api/types/events'
 import EventCard from '@/components/cards/EventCard.vue'
 import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
 
+interface Props {
+  userId: string
+}
+const props = defineProps<Props>()
 const ITEMS_PER_PAGE = 12
 
 const authStore = useAuthStore()
@@ -15,7 +19,7 @@ const loadingMore = ref(false)
 const hasMore = ref(true)
 
 const loadLikedEvents = async (isLoadingMore = false) => {
-  if (!authStore.user?.id) return
+  if (!authStore.isAuthenticated) return
 
   if (isLoadingMore) {
     loadingMore.value = true
@@ -24,7 +28,7 @@ const loadLikedEvents = async (isLoadingMore = false) => {
   }
 
   try {
-    const response = await api.interactions.getUserLikedEvents(authStore.user.id, {
+    const response = await api.interactions.getUserLikedEvents(props.userId, {
       limit: ITEMS_PER_PAGE,
       offset: isLoadingMore ? events.value.length : 0,
     })

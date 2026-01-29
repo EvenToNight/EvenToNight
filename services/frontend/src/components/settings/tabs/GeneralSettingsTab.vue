@@ -106,10 +106,7 @@ const filterTags = (val: string, update: (fn: () => void) => void) => {
 onMounted(async () => {
   try {
     await loadTags()
-
     isDarkMode.value = authStore.user!.darkMode as boolean
-
-    // TODO: Load from user profile when backend is ready
     birthDate.value = authStore.user?.birthDate?.toDateString() || ''
     gender.value = authStore.user?.gender || null
     selectedTags.value = authStore.user?.interests || []
@@ -133,8 +130,7 @@ const handleThemeToggle = (value: boolean) => {
 const handleSave = async () => {
   saving.value = true
   try {
-    // TODO: Save to backend when API is ready
-    await authStore.updateUserById(authStore.user!.id, {
+    await authStore.updateUser({
       birthDate: new Date(birthDate.value),
       gender: gender.value || undefined,
       interests: selectedTags.value || undefined,

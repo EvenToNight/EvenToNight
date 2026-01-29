@@ -6,6 +6,7 @@ export interface EventCreateParams {
   id: EventId;
   creatorId: UserId;
   date?: Date;
+  title?: string;
   status: EventStatus;
 }
 
@@ -15,10 +16,17 @@ export class Event {
     private creatorId: UserId,
     private status: EventStatus,
     private date?: Date,
+    private title?: string,
   ) {}
 
   static create(params: EventCreateParams): Event {
-    return new Event(params.id, params.creatorId, params.status, params.date);
+    return new Event(
+      params.id,
+      params.creatorId,
+      params.status,
+      params.date,
+      params.title,
+    );
   }
 
   // Getters
@@ -36,5 +44,9 @@ export class Event {
 
   getStatus(): EventStatus {
     return this.status;
+  }
+
+  getTitle(): string | undefined {
+    return this.title;
   }
 }

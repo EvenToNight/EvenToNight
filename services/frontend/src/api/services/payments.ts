@@ -64,4 +64,8 @@ export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
   async getEventPdfTickets(userId: string, eventId: string): Promise<Blob> {
     return paymentsClient.getBlob(`/users/${userId}/events/${eventId}/pdf`)
   },
+
+  async verifyTicket(ticketId: string): Promise<boolean> {
+    return paymentsClient.put<boolean>(`/tickets/${ticketId}/verify`)
+  },
 })

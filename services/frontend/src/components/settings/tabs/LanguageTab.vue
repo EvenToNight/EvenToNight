@@ -55,7 +55,7 @@ const availableLanguages = computed(() => {
 
 const selectLanguage = async (langCode: string) => {
   locale.value = langCode
-  await authStore.updateUserById(authStore.user!.id, { language: langCode })
+  await authStore.updateUser({ language: langCode })
 }
 </script>
 

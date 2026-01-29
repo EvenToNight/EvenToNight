@@ -22,7 +22,7 @@ export type User = Account &
     role: UserRole
   }
 
-//TODO: update, missing id, website or contacts?
+//TODO: website or contacts?
 export interface Account {
   darkMode?: boolean //only on own profile
   username: string

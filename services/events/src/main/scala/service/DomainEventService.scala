@@ -68,13 +68,15 @@ class DomainEventService(
                 )
                 cmd.date.foreach(d => basePayload("date") = ujson.Str(s"${d}Z"))
 
+                cmd.title.foreach(t => basePayload("title") = ujson.Str(t))
+
                 val payload     = ujson.Obj.from(basePayload)
                 val payloadJson = ujson.write(payload)
                 println(s"Registering event ${newEvent._id} with payload: $payloadJson")
 
                 val postResult = Try {
                   requests.post(
-                    s"$paymentsServiceUrl/events/${newEvent._id}",
+                    s"$paymentsServiceUrl/internal/events/${newEvent._id}",
                     data = payloadJson,
                     headers = Map("Content-Type" -> "application/json")
                   )
@@ -86,7 +88,7 @@ class DomainEventService(
                     Left(
                       s"Failed to register event in payments service: ${Option(exception.getMessage).getOrElse(exception.toString)}"
                     )
-                  case Success(response) if response.statusCode != 200 =>
+                  case Success(response) if response.statusCode < 200 || response.statusCode >= 300 =>
                     eventRepository.delete(newEvent._id)
                     Left(s"Payments service error: ${response.statusCode}")
                   case Success(_) =>

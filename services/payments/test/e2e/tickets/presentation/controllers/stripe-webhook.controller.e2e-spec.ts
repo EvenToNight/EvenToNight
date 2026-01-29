@@ -139,7 +139,7 @@ describe('StripeWebhookController (e2e)', () => {
           eventId: EventId.fromString(eventId),
           type: TicketType.fromString('STANDARD'),
           description: 'Standard ticket',
-          price: Money.fromAmount(50, 'EUR'),
+          price: Money.fromAmount(50, 'USD'),
           availableQuantity: availableQuantity,
           soldQuantity: soldQuantity,
         });
@@ -150,7 +150,7 @@ describe('StripeWebhookController (e2e)', () => {
           userId: UserId.fromString(userId),
           attendeeName: 'John Doe',
           ticketTypeId: ticketTypeId,
-          price: Money.fromAmount(50, 'EUR'),
+          price: Money.fromAmount(50, 'USD'),
         });
         ticket1Id = ticket1.getId();
 
@@ -159,7 +159,7 @@ describe('StripeWebhookController (e2e)', () => {
           userId: UserId.fromString(userId),
           attendeeName: 'Jane Doe',
           ticketTypeId: ticketTypeId,
-          price: Money.fromAmount(50, 'EUR'),
+          price: Money.fromAmount(50, 'USD'),
         });
         ticket2Id = ticket2.getId();
 

@@ -96,7 +96,7 @@ describe('CheckoutSessionsController (e2e)', () => {
       eventId: EventId.fromString(eventId),
       type: TicketType.fromString('STANDARD'),
       description: 'Standard ticket',
-      price: Money.fromAmount(50, 'EUR'),
+      price: Money.fromAmount(50, 'USD'),
       availableQuantity: 100,
       soldQuantity: 0,
     });

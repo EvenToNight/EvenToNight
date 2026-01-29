@@ -43,6 +43,7 @@ export interface EventAPI {
   createEvent(eventData: PartialEventData): Promise<PublishEventResponse>
   updateEventData(eventId: EventID, eventData: PartialEventData): Promise<void>
   updateEventPoster(eventId: EventID, poster: File): Promise<void>
+  deleteEventPoster(eventId: EventID): Promise<void>
   deleteEvent(eventId: EventID): Promise<void>
   searchEvents(params: EventsQueryParams): Promise<PaginatedResponse<Event>>
 }

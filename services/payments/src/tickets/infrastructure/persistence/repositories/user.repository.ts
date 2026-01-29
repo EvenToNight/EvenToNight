@@ -5,13 +5,19 @@ import { UserRepository } from 'src/tickets/domain/repositories/user.repository.
 import { UserDocument } from '../schemas/user.schema';
 import { UserMapper } from '../mappers/user.mapper';
 import { User } from 'src/tickets/domain/aggregates/user.aggregate';
+import { BaseMongoRepository } from './base-mongo.repository';
 
 @Injectable()
-export class UserRepositoryImpl implements UserRepository {
+export class UserRepositoryImpl
+  extends BaseMongoRepository
+  implements UserRepository
+{
   constructor(
     @InjectModel(UserDocument.name)
     private readonly userModel: Model<UserDocument>,
-  ) {}
+  ) {
+    super();
+  }
 
   async save(user: User): Promise<User> {
     const document = UserMapper.toPersistence(user);
@@ -40,14 +46,5 @@ export class UserRepositoryImpl implements UserRepository {
 
   async delete(id: string): Promise<void> {
     await this.userModel.findByIdAndDelete(id).exec();
-  }
-
-  isDuplicateError(error: unknown): boolean {
-    return (
-      typeof error === 'object' &&
-      error !== null &&
-      'code' in error &&
-      error.code === 11000
-    );
   }
 }

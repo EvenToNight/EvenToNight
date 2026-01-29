@@ -12,8 +12,11 @@ export class RabbitMqSetupService {
       'user.updated',
       'user.deleted',
       'event.updated',
+      'event.published',
+      'event.completed',
+      'event.cancelled',
       'event.deleted',
-    ]; //TODO: received messages
+    ];
 
     await channel.assertExchange(exchange, 'topic', {
       durable: true,

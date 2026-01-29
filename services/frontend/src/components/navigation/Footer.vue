@@ -5,16 +5,19 @@ import { useNavigation } from '@/router/utils'
 import { ABOUT_ROUTE_NAME, PRIVACY_ROUTE_NAME, TERMS_ROUTE_NAME } from '@/router'
 import AppBrand from '@/components/common/AppBrand.vue'
 import ContactDialog from '@/components/dialogs/ContactDialog.vue'
+import { useAuthStore } from '@/stores/auth'
 
 const { t, locale, availableLocales } = useI18n()
 const { changeLocale, goToRoute } = useNavigation()
-
+const authStore = useAuthStore()
 const showContactDialog = ref(false)
 
 const selectLanguage = (langCode: string) => {
   locale.value = langCode
   localStorage.setItem('user-locale', langCode)
-  //TODO as to update user lang settings?
+  if (authStore.isAuthenticated) {
+    authStore.updateUser({ language: langCode })
+  }
   changeLocale(langCode)
 }
 
