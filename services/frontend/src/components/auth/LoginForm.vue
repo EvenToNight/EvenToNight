@@ -57,6 +57,7 @@ const handleLogin = async () => {
         type="text"
         label="Username or Email*"
         icon="person"
+        autocomplete="username"
         :rules="[notEmpty('Username or Email is required')]"
       />
 
@@ -65,6 +66,7 @@ const handleLogin = async () => {
         type="password"
         :label="t('auth.form.passwordLabel') + ' *'"
         icon="lock"
+        autocomplete="current-password"
         :rules="[notEmpty(t('auth.form.passwordError'))]"
       />
     </template>
