@@ -2,6 +2,7 @@
 import TabView, { type Tab } from '@/components/navigation/TabView.vue'
 import TicketsTab from './tabs/TicketsTab.vue'
 import EventsTab from './tabs/EventsTab.vue'
+import MultiStatusEventTab from './tabs/MultiStatusEventTab.vue'
 import ReviewsTab from './tabs/ReviewsTab.vue'
 import MyLikesTab from './tabs/MyLikesTab.vue'
 import type { User } from '@/api/types/users'
@@ -27,11 +28,9 @@ const isOrganization = computed(() => {
   return props.user.role === 'organization'
 })
 
-const organizationEvents = ref<Event[]>([])
 const organizationDraftedEvents = ref<Event[]>([])
 const userAttendedEvents = ref<Event[]>([])
 
-const hasMorePublished = ref(true)
 const hasMoreDraft = ref(true)
 const hasMoreAttended = ref(true)
 
@@ -66,11 +65,11 @@ onMounted(async () => {
   try {
     console.log('Fetching data for user profile:', props.user.id)
     //TODO: pass likes info, and uniform tab props loading (internally or externally)
-    const publishedResponse = await api.events.searchEvents({
-      organizationId: props.user.id,
-      status: 'PUBLISHED',
-      pagination: { limit: EVENTS_PER_PAGE },
-    })
+    // const publishedResponse = await api.events.searchEvents({
+    //   organizationId: props.user.id,
+    //   status: 'PUBLISHED',
+    //   pagination: { limit: EVENTS_PER_PAGE },
+    // })
 
     if (isOwnProfile.value) {
       const draftResponse = await api.events.searchEvents({
@@ -95,16 +94,16 @@ onMounted(async () => {
     }
     userAttendedEvents.value = events.items
     hasMoreAttended.value = response.hasMore
-    organizationEvents.value = publishedResponse.items
-    hasMorePublished.value = publishedResponse.hasMore
+    // organizationEvents.value = publishedResponse.items
+    // hasMorePublished.value = publishedResponse.hasMore
   } catch (error) {
     console.error('Failed to fetch data for user:', error)
   }
 })
 
 const createLoadMoreFunction = (
-  eventsRef: typeof organizationEvents,
-  hasMoreRef: typeof hasMorePublished,
+  eventsRef: typeof organizationDraftedEvents,
+  hasMoreRef: typeof hasMoreDraft,
   status: EventStatus
 ) => {
   return async () => {
@@ -125,8 +124,24 @@ const createLoadMoreFunction = (
   }
 }
 
-const loadMorePublished = createLoadMoreFunction(organizationEvents, hasMorePublished, 'PUBLISHED')
+// const loadMorePublished = createLoadMoreFunction(organizationEvents, hasMorePublished, 'PUBLISHED')
 const loadMoreDraft = createLoadMoreFunction(organizationDraftedEvents, hasMoreDraft, 'DRAFT')
+
+const loadOrganizationEvents = async (
+  status: EventStatus,
+  offset: number,
+  limit: number,
+  sortOrder: 'asc' | 'desc'
+) => {
+  const response = await api.events.searchEvents({
+    organizationId: props.user.id,
+    status,
+    pagination: { limit, offset },
+    sortBy: 'date',
+    sortOrder,
+  })
+  return response
+}
 const loadMoreAttended = async () => {
   try {
     const response = await api.interactions.userParticipations(props.user.id, {
@@ -157,11 +172,9 @@ const tabs = computed<Tab[]>(() => {
       id: 'publishedEvents',
       label: t('userProfile.myEvents'),
       icon: 'event',
-      component: EventsTab,
+      component: MultiStatusEventTab,
       props: {
-        events: organizationEvents.value,
-        hasMore: hasMorePublished.value,
-        onLoadMore: loadMorePublished,
+        loadEvents: loadOrganizationEvents,
         emptyText: isOwnProfile.value
           ? t('userProfile.noEventCreated')
           : t('userProfile.noEventCreatedExternal'),
