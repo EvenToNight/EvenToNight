@@ -14,7 +14,7 @@ import type {
   TicketSoldEvent,
 } from '../types/notification'
 import type { UserID } from '../types/users'
-import { buildQueryParams } from '../utils/requestUtils'
+import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 
 let socket: Socket | undefined
 
@@ -23,9 +23,7 @@ export const createNotificationApi = (notificationClient: ApiClient): Notificati
     userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<Notification>> {
-    const queryParams = {
-      ...pagination,
-    }
+    const queryParams = { ...evaluatePagination(pagination) }
     return notificationClient.get<PaginatedResponse<Notification>>(
       `/users/${userId}/notifications${buildQueryParams(queryParams)}`
     )
@@ -43,30 +41,51 @@ export const createNotificationApi = (notificationClient: ApiClient): Notificati
     return notificationClient.get<boolean>(`/users/${userId}/online-status`)
   },
 
-  async connect(userId: UserID): Promise<void> {
+  async connect(userId: UserID, token?: string): Promise<void> {
     if (socket?.connected) {
-      console.log('[Socket.IO] Already connected')
+      console.log('[Socket.IO] already connected')
       return
     }
 
-    socket = io(notificationClient.baseUrl, {
-      auth: {
-        userId,
-      },
-    })
+    try {
+      const url = notificationClient.baseUrl
+      console.log('[Socket.IO] Connecting to:', url)
 
-    socket.on('connect', () => {
-      console.log('[Socket.IO] Connected successfully')
-    })
+      socket = io(url, {
+        auth: {
+          token: token,
+          userId,
+        },
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 3000,
+        withCredentials: true,
+        transports: ['websocket', 'polling'],
+      })
 
-    socket.on('disconnect', () => {
-      socket = undefined
-      console.log('[Socket.IO] Disconnected')
-    })
+      socket.on('connect', () => {
+        console.log('[Socket.IO] Connected')
+      })
 
-    socket.on('error', (error: Error) => {
-      console.error('[Socket.IO] Error:', error)
-    })
+      socket.on('registered', (data: { userId: string }) => {
+        console.log('[Socket.IO] Registered with user ID:', data.userId)
+      })
+
+      socket.on('disconnect', (reason: string) => {
+        console.log('[Socket.IO] Disconnected:', reason)
+      })
+
+      socket.on('connect_error', (error: Error) => {
+        console.error('[Socket.IO] connection error:', error)
+      })
+
+      socket.on('error', (error: Error) => {
+        console.error('[Socket.IO] error:', error)
+      })
+    } catch (error) {
+      console.error('[Socket.IO] Failed to create connection:', error)
+      throw error
+    }
   },
 
   async disconnect(): Promise<void> {

@@ -16,7 +16,7 @@ import { createWebSocket, type WebSocket } from './webSocket'
 export let ws: WebSocket | undefined
 
 export const mockNotificationApi: NotificationAPI = {
-  async connect(userId) {
+  async connect(userId, _token) {
     if (ws && ws.getConnectionStatus()) return
     ws = createWebSocket(userId)
     ws.connect()

@@ -10,10 +10,11 @@ import type {
 } from '../types/notification'
 import type { UserID } from '../types/users'
 import type { PaginatedRequest, PaginatedResponse } from './commons'
+import type { AccessToken } from './users'
 
 export interface NotificationAPI {
-  connect(userId: UserID): Promise<void>
-  disconnect(userId: UserID): Promise<void>
+  connect(userId: UserID, token: AccessToken): Promise<void>
+  disconnect(): Promise<void>
   isUserOnline: (userId: UserID) => Promise<boolean>
   getUnreadNotificationsCount: (userId: UserID) => Promise<number>
   getNotifications: (
