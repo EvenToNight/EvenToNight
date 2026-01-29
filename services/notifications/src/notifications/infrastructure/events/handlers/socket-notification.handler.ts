@@ -30,8 +30,7 @@ export class SocketNotificationHandler {
     return {
       id: event.notificationId,
       type: event.type,
-      title: event.content.title,
-      message: event.content.message,
+      metadata: event.content,
       read: false,
       createdAt: event.createdAt,
     };

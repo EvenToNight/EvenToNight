@@ -87,7 +87,7 @@ export class Notification {
       id: this._id.toString(),
       userId: this._userId.toString(),
       type: this._type.toString(),
-      content: this._content.toJson(),
+      metadata: this._content.toJson(),
       read: this._read,
       createdAt: this._createdAt,
       updatedAt: this._updatedAt,

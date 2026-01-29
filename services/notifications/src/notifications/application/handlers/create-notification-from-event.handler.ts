@@ -14,12 +14,15 @@ export class CreateNotificationFromEventHandler {
   ) {}
 
   async execute(command: CreateNotificationFromEventCommand): Promise<string> {
-    const userId = UserId.fromString(command.recipientUserId);
+    const userId = command.recipientUserId
+      ? UserId.fromString(command.recipientUserId)
+      : undefined;
     const type = NotificationType.fromString(command.type);
-    const content = NotificationContent.create({
-      title: command.title,
-      message: command.message,
-    });
+    const content = NotificationContent.create(command.metadata);
+
+    if (!userId) {
+      return ""; // TODO: if userId is not defined, it's maybe a eventCreated event...
+    }
 
     const notification = Notification.create({
       userId,

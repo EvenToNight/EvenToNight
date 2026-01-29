@@ -7,8 +7,11 @@ export class ExternalEventMapper {
   ): CreateNotificationFromEventCommand | null {
     switch (routingKey) {
       // TODO: handle all routing keys
-      case "event.created":
+      /*case "event.created":
         return this.mapEventCreated(payload);
+      */
+      case "interaction.like":
+        return this.mapLike(payload);
       default:
         console.warn(`No mapping found for routing key: ${routingKey}`);
         return null;
@@ -18,10 +21,24 @@ export class ExternalEventMapper {
     payload: any,
   ): CreateNotificationFromEventCommand {
     return CreateNotificationFromEventCommand.create({
-      recipientUserId: payload.creatorId,
+      recipientUserId: payload.recipientUserId,
       type: "new_event",
-      title: "Event Created",
-      message: `Organization has created a new event`,
+      metadata: {
+        eventId: payload.eventId,
+        title: payload.title,
+      },
+    });
+  }
+  private static mapLike(payload: any): CreateNotificationFromEventCommand {
+    return CreateNotificationFromEventCommand.create({
+      recipientUserId: payload.creatorId,
+      type: "like",
+      metadata: {
+        eventId: payload.eventId,
+        eventName: payload.eventName,
+        userId: payload.userId,
+        userName: payload.userName,
+      },
     });
   }
 }

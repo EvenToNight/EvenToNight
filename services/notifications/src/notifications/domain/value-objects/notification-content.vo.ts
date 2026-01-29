@@ -1,42 +1,23 @@
-export interface NotificationContentProps {
-  title: string;
-  message: string;
-}
-
 export class NotificationContent {
-  private constructor(
-    private readonly _title: string,
-    private readonly _message: string,
-    // TODO: private readonly _metadata?: Record<string, any>
-  ) {
+  private constructor(private readonly _metadata: Record<string, any>) {
     this.validate();
   }
 
-  static create(props: NotificationContentProps): NotificationContent {
-    return new NotificationContent(props.title, props.message);
+  static create(metadata: Record<string, any>): NotificationContent {
+    return new NotificationContent(metadata);
   }
 
   private validate(): void {
-    if (!this._title || this._title.trim() === "") {
-      throw new Error("Title cannot be empty");
-    }
-    if (!this._message || this._message.trim() === "") {
-      throw new Error("Message cannot be empty");
+    if (!this._metadata || typeof this._metadata !== "object") {
+      throw new Error("Notification metadata must be an object");
     }
   }
 
-  get title(): string {
-    return this._title;
+  get metadata(): Record<string, any> {
+    return { ...this._metadata };
   }
 
-  get message(): string {
-    return this._message;
-  }
-
-  toJson(): object {
-    return {
-      title: this._title,
-      message: this._message,
-    };
+  toJson(): Record<string, any> {
+    return this._metadata;
   }
 }

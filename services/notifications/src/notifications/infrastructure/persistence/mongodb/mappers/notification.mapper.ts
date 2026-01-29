@@ -13,8 +13,7 @@ export class NotificationMapper {
       _id: notification.id.toString(),
       userId: notification.userId.toString(),
       type: notification.type.toString(),
-      title: notification.content.title,
-      message: notification.content.message,
+      metadata: notification.content.metadata,
       read: notification.isRead,
       createdAt: notification.createdAt,
       updatedAt: notification.updatedAt,
@@ -25,10 +24,7 @@ export class NotificationMapper {
     return Notification.fromPersistence(NotificationId.fromString(doc._id), {
       userId: UserId.fromString(doc.userId),
       type: NotificationType.fromString(doc.type),
-      content: NotificationContent.create({
-        title: doc.title,
-        message: doc.message,
-      }),
+      content: NotificationContent.create(doc.metadata),
       read: doc.read,
       createdAt: doc.createdAt,
       updatedAt: doc.updatedAt,

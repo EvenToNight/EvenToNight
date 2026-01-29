@@ -4,8 +4,7 @@ export interface NotificationDocument {
   _id: string;
   userId: string;
   type: string;
-  title: string;
-  message: string;
+  metadata: Record<string, any>;
   read: boolean;
   createdAt: Date;
   updatedAt: Date;
@@ -36,13 +35,10 @@ const NotificationSchema = new Schema<NotificationDocument>(
       ],
       index: true,
     },
-    title: {
-      type: String,
+    metadata: {
+      type: Schema.Types.Mixed,
       required: true,
-    },
-    message: {
-      type: String,
-      required: true,
+      default: {},
     },
     read: {
       type: Boolean,
