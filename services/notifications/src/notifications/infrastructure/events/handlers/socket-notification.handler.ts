@@ -5,8 +5,6 @@ export class SocketNotificationHandler {
   constructor(private readonly socketGateway: SocketIOGateway) {}
 
   async handle(event: NotificationCreatedEvent): Promise<void> {
-    const startTime = Date.now();
-
     try {
       console.log(`🔔 Processing socket notification for user ${event.userId}`);
 
@@ -22,11 +20,7 @@ export class SocketNotificationHandler {
         event.userId,
         notificationPayload,
       );
-
-      const duration = Date.now() - startTime;
-      console.log(
-        `✅ Socket notification sent to user ${event.userId} in ${duration}ms`,
-      );
+      console.log(`✅ Socket notification sent to user ${event.userId}`);
     } catch (error) {
       console.error("Socket emission failed:", error);
     }
