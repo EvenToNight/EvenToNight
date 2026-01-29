@@ -11,10 +11,10 @@ export class RabbitMQ {
       const queue = config.rabbitmq.queue;
 
       const routingKeys = [
-        "interaction.like.created",
-        "interaction.follow.created",
-        "interaction.follow.deleted",
-        "interaction.review.created",
+        "interactions.like.created",
+        "interactions.follow.created",
+        "interactions.follow.deleted",
+        "interactions.review.created",
         "chat.message.created",
         "event.published",
       ];

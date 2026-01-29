@@ -9,11 +9,11 @@ export class ExternalEventMapper {
       // TODO: handle all routing keys
       case "chat.message.created":
         return this.mapMessage(payload);
-      case "interaction.like.created":
+      case "interactions.like.created":
         return this.mapLike(payload);
-      case "interaction.follow.created":
+      case "interactions.follow.created":
         return this.mapFollow(payload);
-      case "interaction.review.created":
+      case "interactions.review.created":
         return this.mapReview(payload);
       case "event.published":
         return this.mapEventCreated(payload);
