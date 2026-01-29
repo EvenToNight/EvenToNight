@@ -5,17 +5,41 @@ export class SocketNotificationHandler {
   constructor(private readonly socketGateway: SocketIOGateway) {}
 
   async handle(event: NotificationCreatedEvent): Promise<void> {
-    console.log(`🔔 Sending socket notification to user ${event.userId}`);
+    const startTime = Date.now();
 
     try {
-      await this.socketGateway.sendNotificationToUser(event.userId, {
-        id: event.notificationId,
-        type: event.type,
-        content: event.content,
-        createdAt: event.createdAt,
-      });
+      console.log(`🔔 Processing socket notification for user ${event.userId}`);
+
+      const isOnline = this.socketGateway.isUserConnected(event.userId);
+
+      if (!isOnline) {
+        return;
+      }
+
+      const notificationPayload = this.formatNotificationPayload(event);
+
+      await this.socketGateway.sendNotificationToUser(
+        event.userId,
+        notificationPayload,
+      );
+
+      const duration = Date.now() - startTime;
+      console.log(
+        `✅ Socket notification sent to user ${event.userId} in ${duration}ms`,
+      );
     } catch (error) {
       console.error("Socket emission failed:", error);
     }
+  }
+
+  private formatNotificationPayload(event: NotificationCreatedEvent): any {
+    return {
+      id: event.notificationId,
+      type: event.type,
+      title: event.content.title,
+      message: event.content.message,
+      read: false,
+      createdAt: event.createdAt,
+    };
   }
 }
