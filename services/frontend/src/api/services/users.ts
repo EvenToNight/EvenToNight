@@ -11,7 +11,7 @@ import type {
 } from '../interfaces/users'
 import type { User, UserID } from '../types/users'
 import type { ApiClient } from '../client'
-import { buildQueryParams, evaluatePagination, getPaginatedItems } from '../utils/requestUtils'
+import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import { LoginAdapter, UserAdapter } from '../adapters/users'
 
@@ -36,11 +36,6 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
     return usersClient.post<void>('/logout', { refreshToken })
   },
 
-  async getUsers(pagination?: PaginatedRequest): Promise<PaginatedResponse<User>> {
-    const response = (await usersClient.get<UserAPIResponse[]>('/')).map(UserAdapter.fromApi)
-    return getPaginatedItems(response, pagination)
-  },
-
   async getUserById(id: UserID): Promise<User> {
     const res = await usersClient.get<UserAPIResponse>(`/${id}`)
     console.log('Fetched user by ID:', { id, res })
@@ -52,7 +47,10 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
   },
 
   //TODO: check update and removal of all optional fields
-  async updateUserById(id: UserID, data: Partial<User>): Promise<void> {
+  async updateUserById(
+    id: UserID,
+    data: Partial<User> & { username: string; name: string; avatar: string }
+  ): Promise<void> {
     return usersClient.put<void>(`/${id}`, UserAdapter.toApi(data))
   },
 
@@ -61,8 +59,7 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
     if (avatarFile) {
       formData.append('avatar', avatarFile)
     }
-    //TODO: handle deletion of avatar when no file is provided (add /avatar to the endpoint)
-    return usersClient.post<{ avatarUrl: string }>(`/${id}`, formData)
+    return usersClient.post<{ avatarUrl: string }>(`/${id}/avatar`, formData)
   },
 
   async deleteUserAvatarById(id: UserID): Promise<void> {

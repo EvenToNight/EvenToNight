@@ -33,16 +33,12 @@ export interface TokenResponse {
 
 export interface UserAPIResponse {
   id: UserID
-  username: string
+  account: Account
   profile: ProfileAPI
   role: UserRole
 }
 
-export interface LoginAPIResponse extends TokenResponse {
-  role: UserRole
-  account: Account
-  profile: ProfileAPI
-}
+export type LoginAPIResponse = UserAPIResponse & TokenResponse
 
 export interface UpdateUserAPIRequest {
   accountDTO: Account
@@ -59,8 +55,6 @@ export interface UsersAPI {
   refreshToken(refreshToken: RefreshToken): Promise<TokenResponse>
   logout(refreshToken: RefreshToken): Promise<void>
 
-  //TODO: add pagination to backend
-  getUsers(pagination?: PaginatedRequest): Promise<PaginatedResponse<User>>
   getUserById(id: UserID): Promise<User>
   deleteUserById(id: UserID): Promise<void>
   updateUserById(id: UserID, data: Partial<User>): Promise<void>
