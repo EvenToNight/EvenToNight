@@ -52,6 +52,10 @@ export class FollowService {
     if (result.deletedCount === 0) {
       throw new NotFoundException('Follow relationship not found');
     }
+    await this.rabbitMqPublisher.publishFollowDeleted({
+      followedId,
+      followerId,
+    });
   }
 
   async getFollowers(userId: string, limit?: number, offset?: number) {
