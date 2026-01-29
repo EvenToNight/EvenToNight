@@ -9,8 +9,10 @@ export class ExternalEventMapper {
       // TODO: handle all routing keys
       case "chat.message.created":
         return this.mapMessage(payload);
-      case "interaction.like":
+      case "interaction.like.created":
         return this.mapLike(payload);
+      case "interaction.follow.created":
+        return this.mapFollow(payload);
       case "event.published":
         return this.mapEventCreated(payload);
       default:
@@ -57,6 +59,19 @@ export class ExternalEventMapper {
         eventName: payload.eventName,
         userId: payload.userId,
         userName: payload.userName,
+        userAvatar: payload.userAvatar,
+      },
+    });
+  }
+
+  private static mapFollow(payload: any): CreateNotificationFromEventCommand {
+    return CreateNotificationFromEventCommand.create({
+      recipientUserId: payload.followedId,
+      type: "follow",
+      metadata: {
+        followerId: payload.followerId,
+        followerName: payload.followerName,
+        followerAvatar: payload.followerAvatar,
       },
     });
   }
