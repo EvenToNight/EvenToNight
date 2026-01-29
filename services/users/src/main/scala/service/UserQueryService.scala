@@ -5,6 +5,8 @@ import model.Organization
 import model.RegisteredUser
 import model.UserRole._
 import model.query.SearchUsersQuery
+import model.query.UserSearchAccountResult
+import model.query.UserSearchProfileResult
 import model.query.UserSearchResult
 import repository.MemberRepository
 import repository.OrganizationRepository
@@ -25,16 +27,13 @@ class UserQueryService(memberRepo: MemberRepository, orgRepo: OrganizationReposi
       val results = pagedUsers.map { case (userId, user) =>
         user match
           case m: Member =>
-            UserSearchResult(userId, m.account.username, m.profile.name, m.profile.avatar, m.profile.bio, MemberRole)
+            val memberAccount = UserSearchAccountResult(m.account.username)
+            val memberProfile = UserSearchProfileResult(m.profile.name, m.profile.avatar, m.profile.bio)
+            UserSearchResult(userId, MemberRole, memberAccount, memberProfile)
           case o: Organization =>
-            UserSearchResult(
-              userId,
-              o.account.username,
-              o.profile.name,
-              o.profile.avatar,
-              o.profile.bio,
-              OrganizationRole
-            )
+            val organizationAccount = UserSearchAccountResult(o.account.username)
+            val organizationProfile = UserSearchProfileResult(o.profile.name, o.profile.avatar, o.profile.bio)
+            UserSearchResult(userId, OrganizationRole, organizationAccount, organizationProfile)
       }
 
       val hasMore = allUsers.size > query.limit + query.offset

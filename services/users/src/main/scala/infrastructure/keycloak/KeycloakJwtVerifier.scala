@@ -111,7 +111,7 @@ object KeycloakJwtVerifier:
       case other =>
         parse(payload.content)
           .left.map(_.getMessage)
-          .flatMap(_.hcursor.get[String](other)).left.map(_ => "Missing '$claim' claim in token")
+          .flatMap(_.hcursor.get[String](other)).left.map(_ => s"Missing '$claim' claim in token")
 
   def extractUserId(payload: JwtClaim): Either[String, String] = extractClaimFromPayload(payload, "user_id")
 

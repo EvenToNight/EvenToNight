@@ -10,10 +10,11 @@ case class MemberAccount(
     email: String,
     darkMode: Boolean = false,
     language: String = "en",
-    gender: Option[String] = None,
+    gender: Option[Gender] = None,
     birthDate: Option[Instant] = None,
     interests: Option[List[String]] = None
 )
 
 object MemberAccount:
+  import Gender.given
   given Encoder[MemberAccount] = deriveEncoder[MemberAccount].mapJson(_.dropNullValues)

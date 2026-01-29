@@ -139,28 +139,6 @@ paths:
         '500':
           description: Failed to refresh public keys
 
-  /:
-    get:
-      tags: [Users]
-      summary: Get all users
-      description: Returns all users with their roles and profile.
-      servers:
-        - url: http://localhost:9000
-          description: Users service (local development)
-        - url: https://users.eventonight.site
-          description: Users service (production)
-      responses:
-        '200':
-          description: List of users
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/UserDTO'
-        '400':
-          description: Bad request
-
   /{userId}:
     get:
       tags: [Users]
@@ -248,9 +226,10 @@ paths:
       tags: [Users]
       summary: Update user by ID
       description: >
-        Updates the authenticated user's account and/or profile information.
+        Updates the authenticated user's account and profile information.
         The userId in the path must match the user_id claim in the access token.
-        Only provided fields are updated; missing fields keep their current value.
+        All fields provided in the request body replace the current values.
+        Optional fields not included will be cleared.
         On success, a UserUpdated domain event is published.
       servers:
         - url: http://localhost:9000
@@ -367,14 +346,54 @@ paths:
                   summary: User does not exist
                   value: "User not found"
 
+  /{userId}/avatar:
+    delete:
+      tags: [Users]
+      summary: Delete user avatar by ID
+      description: >
+        Deletes the avatar of the authenticated user.
+        The userId in the path must match the user_id claim in the access token.
+        The avatar is reset to the default image.
+        On success, a UserUpdated domain event is published.
+      servers:
+        - url: http://localhost:9000
+          description: Users service (local development)
+        - url: https://users.eventonight.site
+          description: Users service (production)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: ID of the user whose avatar will be deleted
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '204':
+          description: Avatar successfully deleted and reset to default
+        '400':
+          description: Bad request or update failed
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                updateFailed:
+                  summary: Avatar update failed
+                  value: "Failed to update user avatar"
+
   /{userId}/password:
     put:
       tags: [Users]
-      summary: Update user password
+      summary: Update user password by ID
       description: >
         Updates the authenticated user's password.
-        Password management is handled by the identity provider.
+        The current password must be provided and correct.
+        The new password must match the confirm password field.
         The userId in the path must match the user_id claim in the access token.
+
       servers:
         - url: http://localhost:9000
           description: Users service (local development)
@@ -409,6 +428,7 @@ paths:
       description: >
         Searches for users by role and/or username/profile name prefix.
         Returns users matching the criteria in pages of results.
+        If no query parameters are specified, the first 10 users are returned.
       servers:
         - url: http://localhost:9000
           description: Users service (local development)
@@ -612,22 +632,28 @@ components:
           nullable: true
           example: ["https://twitter.com/johndoe", "https://linkedin.com/in/johndoe"]
 
-
     LoginResponseDTO:
       type: object
       required:
         - id
+        - role
+        - account
+        - profile
         - accessToken
         - expiresIn
         - refreshToken
         - refreshExpiresIn
-        - role
-        - account
-        - profile
       properties:
         id:
           type: string
           example: user123
+        role:
+          type: string
+          example: member
+        account:
+          $ref: '#/components/schemas/AccountDTO'
+        profile:
+          $ref: '#/components/schemas/ProfileDTO'
         accessToken:
           type: string
           example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
@@ -642,31 +668,32 @@ components:
           type: integer
           format: int64
           example: 1800
-        role:
+
+    UsernameDTO:
+      type: object
+      required:
+        - username
+      properties:
+        username:
           type: string
-          example: member
-        account:
-          $ref: '#/components/schemas/AccountDTO'
-        profile:
-          $ref: '#/components/schemas/ProfileDTO'
+          example: johndoe
 
     UserDTO:
       type: object
       required:
         - id
-        - username
         - role
+        - account
         - profile
       properties:
         id:
           type: string
           example: user123
-        username:
-          type: string
-          example: johndoe
         role:
           type: string
           example: member
+        account:
+          $ref: '#/components/schemas/UsernameDTO'        
         profile:
           $ref: '#/components/schemas/ProfileDTO'
     
@@ -806,27 +833,28 @@ components:
           minimum: 0
           description: Number of users to skip for pagination (default 0)
           
-    UserSearchResult:
+    UserSearchAccountResult:
       type: object
-      description: Represents a single user returned in search results
+      description: Account-related data returned in user search results
       required:
-        - id
         - username
-        - name
-        - avatar
-        - role
       properties:
-        id:
-          type: string
-          description: The user's unique ID
-          example: user123
         username:
           type: string
           description: The user's unique username
           example: johndoe
+
+    UserSearchProfileResult:
+      type: object
+      description: Profile-related data returned in user search results
+      required:
+        - name
+        - avatar
+        - bio
+      properties:
         name:
           type: string
-          description: The full name of the user from their profile
+          description: The profile name of the user
           example: John Doe
         avatar:
           type: string
@@ -834,14 +862,32 @@ components:
           example: https://example.com/avatar.jpg
         bio:
           type: string
-          description: Short biography or description of the user (optional)
+          description: Short biography or description of the user
           nullable: true
           example: Software developer and event enthusiast.
+
+    UserSearchResult:
+      type: object
+      description: Represents a single user returned in search results
+      required:
+        - id
+        - role
+        - account
+        - profile
+      properties:
+        id:
+          type: string
+          description: The user's unique ID
+          example: user123
         role:
           type: string
           description: Role of the user, either "member" or "organization"
           enum: [member, organization]
           example: member
+        account:
+          $ref: '#/components/schemas/UserSearchAccountResult'
+        profile:
+          $ref: '#/components/schemas/UserSearchProfileResult'
 
     PaginatedUserSearchResponse:
       type: object

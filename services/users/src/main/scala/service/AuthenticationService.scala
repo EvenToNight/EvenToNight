@@ -33,8 +33,16 @@ class AuthenticationService(
       _          <- adminApi.deleteUser(adminToken, keycloakId)
     yield ()
 
-  def updatePassword(keycloakId: String, newPassword: String): Either[String, Unit] =
-    for
-      adminToken <- keycloakTokenClient.getClientAccessToken()
-      _          <- adminApi.updatePassword(adminToken, keycloakId, newPassword)
-    yield ()
+  def updatePassword(
+      username: String,
+      keycloakId: String,
+      currentPassword: String,
+      newPassword: String
+  ): Either[String, Unit] =
+    if !keycloakTokenClient.verifyCurrentPassword(username, currentPassword) then
+      Left("Current password incorrect")
+    else
+      for
+        adminToken <- keycloakTokenClient.getClientAccessToken()
+        _          <- adminApi.updatePassword(adminToken, keycloakId, newPassword)
+      yield ()
