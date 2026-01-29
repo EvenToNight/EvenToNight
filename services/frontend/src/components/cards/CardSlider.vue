@@ -174,11 +174,11 @@ onMounted(() => {
   }
 }
 
-// .nav-arrow-left {
-//   left: -24px;
-// }
+.nav-arrow-left {
+  left: -24px;
+}
 
-// .nav-arrow-right {
-//   right: -24px;
-// }
+.nav-arrow-right {
+  right: -24px;
+}
 </style>
