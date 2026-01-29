@@ -2,6 +2,9 @@ package repository
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.Filters
+import com.mongodb.client.model.FindOneAndUpdateOptions
+import com.mongodb.client.model.ReturnDocument
+import com.mongodb.client.model.Updates
 import model.UserReferences
 import org.bson.types.ObjectId
 
@@ -14,6 +17,7 @@ trait AccountProfileRepository[A, P]:
   def findById(userId: String): Option[(A, P)]
   def delete(userId: String): Unit
   def update(account: A, profile: P, userId: String): Unit
+  def updateProfileAvatar(userId: String, newAvatar: String): Option[(A, P)]
   def search(prefix: Option[String], limit: Int, getUsername: A => String, getName: P => String): List[(String, A, P)]
 
 class MongoAccountProfileRepository[A, P](
@@ -62,6 +66,24 @@ class MongoAccountProfileRepository[A, P](
       accountsColl.replaceOne(Filters.eq("_id", ObjectId(reference.accountId)), account)
       profilesColl.replaceOne(Filters.eq("_id", ObjectId(reference.profileId)), profile)
     )
+
+  override def updateProfileAvatar(userId: String, newAvatar: String) =
+    for
+      reference <- Option(referencesColl.find(Filters.eq("_id", userId)).first())
+      updatedProfile <- Option(
+        profilesColl.findOneAndUpdate(
+          Filters.eq("_id", new ObjectId(reference.profileId)),
+          Updates.set("avatar", newAvatar),
+          new FindOneAndUpdateOptions()
+            .returnDocument(ReturnDocument.AFTER)
+        )
+      )
+      account <- Option(
+        accountsColl.find(
+          Filters.eq("_id", new ObjectId(reference.accountId))
+        ).first()
+      )
+    yield (account, updatedProfile)
 
   override def search(prefix: Option[String], limit: Int, getUsername: A => String, getName: P => String) =
     val all = getAll()

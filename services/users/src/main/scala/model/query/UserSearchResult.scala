@@ -6,12 +6,12 @@ import model.UserRole
 
 case class UserSearchResult(
     id: String,
-    username: String,
-    name: String,
-    avatar: String,
-    bio: Option[String],
-    role: UserRole
+    role: UserRole,
+    account: UserSearchAccountResult,
+    profile: UserSearchProfileResult
 )
 
 object UserSearchResult:
-  given Encoder[UserSearchResult] = deriveEncoder[UserSearchResult].mapJson(_.dropNullValues)
+  import UserSearchAccountResult.given
+  import UserSearchProfileResult.given
+  given Encoder[UserSearchResult] = deriveEncoder[UserSearchResult]

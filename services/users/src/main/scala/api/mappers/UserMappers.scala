@@ -2,6 +2,7 @@ package api.mappers
 
 import api.dto.response.LoginResponseDTO
 import api.dto.response.UserDTO
+import api.dto.response.UsernameDTO
 import model.Member
 import model.Organization
 import model.RegisteredUser
@@ -17,24 +18,24 @@ object UserMappers:
         case member: Member =>
           LoginResponseDTO(
             id = userId,
+            role = role,
+            account = member.account.toAccountDTO,
+            profile = member.profile.toProfileDTO,
             accessToken = tokens.accessToken,
             expiresIn = tokens.expiresIn,
             refreshToken = tokens.refreshToken,
-            refreshExpiresIn = tokens.refreshExpiresIn,
-            role = role,
-            account = member.account.toAccountDTO,
-            profile = member.profile.toProfileDTO
+            refreshExpiresIn = tokens.refreshExpiresIn
           )
         case org: Organization =>
           LoginResponseDTO(
             id = userId,
+            role = role,
+            account = org.account.toAccountDTO,
+            profile = org.profile.toProfileDTO,
             accessToken = tokens.accessToken,
             expiresIn = tokens.expiresIn,
             refreshToken = tokens.refreshToken,
-            refreshExpiresIn = tokens.refreshExpiresIn,
-            role = role,
-            account = org.account.toAccountDTO,
-            profile = org.profile.toProfileDTO
+            refreshExpiresIn = tokens.refreshExpiresIn
           )
 
     def toUserDTO(userId: String, role: String): UserDTO =
@@ -43,13 +44,13 @@ object UserMappers:
           UserDTO(
             id = userId,
             role = role,
-            username = member.account.username,
+            account = UsernameDTO(member.account.username),
             profile = member.profile.toProfileDTO
           )
         case org: Organization =>
           UserDTO(
             id = userId,
             role = role,
-            username = org.account.username,
+            account = UsernameDTO(org.account.username),
             profile = org.profile.toProfileDTO
           )
