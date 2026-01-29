@@ -1,7 +1,10 @@
 import { Server, Socket } from "socket.io";
-import { NotificationGateway } from "../consumers/rabbitmq.consumer";
 import { JwtService } from "../../../config/jwt.config";
 import { config } from "../../../config/env.config";
+
+export interface NotificationGateway {
+  sendNotificationToUser(userId: string, notification: any): Promise<void>;
+}
 
 export class SocketIOGateway implements NotificationGateway {
   private io: Server;
