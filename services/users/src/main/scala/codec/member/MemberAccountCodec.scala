@@ -1,5 +1,6 @@
 package codec.member
 
+import model.member.Gender
 import model.member.MemberAccount
 import org.bson.BsonReader
 import org.bson.BsonType
@@ -19,7 +20,10 @@ class MemberAccountCodec extends Codec[MemberAccount]:
     writer.writeBoolean("darkMode", value.darkMode)
     writer.writeString("language", value.language)
     value.gender.foreach(g =>
-      writer.writeString("gender", g)
+      val genderStr = g match
+        case Gender.Male   => "male"
+        case Gender.Female => "female"
+      writer.writeString("gender", genderStr)
     )
     value.birthDate.foreach(bd =>
       writer.writeDateTime("birthDate", bd.toEpochMilli)
@@ -36,7 +40,7 @@ class MemberAccountCodec extends Codec[MemberAccount]:
     var email: String                   = null
     var darkMode: Boolean               = false
     var language: String                = "en"
-    var gender: Option[String]          = None
+    var gender: Option[Gender]          = None
     var birthDate: Option[Instant]      = None
     var interests: Option[List[String]] = None
 
@@ -54,7 +58,11 @@ class MemberAccountCodec extends Codec[MemberAccount]:
         case "language" =>
           language = reader.readString()
         case "gender" =>
-          gender = Option(reader.readString())
+          gender = Option(reader.readString()).flatMap {
+            case "male"   => Some(Gender.Male)
+            case "female" => Some(Gender.Female)
+            case _        => None
+          }
         case "birthDate" =>
           birthDate = Some(Instant.ofEpochMilli(reader.readDateTime()))
         case "interests" =>

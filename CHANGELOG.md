@@ -1,3 +1,22 @@
+## [1.24.0](https://github.com/EvenToNight/EvenToNight/compare/v1.23.1...v1.24.0) (2026-01-29)
+
+### Features
+
+* **users:** implement DELETE /{userId}/avatar endpoint and add OpenAPI spec ([f089764](https://github.com/EvenToNight/EvenToNight/commit/f08976433ca2154cb9395a6d75cfc79948338e61))
+
+### Bug Fixes
+
+* **deleteAvatar:** delete avatar from media service and publish UserUpdated event ([ed51699](https://github.com/EvenToNight/EvenToNight/commit/ed51699e07272bb84d01c8bb60603935394371a3))
+* **deleteUser:** remove user from MongoDB and use authenticateAndAuthorize ([82c862e](https://github.com/EvenToNight/EvenToNight/commit/82c862e1da39dbd6c6c025a643b20cb1fdf4ab01))
+* **updatePassword:** verify current password before updating it ([7ba486d](https://github.com/EvenToNight/EvenToNight/commit/7ba486d32461e4852f58f037a0fc882d2117711f))
+* **updateUser:** support "replace all" update, add gender and name validation ([55304fe](https://github.com/EvenToNight/EvenToNight/commit/55304fe9b42603b993903ef816fbc5c926aa71af))
+
+## [1.23.1](https://github.com/EvenToNight/EvenToNight/compare/v1.23.0...v1.23.1) (2026-01-28)
+
+### Bug Fixes
+
+* **chatList:** handle null senderId in conversationAPI ([db12a73](https://github.com/EvenToNight/EvenToNight/commit/db12a73d0857e420e42765ae849600df5be49154))
+
 ## [1.23.0](https://github.com/EvenToNight/EvenToNight/compare/v1.22.0...v1.23.0) (2026-01-28)
 
 ### Features

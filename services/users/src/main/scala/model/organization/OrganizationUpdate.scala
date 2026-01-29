@@ -4,24 +4,25 @@ import api.dto.request.UpdateUserRequestDTO
 import model.Organization
 
 object OrganizationUpdate:
-  def updateFromDTO(org: Organization, dto: UpdateUserRequestDTO): Organization =
-    val newAccount = dto.accountDTO.map(a =>
-      org.account.copy(
-        username = org.account.username,
-        email = org.account.email,
-        darkMode = a.darkMode.getOrElse(org.account.darkMode),
-        language = a.language.getOrElse(org.account.language),
-        interests = a.interests.orElse(org.account.interests)
-      )
-    ).getOrElse(org.account)
+  def updateFromDTO(org: Organization, dto: UpdateUserRequestDTO): Either[String, Organization] =
+    val a = dto.accountDTO.get
+    val newAccount = org.account.copy(
+      username = org.account.username,
+      email = org.account.email,
+      darkMode = a.darkMode,
+      language = a.language,
+      interests = a.interests
+    )
 
-    val newProfile = dto.profileDTO.map(p =>
-      org.profile.copy(
-        name = p.name.getOrElse(org.profile.name),
+    val p           = dto.profileDTO.get
+    val trimmedName = p.name.trim
+    if trimmedName.isEmpty then
+      Left("Insert a valid name")
+    else
+      val newProfile = org.profile.copy(
+        name = trimmedName,
         avatar = org.profile.avatar,
-        bio = p.bio.orElse(org.profile.bio),
-        contacts = p.contacts.orElse(org.profile.contacts)
+        bio = p.bio,
+        contacts = p.contacts
       )
-    ).getOrElse(org.profile)
-
-    org.copy(account = newAccount, profile = newProfile)
+      Right(org.copy(account = newAccount, profile = newProfile))

@@ -29,3 +29,15 @@ object MediaServiceClient:
           yield url
 
         result.getOrElse(defaultAvatarUrl)
+
+  def deleteAvatarFromMediaService(userId: String): Either[String, Unit] =
+    Try {
+      requests.delete(
+        s"http://${mediaHost}/users/$userId/avatar.jpg"
+      )
+    }.toEither.left.map(_.getMessage).flatMap(response =>
+      if response.statusCode / 100 == 2 then
+        Right(())
+      else
+        Left(s"Media service error: ${response.statusCode}")
+    )
