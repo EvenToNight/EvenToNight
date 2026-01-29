@@ -7,13 +7,13 @@ import io.circe.generic.semiauto._
 
 case class LoginResponseDTO(
     id: String,
+    role: String,
+    account: AccountDTO,
+    profile: ProfileDTO,
     accessToken: String,
     expiresIn: Long,
     refreshToken: String,
-    refreshExpiresIn: Long,
-    role: String,
-    account: AccountDTO,
-    profile: ProfileDTO
+    refreshExpiresIn: Long
 )
 
 object LoginResponseDTO:

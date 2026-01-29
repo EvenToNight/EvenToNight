@@ -63,16 +63,6 @@ class UserRoutes(
           user.toUserDTO(userId, role).asJson
         Response(json.spaces2, 200, Seq("Content-Type" -> "application/json"))
 
-  @cask.get("/")
-  def getAllUsers(): Response[String] =
-    userService.getUsers() match
-      case Left(err) => Response(err, 400)
-      case Right(users) =>
-        val dtoList = users.map { case (role, userId, user) =>
-          user.toUserDTO(userId, role)
-        }
-        Response(dtoList.asJson.spaces2, 200, Seq("Content-Type" -> "application/json"))
-
   @cask.delete("/:userId")
   def deleteUser(userId: String, req: Request): Response[String] =
     (
