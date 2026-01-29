@@ -11,6 +11,11 @@ import { createNotificationRoutes } from "./notifications/presentation/routes/no
 
 import { RabbitMQConsumer } from "./notifications/presentation/consumers/rabbitmq.consumer";
 import { SocketIOGateway } from "./notifications/presentation/gateways/socket-io.gateway";
+import { CreateNotificationFromEventHandler } from "notifications/application/handlers/create-notification-from-event.handler";
+import { NotificationCreatedEvent } from "notifications/domain/events/notification-created.event";
+import { InMemoryEventPublisher } from "notifications/infrastructure/events/in-memory-event-publisher";
+import { SocketNotificationHandler } from "notifications/infrastructure/events/handlers/socket-notification.handler";
+import { MongoNotificationRepository } from "notifications/infrastructure/persistence/mongodb/repositories/mongo-notification.repository";
 
 async function bootstrap() {
   try {
@@ -30,7 +35,22 @@ async function bootstrap() {
     });
 
     const socketGateway = new SocketIOGateway(io);
-    const rabbitmqConsumer = new RabbitMQConsumer(socketGateway);
+
+    const notificationRepository = new MongoNotificationRepository();
+    const eventPublisher = new InMemoryEventPublisher();
+
+    const socketHandler = new SocketNotificationHandler(socketGateway);
+    eventPublisher.subscribe(
+      NotificationCreatedEvent.name,
+      socketHandler.handle.bind(socketHandler),
+    );
+
+    const createNotificationHandler = new CreateNotificationFromEventHandler(
+      notificationRepository,
+      eventPublisher,
+    );
+
+    const rabbitmqConsumer = new RabbitMQConsumer(createNotificationHandler);
     await rabbitmqConsumer.connect();
     httpServer.listen(config.port, () => {
       console.log(`🚀 Notification service running on port ${config.port}`);

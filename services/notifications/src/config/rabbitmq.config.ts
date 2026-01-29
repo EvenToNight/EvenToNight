@@ -12,6 +12,7 @@ export class RabbitMQ {
 
       const routingKeys = [
         "user.created",
+        "event.created",
         //TODO: Add routing keys
       ];
 
