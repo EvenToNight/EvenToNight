@@ -60,8 +60,16 @@ export class TicketService {
     return this.ticketRepository.findByUserId(userId, pagination);
   }
 
-  findByUserIdAndEventId(userId: string, eventId: string): Promise<Ticket[]> {
-    return this.ticketRepository.findByUserIdAndEventId(userId, eventId);
+  findByUserIdAndEventId(
+    userId: string,
+    eventId: string,
+    status?: TicketStatus,
+  ): Promise<Ticket[]> {
+    return this.ticketRepository.findByUserIdAndEventId(
+      userId,
+      eventId,
+      status,
+    );
   }
 
   findEventsByUserId(
