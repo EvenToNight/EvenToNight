@@ -13,6 +13,8 @@ export class ExternalEventMapper {
         return this.mapLike(payload);
       case "interaction.follow.created":
         return this.mapFollow(payload);
+      case "interaction.review.created":
+        return this.mapReview(payload);
       case "event.published":
         return this.mapEventCreated(payload);
       default:
@@ -72,6 +74,19 @@ export class ExternalEventMapper {
         followerId: payload.followerId,
         followerName: payload.followerName,
         followerAvatar: payload.followerAvatar,
+      },
+    });
+  }
+
+  private static mapReview(payload: any): CreateNotificationFromEventCommand {
+    return CreateNotificationFromEventCommand.create({
+      recipientUserId: payload.creatorId,
+      type: "review",
+      metadata: {
+        eventId: payload.eventId,
+        userId: payload.userId,
+        userName: payload.userName,
+        userAvatar: payload.userAvatar,
       },
     });
   }
