@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed, watch } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { type UserLoadResult, loadUser } from '@/api/utils/userUtils'
@@ -28,6 +28,7 @@ watch(
 
 onMounted(async () => {
   user.value = await loadUser(route.params.id as string)
+  await nextTick() // profileHeaderRef is not set until next tick
   setupScrollObserver()
 })
 
@@ -88,7 +89,7 @@ const scrollToTop = (behavior: ScrollBehavior = 'auto') => {
         />
       </div>
       <div class="profile-container">
-        <ProfileBody :user="user" />
+        <ProfileBody :user="user" @auth-required="showAuthDialog = true" />
       </div>
     </template>
   </div>
