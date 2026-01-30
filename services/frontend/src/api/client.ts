@@ -57,6 +57,18 @@ export class ApiClient {
     })
   }
 
+  async patch<T>(
+    endpoint: string,
+    data?: unknown,
+    options?: { credentials?: boolean }
+  ): Promise<T> {
+    return this.requestJson<T>(endpoint, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+      ...(options?.credentials && { credentials: 'include' }),
+    })
+  }
+
   async delete<T>(endpoint: string, options?: { credentials?: boolean }): Promise<T> {
     return this.requestJson<T>(endpoint, {
       method: 'DELETE',
