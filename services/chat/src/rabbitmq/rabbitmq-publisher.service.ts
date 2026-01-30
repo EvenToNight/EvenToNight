@@ -11,6 +11,7 @@ export interface MessageCreatedEvent {
   message: string;
   messageId: string;
   senderAvatar: string;
+  createdAt: string;
 }
 
 export interface RabbitMqConfig {

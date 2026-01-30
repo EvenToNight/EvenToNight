@@ -8,17 +8,17 @@ export function createNotificationRoutes(
   const router = Router();
   router.use(authMiddleware);
 
-  router.get("/", (req, res, next) =>
-    controller.getNotificationsByUserId(req, res, next),
-  );
+  router.get("/", (req, res, next) => {
+    void controller.getNotificationsByUserId(req, res, next);
+  });
 
-  router.get("/unread-count", (req, res, next) =>
-    controller.getUnreadCount(req, res, next),
-  );
+  router.get("/unread-count", (req, res, next) => {
+    void controller.getUnreadCount(req, res, next);
+  });
 
-  router.post("/:id", (req, res, next) =>
-    controller.markAsRead(req, res, next),
-  );
+  router.post("/:id", (req, res, next) => {
+    void controller.markAsRead(req, res, next);
+  });
 
   return router;
 }

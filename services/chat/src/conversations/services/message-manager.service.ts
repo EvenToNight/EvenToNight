@@ -49,6 +49,7 @@ export class MessageManagerService {
         messageId: message._id.toString(),
         message: content,
         senderAvatar: senderInfo?.avatar || '',
+        createdAt: message.createdAt.toISOString(),
       });
     }
 

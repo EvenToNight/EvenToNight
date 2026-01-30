@@ -44,6 +44,7 @@ MESSAGE
 		message,
 		messageId,
 		senderAvatar,
+		createdAt
 	},
 }
 

@@ -9,6 +9,7 @@ export class MessageReceivedEvent {
     public readonly message: string,
     public readonly messageId: string,
     public readonly senderAvatar: string,
+    public readonly createdAt: string,
   ) {}
 }
 
@@ -26,6 +27,7 @@ export class ProcessMessageEventHandler {
       payload.message,
       payload.messageId,
       payload.senderAvatar,
+      payload.createdAt,
     );
 
     await this.eventPublisher.publish(event);
