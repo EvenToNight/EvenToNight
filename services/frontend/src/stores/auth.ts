@@ -18,12 +18,12 @@ const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
 const REFRESH_TOKEN_SESSION_KEY = 'refresh_token_session'
 const REFRESH_TOKEN_EXPIRY_SESSION_KEY = 'refresh_token_expiry_session'
 const USER_SESSION_KEY = 'user_session'
-
+export type LoggedUser = User & { unreadMessagesCount: number; unreadNotificationsCount: number }
 export const useAuthStore = defineStore('auth', () => {
   const { t } = useI18n()
   const { locale, changeLocale } = useNavigation()
   const $q = useQuasar()
-  const user = ref<(User & { unreadMessagesCount?: number }) | null>(null)
+  const user = ref<LoggedUser | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
     if (!expiredAt.value) return false
@@ -47,8 +47,9 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const setUser = async (authUser: User) => {
-    user.value = authUser
-    user.value.unreadMessagesCount = await loadUnreadMessagesCount(authUser.id)
+    const unreadMessagesCount = await loadUnreadMessagesCount(authUser.id)
+    const unreadNotificationsCount = await loadUnreadNotificationsCount(authUser.id)
+    user.value = { ...authUser, unreadMessagesCount, unreadNotificationsCount }
     sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(authUser))
   }
 
@@ -107,7 +108,7 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     try {
       const data = await api.users.login({ username, password })
-      setAuthData(data)
+      await setAuthData(data)
       $q.dark.set(user.value?.darkMode || false)
       localStorage.setItem('user-locale', user.value!.language!)
       localStorage.setItem('darkMode', String($q.dark.isActive))
@@ -181,13 +182,35 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value!
   }
 
-  const loadUnreadMessagesCount = async (userId: UserID): Promise<number | undefined> => {
+  const loadUnreadMessagesCount = async (userId: UserID): Promise<number> => {
     try {
       const response = await api.chat.unreadMessageCountFor(userId)
       return response.unreadCount
     } catch (error) {
       console.error('Failed to load unread messages count:', error)
-      return undefined
+      return 0
+    }
+  }
+
+  const updateUnreadMessagesCount = (updateFn: (currentCount: number) => number) => {
+    if (user.value) {
+      user.value.unreadMessagesCount = updateFn(user.value.unreadMessagesCount)
+    }
+  }
+
+  const loadUnreadNotificationsCount = async (userId: UserID): Promise<number> => {
+    try {
+      console.log('Loading unread notifications count for user', userId)
+      return await api.notifications.getUnreadNotificationsCount(userId)
+    } catch (error) {
+      console.error('Failed to load unread notifications count:', error)
+      return 0
+    }
+  }
+
+  const updateUnreadNotificationsCount = (updateFn: (currentCount: number) => number) => {
+    if (user.value) {
+      user.value.unreadNotificationsCount = updateFn(user.value.unreadNotificationsCount)
     }
   }
 
@@ -246,8 +269,8 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const isOwnProfile = (userId: UserID): boolean => {
-    return isAuthenticated.value && user.value?.id === userId
+  const isOwnProfile = (profileUserId: UserID): boolean => {
+    return user.value?.id === profileUserId
   }
 
   const changePassword = async (currentPassword: string, newPassword: string) => {
@@ -284,5 +307,7 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuth,
     isOwnProfile,
     changePassword,
+    updateUnreadMessagesCount,
+    updateUnreadNotificationsCount,
   }
 })
