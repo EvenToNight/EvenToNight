@@ -55,6 +55,8 @@ class AuthRoutes(authService: AuthenticationService, userService: UserService, e
           case Left(err) => Response(err, 400)
           case Right(validReq) =>
             authService.createUserWithRole(validReq) match
+              case Left(err) if err.startsWith("Password not compliant")    => Response(err, 400)
+              case Left(err) if err.startsWith("Bad request from Keycloak") => Response(err, 400)
               case Left(err) => Response(s"Failed to create user: $err", 500)
               case Right(userId) =>
                 val registeredUser = fromValidRegistration(validReq)
