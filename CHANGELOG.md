@@ -1,3 +1,14 @@
+## [1.25.0](https://github.com/EvenToNight/EvenToNight/compare/v1.24.1...v1.25.0) (2026-01-30)
+
+### Features
+
+* **notification:** implement get notifications routes ([8f665a8](https://github.com/EvenToNight/EvenToNight/commit/8f665a88cb4fd2e469b08ddb6b49eb9977e741be))
+* **notification:** solved implementation of notification service ([cffaa7d](https://github.com/EvenToNight/EvenToNight/commit/cffaa7dd0a46a5747bbff69d16026d30eff362d7))
+
+### Bug Fixes
+
+* **notification:** fix import and env vars usage ([007c470](https://github.com/EvenToNight/EvenToNight/commit/007c470dd961b346319e20aa58e25e38514bfab2))
+
 ## [1.24.1](https://github.com/EvenToNight/EvenToNight/compare/v1.24.0...v1.24.1) (2026-01-30)
 
 ### Bug Fixes
