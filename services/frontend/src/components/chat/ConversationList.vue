@@ -209,7 +209,7 @@ onMounted(() => {
           content: message,
           createdAt: createdAt,
         }
-        if (selectedConversationId.value !== conversationId) {
+        if (selectedConversationId.value !== conversationId && senderId !== authStore.user?.id) {
           conversation.unreadCount += 1
         }
         // Move to top

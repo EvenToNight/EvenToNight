@@ -246,6 +246,9 @@ onMounted(() => {
     } = event
 
     if (selectedConversationId.value === conversationId) {
+      if (messages.value.some((m) => m.id === messageId)) {
+        return
+      }
       messages.value.push({
         id: messageId,
         conversationId: conversationId,
