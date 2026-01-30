@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
 import { useI18n } from 'vue-i18n'
+import UserList from '@/components/user/UserList.vue'
 
 interface Props {
   event: Event
@@ -24,6 +25,7 @@ const isOrganizer = computed(() => {
 
 const isFavorite = ref(false)
 const likesCount = ref(0)
+const showLikesDialog = ref(false)
 
 const loadInteractions = async () => {
   try {
@@ -85,16 +87,26 @@ onMounted(async () => {
         class="base-button base-button--secondary"
         @click="goToEditEvent(props.event.eventId)"
       />
-      <button class="like-button" :class="{ liked: isFavorite }" @click="toggleLike">
-        <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="24px" />
-        <span class="like-count">{{ likesCount }}</span>
-      </button>
+      <div class="like-container">
+        <button class="like-button" :class="{ liked: isFavorite }" @click="toggleLike">
+          <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="24px" />
+        </button>
+        <span class="like-count" @click="showLikesDialog = true">{{ likesCount }}</span>
+      </div>
     </div>
   </div>
 
   <div v-if="props.event.tags && props.event.tags.length" class="tags-container">
     <span v-for="tag in props.event.tags.slice(0, 3)" :key="tag" class="tag">{{ tag }}</span>
   </div>
+
+  <UserList
+    v-model="showLikesDialog"
+    :load-fn="(pagination) => api.interactions.getEventLikes(props.event.eventId, pagination)"
+    :title="t('eventDetails.likes')"
+    :empty-text="t('eventDetails.noLikes')"
+    empty-icon="favorite_border"
+  />
 </template>
 
 <style scoped lang="scss">
@@ -144,25 +156,34 @@ onMounted(async () => {
   font-weight: $font-weight-medium;
 }
 
-.like-button {
+.like-container {
   @include flex-center;
   gap: $spacing-2;
   padding: $spacing-3;
   border-radius: 12px;
   border: 2px solid rgba(0, 0, 0, 0.1);
   background: transparent;
+  flex-shrink: 0;
+
+  @include dark-mode {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.like-button {
+  @include flex-center;
+  background: transparent;
+  border: none;
   cursor: pointer;
   transition: all $transition-base;
-  flex-shrink: 0;
   color: $color-text-primary;
+  padding: 0;
 
   &:hover {
-    background: rgba(0, 0, 0, 0.05);
+    transform: scale(1.1);
   }
 
   &.liked {
-    background: rgba($color-primary, 0.1);
-    border-color: $color-primary;
     color: $color-primary;
 
     .q-icon {
@@ -171,18 +192,24 @@ onMounted(async () => {
   }
 
   @include dark-mode {
-    border-color: rgba(255, 255, 255, 0.15);
     color: $color-text-dark;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.05);
-    }
   }
 }
 
 .like-count {
   font-size: $font-size-base;
   font-weight: $font-weight-semibold;
+  cursor: pointer;
+  transition: all $transition-base;
+  color: $color-text-primary;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  @include dark-mode {
+    color: $color-text-dark;
+  }
 }
 
 .tags-container {

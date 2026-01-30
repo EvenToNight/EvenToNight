@@ -56,6 +56,12 @@ const router = createRouter({
       },
     },
     {
+      path: '/verify/:ticketId',
+      redirect: (to) => {
+        return `/${getInitialLocale()}/verify/${to.params.ticketId}`
+      },
+    },
+    {
       path: '/:locale',
       component: LocaleWrapper,
       children: [

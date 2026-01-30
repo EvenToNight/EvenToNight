@@ -12,6 +12,7 @@ import {
 import { Pagination } from 'src/commons/utils/pagination.utils';
 import { EventId } from '../../../domain/value-objects/event-id.vo';
 import { BaseMongoRepository } from './base-mongo.repository';
+import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 
 @Injectable()
 export class TicketRepositoryImpl
@@ -55,9 +56,14 @@ export class TicketRepositoryImpl
   async findByUserIdAndEventId(
     userId: string,
     eventId: string,
+    status?: TicketStatus,
   ): Promise<Ticket[]> {
+    const filter: Record<string, string> = { userId, eventId };
+    if (status) {
+      filter.status = status.toString();
+    }
     const documents = await this.ticketModel
-      .find({ userId, eventId })
+      .find(filter)
       .sort({ purchaseDate: -1 })
       .exec();
     return documents.map((doc) => TicketMapper.toDomain(doc));

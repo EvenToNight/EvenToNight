@@ -1,27 +1,46 @@
 <script setup lang="ts">
-import type { User } from '@/api/types/users'
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import type { UserInteractionsInfo } from '@/api/types/interaction'
+import type { UserLoadResult } from '@/api/utils/userUtils'
+import type { PaginatedRequest } from '@/api/interfaces/commons'
+import UserList from '../user/UserList.vue'
+import { api } from '@/api'
 
 interface Props {
-  user: User
-  userInteractionsInfo: UserInteractionsInfo
+  user: UserLoadResult
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
+
 const { t } = useI18n()
+
+const showFollowersDialog = ref(false)
+const showFollowingDialog = ref(false)
+
+const openFollowers = () => {
+  showFollowersDialog.value = true
+}
+
+const openFollowing = () => {
+  showFollowingDialog.value = true
+}
+
+const loadFollowersFn = (pagination?: PaginatedRequest) =>
+  api.interactions.followers(props.user.id, pagination)
+const loadFollowingFn = (pagination?: PaginatedRequest) =>
+  api.interactions.following(props.user.id, pagination)
 </script>
 
 <template>
-  <div class="user-info">
+  <div v-if="user.interactionsInfo" class="user-info">
     <div class="network-info-row">
-      <div class="stat-item">
-        <span class="stat-value">{{ userInteractionsInfo.followers.toString() }}</span>
+      <div class="stat-item clickable" @click="openFollowers">
+        <span class="stat-value">{{ user.interactionsInfo.followers.toString() }}</span>
         <span class="stat-label">{{ t('userProfile.followers') }}</span>
       </div>
       <div class="stat-divider"></div>
-      <div class="stat-item">
-        <span class="stat-value">{{ userInteractionsInfo.following.toString() }}</span>
+      <div class="stat-item clickable" @click="openFollowing">
+        <span class="stat-value">{{ user.interactionsInfo.following.toString() }}</span>
         <span class="stat-label">{{ t('userProfile.following') }}</span>
       </div>
     </div>
@@ -36,6 +55,21 @@ const { t } = useI18n()
       <q-icon name="language" size="18px" />
       <span>{{ user.website }}</span>
     </a>
+
+    <UserList
+      v-model="showFollowersDialog"
+      :load-fn="loadFollowersFn"
+      :title="t('userProfile.followers')"
+      :empty-text="t('userProfile.noFollowers', 'Nessun follower')"
+      empty-icon="people_outline"
+    />
+    <UserList
+      v-model="showFollowingDialog"
+      :load-fn="loadFollowingFn"
+      :title="t('userProfile.following')"
+      :empty-text="t('userProfile.noFollowing', 'Non segui nessuno')"
+      empty-icon="person_add_alt"
+    />
   </div>
 </template>
 
@@ -56,6 +90,22 @@ const { t } = useI18n()
   display: flex;
   align-items: baseline;
   gap: $spacing-1;
+
+  &.clickable {
+    cursor: pointer;
+    transition: all $transition-fast;
+
+    &:hover {
+      .stat-value,
+      .stat-label {
+        color: $color-primary;
+      }
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
 }
 
 .stat-value {

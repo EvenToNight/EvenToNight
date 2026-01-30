@@ -1,43 +1,17 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, watch } from 'vue'
+import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { setTokenProvider, setTokenExpiredCallback } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
-import { useI18n } from 'vue-i18n'
+import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
-const { t, locale } = useI18n()
-function updateMetaTags() {
-  const meta = document.querySelector('meta[name="description"]')
-  if (meta) {
-    meta.setAttribute('content', t('meta.description'))
-  }
-  document.documentElement.setAttribute('lang', locale.value)
-}
+useKeyboardShortcuts()
 
 onMounted(() => {
-  updateMetaTags()
-})
-
-watch(locale, () => {
-  updateMetaTags()
-})
-
-const handleKeyboardShortcut = (event: KeyboardEvent) => {
-  if ((event.ctrlKey || event.metaKey) && event.key === 'd') {
-    event.preventDefault()
-    $q.dark.toggle()
-    authStore.updateUser({ darkMode: $q.dark.isActive })
-    localStorage.setItem('darkMode', String($q.dark.isActive))
-  }
-}
-
-onMounted(() => {
-  window.addEventListener('keydown', handleKeyboardShortcut)
-
   const savedDarkMode = localStorage.getItem('darkMode')
   console.log('Saved dark mode preference:', savedDarkMode)
   if (savedDarkMode === 'true') {
@@ -91,10 +65,6 @@ onMounted(() => {
     .catch((err) => {
       console.error('Failed to fetch event tags:', err)
     })
-})
-
-onUnmounted(() => {
-  window.removeEventListener('keydown', handleKeyboardShortcut)
 })
 </script>
 

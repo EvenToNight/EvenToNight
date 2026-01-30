@@ -1,55 +1,45 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import TicketCard from '@/components/cards/TicketCard.vue'
-import InfiniteScrollList from '@/components/common/InfiniteScrollList.vue'
+import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
-import type { PaginatedResponse } from '@/api/interfaces/commons'
 import type { Event } from '@/api/types/events'
+import { loadUserEventParticipations } from '@/api/utils/paymentsUtils'
+
+const ITEMS_PER_PAGE = 20
 
 const { t } = useI18n()
 const authStore = useAuthStore()
 
-const events = ref<Event[]>([])
+const userId = computed(() => authStore.user!.id)
 
-const userId = computed(() => authStore.user?.id)
+const {
+  items: events,
+  loading,
+  loadingMore,
+  onLoad,
+  loadItems,
+} = useInfiniteScroll<{ userId: string }, Event>({
+  itemsPerPage: ITEMS_PER_PAGE,
+  options: { userId: userId.value },
+  loadFn: async (limit, offset, options) => {
+    return loadUserEventParticipations(
+      options!.userId,
+      { limit, offset },
+      {
+        eventStatus: 'PUBLISHED',
+        sortOrder: 'asc',
+      }
+    )
+  },
+})
 
-const loadItems = async (offset: number, limit: number): Promise<PaginatedResponse<Event>> => {
-  if (!userId.value) {
-    return {
-      items: [],
-      limit,
-      offset,
-      hasMore: false,
-    }
-  }
-
-  const response = await api.payments.findEventsWithUserTickets(userId.value, {
-    status: 'PUBLISHED',
-    order: 'asc',
-    pagination: { offset, limit },
-  })
-  console.log('Fetching events for UserId:', userId.value, response)
-
-  if (response.items.length > 0) {
-    const eventsData = await api.events.getEventsByIds(response.items)
-    console.log('Fetched events data:', eventsData)
-    return {
-      items: eventsData.events,
-      limit: response.limit,
-      offset: response.offset,
-      hasMore: response.hasMore,
-    }
-  }
-
-  return {
-    items: [],
-    limit: response.limit,
-    offset: response.offset,
-    hasMore: response.hasMore,
-  }
-}
+onMounted(() => {
+  loadItems()
+})
 
 const handleDownload = async (eventId: string) => {
   if (!userId.value) {
@@ -83,33 +73,50 @@ const handleDownload = async (eventId: string) => {
 
 <template>
   <div class="tickets-tab">
-    <InfiniteScrollList
-      v-model="events"
-      :load-items="loadItems"
-      :empty-text="t('userProfile.noTickets')"
-      empty-icon-name="confirmation_number"
+    <q-infinite-scroll
+      v-if="!loading && events.length > 0"
+      :offset="250"
+      class="tickets-scroll"
+      :disable="loadingMore"
+      @load="onLoad"
     >
-      <template #default>
-        <div class="tickets-list">
-          <TicketCard
-            v-for="event in events"
-            :key="event.eventId"
-            :event="event"
-            @download="handleDownload"
-          />
+      <div class="tickets-list">
+        <TicketCard
+          v-for="event in events"
+          :key="event.eventId"
+          :event="event"
+          @download="handleDownload"
+        />
+      </div>
+
+      <template #loading>
+        <div class="row justify-center q-my-md">
+          <q-spinner-dots color="primary" size="40px" />
         </div>
       </template>
-    </InfiniteScrollList>
+    </q-infinite-scroll>
+
+    <EmptyState
+      v-else-if="!loading"
+      empty-icon-name="confirmation_number"
+      :empty-text="t('userProfile.noTickets')"
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .tickets-tab {
   @include flex-column;
+  height: 100%;
+}
+
+.tickets-scroll {
+  height: 100%;
 }
 
 .tickets-list {
   @include flex-column;
   gap: $spacing-4;
+  padding: $spacing-3;
 }
 </style>

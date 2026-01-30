@@ -1,18 +1,10 @@
-import { NotificationRepository } from "../../domain/repositories/notification.repository";
+import { NotificationRepository } from "../../domain/repositories/notification.repository.interface";
 
 export class MarkAsReadHandler {
-  constructor(
-    private readonly notificationRepository: NotificationRepository,
-  ) {}
+    constructor(private readonly notificationRepository: NotificationRepository) {}
 
-  async execute(notificationId: string): Promise<void> {
-    const notification =
-      await this.notificationRepository.findById(notificationId);
-    if (!notification) {
-      throw new Error(`Notification with ID ${notificationId} not found`);
+    async execute(notificationId: string): Promise<void> {
+        await this.notificationRepository.markAsRead(notificationId);
     }
 
-    notification.markAsRead();
-    await this.notificationRepository.save(notification);
-  }
 }

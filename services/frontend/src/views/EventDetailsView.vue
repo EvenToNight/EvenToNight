@@ -18,7 +18,9 @@ const eventTickets = ref<EventTicketType[]>([])
 const loadEvent = async () => {
   try {
     event.value = await api.events.getEventById(eventId.value)
-    eventTickets.value = await api.payments.getEventTicketsType(eventId.value)
+    if (event.value && event.value.status === 'PUBLISHED') {
+      eventTickets.value = await api.payments.getEventTicketsType(eventId.value)
+    }
   } catch (error) {
     console.error('Failed to load event:', error)
     goToHome()

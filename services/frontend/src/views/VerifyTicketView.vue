@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
 import { api } from '@/api'
 import { useQuasar } from 'quasar'
+import { useNavigation } from '@/router/utils'
+import { FORBIDDEN_ROUTE_NAME } from '@/router'
+import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 
-const route = useRoute()
 const $q = useQuasar()
 
-const ticketId = ref<string>(route.params.ticketId as string)
+const { params, goToRoute } = useNavigation()
+const ticketId = ref<string>(params.ticketId as string)
 const loading = ref(true)
 const error = ref(false)
 const errorMessage = ref('')
@@ -23,27 +25,22 @@ const verifyTicket = async () => {
 
     if (result) {
       wasAlreadyUsed.value = false
-      $q.notify({
-        type: 'positive',
-        message: 'Ticket verified successfully!',
-        position: 'top',
-      })
     } else {
       wasAlreadyUsed.value = true
+    }
+  } catch (err: any) {
+    if (err.status === 403) {
+      goToRoute(FORBIDDEN_ROUTE_NAME)
+    } else {
+      error.value = true
+      errorMessage.value =
+        err.response?.data?.message || 'Failed to verify ticket. Please try again.'
       $q.notify({
-        type: 'warning',
-        message: 'This ticket has already been used',
+        type: 'negative',
+        message: errorMessage.value,
         position: 'top',
       })
     }
-  } catch (err: any) {
-    error.value = true
-    errorMessage.value = err.response?.data?.message || 'Failed to verify ticket. Please try again.'
-    $q.notify({
-      type: 'negative',
-      message: errorMessage.value,
-      position: 'top',
-    })
   } finally {
     loading.value = false
   }
@@ -55,6 +52,8 @@ onMounted(() => {
 </script>
 
 <template>
+  <NavigationButtons />
+
   <div class="verify-ticket-page">
     <div class="verify-container">
       <div v-if="loading" class="verify-state loading-state">
@@ -77,7 +76,7 @@ onMounted(() => {
       </div>
 
       <div v-else-if="wasAlreadyUsed" class="verify-state already-used-state">
-        <q-icon name="block" size="80px" color="warning" />
+        <q-icon name="block" size="80px" color="negative" />
         <h1 class="verify-title">Ticket Already Used</h1>
         <p class="verify-message">
           This ticket has already been verified and used. It cannot be used again.

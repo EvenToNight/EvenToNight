@@ -63,6 +63,7 @@ const handleRegister = async () => {
         type="text"
         :label="t('auth.registerForm.nameLabel') + ' *'"
         icon="person"
+        autocomplete="username"
         :rules="[notEmpty(t('auth.registerForm.nameError'))]"
       />
 
@@ -71,6 +72,7 @@ const handleRegister = async () => {
         type="email"
         :label="t('auth.form.emailLabel') + ' *'"
         icon="mail"
+        autocomplete="email"
         :rules="[isEmail(t('auth.form.emailError'))]"
       />
 
@@ -79,6 +81,7 @@ const handleRegister = async () => {
         type="password"
         :label="t('auth.form.passwordLabel') + ' *'"
         icon="lock"
+        autocomplete="new-password"
         :rules="[notEmpty(t('auth.form.passwordError'))]"
       />
 
@@ -87,6 +90,7 @@ const handleRegister = async () => {
         type="password"
         :label="t('auth.registerForm.confirmPasswordLabel') + ' *'"
         icon="lock"
+        autocomplete="new-password"
         :rules="[
           notEmpty(t('auth.registerForm.emptyConfirmPasswordError')),
           matching(password, t('auth.registerForm.passwordMismatchError')),

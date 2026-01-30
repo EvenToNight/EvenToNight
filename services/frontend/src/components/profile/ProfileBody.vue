@@ -5,37 +5,23 @@ import EventsTab from './tabs/EventsTab.vue'
 import ReviewsTab from './tabs/ReviewsTab.vue'
 import MyLikesTab from './tabs/MyLikesTab.vue'
 import type { User } from '@/api/types/users'
-import { computed, onMounted, ref, watch } from 'vue'
-import { api } from '@/api'
-import type { Event, EventStatus } from '@/api/types/events'
+import { computed, onMounted, ref, toRef, watch } from 'vue'
+import type { EventStatus } from '@/api/types/events'
 import { useI18n } from 'vue-i18n'
-import { useAuthStore } from '@/stores/auth'
 import { useNavigation } from '@/router/utils'
-import type { PaginatedResponseWithTotalCount } from '@/api/interfaces/commons'
+import type { SortOrder } from '@/api/interfaces/commons'
+import { loadEventParticipations, loadEvents } from '@/api/utils/eventUtils'
+import { useUserProfile } from '@/composables/useUserProfile'
 
 interface Props {
   user: User
 }
 
 const props = defineProps<Props>()
+const emit = defineEmits(['auth-required'])
 const { t } = useI18n()
-const authStore = useAuthStore()
 const { hash, replaceRoute } = useNavigation()
-
-const isOwnProfile = computed(() => authStore.isOwnProfile(props.user.id))
-const isOrganization = computed(() => {
-  return props.user.role === 'organization'
-})
-
-const organizationEvents = ref<Event[]>([])
-const organizationDraftedEvents = ref<Event[]>([])
-const userAttendedEvents = ref<Event[]>([])
-
-const hasMorePublished = ref(true)
-const hasMoreDraft = ref(true)
-const hasMoreAttended = ref(true)
-
-const EVENTS_PER_PAGE = 20
+const { isOwnProfile, isOrganization } = useUserProfile(toRef(props.user))
 
 const activeTab = ref<string>(isOrganization.value ? 'publishedEvents' : 'likes')
 
@@ -62,93 +48,6 @@ watch(activeTab, (newTab) => {
   }
 })
 
-onMounted(async () => {
-  try {
-    console.log('Fetching data for user profile:', props.user.id)
-    //TODO: pass likes info, and uniform tab props loading (internally or externally)
-    const publishedResponse = await api.events.searchEvents({
-      organizationId: props.user.id,
-      status: 'PUBLISHED',
-      pagination: { limit: EVENTS_PER_PAGE },
-    })
-
-    if (isOwnProfile.value) {
-      const draftResponse = await api.events.searchEvents({
-        organizationId: props.user.id,
-        status: 'DRAFT',
-        pagination: { limit: EVENTS_PER_PAGE },
-      })
-      organizationDraftedEvents.value = draftResponse.items
-      hasMoreDraft.value = draftResponse.hasMore
-    }
-    const response = await api.interactions.userParticipations(props.user.id, {
-      pagination: {
-        limit: EVENTS_PER_PAGE,
-        offset: userAttendedEvents.value.length,
-      },
-    })
-    const events: PaginatedResponseWithTotalCount<Event> = {
-      ...response,
-      items: await Promise.all(
-        response.items.map((partecipation) => api.events.getEventById(partecipation.eventId))
-      ),
-    }
-    userAttendedEvents.value = events.items
-    hasMoreAttended.value = response.hasMore
-    organizationEvents.value = publishedResponse.items
-    hasMorePublished.value = publishedResponse.hasMore
-  } catch (error) {
-    console.error('Failed to fetch data for user:', error)
-  }
-})
-
-const createLoadMoreFunction = (
-  eventsRef: typeof organizationEvents,
-  hasMoreRef: typeof hasMorePublished,
-  status: EventStatus
-) => {
-  return async () => {
-    try {
-      const response = await api.events.searchEvents({
-        organizationId: props.user.id,
-        status,
-        pagination: {
-          limit: EVENTS_PER_PAGE,
-          offset: eventsRef.value.length,
-        },
-      })
-      eventsRef.value.push(...response.items)
-      hasMoreRef.value = response.hasMore
-    } catch (error) {
-      console.error(`Failed to load more ${status.toLowerCase()} events:`, error)
-    }
-  }
-}
-
-const loadMorePublished = createLoadMoreFunction(organizationEvents, hasMorePublished, 'PUBLISHED')
-const loadMoreDraft = createLoadMoreFunction(organizationDraftedEvents, hasMoreDraft, 'DRAFT')
-const loadMoreAttended = async () => {
-  try {
-    const response = await api.interactions.userParticipations(props.user.id, {
-      pagination: {
-        limit: EVENTS_PER_PAGE,
-        offset: userAttendedEvents.value.length,
-      },
-    })
-    console.log('Fetched more attended events:', response)
-    const events: PaginatedResponseWithTotalCount<Event> = {
-      ...response,
-      items: await Promise.all(
-        response.items.map((partecipation) => api.events.getEventById(partecipation.eventId))
-      ),
-    }
-    userAttendedEvents.value.push(...events.items)
-    hasMoreAttended.value = response.hasMore
-  } catch (error) {
-    console.error('Failed to load more attended events:', error)
-  }
-}
-
 const tabs = computed<Tab[]>(() => {
   const baseTabs: Tab[] = []
 
@@ -159,9 +58,19 @@ const tabs = computed<Tab[]>(() => {
       icon: 'event',
       component: EventsTab,
       props: {
-        events: organizationEvents.value,
-        hasMore: hasMorePublished.value,
-        onLoadMore: loadMorePublished,
+        sections: [
+          {
+            key: 'PUBLISHED',
+            options: { status: 'PUBLISHED', label: 'Prossimamente', sortOrder: 'asc' },
+          },
+          {
+            key: 'COMPLETED',
+            options: { status: 'COMPLETED', label: 'Passati', sortOrder: 'desc' },
+          },
+        ],
+        loadEvents: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
+          loadEvents(props.user.id, status, sortOrder, { offset, limit }),
+        onAuthRequired: () => emit('auth-required'),
         emptyText: isOwnProfile.value
           ? t('userProfile.noEventCreated')
           : t('userProfile.noEventCreatedExternal'),
@@ -177,14 +86,21 @@ const tabs = computed<Tab[]>(() => {
       icon: 'edit_note',
       component: EventsTab,
       props: {
-        events: organizationDraftedEvents.value,
-        hasMore: hasMoreDraft.value,
-        onLoadMore: loadMoreDraft,
+        sections: [
+          {
+            key: 'DRAFT',
+            options: { status: 'DRAFT', sortOrder: 'asc' },
+          },
+        ],
+        loadEvents: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
+          loadEvents(props.user.id, status, sortOrder, { offset, limit }),
+        onAuthRequired: () => emit('auth-required'),
         emptyText: t('userProfile.noDraftedEvents'),
         emptyIconName: 'edit_note',
       },
     })
   }
+
   baseTabs.push({
     id: 'likes',
     label: isOwnProfile.value ? 'My Likes' : 'Likes',
@@ -202,9 +118,19 @@ const tabs = computed<Tab[]>(() => {
       icon: 'event',
       component: EventsTab,
       props: {
-        events: userAttendedEvents.value,
-        hasMore: hasMoreAttended.value,
-        onLoadMore: loadMoreAttended,
+        sections: [
+          {
+            key: 'PUBLISHED',
+            options: { status: 'PUBLISHED', label: 'Prossimamente', sortOrder: 'asc' },
+          },
+          {
+            key: 'COMPLETED',
+            options: { status: 'COMPLETED', label: 'Passati', sortOrder: 'desc' },
+          },
+        ],
+        loadEventsa: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
+          loadEventParticipations(props.user.id, status, sortOrder, { offset, limit }),
+        onAuthRequired: () => emit('auth-required'),
         emptyText: t('userProfile.noEventJoinedExternal'),
         emptyIconName: 'event_busy',
       },

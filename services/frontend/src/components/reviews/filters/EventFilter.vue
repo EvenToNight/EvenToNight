@@ -33,7 +33,7 @@ watch(selectedEventId, async (newEventId) => {
   if (newEventId === null) {
     const events = await api.events.searchEvents({
       organizationId: props.organizationId,
-      status: 'PUBLISHED',
+      status: 'COMPLETED',
       pagination: { limit: 5 },
     })
     eventOptions.value = events.items
@@ -72,7 +72,7 @@ const filterEvents = async (query: string, update: (callback: () => void) => voi
     } else if (isFiltering.value) {
       const events = await api.events.searchEvents({
         organizationId: props.organizationId,
-        status: 'PUBLISHED',
+        status: 'COMPLETED',
         pagination: { limit: 5 },
       })
       update(() => {
@@ -90,7 +90,7 @@ const filterEvents = async (query: string, update: (callback: () => void) => voi
     console.log('Searching events with query:', query)
     const response = await api.events.searchEvents({
       organizationId: props.organizationId,
-      status: 'PUBLISHED',
+      status: 'COMPLETED',
       title: query,
     })
     update(() => {

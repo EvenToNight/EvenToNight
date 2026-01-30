@@ -1,9 +1,10 @@
 import type { EventTicketType, EventTicketTypeData, TicketType } from '../types/payments'
-import type { EventID, EventStatus } from '../types/events'
+import type { EventID } from '../types/events'
 import type {
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
   PaymentsAPI,
+  TicketRequestEventStatus,
 } from '../interfaces/payments'
 import type { PaginatedRequest, PaginatedResponse, SortOrder } from '../interfaces/commons'
 import { createMockEventTicketType, mockEventTicketTypes } from './data/payments'
@@ -97,7 +98,7 @@ export const mockPaymentsApi: PaymentsAPI = {
     _userId: string,
     params?: {
       order?: SortOrder
-      status?: Omit<EventStatus, 'DRAFT'>
+      status?: TicketRequestEventStatus
       pagination?: PaginatedRequest
     }
   ): Promise<PaginatedResponse<EventID>> {

@@ -123,7 +123,7 @@ class UserRoutes(
             Response("", 204)
           case Left(err) => Response(err, 400)
 
-  @cask.postForm("/:userId")
+  @cask.postForm("/:userId/avatar")
   def updateAvatar(userId: String, req: Request, avatar: FormFile = null): Response[String] =
     authenticateAndAuthorize(req, userId) match
       case Left(err) => Response(err, 401)
