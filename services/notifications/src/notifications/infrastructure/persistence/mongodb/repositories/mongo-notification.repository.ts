@@ -13,8 +13,12 @@ export class MongoNotificationRepository implements NotificationRepository {
     userId: string,
     limit: number,
     offset: number,
+    unreadOnly: boolean,
   ): Promise<Notification[]> {
-    const docs = await NotificationModel.find({ userId })
+    const docs = await NotificationModel.find({
+      userId,
+      ...(unreadOnly ? { read: false } : {}),
+    })
       .sort({ createdAt: -1 })
       .skip(offset)
       .limit(limit)
@@ -23,7 +27,13 @@ export class MongoNotificationRepository implements NotificationRepository {
     return docs.map((doc) => NotificationMapper.toDomain(doc));
   }
 
-  async countNotificationsByUserId(userId: string): Promise<number> {
-    return NotificationModel.countDocuments({ userId }).exec();
+  async countNotificationsByUserId(
+    userId: string,
+    unreadOnly: boolean,
+  ): Promise<number> {
+    return NotificationModel.countDocuments({
+      userId,
+      ...(unreadOnly ? { read: false } : {}),
+    }).exec();
   }
 }

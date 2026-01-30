@@ -11,6 +11,7 @@ export class GetNotificationsHandler {
       query.userId,
       query.limit,
       query.offset,
+      query.unreadOnly,
     );
 
     const notificationDtos = notifications.map((notification) =>
@@ -19,6 +20,7 @@ export class GetNotificationsHandler {
 
     const total = await this.repository.countNotificationsByUserId(
       query.userId,
+      query.unreadOnly,
     );
 
     return NotificationListDto.create(

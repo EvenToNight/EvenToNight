@@ -12,5 +12,9 @@ export function createNotificationRoutes(
     controller.getNotificationsByUserId(req, res, next),
   );
 
+  router.get("/unread", (req, res, next) =>
+    controller.getUnreadCountByUserId(req, res, next),
+  );
+
   return router;
 }

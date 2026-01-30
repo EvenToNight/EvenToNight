@@ -6,6 +6,10 @@ export interface NotificationRepository {
     userId: string,
     limit: number,
     offset: number,
+    unreadOnly: boolean,
   ): Promise<Notification[]>;
-  countNotificationsByUserId(userId: string): Promise<number>;
+  countNotificationsByUserId(
+    userId: string,
+    unreadOnly: boolean,
+  ): Promise<number>;
 }
