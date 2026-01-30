@@ -20,8 +20,13 @@ export interface NotificationsAPI {
   getNotifications: (pagination?: PaginatedRequest) => Promise<PaginatedResponse<Notification>>
   readNotification: (notificationId: NotificationID) => Promise<void>
   onLikeReceived: (callback: (data: LikeRecievedEvent) => void) => void
+  offLikeReceived: (callback: (data: LikeRecievedEvent) => void) => void
   onFollowReceived: (callback: (data: FollowRecievedEvent) => void) => void
+  offFollowReceived: (callback: (data: FollowRecievedEvent) => void) => void
   onNewReviewRecieved: (callback: (data: NewReviewRecievedEvent) => void) => void
+  offNewReviewRecieved: (callback: (data: NewReviewRecievedEvent) => void) => void
   onNewMessageReceived: (callback: (data: NewMessageReceivedEvent) => void) => void
+  offNewMessageReceived: (callback: (data: NewMessageReceivedEvent) => void) => void
   onNewEventPublished: (callback: (data: NewEventPublishedEvent) => void) => void
+  offNewEventPublished: (callback: (data: NewEventPublishedEvent) => void) => void
 }

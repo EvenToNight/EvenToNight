@@ -17,6 +17,20 @@ import { NotificationAdapter, type NotificationAPIData } from '../adapters/notif
 
 let socket: Socket | undefined
 
+const handlers = new Map<unknown, (apiEvent: NotificationAPIData) => void>()
+
+function createNotificationHandler<T>(
+  eventType: string,
+  callback: (data: T) => void
+): (apiEvent: NotificationAPIData) => void {
+  return (apiEvent: NotificationAPIData) => {
+    const event = NotificationAdapter.fromAPI(apiEvent)
+    if (event.type !== eventType) return
+    console.log(`[SOCKET.IO] ${eventType} event received:`, event)
+    callback(event.data as T)
+  }
+}
+
 export const createNotificationsApi = (notificationClient: ApiClient): NotificationsAPI => ({
   async getNotifications(pagination?: PaginatedRequest): Promise<PaginatedResponse<Notification>> {
     const queryParams = { ...evaluatePagination(pagination) }
@@ -61,6 +75,10 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
 
       socket.on('connect', () => {
         console.log('[Socket.IO] Connected')
+        handlers.forEach((handler) => {
+          socket?.on('notification', handler)
+        })
+        console.log(`[Socket.IO] Re-registered ${handlers.size} handlers`)
       })
 
       socket.on('registered', (data: { userId: string }) => {
@@ -74,7 +92,9 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
       socket.on('connect_error', (error: Error) => {
         console.error('[Socket.IO] connection error:', error)
       })
-
+      socket.on('notification', (apiEvent: NotificationAPIData) => {
+        console.log('[Socket.IO] notification event received:', apiEvent)
+      })
       socket.on('error', (error: Error) => {
         console.error('[Socket.IO] error:', error)
       })
@@ -91,47 +111,82 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
   },
 
   onLikeReceived(callback: (data: LikeRecievedEvent) => void): void {
-    socket?.on('notification', (apiEvent: NotificationAPIData) => {
-      const event = NotificationAdapter.fromAPI(apiEvent)
-      if (event.type !== 'like_received') return
-      console.log('[SOCKET.IO] like_received event received:', event)
-      callback(event.data as LikeRecievedEvent)
-    })
+    const handler = createNotificationHandler<LikeRecievedEvent>('like_received', callback)
+    handlers.set(callback, handler)
+    socket?.on('notification', handler)
+  },
+
+  offLikeReceived(callback: (data: LikeRecievedEvent) => void): void {
+    const handler = handlers.get(callback)
+    if (handler) {
+      socket?.off('notification', handler)
+      handlers.delete(callback)
+    }
   },
 
   onFollowReceived(callback: (data: FollowRecievedEvent) => void): void {
-    socket?.on('notification', (apiEvent: NotificationAPIData) => {
-      const event = NotificationAdapter.fromAPI(apiEvent)
-      if (event.type !== 'follow_received') return
-      console.log('[SOCKET.IO] follow_received event received:', event)
-      callback(event.data as FollowRecievedEvent)
-    })
+    const handler = createNotificationHandler<FollowRecievedEvent>('follow_received', callback)
+    handlers.set(callback, handler)
+    socket?.on('notification', handler)
+  },
+
+  offFollowReceived(callback: (data: FollowRecievedEvent) => void): void {
+    const handler = handlers.get(callback)
+    if (handler) {
+      socket?.off('notification', handler)
+      handlers.delete(callback)
+    }
   },
 
   onNewReviewRecieved(callback: (data: NewReviewRecievedEvent) => void): void {
-    socket?.on('notification', (apiEvent: NotificationAPIData) => {
-      const event = NotificationAdapter.fromAPI(apiEvent)
-      if (event.type !== 'new_review_received') return
-      console.log('[SOCKET.IO] new_review_received event received:', event)
-      callback(event.data as NewReviewRecievedEvent)
-    })
+    const handler = createNotificationHandler<NewReviewRecievedEvent>(
+      'new_review_received',
+      callback
+    )
+    handlers.set(callback, handler)
+    socket?.on('notification', handler)
+  },
+
+  offNewReviewRecieved(callback: (data: NewReviewRecievedEvent) => void): void {
+    const handler = handlers.get(callback)
+    if (handler) {
+      socket?.off('notification', handler)
+      handlers.delete(callback)
+    }
   },
 
   onNewMessageReceived(callback: (data: NewMessageReceivedEvent) => void): void {
-    socket?.on('notification', (apiEvent: NotificationAPIData) => {
-      const event = NotificationAdapter.fromAPI(apiEvent)
-      if (event.type !== 'new_message_received') return
-      console.log('[SOCKET.IO] new_message_received event received:', event)
-      callback(event.data as NewMessageReceivedEvent)
-    })
+    const handler = createNotificationHandler<NewMessageReceivedEvent>(
+      'new_message_received',
+      callback
+    )
+    handlers.set(callback, handler)
+    socket?.on('notification', handler)
+  },
+
+  offNewMessageReceived(callback: (data: NewMessageReceivedEvent) => void): void {
+    const handler = handlers.get(callback)
+    if (handler) {
+      socket?.off('notification', handler)
+      console.log('[Socket.IO] Off NewMessageReceived handler removed')
+      handlers.delete(callback)
+    }
   },
 
   onNewEventPublished(callback: (data: NewEventPublishedEvent) => void): void {
-    socket?.on('notification', (apiEvent: NotificationAPIData) => {
-      const event = NotificationAdapter.fromAPI(apiEvent)
-      if (event.type !== 'new_event_published') return
-      console.log('[SOCKET.IO] new_event_published event received:', event)
-      callback(event.data as NewEventPublishedEvent)
-    })
+    const handler = createNotificationHandler<NewEventPublishedEvent>(
+      'new_event_published',
+      callback
+    )
+    handlers.set(callback, handler)
+    socket?.on('notification', handler)
+  },
+
+  offNewEventPublished(callback: (data: NewEventPublishedEvent) => void): void {
+    const handler = handlers.get(callback)
+    if (handler) {
+      socket?.off('notification', handler)
+      handlers.delete(callback)
+    }
   },
 })

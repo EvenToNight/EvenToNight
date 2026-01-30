@@ -63,6 +63,10 @@ export class WebSocket {
     }
   }
 
+  off(eventType: NotificationType, callback: EventCallback): void {
+    this.listeners.get(eventType)?.delete(callback)
+  }
+
   emit(eventType: NotificationType, data: NotificationEvent): void {
     if (!this.channel) {
       console.warn('[WebSocket] Cannot emit - WebSocket not connected')

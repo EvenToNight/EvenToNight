@@ -56,19 +56,38 @@ export const mockNotificationsApi: NotificationsAPI = {
     ws?.on('like_received', (event) => callback(event as LikeRecievedEvent))
   },
 
+  offLikeReceived(callback: (data: LikeRecievedEvent) => void): void {
+    ws?.off('like_received', (event) => callback(event as LikeRecievedEvent))
+  },
+
   onFollowReceived(callback: (data: FollowRecievedEvent) => void): void {
     ws?.on('follow_received', (event) => callback(event as FollowRecievedEvent))
+  },
+
+  offFollowReceived(callback: (data: FollowRecievedEvent) => void): void {
+    ws?.off('follow_received', (event) => callback(event as FollowRecievedEvent))
   },
 
   onNewReviewRecieved(callback: (data: NewReviewRecievedEvent) => void): void {
     ws?.on('new_review_received', (event) => callback(event as NewReviewRecievedEvent))
   },
 
+  offNewReviewRecieved(callback: (data: NewReviewRecievedEvent) => void): void {
+    ws?.off('new_review_received', (event) => callback(event as NewReviewRecievedEvent))
+  },
+
   onNewMessageReceived(callback: (data: NewMessageReceivedEvent) => void): void {
     ws?.on('new_message_received', (event) => callback(event as NewMessageReceivedEvent))
   },
 
+  offNewMessageReceived(callback: (data: NewMessageReceivedEvent) => void): void {
+    ws?.off('new_message_received', (event) => callback(event as NewMessageReceivedEvent))
+  },
+
   onNewEventPublished(callback: (data: NewEventPublishedEvent) => void): void {
     ws?.on('new_event_published', (event) => callback(event as NewEventPublishedEvent))
+  },
+  offNewEventPublished(callback: (data: NewEventPublishedEvent) => void): void {
+    ws?.off('new_event_published', (event) => callback(event as NewEventPublishedEvent))
   },
 }

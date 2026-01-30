@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { onMounted, onUnmounted, ref } from 'vue'
 import type { ChatUser, Conversation } from '@/api/types/chat'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
+import type { NewMessageReceivedEvent } from '@/api/types/notifications'
 
 const { locale } = useNavigation()
 const authStore = useAuthStore()
@@ -185,6 +186,45 @@ function addNewConversation(conversation: Conversation) {
   conversations.value.unshift(conversation)
 }
 
+onMounted(() => {
+  const newMessageHandler = (event: NewMessageReceivedEvent) => {
+    const {
+      conversationId,
+      senderId,
+      /* senderName, senderAvatar, messageId,*/
+      message,
+      createdAt,
+    } = event
+
+    //TODO: ignore message when searching for now, when the search is cleared the conversations are fully reloaded
+    if (searchQuery.value.trim()) return
+
+    const index = conversations.value.findIndex((c) => c.id === conversationId)
+    if (index !== -1) {
+      const conversation = conversations.value[index]
+
+      if (conversation) {
+        conversation.lastMessage = {
+          senderId: senderId,
+          content: message,
+          createdAt: createdAt,
+        }
+        if (selectedConversationId.value !== conversationId) {
+          conversation.unreadCount += 1
+        }
+        // Move to top
+        conversations.value.splice(index, 1)
+        conversations.value.unshift(conversation)
+      }
+    }
+  }
+  //TODO: load missing conversations
+  api.notifications.onNewMessageReceived(newMessageHandler)
+  onUnmounted(() => {
+    api.notifications.offNewMessageReceived(newMessageHandler)
+  })
+})
+
 defineExpose({
   // loadConversations,
   updateConversationLastMessage,
@@ -195,7 +235,7 @@ defineExpose({
 </script>
 
 <template>
-  <div class="conversation-list">
+  <div v-if="authStore.user" class="conversation-list">
     <div class="conversation-list-header">
       <h1 class="title">Chat</h1>
     </div>

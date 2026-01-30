@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onBeforeUnmount, computed } from 'vue'
+import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
 import type { ConversationID, Message, ChatUser, Conversation } from '@/api/types/chat'
 import ChatHeader from './ChatHeader.vue'
 import MessageInput from './MessageInput.vue'
@@ -7,6 +7,7 @@ import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import { useQuasar } from 'quasar'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
+import type { NewMessageReceivedEvent } from '@/api/types/notifications'
 
 const props = defineProps<{
   selectedChatUser?: ChatUser
@@ -234,9 +235,40 @@ onMounted(() => {
   if (selectedConversationId.value) {
     loadMessages()
   }
+  console.log('ChatArea mounted')
+  const newMessageHandler = (event: NewMessageReceivedEvent) => {
+    const {
+      conversationId,
+      senderId,
+      /*senderName, senderAvatar,*/ messageId,
+      message,
+      createdAt,
+    } = event
+
+    if (selectedConversationId.value === conversationId) {
+      // Append to messages if in current conversation
+      messages.value.push({
+        id: messageId,
+        conversationId: conversationId,
+        senderId: senderId,
+        content: message,
+        createdAt: new Date(createdAt),
+        isRead: false,
+      })
+      if (autoScroll.value) {
+        scrollToBottom()
+      }
+    }
+  }
+  //TODO: load missing conversations
+  api.notifications.onNewMessageReceived(newMessageHandler)
+  onUnmounted(() => {
+    console.log('ChatArea unmounted')
+    api.notifications.offNewMessageReceived(newMessageHandler)
+  })
 })
 
-onBeforeUnmount(() => {
+onUnmounted(() => {
   if (messagesContainer.value) {
     messagesContainer.value.removeEventListener('scroll', onContainerScroll)
   }
