@@ -70,7 +70,7 @@ export const useKeyboardShortcuts = () => {
 
   const handleKeyDown = (event: KeyboardEvent) => {
     for (const shortcut of shortcuts) {
-      const key = event.key.toLowerCase()
+      const key = event.key?.toLowerCase() || '' // Fingerprint is a keydown event without key property
       const ctrlPressed = event.ctrlKey || event.metaKey
       const shiftPressed = event.shiftKey
       const altPressed = event.altKey
