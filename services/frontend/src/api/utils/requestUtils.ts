@@ -5,6 +5,13 @@ export const delay = (ms: number = 0) => new Promise((resolve) => setTimeout(res
 const defaultLimit = 4
 const defaultOffset = 0
 
+export const emptyPaginatedResponse = <T>(): PaginatedResponse<T> => ({
+  items: [],
+  limit: defaultLimit,
+  offset: defaultOffset,
+  hasMore: false,
+})
+
 export const evaluatePagination = (
   pagination?: PaginatedRequest
 ): { limit: number; offset: number } => {
