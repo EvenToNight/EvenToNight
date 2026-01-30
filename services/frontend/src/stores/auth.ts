@@ -18,12 +18,11 @@ const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
 const REFRESH_TOKEN_SESSION_KEY = 'refresh_token_session'
 const REFRESH_TOKEN_EXPIRY_SESSION_KEY = 'refresh_token_expiry_session'
 const USER_SESSION_KEY = 'user_session'
-export type LoggedUser = User & { unreadMessagesCount: number; unreadNotificationsCount: number }
 export const useAuthStore = defineStore('auth', () => {
   const { t } = useI18n()
   const { locale, changeLocale } = useNavigation()
   const $q = useQuasar()
-  const user = ref<LoggedUser | null>(null)
+  const user = ref<User | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
     if (!expiredAt.value) return false
@@ -46,16 +45,14 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem(REFRESH_TOKEN_EXPIRY_SESSION_KEY, refreshExpiredAt.value.toString())
   }
 
-  const setUser = async (authUser: User) => {
-    const unreadMessagesCount = await loadUnreadMessagesCount(authUser.id)
-    const unreadNotificationsCount = await loadUnreadNotificationsCount()
-    user.value = { ...authUser, unreadMessagesCount, unreadNotificationsCount }
+  const setUser = (authUser: User) => {
+    user.value = authUser
     sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(authUser))
   }
 
   const setAuthData = async (authData: LoginResponse) => {
     setTokens(authData)
-    await setUser(authData.user)
+    setUser(authData.user)
     setupAutoRefresh()
     await api.notifications.connect(authData.user.id, authData.accessToken)
   }
@@ -182,38 +179,6 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value!
   }
 
-  const loadUnreadMessagesCount = async (userId: UserID): Promise<number> => {
-    try {
-      const response = await api.chat.unreadMessageCountFor(userId)
-      return response.unreadCount
-    } catch (error) {
-      console.error('Failed to load unread messages count:', error)
-      return 0
-    }
-  }
-
-  const updateUnreadMessagesCount = (updateFn: (currentCount: number) => number) => {
-    if (user.value) {
-      user.value.unreadMessagesCount = updateFn(user.value.unreadMessagesCount)
-    }
-  }
-
-  const loadUnreadNotificationsCount = async (): Promise<number> => {
-    try {
-      console.log('Loading unread notifications count')
-      return await api.notifications.getUnreadNotificationsCount()
-    } catch (error) {
-      console.error('Failed to load unread notifications count:', error)
-      return 0
-    }
-  }
-
-  const updateUnreadNotificationsCount = (updateFn: (currentCount: number) => number) => {
-    if (user.value) {
-      user.value.unreadNotificationsCount = updateFn(user.value.unreadNotificationsCount)
-    }
-  }
-
   const refreshCurrentSessionUserData = () => {
     const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
     const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
@@ -307,7 +272,5 @@ export const useAuthStore = defineStore('auth', () => {
     clearAuth,
     isOwnProfile,
     changePassword,
-    updateUnreadMessagesCount,
-    updateUnreadNotificationsCount,
   }
 })
