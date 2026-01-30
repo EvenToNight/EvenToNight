@@ -25,6 +25,7 @@ import { SocketMessageHandler } from "./notifications/infrastructure/events/hand
 import { ProcessEventCreatedHandler } from "./notifications/application/handlers/process-event-created.handler";
 import { GetNotificationsHandler } from "./notifications/application/handlers/get-notifications.handler";
 import { MarkAsReadHandler } from "./notifications/application/handlers/mark-as-read.handler";
+import { GetUnreadCountHandler } from "./notifications/application/handlers/get-unread-count.handler";
 
 async function bootstrap() {
   try {
@@ -71,9 +72,13 @@ async function bootstrap() {
       notificationRepository,
     );
     const markAsReadHandler = new MarkAsReadHandler();
+    const getUnreadCountHandler = new GetUnreadCountHandler(
+      notificationRepository,
+    );
 
     const controller = new NotificationController(
       getNotificationsHandler,
+      getUnreadCountHandler,
       markAsReadHandler,
     );
     const routes = createNotificationRoutes(controller);

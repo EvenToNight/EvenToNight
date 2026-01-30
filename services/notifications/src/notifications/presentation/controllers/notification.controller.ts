@@ -2,10 +2,12 @@ import { Request, Response, NextFunction } from "express";
 import { GetNotificationsQuery } from "../../application/queries/get-notifications.query";
 import { GetNotificationsHandler } from "../../application/handlers/get-notifications.handler";
 import { MarkAsReadHandler } from "../../application/handlers/mark-as-read.handler";
+import { GetUnreadCountHandler } from "../../application/handlers/get-unread-count.handler";
 
 export class NotificationController {
   constructor(
     private readonly getNotificationsHandler: GetNotificationsHandler,
+    private readonly getUnreadCountHandler: GetUnreadCountHandler,
     private readonly markAsReadHandler: MarkAsReadHandler,
   ) {}
 
@@ -34,6 +36,20 @@ export class NotificationController {
       res.json({
         notifications,
       });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async getUnreadCount(req: Request, res: Response, next: NextFunction) {
+    try {
+      const userId = req.userId;
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
+      const countDTO = await this.getUnreadCountHandler.execute(userId);
+
+      res.json(countDTO);
     } catch (error) {
       next(error);
     }
@@ -71,20 +87,7 @@ export class NotificationController {
     }
   }
 
-  // GET /notifications/unread-count
-  async getUnreadCount(req: Request, res: Response, next: NextFunction) {
-    try {
-      const userId = req.user?.id;
-      const count = await this.getUnreadCountHandler.execute(userId);
 
-      res.json({
-        success: true,
-        data: { count }
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
 }
 
 */
