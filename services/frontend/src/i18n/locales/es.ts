@@ -2,6 +2,7 @@ export default {
   meta: {
     description:
       'Encuentra el evento para ti. Busca próximos eventos y descubre experiencias increíbles.',
+    keywords: 'eventos, vida nocturna, conciertos, fiestas, eventos nocturnos',
   },
   date: 'Fecha',
   time: 'Tiempo',

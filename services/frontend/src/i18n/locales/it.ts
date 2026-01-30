@@ -2,7 +2,7 @@ export default {
   meta: {
     description:
       "Trova l'evento che fa per te. Cerca i prossimi eventi e scopri esperienze straordinarie.",
-    keywords: 'eventi, concerti, feste, eventi notturni',
+    keywords: 'eventi, movida, concerti, feste, eventi notturni',
   },
   date: 'Data',
   time: 'Orario',
