@@ -7,6 +7,8 @@ import type {
 } from '../types/payments'
 import type { PaginatedRequest, PaginatedResponse, SortOrder } from './commons'
 
+export type TicketRequestEventStatus = Omit<EventStatus, 'DRAFT'>
+
 export interface CreateCheckoutSessionResponse {
   sessionId: string
   redirectUrl: string
@@ -40,7 +42,7 @@ export interface PaymentsAPI {
   findEventsWithUserTickets(
     userId: string,
     params?: {
-      status?: Omit<EventStatus, 'DRAFT'>
+      status?: TicketRequestEventStatus
       order?: SortOrder
       pagination?: PaginatedRequest
     }

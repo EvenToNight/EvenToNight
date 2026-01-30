@@ -1,14 +1,15 @@
 import type { PaginatedRequest, PaginatedResponse, SortOrder } from '../interfaces/commons'
-import type { Event, EventStatus } from '../types/events'
+import type { Event } from '../types/events'
 import { api } from '@/api'
 import type { UserID } from '../types/users'
 import { emptyPaginatedResponse } from './requestUtils'
+import type { TicketRequestEventStatus } from '../interfaces/payments'
 
 export const loadUserEventParticipations = async (
   userId: UserID,
   pagination?: PaginatedRequest,
   options?: {
-    eventStatus?: Omit<EventStatus, 'DRAFT'>
+    eventStatus?: TicketRequestEventStatus
     sortOrder?: SortOrder
   }
 ): Promise<PaginatedResponse<Event>> => {
