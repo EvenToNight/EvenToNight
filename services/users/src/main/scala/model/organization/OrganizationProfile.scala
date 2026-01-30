@@ -8,8 +8,9 @@ case class OrganizationProfile(
     name: String,
     avatar: String = s"http://${mediaBaseUrl}/users/default.png",
     bio: Option[String] = None,
-    contacts: Option[List[String]] = None
+    contacts: Option[List[UrlString]] = None
 )
 
 object OrganizationProfile:
+  import UrlString.given
   given Encoder[OrganizationProfile] = deriveEncoder[OrganizationProfile].mapJson(_.dropNullValues)

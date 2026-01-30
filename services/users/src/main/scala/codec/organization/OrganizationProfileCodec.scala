@@ -2,6 +2,8 @@ package codec.organization
 
 import infrastructure.Wiring.mediaBaseUrl
 import model.organization.OrganizationProfile
+import model.organization.UrlString
+import model.organization.UrlString.validateUrl
 import org.bson.BsonReader
 import org.bson.BsonType
 import org.bson.BsonWriter
@@ -19,18 +21,30 @@ class OrganizationProfileCodec extends Codec[OrganizationProfile]:
     value.bio.foreach(b =>
       writer.writeString("bio", b)
     )
-    value.contacts.foreach(list =>
+    value.contacts.foreach(urls =>
       writer.writeStartArray("contacts")
-      list.foreach(writer.writeString)
+      urls.foreach(u => writer.writeString(u.value))
       writer.writeEndArray()
     )
     writer.writeEndDocument()
 
   override def decode(reader: BsonReader, decoderContext: DecoderContext): OrganizationProfile =
-    var name: String                   = null
-    var avatar: String                 = s"http://${mediaBaseUrl}/users/default.png"
-    var bio: Option[String]            = None
-    var contacts: Option[List[String]] = None
+    def readContacts(): Option[List[UrlString]] =
+      if reader.getCurrentBsonType == BsonType.NULL then
+        reader.skipValue()
+        None
+      else
+        val buffer = ListBuffer.empty[UrlString]
+        reader.readStartArray()
+        while reader.readBsonType() != BsonType.END_OF_DOCUMENT do
+          validateUrl(reader.readString()).foreach(buffer += _)
+        reader.readEndArray()
+        Some(buffer.toList).filter(_.nonEmpty)
+
+    var name: String                      = null
+    var avatar: String                    = s"http://${mediaBaseUrl}/users/default.png"
+    var bio: Option[String]               = None
+    var contacts: Option[List[UrlString]] = None
 
     reader.readStartDocument()
     while (reader.readBsonType() != BsonType.END_OF_DOCUMENT) {
@@ -44,13 +58,7 @@ class OrganizationProfileCodec extends Codec[OrganizationProfile]:
         case "bio" =>
           bio = Some(reader.readString())
         case "contacts" =>
-          val buffer = ListBuffer.empty[String]
-          reader.readStartArray()
-          while (reader.readBsonType() != BsonType.END_OF_DOCUMENT) {
-            buffer += reader.readString()
-          }
-          reader.readEndArray()
-          contacts = Some(buffer.toList)
+          contacts = readContacts()
         case _ =>
           reader.skipValue()
     }
