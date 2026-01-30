@@ -7,6 +7,7 @@ import { NotFoundException } from '@nestjs/common';
 import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { PaginatedUserResponseDto } from '../dto/paginated-user-response.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
+import { RabbitMqPublisherService } from 'src/rabbitmq/rabbitmq-publisher.service';
 
 @Injectable()
 export class FollowService {
@@ -14,6 +15,7 @@ export class FollowService {
     @InjectModel(Follow.name) private followModel: Model<Follow>,
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
+    private readonly rabbitMqPublisher: RabbitMqPublisherService,
   ) {}
 
   async follow(followerId: string, followedId: string): Promise<Follow> {
@@ -29,7 +31,19 @@ export class FollowService {
     }
 
     const follow = new this.followModel({ followerId, followedId });
-    return follow.save();
+
+    follow.save();
+
+    const followerInfo = await this.metadataService.getUserInfo(followerId);
+
+    await this.rabbitMqPublisher.publishFollowCreated({
+      followedId,
+      followerId,
+      followerName: followerInfo.name,
+      followerAvatar: followerInfo.avatar,
+    });
+
+    return follow;
   }
 
   async unfollow(followerId: string, followedId: string) {
@@ -38,6 +52,10 @@ export class FollowService {
     if (result.deletedCount === 0) {
       throw new NotFoundException('Follow relationship not found');
     }
+    await this.rabbitMqPublisher.publishFollowDeleted({
+      followedId,
+      followerId,
+    });
   }
 
   async getFollowers(userId: string, limit?: number, offset?: number) {

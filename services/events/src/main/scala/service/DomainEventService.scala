@@ -55,9 +55,15 @@ class DomainEventService(
                   )
                 )
                 if cmd.status == EventStatus.PUBLISHED then
+                  val creatorName = userMetadataRepository.findById(cmd.creatorId) match
+                    case Some(userMeta) => userMeta.name
+                    case None           => ""
                   publisher.publish(
                     EventPublished(
-                      eventId = newEvent._id
+                      eventId = newEvent._id,
+                      name = newEvent.title.getOrElse(""),
+                      creatorId = newEvent.creatorId,
+                      creatorName = creatorName
                     )
                   )
                 Right(newEvent._id)
@@ -106,9 +112,15 @@ class DomainEventService(
                       )
                     )
                     if cmd.status == EventStatus.PUBLISHED then
+                      val creatorName = userMetadataRepository.findById(cmd.creatorId) match
+                        case Some(userMeta) => userMeta.name
+                        case None           => ""
                       publisher.publish(
                         EventPublished(
-                          eventId = newEvent._id
+                          eventId = newEvent._id,
+                          name = newEvent.title.getOrElse(""),
+                          creatorId = newEvent.creatorId,
+                          creatorName = creatorName
                         )
                       )
                     Right(newEvent._id)
@@ -152,9 +164,15 @@ class DomainEventService(
                     )
                   )
                   if event.status != EventStatus.PUBLISHED && updatedEvent.status == EventStatus.PUBLISHED then
+                    val creatorName = userMetadataRepository.findById(updatedEvent.creatorId) match
+                      case Some(userMeta) => userMeta.name
+                      case None           => ""
                     publisher.publish(
                       EventPublished(
-                        eventId = updatedEvent._id
+                        eventId = updatedEvent._id,
+                        name = updatedEvent.title.getOrElse(""),
+                        creatorId = updatedEvent.creatorId,
+                        creatorName = creatorName
                       )
                     )
 

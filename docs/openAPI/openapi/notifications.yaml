@@ -1,0 +1,151 @@
+openapi: 3.0.1
+info:
+  title: EvenToNight - Notifications API
+  version: 1.0.0
+
+paths:
+  /:
+    get:
+      summary: Get Notifications for Authenticated User 
+      description: Retrieve a list of notifications for the authenticated user with pagination support. Mark notifications as read when fetched.
+      security:
+        - BearerAuth: []
+      servers:
+        - url: http://localhost:9060/
+          description: Local development server
+      parameters:
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 20
+            minimum: 1
+            maximum: 100
+          description: The number of notifications to return.
+        - in: query
+          name: offset
+          schema:
+            type: integer
+            default: 0
+            minimum: 0
+          description: The number of notifications to skip before starting to collect the result set.
+        - in: query
+          name: unreadOnly
+          schema:
+            type: boolean
+            default: false
+          description: If true, only return unread notifications.
+      responses:
+        '200':
+          description: A list of notifications with pagination information.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  notifications:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Notification'
+                  total:
+                    type: integer
+                    description: Total number of notifications.
+                  limit:
+                    type: integer
+                    description: Number of notifications per page.
+                  offset:
+                    type: integer
+                    description: Number of notifications skipped.
+                  hasMore:
+                    type: boolean
+                    description: Indicates if there are more notifications to fetch.
+        '401':
+          description: Unauthorized - Authentication is required.
+        '500':
+          description: Internal Server Error - An error occurred on the server.
+  
+  /unread-count:
+    get:
+      summary: Get Unread Notifications Count
+      description: Retrieve the count of unread notifications for the authenticated user.
+      security:
+        - BearerAuth: []
+      servers:
+        - url: http://localhost:9060/ 
+          description: Local development server
+      responses:
+        '200':
+          description: The count of unread notifications for an authenticated user.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  count:
+                    type: integer
+                    description: The number of unread notifications.
+        '401':
+          description: Unauthorized - Authentication is required.
+        '500':    
+          description: Internal Server Error - An error occurred on the server.
+  /{id}:
+    post:
+      summary: Mark Notification as Read
+      description: Mark a specific notification as read for the authenticated user.
+      security:
+        - BearerAuth: []
+      servers:
+        - url: http://localhost:9060/
+          description: Local development server
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: 
+            type: string
+          description: The unique identifier of the notification to be marked as read.
+      responses:
+        '200':
+          description: Notification marked as read successfully.
+        '401':
+          description: Unauthorized - Authentication is required.
+        '404':
+          description: Not Found - The specified notification does not exist.
+        '500':
+          description: Internal Server Error - An error occurred on the server.
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'Enter your JWT token in the format: Bearer <token>'
+  schemas:
+    Notification:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the notification.
+        userId:
+          type: string
+          description: ID of the user who owns the notification.
+        type:
+          type: string
+          description: Type of notification (e.g., LIKE, COMMENT, FOLLOW).
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata specific to the notification type.
+        read:
+          type: boolean
+          description: Indicates whether the notification has been read.
+        createdAt:
+          type: string
+          format: date-time
+          description: Timestamp when the notification was created.
+        updatedAt:
+          type: string
+          format: date-time
+          description: Timestamp when the notification was last updated.

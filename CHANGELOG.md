@@ -1,3 +1,25 @@
+## [1.25.0](https://github.com/EvenToNight/EvenToNight/compare/v1.24.1...v1.25.0) (2026-01-30)
+
+### Features
+
+* **notification:** implement get notifications routes ([8f665a8](https://github.com/EvenToNight/EvenToNight/commit/8f665a88cb4fd2e469b08ddb6b49eb9977e741be))
+* **notification:** solved implementation of notification service ([cffaa7d](https://github.com/EvenToNight/EvenToNight/commit/cffaa7dd0a46a5747bbff69d16026d30eff362d7))
+
+### Bug Fixes
+
+* **notification:** fix import and env vars usage ([007c470](https://github.com/EvenToNight/EvenToNight/commit/007c470dd961b346319e20aa58e25e38514bfab2))
+
+## [1.24.1](https://github.com/EvenToNight/EvenToNight/compare/v1.24.0...v1.24.1) (2026-01-30)
+
+### Bug Fixes
+
+* **payments:** remove unused metadata to fix max metadata size error ([bdf05f2](https://github.com/EvenToNight/EvenToNight/commit/bdf05f223f1d3d11fc42fdc71f12404a0629f411))
+* **profile:** fix follow button display condition ([95f73ca](https://github.com/EvenToNight/EvenToNight/commit/95f73cac9c543563597efd238e021d7b0c6d5b71))
+* **profile:** fix navigation bar custom content ([242860f](https://github.com/EvenToNight/EvenToNight/commit/242860fdc9826651c7d0a18fe1d91a845cc4cfb2))
+* **review:** avoid loosing focus when search reviews in settings tab ([ade81b1](https://github.com/EvenToNight/EvenToNight/commit/ade81b1a00d27223249db32349e8b0911d487a55))
+* **tickets:** update qr code link and verify route handling ([816b3c3](https://github.com/EvenToNight/EvenToNight/commit/816b3c38a8b3c2a33850f2b9033b8b15d67dd95c))
+* **user:** fix search api usage ([a6aaeea](https://github.com/EvenToNight/EvenToNight/commit/a6aaeea4c2c3c7215cc9142961b1835eae692473))
+
 ## [1.24.0](https://github.com/EvenToNight/EvenToNight/compare/v1.23.1...v1.24.0) (2026-01-29)
 
 ### Features

@@ -15,6 +15,7 @@ import { MessageManagerService } from './services/message-manager.service';
 import { UserSuggestionService } from './services/user-suggestion.service';
 import { ConversationSearchService } from './services/conversation.search.service';
 import { ConversationManagerService } from './services/conversation.manager.service';
+import { RabbitMqModule } from 'src/rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { ConversationManagerService } from './services/conversation.manager.serv
       { name: Message.name, schema: MessageSchema },
     ]),
     UsersModule,
+    RabbitMqModule,
   ],
   providers: [
     ConversationsService,
