@@ -9,32 +9,28 @@ import type {
   NewMessageReceivedEvent,
   NewReviewRecievedEvent,
   Notification,
-  NotificationData,
   NotificationID,
-  TicketSoldEvent,
 } from '../types/notifications'
 import type { UserID } from '../types/users'
 import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
+import { NotificationAdapter, type NotificationAPIData } from '../adapters/notification'
 
 let socket: Socket | undefined
 
 export const createNotificationsApi = (notificationClient: ApiClient): NotificationsAPI => ({
-  async getNotifications(
-    userId: UserID,
-    pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Notification>> {
+  async getNotifications(pagination?: PaginatedRequest): Promise<PaginatedResponse<Notification>> {
     const queryParams = { ...evaluatePagination(pagination) }
     return notificationClient.get<PaginatedResponse<Notification>>(
-      `/users/${userId}/notifications${buildQueryParams(queryParams)}`
+      `/${buildQueryParams(queryParams)}`
     )
   },
 
-  async readNotification(userId: UserID, notificationId: NotificationID): Promise<void> {
-    return notificationClient.post<void>(`/users/${userId}/notifications/${notificationId}/read`)
+  async readNotification(notificationId: NotificationID): Promise<void> {
+    return notificationClient.post<void>(`/notifications/${notificationId}`)
   },
 
-  async getUnreadNotificationsCount(userId: UserID): Promise<number> {
-    return notificationClient.get<number>(`/users/${userId}/notifications/unread-count`)
+  async getUnreadNotificationsCount(): Promise<number> {
+    return notificationClient.get<number>(`/unread-count`)
   },
 
   async isUserOnline(userId: UserID): Promise<boolean> {
@@ -95,38 +91,47 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
   },
 
   onLikeReceived(callback: (data: LikeRecievedEvent) => void): void {
-    socket?.on('like_received', (event: NotificationData) => {
+    socket?.on('notification', (apiEvent: NotificationAPIData) => {
+      const event = NotificationAdapter.fromAPI(apiEvent)
+      if (event.type !== 'like_received') return
+      console.log('[SOCKET.IO] like_received event received:', event)
       callback(event.data as LikeRecievedEvent)
     })
   },
 
   onFollowReceived(callback: (data: FollowRecievedEvent) => void): void {
-    socket?.on('follow_received', (event: NotificationData) => {
+    socket?.on('notification', (apiEvent: NotificationAPIData) => {
+      const event = NotificationAdapter.fromAPI(apiEvent)
+      if (event.type !== 'follow_received') return
+      console.log('[SOCKET.IO] follow_received event received:', event)
       callback(event.data as FollowRecievedEvent)
     })
   },
 
   onNewReviewRecieved(callback: (data: NewReviewRecievedEvent) => void): void {
-    socket?.on('new_review_received', (event: NotificationData) => {
+    socket?.on('notification', (apiEvent: NotificationAPIData) => {
+      const event = NotificationAdapter.fromAPI(apiEvent)
+      if (event.type !== 'new_review_received') return
+      console.log('[SOCKET.IO] new_review_received event received:', event)
       callback(event.data as NewReviewRecievedEvent)
     })
   },
 
   onNewMessageReceived(callback: (data: NewMessageReceivedEvent) => void): void {
-    socket?.on('new_message_received', (event: NotificationData) => {
+    socket?.on('notification', (apiEvent: NotificationAPIData) => {
+      const event = NotificationAdapter.fromAPI(apiEvent)
+      if (event.type !== 'new_message_received') return
+      console.log('[SOCKET.IO] new_message_received event received:', event)
       callback(event.data as NewMessageReceivedEvent)
     })
   },
 
   onNewEventPublished(callback: (data: NewEventPublishedEvent) => void): void {
-    socket?.on('new_event_published', (event: NotificationData) => {
+    socket?.on('notification', (apiEvent: NotificationAPIData) => {
+      const event = NotificationAdapter.fromAPI(apiEvent)
+      if (event.type !== 'new_event_published') return
+      console.log('[SOCKET.IO] new_event_published event received:', event)
       callback(event.data as NewEventPublishedEvent)
-    })
-  },
-
-  onTicketSold(callback: (data: TicketSoldEvent) => void): void {
-    socket?.on('ticket_sold', (event: NotificationData) => {
-      callback(event.data as TicketSoldEvent)
     })
   },
 })

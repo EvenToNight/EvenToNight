@@ -5,7 +5,7 @@ import type {
   NotificationType,
 } from '../types/notifications'
 
-type EventCallback = (event: NotificationData) => void
+type EventCallback = (event: NotificationEvent) => void
 
 export class WebSocket {
   private channel: BroadcastChannel | null = null
@@ -28,7 +28,7 @@ export class WebSocket {
 
     // Create a BroadcastChannel for cross-tab communication
     // Use a global channel so all tabs can communicate regardless of user
-    const channelName = 'support-chat-global'
+    const channelName = 'eventonight-global'
     console.log('[WebSocket] Connecting to channel:', channelName, 'for user:', this.userId)
     this.channel = new BroadcastChannel(channelName)
 
@@ -77,7 +77,7 @@ export class WebSocket {
     const listeners = this.listeners.get(event.type)
     listeners?.forEach((callback) => {
       try {
-        callback(event)
+        callback(event.data)
       } catch (error) {
         console.error('Error in WebSocket event listener:', error)
       }

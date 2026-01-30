@@ -48,7 +48,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const setUser = async (authUser: User) => {
     const unreadMessagesCount = await loadUnreadMessagesCount(authUser.id)
-    const unreadNotificationsCount = await loadUnreadNotificationsCount(authUser.id)
+    const unreadNotificationsCount = await loadUnreadNotificationsCount()
     user.value = { ...authUser, unreadMessagesCount, unreadNotificationsCount }
     sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(authUser))
   }
@@ -198,10 +198,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  const loadUnreadNotificationsCount = async (userId: UserID): Promise<number> => {
+  const loadUnreadNotificationsCount = async (): Promise<number> => {
     try {
-      console.log('Loading unread notifications count for user', userId)
-      return await api.notifications.getUnreadNotificationsCount(userId)
+      console.log('Loading unread notifications count')
+      return await api.notifications.getUnreadNotificationsCount()
     } catch (error) {
       console.error('Failed to load unread notifications count:', error)
       return 0
