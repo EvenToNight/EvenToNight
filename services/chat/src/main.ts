@@ -28,7 +28,7 @@ async function bootstrap() {
   const rabbitmqUrl = `amqp://${rabbitmqUser}:${rabbitmqPass}@${rabbitmqHost}:5672`;
 
   const publisherService = app.get(RabbitMqPublisherService);
-  await publisherService.initialize({
+  publisherService.initialize({
     url: rabbitmqUrl,
     exchange: 'eventonight',
     queue: 'chat_queue',

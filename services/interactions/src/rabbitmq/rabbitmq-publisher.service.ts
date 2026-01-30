@@ -44,7 +44,7 @@ export class RabbitMqPublisherService implements OnModuleDestroy {
   private channelWrapper: ChannelWrapper;
   private exchange: string;
 
-  async initialize(config: RabbitMqConfig): Promise<void> {
+  initialize(config: RabbitMqConfig): void {
     this.exchange = config.exchange;
 
     const connection = amqp.connect([config.url]);

@@ -18,7 +18,7 @@ async function bootstrap() {
 
   // Initialize RabbitMQ publisher with setup
   const publisherService = app.get(RabbitMqPublisherService);
-  await publisherService.initialize({
+  publisherService.initialize({
     url: rabbitmqUrl,
     exchange: 'eventonight',
     queue: 'interactions_queue',

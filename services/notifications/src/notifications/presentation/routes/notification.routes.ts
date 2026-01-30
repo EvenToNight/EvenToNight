@@ -3,7 +3,7 @@ import { NotificationController } from "../controllers/notification.controller";
 import { authMiddleware } from "../middlewares/auth.middleware";
 
 export function createNotificationRoutes(
-  controller: NotificationController,
+  _controller: NotificationController,
 ): Router {
   const router = Router();
   router.use(authMiddleware);

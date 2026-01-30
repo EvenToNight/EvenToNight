@@ -1,7 +1,6 @@
 // infrastructure/persistence/mongodb/repositories/mongo-follow.repository.ts
 import { FollowRepository } from "../../../../domain/repositories/follow.repository.interface";
 import { Follow } from "../../../../domain/aggregates/follow.aggregate";
-import { FollowId } from "../../../../domain/value-objects/follow-id.vo";
 import { UserId } from "../../../../domain/value-objects/user-id.vo";
 import { FollowModel } from "../schemas/follow.schema";
 import { FollowMapper } from "../mappers/follow.mapper";
