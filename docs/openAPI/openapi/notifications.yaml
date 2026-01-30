@@ -88,7 +88,31 @@ paths:
           description: Unauthorized - Authentication is required.
         '500':    
           description: Internal Server Error - An error occurred on the server.
-  /
+  /{id}:
+    post:
+      summary: Mark Notification as Read
+      description: Mark a specific notification as read for the authenticated user.
+      security:
+        - BearerAuth: []
+      servers:
+        - url: http://localhost:9060/
+          description: Local development server
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: 
+            type: string
+          description: The unique identifier of the notification to be marked as read.
+      responses:
+        '200':
+          description: Notification marked as read successfully.
+        '401':
+          description: Unauthorized - Authentication is required.
+        '404':
+          description: Not Found - The specified notification does not exist.
+        '500':
+          description: Internal Server Error - An error occurred on the server.
 
 components:
   securitySchemes:
