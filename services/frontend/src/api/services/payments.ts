@@ -2,6 +2,7 @@ import type {
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
   PaymentsAPI,
+  TicketRequestEventStatus,
 } from '../interfaces/payments'
 import type { ApiClient } from '../client'
 import type {
@@ -10,7 +11,7 @@ import type {
   UpdateEventTicketTypeData,
   EventTicketTypeData,
 } from '../types/payments'
-import type { EventID, EventStatus } from '../types/events'
+import type { EventID } from '../types/events'
 import type { PaginatedRequest, PaginatedResponse, SortOrder } from '../interfaces/commons'
 import { buildQueryParams } from '../utils/requestUtils'
 
@@ -46,7 +47,7 @@ export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
   findEventsWithUserTickets(
     userId: string,
     params?: {
-      status?: Omit<EventStatus, 'DRAFT'>
+      status?: TicketRequestEventStatus
       order?: SortOrder
       pagination?: PaginatedRequest
     }

@@ -1,11 +1,9 @@
 import type { ChatAPI, SendMessageAPIResponse } from '../interfaces/chat'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import type { Conversation, Message } from '../types/chat'
-import type { NewMessageEvent } from '../types/notification'
 import { getPaginatedItems } from '../utils/requestUtils'
 import { mockConversations, mockMessages } from './data/chat'
 import { saveConversations, saveMessages } from './storage/chatStorage'
-import { activeWebSockets } from './notification'
 import type { FirstMessage } from '../types/chat'
 import { mockUsers } from './data/users'
 import type { User, UserID } from '../types/users'
@@ -13,20 +11,6 @@ import type { ConversationID } from '../types/chat'
 import type { UnreadMessageResponse } from '../interfaces/chat'
 import { searchMockUsersByName } from './users'
 
-function emitNewMessageEvent(conversation: Conversation, message: Message) {
-  const event: NewMessageEvent = {
-    type: 'new_message',
-    conversationId: conversation.id,
-    data: {
-      message: { ...message },
-      conversation: { ...conversation },
-    },
-  }
-
-  activeWebSockets.forEach((ws) => {
-    ws.emit(event)
-  })
-}
 function getConversationsForUser(userId: UserID): Conversation[] {
   return mockConversations().filter(
     (conversation) => conversation.organization.id === userId || conversation.member.id === userId
@@ -70,7 +54,7 @@ export const mockChatApi: ChatAPI = {
     const currentMessages = mockMessages()
     currentMessages[newConversation.id] = [newMessage]
     saveMessages(currentMessages)
-    emitNewMessageEvent(newConversation, newMessage)
+    //TODO: emit message event to ws
     return { ...newMessage }
   },
 
@@ -165,7 +149,7 @@ export const mockChatApi: ChatAPI = {
     currentConversations.splice(conversationIndex, 1)
     currentConversations.unshift(conversation)
     saveConversations(currentConversations)
-    emitNewMessageEvent(conversation, message)
+    //TODO: emit message event to ws
     return { ...message }
   },
 

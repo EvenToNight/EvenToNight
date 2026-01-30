@@ -6,7 +6,6 @@ import type {
   UserAPIResponse,
 } from '../interfaces/users'
 import type { Profile, User } from '../types/users'
-import { jwtDecode } from 'jwt-decode'
 
 function adaptProfile(dto: ProfileAPI): Profile {
   return {
@@ -19,11 +18,10 @@ function adaptProfile(dto: ProfileAPI): Profile {
 
 export const LoginAdapter = {
   fromApi(dto: LoginAPIResponse): LoginResponse {
-    const decoded: { user_id: string } = jwtDecode(dto.accessToken)
     const user: User = {
       ...dto.account,
       ...adaptProfile(dto.profile),
-      id: decoded.user_id,
+      id: dto.id,
       role: dto.role,
     }
     return {
@@ -37,21 +35,22 @@ export const LoginAdapter = {
 }
 
 export const UserAdapter = {
-  //TODO: check response format in case of own profile request or other profile requests
   fromApi(dto: UserAPIResponse): User {
     console.log('Adapting user from API:', dto)
     return {
       id: dto.id,
       role: dto.role,
-      username: dto.username,
+      ...dto.account,
       ...adaptProfile(dto.profile),
     }
   },
 
-  toApi(user: Partial<User>): Partial<UpdateUserAPIRequest> {
+  toApi(
+    user: Partial<User> & { username: string; name: string; avatar: string }
+  ): Partial<UpdateUserAPIRequest> {
     return {
       accountDTO: {
-        username: user.username!,
+        username: user.username,
         darkMode: user.darkMode,
         language: user.language,
         gender: user.gender,
@@ -59,8 +58,8 @@ export const UserAdapter = {
         interests: user.interests,
       },
       profileDTO: {
-        name: user.name!,
-        avatar: user.avatar!,
+        name: user.name,
+        avatar: user.avatar,
         bio: user.bio,
         contacts: user.website ? [user.website] : [],
       },

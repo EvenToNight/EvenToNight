@@ -17,6 +17,7 @@ export interface UserInteraction {
 export interface UserInteractionsInfo {
   following: number
   followers: number
+  isFollowing?: boolean
 }
 
 export const RATING_VALUES = [1, 2, 3, 4, 5] as const

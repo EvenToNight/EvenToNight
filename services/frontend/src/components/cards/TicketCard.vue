@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Event } from '@/api/types/events'
+import { useNavigation } from '@/router/utils'
 
 interface Props {
   event: Event
@@ -11,20 +12,28 @@ const emit = defineEmits<{
   download: [eventId: string]
 }>()
 
+const { goToEventDetails } = useNavigation()
+
 const handleDownload = (eventId: string) => {
   emit('download', eventId)
+}
+
+const handleNavigateToEvent = (eventId: string) => {
+  goToEventDetails(eventId)
 }
 </script>
 
 <template>
   <div class="ticket-card">
     <div class="ticket-content">
-      <div class="event-image-wrapper">
+      <div class="event-image-wrapper clickable" @click="handleNavigateToEvent(event.eventId)">
         <img :src="event.poster" :alt="event.title" class="event-image" />
       </div>
 
       <div class="event-info">
-        <h3 class="event-name">{{ event.title }}</h3>
+        <h3 class="event-name clickable" @click="handleNavigateToEvent(event.eventId)">
+          {{ event.title }}
+        </h3>
         <p class="event-date">{{ new Date(event.date).toLocaleDateString() }}</p>
       </div>
 
@@ -65,6 +74,15 @@ const handleDownload = (eventId: string) => {
   @media (max-width: $breakpoint-mobile) {
     width: 60px;
     height: 60px;
+  }
+}
+
+.clickable {
+  cursor: pointer;
+  transition: opacity $transition-base;
+
+  &:hover {
+    opacity: 0.8;
   }
 }
 

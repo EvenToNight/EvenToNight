@@ -22,6 +22,7 @@ import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { PdfService } from 'src/tickets/application/services/pdf.service';
 import { UserService } from 'src/tickets/application/services/user.service';
 import { EventService } from 'src/tickets/application/services/event.service';
+import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 
 @Controller('users/:userId')
 export class UsersController {
@@ -125,6 +126,7 @@ export class UsersController {
     const result = await this.ticketService.findByUserIdAndEventId(
       userId,
       eventId,
+      TicketStatus.ACTIVE,
     );
 
     if (result.length === 0) {

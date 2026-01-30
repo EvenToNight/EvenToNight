@@ -64,7 +64,7 @@ export async function updateAvatar(userId: string, token: string, avatarFilePath
   const formData = new FormData();
   formData.append("avatar", fs.createReadStream(avatarFilePath));
 
-  const response = await axios.post<AvatarResponseDTO>(`${USERS_BASE_URL}/${userId}`, formData, {
+  const response = await axios.post<AvatarResponseDTO>(`${USERS_BASE_URL}/${userId}/avatar`, formData, {
     headers: {
       Authorization: `Bearer ${token}`,
       ...formData.getHeaders(),

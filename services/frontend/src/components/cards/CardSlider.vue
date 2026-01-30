@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useQuasar } from 'quasar'
 import { useI18n } from 'vue-i18n'
-import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import SeeAllButton from '../buttons/basicButtons/SeeAllButton.vue'
+import { useBreakpoints } from '@/composables/useBreakpoints'
 
 interface Props {
   title: string
@@ -15,18 +14,13 @@ const emit = defineEmits<{
   seeAll: []
 }>()
 
-const $q = useQuasar()
 const { t } = useI18n()
+const { isMobile } = useBreakpoints()
 const cardsContainer = ref<HTMLElement | null>(null)
 const canScrollLeft = ref(false)
 const canScrollRight = ref(false)
 
-const isDesktop = computed(() => $q.screen.width > parseInt(breakpoints.breakpointMobile!))
-const shouldShowNavigation = computed(() => isDesktop.value)
-
-const handleSeeAll = () => {
-  emit('seeAll')
-}
+const shouldShowNavigation = computed(() => !isMobile.value)
 
 const updateScrollButtons = () => {
   const container = cardsContainer.value!
@@ -72,10 +66,10 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="card-slider">
-    <div class="slider-header">
-      <h2 class="slider-title">{{ title }}</h2>
-      <see-all-button @click="handleSeeAll" />
+  <div class="card-slider q-mb-lg">
+    <div class="row justify-between items-center q-mb-md">
+      <h2 class="text-h4 text-weight-bold q-ma-none">{{ title }}</h2>
+      <see-all-button @click="emit('seeAll')" />
     </div>
 
     <div class="cards-container-wrapper">
@@ -84,22 +78,26 @@ onMounted(() => {
       </div>
     </div>
 
-    <button
+    <q-btn
       v-if="shouldShowNavigation && canScrollLeft"
-      class="nav-arrow nav-arrow-left"
+      flat
+      round
+      icon="chevron_left"
+      size="18px"
+      class="nav-arrow nav-arrow-left shadow-2"
       :aria-label="t('cards.slider.scrollLeftAriaLabel')"
       @click="scrollLeft"
-    >
-      <q-icon name="chevron_left" size="32px" />
-    </button>
-    <button
+    />
+    <q-btn
       v-if="shouldShowNavigation && canScrollRight"
-      class="nav-arrow nav-arrow-right"
+      flat
+      round
+      icon="chevron_right"
+      size="18px"
+      class="nav-arrow nav-arrow-right shadow-2"
       :aria-label="t('cards.slider.scrollRightAriaLabel')"
       @click="scrollRight"
-    >
-      <q-icon name="chevron_right" size="32px" />
-    </button>
+    />
   </div>
 </template>
 
@@ -107,19 +105,10 @@ onMounted(() => {
 .card-slider {
   position: relative;
   width: 100%;
-  margin-bottom: $spacing-8;
   background: transparent;
 }
 
-.slider-header {
-  @include flex-between;
-  margin-bottom: $spacing-4;
-}
-
-.slider-title {
-  font-size: $font-size-3xl;
-  font-weight: $font-weight-bold;
-
+.text-h4 {
   @media (max-width: $breakpoint-mobile) {
     font-size: $font-size-2xl;
   }
@@ -167,22 +156,16 @@ onMounted(() => {
 }
 
 .nav-arrow {
-  @include flex-center;
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: color-alpha($color-white, 0.95);
-  border: none;
-  cursor: pointer;
+  background: color-alpha($color-white, 0.95) !important;
   transition: all $transition-slow;
-  box-shadow: $shadow-md;
+  color: $color-black !important;
 
   &:hover {
-    background: $color-white;
-    box-shadow: $shadow-lg;
+    background: $color-white !important;
+    box-shadow: $shadow-lg !important;
     transform: translateY(-50%) scale(1.05);
   }
 

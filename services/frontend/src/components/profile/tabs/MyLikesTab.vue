@@ -1,73 +1,33 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { useAuthStore } from '@/stores/auth'
-import { api } from '@/api'
-import type { Event } from '@/api/types/events'
+import { onMounted } from 'vue'
 import EventCard from '@/components/cards/EventCard.vue'
 import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
-
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { loadLikedEvents, type EventLoadResult } from '@/api/utils/eventUtils'
+import type { UserID } from '@/api/types/users'
+const ITEMS_PER_PAGE = 20
 interface Props {
-  userId: string
+  userId: UserID
 }
 const props = defineProps<Props>()
-const ITEMS_PER_PAGE = 12
 
-const authStore = useAuthStore()
-const events = ref<(Event & { liked: boolean })[]>([])
-const loading = ref(true)
-const loadingMore = ref(false)
-const hasMore = ref(true)
-
-const loadLikedEvents = async (isLoadingMore = false) => {
-  if (!authStore.isAuthenticated) return
-
-  if (isLoadingMore) {
-    loadingMore.value = true
-  } else {
-    loading.value = true
-  }
-
-  try {
-    const response = await api.interactions.getUserLikedEvents(props.userId, {
-      limit: ITEMS_PER_PAGE,
-      offset: isLoadingMore ? events.value.length : 0,
-    })
-
-    // Load full event details for each event ID
-    const eventPromises = response.items.map((eventId) => api.events.getEventById(eventId))
-    const loadedEvents = await Promise.all(eventPromises)
-
-    if (isLoadingMore) {
-      events.value = [...events.value, ...loadedEvents.map((event) => ({ ...event, liked: true }))]
-    } else {
-      events.value = loadedEvents.map((event) => ({ ...event, liked: true }))
-    }
-
-    hasMore.value = response.hasMore
-  } catch (error) {
-    console.error('Failed to load liked events:', error)
-  } finally {
-    loading.value = false
-    loadingMore.value = false
-  }
-}
-
-onMounted(() => {
-  loadLikedEvents()
+const {
+  items: events,
+  loading,
+  loadingMore,
+  onLoad,
+  loadItems,
+} = useInfiniteScroll<{ userId: UserID }, EventLoadResult>({
+  itemsPerPage: ITEMS_PER_PAGE,
+  options: { userId: props.userId },
+  loadFn: async (limit, offset, options) => {
+    return loadLikedEvents(options!.userId, { limit, offset })
+  },
 })
 
-const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
-  if (!hasMore.value) {
-    done(true)
-    return
-  }
-
-  try {
-    await loadLikedEvents(true)
-  } finally {
-    done(!hasMore.value)
-  }
-}
+onMounted(() => {
+  loadItems()
+})
 </script>
 
 <template>

@@ -272,6 +272,7 @@ paths:
         "404":
           description: User not found
 
+  /{userId}/avatar:
     post:
       tags: [Users]
       summary: Update user avatar by ID
@@ -345,8 +346,6 @@ paths:
                 notFound:
                   summary: User does not exist
                   value: "User not found"
-
-  /{userId}/avatar:
     delete:
       tags: [Users]
       summary: Delete user avatar by ID

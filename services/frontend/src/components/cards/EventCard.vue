@@ -1,12 +1,15 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { onMounted, computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
-import type { Event as AppEvent } from '@/api/types/events'
 import { useAuthStore } from '@/stores/auth'
+import { useImageLoader } from '@/composables/useImageLoader'
+import type { EventLoadResult } from '@/api/utils/eventUtils'
 
-const event = defineModel<AppEvent & { liked?: boolean }>({ required: true })
+const event = defineModel<EventLoadResult>({ required: true })
+const isDraft = computed(() => event.value.status === 'DRAFT')
+const isCancelled = computed(() => event.value.status === 'CANCELLED')
 
 const emit = defineEmits<{
   authRequired: []
@@ -15,39 +18,12 @@ const emit = defineEmits<{
 const { t } = useI18n()
 const { locale, goToEventDetails, goToEditEvent } = useNavigation()
 const authStore = useAuthStore()
-const imageObjectUrl = ref<string>('')
-const isLoadingImage = ref(true)
 
-const isDraft = computed(() => event.value.status === 'DRAFT')
+const { imageObjectUrl, isLoadingImage, loadImage } = useImageLoader()
 
-const loadImage = async (url: string) => {
-  try {
-    const response = await api.media.get(url)
-    imageObjectUrl.value = URL.createObjectURL(response.file)
-  } catch (error) {
-    console.error('Failed to load image:', error)
-  } finally {
-    isLoadingImage.value = false
-  }
-}
-
-onMounted(async () => {
-  await loadImage(event.value.poster!)
+onMounted(() => {
+  loadImage(event.value.poster!)
 })
-
-onUnmounted(() => {
-  if (imageObjectUrl.value && imageObjectUrl.value.startsWith('blob:')) {
-    URL.revokeObjectURL(imageObjectUrl.value)
-  }
-})
-
-// const formatDate = (date: Date) => {
-//   return new Intl.DateTimeFormat(locale.value, {
-//     month: 'short',
-//     day: 'numeric',
-//     year: 'numeric',
-//   }).format(date)
-// }
 
 const day = computed(() => {
   return event.value?.date.getDate()
@@ -57,7 +33,7 @@ const month = computed(() => {
   return event.value?.date.toLocaleString(locale.value, { month: 'short' }).toUpperCase()
 })
 
-const toggleFavorite = async (e: MouseEvent) => {
+const toggleFavorite = async (e: Event) => {
   e.stopPropagation()
 
   if (!authStore.isAuthenticated) {
@@ -96,15 +72,17 @@ const toggleFavorite = async (e: MouseEvent) => {
         <q-spinner color="primary" size="40px" />
       </div>
 
-      <button
+      <q-btn
         v-if="!isDraft"
+        flat
+        round
+        :icon="event.liked ? 'favorite' : 'favorite_border'"
+        size="md"
         class="favorite-button"
         :class="{ 'is-favorite': event.liked }"
         :aria-label="t('cards.eventCard.favoriteButtonAriaLabel')"
         @click="toggleFavorite"
-      >
-        <q-icon :name="event.liked ? 'favorite' : 'favorite_border'" size="24px" />
-      </button>
+      />
 
       <div v-if="!isDraft" class="date-badge">
         <div class="date-day">{{ day }}</div>
@@ -115,18 +93,18 @@ const toggleFavorite = async (e: MouseEvent) => {
         <q-icon name="edit_note" size="16px" />
         {{ t('event.draft') }}
       </div>
+
+      <div v-if="isCancelled" class="cancelled-banner row items-center justify-center">
+        <q-icon name="cancel" size="18px" class="q-mr-xs" />
+        <span class="text-body2 text-weight-bold text-uppercase">{{ t('event.cancelled') }}</span>
+      </div>
     </div>
-    <div class="event-info">
-      <h3 class="event-title">
+    <div class="event-info q-pa-md">
+      <h3 class="text-h6 text-weight-bold event-title q-ma-none">
         {{ event.title?.trim() ? event.title : t('cards.eventCard.draftMissingTitle') }}
       </h3>
-      <div v-if="!isDraft" class="event-details">
-        <!-- <span class="event-date">
-          <q-icon name="event" size="16px" />
-          {{ formatDate(new Date(event.date)) }}
-        </span> -->
-        <span class="event-location">
-          <!-- <q-icon name="location_on" size="16px" /> -->
+      <div v-if="!isDraft" class="column q-mt-sm event-details">
+        <span class="row items-center text-body2 event-location">
           {{ event.location.name || event.location.city }}
         </span>
       </div>
@@ -182,28 +160,22 @@ const toggleFavorite = async (e: MouseEvent) => {
 }
 
 .favorite-button {
-  @include flex-center;
   position: absolute;
   top: $spacing-3;
   left: $spacing-3;
-  width: 44px;
-  height: 44px;
-  background: color-alpha($color-white, 0.9);
-  border: none;
-  border-radius: 50%;
-  cursor: pointer;
+  background: color-alpha($color-white, 0.9) !important;
   transition: all $transition-base;
-  color: $color-gray-800;
+  color: $color-gray-800 !important;
   backdrop-filter: blur(10px);
   z-index: 1;
 
   &:hover {
-    background: $color-white;
+    background: $color-white !important;
     transform: scale(1.1);
   }
 
   &.is-favorite {
-    color: $color-primary;
+    color: $color-primary !important;
   }
 }
 
@@ -250,28 +222,24 @@ const toggleFavorite = async (e: MouseEvent) => {
   font-weight: $font-weight-semibold;
 }
 
-.event-info {
-  padding: $spacing-4;
+.cancelled-banner {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  padding: $spacing-2 $spacing-3;
+  background: rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(8px);
+  color: $color-white;
+  letter-spacing: 0.5px;
+  z-index: 2;
 }
 
 .event-title {
-  font-size: $font-size-lg;
-  font-weight: $font-weight-bold;
   line-height: 1.3;
 }
 
-.event-details {
-  @include flex-column;
-  gap: $spacing-2;
-  margin-top: $spacing-3;
-}
-
-.event-date,
 .event-location {
-  display: flex;
-  align-items: center;
-  gap: $spacing-1;
-  font-size: $font-size-sm;
   opacity: 0.7;
 }
 </style>
