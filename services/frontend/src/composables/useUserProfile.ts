@@ -1,6 +1,5 @@
 import { computed, type ComputedRef, type Ref } from 'vue'
-import type { UserRole } from '@/api/types/users'
-import type { UserLoadResult } from '@/api/utils/userUtils'
+import type { User, UserRole } from '@/api/types/users'
 import { useAuthStore } from '@/stores/auth'
 
 export interface UseUserProfileReturn {
@@ -11,7 +10,7 @@ export interface UseUserProfileReturn {
   userRole: ComputedRef<UserRole | undefined>
 }
 
-export function useUserProfile(user: Ref<UserLoadResult | undefined>): UseUserProfileReturn {
+export function useUserProfile(user: Ref<User | undefined>): UseUserProfileReturn {
   const authStore = useAuthStore()
 
   const isOwnProfile = computed(() => {
