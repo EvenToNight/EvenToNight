@@ -17,8 +17,19 @@ function getConversationsForUser(userId: UserID): Conversation[] {
   )
 }
 export const mockChatApi: ChatAPI = {
+  async getConversation(_userId: UserID, conversationId: ConversationID): Promise<Conversation> {
+    const conversation = mockConversations().find((c) => c.id === conversationId)
+    if (!conversation) {
+      throw {
+        message: `Conversation with id ${conversationId} not found`,
+        code: 'CONVERSATION_NOT_FOUND',
+        status: 404,
+      }
+    }
+    return conversation
+  },
   async startConversation(
-    userId: string,
+    userId: UserID,
     firstMessage: FirstMessage
   ): Promise<SendMessageAPIResponse> {
     const sender = mockUsers.data.find((u) => u.id === userId)
@@ -59,7 +70,7 @@ export const mockChatApi: ChatAPI = {
   },
 
   async getConversations(
-    userId: string,
+    userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<Conversation>> {
     let conversations: Conversation[] = getConversationsForUser(userId)
@@ -74,7 +85,7 @@ export const mockChatApi: ChatAPI = {
   },
 
   async searchConversations(
-    userId: string,
+    userId: UserID,
     params: {
       name: string
       pagination?: PaginatedRequest
@@ -109,7 +120,10 @@ export const mockChatApi: ChatAPI = {
     return getPaginatedItems([...conversations, ...newConversations], params.pagination)
   },
 
-  async getConversation(organizationId: string, memberId: string): Promise<Conversation | null> {
+  async getConversationBetween(
+    organizationId: UserID,
+    memberId: UserID
+  ): Promise<Conversation | null> {
     const conversation = mockConversations().find(
       (c) =>
         (c.organization.id === organizationId && c.member.id === memberId) ||

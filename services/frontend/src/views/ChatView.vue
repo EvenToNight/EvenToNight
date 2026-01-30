@@ -132,7 +132,7 @@ onMounted(async () => {
 async function loadConversation(userId: string) {
   const organizationId = authStore.user?.role === 'organization' ? authStore.user!.id : userId
   const memberId = authStore.user?.role === 'organization' ? userId : authStore.user!.id
-  const existingConversation = await api.chat.getConversation(organizationId, memberId)
+  const existingConversation = await api.chat.getConversationBetween(organizationId, memberId)
 
   if (existingConversation) {
     selectedChatUser.value =
