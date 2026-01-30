@@ -31,7 +31,6 @@ export class ProcessFollowEventHandler {
         followerId: payload.followerId,
         followerName: payload.followerName,
         followerAvatar: payload.followerAvatar,
-        followId: follow.id.toString(),
       },
     });
 
