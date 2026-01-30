@@ -56,6 +56,7 @@ const getCurrentTabComponent = computed((): Tab => {
     <div class="explore-tab-content">
       <component
         :is="getCurrentTabComponent.component"
+        :key="activeTab"
         v-bind="getCurrentTabComponent.props || {}"
       />
     </div>
@@ -78,6 +79,7 @@ const getCurrentTabComponent = computed((): Tab => {
     <div class="profile-tab-content">
       <component
         :is="getCurrentTabComponent.component"
+        :key="activeTab"
         v-bind="getCurrentTabComponent.props || {}"
       />
     </div>
