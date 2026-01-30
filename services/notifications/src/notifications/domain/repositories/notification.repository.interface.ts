@@ -12,4 +12,5 @@ export interface NotificationRepository {
     userId: string,
     unreadOnly: boolean,
   ): Promise<number>;
+  markAsRead(notificationId: string): Promise<void>;
 }

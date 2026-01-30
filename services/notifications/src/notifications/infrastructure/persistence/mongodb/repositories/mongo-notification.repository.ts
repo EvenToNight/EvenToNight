@@ -36,4 +36,11 @@ export class MongoNotificationRepository implements NotificationRepository {
       ...(unreadOnly ? { read: false } : {}),
     }).exec();
   }
+
+  async markAsRead(notificationId: string): Promise<void> {
+    await NotificationModel.updateOne(
+      { _id: notificationId },
+      { $set: { read: true } },
+    ).exec();
+  }
 }

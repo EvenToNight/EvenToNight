@@ -16,5 +16,9 @@ export function createNotificationRoutes(
     controller.getUnreadCount(req, res, next),
   );
 
+  router.post("/:id", (req, res, next) =>
+    controller.markAsRead(req, res, next),
+  );
+
   return router;
 }

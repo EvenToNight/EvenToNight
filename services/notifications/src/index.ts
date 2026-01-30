@@ -71,7 +71,7 @@ async function bootstrap() {
     const getNotificationsHandler = new GetNotificationsHandler(
       notificationRepository,
     );
-    const markAsReadHandler = new MarkAsReadHandler();
+    const markAsReadHandler = new MarkAsReadHandler(notificationRepository);
     const getUnreadCountHandler = new GetUnreadCountHandler(
       notificationRepository,
     );

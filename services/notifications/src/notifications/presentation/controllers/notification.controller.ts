@@ -54,40 +54,18 @@ export class NotificationController {
       next(error);
     }
   }
-}
 
-/*
-
-// notification.controller.ts
-export class NotificationController {
-  constructor(
-    // Inietti gli use case handlers dall'application layer
-    private readonly getNotificationsHandler: GetNotificationsHandler,
-    private readonly markAsReadHandler: MarkAsReadHandler,
-    // ecc...
-  ) {}
-
-
-
-  // PATCH /notifications/:id/read
   async markAsRead(req: Request, res: Response, next: NextFunction) {
     try {
       const { id } = req.params;
-      const userId = req.user?.id;
-
-      const command = new MarkAsReadCommand(id, userId);
-      await this.markAsReadHandler.execute(command);
+      await this.markAsReadHandler.execute(id);
 
       res.json({
         success: true,
-        message: 'Notification marked as read'
+        message: "Notification marked as read",
       });
     } catch (error) {
       next(error);
     }
   }
-
-
 }
-
-*/

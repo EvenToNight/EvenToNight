@@ -88,6 +88,7 @@ paths:
           description: Unauthorized - Authentication is required.
         '500':    
           description: Internal Server Error - An error occurred on the server.
+  /
 
 components:
   securitySchemes:
