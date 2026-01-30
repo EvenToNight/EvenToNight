@@ -1,4 +1,3 @@
-// infrastructure/persistence/mongodb/repositories/mongo-follow.repository.ts
 import { FollowRepository } from "../../../../domain/repositories/follow.repository.interface";
 import { Follow } from "../../../../domain/aggregates/follow.aggregate";
 import { UserId } from "../../../../domain/value-objects/user-id.vo";
@@ -20,6 +19,14 @@ export class MongoFollowRepository implements FollowRepository {
       }
       throw error;
     }
+  }
+
+  async findFollowersByUserId(userId: UserId): Promise<Follow[]> {
+    const followDocs = await FollowModel.find({
+      followedId: userId.toString(),
+    });
+
+    return followDocs.map((doc) => FollowMapper.toDomain(doc));
   }
 
   async delete(followerId: UserId, followedId: UserId): Promise<void> {

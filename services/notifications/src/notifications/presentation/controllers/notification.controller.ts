@@ -1,22 +1,19 @@
-export class NotificationController {
-  constructor() {}
-}
+import { Request, Response, NextFunction } from "express";
+import { GetNotificationsQuery } from "../../application/queries/get-notifications.query";
+import { GetNotificationsHandler } from "../../application/handlers/get-notifications.handler";
+import { MarkAsReadHandler } from "../../application/handlers/mark-as-read.handler";
 
-/*
-
-// notification.controller.ts
 export class NotificationController {
   constructor(
-    // Inietti gli use case handlers dall'application layer
     private readonly getNotificationsHandler: GetNotificationsHandler,
     private readonly markAsReadHandler: MarkAsReadHandler,
-    // ecc...
   ) {}
 
   // GET /notifications - ottiene le notifiche dell'utente
-  async getNotifications(req: Request, res: Response, next: NextFunction) {
+  async getNotificationsByUserId(req: Request, res: Response) {
+    /*
     try {
-      const userId = req.user?.id; // dal middleware auth
+      const userId = req.params.userId;
       const { page = 1, limit = 20, unreadOnly = false } = req.query;
 
       const query = new GetNotificationsQuery(
@@ -34,8 +31,22 @@ export class NotificationController {
       });
     } catch (error) {
       next(error);
-    }
+    } */
   }
+}
+
+/*
+
+// notification.controller.ts
+export class NotificationController {
+  constructor(
+    // Inietti gli use case handlers dall'application layer
+    private readonly getNotificationsHandler: GetNotificationsHandler,
+    private readonly markAsReadHandler: MarkAsReadHandler,
+    // ecc...
+  ) {}
+
+
 
   // PATCH /notifications/:id/read
   async markAsRead(req: Request, res: Response, next: NextFunction) {
