@@ -4,6 +4,9 @@ import { config } from "../../../config/env.config";
 
 export interface NotificationGateway {
   sendNotificationToUser(userId: string, notification: any): Promise<void>;
+  isUserConnected(userId: string): boolean;
+  broadcastUserOnline(userId: string, userInfo?: any): void;
+  broadcastUserOffline(userId: string): void;
 }
 
 export class SocketIOGateway implements NotificationGateway {
@@ -80,6 +83,7 @@ export class SocketIOGateway implements NotificationGateway {
   }
 
   private async registerUser(socket: Socket, userId: string): Promise<void> {
+    const wasOffline = !this.userSockets.has(userId);
     if (!this.userSockets.has(userId)) {
       this.userSockets.set(userId, new Set());
     }
@@ -88,19 +92,28 @@ export class SocketIOGateway implements NotificationGateway {
     await socket.join(`user:${userId}`);
     console.log(`User ${userId} registered with socket ${socket.id}`);
     socket.emit("registered", { userId });
+    if (wasOffline) {
+      this.broadcastUserOnline(userId);
+    }
   }
 
   private handleDisconnect(socket: Socket): void {
     console.log(`Client disconnected: ${socket.id}`);
+
+    let disconnectedUserId: string | null = null;
 
     for (const [userId, socketIds] of this.userSockets.entries()) {
       if (socketIds.has(socket.id)) {
         socketIds.delete(socket.id);
         if (socketIds.size === 0) {
           this.userSockets.delete(userId);
+          disconnectedUserId = userId;
         }
         break;
       }
+    }
+    if (disconnectedUserId) {
+      this.broadcastUserOffline(disconnectedUserId);
     }
   }
 
@@ -116,5 +129,23 @@ export class SocketIOGateway implements NotificationGateway {
 
   isUserConnected(userId: string): boolean {
     return this.userSockets.has(userId);
+  }
+
+  broadcastUserOnline(userId: string): void {
+    console.log(`📢 Broadcasting: User ${userId} is now online`);
+
+    this.io.except(`user:${userId}`).emit("user-online", {
+      userId,
+      timestamp: new Date(),
+    });
+  }
+
+  broadcastUserOffline(userId: string): void {
+    console.log(`📢 Broadcasting: User ${userId} is now offline`);
+
+    this.io.emit("user-offline", {
+      userId,
+      timestamp: new Date(),
+    });
   }
 }
