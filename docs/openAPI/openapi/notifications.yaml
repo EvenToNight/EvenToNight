@@ -6,8 +6,8 @@ info:
 paths:
   /:
     get:
-      summary: Get Notifications for Authenticated User
-      description: Retrieve a list of notifications for the authenticated user with pagination support.
+      summary: Get Notifications for Authenticated User 
+      description: Retrieve a list of notifications for the authenticated user with pagination support. Mark notifications as read when fetched.
       security:
         - BearerAuth: []
       servers:
