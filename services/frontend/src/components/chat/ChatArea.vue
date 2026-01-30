@@ -246,7 +246,6 @@ onMounted(() => {
     } = event
 
     if (selectedConversationId.value === conversationId) {
-      // Append to messages if in current conversation
       messages.value.push({
         id: messageId,
         conversationId: conversationId,
@@ -255,12 +254,12 @@ onMounted(() => {
         createdAt: new Date(createdAt),
         isRead: false,
       })
+      api.chat.readConversationMessages(conversationId, authStore.user!.id)
       if (autoScroll.value) {
         scrollToBottom()
       }
     }
   }
-  //TODO: load missing conversations
   api.notifications.onNewMessageReceived(newMessageHandler)
   onUnmounted(() => {
     console.log('ChatArea unmounted')

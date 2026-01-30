@@ -102,8 +102,7 @@ export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
     })
     return { items: adaptedMessages, ...rest }
   },
-  //TODO: post -> patch
   async readConversationMessages(conversationId: ConversationID, userId: UserID): Promise<void> {
-    return chatClient.post<void>(`/users/${userId}/conversations/${conversationId}/read`, {})
+    return chatClient.patch<void>(`/users/${userId}/conversations/${conversationId}/read`, {})
   },
 })
