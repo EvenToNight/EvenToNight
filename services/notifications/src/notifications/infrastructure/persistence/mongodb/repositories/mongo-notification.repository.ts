@@ -8,4 +8,22 @@ export class MongoNotificationRepository implements NotificationRepository {
     const data = NotificationMapper.toPersistence(notification);
     await NotificationModel.create(data);
   }
+
+  async findNotificationsByUserId(
+    userId: string,
+    limit: number,
+    offset: number,
+  ): Promise<Notification[]> {
+    const docs = await NotificationModel.find({ userId })
+      .sort({ createdAt: -1 })
+      .skip(offset)
+      .limit(limit)
+      .exec();
+
+    return docs.map((doc) => NotificationMapper.toDomain(doc));
+  }
+
+  async countNotificationsByUserId(userId: string): Promise<number> {
+    return NotificationModel.countDocuments({ userId }).exec();
+  }
 }

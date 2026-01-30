@@ -8,10 +8,8 @@ export function createNotificationRoutes(
   const router = Router();
   router.use(authMiddleware);
 
-  // router.get("/", (req, res) => controller.getNotifications(req, res));   // controller.getNotification.bind(controller)
-
-  router.get("/:userId", (req, res) =>
-    controller.getNotificationsByUserId(req, res),
+  router.get("/", (req, res, next) =>
+    controller.getNotificationsByUserId(req, res, next),
   );
 
   return router;

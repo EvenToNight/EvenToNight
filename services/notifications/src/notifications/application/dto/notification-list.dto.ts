@@ -4,23 +4,23 @@ export class NotificationListDto {
   constructor(
     public readonly notifications: NotificationDto[],
     public readonly total: number,
-    public readonly page: number,
     public readonly limit: number,
+    public readonly offset: number,
     public readonly hasMore: boolean,
   ) {}
 
   static create(
     notifications: NotificationDto[],
     total: number,
-    page: number,
     limit: number,
+    offset: number,
   ): NotificationListDto {
     return new NotificationListDto(
       notifications,
       total,
-      page,
       limit,
-      total > page * limit,
+      offset,
+      total > offset + limit,
     );
   }
 
@@ -29,8 +29,8 @@ export class NotificationListDto {
       data: this.notifications.map((n) => n.toJson()),
       pagination: {
         total: this.total,
-        page: this.page,
         limit: this.limit,
+        offset: this.offset,
         hasMore: this.hasMore,
       },
     };

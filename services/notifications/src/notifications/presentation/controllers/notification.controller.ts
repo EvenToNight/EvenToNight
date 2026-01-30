@@ -9,29 +9,34 @@ export class NotificationController {
     private readonly markAsReadHandler: MarkAsReadHandler,
   ) {}
 
-  // GET /notifications - ottiene le notifiche dell'utente
-  async getNotificationsByUserId(req: Request, res: Response) {
-    /*
+  async getNotificationsByUserId(
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) {
     try {
-      const userId = req.params.userId;
-      const { page = 1, limit = 20, unreadOnly = false } = req.query;
+      const userId = req.userId;
+      const { limit = 20, offset = 0, unreadOnly = false } = req.query;
+
+      if (!userId) {
+        return res.status(401).json({ error: "Unauthorized" });
+      }
 
       const query = new GetNotificationsQuery(
         userId,
-        Number(page),
         Number(limit),
-        Boolean(unreadOnly)
+        Number(offset),
+        Boolean(unreadOnly),
       );
 
       const notifications = await this.getNotificationsHandler.execute(query);
 
       res.json({
-        success: true,
-        data: notifications
+        notifications,
       });
     } catch (error) {
       next(error);
-    } */
+    }
   }
 }
 

@@ -23,8 +23,8 @@ import { ProcessMessageEventHandler } from "./notifications/application/handlers
 import { EventRouter } from "./notifications/application/routers/event-router";
 import { SocketMessageHandler } from "./notifications/infrastructure/events/handlers/socket-message.handler";
 import { ProcessEventCreatedHandler } from "./notifications/application/handlers/process-event-created.handler";
-import { GetNotificationsHandler } from "notifications/application/handlers/get-notifications.handler";
-import { MarkAsReadHandler } from "notifications/application/handlers/mark-as-read.handler";
+import { GetNotificationsHandler } from "./notifications/application/handlers/get-notifications.handler";
+import { MarkAsReadHandler } from "./notifications/application/handlers/mark-as-read.handler";
 
 async function bootstrap() {
   try {
@@ -67,7 +67,9 @@ async function bootstrap() {
       processEventCreatedHandler,
     );
 
-    const getNotificationsHandler = new GetNotificationsHandler();
+    const getNotificationsHandler = new GetNotificationsHandler(
+      notificationRepository,
+    );
     const markAsReadHandler = new MarkAsReadHandler();
 
     const controller = new NotificationController(
