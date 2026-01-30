@@ -22,43 +22,18 @@ import { ProcessUnfollowEventHandler } from "./notifications/application/handler
 import { ProcessMessageEventHandler } from "./notifications/application/handlers/process-message-event.handler";
 import { EventRouter } from "./notifications/application/routers/event-router";
 import { SocketMessageHandler } from "./notifications/infrastructure/events/handlers/socket-message.handler";
+import { ProcessEventCreatedHandler } from "./notifications/application/handlers/process-event-created.handler";
+import { GetNotificationsHandler } from "notifications/application/handlers/get-notifications.handler";
+import { MarkAsReadHandler } from "notifications/application/handlers/mark-as-read.handler";
 
 async function bootstrap() {
   try {
     await MongoDB.connect();
     await RabbitMQ.setup();
 
-    const controller = new NotificationController();
-    const routes = createNotificationRoutes(controller);
-    const app = createApp(routes);
-    const httpServer = createServer(app);
-
-    const io = new Server(httpServer, {
-      cors: {
-        origin: true,
-        credentials: true,
-      },
-    });
-
-    const socketGateway = new SocketIOGateway(io);
-
     const notificationRepository = new MongoNotificationRepository();
     const followRepository = new MongoFollowRepository();
-
     const eventPublisher = new InMemoryEventPublisher();
-
-    const socketNotificationHandler = new SocketNotificationHandler(
-      socketGateway,
-    );
-    eventPublisher.subscribe(
-      NotificationCreatedEvent.name,
-      socketNotificationHandler.handle.bind(socketNotificationHandler),
-    );
-
-    const socketMessageHandler = new SocketMessageHandler(socketGateway);
-    eventPublisher.subscribe("MessageReceivedEvent", (event) =>
-      socketMessageHandler.handle(event),
-    );
 
     const createNotificationHandler = new CreateNotificationFromEventHandler(
       notificationRepository,
@@ -78,11 +53,51 @@ async function bootstrap() {
       eventPublisher,
     );
 
+    const processEventCreatedHandler = new ProcessEventCreatedHandler(
+      followRepository,
+      notificationRepository,
+      eventPublisher,
+    );
+
     const eventRouter = new EventRouter(
       createNotificationHandler,
       processFollowHandler,
       processMessageHandler,
       processUnfollowHandler,
+      processEventCreatedHandler,
+    );
+
+    const getNotificationsHandler = new GetNotificationsHandler();
+    const markAsReadHandler = new MarkAsReadHandler();
+
+    const controller = new NotificationController(
+      getNotificationsHandler,
+      markAsReadHandler,
+    );
+    const routes = createNotificationRoutes(controller);
+    const app = createApp(routes);
+    const httpServer = createServer(app);
+
+    const io = new Server(httpServer, {
+      cors: {
+        origin: true,
+        credentials: true,
+      },
+    });
+
+    const socketGateway = new SocketIOGateway(io);
+
+    const socketNotificationHandler = new SocketNotificationHandler(
+      socketGateway,
+    );
+    eventPublisher.subscribe(
+      NotificationCreatedEvent.name,
+      socketNotificationHandler.handle.bind(socketNotificationHandler),
+    );
+
+    const socketMessageHandler = new SocketMessageHandler(socketGateway);
+    eventPublisher.subscribe("MessageReceivedEvent", (event) =>
+      socketMessageHandler.handle(event),
     );
 
     const rabbitmqConsumer = new RabbitMQConsumer(eventRouter);

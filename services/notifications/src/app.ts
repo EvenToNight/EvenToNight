@@ -17,7 +17,7 @@ export const createApp = (notificationRoutes: Router): Application => {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
-  app.use("/api/notifications", notificationRoutes);
+  app.use("/", notificationRoutes);
 
   app.use((req: Request, res: Response) => {
     res.status(404).json({ error: "Not found" });
