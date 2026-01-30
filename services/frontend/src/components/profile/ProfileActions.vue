@@ -83,16 +83,15 @@ const handleOpenChat = () => {
         @click="handleOpenChat"
       />
       <q-btn
-        v-if="user.interactionsInfo?.isFollowing"
         :label="
-          user.interactionsInfo.isFollowing ? t('userProfile.following') : t('userProfile.follow')
+          user.interactionsInfo?.isFollowing ? t('userProfile.following') : t('userProfile.follow')
         "
-        :unelevated="!user.interactionsInfo.isFollowing"
-        :flat="user.interactionsInfo.isFollowing"
-        :color="!user.interactionsInfo.isFollowing ? 'primary' : undefined"
+        :unelevated="!user.interactionsInfo?.isFollowing"
+        :flat="user.interactionsInfo?.isFollowing"
+        :color="!user.interactionsInfo?.isFollowing ? 'primary' : undefined"
         :class="[
           'action-btn',
-          user.interactionsInfo.isFollowing ? 'action-btn--secondary' : 'action-btn--primary',
+          user.interactionsInfo?.isFollowing ? 'action-btn--secondary' : 'action-btn--primary',
         ]"
         @click="handleFollowToggle"
       />
