@@ -15,9 +15,7 @@ export interface PublishEventResponse {
   eventId: EventID
 }
 
-export interface EventsDataResponse {
-  events: Event[]
-}
+export type EventsDataResponse = Event[]
 
 export type EventSortOption = 'date' | 'price' | 'title' | 'instant'
 export interface EventsQueryParams {
