@@ -1,33 +1,15 @@
 <script setup lang="ts">
-import { onMounted, watch } from 'vue'
+import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
 import { useQuasar } from 'quasar'
 import { setTokenProvider, setTokenExpiredCallback } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
-import { useI18n } from 'vue-i18n'
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
-const { t, locale } = useI18n()
 useKeyboardShortcuts()
-
-function updateMetaTags() {
-  const meta = document.querySelector('meta[name="description"]')
-  if (meta) {
-    meta.setAttribute('content', t('meta.description'))
-  }
-  document.documentElement.setAttribute('lang', locale.value)
-}
-
-onMounted(() => {
-  updateMetaTags()
-})
-
-watch(locale, () => {
-  updateMetaTags()
-})
 
 onMounted(() => {
   const savedDarkMode = localStorage.getItem('darkMode')
