@@ -13,6 +13,7 @@ import { MetadataService } from 'src/metadata/services/metadata.service';
 import { UpdateReviewDto } from '../dto/update-review.dto';
 import { PaginatedResponseDto } from 'src/commons/dto/paginated-response.dto';
 import { ReviewStatsDto } from '../dto/review-stats.dto';
+import { RabbitMqPublisherService } from 'src/rabbitmq/rabbitmq-publisher.service';
 
 @Injectable()
 export class ReviewService {
@@ -20,6 +21,7 @@ export class ReviewService {
     @InjectModel(Review.name) private reviewModel: Model<Review>,
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
+    private readonly rabbitMqPublisher: RabbitMqPublisherService,
   ) {}
 
   async createReview(
@@ -42,7 +44,22 @@ export class ReviewService {
       creatorId,
       collaboratorIds,
     });
-    return review.save();
+
+    review.save();
+
+    const userInfo = await this.metadataService.getUserInfo(
+      createReviewDto.userId,
+    );
+
+    await this.rabbitMqPublisher.publishReviewCreated({
+      creatorId: review.creatorId,
+      eventId: review.eventId,
+      userId: review.userId,
+      userName: userInfo.name,
+      userAvatar: userInfo.avatar,
+    });
+
+    return review;
   }
 
   async deleteReview(eventId: string, userId: string): Promise<void> {

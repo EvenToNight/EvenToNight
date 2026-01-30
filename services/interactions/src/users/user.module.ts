@@ -6,12 +6,14 @@ import { FollowService } from './services/follow.service';
 import { Follow, FollowSchema } from './schemas/follow.schema';
 import { EventModule } from 'src/events/event.module';
 import { MetadataModule } from 'src/metadata/metadata.module';
+import { RabbitMqModule } from 'src/rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [
     MongooseModule.forFeature([{ name: Follow.name, schema: FollowSchema }]),
     EventModule,
     forwardRef(() => MetadataModule),
+    RabbitMqModule,
   ],
   controllers: [FollowController, UserActivityController],
   providers: [FollowService],

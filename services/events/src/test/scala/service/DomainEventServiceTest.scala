@@ -1,7 +1,7 @@
 package service
 
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventCommand}
-import domain.models.{Event, EventStatus, EventTag, Location}
+import domain.models.{Event, EventStatus, EventTag, Location, UserMetadata}
 import infrastructure.db.{EventRepository, MongoEventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.{EventPublisher, MockEventPublisher}
 import org.scalatest.BeforeAndAfterEach
@@ -55,9 +55,10 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       "eventonight_test",
       messageBroker = new MockEventPublisher()
     )
-    userRepo.save(domain.models.UserMetadata(
+    userRepo.save(UserMetadata(
       id = creatorId,
-      role = "organization"
+      role = "organization",
+      name = "Test Organization"
     ))
 
     publisher = new MockEventPublisher()

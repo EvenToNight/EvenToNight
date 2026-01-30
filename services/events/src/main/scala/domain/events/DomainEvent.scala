@@ -29,7 +29,10 @@ case class EventCreated(
 ) extends DomainEvent
 
 case class EventPublished(
-    eventId: String
+    eventId: String,
+    name: String,
+    creatorId: String,
+    creatorName: String
 ) extends DomainEvent
 
 case class EventUpdated(

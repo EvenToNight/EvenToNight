@@ -15,6 +15,7 @@ import {
 import { ParticipationService } from './services/participation.service';
 import { ParticipationController } from './controllers/participant.controller';
 import { AuthModule } from 'src/commons/auth';
+import { RabbitMqModule } from 'src/rabbitmq/rabbitmq.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { AuthModule } from 'src/commons/auth';
     ]),
     forwardRef(() => MetadataModule),
     AuthModule,
+    RabbitMqModule,
   ],
   controllers: [
     LikeController,
