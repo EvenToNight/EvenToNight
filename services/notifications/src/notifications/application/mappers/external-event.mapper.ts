@@ -10,27 +10,12 @@ export class ExternalEventMapper {
         return this.mapLike(payload);
       case "interactions.review.created":
         return this.mapReview(payload);
-      case "event.published":
-        return this.mapEventCreated(payload);
       default:
         console.warn(`No mapping found for routing key: ${routingKey}`);
         return null;
     }
   }
 
-  private static mapEventCreated(
-    payload: any,
-  ): CreateNotificationFromEventCommand {
-    return CreateNotificationFromEventCommand.create({
-      type: "new_event",
-      metadata: {
-        eventId: payload.eventId,
-        title: payload.title,
-        creatorId: payload.creatorId,
-        creatorName: payload.creatorName,
-      },
-    });
-  }
   private static mapLike(payload: any): CreateNotificationFromEventCommand {
     return CreateNotificationFromEventCommand.create({
       recipientUserId: payload.creatorId,

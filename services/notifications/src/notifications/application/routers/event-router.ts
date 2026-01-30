@@ -1,9 +1,9 @@
-// application/routers/event-router.ts
 import { CreateNotificationFromEventHandler } from "../handlers/create-notification-from-event.handler";
 import { ProcessFollowEventHandler } from "../handlers/process-follow-event.handler";
 import { ProcessUnfollowEventHandler } from "../handlers/process-unfollow-event.handler";
 import { ProcessMessageEventHandler } from "../handlers/process-message-event.handler";
 import { ExternalEventMapper } from "../mappers/external-event.mapper";
+import { ProcessEventCreatedHandler } from "../handlers/process-event-created.handler";
 
 export class EventRouter {
   constructor(
@@ -11,6 +11,7 @@ export class EventRouter {
     private readonly processFollowHandler: ProcessFollowEventHandler,
     private readonly processMessageHandler: ProcessMessageEventHandler,
     private readonly processUnfollowHandler: ProcessUnfollowEventHandler,
+    private readonly processEventCreatedHandler: ProcessEventCreatedHandler,
   ) {}
 
   async route(routingKey: string, payload: any): Promise<void> {
@@ -19,7 +20,6 @@ export class EventRouter {
     switch (routingKey) {
       case "interactions.like.created":
       case "interactions.review.created":
-      case "event.published":
         await this.handleNotificationOnly(routingKey, payload);
         break;
 
@@ -33,6 +33,10 @@ export class EventRouter {
 
       case "chat.message.created":
         await this.processMessageHandler.execute(payload);
+        break;
+
+      case "event.published":
+        await this.processEventCreatedHandler.execute(payload);
         break;
 
       default:
