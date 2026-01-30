@@ -16,6 +16,12 @@ import { NotificationCreatedEvent } from "./notifications/domain/events/notifica
 import { InMemoryEventPublisher } from "./notifications/infrastructure/events/in-memory-event-publisher";
 import { SocketNotificationHandler } from "./notifications/infrastructure/events/handlers/socket-notification.handler";
 import { MongoNotificationRepository } from "./notifications/infrastructure/persistence/mongodb/repositories/mongo-notification.repository";
+import { MongoFollowRepository } from "./notifications/infrastructure/persistence/mongodb/repositories/mongo-follow.repository";
+import { ProcessFollowEventHandler } from "./notifications/application/handlers/process-follow-event.handler";
+import { ProcessUnfollowEventHandler } from "./notifications/application/handlers/process-unfollow-event.handler";
+import { ProcessMessageEventHandler } from "./notifications/application/handlers/process-message-event.handler";
+import { EventRouter } from "./notifications/application/routers/event-router";
+import { SocketMessageHandler } from "./notifications/infrastructure/events/handlers/socket-message.handler";
 
 async function bootstrap() {
   try {
@@ -37,12 +43,21 @@ async function bootstrap() {
     const socketGateway = new SocketIOGateway(io);
 
     const notificationRepository = new MongoNotificationRepository();
+    const followRepository = new MongoFollowRepository();
+
     const eventPublisher = new InMemoryEventPublisher();
 
-    const socketHandler = new SocketNotificationHandler(socketGateway);
+    const socketNotificationHandler = new SocketNotificationHandler(
+      socketGateway,
+    );
     eventPublisher.subscribe(
       NotificationCreatedEvent.name,
-      socketHandler.handle.bind(socketHandler),
+      socketNotificationHandler.handle.bind(socketNotificationHandler),
+    );
+
+    const socketMessageHandler = new SocketMessageHandler(socketGateway);
+    eventPublisher.subscribe("MessageReceivedEvent", (event) =>
+      socketMessageHandler.handle(event),
     );
 
     const createNotificationHandler = new CreateNotificationFromEventHandler(
@@ -50,7 +65,27 @@ async function bootstrap() {
       eventPublisher,
     );
 
-    const rabbitmqConsumer = new RabbitMQConsumer(createNotificationHandler);
+    const processFollowHandler = new ProcessFollowEventHandler(
+      followRepository,
+      createNotificationHandler,
+    );
+
+    const processUnfollowHandler = new ProcessUnfollowEventHandler(
+      followRepository,
+    );
+
+    const processMessageHandler = new ProcessMessageEventHandler(
+      eventPublisher,
+    );
+
+    const eventRouter = new EventRouter(
+      createNotificationHandler,
+      processFollowHandler,
+      processMessageHandler,
+      processUnfollowHandler,
+    );
+
+    const rabbitmqConsumer = new RabbitMQConsumer(eventRouter);
     await rabbitmqConsumer.connect();
     httpServer.listen(config.port, () => {
       console.log(`🚀 Notification service running on port ${config.port}`);

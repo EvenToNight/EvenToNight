@@ -1,7 +1,7 @@
 import mongoose, { Schema } from "mongoose";
 
 export interface FollowDocument {
-  _id: string;
+  _id: any; // MongoDB ObjectId
   followerId: string;
   followedId: string;
   createdAt: Date;

@@ -21,7 +21,7 @@ export class CreateNotificationFromEventHandler {
     const content = NotificationContent.create(command.metadata);
 
     if (!userId) {
-      return ""; // TODO: if userId is not defined, it's maybe a eventCreated event...
+      return ""; // TODO
     }
 
     const notification = Notification.create({

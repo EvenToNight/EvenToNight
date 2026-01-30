@@ -6,13 +6,8 @@ export class ExternalEventMapper {
     payload: any,
   ): CreateNotificationFromEventCommand | null {
     switch (routingKey) {
-      // TODO: handle all routing keys
-      case "chat.message.created":
-        return this.mapMessage(payload);
       case "interactions.like.created":
         return this.mapLike(payload);
-      case "interactions.follow.created":
-        return this.mapFollow(payload);
       case "interactions.review.created":
         return this.mapReview(payload);
       case "event.published":
@@ -21,22 +16,6 @@ export class ExternalEventMapper {
         console.warn(`No mapping found for routing key: ${routingKey}`);
         return null;
     }
-  }
-
-  private static mapMessage(payload: any): CreateNotificationFromEventCommand {
-    console.log("Mapping chat.message.created event payload:", payload);
-    return CreateNotificationFromEventCommand.create({
-      recipientUserId: payload.receiverId,
-      type: "message",
-      metadata: {
-        conversationId: payload.conversationId,
-        senderId: payload.senderId,
-        senderName: payload.senderName,
-        message: payload.message,
-        messageId: payload.messageId,
-        senderAvatar: payload.senderAvatar,
-      },
-    });
   }
 
   private static mapEventCreated(
@@ -62,18 +41,6 @@ export class ExternalEventMapper {
         userId: payload.userId,
         userName: payload.userName,
         userAvatar: payload.userAvatar,
-      },
-    });
-  }
-
-  private static mapFollow(payload: any): CreateNotificationFromEventCommand {
-    return CreateNotificationFromEventCommand.create({
-      recipientUserId: payload.followedId,
-      type: "follow",
-      metadata: {
-        followerId: payload.followerId,
-        followerName: payload.followerName,
-        followerAvatar: payload.followerAvatar,
       },
     });
   }

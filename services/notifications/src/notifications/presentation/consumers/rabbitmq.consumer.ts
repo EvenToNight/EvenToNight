@@ -4,8 +4,7 @@ import amqp, {
 } from "amqp-connection-manager";
 import { ConfirmChannel, ConsumeMessage } from "amqplib";
 import { config } from "../../../config/env.config";
-import { CreateNotificationFromEventHandler } from "../../application/handlers/create-notification-from-event.handler";
-import { ExternalEventMapper } from "../../application/mapper/external-event.mapper";
+import { EventRouter } from "../../application/routers/event-router";
 
 export interface EventEnvelope<T> {
   eventType: string;
@@ -17,9 +16,7 @@ export class RabbitMQConsumer {
   private connection: AmqpConnectionManager | null = null;
   private channelWrapper: ChannelWrapper | null = null;
 
-  constructor(
-    private readonly createNotificationHandler: CreateNotificationFromEventHandler,
-  ) {}
+  constructor(private readonly eventRouter: EventRouter) {}
 
   async connect(): Promise<void> {
     try {
@@ -90,26 +87,10 @@ export class RabbitMQConsumer {
         JSON.stringify(eventEnvelope.payload, null, 2),
       );
 
-      const command = ExternalEventMapper.mapToCommand(
-        routingKey,
-        eventEnvelope.payload,
-      );
-
-      if (!command) {
-        console.warn(
-          `⚠️  No handler for routing key: ${routingKey}. Skipping message.`,
-        );
-        channel.ack(msg);
-        return;
-      }
-
-      const notificationId =
-        await this.createNotificationHandler.execute(command);
+      await this.eventRouter.route(routingKey, eventEnvelope.payload);
 
       const duration = Date.now() - startTime;
-      console.log(
-        `✅ Notification created successfully: ${notificationId} (${duration}ms)`,
-      );
+      console.log(`✅ Notification created successfully: ${duration}ms`);
       channel.ack(msg);
     } catch (error) {
       const duration = Date.now() - startTime;

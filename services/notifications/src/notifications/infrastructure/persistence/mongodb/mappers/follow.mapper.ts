@@ -6,7 +6,6 @@ import { FollowDocument } from "../schemas/follow.schema";
 export class FollowMapper {
   static toPersistence(follow: Follow): Partial<FollowDocument> {
     return {
-      _id: follow.id.toString(),
       followerId: follow.followerId.toString(),
       followedId: follow.followedId.toString(),
       createdAt: follow.createdAt,
@@ -14,7 +13,7 @@ export class FollowMapper {
   }
 
   static toDomain(doc: FollowDocument): Follow {
-    return Follow.fromPersistence(FollowId.fromString(doc._id), {
+    return Follow.fromPersistence(FollowId.fromString(doc._id.toString()), {
       followerId: UserId.fromString(doc.followerId),
       followedId: UserId.fromString(doc.followedId),
       createdAt: doc.createdAt,

@@ -45,10 +45,9 @@ tasks.register<NpmTask>("unitTest") {
     args.set(listOf("run", "test"))
 }
 
-tasks.register<NpmTask>("test") {
+tasks.register("test") {
     group = "verification"
     description = "Runs all the test suites."
-    dependsOn("npmInstall")
     dependsOn("unitTest")
 }
 

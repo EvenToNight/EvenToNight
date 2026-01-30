@@ -1,8 +1,8 @@
-import { FollowRepository } from "notifications/domain/repositories/follow.repository.interface";
+import { FollowRepository } from "../../domain/repositories/follow.repository.interface";
 import { CreateNotificationFromEventHandler } from "./create-notification-from-event.handler";
 import { CreateNotificationFromEventCommand } from "../commands/create-notification-from-event.command";
-import { UserId } from "notifications/domain/value-objects/user-id.vo";
-import { Follow } from "notifications/domain/aggregates/follow.aggregate";
+import { UserId } from "../../domain/value-objects/user-id.vo";
+import { Follow } from "../../domain/aggregates/follow.aggregate";
 
 export class ProcessFollowEventHandler {
   constructor(
@@ -29,7 +29,7 @@ export class ProcessFollowEventHandler {
       type: "follow",
       metadata: {
         followerId: payload.followerId,
-        followerUsername: payload.followerUsername,
+        followerName: payload.followerName,
         followerAvatar: payload.followerAvatar,
         followId: follow.id.toString(),
       },
