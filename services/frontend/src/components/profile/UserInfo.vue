@@ -1,14 +1,16 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import FollowersFollowingList from './FollowersFollowingList.vue'
 import type { UserLoadResult } from '@/api/utils/userUtils'
+import type { PaginatedRequest } from '@/api/interfaces/commons'
+import UserList from '../user/UserList.vue'
+import { api } from '@/api'
 
 interface Props {
   user: UserLoadResult
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 
 const { t } = useI18n()
 
@@ -22,6 +24,11 @@ const openFollowers = () => {
 const openFollowing = () => {
   showFollowingDialog.value = true
 }
+
+const loadFollowersFn = (pagination?: PaginatedRequest) =>
+  api.interactions.followers(props.user.id, pagination)
+const loadFollowingFn = (pagination?: PaginatedRequest) =>
+  api.interactions.following(props.user.id, pagination)
 </script>
 
 <template>
@@ -49,8 +56,20 @@ const openFollowing = () => {
       <span>{{ user.website }}</span>
     </a>
 
-    <FollowersFollowingList v-model="showFollowersDialog" :user-id="user.id" type="followers" />
-    <FollowersFollowingList v-model="showFollowingDialog" :user-id="user.id" type="following" />
+    <UserList
+      v-model="showFollowersDialog"
+      :load-fn="loadFollowersFn"
+      :title="t('userProfile.followers')"
+      :empty-text="t('userProfile.noFollowers', 'Nessun follower')"
+      empty-icon="people_outline"
+    />
+    <UserList
+      v-model="showFollowingDialog"
+      :load-fn="loadFollowingFn"
+      :title="t('userProfile.following')"
+      :empty-text="t('userProfile.noFollowing', 'Non segui nessuno')"
+      empty-icon="person_add_alt"
+    />
   </div>
 </template>
 
