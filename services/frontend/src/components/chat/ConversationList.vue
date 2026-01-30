@@ -187,7 +187,7 @@ function addNewConversation(conversation: Conversation) {
 }
 
 onMounted(() => {
-  const newMessageHandler = (event: NewMessageReceivedEvent) => {
+  const newMessageHandler = async (event: NewMessageReceivedEvent) => {
     const {
       conversationId,
       senderId,
@@ -216,9 +216,11 @@ onMounted(() => {
         conversations.value.splice(index, 1)
         conversations.value.unshift(conversation)
       }
+    } else {
+      const conversation = await api.chat.getConversation(authStore.user!.id, conversationId)
+      conversations.value.unshift(conversation)
     }
   }
-  //TODO: load missing conversations
   api.notifications.onNewMessageReceived(newMessageHandler)
   onUnmounted(() => {
     api.notifications.offNewMessageReceived(newMessageHandler)
