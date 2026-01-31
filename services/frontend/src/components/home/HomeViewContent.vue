@@ -195,6 +195,7 @@ onMounted(async () => {
 
 .content-section {
   margin-top: $spacing-8;
+  padding-bottom: $spacing-8;
 
   h2 {
     margin-top: $spacing-8;
