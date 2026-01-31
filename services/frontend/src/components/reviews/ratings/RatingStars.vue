@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
-import { useQuasar } from 'quasar'
+import { computed } from 'vue'
 import { RATING_VALUES } from '@/api/types/interaction'
-
-type StarType = 'filled' | 'half' | 'empty'
 
 interface Props {
   rating: number
@@ -24,69 +21,28 @@ const emit = defineEmits<{
   'update:rating': [rating: number]
 }>()
 
-const $q = useQuasar()
-const hoverRating = ref<number | null>(null)
-
-const displayRating = computed(() => {
-  return hoverRating.value !== null ? hoverRating.value : props.rating
+const model = computed({
+  get: () => props.rating,
+  set: (value) => emit('update:rating', value),
 })
 
 const formattedRating = computed(() => {
-  const rating = displayRating.value
+  const rating = props.rating
   return Number.isInteger(rating) ? rating.toFixed(0) : rating.toFixed(1)
 })
 
 const maxRating = computed(() => Math.max(...RATING_VALUES))
 
-const getStarType = (index: number): StarType => {
-  const position = index + 1
-  const rating = displayRating.value
-  if (rating >= position) return 'filled'
-  if (rating >= position - 0.5) return 'half'
-  return 'empty'
-}
-
-const stars = computed(() => {
-  return Array.from({ length: 5 }, (_, i) => ({
-    type: getStarType(i),
-    index: i,
-  }))
+const iconSize = computed(() => {
+  if (props.size === 'sm') return '1.2em'
+  if (props.size === 'lg') return '2em'
+  return '1.5em'
 })
-
-const handleStarClick = (index: number) => {
-  if (props.editable) {
-    const newRating = index + 1
-    emit('update:rating', newRating)
-  }
-}
-
-const handleStarHover = (index: number) => {
-  if (props.editable) {
-    hoverRating.value = index + 1
-  }
-}
-
-const handleMouseLeave = () => {
-  if (props.editable) {
-    hoverRating.value = null
-  }
-}
-
-const getStarColor = (type: StarType) => {
-  if (type === 'filled' || type === 'half') return 'warning'
-  return $q.dark.isActive ? 'grey-8' : 'grey-5'
-}
 
 const ratingNumberClass = computed(() => {
   if (props.size === 'sm') return { fontSize: '2rem', lineHeight: 1 }
   if (props.size === 'lg') return { fontSize: '7rem', lineHeight: 1 }
   return { fontSize: '5rem', lineHeight: 1 }
-})
-
-const starIconClass = computed(() => {
-  if (props.size === 'sm') return 'text-body1'
-  if (props.size === 'lg') return 'text-h4'
-  return 'text-h5'
 })
 
 const compactRatingClass = computed(() => {
@@ -111,22 +67,23 @@ const compactRatingClass = computed(() => {
       {{ formattedRating }}
     </span>
 
-    <div class="flex q-gutter-x-xs" @mouseleave="handleMouseLeave">
-      <q-icon
-        v-for="star in stars"
-        :key="star.index"
-        :name="star.type === 'filled' ? 'star' : star.type === 'half' ? 'star_half' : 'star_border'"
-        :class="[starIconClass, props.editable ? 'cursor-pointer star-hover' : '']"
-        :color="getStarColor(star.type)"
-        @click="handleStarClick(star.index)"
-        @mouseenter="handleStarHover(star.index)"
-      />
-    </div>
+    <q-rating
+      v-model="model"
+      :max="5"
+      :size="iconSize"
+      :readonly="!props.editable"
+      color="warning"
+      color-half="warning"
+      icon="star_border"
+      icon-selected="star"
+      icon-half="star_half"
+      class="no-shadow"
+    />
 
     <span
       v-if="showNumber && props.variant === 'compact'"
-      class="text-weight-bold q-ml-sm"
-      :class="[compactRatingClass, $q.dark.isActive ? 'text-grey-5' : 'text-grey-7']"
+      class="text-weight-bold q-ml-sm text-grey"
+      :class="compactRatingClass"
     >
       {{ formattedRating }}/{{ maxRating }}
     </span>
@@ -134,11 +91,7 @@ const compactRatingClass = computed(() => {
 </template>
 
 <style scoped>
-.star-hover {
-  transition: transform 0.2s ease;
-}
-
-.star-hover:hover {
-  transform: scale(1.2);
+:deep(.q-rating__icon) {
+  text-shadow: none !important;
 }
 </style>
