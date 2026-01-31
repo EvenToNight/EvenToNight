@@ -12,15 +12,15 @@ const props = defineProps<Props>()
 const { t } = useI18n()
 const { goToUserProfile } = useNavigation()
 
-const organizer = ref<User | null>(null)
-const collaborators = ref<User[]>([])
+const organizer = ref<User | undefined>(undefined)
+const collaborators = ref<User[] | undefined>(undefined)
 
 const loadOrganizer = async (userId: UserID) => {
   try {
     organizer.value = await api.users.getUserById(userId)
   } catch (error) {
     console.error('Failed to load organizer:', error)
-    organizer.value = null
+    organizer.value = undefined
   }
 }
 
@@ -30,7 +30,7 @@ const loadCollaborators = async (userIds: UserID[]) => {
     collaborators.value = await Promise.all(promises)
   } catch (error) {
     console.error('Failed to load collaborators:', error)
-    collaborators.value = []
+    collaborators.value = undefined
   }
 }
 
@@ -63,7 +63,7 @@ onMounted(async () => {
     </div>
   </div>
 
-  <div v-if="collaborators.length > 0" class="collaborators-section">
+  <div v-if="collaborators && collaborators.length > 0" class="collaborators-section">
     <h3 class="section-subtitle">{{ t('eventDetails.collaborators') }}</h3>
     <div class="collaborators-list">
       <div

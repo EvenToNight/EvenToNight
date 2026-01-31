@@ -19,6 +19,7 @@ import {
   SETTINGS_ROUTE_NAME,
   EDIT_PROFILE_ROUTE_NAME,
   CHAT_ROUTE_NAME,
+  TICKET_PURCHASE_ROUTE_NAME,
 } from '@/router'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
 
@@ -210,11 +211,11 @@ export const useNavigation = () => {
     }
   }
 
-  const goToUserProfile = (userId: string, swap: boolean = false) => {
+  const goToUserProfile = (userId: string, hash?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId })
+      replaceWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId }, { hash })
     } else {
-      pushWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId })
+      pushWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId }, { hash })
     }
   }
 
@@ -246,6 +247,14 @@ export const useNavigation = () => {
       replaceWithLocale(CHAT_ROUTE_NAME, undefined, { userId })
     } else {
       pushWithLocale(CHAT_ROUTE_NAME, undefined, { userId })
+    }
+  }
+
+  const goToPurchaseTickets = (eventId: string, swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(TICKET_PURCHASE_ROUTE_NAME, { id: eventId })
+    } else {
+      pushWithLocale(TICKET_PURCHASE_ROUTE_NAME, { id: eventId })
     }
   }
 
@@ -295,6 +304,7 @@ export const useNavigation = () => {
     goToSettings,
     goToEditProfile,
     goToChat,
+    goToPurchaseTickets,
     goToRoute,
     replaceRoute,
     changeLocale,

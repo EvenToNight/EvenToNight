@@ -7,6 +7,7 @@ import { useNavigation } from '@/router/utils'
 import SeeAllButton from '@/components/buttons/basicButtons/SeeAllButton.vue'
 import RatingInfo from '../reviews/ratings/RatingInfo.vue'
 import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
+import LoadableComponent from '@/components/common/LoadableComponent.vue'
 
 interface Props {
   eventId: string
@@ -47,42 +48,37 @@ onMounted(() => {
 </script>
 
 <template>
-  <div v-if="loading" class="reviews-preview">
-    <div class="loading-state">
-      <q-spinner color="primary" size="40px" />
-      <span class="loading-text">Caricamento recensioni...</span>
-    </div>
-  </div>
-
-  <div v-else-if="reviews.length > 0" class="reviews-preview">
-    <div class="preview-header">
-      <div class="header-top">
-        <h3 class="section-title">Recensioni</h3>
-        <SeeAllButton @click="goToAllReviews" />
+  <LoadableComponent :loading="loading" label="Caricamento recensioni...">
+    <div v-if="reviews.length > 0" class="reviews-preview">
+      <div class="preview-header">
+        <div class="header-top">
+          <h3 class="section-title">Recensioni</h3>
+          <SeeAllButton @click="goToAllReviews" />
+        </div>
+        <RatingInfo
+          v-if="reviewsStatistics"
+          :reviews-statistics="reviewsStatistics"
+          class="rating-summary"
+        />
       </div>
-      <RatingInfo
-        v-if="reviewsStatistics"
-        :reviews-statistics="reviewsStatistics"
-        class="rating-summary"
-      />
-    </div>
 
-    <div class="reviews-list">
-      <ReviewCard
-        v-for="review in reviews"
-        :key="review.eventId + '-' + review.userId"
-        :review="review"
-        :show-event-info="false"
-      />
+      <div class="reviews-list">
+        <ReviewCard
+          v-for="review in reviews"
+          :key="review.eventId + '-' + review.userId"
+          :review="review"
+          :show-event-info="false"
+        />
+      </div>
     </div>
-  </div>
-
-  <div v-else class="reviews-preview">
-    <div class="empty-state">
-      <q-icon name="rate_review" size="48px" />
-      <span class="empty-text">Non ci sono ancora recensioni per questo evento</span>
+    <!-- TODO: if user can leave a review, show a button to open the SubmitReviewDialog -->
+    <div v-else class="reviews-preview">
+      <div class="empty-state">
+        <q-icon name="rate_review" size="48px" />
+        <span class="empty-text">Non ci sono ancora recensioni per questo evento</span>
+      </div>
     </div>
-  </div>
+  </LoadableComponent>
 </template>
 
 <style lang="scss" scoped>
