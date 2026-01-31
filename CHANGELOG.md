@@ -1,3 +1,10 @@
+## [1.25.1](https://github.com/EvenToNight/EvenToNight/compare/v1.25.0...v1.25.1) (2026-01-31)
+
+### Bug Fixes
+
+* **chat:** fix bug in get conversations order ([df8dadd](https://github.com/EvenToNight/EvenToNight/commit/df8dadd00392e7cbcfaef88b52a4c1e1fe7c116b))
+* **events:** fix bug in search events order by ([5826c60](https://github.com/EvenToNight/EvenToNight/commit/5826c6091fe52977dfc75779300bd4652b87f030))
+
 ## [1.25.0](https://github.com/EvenToNight/EvenToNight/compare/v1.24.1...v1.25.0) (2026-01-30)
 
 ### Features
