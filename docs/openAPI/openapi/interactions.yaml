@@ -1006,6 +1006,15 @@ paths:
             minimum: 1
             maximum: 100
             default: 20
+        - name: rating
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Filter reviews by rating (1-5 stars)
+          example: 5
       responses:
         '200':
           description: A paginated list of reviews for the event
@@ -1237,6 +1246,15 @@ paths:
             minimum: 1
             maximum: 100
             default: 20
+        - name: rating
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Filter reviews by rating (1-5 stars)
+          example: 5
       responses:
         '200':
           description: A paginated list of reviews for the organization

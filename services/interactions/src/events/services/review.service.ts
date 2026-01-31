@@ -94,9 +94,14 @@ export class ReviewService {
     eventId: string,
     limit?: number,
     offset?: number,
+    rating?: number,
   ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
     await this.metadataService.validateEventExistence(eventId);
-    return this.getReviewsWithStats({ eventId }, limit, offset);
+    const filter: Record<string, any> = { eventId };
+    if (rating !== undefined) {
+      filter.rating = rating;
+    }
+    return this.getReviewsWithStats(filter, limit, offset);
   }
 
   async getUserReviews(
@@ -123,9 +128,10 @@ export class ReviewService {
     role: 'creator' | 'collaborator' | 'all' = 'all',
     limit?: number,
     offset?: number,
+    rating?: number,
   ): Promise<PaginatedResponseDto<Review>> {
     await this.metadataService.validateUserExistence(organizationId);
-    return this.getReviewsWithStats(
+    const baseFilter =
       role === 'creator'
         ? { creatorId: organizationId }
         : role === 'collaborator'
@@ -135,10 +141,12 @@ export class ReviewService {
                 { creatorId: organizationId },
                 { collaboratorIds: organizationId },
               ],
-            },
-      limit,
-      offset,
-    );
+            };
+
+    const filter =
+      rating !== undefined ? { ...baseFilter, rating } : baseFilter;
+
+    return this.getReviewsWithStats(filter, limit, offset);
   }
 
   private async getReviewsWithStats(
