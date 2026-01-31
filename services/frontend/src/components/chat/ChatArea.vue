@@ -34,8 +34,9 @@ const { isMobile } = useBreakpoints()
 const {
   items: messages,
   loading,
-  onLoad: onLoadMore,
-  reload: reloadMessages,
+  loadItems,
+  onLoad,
+  reload,
 } = useInfiniteScroll<Message>({
   itemsPerPage: 50,
   prepend: true,
@@ -96,11 +97,15 @@ function shouldShowDateSeparator(index: number): boolean {
   return currentDay.getTime() !== prevDay.getTime()
 }
 
-function scrollToBottom() {
+function scrollToBottom(smooth = false) {
   nextTick(() => {
     const scrollTarget = scrollAreaRef.value?.getScrollTarget()
     if (scrollTarget) {
-      scrollAreaRef.value?.setScrollPosition('vertical', scrollTarget.scrollHeight, 300)
+      scrollAreaRef.value?.setScrollPosition(
+        'vertical',
+        scrollTarget.scrollHeight,
+        smooth ? 200 : 0
+      )
       unreadScrollCount.value = 0
     }
   })
@@ -149,7 +154,8 @@ const newMessageHandler = (event: NewMessageReceivedEvent) => {
   }
 }
 
-onMounted(() => {
+onMounted(async () => {
+  await loadItems()
   api.notifications.onNewMessageReceived(newMessageHandler)
 })
 
@@ -162,13 +168,12 @@ watch(selectedConversationId, (newId, oldId) => {
     unreadScrollCount.value = 0
     if (newId) {
       messages.value = []
-      reloadMessages()
+      reload()
     } else {
       messages.value = []
     }
   }
 })
-
 watch(
   messages,
   () => {
@@ -206,7 +211,7 @@ watch(
           <span>Inizia la conversazione scrivendo un messaggio</span>
         </div>
 
-        <q-infinite-scroll v-else reverse :offset="200" @load="onLoadMore">
+        <q-infinite-scroll v-else reverse :offset="200" @load="onLoad">
           <template #loading>
             <div class="loading-more">
               <q-spinner color="primary" size="24px" />
@@ -247,7 +252,7 @@ watch(
         fab
         icon="keyboard_arrow_down"
         class="scroll-to-bottom-btn"
-        @click="scrollToBottom()"
+        @click="scrollToBottom(true)"
       >
         <q-badge v-if="unreadScrollCount > 0" color="primary" floating>
           {{ unreadScrollCount }}
@@ -330,7 +335,10 @@ watch(
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
 }
 
 .empty-messages {
@@ -338,7 +346,10 @@ watch(
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 100%;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
   color: var(--q-text-secondary);
   text-align: center;
 
