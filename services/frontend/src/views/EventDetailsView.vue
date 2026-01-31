@@ -37,9 +37,9 @@ onMounted(async () => {
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
     <NavigationWithParallaxEffect :posterLink="event.poster" :title="event.title">
       <EventDetailsContent
-        v-model:isAuthRequired="showAuthDialog"
         :event="event"
         :eventTickets="eventTickets"
+        @authRequired="showAuthDialog = true"
       />
     </NavigationWithParallaxEffect>
   </div>

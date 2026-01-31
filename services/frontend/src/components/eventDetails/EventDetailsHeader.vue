@@ -9,10 +9,11 @@ import UserList from '@/components/user/UserList.vue'
 
 interface Props {
   event: Event
-  isAuthRequired: boolean
 }
 
-const emit = defineEmits(['update:isAuthRequired'])
+const emit = defineEmits<{
+  authRequired: [void]
+}>()
 
 const props = defineProps<Props>()
 const authStore = useAuthStore()
@@ -46,7 +47,7 @@ const loadInteractions = async () => {
 
 const toggleLike = async () => {
   if (!authStore.isAuthenticated) {
-    emit('update:isAuthRequired', true)
+    emit('authRequired')
     return
   }
   const wasLiked = isFavorite.value

@@ -42,10 +42,6 @@ const totalItems = computed(() => users.value.length)
 const onShow = () => {
   reload()
 }
-
-const handleUserClick = () => {
-  show.value = false
-}
 </script>
 
 <template>
@@ -94,7 +90,7 @@ const handleUserClick = () => {
               v-for="user in users"
               :key="user.userId"
               :user="user"
-              @click="handleUserClick"
+              @click="show = false"
             />
           </div>
 

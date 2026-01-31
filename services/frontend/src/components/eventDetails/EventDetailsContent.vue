@@ -2,7 +2,6 @@
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import { ref, onMounted } from 'vue'
-import { useQuasar } from 'quasar'
 import type { Event } from '@/api/types/events'
 import EventDetailsHeader from './EventDetailsHeader.vue'
 import EventInfo from './EventInfo.vue'
@@ -13,21 +12,21 @@ import type { EventTicketType } from '@/api/types/payments'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
+import { useTicketDownload } from '@/composables/useTicketDownload'
 
 interface Props {
   event: Event
   eventTickets: EventTicketType[]
-  isAuthRequired: boolean
 }
 const props = defineProps<Props>()
 const emit = defineEmits<{
-  'update:isAuthRequired': [boolean]
+  authRequired: [void]
 }>()
 const { t } = useI18n()
 const router = useRouter()
 const authStore = useAuthStore()
-const $q = useQuasar()
 const { goToUserProfile } = useNavigation()
+const { downloadTickets } = useTicketDownload()
 const userHasTickets = ref(false)
 
 onMounted(async () => {
@@ -52,7 +51,7 @@ const checkUserHasTickets = async () => {
 
 const handleBuyTickets = () => {
   if (!authStore.isAuthenticated) {
-    emit('update:isAuthRequired', true)
+    emit('authRequired')
     return
   }
   router.push({
@@ -61,35 +60,6 @@ const handleBuyTickets = () => {
       id: props.event.eventId,
     },
   })
-}
-
-const handleDownloadTickets = async () => {
-  if (!authStore.isAuthenticated) return
-
-  try {
-    const blob = await api.payments.getEventPdfTickets(authStore.user!.id, props.event.eventId)
-    const url = URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `tickets-${props.event.title}.pdf`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    URL.revokeObjectURL(url)
-
-    $q.notify({
-      type: 'positive',
-      message: 'Tickets downloaded successfully',
-      icon: 'download',
-    })
-  } catch (error) {
-    console.error('Failed to download tickets:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Failed to download tickets',
-      icon: 'error',
-    })
-  }
 }
 
 const handleViewMyTickets = () => {
@@ -108,11 +78,7 @@ const ticketsAvailable = () => {
 <template>
   <div class="content-wrapper">
     <div class="info-box">
-      <EventDetailsHeader
-        :event="event"
-        :isAuthRequired="isAuthRequired"
-        @update:is-auth-required="emit('update:isAuthRequired', $event)"
-      />
+      <EventDetailsHeader :event="event" @authRequired="emit('authRequired')" />
       <EventInfo :event="event" :eventTickets="eventTickets" />
       <OrganizationInfo :event="event" />
       <template v-if="event.status === 'PUBLISHED'">
@@ -125,7 +91,7 @@ const ticketsAvailable = () => {
             label="Download Tickets"
             class="full-width base-button base-button--primary"
             size="lg"
-            @click="handleDownloadTickets"
+            @click="downloadTickets(event)"
           />
           <q-btn
             outline
