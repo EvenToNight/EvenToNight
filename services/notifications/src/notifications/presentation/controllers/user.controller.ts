@@ -4,7 +4,7 @@ import { IsOnlineHandler } from "../../application/handlers/is-online.handler";
 export class UserController {
   constructor(private readonly isOnlineHandler: IsOnlineHandler) {}
 
-  async isOnline(req: Request, res: Response, next: NextFunction) {
+  isOnline(req: Request, res: Response, next: NextFunction) {
     try {
       const { userId } = req.params;
 

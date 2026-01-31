@@ -21,4 +21,17 @@ export class OrganizationController {
       rating,
     );
   }
+
+  @Get('reviews/statistics')
+  async getOrganizationReviewsStatistics(
+    @Param('organizationId') organizationId: string,
+    @Query('role') role: 'creator' | 'collaborator' | 'all' = 'all',
+    @Query('rating') rating?: number,
+  ) {
+    return this.reviewService.getOrganizationReviewsStatistics(
+      organizationId,
+      role,
+      rating,
+    );
+  }
 }

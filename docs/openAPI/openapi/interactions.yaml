@@ -1292,6 +1292,80 @@ paths:
                     type: integer
       tags:
         - Organizations
+
+  /organizations/{organizationId}/reviews/statistics:
+    get:
+      summary: Get review statistics for an organization
+      description: Get aggregated statistics (average rating and rating distribution) for an organization's reviews without pagination
+      servers:
+        - url: http://localhost:9030
+          description: Local server
+        - url: https://interactions.eventonight.site
+          description: Production server
+      parameters:
+        - name: organizationId
+          in: path
+          required: true
+          schema:
+            type: string
+          example: org123
+        - name: role
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [creator, collaborator, all]
+            default: all
+          description: Filter statistics by organization role (creator, collaborator, or all)
+          example: all
+        - name: rating
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 5
+          description: Filter statistics by specific rating (1-5 stars)
+          example: 5
+      responses:
+        '200':
+          description: Review statistics for the organization
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReviewStatsDto'
+              example:
+                averageRating: 4.5
+                ratingDistribution:
+                  "1": 0
+                  "2": 1
+                  "3": 2
+                  "4": 5
+                  "5": 10
+                totalReviews: 18
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  statusCode:
+                    type: integer
+        '404':
+          description: Organization not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Organization not found
+                error: Not Found
+      tags:
+        - Organizations
   
 components:
   schemas:
@@ -1572,6 +1646,11 @@ components:
             "3": 0
             "2": 0
             "1": 0
+        totalReviews:
+          type: integer
+          minimum: 0
+          description: Total number of reviews
+          example: 1
       required:
         - items
         - limit
@@ -1580,6 +1659,7 @@ components:
         - totalItems
         - averageRating
         - ratingDistribution
+        - totalReviews
 
     Follow:
       type: object
@@ -1609,6 +1689,38 @@ components:
       required:
         - message
         - statusCode
+
+    ReviewStatsDto:
+      type: object
+      description: Review statistics without pagination
+      properties:
+        averageRating:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 5
+          description: Average rating across all reviews
+          example: 4.5
+        ratingDistribution:
+          type: object
+          description: Distribution of ratings (1-5 stars)
+          additionalProperties:
+            type: integer
+          example:
+            "1": 0
+            "2": 1
+            "3": 2
+            "4": 5
+            "5": 10
+        totalReviews:
+          type: integer
+          minimum: 0
+          description: Total number of reviews
+          example: 18
+      required:
+        - averageRating
+        - ratingDistribution
+        - totalReviews
 
     ErrorResponse:
       type: object

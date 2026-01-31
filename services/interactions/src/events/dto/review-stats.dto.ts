@@ -35,4 +35,8 @@ export class ReviewStatsDto {
   @IsNotEmpty()
   @Validate(IsRatingDistributionConstraint)
   ratingDistribution: Record<number, number>;
+
+  @IsNumber()
+  @Min(0)
+  totalReviews: number;
 }
