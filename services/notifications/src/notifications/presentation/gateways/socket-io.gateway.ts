@@ -128,7 +128,10 @@ export class SocketIOGateway implements NotificationGateway {
   }
 
   isUserConnected(userId: string): boolean {
-    return this.userSockets.has(userId);
+    const connected = this.userSockets.has(userId);
+    console.log(`🔍 Checking if user ${userId} is connected: ${connected}`);
+    console.log(`📊 Connected users:`, Array.from(this.userSockets.keys()));
+    return connected;
   }
 
   broadcastUserOnline(userId: string): void {

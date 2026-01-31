@@ -6,6 +6,8 @@ info:
 paths:
   /:
     get:
+      tags:
+        - notifications
       summary: Get Notifications for Authenticated User 
       description: Retrieve a list of notifications for the authenticated user with pagination support. Mark notifications as read when fetched.
       security:
@@ -66,6 +68,8 @@ paths:
   
   /unread-count:
     get:
+      tags:
+        - notifications
       summary: Get Unread Notifications Count
       description: Retrieve the count of unread notifications for the authenticated user.
       security:
@@ -90,6 +94,8 @@ paths:
           description: Internal Server Error - An error occurred on the server.
   /{id}:
     post:
+      tags:
+        - notifications
       summary: Mark Notification as Read
       description: Mark a specific notification as read for the authenticated user.
       security:
@@ -111,6 +117,53 @@ paths:
           description: Unauthorized - Authentication is required.
         '404':
           description: Not Found - The specified notification does not exist.
+        '500':
+          description: Internal Server Error - An error occurred on the server.
+
+  /users/{userId}/is-online:
+    get:
+      tags:
+        - users
+      summary: Check if a User is Online
+      description: Check whether a specific user is currently connected via WebSocket.
+      security:
+        - BearerAuth: []
+      servers:
+        - url: http://localhost:9060/
+          description: Local development server
+      parameters:
+        - in: path
+          name: userId
+          required: true
+          schema:
+            type: string
+          description: The unique identifier of the user to check online status.
+      responses:
+        '200':
+          description: Successfully retrieved user online status.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  userId:
+                    type: string
+                    description: The ID of the user checked.
+                  isOnline:
+                    type: boolean
+                    description: Indicates whether the user is currently connected via WebSocket.
+        '400':
+          description: Bad Request - User ID is required.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User ID is required"
+        '401':
+          description: Unauthorized - Authentication is required.
         '500':
           description: Internal Server Error - An error occurred on the server.
 
