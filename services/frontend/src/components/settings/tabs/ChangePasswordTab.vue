@@ -11,15 +11,9 @@ const $q = useQuasar()
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
-const formRef = ref<any>(null)
+const errorMessage = ref('')
 
 const handleChangePassword = async () => {
-  // Validate form
-  const isValid = await formRef.value?.validate()
-  if (!isValid) {
-    return
-  }
-
   try {
     await authStore.changePassword(currentPassword.value, newPassword.value)
 
@@ -28,16 +22,12 @@ const handleChangePassword = async () => {
       message: 'Password changed successfully',
     })
 
-    // Clear form
+    errorMessage.value = ''
     currentPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
-    formRef.value?.resetValidation()
   } catch (error: any) {
-    $q.notify({
-      type: 'negative',
-      message: error.message || 'Failed to change password',
-    })
+    errorMessage.value = error.message || 'La password attuale non è corretta.'
   }
 }
 </script>
@@ -49,7 +39,7 @@ const handleChangePassword = async () => {
       <p class="password-subtitle">Update your password to keep your account secure</p>
     </div>
 
-    <q-form ref="formRef" class="password-form" @submit.prevent="handleChangePassword">
+    <q-form greedy class="password-form" @submit.prevent="handleChangePassword">
       <FormField
         v-model="currentPassword"
         type="password"
@@ -76,6 +66,9 @@ const handleChangePassword = async () => {
           matching(newPassword, 'Passwords do not match'),
         ]"
       />
+      <div v-if="errorMessage" class="text-negative text-center q-my-md">
+        {{ errorMessage }}
+      </div>
 
       <div class="form-actions">
         <q-btn
@@ -129,7 +122,7 @@ const handleChangePassword = async () => {
 
 .form-actions {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
   margin-top: $spacing-4;
 }
 

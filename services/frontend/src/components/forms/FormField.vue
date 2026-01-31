@@ -56,7 +56,3 @@ const togglePasswordVisibility = () => {
     </template>
   </q-input>
 </template>
-
-<style scoped lang="scss">
-//.form-field {}
-</style>
