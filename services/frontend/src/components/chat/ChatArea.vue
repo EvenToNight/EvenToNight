@@ -21,11 +21,12 @@ const selectedConversationId = defineModel<ConversationID | undefined>('selected
 
 const emit = defineEmits<{
   back: []
-  emit: []
+  read: []
 }>()
 
 const scrollAreaRef = ref<QScrollArea | null>(null)
 const autoScroll = ref(true)
+const unreadScrollCount = ref(0)
 
 const authStore = useAuthStore()
 const { isMobile } = useBreakpoints()
@@ -48,7 +49,6 @@ const {
     })
   },
 })
-
 function isFromCurrentUser(message: Message): boolean {
   return message.senderId === authStore.user?.id
 }
@@ -96,22 +96,14 @@ function shouldShowDateSeparator(index: number): boolean {
   return currentDay.getTime() !== prevDay.getTime()
 }
 
-function scrollToBottom(smooth = true) {
+function scrollToBottom() {
   nextTick(() => {
     const scrollTarget = scrollAreaRef.value?.getScrollTarget()
     if (scrollTarget) {
-      scrollAreaRef.value?.setScrollPosition(
-        'vertical',
-        scrollTarget.scrollHeight,
-        smooth ? 200 : 0
-      )
+      scrollAreaRef.value?.setScrollPosition('vertical', scrollTarget.scrollHeight, 300)
+      unreadScrollCount.value = 0
     }
   })
-}
-
-function scrollToBottomAndEnable() {
-  autoScroll.value = true
-  scrollToBottom()
 }
 
 function onScroll(info: { verticalPercentage: number }) {
@@ -134,64 +126,57 @@ async function handleSendMessage(content: string) {
   }
 }
 
-onMounted(() => {
-  if (selectedConversationId.value) {
-    reloadMessages()
-    scrollToBottom()
-  }
-  console.log('ChatArea mounted')
-  const newMessageHandler = (event: NewMessageReceivedEvent) => {
-    const { conversationId, senderId, messageId, message, createdAt } = event
+const newMessageHandler = (event: NewMessageReceivedEvent) => {
+  const { conversationId, senderId, messageId, message, createdAt } = event
 
-    if (selectedConversationId.value === conversationId) {
-      messages.value.push({
-        id: messageId,
-        conversationId: conversationId,
-        senderId: senderId,
-        content: message,
-        createdAt: new Date(createdAt),
-        isRead: false,
-      })
-      api.chat.readConversationMessages(conversationId, authStore.user!.id)
-      if (autoScroll.value) {
-        scrollToBottom()
-      }
-    }
-  }
-  api.notifications.onNewMessageReceived(newMessageHandler)
-  onUnmounted(() => {
-    console.log('ChatArea unmounted')
-    api.notifications.offNewMessageReceived(newMessageHandler)
+  if (selectedConversationId.value !== conversationId) return
+  if (messages.value.some((m) => m.id === messageId)) return
+
+  messages.value.push({
+    id: messageId,
+    conversationId: conversationId,
+    senderId: senderId,
+    content: message,
+    createdAt: new Date(createdAt),
+    isRead: false,
   })
+
+  if (autoScroll.value) {
+    api.chat.readConversationMessages(conversationId, authStore.user!.id)
+    emit('read')
+  } else {
+    unreadScrollCount.value += 1
+  }
+}
+
+onMounted(() => {
+  api.notifications.onNewMessageReceived(newMessageHandler)
 })
 
-// Watch conversation changes to reload messages
+onUnmounted(() => {
+  api.notifications.offNewMessageReceived(newMessageHandler)
+})
+
 watch(selectedConversationId, (newId, oldId) => {
   if (newId !== oldId) {
-    autoScroll.value = true
-    reloadMessages()
+    unreadScrollCount.value = 0
+    if (newId) {
+      messages.value = []
+      reloadMessages()
+    } else {
+      messages.value = []
+    }
   }
 })
 
-// Watch loading to scroll when initial load completes
 watch(
-  loading,
-  (isLoading, wasLoading) => {
-    if (wasLoading && !isLoading && autoScroll.value && messages.value.length > 0) {
-      scrollToBottom(false)
-    }
-  },
-  { flush: 'post' }
-)
-
-// Watch messages and autoscroll (for new messages)
-watch(
-  () => messages.value.length,
-  (newLen, oldLen) => {
-    if (autoScroll.value && newLen > oldLen) {
+  messages,
+  () => {
+    if (autoScroll.value) {
       scrollToBottom()
     }
-  }
+  },
+  { deep: true }
 )
 </script>
 
@@ -257,15 +242,17 @@ watch(
         </q-infinite-scroll>
       </q-scroll-area>
 
-      <transition name="fade">
-        <q-btn
-          v-if="!autoScroll && messages.length > 0"
-          fab
-          icon="keyboard_arrow_down"
-          class="scroll-to-bottom-btn"
-          @click="scrollToBottomAndEnable"
-        />
-      </transition>
+      <q-btn
+        v-if="!autoScroll"
+        fab
+        icon="keyboard_arrow_down"
+        class="scroll-to-bottom-btn"
+        @click="scrollToBottom()"
+      >
+        <q-badge v-if="unreadScrollCount > 0" color="primary" floating>
+          {{ unreadScrollCount }}
+        </q-badge>
+      </q-btn>
 
       <MessageInput @send-message="handleSendMessage" />
     </template>
