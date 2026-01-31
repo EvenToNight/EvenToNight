@@ -118,9 +118,22 @@ export class SocketIOGateway implements NotificationGateway {
   }
 
   sendNotificationToUser(userId: string, notification: any): Promise<void> {
-    this.io.to(`user:${userId}`).emit("notification", notification);
+    const topic = this.getTopicFromNotificationType(notification.type);
+    this.io.to(`user:${userId}`).emit(topic, notification);
     console.log(`Notification sent to user ${userId}`);
     return Promise.resolve();
+  }
+
+  private getTopicFromNotificationType(type: string): string {
+    const topicMap: Record<string, string> = {
+      message: "message",
+      like: "like",
+      follow: "follow",
+      review: "review",
+      new_event: "new_event",
+    };
+
+    return topicMap[type] || "notification";
   }
 
   getConnectedUsers(): string[] {
