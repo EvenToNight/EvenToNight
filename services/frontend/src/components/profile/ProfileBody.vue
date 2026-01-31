@@ -22,15 +22,19 @@ const emit = defineEmits(['auth-required'])
 const { t } = useI18n()
 const { hash, replaceRoute } = useNavigation()
 const { isOwnProfile, isOrganization } = useUserProfile(toRef(props.user))
+const defaultTab = isOrganization.value ? 'publishedEvents' : 'likes'
+const activeTab = ref<string>(defaultTab)
 
-const activeTab = ref<string>(isOrganization.value ? 'publishedEvents' : 'likes')
-
-onMounted(() => {
+const setupRouteHash = () => {
   if (hash.value) {
     activeTab.value = hash.value.replace('#', '')
   } else {
     replaceRoute({ hash: `#${activeTab.value}` })
   }
+}
+
+onMounted(() => {
+  setupRouteHash()
 })
 
 watch(
@@ -47,6 +51,14 @@ watch(activeTab, (newTab) => {
     replaceRoute({ hash: `#${newTab}` })
   }
 })
+// TODO: evaluate tab reset tab on user change
+watch(
+  () => props.user.id,
+  () => {
+    // activeTab.value = defaultTab
+    setupRouteHash()
+  }
+)
 
 const tabs = computed<Tab[]>(() => {
   const baseTabs: Tab[] = []
@@ -163,5 +175,5 @@ const tabs = computed<Tab[]>(() => {
 </script>
 
 <template>
-  <TabView v-model:activeTab="activeTab" :variant="'explore'" :tabs="tabs" />
+  <TabView :key="user.id" v-model:activeTab="activeTab" :variant="'explore'" :tabs="tabs" />
 </template>
