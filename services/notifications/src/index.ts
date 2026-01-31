@@ -29,6 +29,7 @@ import { GetNotificationsHandler } from "./notifications/application/handlers/ge
 import { MarkAsReadHandler } from "./notifications/application/handlers/mark-as-read.handler";
 import { GetUnreadCountHandler } from "./notifications/application/handlers/get-unread-count.handler";
 import { IsOnlineHandler } from "./notifications/application/handlers/is-online.handler";
+import { MarkAllAsReadHandler } from "./notifications/application/handlers/mark-all-as-read.handler";
 
 async function bootstrap() {
   try {
@@ -81,10 +82,15 @@ async function bootstrap() {
       notificationRepository,
     );
 
+    const markAllAsReadHandler = new MarkAllAsReadHandler(
+      notificationRepository,
+    );
+
     const notificationController = new NotificationController(
       getNotificationsHandler,
       getUnreadCountHandler,
       markAsReadHandler,
+      markAllAsReadHandler,
     );
     const notificationRoutes = createNotificationRoutes(notificationController);
 

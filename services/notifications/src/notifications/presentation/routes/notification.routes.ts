@@ -16,6 +16,10 @@ export function createNotificationRoutes(
     void controller.getUnreadCount(req, res, next);
   });
 
+  router.post("/read-all", (req, res, next) => {
+    void controller.markAllAsRead(req, res, next);
+  });
+
   router.post("/:id", (req, res, next) => {
     void controller.markAsRead(req, res, next);
   });

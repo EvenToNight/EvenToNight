@@ -166,6 +166,32 @@ paths:
           description: Unauthorized - Authentication is required.
         '500':
           description: Internal Server Error - An error occurred on the server.
+  /read-all:
+    post:
+      tags:
+        - notifications
+      summary: Mark All Notifications as Read
+      description: Mark all notifications as read for the authenticated user.
+      security:
+        - BearerAuth: []
+      servers:
+        - url: http://localhost:9060/
+          description: Local development server
+      responses:
+        '200':
+          description: All notifications marked as read successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+        '401':
+          description: Unauthorized - Authentication is required.
+        '500':
+          description: Internal Server Error - An error occurred on the server.
 
 components:
   securitySchemes:
