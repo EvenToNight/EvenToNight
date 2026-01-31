@@ -462,6 +462,15 @@ export class MetadataService {
     return events.map((e) => e.eventId);
   }
 
+  async getEventIdsByStatus(status: string): Promise<string[]> {
+    const events = await this.eventModel
+      .find({ status })
+      .select({ eventId: 1, _id: 0 })
+      .lean();
+
+    return events.map((e) => e.eventId);
+  }
+
   async handleOrderConfirmed(payload: OrderConfirmedDto): Promise<void> {
     try {
       this.logger.debug(

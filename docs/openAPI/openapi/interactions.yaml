@@ -619,6 +619,23 @@ paths:
             type: boolean
           description: Filter by review status (true = only reviewed events, false = only unreviewed events)
           example: false
+        - name: eventStatus
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [DRAFT, PUBLISHED, COMPLETED, CANCELLED]
+          description: Filter by event status
+          example: COMPLETED
+        - name: order
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: desc
+          description: Sort order by creation date (asc = ascending, desc = descending)
+          example: desc
       responses:
         '200':
           description: A paginated list of events the user is participating in

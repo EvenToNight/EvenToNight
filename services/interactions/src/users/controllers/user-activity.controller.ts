@@ -54,13 +54,16 @@ export class UserActivityController {
     @Param('userId') userId: string,
     @Query() paginatedQuery: UserParticipationsQueryDto,
   ) {
-    const { limit, offset, organizationId, reviewed } = paginatedQuery;
+    const { limit, offset, organizationId, reviewed, eventStatus, order } =
+      paginatedQuery;
     return this.participationService.getUserParticipations(
       userId,
       limit,
       offset,
       organizationId,
       reviewed,
+      eventStatus,
+      order,
     );
   }
 
