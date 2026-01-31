@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, onUnmounted } from 'vue'
 import { useQuasar } from 'quasar'
 import { api } from '@/api'
 import type { Tag } from '@/api/types/events'
@@ -12,27 +12,26 @@ import type { Gender } from '@/api/types/users'
 const $q = useQuasar()
 const authStore = useAuthStore()
 
-// Form fields
 const birthDate = ref<string>('')
-const gender = ref<Gender | null>(null)
-const selectedTags = ref<Tag[]>([])
-const isDarkMode = ref($q.dark.isActive)
-
-// Available options
-const tagCategories = ref<TagCategory[]>([])
-const tagOptions = ref<any[]>([])
-const loading = ref(true)
-const saving = ref(false)
-
 const dateInput = ref<InstanceType<typeof FormField> | null>(null)
 
+const gender = ref<Gender | null>(null)
 const genderOptions = [
   { label: 'Male', value: 'male' },
   { label: 'Female', value: 'female' },
   { label: 'Other', value: 'other' },
 ]
 
+const isDarkMode = ref($q.dark.isActive)
+
+const selectedTags = ref<Tag[]>([])
+const tagCategories = ref<TagCategory[]>([])
+const tagOptions = ref<any[]>([])
 const maxTags = 5
+
+const loading = ref(true)
+const saving = ref(false)
+const errorMessage = ref('')
 
 watch(selectedTags, (newVal, oldVal) => {
   if (oldVal.length === maxTags && newVal.length > maxTags) {
@@ -41,7 +40,7 @@ watch(selectedTags, (newVal, oldVal) => {
       type: 'warning',
       message: `You can only select up to ${maxTags} tags`,
       icon: 'warning',
-      position: 'top',
+      position: 'bottom',
     })
   }
 })
@@ -122,6 +121,10 @@ onMounted(async () => {
   }
 })
 
+onUnmounted(() => {
+  $q.dark.set(authStore.user!.darkMode as boolean)
+})
+
 const handleThemeToggle = (value: boolean) => {
   $q.dark.set(value)
   isDarkMode.value = value
@@ -142,12 +145,9 @@ const handleSave = async () => {
       message: 'Settings saved successfully',
       icon: 'check_circle',
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to save settings:', error)
-    $q.notify({
-      type: 'negative',
-      message: 'Failed to save settings',
-    })
+    errorMessage.value = error.message || 'Failed to save settings.'
   } finally {
     saving.value = false
   }
@@ -176,12 +176,9 @@ const handleDeleteProfile = () => {
         message: 'Profile deleted successfully',
       })
       authStore.logout()
-    } catch (error) {
+    } catch (error: any) {
       console.error('Failed to delete profile:', error)
-      $q.notify({
-        type: 'negative',
-        message: 'Failed to delete profile',
-      })
+      errorMessage.value = error.message || 'Failed to delete profile.'
     }
   })
 }
@@ -193,7 +190,6 @@ const handleDeleteProfile = () => {
 
     <template v-if="!loading">
       <div class="settings-sections">
-        <!-- Profile Information Section -->
         <section class="settings-section">
           <h3 class="section-title">Profile Information</h3>
 
@@ -223,7 +219,6 @@ const handleDeleteProfile = () => {
           />
         </section>
 
-        <!-- Appearance Section -->
         <section class="settings-section">
           <h3 class="section-title">Appearance</h3>
 
@@ -242,7 +237,6 @@ const handleDeleteProfile = () => {
           </div>
         </section>
 
-        <!-- Interests Section -->
         <section class="settings-section">
           <h3 class="section-title">Interests</h3>
           <p class="section-description">
@@ -280,13 +274,14 @@ const handleDeleteProfile = () => {
             </template>
           </FormSelectorField>
         </section>
+        <div v-if="errorMessage" class="error-message text-center q-my-md">
+          {{ errorMessage }}
+        </div>
 
-        <!-- Save Button -->
         <div class="actions">
           <q-btn label="Save" color="primary" unelevated :loading="saving" @click="handleSave" />
         </div>
 
-        <!-- Danger Zone -->
         <section class="settings-section danger-zone">
           <h3 class="section-title danger-title">Danger Zone</h3>
           <p class="section-description">
@@ -416,6 +411,11 @@ const handleDeleteProfile = () => {
   margin-top: $spacing-6;
   display: flex;
   justify-content: flex-end;
+}
+
+.error-message {
+  color: $color-error;
+  font-size: $font-size-sm;
 }
 
 .danger-zone {

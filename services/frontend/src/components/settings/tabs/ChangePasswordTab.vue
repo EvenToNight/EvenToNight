@@ -129,4 +129,9 @@ const handleChangePassword = async () => {
 .submit-button {
   min-width: 180px;
 }
+
+.error-message {
+  color: $color-error;
+  font-size: $font-size-sm;
+}
 </style>

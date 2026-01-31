@@ -11,6 +11,7 @@ import type {
   TokenResponse,
 } from '@/api/interfaces/users'
 import { useNavigation } from '@/router/utils'
+import { dateReviver } from '@/api/utils/parsingUtils'
 export const DEFAULT_AVATAR_URL = `http://media.${import.meta.env.VITE_HOST || 'localhost'}/users/default.png`
 
 const ACCESS_TOKEN_SESSION_KEY = 'access_token_session'
@@ -203,7 +204,7 @@ export const useAuthStore = defineStore('auth', () => {
         expiresIn: expiresIn,
         refreshToken: storedRefreshToken,
         refreshExpiresIn: refreshExpiresIn,
-        user: JSON.parse(storedUser),
+        user: JSON.parse(storedUser, dateReviver),
       })
       return true
     }

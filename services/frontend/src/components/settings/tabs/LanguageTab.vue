@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useQuasar } from 'quasar'
 import { SUPPORTED_LOCALES } from '@/i18n'
 import { useAuthStore } from '@/stores/auth'
 
 const { locale } = useI18n()
 const authStore = useAuthStore()
+const $q = useQuasar()
 
 interface LanguageOption {
   code: string
@@ -36,7 +38,6 @@ const getFlagEmoji = (languageCode: string): string => {
   }
 }
 
-// Generate language names using Intl.DisplayNames API
 const getLanguageInfo = (code: string): LanguageOption => {
   const englishNames = new Intl.DisplayNames(['en'], { type: 'language' })
   const nativeNames = new Intl.DisplayNames([code], { type: 'language' })
@@ -55,7 +56,15 @@ const availableLanguages = computed(() => {
 
 const selectLanguage = async (langCode: string) => {
   locale.value = langCode
-  await authStore.updateUser({ language: langCode })
+  try {
+    await authStore.updateUser({ language: langCode })
+  } catch (error: any) {
+    console.error('Failed to update language:', error)
+    $q.notify({
+      type: 'negative',
+      message: error.message || 'Failed to update language preference.',
+    })
+  }
 }
 </script>
 
