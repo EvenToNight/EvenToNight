@@ -1,13 +1,15 @@
 <script setup lang="ts">
-import { ref, watch, nextTick, onMounted, onUnmounted, computed } from 'vue'
-import type { ConversationID, Message, ChatUser, Conversation } from '@/api/types/chat'
+import { ref, watch, nextTick, onMounted, onUnmounted } from 'vue'
+import type { ConversationID, Message, ChatUser } from '@/api/types/chat'
+import type { QScrollArea } from 'quasar'
 import ChatHeader from './ChatHeader.vue'
 import MessageInput from './MessageInput.vue'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
-import { useQuasar } from 'quasar'
-import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import type { NewMessageReceivedEvent } from '@/api/types/notifications'
+import { useBreakpoints } from '@/composables/useBreakpoints'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { emptyPaginatedResponse } from '@/api/utils/requestUtils'
 
 const props = defineProps<{
   selectedChatUser?: ChatUser
@@ -19,25 +21,33 @@ const selectedConversationId = defineModel<ConversationID | undefined>('selected
 
 const emit = defineEmits<{
   back: []
-  conversationCreated: [conversation: Conversation]
-  messageSent: [
-    conversationId: string,
-    lastMessage: { senderId: string; content: string; createdAt: Date },
-  ]
+  emit: []
 }>()
 
-const messagesContainer = ref<HTMLElement | null>(null)
+const scrollAreaRef = ref<QScrollArea | null>(null)
 const autoScroll = ref(true)
-const messages = ref<Message[]>([])
-const loading = ref(false)
-const hasMoreMessages = ref(true)
-const loadingMoreMessages = ref(false)
-const messagesLimit = 50
 
 const authStore = useAuthStore()
-const $q = useQuasar()
-const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
-const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
+const { isMobile } = useBreakpoints()
+
+const {
+  items: messages,
+  loading,
+  onLoad: onLoadMore,
+  reload: reloadMessages,
+} = useInfiniteScroll<Message>({
+  itemsPerPage: 50,
+  prepend: true,
+  loadFn: async (limit, offset) => {
+    if (!selectedConversationId.value) {
+      return emptyPaginatedResponse<Message>()
+    }
+    return api.chat.getConversationMessages(authStore.user!.id, selectedConversationId.value, {
+      limit,
+      offset,
+    })
+  },
+})
 
 function isFromCurrentUser(message: Message): boolean {
   return message.senderId === authStore.user?.id
@@ -86,169 +96,54 @@ function shouldShowDateSeparator(index: number): boolean {
   return currentDay.getTime() !== prevDay.getTime()
 }
 
-function scrollToBottom() {
+function scrollToBottom(smooth = true) {
   nextTick(() => {
-    if (messagesContainer.value) {
-      messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+    const scrollTarget = scrollAreaRef.value?.getScrollTarget()
+    if (scrollTarget) {
+      scrollAreaRef.value?.setScrollPosition(
+        'vertical',
+        scrollTarget.scrollHeight,
+        smooth ? 200 : 0
+      )
     }
   })
 }
 
-function onContainerScroll() {
-  const el = messagesContainer.value
-  if (!el) return
+function scrollToBottomAndEnable() {
+  autoScroll.value = true
+  scrollToBottom()
+}
 
-  const tolerance = 48
-  const atBottom = el.scrollTop + el.clientHeight >= el.scrollHeight - tolerance
+function onScroll(info: { verticalPercentage: number }) {
+  const atBottom = info.verticalPercentage >= 0.98
   autoScroll.value = atBottom
-
-  const nearTop = el.scrollTop < 200
-  if (
-    nearTop &&
-    !loadingMoreMessages.value &&
-    hasMoreMessages.value &&
-    selectedConversationId.value
-  ) {
-    loadMoreMessages()
-  }
-}
-
-async function loadMessages() {
-  if (!selectedConversationId.value) {
-    messages.value = []
-    return
-  }
-
-  try {
-    loading.value = true
-    hasMoreMessages.value = false
-    messages.value = []
-
-    const response = await api.chat.getConversationMessages(
-      authStore.user!.id,
-      selectedConversationId.value,
-      {
-        limit: messagesLimit,
-        offset: 0,
-      }
-    )
-
-    messages.value = response.items
-    hasMoreMessages.value = response.hasMore
-    scrollToBottom()
-  } catch (error) {
-    console.error('Failed to load conversation messages:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
-async function loadMoreMessages() {
-  if (!selectedConversationId.value || loadingMoreMessages.value || !hasMoreMessages.value) {
-    return
-  }
-
-  try {
-    loadingMoreMessages.value = true
-    const response = await api.chat.getConversationMessages(
-      authStore.user!.id,
-      selectedConversationId.value,
-      {
-        limit: messagesLimit,
-        offset: messages.value.length,
-      }
-    )
-
-    messages.value = [...response.items, ...messages.value]
-    hasMoreMessages.value = response.hasMore
-  } catch (error) {
-    console.error('Failed to load more messages:', error)
-  } finally {
-    loadingMoreMessages.value = false
-  }
 }
 
 async function handleSendMessage(content: string) {
   if (!content.trim()) return
 
   if (!selectedConversationId.value) {
-    // Create new conversation
     const response = await api.chat.startConversation(authStore.user!.id, {
       recipientId: props.selectedChatUser!.id,
       content: content.trim(),
     })
 
     selectedConversationId.value = response.conversationId
-    messages.value.push({
-      ...response,
-      isRead: false,
-    })
-
-    // Build conversation object and emit
-    const isCurrentUserOrganization = authStore.user?.role === 'organization'
-    const currentUserAsChatUser: ChatUser = {
-      id: authStore.user!.id,
-      name: authStore.user!.name,
-      username: authStore.user!.username,
-      avatar: authStore.user!.avatar,
-    }
-    const newConversation: Conversation = {
-      id: response.conversationId,
-      organization: isCurrentUserOrganization ? currentUserAsChatUser : props.selectedChatUser!,
-      member: isCurrentUserOrganization ? props.selectedChatUser! : currentUserAsChatUser,
-      lastMessage: {
-        senderId: response.senderId,
-        content: response.content,
-        createdAt: response.createdAt,
-      },
-      unreadCount: 0,
-    }
-    emit('conversationCreated', newConversation)
   } else {
-    // Send message to existing conversation
-    const response = await api.chat.sendMessage(
-      authStore.user!.id,
-      selectedConversationId.value,
-      content.trim()
-    )
-
-    messages.value.push({
-      ...response,
-      isRead: false,
-    })
-
-    // Emit for conversation list update
-    emit('messageSent', selectedConversationId.value, {
-      senderId: response.senderId,
-      content: response.content,
-      createdAt: response.createdAt,
-    })
+    await api.chat.sendMessage(authStore.user!.id, selectedConversationId.value, content.trim())
   }
-
-  scrollToBottom()
 }
 
 onMounted(() => {
-  if (messagesContainer.value) {
-    messagesContainer.value.addEventListener('scroll', onContainerScroll, { passive: true })
-  }
   if (selectedConversationId.value) {
-    loadMessages()
+    reloadMessages()
+    scrollToBottom()
   }
   console.log('ChatArea mounted')
   const newMessageHandler = (event: NewMessageReceivedEvent) => {
-    const {
-      conversationId,
-      senderId,
-      /*senderName, senderAvatar,*/ messageId,
-      message,
-      createdAt,
-    } = event
+    const { conversationId, senderId, messageId, message, createdAt } = event
 
     if (selectedConversationId.value === conversationId) {
-      if (messages.value.some((m) => m.id === messageId)) {
-        return
-      }
       messages.value.push({
         id: messageId,
         conversationId: conversationId,
@@ -270,28 +165,33 @@ onMounted(() => {
   })
 })
 
-onUnmounted(() => {
-  if (messagesContainer.value) {
-    messagesContainer.value.removeEventListener('scroll', onContainerScroll)
-  }
-})
-
-// Watch conversation changes to load messages
+// Watch conversation changes to reload messages
 watch(selectedConversationId, (newId, oldId) => {
   if (newId !== oldId) {
-    loadMessages()
+    autoScroll.value = true
+    reloadMessages()
   }
 })
 
-// Watch messages and autoscroll
+// Watch loading to scroll when initial load completes
 watch(
-  messages,
-  () => {
-    if (autoScroll.value) {
-      scrollToBottom()
+  loading,
+  (isLoading, wasLoading) => {
+    if (wasLoading && !isLoading && autoScroll.value && messages.value.length > 0) {
+      scrollToBottom(false)
     }
   },
-  { deep: true }
+  { flush: 'post' }
+)
+
+// Watch messages and autoscroll (for new messages)
+watch(
+  () => messages.value.length,
+  (newLen, oldLen) => {
+    if (autoScroll.value && newLen > oldLen) {
+      scrollToBottom()
+    }
+  }
 )
 </script>
 
@@ -310,9 +210,9 @@ watch(
         @back="emit('back')"
       />
 
-      <div ref="messagesContainer" class="messages-container">
+      <q-scroll-area ref="scrollAreaRef" class="messages-container" @scroll="onScroll">
         <div v-if="loading" class="loading-messages">
-          <q-spinner-dots color="primary" size="40px" />
+          <q-spinner color="primary" size="40px" />
         </div>
 
         <div v-else-if="messages.length === 0" class="empty-messages">
@@ -321,7 +221,13 @@ watch(
           <span>Inizia la conversazione scrivendo un messaggio</span>
         </div>
 
-        <template v-else>
+        <q-infinite-scroll v-else reverse :offset="200" @load="onLoadMore">
+          <template #loading>
+            <div class="loading-more">
+              <q-spinner color="primary" size="24px" />
+            </div>
+          </template>
+
           <div v-for="(message, index) in messages" :key="message.id" class="message-wrapper">
             <div v-if="shouldShowDateSeparator(index)" class="date-separator">
               <span>{{ formatDateSeparator(message.createdAt) }}</span>
@@ -348,8 +254,18 @@ watch(
               </div>
             </div>
           </div>
-        </template>
-      </div>
+        </q-infinite-scroll>
+      </q-scroll-area>
+
+      <transition name="fade">
+        <q-btn
+          v-if="!autoScroll && messages.length > 0"
+          fab
+          icon="keyboard_arrow_down"
+          class="scroll-to-bottom-btn"
+          @click="scrollToBottomAndEnable"
+        />
+      </transition>
 
       <MessageInput @send-message="handleSendMessage" />
     </template>
@@ -367,6 +283,7 @@ watch(
   min-height: 0;
   overflow: hidden;
   background-color: $color-background-mute;
+  position: relative;
 }
 
 .empty-state {
@@ -394,11 +311,32 @@ watch(
 
 .messages-container {
   flex: 1;
-  overflow-y: auto;
   padding: 20px;
+}
+
+.loading-more {
   display: flex;
-  flex-direction: column;
-  gap: 8px;
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.scroll-to-bottom-btn {
+  position: absolute;
+  bottom: 72px;
+  right: 16px;
+  z-index: 100;
+  background-color: $color-background !important;
+  box-shadow: var(--shadow-2) !important;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
 }
 
 .loading-messages {
@@ -434,6 +372,7 @@ watch(
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-bottom: 8px;
 }
 
 .date-separator {
@@ -526,6 +465,11 @@ watch(
     .message-time {
       color: $color-gray-500;
     }
+  }
+
+  .scroll-to-bottom-btn {
+    background-color: $color-gray-800 !important;
+    color: $color-text-dark !important;
   }
 }
 </style>

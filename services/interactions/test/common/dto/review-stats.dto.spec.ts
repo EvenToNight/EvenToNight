@@ -2,7 +2,6 @@ import { validate } from 'class-validator';
 import { ReviewStatsDto } from '../../../src/events/dto/review-stats.dto';
 
 describe('ReviewStatsDto validation', () => {
-
   it('negative averageRating fails validation', async () => {
     const dto = new ReviewStatsDto();
     dto.averageRating = -1 as any;

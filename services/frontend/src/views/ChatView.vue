@@ -75,12 +75,12 @@ function handleConversationCreated(conversation: Conversation) {
   conversationListRef.value?.addNewConversation(conversation)
 }
 
-function handleMessageSent(
-  conversationId: string,
-  lastMessage: { senderId: string; content: string; createdAt: Date }
-) {
-  conversationListRef.value?.updateConversationLastMessage(conversationId, lastMessage)
-}
+// function handleMessageSent(
+//   conversationId: string,
+//   lastMessage: { senderId: string; content: string; createdAt: Date }
+// ) {
+//   conversationListRef.value?.updateConversationLastMessage(conversationId, lastMessage)
+// }
 </script>
 
 <template>
@@ -94,12 +94,18 @@ function handleMessageSent(
       />
     </template>
     <template #content>
-      <ChatArea
+      <!-- <ChatArea
         v-model:selected-conversation-id="selectedConversationId"
         :selected-chat-user="selectedChatUser"
         @back="handleBackToList"
         @conversation-created="handleConversationCreated"
         @message-sent="handleMessageSent"
+      /> -->
+      <ChatArea
+        v-model:selected-conversation-id="selectedConversationId"
+        :selected-chat-user="selectedChatUser"
+        @back="handleBackToList"
+        @conversation-created="handleConversationCreated"
       />
     </template>
   </TwoColumnLayout>
