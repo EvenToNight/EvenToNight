@@ -10,16 +10,17 @@ import CategorySelection from '@/components/home/CategorySelection.vue'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useNavigation } from '@/router/utils'
+import { loadEvents, type EventLoadResult } from '@/api/utils/eventUtils'
 
 const emit = defineEmits(['auth-required'])
 
-const { goToExplore } = useNavigation()
+const { goToExplore, goToUserProfile } = useNavigation()
 const { t } = useI18n()
 const authStore = useAuthStore()
-
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
-const upcomingEvents = ref<(Event & { liked?: boolean })[]>([])
+const upcomingEvents = ref<EventLoadResult[]>([])
+const myDrafts = ref<Event[]>([])
 const handleSeeAllEvents = () => {
   goToExplore({ otherFilter: 'upcoming' })
 }
@@ -29,7 +30,14 @@ onMounted(async () => {
     const feedResponse = await api.feed.getUpcomingEvents()
     const eventsResponse = await api.events.getEventsByIds(feedResponse.items)
     upcomingEvents.value = eventsResponse
-
+    if (authStore.isOrganization) {
+      myDrafts.value = (
+        await loadEvents({
+          status: 'DRAFT',
+          organizationId: authStore.user!.id,
+        })
+      ).items.slice(0, 5) //TODO: evaluate max preveiw
+    }
     if (authStore.isAuthenticated) {
       console.log('Loading likes for upcoming events')
       const userId = authStore.user!.id
@@ -69,7 +77,18 @@ onMounted(async () => {
     <div class="container">
       <div class="content-section">
         <CardSlider
-          v-if="upcomingEvents.length > 0"
+          v-if="myDrafts.length > 0"
+          :title="'Continue editing your events'"
+          @see-all="goToUserProfile(authStore.user!.id, '#drafted')"
+        >
+          <EventCard
+            v-for="(event, index) in myDrafts"
+            :key="event.eventId"
+            v-model="myDrafts[index]!"
+          />
+        </CardSlider>
+        <CardSlider
+          v-else-if="upcomingEvents.length > 0"
           :title="t('home.sections.upcomingEvents')"
           @see-all="handleSeeAllEvents"
         >
@@ -92,6 +111,7 @@ onMounted(async () => {
             @auth-required="emit('auth-required')"
           />
         </CardSlider>
+
         <CategorySelection />
         <CardSlider
           v-if="upcomingEvents.length > 0"

@@ -29,6 +29,8 @@ export const useAuthStore = defineStore('auth', () => {
     if (!expiredAt.value) return false
     return expiredAt.value > Date.now()
   })
+  const isOrganization = computed(() => user.value?.role === 'organization')
+  const isMember = computed(() => user.value?.role === 'member')
   const accessToken = ref<AccessToken | null>(null)
   const expiredAt = ref<number | null>(null)
   const refreshToken = ref<RefreshToken | null>(null)
@@ -262,6 +264,8 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isLoading,
     isAuthenticated,
+    isOrganization,
+    isMember,
     accessToken,
     register,
     login,

@@ -41,7 +41,8 @@ export const useNavigation = () => {
   const replaceWithLocale = (
     name: string,
     additionalParams?: Record<string, any>,
-    additionalQuery?: Record<string, any>
+    additionalQuery?: Record<string, any>,
+    hash?: string
   ) => {
     router.replace({
       name,
@@ -52,13 +53,15 @@ export const useNavigation = () => {
       query: {
         ...additionalQuery,
       },
+      ...(hash && { hash }),
     })
   }
 
   const pushWithLocale = (
     name: string,
     additionalParams?: Record<string, any>,
-    additionalQuery?: Record<string, any>
+    additionalQuery?: Record<string, any>,
+    hash?: string
   ) => {
     router.push({
       name,
@@ -69,6 +72,7 @@ export const useNavigation = () => {
       query: {
         ...additionalQuery,
       },
+      ...(hash && { hash }),
     })
   }
 
@@ -213,9 +217,9 @@ export const useNavigation = () => {
 
   const goToUserProfile = (userId: string, hash?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId }, { hash })
+      replaceWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId }, {}, hash)
     } else {
-      pushWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId }, { hash })
+      pushWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId }, {}, hash)
     }
   }
 
