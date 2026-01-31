@@ -27,7 +27,9 @@ export const useKeyboardShortcuts = () => {
       action: (event) => {
         event.preventDefault()
         $q.dark.toggle()
-        authStore.updateUser({ darkMode: $q.dark.isActive })
+        if (authStore.isAuthenticated) {
+          authStore.updateUser({ darkMode: $q.dark.isActive })
+        }
         localStorage.setItem('darkMode', String($q.dark.isActive))
       },
     },
