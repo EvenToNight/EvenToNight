@@ -19,6 +19,8 @@ const password = ref('')
 const confirmPassword = ref('')
 const isOrganization = ref(false)
 
+const errorMessage = ref('')
+
 const onSuccessfulRegistration = () => {
   $q.notify({
     type: 'positive',
@@ -28,10 +30,7 @@ const onSuccessfulRegistration = () => {
 }
 
 const onFailedRegistration = (errorMsg?: string) => {
-  $q.notify({
-    type: 'negative',
-    message: errorMsg || t('auth.registerForm.failedRegistration'),
-  })
+  errorMessage.value = errorMsg || t('auth.registerForm.failedRegistration')
 }
 
 const handleRegister = async () => {
@@ -54,6 +53,7 @@ const handleRegister = async () => {
     :title="t('auth.register')"
     :switch-button-label="t('auth.registerForm.switchToLogin')"
     :is-loading="authStore.isLoading"
+    :error-message="errorMessage"
     @submit="handleRegister"
     @switch-mode="goToLogin"
   >

@@ -66,7 +66,7 @@ const handleChangePassword = async () => {
           matching(newPassword, 'Passwords do not match'),
         ]"
       />
-      <div v-if="errorMessage" class="text-negative text-center q-my-md">
+      <div v-if="errorMessage" class="error-message text-center q-my-md">
         {{ errorMessage }}
       </div>
 
