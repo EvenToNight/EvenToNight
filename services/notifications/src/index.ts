@@ -8,6 +8,8 @@ import { config } from "./config/env.config";
 
 import { NotificationController } from "./notifications/presentation/controllers/notification.controller";
 import { createNotificationRoutes } from "./notifications/presentation/routes/notification.routes";
+import { UserController } from "./notifications/presentation/controllers/user.controller";
+import { createUserRoutes } from "./notifications/presentation/routes/user.routes";
 
 import { RabbitMQConsumer } from "./notifications/presentation/consumers/rabbitmq.consumer";
 import { SocketIOGateway } from "./notifications/presentation/gateways/socket-io.gateway";
@@ -26,6 +28,8 @@ import { ProcessEventCreatedHandler } from "./notifications/application/handlers
 import { GetNotificationsHandler } from "./notifications/application/handlers/get-notifications.handler";
 import { MarkAsReadHandler } from "./notifications/application/handlers/mark-as-read.handler";
 import { GetUnreadCountHandler } from "./notifications/application/handlers/get-unread-count.handler";
+import { IsOnlineHandler } from "./notifications/application/handlers/is-online.handler";
+import { MarkAllAsReadHandler } from "./notifications/application/handlers/mark-all-as-read.handler";
 
 async function bootstrap() {
   try {
@@ -71,18 +75,26 @@ async function bootstrap() {
     const getNotificationsHandler = new GetNotificationsHandler(
       notificationRepository,
     );
+
     const markAsReadHandler = new MarkAsReadHandler(notificationRepository);
+
     const getUnreadCountHandler = new GetUnreadCountHandler(
       notificationRepository,
     );
 
-    const controller = new NotificationController(
+    const markAllAsReadHandler = new MarkAllAsReadHandler(
+      notificationRepository,
+    );
+
+    const notificationController = new NotificationController(
       getNotificationsHandler,
       getUnreadCountHandler,
       markAsReadHandler,
+      markAllAsReadHandler,
     );
-    const routes = createNotificationRoutes(controller);
-    const app = createApp(routes);
+    const notificationRoutes = createNotificationRoutes(notificationController);
+
+    const app = createApp(notificationRoutes);
     const httpServer = createServer(app);
 
     const io = new Server(httpServer, {
@@ -94,9 +106,20 @@ async function bootstrap() {
 
     const socketGateway = new SocketIOGateway(io);
 
+    const isOnlineHandler = new IsOnlineHandler(socketGateway);
+
+    const userController = new UserController(isOnlineHandler);
+    const userRoutes = createUserRoutes(userController);
+    app.use("/users", userRoutes);
+
+    app.use((req, res) => {
+      res.status(404).json({ error: "Not found" });
+    });
+
     const socketNotificationHandler = new SocketNotificationHandler(
       socketGateway,
     );
+
     eventPublisher.subscribe(
       NotificationCreatedEvent.name,
       socketNotificationHandler.handle.bind(socketNotificationHandler),

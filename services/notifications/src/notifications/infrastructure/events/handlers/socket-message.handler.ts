@@ -6,14 +6,9 @@ export class SocketMessageHandler {
 
   async handle(event: MessageReceivedEvent): Promise<void> {
     try {
-      console.log(`💬 Handling message for user ${event.receiverId}`);
-
-      const isOnline = this.socketGateway.isUserConnected(event.receiverId);
-
-      if (!isOnline) {
-        console.log(`⚠️  User ${event.receiverId} is offline`);
-        return;
-      }
+      console.log(
+        `💬 Handling message for users: receiver=${event.receiverId}, sender=${event.senderId}`,
+      );
 
       const payload = {
         type: "message",
@@ -27,11 +22,27 @@ export class SocketMessageHandler {
         },
       };
 
-      await this.socketGateway.sendNotificationToUser(
+      const receiverOnline = this.socketGateway.isUserConnected(
         event.receiverId,
-        payload,
       );
-      console.log(`✅ Message notification sent to user ${event.receiverId}`);
+      if (receiverOnline) {
+        await this.socketGateway.sendNotificationToUser(
+          event.receiverId,
+          payload,
+        );
+        console.log(`✅ Message sent to receiver ${event.receiverId}`);
+      } else {
+        console.log(`⚠️  Receiver ${event.receiverId} is offline`);
+      }
+
+      const senderOnline = this.socketGateway.isUserConnected(event.senderId);
+      if (senderOnline) {
+        await this.socketGateway.sendNotificationToUser(
+          event.senderId,
+          payload,
+        );
+        console.log(`✅ Message sent to sender ${event.senderId}`);
+      }
     } catch (error) {
       console.error(`❌ Failed to send message notification:`, error);
     }

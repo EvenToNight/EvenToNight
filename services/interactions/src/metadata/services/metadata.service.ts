@@ -266,7 +266,7 @@ export class MetadataService {
     await Promise.all([
       this.validateEventExistence(eventId),
       this.validateUserExistence(userId),
-      this.validateEventPublished(eventId),
+      this.validateEventIsNotDraft(eventId),
     ]);
   }
 
@@ -368,6 +368,16 @@ export class MetadataService {
     }
   }
 
+  async validateEventIsNotDraft(eventId: string): Promise<void> {
+    const event = await this.eventModel.findOne({ eventId });
+    if (!event) {
+      throw new NotFoundException(`Event with ID ${eventId} not found`);
+    }
+    if (event.status === EventStatus.DRAFT) {
+      throw new BadRequestException(`It is not possible to like a draft event`);
+    }
+  }
+
   private async validateEventCompleted(eventId: string): Promise<void> {
     const event = await this.eventModel.findOne({ eventId });
     if (!event) {
@@ -446,6 +456,15 @@ export class MetadataService {
           { collaboratorIds: organizationId },
         ],
       })
+      .select({ eventId: 1, _id: 0 })
+      .lean();
+
+    return events.map((e) => e.eventId);
+  }
+
+  async getEventIdsByStatus(status: string): Promise<string[]> {
+    const events = await this.eventModel
+      .find({ status })
       .select({ eventId: 1, _id: 0 })
       .lean();
 

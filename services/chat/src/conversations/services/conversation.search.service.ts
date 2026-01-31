@@ -46,19 +46,27 @@ export class ConversationSearchService {
     limit: number,
     offset: number,
   ): Promise<any[]> {
-    const filter: any = { userId };
+    const matchStage: any = { userId };
 
     if (conversationIds) {
-      filter.conversationId = { $in: conversationIds };
+      matchStage.conversationId = { $in: conversationIds };
     }
 
-    return this.participantModel
-      .find(filter)
-      .populate('conversationId')
-      .sort({ 'conversationId.updatedAt': -1 })
-      .skip(offset)
-      .limit(limit + 1)
-      .exec();
+    return this.participantModel.aggregate([
+      { $match: matchStage },
+      {
+        $lookup: {
+          from: 'conversations',
+          localField: 'conversationId',
+          foreignField: '_id',
+          as: 'conversationId',
+        },
+      },
+      { $unwind: '$conversationId' },
+      { $sort: { 'conversationId.updatedAt': -1 } },
+      { $skip: offset },
+      { $limit: limit + 1 },
+    ]);
   }
 
   async buildSearchResults(

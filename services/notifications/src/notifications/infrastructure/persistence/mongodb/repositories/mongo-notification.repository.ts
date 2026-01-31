@@ -43,4 +43,11 @@ export class MongoNotificationRepository implements NotificationRepository {
       { $set: { read: true } },
     ).exec();
   }
+
+  async markAllAsReadByUserId(userId: string): Promise<void> {
+    await NotificationModel.updateMany(
+      { userId, read: false },
+      { $set: { read: true } },
+    ).exec();
+  }
 }

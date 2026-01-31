@@ -149,7 +149,7 @@ object Utils:
     }
     val limitValue = math.min(limit.getOrElse(DEFAULT_LIMIT), MAX_LIMIT)
     val validSortBy = sortBy.filter(s =>
-      Set("date", "instant").contains(s.toLowerCase)
+      Set("date", "instant", "title").contains(s.toLowerCase)
     ).orElse(Some("date"))
     val validSortOrder = sortOrder.filter(o =>
       Set("asc", "desc").contains(o.toLowerCase)

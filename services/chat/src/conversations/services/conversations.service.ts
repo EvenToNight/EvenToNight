@@ -112,7 +112,7 @@ export class ConversationsService {
   async getConversationById(
     conversationId: string,
     userId: string,
-  ): Promise<ConversationDetailDTO> {
+  ): Promise<ConversationListItemDTO> {
     this.conversationManagerService.validateObjectId(conversationId);
 
     const conversation =
@@ -125,7 +125,15 @@ export class ConversationsService {
       userId,
     );
 
-    return this.dataMapperService.buildConversationDetail(conversation);
+    const participant = await this.participantModel.findOne({
+      conversationId: conversation._id,
+      userId,
+    });
+
+    return this.dataMapperService.buildConversationListItem(
+      conversation,
+      participant,
+    );
   }
 
   async getMessages(

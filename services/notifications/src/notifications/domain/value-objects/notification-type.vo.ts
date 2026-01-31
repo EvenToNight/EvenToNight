@@ -4,7 +4,6 @@ export enum NotificationTypeEnum {
   FOLLOW = "follow",
   REVIEW = "review",
   NEW_EVENT = "new_event",
-  TICKET_SELL = "ticket_sell",
 }
 
 export class NotificationType {
@@ -38,10 +37,6 @@ export class NotificationType {
 
   static NEW_EVENT(): NotificationType {
     return new NotificationType(NotificationTypeEnum.NEW_EVENT);
-  }
-
-  static TICKET_SELL(): NotificationType {
-    return new NotificationType(NotificationTypeEnum.TICKET_SELL);
   }
 
   toString(): string {
