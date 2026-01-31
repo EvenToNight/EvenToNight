@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { Event } from '@/api/types/events'
+import { useTicketDownload } from '@/composables/useTicketDownload'
 import { useNavigation } from '@/router/utils'
 
 interface Props {
@@ -8,36 +9,25 @@ interface Props {
 
 defineProps<Props>()
 
-const emit = defineEmits<{
-  download: [eventId: string]
-}>()
-
 const { goToEventDetails } = useNavigation()
-
-const handleDownload = (eventId: string) => {
-  emit('download', eventId)
-}
-
-const handleNavigateToEvent = (eventId: string) => {
-  goToEventDetails(eventId)
-}
+const { downloadTickets } = useTicketDownload()
 </script>
 
 <template>
   <div class="ticket-card">
     <div class="ticket-content">
-      <div class="event-image-wrapper clickable" @click="handleNavigateToEvent(event.eventId)">
+      <div class="event-image-wrapper clickable" @click="goToEventDetails(event.eventId)">
         <img :src="event.poster" :alt="event.title" class="event-image" />
       </div>
 
       <div class="event-info">
-        <h3 class="event-name clickable" @click="handleNavigateToEvent(event.eventId)">
+        <h3 class="event-name clickable" @click="goToEventDetails(event.eventId)">
           {{ event.title }}
         </h3>
         <p class="event-date">{{ new Date(event.date).toLocaleDateString() }}</p>
       </div>
 
-      <q-btn flat round icon="download" @click="handleDownload(event.eventId)" />
+      <q-btn flat round icon="download" @click="downloadTickets(event)" />
     </div>
   </div>
 </template>
