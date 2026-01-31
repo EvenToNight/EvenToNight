@@ -79,7 +79,7 @@ const removeImage = () => {
       :stencil-props="stencilProps"
       :stencil-size="stencilSize"
       dialog-title="Crop Image"
-      @update:image-file="handleImageUpdate"
+      @imageFile="handleImageUpdate"
       @error="emit('error', $event)"
     >
       <template #empty-state="{ triggerFileInput: trigger }">

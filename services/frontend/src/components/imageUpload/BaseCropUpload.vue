@@ -18,7 +18,7 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:imageFile': [value: File]
+  imageFile: [value: File]
   error: [message: string]
 }>()
 
@@ -76,7 +76,7 @@ const cropImage = async () => {
     })
 
     const file = new File([blob], 'image.jpg', { type: 'image/jpeg' })
-    emit('update:imageFile', file)
+    emit('imageFile', file)
     showCropper.value = false
   } catch (error) {
     console.error('Error cropping image:', error)

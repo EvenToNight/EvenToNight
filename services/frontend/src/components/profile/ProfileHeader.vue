@@ -89,7 +89,7 @@ const handleAvatarChange = async (file: File | null) => {
         ref="avatarCropUploadRef"
         :preview-url="user.avatar || ''"
         :default-icon="defaultIcon"
-        @update:imageFile="handleAvatarChange"
+        @imageFile="handleAvatarChange"
         @error="handleAvatarError"
       />
     </div>
