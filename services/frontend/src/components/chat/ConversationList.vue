@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
 import type { ChatUser, Conversation } from '@/api/types/chat'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
@@ -18,8 +18,6 @@ const loading = ref(false)
 const hasMore = ref(true)
 const offset = ref(0)
 const LIMIT = 20
-
-let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
 
 const emit = defineEmits<{
   selectConversation: [conversation: Conversation]
@@ -136,16 +134,13 @@ async function onLoadMore(_index: number, done: (stop?: boolean) => void) {
   }
 }
 
-function onSearchInput() {
-  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
-  searchDebounceTimer = setTimeout(() => {
-    if (searchQuery.value.trim()) {
-      searchConversations(searchQuery.value.trim())
-    } else {
-      loadConversations(true)
-    }
-  }, 300)
-}
+watch(searchQuery, (query) => {
+  if (query.trim()) {
+    searchConversations(query.trim())
+  } else {
+    loadConversations(true)
+  }
+})
 
 // Exposed functions for parent component
 function updateConversationLastMessage(
@@ -249,7 +244,7 @@ defineExpose({
         dense
         placeholder="Cerca o inizia una nuova chat"
         class="search-input"
-        @update:model-value="onSearchInput"
+        debounce="300"
       >
         <template #prepend>
           <q-icon name="search" />
