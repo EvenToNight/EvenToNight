@@ -145,6 +145,7 @@ export const useNavigation = () => {
 
   const goToExplore = (
     initialFilter?: EventFilters & { searchQuery?: string },
+    hash?: string,
     swap: boolean = false
   ) => {
     const queryParams: Record<string, string> = {}
@@ -193,9 +194,9 @@ export const useNavigation = () => {
     }
 
     if (swap) {
-      replaceWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams)
+      replaceWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams, hash)
     } else {
-      pushWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams)
+      pushWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams, hash)
     }
   }
 

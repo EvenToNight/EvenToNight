@@ -14,6 +14,7 @@ import { useRoute } from 'vue-router'
 import type { PaginatedRequest } from '@/api/interfaces/commons'
 import { emptyPaginatedResponse } from '@/api/utils/requestUtils'
 import { loadEvents } from '@/api/utils/eventUtils'
+import { useNavigation } from '@/router/utils'
 
 const { t } = useI18n()
 const route = useRoute()
@@ -21,10 +22,12 @@ const route = useRoute()
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 const emit = defineEmits(['authRequired'])
 const authStore = useAuthStore()
+const { hash, replaceRoute } = useNavigation()
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar', ref(false))
 type ExploreTab = 'events' | 'organizations' | 'people'
 const activeTab = ref<ExploreTab>('events')
+const lastActiveTab = ref<ExploreTab>(activeTab.value)
 
 const searchEvents = async (
   _eventFilters: EventFilters | undefined,
@@ -42,10 +45,28 @@ const searchEvents = async (
   })
 }
 
+watch(
+  () => hash.value,
+  (newHash) => {
+    if (newHash) {
+      activeTab.value = newHash.replace('#', '') as ExploreTab
+    }
+  }
+)
+
+watch(activeTab, (newTab) => {
+  if (hash.value !== `#${newTab}`) {
+    replaceRoute({ hash: `#${newTab}` })
+  }
+})
+
 watch(searchQuery, () => {
   console.log('Search query changed:', searchQuery.value)
   if (!searchQuery.value.trim()) {
+    lastActiveTab.value = activeTab.value
     activeTab.value = 'events'
+  } else {
+    activeTab.value = lastActiveTab.value
   }
 })
 
