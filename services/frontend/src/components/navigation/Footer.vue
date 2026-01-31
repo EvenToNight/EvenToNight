@@ -4,7 +4,7 @@ import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
 import { ABOUT_ROUTE_NAME, PRIVACY_ROUTE_NAME, TERMS_ROUTE_NAME } from '@/router'
 import AppBrand from '@/components/common/AppBrand.vue'
-import ContactDialog from '@/components/dialogs/ContactDialog.vue'
+import ContactDialog from '@/components/contacts/ContactDialog.vue'
 import { useAuthStore } from '@/stores/auth'
 
 const { t, locale, availableLocales } = useI18n()

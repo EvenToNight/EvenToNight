@@ -6,7 +6,7 @@ import { setTokenProvider, setTokenExpiredCallback } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
-import NotificationHandler from '@/components/common/NotificationHandler.vue'
+import NotificationHandler from '@/components/notifications/NotificationHandler.vue'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
