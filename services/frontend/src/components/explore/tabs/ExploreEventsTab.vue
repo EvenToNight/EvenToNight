@@ -1,55 +1,69 @@
 <script setup lang="ts">
-import { ref } from 'vue'
-import type { Event } from '@/api/types/events'
+import { onMounted, watch, ref } from 'vue'
 import EventCard from '@/components/cards/EventCard.vue'
 import EventFiltersButton, {
   type EventFilters,
 } from '@/components/explore/filters/FiltersButton.vue'
 import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 import { useI18n } from 'vue-i18n'
+import type { PaginatedRequest, PaginatedResponse } from '@/api/interfaces/commons'
+import type { EventLoadResult } from '@/api/utils/eventUtils'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { defaultLimit } from '@/api/utils/requestUtils'
 
 const { t } = useI18n()
 
 interface Props {
-  events: (Event & { liked?: boolean })[]
   searchQuery: string
-  hasMore?: boolean
-  onLoadMore?: () => void | Promise<void>
+  loadFn: (
+    eventFilters: EventFilters | undefined,
+    pagination: PaginatedRequest
+  ) => Promise<PaginatedResponse<EventLoadResult>>
   onAuthRequired?: () => void
 }
-const loading = ref(false)
+
 const props = defineProps<Props>()
+const eventFilters = ref<EventFilters | undefined>(undefined)
 
-const emit = defineEmits<{
-  'filters-changed': [filters: EventFilters]
-}>()
+const {
+  items: events,
+  // loading,
+  loadingMore,
+  onLoad,
+  loadItems,
+  reload,
+} = useInfiniteScroll<undefined, EventLoadResult>({
+  itemsPerPage: defaultLimit,
+  loadFn: async (limit, offset) => {
+    return props.loadFn(eventFilters.value, { limit, offset })
+  },
+})
 
-const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
-  if (!props.hasMore || !props.onLoadMore) {
-    done(true)
-    return
+onMounted(() => {
+  loadItems()
+})
+
+watch(
+  () => props.searchQuery,
+  () => {
+    reload()
   }
+)
 
-  loading.value = true
-
-  try {
-    await props.onLoadMore()
-  } finally {
-    loading.value = false
-    done(!props.hasMore)
-  }
-}
+watch(eventFilters, () => {
+  reload()
+})
 </script>
 
 <template>
   <div class="tab-content">
-    <EventFiltersButton @filters-changed="emit('filters-changed', $event)" />
+    <EventFiltersButton v-model="eventFilters" />
 
     <q-infinite-scroll
       v-if="events.length > 0"
       :offset="250"
       class="events-scroll"
-      :disable="loading"
+      :disable="loadingMore"
       @load="onLoad"
     >
       <div class="events-grid">

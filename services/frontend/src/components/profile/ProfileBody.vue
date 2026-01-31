@@ -81,7 +81,13 @@ const tabs = computed<Tab[]>(() => {
           },
         ],
         loadEvents: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
-          loadEvents(props.user.id, status, sortOrder, { offset, limit }),
+          loadEvents({
+            organizationId: props.user.id,
+            userId: props.user.id,
+            status,
+            sortOrder,
+            pagination: { offset, limit },
+          }),
         onAuthRequired: () => emit('auth-required'),
         emptyText: isOwnProfile.value
           ? t('userProfile.noEventCreated')
@@ -105,7 +111,13 @@ const tabs = computed<Tab[]>(() => {
           },
         ],
         loadEvents: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
-          loadEvents(props.user.id, status, sortOrder, { offset, limit }),
+          loadEvents({
+            organizationId: props.user.id,
+            userId: props.user.id,
+            status,
+            sortOrder,
+            pagination: { offset, limit },
+          }),
         onAuthRequired: () => emit('auth-required'),
         emptyText: t('userProfile.noDraftedEvents'),
         emptyIconName: 'edit_note',
@@ -140,7 +152,7 @@ const tabs = computed<Tab[]>(() => {
             options: { status: 'COMPLETED', label: 'Passati', sortOrder: 'desc' },
           },
         ],
-        loadEventsa: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
+        loadEvents: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
           loadEventParticipations(props.user.id, status, sortOrder, { offset, limit }),
         onAuthRequired: () => emit('auth-required'),
         emptyText: t('userProfile.noEventJoinedExternal'),
@@ -175,5 +187,5 @@ const tabs = computed<Tab[]>(() => {
 </script>
 
 <template>
-  <TabView :key="user.id" v-model:activeTab="activeTab" :variant="'explore'" :tabs="tabs" />
+  <TabView :key="user.id" v-model:activeTab="activeTab" :tabs="tabs" />
 </template>

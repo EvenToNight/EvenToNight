@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, inject, watch } from 'vue'
-import type { Ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import DateFilters, { type DateFilterValue } from './DateFilters.vue'
 import TagFilters from './TagFilters.vue'
 import PriceFilters, { type PriceFilterValue } from './PriceFilters.vue'
@@ -12,17 +11,38 @@ import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
 
+// const normalizeQuery = (queryObj: any) => {
+//   return typeof queryObj === 'object' && queryObj !== null
+//     ? Object.fromEntries(
+//         Object.entries(queryObj).map(([k, v]) => [k, Array.isArray(v) ? (v[0] ?? '') : (v ?? '')])
+//       )
+//     : {}
+// }
+
+// const filters = provide('filtersFromUrl', filtersFromUrl)
+
+// watch(
+//   () => route.query,
+//   (newQuery) => {
+//     const normalized = normalizeQuery(newQuery)
+//     const filtersFromQuery = buildExploreFiltersFromQuery(normalized)
+
+//     eventFilters.value = buildExploreRouteQuery(filtersFromQuery)
+
+//     // Update the reactive filters so FiltersButton can sync
+//     filtersFromUrl.value = filtersFromQuery
+
+//     searchEvents()
+//   },
+//   { immediate: true }
+// )
+
 export interface EventFilters extends DateFilterValue, PriceFilterValue {
   tags?: Tag[] | null
   sortBy?: SortBy | null
   otherFilter?: OtherFilter | null
 }
-const initialFilters = inject<EventFilters>('initialEventFilters', {})
-const filtersFromUrl = inject<Ref<EventFilters>>('filtersFromUrl', ref({}))
-
-const emit = defineEmits<{
-  'filters-changed': [filters: EventFilters]
-}>()
+const filters = defineModel<EventFilters | undefined>('filters')
 
 const dateFilterValue = ref<DateFilterValue>({})
 const selectedTags = ref<Tag[]>([])
@@ -55,15 +75,15 @@ const countActiveFilters = () => {
 const filtersButtonRef = ref<HTMLElement | null>(null)
 const filtersMenuOpen = ref(false)
 
-const emitFiltersChanged = () => {
-  emit('filters-changed', {
-    ...activeDateFilterValue.value,
-    ...activePriceFilterValue.value,
-    tags: activeTags.value,
-    sortBy: activeSortBy.value,
-    otherFilter: activeOtherFilter.value,
-  })
-}
+// const emitFiltersChanged = () => {
+//   emit('filters-changed', {
+//     ...activeDateFilterValue.value,
+//     ...activePriceFilterValue.value,
+//     tags: activeTags.value,
+//     sortBy: activeSortBy.value,
+//     otherFilter: activeOtherFilter.value,
+//   })
+// }
 
 const applyFilters = () => {
   // Simply copy draft values to active (watchers already handle mutual exclusion)
@@ -73,7 +93,7 @@ const applyFilters = () => {
   activeSortBy.value = selectedSortBy.value
   activeOtherFilter.value = selectedOtherFilter.value
 
-  emitFiltersChanged()
+  // emitFiltersChanged()
   filtersMenuOpen.value = false
 }
 
@@ -90,7 +110,7 @@ const clearFilters = () => {
   activeSortBy.value = null
   activeOtherFilter.value = null
 
-  emitFiltersChanged()
+  // emitFiltersChanged()
 }
 
 const hasActiveFilters = computed(
@@ -161,12 +181,12 @@ const syncFiltersFromUrl = (filters: EventFilters) => {
 
 // Watch for URL changes
 watch(
-  filtersFromUrl,
+  filters,
   (newFilters) => {
     // Sync even if empty (to clear filters when URL is cleared)
     syncFiltersFromUrl(newFilters || {})
   },
-  { deep: true }
+  { deep: true, immediate: true }
 )
 
 // Watch for changes in regular filters - if any is selected, clear otherFilter
@@ -199,13 +219,13 @@ watch(selectedOtherFilter, (newValue) => {
 })
 
 onMounted(() => {
-  // Always sync with initial filters (even if empty)
-  syncFiltersFromUrl(initialFilters || {})
+  // // Always sync with initial filters (even if empty)
+  // syncFiltersFromUrl(initialFilters || {})
 
-  // Only emit if there are actual filters to apply
-  if (initialFilters && Object.keys(initialFilters).length > 0) {
-    emitFiltersChanged()
-  }
+  // // Only emit if there are actual filters to apply
+  // if (initialFilters && Object.keys(initialFilters).length > 0) {
+  //   emitFiltersChanged()
+  // }
 
   window.addEventListener('scroll', handleScroll, true)
 })

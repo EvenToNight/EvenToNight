@@ -2,28 +2,25 @@ import type { Event, EventStatus } from '@/api/types/events'
 import type { PaginatedRequest, PaginatedResponse, SortOrder } from '../interfaces/commons'
 import type { UserID } from '../types/users'
 import { api } from '..'
+import type { EventsQueryParams } from '../interfaces/events'
 
 export interface EventLoadResult extends Event {
   liked?: boolean
 }
-
 export const loadEvents = async (
-  userId: UserID,
-  status: EventStatus,
-  sortOrder: SortOrder,
-  pagination?: PaginatedRequest
+  params: EventsQueryParams & { userId?: UserID }
 ): Promise<PaginatedResponse<EventLoadResult>> => {
-  console.log('Loading events for user:', userId, 'status:', status)
+  console.log('Loading events for user:', params.userId, 'status:', params.status)
+  const { userId, ...restParams } = params
   const rawResponse = await api.events.searchEvents({
-    organizationId: userId,
-    status: status,
     sortBy: 'date',
-    sortOrder: sortOrder,
-    pagination: pagination,
+    ...restParams,
   })
   const response = await Promise.all(
     rawResponse.items.map(async (event) => {
-      const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
+      const isLiked = params.userId
+        ? await api.interactions.userLikesEvent(event.eventId, params.userId)
+        : false
       return { ...event, liked: isLiked }
     })
   )

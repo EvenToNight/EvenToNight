@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { ref, watch, computed, inject, provide } from 'vue'
+import { ref, watch, computed, inject } from 'vue'
 import type { Ref } from 'vue'
-import { api } from '@/api'
-import type { Event } from '@/api/types/events'
 import type { UserRole } from '@/api/types/users'
 import { searchUsers, type SearchResultUser } from '@/api/utils/searchUtils'
 import { useAuthStore } from '@/stores/auth'
@@ -11,132 +9,57 @@ import TabView, { type Tab } from '@/components/navigation/TabView.vue'
 import ExploreEventsTab from '@/components/explore/tabs/ExploreEventsTab.vue'
 import ExplorePeopleTab from '@/components/explore/tabs/ExplorePeopleTab.vue'
 import type { EventFilters } from './filters/FiltersButton.vue'
-import type { EventsQueryParams } from '@/api/interfaces/events'
-import { buildExploreFiltersFromQuery, buildExploreRouteQuery } from '@/api/utils/filtersUtils'
 import { useI18n } from 'vue-i18n'
-import { useRouter, useRoute } from 'vue-router'
+import { useRoute } from 'vue-router'
 import type { PaginatedRequest } from '@/api/interfaces/commons'
 import { emptyPaginatedResponse } from '@/api/utils/requestUtils'
+import { loadEvents } from '@/api/utils/eventUtils'
 
 const { t } = useI18n()
-const router = useRouter()
 const route = useRoute()
 
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
-
-const normalizeQuery = (queryObj: any) => {
-  return typeof queryObj === 'object' && queryObj !== null
-    ? Object.fromEntries(
-        Object.entries(queryObj).map(([k, v]) => [k, Array.isArray(v) ? (v[0] ?? '') : (v ?? '')])
-      )
-    : {}
-}
-
-const normalizedQuery = normalizeQuery(route.query)
-const initialEventFilters = buildExploreFiltersFromQuery(normalizedQuery)
-
-// Reactive filters from URL for sync with FiltersButton
-const filtersFromUrl = ref<EventFilters>(initialEventFilters)
-provide('initialEventFilters', initialEventFilters)
-provide('filtersFromUrl', filtersFromUrl)
-
-const emit = defineEmits(['auth-required'])
+const emit = defineEmits(['authRequired'])
 const authStore = useAuthStore()
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar', ref(false))
-
-const ITEMS_PER_PAGE = 20
 type ExploreTab = 'events' | 'organizations' | 'people'
 const activeTab = ref<ExploreTab>('events')
 
-const events = ref<(Event & { liked?: boolean })[]>([])
-const hasMoreEvents = ref(true)
-const loadingEvents = ref(false)
-
-const eventFilters = ref<EventsQueryParams>({})
-const currentFilters = ref<EventFilters>(initialEventFilters)
-const isUpdatingFromUrl = ref(false)
-
-const handleFiltersChanged = (newFilters: EventFilters) => {
-  currentFilters.value = newFilters
-  eventFilters.value = buildExploreRouteQuery(newFilters)
-
-  // Update URL with new filters
-  if (!isUpdatingFromUrl.value) {
-    const queryParams = buildExploreRouteQuery(newFilters)
-    router.replace({
-      name: route.name as string,
-      params: route.params,
-      query: queryParams,
-    })
-  }
-
-  searchEvents()
+const searchEvents = async (
+  _eventFilters: EventFilters | undefined,
+  pagination: PaginatedRequest
+) => {
+  // if (!searchQuery.value.trim() && eventFilters === undefined) {
+  //   return emptyPaginatedResponse<EventLoadResult>()
+  // }
+  //TODO: implement filters in search
+  console.log('Searching events with filters:', _eventFilters)
+  return loadEvents({
+    title: searchQuery.value || undefined,
+    userId: authStore.user?.id,
+    pagination,
+  })
 }
 
-// Watch for URL changes (e.g., browser back/forward)
+watch(searchQuery, () => {
+  console.log('Search query changed:', searchQuery.value)
+  if (!searchQuery.value.trim()) {
+    activeTab.value = 'events'
+  }
+})
+
 watch(
-  () => route.query,
-  (newQuery) => {
-    const normalized = normalizeQuery(newQuery)
-    const filtersFromQuery = buildExploreFiltersFromQuery(normalized)
-
-    // Only update if filters actually changed
-    const newFiltersJson = JSON.stringify(filtersFromQuery)
-    const currentFiltersJson = JSON.stringify(currentFilters.value)
-
-    if (newFiltersJson !== currentFiltersJson) {
-      isUpdatingFromUrl.value = true
-      currentFilters.value = filtersFromQuery
-      eventFilters.value = buildExploreRouteQuery(filtersFromQuery)
-
-      // Update the reactive filters so FiltersButton can sync
-      filtersFromUrl.value = filtersFromQuery
-
-      searchEvents()
-
-      // Reset flag after a tick to allow new changes
-      setTimeout(() => {
-        isUpdatingFromUrl.value = false
-      }, 0)
+  () => route.query.search,
+  (newSearch) => {
+    if (newSearch && typeof newSearch === 'string') {
+      searchQuery.value = newSearch.trim()
+    } else if (!newSearch) {
+      searchQuery.value = ''
     }
-  }
+  },
+  { immediate: true }
 )
-
-const searchEvents = async () => {
-  if (!searchQuery.value.trim() && !eventFilters.value) {
-    events.value = []
-    return
-  }
-
-  loadingEvents.value = true
-  try {
-    const response = await api.events.searchEvents({
-      title: searchQuery.value || undefined,
-      pagination: { limit: ITEMS_PER_PAGE },
-      ...eventFilters.value,
-    })
-    events.value = response.items.map((event) => ({ ...event, liked: false }))
-    hasMoreEvents.value = response.hasMore
-    if (authStore.isAuthenticated) {
-      const userId = authStore.user!.id
-      const likePromises = events.value.map(async (event) => {
-        try {
-          const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
-          return { ...event, liked: isLiked }
-        } catch (error) {
-          console.error(`Failed to load like status for event ${event.eventId}:`, error)
-          return { ...event, liked: false }
-        }
-      })
-      events.value = await Promise.all(likePromises)
-    }
-  } catch (error) {
-    console.error('Failed to search events:', error)
-  } finally {
-    loadingEvents.value = false
-  }
-}
 
 const searchUsersByRole = async (role: UserRole, pagination: PaginatedRequest) => {
   if (!searchQuery.value.trim()) {
@@ -145,42 +68,15 @@ const searchUsersByRole = async (role: UserRole, pagination: PaginatedRequest) =
   return searchUsers({ query: searchQuery.value, role, pagination })
 }
 
-const onSearch = () => {
-  switch (activeTab.value) {
-    case 'events':
-      searchEvents()
-      break
-    default:
-      if (!searchQuery.value.trim()) {
-        activeTab.value = 'events'
-      }
-      break
-  }
-}
-
-const initialSearchQuery = route.query.search as string | undefined
-if (initialSearchQuery && initialSearchQuery.trim()) {
-  searchQuery.value = initialSearchQuery.trim()
-  onSearch()
-}
-
-watch(activeTab, (_tabId) => {
-  if (searchQuery.value.trim()) {
-    onSearch()
-  }
-})
-
 const tabs = computed<Tab[]>(() => [
   {
     id: 'events',
     label: t('explore.events.title'),
     component: ExploreEventsTab,
     props: {
-      events: events.value,
-      loading: loadingEvents.value,
       searchQuery: searchQuery.value,
-      onAuthRequired: () => emit('auth-required'),
-      onFiltersChanged: handleFiltersChanged,
+      onAuthRequired: () => emit('authRequired'),
+      loadFn: searchEvents,
     },
   },
   {
@@ -207,10 +103,6 @@ const tabs = computed<Tab[]>(() => [
     },
   },
 ])
-
-watch(searchQuery, () => {
-  onSearch()
-})
 </script>
 
 <template>
@@ -230,12 +122,7 @@ watch(searchQuery, () => {
       class="content-wrapper"
       :class="{ 'padded-content': !searchQuery, 'hide-tabs': !searchQuery }"
     >
-      <TabView
-        v-model:activeTab="activeTab"
-        :variant="'explore'"
-        :tabs="tabs"
-        :default-tab="'events'"
-      />
+      <TabView v-model:activeTab="activeTab" :tabs="tabs" :default-tab="'events'" />
     </div>
   </div>
 </template>
