@@ -81,6 +81,32 @@ export class DataMapperService {
     };
   }
 
+  async buildConversationListItem(
+    conversation: any,
+    participant: any,
+  ): Promise<ConversationListItemDTO> {
+    const [orgInfo, memberInfo] = await this.fetchUsersInfo(
+      conversation.organizationId,
+      conversation.memberId,
+    );
+
+    const lastMessage = await this.findLastMessage(conversation._id);
+
+    return {
+      id: conversation._id.toString(),
+      organization: this.buildUserInfo(conversation.organizationId, orgInfo),
+      member: this.buildUserInfo(conversation.memberId, memberInfo),
+      lastMessage: lastMessage
+        ? {
+            content: lastMessage.content,
+            senderId: lastMessage.senderId,
+            timestamp: lastMessage.createdAt,
+          }
+        : null,
+      unreadCount: participant.unreadCount,
+    };
+  }
+
   async buildMessageDTOs(
     messages: any[],
     conversationId: string,

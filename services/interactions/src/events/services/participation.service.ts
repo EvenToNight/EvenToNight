@@ -82,13 +82,16 @@ export class ParticipationService {
     offset?: number,
     organizationId?: string,
     reviewed?: boolean,
+    eventStatus?: string,
+    order?: 'asc' | 'desc',
   ): Promise<PaginatedResponseDto<UserParticipationDto>> {
     await this.metadataService.validateUserExistence(userId);
 
+    const sortOrder = order === 'asc' ? 1 : -1;
     let query = this.participationModel
       .find({ userId })
       .select({ _id: 0, eventId: 1, createdAt: 1 })
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: sortOrder });
 
     if (offset !== undefined) {
       query = query.skip(offset);
@@ -121,6 +124,15 @@ export class ParticipationService {
       const orgEventSet = new Set(orgEventIds);
       enrichedItems = enrichedItems.filter((item) =>
         orgEventSet.has(item.eventId),
+      );
+    }
+
+    if (eventStatus !== undefined) {
+      const statusEventIds =
+        await this.metadataService.getEventIdsByStatus(eventStatus);
+      const statusEventSet = new Set(statusEventIds);
+      enrichedItems = enrichedItems.filter((item) =>
+        statusEventSet.has(item.eventId),
       );
     }
 

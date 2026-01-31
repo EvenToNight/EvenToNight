@@ -293,12 +293,22 @@ paths:
                       avatar:
                         type: string
                         example: "https://example.com/member_avatar.png"
-                  "createdAt":
-                    type: string
-                    format: date-time
-                  "updatedAt":
-                    type: string
-                    format: date-time
+                  lastMessage:
+                    type: object
+                    nullable: true
+                    properties:
+                      content:
+                        type: string
+                        example: "Hello, can I get more information about your events?"
+                      senderId:
+                        type: string
+                        example: "user123"
+                      timestamp:
+                        type: string
+                        format: date-time
+                  unreadCount:
+                    type: integer
+                    example: 5
         '400':
           description: Bad Request
         '404':

@@ -13,7 +13,7 @@ import {
 import { ReviewService } from '../services/review.service';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { UpdateReviewDto } from '../dto/update-review.dto';
-import { PaginatedQueryDto } from '../../commons/dto/paginated-query.dto';
+import { ReviewQueryDto } from '../dto/review-query.dto';
 import { JwtAuthGuard } from 'src/commons/auth/jwt-auth.guard';
 import { CurrentUser } from 'src/commons/auth';
 
@@ -82,9 +82,9 @@ export class ReviewController {
   @Get('reviews')
   async getEventReviews(
     @Param('eventId') eventId: string,
-    @Query() paginatedQuery: PaginatedQueryDto,
+    @Query() reviewQuery: ReviewQueryDto,
   ) {
-    const { limit, offset } = paginatedQuery;
-    return this.reviewService.getEventReviews(eventId, limit, offset);
+    const { limit, offset, rating } = reviewQuery;
+    return this.reviewService.getEventReviews(eventId, limit, offset, rating);
   }
 }

@@ -94,9 +94,14 @@ export class ReviewService {
     eventId: string,
     limit?: number,
     offset?: number,
+    rating?: number,
   ): Promise<PaginatedResponseDto<Review> & ReviewStatsDto> {
     await this.metadataService.validateEventExistence(eventId);
-    return this.getReviewsWithStats({ eventId }, limit, offset);
+    const filter: Record<string, any> = { eventId };
+    if (rating !== undefined) {
+      filter.rating = rating;
+    }
+    return this.getReviewsWithStats(filter, limit, offset);
   }
 
   async getUserReviews(
@@ -123,9 +128,10 @@ export class ReviewService {
     role: 'creator' | 'collaborator' | 'all' = 'all',
     limit?: number,
     offset?: number,
+    rating?: number,
   ): Promise<PaginatedResponseDto<Review>> {
     await this.metadataService.validateUserExistence(organizationId);
-    return this.getReviewsWithStats(
+    const baseFilter =
       role === 'creator'
         ? { creatorId: organizationId }
         : role === 'collaborator'
@@ -135,10 +141,36 @@ export class ReviewService {
                 { creatorId: organizationId },
                 { collaboratorIds: organizationId },
               ],
-            },
-      limit,
-      offset,
-    );
+            };
+
+    const filter =
+      rating !== undefined ? { ...baseFilter, rating } : baseFilter;
+
+    return this.getReviewsWithStats(filter, limit, offset);
+  }
+
+  async getOrganizationReviewsStatistics(
+    organizationId: string,
+    role: 'creator' | 'collaborator' | 'all' = 'all',
+    rating?: number,
+  ): Promise<ReviewStatsDto> {
+    await this.metadataService.validateUserExistence(organizationId);
+    const baseFilter =
+      role === 'creator'
+        ? { creatorId: organizationId }
+        : role === 'collaborator'
+          ? { collaboratorIds: organizationId }
+          : {
+              $or: [
+                { creatorId: organizationId },
+                { collaboratorIds: organizationId },
+              ],
+            };
+
+    const filter =
+      rating !== undefined ? { ...baseFilter, rating } : baseFilter;
+
+    return this.calculateRatingStats(filter);
   }
 
   private async getReviewsWithStats(
@@ -183,6 +215,7 @@ export class ReviewService {
         ...new PaginatedResponseDto([], 0, limit || 0, offset || 0),
         averageRating: 0,
         ratingDistribution: { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 },
+        totalReviews: 0,
       };
     }
 
@@ -287,6 +320,7 @@ export class ReviewService {
     return {
       averageRating: Math.round(averageRating * 100) / 100,
       ratingDistribution,
+      totalReviews: reviews.length,
     };
   }
 
@@ -332,10 +366,16 @@ export class ReviewService {
     }
 
     const averageRating = result[0]?.stats[0]?.averageRating || 0;
+    const totalReviews =
+      result[0]?.distribution?.reduce(
+        (sum: number, item: { count: number }) => sum + item.count,
+        0,
+      ) || 0;
 
     return {
       averageRating: Math.round(averageRating * 100) / 100,
       ratingDistribution,
+      totalReviews,
     };
   }
 

@@ -136,7 +136,9 @@ case class MongoEventRepository(
       val sortDirection = if sortOrder.contains("desc") then -1 else 1
 
       val sortCriteria = if sortField == "date" then
-        Sorts.orderBy(Sorts.descending("date"))
+        Sorts.orderBy(
+          if sortDirection == 1 then Sorts.ascending("date") else Sorts.descending("date")
+        )
       else
         Sorts.orderBy(
           if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField),

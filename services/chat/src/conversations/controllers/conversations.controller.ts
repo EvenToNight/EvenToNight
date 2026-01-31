@@ -18,7 +18,7 @@ import { GetConversationsQueryDto } from '../dto/get-conversations-query.dto';
 import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
 import { MessageListResponse } from '../dto/message-list.response';
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
-import { ConversationDetailDTO } from '../dto/conversation-details.dto';
+import { ConversationListItemDTO } from '../dto/conversation-list-item.dto';
 import { SearchConversationsQueryDto } from '../dto/search-conversation-query.dto';
 import { JwtAuthGuard } from 'src/common/auth/jwt-auth.guard';
 import { CurrentUser } from 'src/common/auth';
@@ -113,7 +113,7 @@ export class ConversationsController {
   async getConversation(
     @Param('userId') userId: string,
     @Param('conversationId') conversationId: string,
-  ): Promise<ConversationDetailDTO> {
+  ): Promise<ConversationListItemDTO> {
     return await this.conversationsService.getConversationById(
       conversationId,
       userId,
