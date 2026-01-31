@@ -3,12 +3,13 @@ import type { PaginatedResponse } from '@/api/interfaces/commons'
 
 interface InfiniteScrollConfiguration<R> {
   itemsPerPage?: number
+  prepend?: boolean
   loadFn: (limit: number, offset: number) => Promise<PaginatedResponse<R>>
   onError?: (error: unknown) => void
 }
 
 export function useInfiniteScroll<R>(config: InfiniteScrollConfiguration<R>) {
-  const { itemsPerPage = 10, loadFn, onError } = config
+  const { itemsPerPage = 10, prepend = false, loadFn, onError } = config
 
   const items: Ref<R[]> = ref([])
   const loading = ref(true)
@@ -29,7 +30,9 @@ export function useInfiniteScroll<R>(config: InfiniteScrollConfiguration<R>) {
       const response = await loadFn(itemsPerPage, offset)
 
       if (isLoadingMore) {
-        items.value = [...items.value, ...response.items]
+        items.value = prepend
+          ? [...response.items, ...items.value]
+          : [...items.value, ...response.items]
       } else {
         items.value = response.items
       }
