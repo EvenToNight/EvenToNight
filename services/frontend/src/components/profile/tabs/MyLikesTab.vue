@@ -5,7 +5,7 @@ import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { loadLikedEvents, type EventLoadResult } from '@/api/utils/eventUtils'
 import type { UserID } from '@/api/types/users'
-const ITEMS_PER_PAGE = 20
+import { defaultLimit } from '@/api/utils/requestUtils'
 interface Props {
   userId: UserID
 }
@@ -18,7 +18,7 @@ const {
   onLoad,
   loadItems,
 } = useInfiniteScroll<{ userId: UserID }, EventLoadResult>({
-  itemsPerPage: ITEMS_PER_PAGE,
+  itemsPerPage: defaultLimit,
   options: { userId: props.userId },
   loadFn: async (limit, offset, options) => {
     return loadLikedEvents(options!.userId, { limit, offset })

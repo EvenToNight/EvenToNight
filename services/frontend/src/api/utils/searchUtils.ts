@@ -6,6 +6,7 @@ import type { EventsQueryParams } from '../interfaces/events'
 import type { SortBy } from '@/components/explore/filters/SortFilters.vue'
 import type { DateFilter } from '@/components/explore/filters/DateFilters.vue'
 import type { PriceFilter } from '@/components/explore/filters/PriceFilters.vue'
+import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 
 export interface SearchResultBase {
   type: 'event' | UserRole
@@ -28,6 +29,33 @@ export interface SearchResultUser extends SearchResultBase {
 }
 
 export type SearchResult = SearchResultEvent | SearchResultUser
+
+export const convertUserToSearchResult = (user: User, relevance: number = 0): SearchResultUser => {
+  return {
+    type: user.role,
+    id: user.id,
+    name: user.name,
+    avatarUrl: user.avatar,
+    relevance,
+  }
+}
+
+export const searchUsers = async (params: {
+  query: string
+  role?: UserRole
+  pagination?: PaginatedRequest
+}): Promise<PaginatedResponse<SearchResultUser>> => {
+  const response = await api.users.searchUsers({
+    prefix: params.query,
+    role: params.role,
+    pagination: params.pagination,
+  })
+  const results: SearchResultUser[] = response.items.map((user) => convertUserToSearchResult(user))
+  return {
+    ...response,
+    items: results,
+  }
+}
 
 const calculateRelevance = (query: string, targetText: string): number => {
   const lowerQuery = query.toLowerCase().trim()
@@ -89,13 +117,7 @@ const processUserSearchResults = async (users: User[], query: string): Promise<S
   const resultPromises = users.map(async (user): Promise<SearchResultUser | null> => {
     const relevance = await calculateUserResultRelevance(user, query)
     if (relevance > 0) {
-      return {
-        type: user.role,
-        id: user.id,
-        name: user.name,
-        avatarUrl: user.avatar,
-        relevance: relevance,
-      }
+      return convertUserToSearchResult(user, relevance)
     }
     return null
   })

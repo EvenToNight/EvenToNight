@@ -2,7 +2,7 @@ import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 
 export const delay = (ms: number = 0) => new Promise((resolve) => setTimeout(resolve, ms))
 
-const defaultLimit = 4
+export const defaultLimit = 20
 const defaultOffset = 0
 
 export const emptyPaginatedResponse = <T>(): PaginatedResponse<T> => ({
