@@ -1,46 +1,49 @@
 <script setup lang="ts">
-import type { SearchResultUser } from '@/api/utils/searchUtils'
 import SearchResultCard from '@/components/cards/SearchResultCard.vue'
-import { ref } from 'vue'
+import { watch, onMounted } from 'vue'
 import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 import { useNavigation } from '@/router/utils'
-import type { SearchResult } from '@/api/utils/searchUtils'
+import type { SearchResultUser } from '@/api/utils/searchUtils'
+import type { PaginatedResponse } from '@/api/interfaces/commons'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { defaultLimit } from '@/api/utils/requestUtils'
 
-const { goToEventDetails, goToUserProfile } = useNavigation()
+const { goToUserProfile } = useNavigation()
 
 interface Props {
-  people: SearchResultUser[]
   searchQuery: string
   emptySearchText: string
   emptyText: string
   emptyIconName?: string
-  hasMore?: boolean
-  onLoadMore?: () => void | Promise<void>
+  loadFn: (limit: number, offset: number) => Promise<PaginatedResponse<SearchResultUser>>
 }
-const loading = ref(false)
+
 const props = defineProps<Props>()
-const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
-  if (!props.hasMore || !props.onLoadMore) {
-    done(true)
-    return
-  }
 
-  loading.value = true
+const {
+  items: people,
+  //loading,
+  loadingMore,
+  onLoad,
+  loadItems,
+  reload,
+} = useInfiniteScroll<undefined, SearchResultUser>({
+  itemsPerPage: defaultLimit,
+  loadFn: async (limit, offset) => {
+    return props.loadFn(limit, offset)
+  },
+})
 
-  try {
-    await props.onLoadMore()
-  } finally {
-    loading.value = false
-    done(!props.hasMore)
+onMounted(() => {
+  loadItems()
+})
+
+watch(
+  () => props.searchQuery,
+  () => {
+    reload()
   }
-}
-const selectResult = (result: SearchResult) => {
-  if (result.type === 'event') {
-    goToEventDetails(result.id)
-  } else {
-    goToUserProfile(result.id)
-  }
-}
+)
 </script>
 
 <template>
@@ -49,7 +52,7 @@ const selectResult = (result: SearchResult) => {
       v-if="people.length > 0"
       :offset="250"
       class="people-scroll"
-      :disable="loading"
+      :disable="loadingMore"
       @load="onLoad"
     >
       <div class="users-list">
@@ -57,7 +60,7 @@ const selectResult = (result: SearchResult) => {
           v-for="result in people"
           :key="result.id"
           :result="result"
-          @mousedown="selectResult(result)"
+          @mousedown="goToUserProfile(result.id)"
         />
       </div>
 
