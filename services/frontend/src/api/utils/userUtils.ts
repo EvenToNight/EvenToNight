@@ -10,9 +10,9 @@ export interface UserLoadResult extends User {
   organizationReviewStatistics?: OrganizationReviewsStatistics
 }
 
-export const loadUser = async (userId: UserID): Promise<UserLoadResult> => {
+export const loadUserWithInfo = async (userId: UserID): Promise<UserLoadResult> => {
   try {
-    console.log('Loading user with ID:', userId)
+    console.log('Loading user with info with ID:', userId)
     const user: UserLoadResult = await api.users.getUserById(userId)
     user.interactionsInfo = await getUserInteractionsInfo(userId)
     if (user.role === 'organization') {

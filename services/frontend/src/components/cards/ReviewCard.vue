@@ -3,11 +3,12 @@ import { ref, onMounted, computed, inject } from 'vue'
 import { useQuasar } from 'quasar'
 import type { EventReview } from '@/api/types/interaction'
 import type { Event } from '@/api/types/events'
-import RatingStars from './ratings/RatingStars.vue'
-import SubmitReviewDialog from './SubmitReviewDialog.vue'
+import RatingStars from '../reviews/ratings/RatingStars.vue'
+import SubmitReviewDialog from '../reviews/SubmitReviewDialog.vue'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
+import type { User } from '@/api/types/users'
 
 interface Props {
   review: EventReview
@@ -18,32 +19,29 @@ const props = withDefaults(defineProps<Props>(), {
   showEventInfo: true,
 })
 
-const { goToUserProfile, goToEventDetails } = useNavigation()
-const authStore = useAuthStore()
-const $q = useQuasar()
-
 const deleteReview = inject<((eventId: string, userId: string) => void) | undefined>(
   'deleteReview',
   undefined
 )
 
+const { goToUserProfile, goToEventDetails } = useNavigation()
+const authStore = useAuthStore()
+const $q = useQuasar()
+
 const isOwnReview = computed(() => {
   return authStore.user?.id === props.review.userId
 })
 
-const userName = ref<string>('Loading...')
-const userAvatar = ref<string | null>(null)
-const eventInfo = ref<Event | null>(null)
+const user = ref<User | undefined>(undefined)
+const eventInfo = ref<Event | undefined>(undefined)
 const showEditDialog = ref(false)
 
 const loadUserInfo = async () => {
   try {
-    const user = await api.users.getUserById(props.review.userId)
-    userName.value = user.name
-    userAvatar.value = user.avatar || null
+    user.value = await api.users.getUserById(props.review.userId)
   } catch (error) {
     console.error('Failed to load user info:', error)
-    userName.value = 'Unknown User'
+    user.value = undefined
   }
 }
 
@@ -53,6 +51,7 @@ const loadEventInfo = async () => {
     eventInfo.value = await api.events.getEventById(props.review.eventId)
   } catch (error) {
     console.error('Failed to load event info:', error)
+    eventInfo.value = undefined
   }
 }
 
@@ -106,11 +105,11 @@ onMounted(() => {
     <div class="review-header">
       <div class="user-info flex items-center">
         <q-avatar size="40px" class="user-avatar cursor-pointer" @click="handleUserClick">
-          <img v-if="userAvatar" :src="userAvatar" :alt="userName" />
+          <img v-if="user?.avatar" :src="user.avatar" :alt="user.name" />
           <q-icon v-else name="person" />
         </q-avatar>
         <div class="user-details flex column items-start">
-          <span class="user-name cursor-pointer" @click="handleUserClick">{{ userName }}</span>
+          <span class="user-name cursor-pointer" @click="handleUserClick">{{ user?.name }}</span>
           <RatingStars :rating="review.rating" size="sm" variant="compact" />
         </div>
       </div>

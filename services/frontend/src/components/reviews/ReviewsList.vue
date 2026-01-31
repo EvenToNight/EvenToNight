@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import type { EventReview } from '@/api/types/interaction'
-import ReviewCard from './ReviewCard.vue'
+import ReviewCard from '../cards/ReviewCard.vue'
 import { api } from '@/api'
 
 interface Props {

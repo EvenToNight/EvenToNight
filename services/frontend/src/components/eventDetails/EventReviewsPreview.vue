@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import type { EventReview } from '@/api/types/interaction'
-import ReviewCard from '@/components/reviews/ReviewCard.vue'
+import ReviewCard from '@/components/cards/ReviewCard.vue'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 import SeeAllButton from '@/components/buttons/basicButtons/SeeAllButton.vue'

@@ -3,7 +3,7 @@ import { ref, onMounted, provide, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import type { EventReview } from '@/api/types/interaction'
-import ReviewCard from '@/components/reviews/ReviewCard.vue'
+import ReviewCard from '@/components/cards/ReviewCard.vue'
 import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
 
 const ITEMS_PER_PAGE = 10
