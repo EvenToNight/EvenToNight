@@ -32,7 +32,7 @@ const {
   onLoad,
   loadItems,
   reload,
-} = useInfiniteScroll<undefined, EventLoadResult>({
+} = useInfiniteScroll<EventLoadResult>({
   itemsPerPage: defaultLimit,
   loadFn: async (limit, offset) => {
     return props.loadFn(eventFilters.value, { limit, offset })

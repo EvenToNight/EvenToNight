@@ -17,11 +17,10 @@ const {
   loadingMore,
   onLoad,
   loadItems,
-} = useInfiniteScroll<{ userId: UserID }, EventLoadResult>({
+} = useInfiniteScroll<EventLoadResult>({
   itemsPerPage: defaultLimit,
-  options: { userId: props.userId },
-  loadFn: async (limit, offset, options) => {
-    return loadLikedEvents(options!.userId, { limit, offset })
+  loadFn: async (limit, offset) => {
+    return loadLikedEvents(props.userId, { limit, offset })
   },
 })
 

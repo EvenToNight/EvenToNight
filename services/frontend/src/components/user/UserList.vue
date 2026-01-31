@@ -30,7 +30,7 @@ const {
   hasMore,
   onLoad,
   reload,
-} = useInfiniteScroll<undefined, UserInfo>({
+} = useInfiniteScroll<UserInfo>({
   itemsPerPage: ITEMS_PER_PAGE,
   loadFn: async (limit, offset) => {
     return props.loadFn({ limit, offset })

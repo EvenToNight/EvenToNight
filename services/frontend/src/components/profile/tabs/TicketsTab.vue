@@ -21,12 +21,11 @@ const {
   loadingMore,
   onLoad,
   loadItems,
-} = useInfiniteScroll<{ userId: string }, Event>({
+} = useInfiniteScroll<Event>({
   itemsPerPage: ITEMS_PER_PAGE,
-  options: { userId: userId.value },
-  loadFn: async (limit, offset, options) => {
+  loadFn: async (limit, offset) => {
     return loadUserEventParticipations(
-      options!.userId,
+      userId.value,
       { limit, offset },
       {
         eventStatus: 'PUBLISHED',

@@ -1,15 +1,14 @@
 import { ref, computed, type Ref } from 'vue'
 import type { PaginatedResponse } from '@/api/interfaces/commons'
 
-interface InfiniteScrollConfiguration<O, R> {
+interface InfiniteScrollConfiguration<R> {
   itemsPerPage?: number
-  options?: O
-  loadFn: (limit: number, offset: number, options?: O) => Promise<PaginatedResponse<R>>
+  loadFn: (limit: number, offset: number) => Promise<PaginatedResponse<R>>
   onError?: (error: unknown) => void
 }
 
-export function useInfiniteScroll<O, R>(config: InfiniteScrollConfiguration<O, R>) {
-  const { itemsPerPage = 10, options, loadFn, onError } = config
+export function useInfiniteScroll<R>(config: InfiniteScrollConfiguration<R>) {
+  const { itemsPerPage = 10, loadFn, onError } = config
 
   const items: Ref<R[]> = ref([])
   const loading = ref(true)
@@ -27,7 +26,7 @@ export function useInfiniteScroll<O, R>(config: InfiniteScrollConfiguration<O, R
 
     try {
       const offset = isLoadingMore ? items.value.length : 0
-      const response = await loadFn(itemsPerPage, offset, options)
+      const response = await loadFn(itemsPerPage, offset)
 
       if (isLoadingMore) {
         items.value = [...items.value, ...response.items]

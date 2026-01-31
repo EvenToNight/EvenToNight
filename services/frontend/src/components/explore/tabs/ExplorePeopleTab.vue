@@ -27,7 +27,7 @@ const {
   onLoad,
   loadItems,
   reload,
-} = useInfiniteScroll<undefined, SearchResultUser>({
+} = useInfiniteScroll<SearchResultUser>({
   itemsPerPage: defaultLimit,
   loadFn: async (limit, offset) => {
     return props.loadFn(limit, offset)
