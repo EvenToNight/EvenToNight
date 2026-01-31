@@ -13,7 +13,6 @@ export interface Tab {
 interface Props {
   tabs: Tab[]
   defaultTab?: string
-  variant: 'explore' | 'profile'
 }
 
 const props = defineProps<Props>()
@@ -37,138 +36,30 @@ const getCurrentTabComponent = computed((): Tab => {
 </script>
 
 <template>
-  <template v-if="props.variant === 'explore'">
-    <!-- Explore variant: header and content as siblings for sticky to work -->
-    <div class="explore-tab-header">
-      <div class="explore-tab-header-inner">
-        <div
-          v-for="tab in tabs"
-          :key="tab.id"
-          class="explore-tab"
-          :class="{ active: activeTab === tab.id }"
-          @click="selectTab(tab.id)"
-        >
-          {{ tab.label }}
-        </div>
-      </div>
-    </div>
-
-    <div class="explore-tab-content">
-      <component
-        :is="getCurrentTabComponent.component"
-        :key="activeTab"
-        v-bind="getCurrentTabComponent.props || {}"
-      />
-    </div>
-  </template>
-
-  <!-- Profile variant: traditional wrapped structure -->
-  <div v-else class="profile-tab-view">
-    <div class="profile-tab-header">
-      <button
+  <div class="explore-tab-header">
+    <div class="explore-tab-header-inner">
+      <div
         v-for="tab in tabs"
         :key="tab.id"
-        :class="['profile-tab-button', { active: activeTab === tab.id }]"
+        class="explore-tab"
+        :class="{ active: activeTab === tab.id }"
         @click="selectTab(tab.id)"
       >
-        <q-icon v-if="tab.icon" :name="tab.icon" size="20px" class="tab-icon" />
-        <span class="profile-tab-label">{{ tab.label }}</span>
-      </button>
+        {{ tab.label }}
+      </div>
     </div>
+  </div>
 
-    <div class="profile-tab-content">
-      <component
-        :is="getCurrentTabComponent.component"
-        :key="activeTab"
-        v-bind="getCurrentTabComponent.props || {}"
-      />
-    </div>
+  <div class="explore-tab-content">
+    <component
+      :is="getCurrentTabComponent.component"
+      :key="activeTab"
+      v-bind="getCurrentTabComponent.props || {}"
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
-.profile-tab-view {
-  background: $color-background;
-  border-radius: $radius-2xl;
-  box-shadow: $shadow-base;
-
-  @include dark-mode {
-    background: $color-background-dark;
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    padding: $spacing-4;
-  }
-}
-
-.profile-tab-header {
-  display: flex;
-  gap: $spacing-2;
-  border-bottom: 2px solid rgba(0, 0, 0, 0.1);
-  margin-bottom: $spacing-6;
-
-  @include dark-mode {
-    border-bottom-color: rgba(255, 255, 255, 0.1);
-  }
-}
-
-.profile-tab-button {
-  display: flex;
-  align-items: center;
-  gap: $spacing-2;
-  padding: $spacing-3 $spacing-4;
-  background: transparent;
-  border: none;
-  border-bottom: 3px solid transparent;
-  cursor: pointer;
-  font-size: $font-size-base;
-  font-weight: $font-weight-semibold;
-  color: inherit;
-  opacity: 0.6;
-  transition: all $transition-slow;
-  margin-bottom: -2px;
-
-  &.active {
-    opacity: 1;
-    border-bottom-color: $color-primary;
-    color: $color-primary;
-    font-weight: $font-weight-semibold; //check
-
-    //check
-    .tab-icon {
-      color: $color-primary;
-    }
-  }
-
-  &:hover:not(.active) {
-    opacity: 0.8;
-  }
-
-  @media (max-width: $breakpoint-mobile) {
-    flex: 1;
-    justify-content: center;
-    font-size: $font-size-sm;
-    padding: $spacing-2 $spacing-3;
-  }
-}
-
-.profile-tab-icon {
-  color: inherit;
-}
-
-.profile-tab-label {
-  color: inherit;
-
-  @media (max-width: $breakpoint-mobile) {
-    font-size: $font-size-sm;
-  }
-}
-
-.profile-tab-content {
-  flex: 1;
-  min-height: 0;
-}
-
 .explore-tab-header {
   position: sticky;
   top: 64px; // NavigationBar height
