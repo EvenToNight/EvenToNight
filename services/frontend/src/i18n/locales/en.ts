@@ -161,6 +161,42 @@ export default {
       navigationMessageHint: 'Click to go Home',
       navigationMessage: 'Go to Home',
     },
+    PrivacyView: {
+      title: 'Privacy Policy',
+      lastUpdated: 'Last updated: 23/01/2025',
+      sections: {
+        firstSection: {
+          title: 'Introduction',
+          content:
+            'At EvenToNight, we are committed to protecting your privacy. This Privacy Policy explains how we collect, use, and safeguard your information when you use our platform.',
+        },
+        secondSection: {
+          title: 'Information We Collect',
+          content:
+            'We collect information that you provide directly to us, such as when you create an account, update your profile, or purchase tickets. We also collect information automatically through your use of our services, including device information and usage data.  All data is collected in accordance with the GDPR.',
+        },
+        thirdSection: {
+          title: 'How We Use Your Information',
+          content:
+            'We use your information to provide and improve our services, communicate with you, process transactions, and ensure the security of our platform. We do not sell your personal information to third parties.',
+        },
+        fourthSection: {
+          title: 'Data Protection',
+          content:
+            'We implement technical and organizational security measures to protect your personal data from unauthorized access, loss, or alteration. We use SSL/TLS encryption for all transactions.',
+        },
+        fifthSection: {
+          title: 'Your Rights',
+          content:
+            'You have the right to access your data, rectify inaccurate data, request deletion, object to processing, and request data portability. To exercise these rights, please contact us.',
+        },
+        sixthSection: {
+          title: 'Contact Us',
+          content:
+            "If you have any questions or concerns about this Privacy Policy or our data practices, please contact us at privacy{'@'}eventonight.com.",
+        },
+      },
+    },
   },
 
   date: 'Date',

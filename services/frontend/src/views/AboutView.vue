@@ -1,16 +1,18 @@
 <script setup lang="ts">
+import { onMounted } from 'vue'
 import { useDarkMode } from '@/composables/useDarkMode'
 import NavigationBar from '@/components/navigation/NavigationBar.vue'
 import { useTranslation } from '@/composables/useTranslation'
 
 const darkMode = useDarkMode()
 const { t } = useTranslation('views.AboutView')
+
+onMounted(() => {
+  window.scrollTo(0, 0)
+})
 </script>
 <template>
-  <div
-    :class="darkMode.isActive ? 'bg-grey-10' : 'bg-grey-2'"
-    :style="{ minHeight: '100vh', overflowY: 'auto' }"
-  >
+  <div :class="darkMode.isActive ? 'bg-grey-10' : 'bg-grey-2'" :style="{ minHeight: '100vh' }">
     <NavigationBar />
     <div style="max-width: 800px" class="q-mx-auto q-pt-lg q-pt-md-xl">
       <h1 class="text-h3 text-weight-bold q-mb-xl text-center">{{ t('title') }}</h1>
