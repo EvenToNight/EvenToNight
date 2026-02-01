@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, reactive, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { FORBIDDEN_ROUTE_NAME, NOT_FOUND_ROUTE_NAME } from '@/router'
+import { FORBIDDEN_ROUTE_NAME, NOT_FOUND_ROUTE_NAME, SERVER_ERROR_ROUTE_NAME } from '@/router'
 
 const route = useRoute()
 const router = useRouter()
@@ -12,6 +12,9 @@ const message = computed(() => {
   }
   if (route.name === NOT_FOUND_ROUTE_NAME) {
     return 'NOT FOUND 🥸'
+  }
+  if (route.name === SERVER_ERROR_ROUTE_NAME) {
+    return 'SERVER ERROR 💥'
   }
   return 'EvenToNight🌚'
 })
