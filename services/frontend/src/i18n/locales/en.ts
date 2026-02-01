@@ -539,6 +539,29 @@ export default {
         upcomingEventsSectionTitle: 'Upcoming Events',
       },
     },
+    imageUpload: {
+      AvatarCropUpload: {
+        title: 'Upload and Crop Avatar Photo',
+        removeAvatar: 'Remove Photo',
+        hint: 'Upload your profile photo',
+      },
+      BaseCropUpload: {
+        title: 'Upload and Crop Photo',
+        fileTooBigError: 'The selected file is too large. Maximum size is',
+        fileTypeError: 'Invalid file type. Only image files are allowed.',
+        blobCreationError: 'Failed to create image blob. Please try again.',
+        cropError: 'Failed to crop the image. Please try again.',
+        dialogCancelButton: 'Close',
+        dialogConfirmButton: 'Save',
+      },
+      PosterCropUpload: {
+        label: 'Event Poster',
+        title: 'Upload and Crop Event Poster',
+        uploadButtonLabel: 'Upload Poster',
+        dialogCancelButton: 'Close',
+        dialogConfirmButton: 'Save',
+      },
+    },
   },
 
   auth: {
@@ -559,15 +582,6 @@ export default {
 
   event: {
     draft: 'Draft',
-  },
-
-  eventDetails: {
-    buyTickets: 'Buy Tickets',
-    about: 'About this event',
-    organizer: 'Organized by',
-    collaborators: 'In collaboration with',
-    editEvent: 'Edit',
-    freePrice: 'Free',
   },
 
   footer: {

@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { CircleStencil } from 'vue-advanced-cropper'
 import BaseCropUpload from './BaseCropUpload.vue'
 import { DEFAULT_AVATAR_URL } from '@/stores/auth'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   previewUrl: string
@@ -19,6 +20,7 @@ const emit = defineEmits<{
   remove: []
 }>()
 
+const { t } = useTranslation('components.imageUpload.AvatarCropUpload')
 const isDefault = computed(() => {
   return props.previewUrl === DEFAULT_AVATAR_URL
 })
@@ -72,7 +74,7 @@ defineExpose({
       :stencil-component="CircleStencil"
       :stencil-props="stencilProps"
       :stencil-size="stencilSize"
-      dialog-title="Crop Photo"
+      :dialog-title="t('title')"
       @imageFile="handleImageUpdate"
       @error="emit('error', $event)"
     >
@@ -95,11 +97,11 @@ defineExpose({
       size="sm"
       color="negative"
       icon="delete"
-      label="Remove Photo"
+      :label="t('removeAvatar')"
       class="remove-button"
       @click.stop="removeAvatar"
     />
-    <p v-else class="avatar-hint">Upload your profile photo</p>
+    <p v-else class="avatar-hint">{{ t('hint') }}</p>
   </div>
 </template>
 

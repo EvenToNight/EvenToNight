@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { RectangleStencil } from 'vue-advanced-cropper'
 import BaseCropUpload from './BaseCropUpload.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   modelValue?: File | null
@@ -9,11 +10,11 @@ interface Props {
   buttonLabel?: string
   maxSize?: number
 }
-
+const { t } = useTranslation('components.imageUpload.PosterCropUpload')
 const props = withDefaults(defineProps<Props>(), {
   modelValue: null,
-  label: 'Event Image',
-  buttonLabel: 'Upload Image',
+  label: t('label'),
+  buttonLabel: t('uploadButtonLabel'),
   maxSize: 5000000,
 })
 
@@ -78,7 +79,7 @@ const removeImage = () => {
       :stencil-component="RectangleStencil"
       :stencil-props="stencilProps"
       :stencil-size="stencilSize"
-      dialog-title="Crop Image"
+      :dialog-title="t('title')"
       @imageFile="handleImageUpdate"
       @error="emit('error', $event)"
     >
@@ -110,8 +111,8 @@ const removeImage = () => {
 
       <template #actions="{ cropImage, closeCropper }">
         <q-card-actions align="right" class="dialog-actions">
-          <q-btn flat label="Cancel" @click="closeCropper" />
-          <q-btn color="primary" label="Crop & Save" @click="cropImage" />
+          <q-btn flat :label="t('dialogCancelButton')" @click="closeCropper" />
+          <q-btn color="primary" :label="t('dialogConfirmButton')" @click="cropImage" />
         </q-card-actions>
       </template>
     </BaseCropUpload>
