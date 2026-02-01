@@ -10,7 +10,14 @@ export interface EventLoadResult extends Event {
 export const loadEvents = async (
   params: EventsQueryParams & { userId?: UserID }
 ): Promise<PaginatedResponse<EventLoadResult>> => {
-  console.log('Loading events for user:', params.userId, 'status:', params.status)
+  console.log(
+    'Loading events for user:',
+    params.userId,
+    'status:',
+    params.status,
+    'organizerId:',
+    params.organizationId
+  )
   const { userId, ...restParams } = params
   const rawResponse = await api.events.searchEvents({
     sortBy: 'date',
@@ -34,6 +41,7 @@ export const loadEvents = async (
 
 export const loadEventParticipations = async (
   userId: UserID,
+  currentUserId: UserID | undefined,
   _status: EventStatus,
   _sortOrder: SortOrder,
   pagination?: PaginatedRequest
@@ -44,7 +52,9 @@ export const loadEventParticipations = async (
   const response = await Promise.all(
     rawResponse.items.map(async (partecipationInfo) => {
       const event = await api.events.getEventById(partecipationInfo.eventId)
-      const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
+      const isLiked = currentUserId
+        ? await api.interactions.userLikesEvent(event.eventId, currentUserId)
+        : false
       return { ...event, liked: isLiked }
     })
   )
@@ -58,18 +68,24 @@ export const loadEventParticipations = async (
 
 export const loadLikedEvents = async (
   userId: UserID,
+  currentUserId: UserID | undefined,
   pagination?: PaginatedRequest
 ): Promise<PaginatedResponse<EventLoadResult>> => {
   const response = await api.interactions.getUserLikedEvents(userId, pagination)
   const events: Event[] = await api.events.getEventsByIds(response.items)
 
   return {
-    items: events.map((event) => ({
-      ...event,
-      liked: true,
-    })),
-    hasMore: response.hasMore,
-    limit: response.limit,
-    offset: response.offset,
+    ...response,
+    items: await Promise.all(
+      events.map(async (event) => {
+        const isLiked = currentUserId
+          ? await api.interactions.userLikesEvent(event.eventId, currentUserId)
+          : false
+        return {
+          ...event,
+          liked: isLiked,
+        }
+      })
+    ),
   }
 }

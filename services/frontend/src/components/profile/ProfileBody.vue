@@ -5,13 +5,14 @@ import EventsTab from './tabs/EventsTab.vue'
 import ReviewsTab from './tabs/ReviewsTab.vue'
 import MyLikesTab from './tabs/MyLikesTab.vue'
 import type { User } from '@/api/types/users'
-import { computed, onMounted, ref, toRef, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import type { EventStatus } from '@/api/types/events'
 import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
 import type { SortOrder } from '@/api/interfaces/commons'
 import { loadEventParticipations, loadEvents } from '@/api/utils/eventUtils'
 import { useUserProfile } from '@/composables/useUserProfile'
+import { useAuthStore } from '@/stores/auth'
 
 interface Props {
   user: User
@@ -21,9 +22,10 @@ const props = defineProps<Props>()
 const emit = defineEmits(['auth-required'])
 const { t } = useI18n()
 const { hash, replaceRoute } = useNavigation()
-const { isOwnProfile, isOrganization } = useUserProfile(toRef(props.user))
-const defaultTab = isOrganization.value ? 'publishedEvents' : 'likes'
-const activeTab = ref<string>(defaultTab)
+const authStore = useAuthStore()
+const { isOwnProfile, isOrganization } = useUserProfile(computed(() => props.user))
+const defaultTab = computed(() => (isOrganization.value ? 'publishedEvents' : 'likes'))
+const activeTab = ref<string>(defaultTab.value)
 
 const setupRouteHash = () => {
   if (hash.value) {
@@ -34,6 +36,7 @@ const setupRouteHash = () => {
 }
 
 onMounted(() => {
+  console.log('Mounted ProfileBody.vue')
   setupRouteHash()
 })
 
@@ -51,11 +54,10 @@ watch(activeTab, (newTab) => {
     replaceRoute({ hash: `#${newTab}` })
   }
 })
-// TODO: evaluate tab reset tab on user change
 watch(
   () => props.user.id,
   () => {
-    // activeTab.value = defaultTab
+    activeTab.value = defaultTab.value
     setupRouteHash()
   }
 )
@@ -83,7 +85,7 @@ const tabs = computed<Tab[]>(() => {
         loadEvents: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
           loadEvents({
             organizationId: props.user.id,
-            userId: props.user.id,
+            userId: authStore.user?.id,
             status,
             sortOrder,
             pagination: { offset, limit },
@@ -153,7 +155,10 @@ const tabs = computed<Tab[]>(() => {
           },
         ],
         loadEvents: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
-          loadEventParticipations(props.user.id, status, sortOrder, { offset, limit }),
+          loadEventParticipations(props.user.id, authStore.user?.id, status, sortOrder, {
+            offset,
+            limit,
+          }),
         onAuthRequired: () => emit('auth-required'),
         emptyText: t('userProfile.noEventJoinedExternal'),
         emptyIconName: 'event_busy',

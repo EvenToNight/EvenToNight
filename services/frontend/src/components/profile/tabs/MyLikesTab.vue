@@ -6,10 +6,13 @@ import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { loadLikedEvents, type EventLoadResult } from '@/api/utils/eventUtils'
 import type { UserID } from '@/api/types/users'
 import { defaultLimit } from '@/api/utils/requestUtils'
+import { useAuthStore } from '@/stores/auth'
 interface Props {
   userId: UserID
 }
 const props = defineProps<Props>()
+
+const authStore = useAuthStore()
 
 const {
   items: events,
@@ -20,7 +23,7 @@ const {
 } = useInfiniteScroll<EventLoadResult>({
   itemsPerPage: defaultLimit,
   loadFn: async (limit, offset) => {
-    return loadLikedEvents(props.userId, { limit, offset })
+    return loadLikedEvents(props.userId, authStore.user?.id, { limit, offset })
   },
 })
 
