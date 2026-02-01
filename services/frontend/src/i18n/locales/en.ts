@@ -157,6 +157,10 @@ export default {
     HomeView: {
       searchHint: '@:defaults.searchHint', //[ignorei18n]
     },
+    PlaceHolderView: {
+      navigationMessageHint: 'Click to go Home',
+      navigationMessage: 'Go to Home',
+    },
   },
 
   date: 'Date',
