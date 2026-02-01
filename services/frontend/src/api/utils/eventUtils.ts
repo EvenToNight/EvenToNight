@@ -42,12 +42,14 @@ export const loadEvents = async (
 export const loadEventParticipations = async (
   userId: UserID,
   currentUserId: UserID | undefined,
-  _status: EventStatus,
-  _sortOrder: SortOrder,
+  eventStatus: EventStatus,
+  order: SortOrder,
   pagination?: PaginatedRequest
 ): Promise<PaginatedResponse<EventLoadResult>> => {
   const rawResponse = await api.interactions.userParticipations(userId, {
     pagination: pagination,
+    eventStatus,
+    order,
   })
   const response = await Promise.all(
     rawResponse.items.map(async (partecipationInfo) => {

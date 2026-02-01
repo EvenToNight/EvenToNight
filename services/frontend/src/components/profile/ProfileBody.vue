@@ -137,34 +137,34 @@ const tabs = computed<Tab[]>(() => {
     },
   })
 
-  if (!isOwnProfile.value) {
-    baseTabs.push({
-      id: 'events',
-      label: 'Partecipations',
-      icon: 'event',
-      component: EventsTab,
-      props: {
-        sections: [
-          {
-            key: 'PUBLISHED',
-            options: { status: 'PUBLISHED', label: 'Prossimamente', sortOrder: 'asc' },
-          },
-          {
-            key: 'COMPLETED',
-            options: { status: 'COMPLETED', label: 'Passati', sortOrder: 'desc' },
-          },
-        ],
-        loadEvents: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
-          loadEventParticipations(props.user.id, authStore.user?.id, status, sortOrder, {
-            offset,
-            limit,
-          }),
-        onAuthRequired: () => emit('auth-required'),
-        emptyText: t('userProfile.noEventJoinedExternal'),
-        emptyIconName: 'event_busy',
-      },
-    })
-  }
+  baseTabs.push({
+    id: 'events',
+    label: isOwnProfile.value ? 'My Participations' : 'Participations',
+    icon: 'event',
+    component: EventsTab,
+    props: {
+      sections: [
+        {
+          key: 'PUBLISHED',
+          options: { eventStatus: 'PUBLISHED', label: 'Prossimamente', order: 'asc' },
+        },
+        {
+          key: 'COMPLETED',
+          options: { eventStatus: 'COMPLETED', label: 'Passati', order: 'desc' },
+        },
+      ],
+      loadEvents: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
+        loadEventParticipations(props.user.id, authStore.user?.id, status, sortOrder, {
+          offset,
+          limit,
+        }),
+      onAuthRequired: () => emit('auth-required'),
+      emptyText: isOwnProfile.value
+        ? t('userProfile.noEventJoined')
+        : t('userProfile.noEventJoinedExternal'),
+      emptyIconName: 'event_busy',
+    },
+  })
 
   if (isOwnProfile.value) {
     baseTabs.push({
