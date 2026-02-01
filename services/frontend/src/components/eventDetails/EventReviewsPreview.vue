@@ -231,14 +231,24 @@ onMounted(() => {
 .event-info {
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: $spacing-2;
   color: $color-text-primary;
-  // margin-bottom: $spacing-3;
-  padding: $spacing-2 $spacing-4;
+  margin: $spacing-6 auto;
+  padding: $spacing-3 $spacing-5;
   cursor: pointer;
   transition: all $transition-base;
   border-radius: $radius-full;
   border: 2px solid $color-border;
+  width: fit-content;
+
+  &:hover {
+    border-color: $color-text-muted;
+
+    @include dark-mode {
+      border-color: $color-white;
+    }
+  }
 
   @include dark-mode {
     color: $color-white;
