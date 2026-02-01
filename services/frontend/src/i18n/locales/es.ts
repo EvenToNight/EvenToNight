@@ -1,4 +1,10 @@
 export default {
+  meta: {
+    description:
+      'Encuentra el evento para ti. Busca próximos eventos y descubre experiencias increíbles.',
+    keywords: 'eventos, vida nocturna, conciertos, fiestas, eventos nocturnos',
+  },
+
   views: {
     AboutView: {
       title: 'Sobre nosotros',
@@ -15,13 +21,106 @@ export default {
         item3: 'Innovación continua para mejorar la experiencia del usuario.',
       },
     },
+    CreateEventView: {
+      title: {
+        new: 'Crear nuevo evento',
+        edit: 'Editar evento',
+      },
+      form: {
+        title: {
+          label: 'Título del evento',
+          error: 'Se requiere título',
+        },
+        date: {
+          label: 'Fecha',
+          error: 'Se requiere fecha',
+        },
+        time: {
+          label: 'Tiempo',
+          error: 'Se requiere tiempo',
+        },
+        description: {
+          label: 'Descripción',
+          error: 'Se requiere descripción',
+        },
+        ticketTypes: {
+          sectionTitle: 'Tipos de entradas',
+          type: {
+            label: 'Tipo',
+            error: 'Por favor seleccione un tipo de entrada',
+          },
+          price: {
+            label: 'Precio',
+            error: 'Por favor introduce un precio',
+          },
+          quantity: {
+            label: 'Cantidad',
+            error: 'Por favor ingrese una cantidad',
+          },
+        },
+        tags: {
+          label: 'Etiquetas',
+        },
+        collaborators: {
+          label: 'Colaboradores',
+          avatarAlt: 'Avatar de colaborador',
+        },
+        location: {
+          label: 'Ubicación',
+          error: 'Se requiere ubicación',
+          noOptionHint: 'Escribe al menos 3 caracteres para buscar',
+        },
+        poster: {
+          label: 'Cartel del evento',
+          error: 'Se requiere cartel',
+          uploadButtonLabel: 'Subir cartel',
+        },
+        actions: {
+          cancel: 'Volver',
+          delete: 'Eliminar evento',
+          saveDraft: 'Guardar borrador',
+          updateDraft: 'Actualizar borrador',
+          publishEvent: 'Publicar evento',
+          updatePublishedEvent: 'Evento de actualización',
+        },
+        dialog: {
+          delete: {
+            title: 'Eliminar evento',
+            message:
+              '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.',
+            confirmButton: 'Borrar',
+            cancelButton: 'Volver',
+          },
+        },
+        messages: {
+          errors: {
+            updateEventDraft: 'No se pudo actualizar el borrador del evento',
+            updateEvent: 'No se pudo actualizar el evento',
+            saveEventDraft: 'No se pudo guardar el borrador del evento',
+            saveEvent: 'No se pudo guardar el evento',
+            deleteEvent: 'No se pudo eliminar el evento',
+            fetchLocations:
+              'No se pudieron recuperar las ubicaciones; el servicio no está disponible temporalmente',
+            imageUpload: 'No se pudo cargar la imagen, inténtalo de nuevo.',
+          },
+          success: {
+            updateEventDraft: '¡El borrador del evento se actualizó exitosamente!',
+            updateEvent: '¡Evento actualizado exitosamente!',
+            saveEventDraft: '¡El borrador del evento se guardó correctamente!',
+            saveEvent: '¡Evento guardado exitosamente!',
+            deleteEvent: '¡Evento eliminado exitosamente!',
+          },
+        },
+      },
+      messages: {
+        errors: {
+          createEvent: 'No se pudo crear el evento',
+          loadEvent: 'No se pudo cargar el evento',
+        },
+      },
+    },
   },
 
-  meta: {
-    description:
-      'Encuentra el evento para ti. Busca próximos eventos y descubre experiencias increíbles.',
-    keywords: 'eventos, vida nocturna, conciertos, fiestas, eventos nocturnos',
-  },
   date: 'Fecha',
   time: 'Tiempo',
   location: 'Ubicación',
@@ -144,45 +243,6 @@ export default {
     cancel: 'Cancelar',
     submit: 'Entregar',
     noEventFound: 'No se encontró ningún evento',
-  },
-
-  eventCreationForm: {
-    createNewEvent: 'Crear nuevo evento',
-    editEvent: 'Editar evento',
-    eventTitle: 'Título del evento',
-    titleError: 'Se requiere título',
-    date: 'Fecha',
-    dateError: 'Se requiere fecha',
-    time: 'Tiempo',
-    timeError: 'Se requiere tiempo',
-    description: 'Descripción',
-    descriptionError: 'Se requiere descripción',
-    price: 'Precio',
-    priceError: 'Se requiere precio',
-    tags: 'Etiquetas',
-    collaborators: 'Colaboradores',
-    collaboratorAvatarAlt: 'Avatar de colaborador',
-    location: 'Ubicación',
-    locationError: 'Se requiere ubicación',
-    eventPoster: 'Cartel del evento',
-    posterError: 'Se requiere cartel',
-    uploadPoster: 'Subir cartel',
-    cancel: 'Cancelar',
-    deleteEvent: 'Borrar',
-    deleteEventConfirm:
-      '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.',
-    saveDraft: 'Guardar borrador',
-    publishEvent: 'Publicar evento',
-    updateEvent: 'Evento de actualización',
-    locationNoOptionHint: 'Escribe al menos 3 caracteres para buscar',
-    successForEventPublication: '¡Evento publicado exitosamente!',
-    successForEventUpdate: '¡Evento actualizado exitosamente!',
-    successForEventDeletion: '¡Evento eliminado exitosamente!',
-    errorForEventCreation: 'Por favor complete todos los campos requeridos',
-    errorForEventPublication: 'No se pudo crear el evento. Por favor inténtalo de nuevo.',
-    errorForEventUpdate: 'No se pudo actualizar el evento. Por favor inténtalo de nuevo.',
-    errorForEventDeletion: 'No se pudo eliminar el evento. Por favor inténtalo de nuevo.',
-    errorForEventLoad: 'No se pudo cargar el evento. Por favor inténtalo de nuevo.',
   },
 
   theme: {

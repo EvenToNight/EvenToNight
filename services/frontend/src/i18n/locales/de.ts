@@ -1,4 +1,10 @@
 export default {
+  meta: {
+    description:
+      'Finden Sie die Veranstaltung für Sie. Suchen Sie nach bevorstehenden Veranstaltungen und entdecken Sie tolle Erlebnisse.',
+    keywords: 'Veranstaltungen, Nachtleben, Konzerte, Partys, Nachtveranstaltungen',
+  },
+
   views: {
     AboutView: {
       title: 'Über uns',
@@ -15,13 +21,107 @@ export default {
         item3: 'Kontinuierliche Innovation zur Verbesserung des Benutzererlebnisses',
       },
     },
+    CreateEventView: {
+      title: {
+        new: 'Neues Ereignis erstellen',
+        edit: 'Ereignis bearbeiten',
+      },
+      form: {
+        title: {
+          label: 'Veranstaltungstitel',
+          error: 'Titel ist erforderlich',
+        },
+        date: {
+          label: 'Datum',
+          error: 'Datum ist erforderlich',
+        },
+        time: {
+          label: 'Zeit',
+          error: 'Zeit ist erforderlich',
+        },
+        description: {
+          label: 'Beschreibung',
+          error: 'Beschreibung ist erforderlich',
+        },
+        ticketTypes: {
+          sectionTitle: 'Ticketarten',
+          type: {
+            label: 'Typ',
+            error: 'Bitte wählen Sie eine Ticketart aus',
+          },
+          price: {
+            label: 'Preis',
+            error: 'Bitte geben Sie einen Preis ein',
+          },
+          quantity: {
+            label: 'Menge',
+            error: 'Bitte geben Sie eine Menge ein',
+          },
+        },
+        tags: {
+          label: 'Schlagworte',
+        },
+        collaborators: {
+          label: 'Mitarbeiter',
+          avatarAlt: 'Mitarbeiter-Avatar',
+        },
+        location: {
+          label: 'Standort',
+          error: 'Der Standort ist erforderlich',
+          noOptionHint: 'Geben Sie für die Suche mindestens 3 Zeichen ein',
+        },
+        poster: {
+          label: 'Veranstaltungsplakat',
+          error: 'Poster ist erforderlich',
+          uploadButtonLabel: 'Poster hochladen',
+        },
+        actions: {
+          cancel: 'Geh zurück',
+          delete: 'Ereignis löschen',
+          saveDraft: 'Entwurf speichern',
+          updateDraft: 'Entwurf aktualisieren',
+          publishEvent: 'Veranstaltung veröffentlichen',
+          updatePublishedEvent: 'Ereignis aktualisieren',
+        },
+        dialog: {
+          delete: {
+            title: 'Ereignis löschen',
+            message:
+              'Sind Sie sicher, dass Sie dieses Ereignis löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
+            confirmButton: 'Löschen',
+            cancelButton: 'Geh zurück',
+          },
+        },
+        messages: {
+          errors: {
+            updateEventDraft: 'Der Ereignisentwurf konnte nicht aktualisiert werden',
+            updateEvent: 'Das Ereignis konnte nicht aktualisiert werden',
+            saveEventDraft: 'Der Veranstaltungsentwurf konnte nicht gespeichert werden',
+            saveEvent: 'Ereignis konnte nicht gespeichert werden',
+            deleteEvent: 'Ereignis konnte nicht gelöscht werden',
+            fetchLocations:
+              'Standorte konnten nicht abgerufen werden, der Dienst ist vorübergehend nicht verfügbar',
+            imageUpload:
+              'Das Hochladen des Bildes ist fehlgeschlagen. Bitte versuchen Sie es erneut',
+          },
+          success: {
+            updateEventDraft: 'Veranstaltungsentwurf erfolgreich aktualisiert!',
+            updateEvent: 'Veranstaltung erfolgreich aktualisiert!',
+            saveEventDraft: 'Veranstaltungsentwurf erfolgreich gespeichert!',
+            saveEvent: 'Veranstaltung erfolgreich gespeichert!',
+            deleteEvent: 'Veranstaltung erfolgreich gelöscht!',
+          },
+        },
+      },
+      messages: {
+        errors: {
+          createEvent: 'Ereignis konnte nicht erstellt werden',
+          loadEvent: 'Ereignis konnte nicht geladen werden',
+        },
+      },
+    },
   },
 
-  meta: {
-    description:
-      'Finden Sie die Veranstaltung für Sie. Suchen Sie nach bevorstehenden Veranstaltungen und entdecken Sie tolle Erlebnisse.',
-    keywords: 'Veranstaltungen, Nachtleben, Konzerte, Partys, Nachtveranstaltungen',
-  },
   date: 'Datum',
   time: 'Zeit',
   location: 'Standort',
@@ -144,47 +244,6 @@ export default {
     cancel: 'Stornieren',
     submit: 'Einreichen',
     noEventFound: 'Keine Veranstaltung gefunden',
-  },
-
-  eventCreationForm: {
-    createNewEvent: 'Neues Ereignis erstellen',
-    editEvent: 'Ereignis bearbeiten',
-    eventTitle: 'Veranstaltungstitel',
-    titleError: 'Titel ist erforderlich',
-    date: 'Datum',
-    dateError: 'Datum ist erforderlich',
-    time: 'Zeit',
-    timeError: 'Zeit ist erforderlich',
-    description: 'Beschreibung',
-    descriptionError: 'Beschreibung ist erforderlich',
-    price: 'Preis',
-    priceError: 'Preis ist erforderlich',
-    tags: 'Schlagworte',
-    collaborators: 'Mitarbeiter',
-    collaboratorAvatarAlt: 'Mitarbeiter-Avatar',
-    location: 'Standort',
-    locationError: 'Der Standort ist erforderlich',
-    eventPoster: 'Veranstaltungsplakat',
-    posterError: 'Poster ist erforderlich',
-    uploadPoster: 'Poster hochladen',
-    cancel: 'Stornieren',
-    deleteEvent: 'Löschen',
-    deleteEventConfirm:
-      'Sind Sie sicher, dass Sie dieses Ereignis löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
-    saveDraft: 'Entwurf speichern',
-    publishEvent: 'Veranstaltung veröffentlichen',
-    updateEvent: 'Ereignis aktualisieren',
-    locationNoOptionHint: 'Geben Sie für die Suche mindestens 3 Zeichen ein',
-    successForEventPublication: 'Veranstaltung erfolgreich veröffentlicht!',
-    successForEventUpdate: 'Veranstaltung erfolgreich aktualisiert!',
-    successForEventDeletion: 'Veranstaltung erfolgreich gelöscht!',
-    errorForEventCreation: 'Bitte füllen Sie alle erforderlichen Felder aus',
-    errorForEventPublication:
-      'Ereignis konnte nicht erstellt werden. Bitte versuchen Sie es erneut.',
-    errorForEventUpdate:
-      'Das Ereignis konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut.',
-    errorForEventDeletion: 'Ereignis konnte nicht gelöscht werden. Bitte versuchen Sie es erneut.',
-    errorForEventLoad: 'Ereignis konnte nicht geladen werden. Bitte versuchen Sie es erneut.',
   },
 
   theme: {

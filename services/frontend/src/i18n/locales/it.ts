@@ -1,4 +1,10 @@
 export default {
+  meta: {
+    description:
+      "Trova l'evento che fa per te. Cerca i prossimi eventi e scopri esperienze straordinarie.",
+    keywords: 'eventi, movida, concerti, feste, eventi notturni',
+  },
+
   views: {
     AboutView: {
       title: 'Chi siamo',
@@ -15,13 +21,106 @@ export default {
         item3: "Innovazione continua per migliorare l'esperienza dell'utente",
       },
     },
+    CreateEventView: {
+      title: {
+        new: 'Crea nuovo evento',
+        edit: 'Modifica evento',
+      },
+      form: {
+        title: {
+          label: "Titolo dell'evento",
+          error: 'Il titolo è obbligatorio',
+        },
+        date: {
+          label: 'Data',
+          error: 'La data è obbligatoria',
+        },
+        time: {
+          label: 'Tempo',
+          error: 'È necessario tempo',
+        },
+        description: {
+          label: 'Descrizione',
+          error: 'La descrizione è obbligatoria',
+        },
+        ticketTypes: {
+          sectionTitle: 'Tipi di biglietti',
+          type: {
+            label: 'Tipo',
+            error: 'Seleziona un tipo di biglietto',
+          },
+          price: {
+            label: 'Prezzo',
+            error: 'Inserisci un prezzo',
+          },
+          quantity: {
+            label: 'Quantità',
+            error: 'Inserisci una quantità',
+          },
+        },
+        tags: {
+          label: 'Tag',
+        },
+        collaborators: {
+          label: 'Collaboratori',
+          avatarAlt: 'Avatar collaboratore',
+        },
+        location: {
+          label: 'Posizione',
+          error: 'La posizione è obbligatoria',
+          noOptionHint: 'Digita almeno 3 caratteri per la ricerca',
+        },
+        poster: {
+          label: "Locandina dell'evento",
+          error: 'Il manifesto è obbligatorio',
+          uploadButtonLabel: 'Carica poster',
+        },
+        actions: {
+          cancel: 'Torna indietro',
+          delete: 'Elimina evento',
+          saveDraft: 'Salva bozza',
+          updateDraft: 'Aggiorna bozza',
+          publishEvent: 'Pubblica evento',
+          updatePublishedEvent: 'Aggiorna evento',
+        },
+        dialog: {
+          delete: {
+            title: 'Elimina evento',
+            message:
+              'Sei sicuro di voler eliminare questo evento? Questa azione non può essere annullata.',
+            confirmButton: 'Eliminare',
+            cancelButton: 'Torna indietro',
+          },
+        },
+        messages: {
+          errors: {
+            updateEventDraft: "Impossibile aggiornare la bozza dell'evento",
+            updateEvent: "Impossibile aggiornare l'evento",
+            saveEventDraft: "Impossibile salvare la bozza dell'evento",
+            saveEvent: "Impossibile salvare l'evento",
+            deleteEvent: "Impossibile eliminare l'evento",
+            fetchLocations:
+              'Impossibile recuperare le posizioni, il servizio è temporaneamente non disponibile',
+            imageUpload: "Impossibile caricare l'immagine, riprova",
+          },
+          success: {
+            updateEventDraft: "Bozza dell'evento aggiornata con successo!",
+            updateEvent: 'Evento aggiornato con successo!',
+            saveEventDraft: "Bozza dell'evento salvata con successo!",
+            saveEvent: 'Evento salvato con successo!',
+            deleteEvent: 'Evento eliminato con successo!',
+          },
+        },
+      },
+      messages: {
+        errors: {
+          createEvent: "Impossibile creare l'evento",
+          loadEvent: "Impossibile caricare l'evento",
+        },
+      },
+    },
   },
 
-  meta: {
-    description:
-      "Trova l'evento che fa per te. Cerca i prossimi eventi e scopri esperienze straordinarie.",
-    keywords: 'eventi, movida, concerti, feste, eventi notturni',
-  },
   date: 'Data',
   time: 'Orario',
   location: 'Posizione',
@@ -144,45 +243,6 @@ export default {
     cancel: 'Annulla',
     submit: 'Invia',
     noEventFound: 'Nessun evento trovato',
-  },
-
-  eventCreationForm: {
-    createNewEvent: 'Crea nuovo evento',
-    editEvent: 'Modifica evento',
-    eventTitle: "Titolo dell'evento",
-    titleError: 'Il titolo è obbligatorio',
-    date: 'Data',
-    dateError: 'La data è obbligatoria',
-    time: 'Orario',
-    timeError: "L'orario è obbligatorio",
-    description: 'Descrizione',
-    descriptionError: 'La descrizione è obbligatoria',
-    price: 'Prezzo',
-    priceError: 'Il prezzo è richiesto',
-    tags: 'Tag',
-    collaborators: 'Collaboratori',
-    collaboratorAvatarAlt: 'Avatar collaboratore',
-    location: 'Posizione',
-    locationError: 'La posizione è obbligatoria',
-    eventPoster: "Locandina dell'evento",
-    posterError: 'La locandina è obbligatorio',
-    uploadPoster: 'Carica locandina',
-    cancel: 'Annulla',
-    deleteEvent: 'Elimina',
-    deleteEventConfirm:
-      'Sei sicuro di voler eliminare questo evento? Questa azione non può essere annullata.',
-    saveDraft: 'Salva bozza',
-    publishEvent: 'Pubblica evento',
-    updateEvent: 'Aggiorna evento',
-    locationNoOptionHint: 'Digita almeno 3 caratteri per la ricerca',
-    successForEventPublication: 'Evento pubblicato con successo!',
-    successForEventUpdate: 'Evento aggiornato con successo!',
-    successForEventDeletion: 'Evento eliminato con successo!',
-    errorForEventCreation: 'Si prega di compilare tutti i campi obbligatori',
-    errorForEventPublication: "Impossibile creare l'evento. Per favore riprova.",
-    errorForEventUpdate: "Impossibile aggiornare l'evento. Per favore riprova.",
-    errorForEventDeletion: "Impossibile eliminare l'evento. Per favore riprova.",
-    errorForEventLoad: "Impossibile caricare l'evento. Per favore riprova.",
   },
 
   theme: {

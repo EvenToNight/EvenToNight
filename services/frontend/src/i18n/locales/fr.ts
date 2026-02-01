@@ -1,4 +1,10 @@
 export default {
+  meta: {
+    description:
+      "Trouvez l'événement pour vous. Recherchez les événements à venir et découvrez des expériences incroyables.",
+    keywords: 'événements, vie nocturne, concerts, fêtes, événements nocturnes',
+  },
+
   views: {
     AboutView: {
       title: 'À propos de nous',
@@ -15,13 +21,106 @@ export default {
         item3: 'Innovation continue pour améliorer l’expérience utilisateur',
       },
     },
+    CreateEventView: {
+      title: {
+        new: 'Créer un nouvel événement',
+        edit: "Modifier l'événement",
+      },
+      form: {
+        title: {
+          label: "Titre de l'événement",
+          error: 'Le titre est requis',
+        },
+        date: {
+          label: 'Date',
+          error: 'La date est requise',
+        },
+        time: {
+          label: 'Temps',
+          error: 'Il faut du temps',
+        },
+        description: {
+          label: 'Description',
+          error: 'Une description est requise',
+        },
+        ticketTypes: {
+          sectionTitle: 'Types de billets',
+          type: {
+            label: 'Taper',
+            error: 'Veuillez sélectionner un type de billet',
+          },
+          price: {
+            label: 'Prix',
+            error: 'Veuillez entrer un prix',
+          },
+          quantity: {
+            label: 'Quantité',
+            error: 'Veuillez entrer une quantité',
+          },
+        },
+        tags: {
+          label: 'Balises',
+        },
+        collaborators: {
+          label: 'Collaborateurs',
+          avatarAlt: 'Avatar du collaborateur',
+        },
+        location: {
+          label: 'Emplacement',
+          error: "L'emplacement est requis",
+          noOptionHint: 'Tapez au moins 3 caractères pour rechercher',
+        },
+        poster: {
+          label: "Affiche d'événement",
+          error: 'Une affiche est obligatoire',
+          uploadButtonLabel: "Télécharger l'affiche",
+        },
+        actions: {
+          cancel: 'Retourner',
+          delete: "Supprimer l'événement",
+          saveDraft: 'Enregistrer le brouillon',
+          updateDraft: 'Mettre à jour le brouillon',
+          publishEvent: 'Publier un événement',
+          updatePublishedEvent: 'Événement de mise à jour',
+        },
+        dialog: {
+          delete: {
+            title: "Supprimer l'événement",
+            message:
+              'Êtes-vous sûr de vouloir supprimer cet événement ? Cette action ne peut pas être annulée.',
+            confirmButton: 'Supprimer',
+            cancelButton: 'Retourner',
+          },
+        },
+        messages: {
+          errors: {
+            updateEventDraft: "Échec de la mise à jour du brouillon de l'événement",
+            updateEvent: "Échec de la mise à jour de l'événement",
+            saveEventDraft: "Échec de l'enregistrement du brouillon de l'événement",
+            saveEvent: "Échec de l'enregistrement de l'événement",
+            deleteEvent: "Échec de la suppression de l'événement",
+            fetchLocations:
+              'Échec de la récupération des emplacements, le service est temporairement indisponible',
+            imageUpload: "Échec du téléchargement de l'image, veuillez réessayer",
+          },
+          success: {
+            updateEventDraft: "Le brouillon de l'événement a été mis à jour avec succès !",
+            updateEvent: 'Événement mis à jour avec succès !',
+            saveEventDraft: "Le brouillon de l'événement a été enregistré avec succès !",
+            saveEvent: 'Événement enregistré avec succès !',
+            deleteEvent: 'Événement supprimé avec succès !',
+          },
+        },
+      },
+      messages: {
+        errors: {
+          createEvent: "Échec de la création de l'événement",
+          loadEvent: "Échec du chargement de l'événement",
+        },
+      },
+    },
   },
 
-  meta: {
-    description:
-      "Trouvez l'événement pour vous. Recherchez les événements à venir et découvrez des expériences incroyables.",
-    keywords: 'événements, vie nocturne, concerts, fêtes, événements nocturnes',
-  },
   date: 'Date',
   time: 'Temps',
   location: 'Emplacement',
@@ -144,45 +243,6 @@ export default {
     cancel: 'Annuler',
     submit: 'Soumettre',
     noEventFound: 'Aucun événement trouvé',
-  },
-
-  eventCreationForm: {
-    createNewEvent: 'Créer un nouvel événement',
-    editEvent: "Modifier l'événement",
-    eventTitle: "Titre de l'événement",
-    titleError: 'Le titre est requis',
-    date: 'Date',
-    dateError: 'La date est requise',
-    time: 'Temps',
-    timeError: 'Il faut du temps',
-    description: 'Description',
-    descriptionError: 'Une description est requise',
-    price: 'Prix',
-    priceError: 'Le prix est obligatoire',
-    tags: 'Balises',
-    collaborators: 'Collaborateurs',
-    collaboratorAvatarAlt: 'Avatar du collaborateur',
-    location: 'Emplacement',
-    locationError: "L'emplacement est requis",
-    eventPoster: "Affiche d'événement",
-    posterError: 'Une affiche est obligatoire',
-    uploadPoster: "Télécharger l'affiche",
-    cancel: 'Annuler',
-    deleteEvent: 'Supprimer',
-    deleteEventConfirm:
-      'Êtes-vous sûr de vouloir supprimer cet événement ? Cette action ne peut pas être annulée.',
-    saveDraft: 'Enregistrer le brouillon',
-    publishEvent: 'Publier un événement',
-    updateEvent: 'Événement de mise à jour',
-    locationNoOptionHint: 'Tapez au moins 3 caractères pour rechercher',
-    successForEventPublication: 'Événement publié avec succès !',
-    successForEventUpdate: 'Événement mis à jour avec succès !',
-    successForEventDeletion: 'Événement supprimé avec succès !',
-    errorForEventCreation: 'Veuillez remplir tous les champs obligatoires',
-    errorForEventPublication: "Échec de la création de l'événement. Veuillez réessayer.",
-    errorForEventUpdate: "Échec de la mise à jour de l'événement. Veuillez réessayer.",
-    errorForEventDeletion: "Échec de la suppression de l'événement. Veuillez réessayer.",
-    errorForEventLoad: "Échec du chargement de l'événement. Veuillez réessayer.",
   },
 
   theme: {
