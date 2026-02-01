@@ -1,4 +1,22 @@
 export default {
+  views: {
+    AboutView: {
+      title: 'Über uns',
+      firstSectionTitle: 'Unsere Mission',
+      firstSectionContent:
+        'EvenToNight wurde mit dem Ziel ins Leben gerufen, Menschen durch einzigartige Erlebnisse zu verbinden. Wir glauben, dass jede Veranstaltung eine Gelegenheit ist, unvergessliche Erinnerungen zu schaffen und Gemeinschaften aufzubauen.',
+      secondSectionTitle: 'Unsere Geschichte',
+      secondSectionContent:
+        'EvenToNight wurde 2025 gegründet und hat sich schnell zur bevorzugten Plattform für die Entdeckung und Verwaltung von Veranstaltungen entwickelt. Vom ersten Tag an haben wir daran gearbeitet, die Organisation und Teilnahme an Veranstaltungen einfach und für jedermann zugänglich zu machen.',
+      thirdSectionTitle: 'Unsere Werte',
+      thirdSectionItems: {
+        item1: 'Transparenz in Kommunikation und Transaktionen',
+        item2: 'Die Gemeinschaft steht im Mittelpunkt unseres Handelns',
+        item3: 'Kontinuierliche Innovation zur Verbesserung des Benutzererlebnisses',
+      },
+    },
+  },
+
   meta: {
     description:
       'Finden Sie die Veranstaltung für Sie. Suchen Sie nach bevorstehenden Veranstaltungen und entdecken Sie tolle Erlebnisse.',
