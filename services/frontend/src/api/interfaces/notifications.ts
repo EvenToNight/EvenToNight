@@ -30,8 +30,8 @@ export interface NotificationsAPI {
   offLikeReceived: (callback: (data: LikeRecievedEvent) => void) => void
   onFollowReceived: (callback: (data: FollowRecievedEvent) => void) => void
   offFollowReceived: (callback: (data: FollowRecievedEvent) => void) => void
-  onNewReviewRecieved: (callback: (data: NewReviewRecievedEvent) => void) => void
-  offNewReviewRecieved: (callback: (data: NewReviewRecievedEvent) => void) => void
+  onNewReviewReceived: (callback: (data: NewReviewRecievedEvent) => void) => void
+  offNewReviewReceived: (callback: (data: NewReviewRecievedEvent) => void) => void
   onNewMessageReceived: (callback: (data: NewMessageReceivedEvent) => void) => void
   offNewMessageReceived: (callback: (data: NewMessageReceivedEvent) => void) => void
   onNewEventPublished: (callback: (data: NewEventPublishedEvent) => void) => void

@@ -10,13 +10,15 @@ interface Props {
   buttonLabel?: string
   maxSize?: number
 }
-const { t } = useTranslation('components.imageUpload.PosterCropUpload')
 const props = withDefaults(defineProps<Props>(), {
   modelValue: null,
-  label: t('label'),
-  buttonLabel: t('uploadButtonLabel'),
   maxSize: 5000000,
 })
+
+const { t } = useTranslation('components.imageUpload.PosterCropUpload')
+
+const label = props.label ?? t('label')
+const buttonLabel = props.buttonLabel ?? t('uploadButtonLabel')
 
 const emit = defineEmits<{
   'update:modelValue': [value: File | null]
@@ -75,7 +77,7 @@ const removeImage = () => {
 
     <BaseCropUpload
       ref="baseCropUploadRef"
-      :max-size="maxSize"
+      :max-size="props.maxSize"
       :stencil-component="RectangleStencil"
       :stencil-props="stencilProps"
       :stencil-size="stencilSize"

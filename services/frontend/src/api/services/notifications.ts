@@ -194,14 +194,14 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
     }
   },
 
-  onNewReviewRecieved(callback: (data: NewReviewRecievedEvent) => void): void {
+  onNewReviewReceived(callback: (data: NewReviewRecievedEvent) => void): void {
     const handler = createNotificationHandler<NewReviewRecievedEvent>(callback)
     const eventType = NotificationAdapter.toAPIType('new_review_received')
     handlers.set(callback, { handler, eventType })
     socket?.on(eventType, handler)
   },
 
-  offNewReviewRecieved(callback: (data: NewReviewRecievedEvent) => void): void {
+  offNewReviewReceived(callback: (data: NewReviewRecievedEvent) => void): void {
     const entry = handlers.get(callback)
     if (entry) {
       socket?.off(entry.eventType, entry.handler)

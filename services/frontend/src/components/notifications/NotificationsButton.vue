@@ -11,6 +11,7 @@ import type {
 import { useNavigation } from '@/router/utils'
 import { defaultLimit } from '@/api/utils/requestUtils'
 import { onMounted, onUnmounted, ref } from 'vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Notification {
   id: string
@@ -27,7 +28,7 @@ interface Props {
 
 defineProps<Props>()
 const { goToEventDetails, goToUserProfile, goToEventReviews } = useNavigation()
-
+const { t } = useTranslation('components.notifications.NotificationsButton')
 const unreadNotificationsCount = ref(0)
 
 const loadNotifications = async (
@@ -35,10 +36,8 @@ const loadNotifications = async (
   offset: number
 ): Promise<PaginatedResponse<Notification>> => {
   const response = await api.notifications.getNotifications({ limit, offset })
-  console.log('Notifications response:', response)
   await api.notifications.readAllNotifications()
   unreadNotificationsCount.value = 0
-  console.log('Cleared unread notifications count ', unreadNotificationsCount.value)
   const notificationsPromises = response.items.map(async (apiNotification) => {
     let image: string
     let title: string
@@ -51,7 +50,7 @@ const loadNotifications = async (
         const user = await api.users.getUserById(data.creatorId)
         image = user.avatar
         title = data.creatorName
-        caption = `Published a new event "${data.eventName}"`
+        caption = t('newEventCaption') + ` "${data.eventName}"`
         onClick = () => {
           goToEventDetails(data.eventId)
         }
@@ -61,7 +60,7 @@ const loadNotifications = async (
         const data = apiNotification.data as FollowRecievedEvent
         image = data.followerAvatar
         title = data.followerName
-        caption = 'Started following you'
+        caption = t('followerReceivedCaption')
         onClick = () => {
           goToUserProfile(data.followerId)
         }
@@ -71,7 +70,7 @@ const loadNotifications = async (
         const data = apiNotification.data as LikeRecievedEvent
         image = data.userAvatar
         title = data.userName
-        caption = `Liked your event "${data.eventName}"`
+        caption = t('likeReceivedCaption') + ` "${data.eventName}"`
         onClick = () => {
           goToUserProfile(data.userId)
         }
@@ -81,7 +80,7 @@ const loadNotifications = async (
         const data = apiNotification.data as NewReviewRecievedEvent
         image = data.userAvatar || 'info'
         title = data.userName
-        caption = 'Left a review on your event'
+        caption = t('reviewReceivedCaption')
         onClick = () => {
           goToEventReviews(data.userId, data.eventId)
         }
@@ -138,14 +137,14 @@ onMounted(async () => {
   api.notifications.onLikeReceived(incrementUnreadCountCallback)
   api.notifications.onFollowReceived(incrementUnreadCountCallback)
   api.notifications.onNewEventPublished(incrementUnreadCountCallback)
-  api.notifications.onNewReviewRecieved(incrementUnreadCountCallback)
+  api.notifications.onNewReviewReceived(incrementUnreadCountCallback)
 })
 
 onUnmounted(() => {
   api.notifications.offLikeReceived(incrementUnreadCountCallback)
   api.notifications.offFollowReceived(incrementUnreadCountCallback)
   api.notifications.offNewEventPublished(incrementUnreadCountCallback)
-  api.notifications.offNewReviewRecieved(incrementUnreadCountCallback)
+  api.notifications.offNewReviewReceived(incrementUnreadCountCallback)
 })
 </script>
 
@@ -154,14 +153,13 @@ onUnmounted(() => {
     <q-badge v-if="unreadNotificationsCount > 0" color="red" floating>{{
       String(unreadNotificationsCount)
     }}</q-badge>
-    <q-tooltip>Notifications</q-tooltip>
     <q-menu
       class="notifications-menu"
       @before-show="handleMenuOpen"
       @before-hide="isMenuOpen = false"
     >
       <q-list style="min-width: 300px; max-width: 400px" class="notifications-list">
-        <q-item-label header>Notifications</q-item-label>
+        <q-item-label header>{{ t('title') }}</q-item-label>
         <q-separator />
         <q-scroll-area
           class="notifications-scroll-area"
@@ -192,7 +190,7 @@ onUnmounted(() => {
             </template>
           </q-infinite-scroll>
           <div v-else class="row justify-center items-center q-pa-md no-notifications">
-            <p>No notifications</p>
+            <p>{{ t('noNotifications') }}</p>
           </div>
         </q-scroll-area>
       </q-list>

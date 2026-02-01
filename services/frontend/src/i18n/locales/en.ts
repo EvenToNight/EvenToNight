@@ -580,8 +580,26 @@ export default {
         searchingText: 'Searching...',
       },
     },
+    notifications: {
+      NotificationHandler: {
+        newMessageLabel: 'Reply',
+        newLikeLabel: 'View Profile',
+        newFollowLabel: 'View Profile',
+        newEventCaption: 'Published a new event',
+        newEventLabel: 'View Event',
+        newReviewCaption: 'Left a review on your event',
+        newReviewLabel: 'View Review',
+      },
+      NotificationsButton: {
+        title: 'Notifications',
+        noNotifications: 'No notifications yet',
+        newEventCaption: 'Published a new event',
+        followerReceivedCaption: 'Started following you',
+        likeReceivedCaption: 'Liked your event',
+        reviewReceivedCaption: 'Left a review on your event',
+      },
+    },
   },
-
   auth: {
     logout: 'Logout',
   },

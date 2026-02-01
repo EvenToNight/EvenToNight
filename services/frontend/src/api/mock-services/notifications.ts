@@ -82,11 +82,11 @@ export const mockNotificationsApi: NotificationsAPI = {
     ws?.off('follow_received', (event) => callback(event as FollowRecievedEvent))
   },
 
-  onNewReviewRecieved(callback: (data: NewReviewRecievedEvent) => void): void {
+  onNewReviewReceived(callback: (data: NewReviewRecievedEvent) => void): void {
     ws?.on('new_review_received', (event) => callback(event as NewReviewRecievedEvent))
   },
 
-  offNewReviewRecieved(callback: (data: NewReviewRecievedEvent) => void): void {
+  offNewReviewReceived(callback: (data: NewReviewRecievedEvent) => void): void {
     ws?.off('new_review_received', (event) => callback(event as NewReviewRecievedEvent))
   },
 

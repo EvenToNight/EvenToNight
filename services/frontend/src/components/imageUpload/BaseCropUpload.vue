@@ -14,12 +14,14 @@ interface Props {
   dialogTitle?: string
 }
 
-const { t } = useTranslation('components.imageUpload.BaseCropUpload')
 const logger = createLogger(import.meta.url)
 const props = withDefaults(defineProps<Props>(), {
   maxSize: 5000000,
-  dialogTitle: t('title'),
 })
+
+const { t } = useTranslation('components.imageUpload.BaseCropUpload')
+
+const dialogTitle = props.dialogTitle ?? t('title')
 
 const emit = defineEmits<{
   imageFile: [value: File]

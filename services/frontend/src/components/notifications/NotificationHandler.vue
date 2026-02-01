@@ -11,8 +11,10 @@ import type {
   NewReviewRecievedEvent,
 } from '@/api/types/notifications'
 import { useAuthStore } from '@/stores/auth'
+import { useTranslation } from '@/composables/useTranslation'
 
 const $q = useQuasar()
+const { t } = useTranslation('components.notifications.NotificationHandler')
 const activeNotifications = ref(0)
 const MAX_NOTIFICATIONS = 3
 const authStore = useAuthStore()
@@ -54,7 +56,7 @@ const handleNewMessage = (event: NewMessageReceivedEvent) => {
       avatar: senderAvatar,
     },
     {
-      label: 'Reply',
+      label: t('newMessageLabel'),
       handler: () => {
         goToChat(senderId)
       },
@@ -71,7 +73,7 @@ const handleNewLike = (event: LikeRecievedEvent) => {
       avatar: userAvatar,
     },
     {
-      label: 'View Profile',
+      label: t('newLikeLabel'),
       handler: () => {
         goToUserProfile(userId)
       },
@@ -88,7 +90,7 @@ const handleNewFollow = (event: FollowRecievedEvent) => {
       avatar: followerAvatar,
     },
     {
-      label: 'View Profile',
+      label: t('newFollowLabel'),
       handler: () => {
         goToUserProfile(followerId)
       },
@@ -102,11 +104,11 @@ const handleNewEvent = async (event: NewEventPublishedEvent) => {
   showNotification(
     {
       message: creatorName,
-      caption: `Published a new event "${eventName}"`,
+      caption: `${t('newEventCaption')}: "${eventName}"`,
       avatar: user.avatar,
     },
     {
-      label: 'View Event',
+      label: t('newEventLabel'),
       handler: () => {
         goToEventDetails(eventId)
       },
@@ -119,11 +121,11 @@ const handleNewReview = (event: NewReviewRecievedEvent) => {
   showNotification(
     {
       message: userName,
-      caption: `Left a review on your event`,
+      caption: t('newReviewCaption'),
       avatar: userAvatar,
     },
     {
-      label: 'View Review',
+      label: t('newReviewLabel'),
       handler: () => {
         goToEventReviews(userId, eventId)
       },
@@ -136,7 +138,7 @@ onMounted(() => {
   api.notifications.onLikeReceived(handleNewLike)
   api.notifications.onFollowReceived(handleNewFollow)
   api.notifications.onNewEventPublished(handleNewEvent)
-  api.notifications.onNewReviewRecieved(handleNewReview)
+  api.notifications.onNewReviewReceived(handleNewReview)
 })
 
 onUnmounted(() => {
@@ -144,7 +146,7 @@ onUnmounted(() => {
   api.notifications.offLikeReceived(handleNewLike)
   api.notifications.offFollowReceived(handleNewFollow)
   api.notifications.offNewEventPublished(handleNewEvent)
-  api.notifications.offNewReviewRecieved(handleNewReview)
+  api.notifications.offNewReviewReceived(handleNewReview)
 })
 </script>
 
