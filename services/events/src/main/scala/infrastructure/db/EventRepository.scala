@@ -33,7 +33,8 @@ trait EventRepository:
       sortBy: Option[String] = None,
       sortOrder: Option[String] = None,
       query: Option[String] = None,
-      near: Option[(Double, Double)] = None
+      near: Option[(Double, Double)] = None,
+      other: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)]
 
 case class MongoEventRepository(
@@ -129,42 +130,21 @@ case class MongoEventRepository(
       sortBy: Option[String] = None,
       sortOrder: Option[String] = None,
       query: Option[String] = None,
-      near: Option[(Double, Double)] = None
+      near: Option[(Double, Double)] = None,
+      other: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)] =
     Try {
       val combinedFilter =
         buildFilterQuery(status, title, tags, startDate, endDate, organizationId, city, location_name, query)
 
-      near match
-        case Some((lat, lon)) =>
-          val allEvents = collection
-            .find(combinedFilter)
-            .into(new java.util.ArrayList[Document]())
-            .asScala
-            .map(fromDocument)
-            .map(Utils.updateEventIfPastDate)
-            .toList
+      (other, near) match
+        case (Some(otherSort), _) =>
+          handleOtherSort(otherSort, combinedFilter, offset, limit, sortBy, sortOrder)
 
-          val sortedByDistance = allEvents
-            .map { event =>
-              val distance = calculateDistance(
-                lat,
-                lon,
-                event.location.getOrElse(Location.Nil()).lat.getOrElse(0.0),
-                event.location.getOrElse(Location.Nil()).lon.getOrElse(0.0)
-              )
-              (event, distance)
-            }
-            .sortBy(_._2)
-            .map(_._1)
+        case (None, Some((lat, lon))) =>
+          handleNearSort(lat, lon, combinedFilter, offset, limit, sortBy, sortOrder)
 
-          val offsetValue = offset.getOrElse(0)
-          val limitValue  = limit.getOrElse(10)
-          val paginated   = sortedByDistance.drop(offsetValue).take(limitValue + 1)
-
-          calculateHasMore(paginated, limit)
-
-        case None =>
+        case (None, None) =>
           val sortField     = sortBy.getOrElse("date")
           val sortDirection = if sortOrder.contains("desc") then -1 else 1
 
@@ -239,6 +219,165 @@ case class MongoEventRepository(
       filters.head
     else
       Filters.and(filters.asJava)
+
+  private def handleOtherSort(
+      otherSort: String,
+      filter: org.bson.conversions.Bson,
+      offset: Option[Int],
+      limit: Option[Int],
+      sortBy: Option[String],
+      sortOrder: Option[String]
+  ): (List[Event], Boolean) =
+    otherSort.toLowerCase match
+      case "upcoming" =>
+        val now = java.time.LocalDateTime.now()
+        val upcomingFilter = Filters.and(
+          filter,
+          Filters.gte("date", now.toString)
+        )
+
+        val sortField     = sortBy.getOrElse("date")
+        val sortDirection = if sortOrder.contains("desc") then -1 else 1
+
+        val sortCriteria = if sortField == "date" then
+          Sorts.orderBy(
+            if sortDirection == 1 then Sorts.ascending("date") else Sorts.descending("date")
+          )
+        else
+          Sorts.orderBy(
+            if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField),
+            Sorts.ascending("date")
+          )
+
+        val dbQuery = applyPagination(collection.find(upcomingFilter).sort(sortCriteria), offset, limit)
+        val results = executeQueryAndUpdateEvents(dbQuery)
+        calculateHasMore(results, limit)
+
+      case "popular" =>
+        val allEvents = collection
+          .find(filter)
+          .into(new java.util.ArrayList[Document]())
+          .asScala
+          .map(fromDocument)
+          .map(updateEventIfPast)
+          .toList
+
+        val shuffled = scala.util.Random.shuffle(allEvents)
+
+        val offsetValue = offset.getOrElse(0)
+        val limitValue  = limit.getOrElse(10)
+        val paginated   = shuffled.drop(offsetValue).take(limitValue + 1)
+
+        calculateHasMore(paginated, limit)
+
+      case "recently_added" =>
+        val sortField     = sortBy.getOrElse("instant")
+        val sortDirection = if sortOrder.contains("desc") then -1 else 1
+
+        val sortCriteria = if sortField == "instant" then
+          Sorts.descending("instant")
+        else
+          Sorts.orderBy(
+            Sorts.descending("instant"),
+            if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField)
+          )
+
+        val dbQuery = applyPagination(collection.find(filter).sort(sortCriteria), offset, limit)
+        val results = executeQueryAndUpdateEvents(dbQuery)
+        calculateHasMore(results, limit)
+
+      case _ =>
+        val sortCriteria = Sorts.ascending("date")
+        val dbQuery      = applyPagination(collection.find(filter).sort(sortCriteria), offset, limit)
+        val results      = executeQueryAndUpdateEvents(dbQuery)
+        calculateHasMore(results, limit)
+
+  private def handleNearSort(
+      lat: Double,
+      lon: Double,
+      filter: org.bson.conversions.Bson,
+      offset: Option[Int],
+      limit: Option[Int],
+      sortBy: Option[String],
+      sortOrder: Option[String]
+  ): (List[Event], Boolean) =
+    val allEvents = collection
+      .find(filter)
+      .into(new java.util.ArrayList[Document]())
+      .asScala
+      .map(fromDocument)
+      .map(updateEventIfPast)
+      .toList
+
+    val eventsWithDistance = allEvents.map { event =>
+      val distance = calculateDistance(
+        lat,
+        lon,
+        event.location.getOrElse(Location.Nil()).lat.getOrElse(0.0),
+        event.location.getOrElse(Location.Nil()).lon.getOrElse(0.0)
+      )
+      (event, distance)
+    }
+
+    val _ = sortBy match
+      case Some(field) =>
+        val sortDirection = sortOrder.getOrElse("asc")
+
+        eventsWithDistance.sortBy { case (event, distance) =>
+          val secondaryValue: String = field.toLowerCase match
+            case "date"    => event.date.map(_.toString).getOrElse("")
+            case "title"   => event.title.getOrElse("")
+            case "instant" => event.instant.toString
+            case _         => event.date.map(_.toString).getOrElse("")
+
+          if sortDirection == "desc" then
+            (distance, secondaryValue)
+          else
+            (distance, secondaryValue)
+        }
+
+      case None =>
+        eventsWithDistance.sortBy(_._2)
+
+    val finalSorted = (sortBy, sortOrder) match
+      case (Some(field), Some("desc")) =>
+        eventsWithDistance
+          .groupBy(_._2)
+          .toSeq
+          .sortBy(_._1)
+          .flatMap { case (_, events) =>
+            field.toLowerCase match
+              case "date"    => events.sortBy(_._1.date.map(_.toString).getOrElse("")).reverse
+              case "title"   => events.sortBy(_._1.title.getOrElse("")).reverse
+              case "instant" => events.sortBy(_._1.instant.toString).reverse
+              case _         => events.sortBy(_._1.date.map(_.toString).getOrElse("")).reverse
+          }
+          .toList
+
+      case (Some(field), _) =>
+        eventsWithDistance
+          .groupBy(_._2)
+          .toSeq
+          .sortBy(_._1)
+          .flatMap { case (_, events) =>
+            field.toLowerCase match
+              case "date"    => events.sortBy(_._1.date.map(_.toString).getOrElse(""))
+              case "title"   => events.sortBy(_._1.title.getOrElse(""))
+              case "instant" => events.sortBy(_._1.instant.toString)
+              case _         => events.sortBy(_._1.date.map(_.toString).getOrElse(""))
+          }
+          .toList
+
+      case (None, _) =>
+        eventsWithDistance.sortBy(_._2).toList
+
+    val sortedEvents = finalSorted.map(_._1)
+
+    val offsetValue = offset.getOrElse(0)
+    val limitValue  = limit.getOrElse(10)
+    val paginated   = sortedEvents.drop(offsetValue).take(limitValue + 1)
+
+    calculateHasMore(paginated, limit)
 
   private def escapeRegex(str: String): String =
     str.replaceAll("([\\[\\]\\(\\)\\{\\}\\*\\+\\?\\|\\^\\$\\.\\\\/])", "\\\\$1")

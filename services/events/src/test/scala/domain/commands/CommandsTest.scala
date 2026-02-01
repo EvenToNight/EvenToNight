@@ -106,7 +106,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       case GetAllEventsCommand()                             => "Get All Events Command"
       case UpdateEventCommand(id, _, _, _, _, _, _, _)       => s"Update $id Event Command"
       case DeleteEventCommand(eventId)                       => s"Delete Command: $eventId"
-      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
+      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:

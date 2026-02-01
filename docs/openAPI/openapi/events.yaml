@@ -383,6 +383,36 @@ paths:
             enum: [asc, desc]
             default: asc
           example: asc
+        - name: near
+          in: query
+          description: |
+            Sort events by proximity to coordinates (latitude,longitude).
+            Example: `near=44.494887,11.342616`
+            
+            **Can be combined with sortBy:**
+            - Primary sort: distance (closest first)
+            - Secondary sort: specified sortBy field
+            
+            **Examples:**
+            - `near=44.49,11.34&sortBy=date`: Events sorted by distance, then by date
+            - `near=44.49,11.34&sortBy=title&sortOrder=desc`: Events sorted by distance, then by title (desc)
+          required: false
+          schema:
+            type: string
+            pattern: '^-?\d+\.?\d*,-?\d+\.?\d*$'
+          example: "44.494887,11.342616"
+        - name: other
+          in: query
+          description: |
+            Special sorting modes (has priority over sortBy and near):
+            - `upcoming`: Sort by date (ascending) - upcoming events first
+            - `popular`: Random shuffle of results
+            - `recently_added`: Sort by most recently updated events
+          required: false
+          schema:
+            type: string
+            enum: [upcoming, popular, recently_added]
+          example: "upcoming"
       responses:
         '200':
           description: Successfully retrieved filtered events

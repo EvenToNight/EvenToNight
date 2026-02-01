@@ -135,6 +135,7 @@ object Utils:
       sortOrder: Option[String],
       query: Option[String],
       near: Option[String],
+      other: Option[String],
       isAuthenticated: Boolean
   ): GetFilteredEventsCommand =
     var parsedStatus: Option[List[EventStatus]] = status.map(
@@ -187,7 +188,8 @@ object Utils:
       sortBy = validSortBy,
       sortOrder = validSortOrder,
       query = query,
-      near = parsedNear
+      near = parsedNear,
+      other = other
     )
 
   def createPaginatedResponse(

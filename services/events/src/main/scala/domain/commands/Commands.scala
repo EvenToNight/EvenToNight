@@ -57,5 +57,6 @@ case class GetFilteredEventsCommand(
     sortBy: Option[String],
     sortOrder: Option[String],
     query: Option[String],
-    near: Option[(Double, Double)]
+    near: Option[(Double, Double)],
+    other: Option[String] = None
 ) extends Commands
