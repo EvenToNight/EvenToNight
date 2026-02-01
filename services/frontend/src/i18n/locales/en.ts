@@ -562,6 +562,15 @@ export default {
         dialogConfirmButton: 'Save',
       },
     },
+    navigation: {
+      Footer: {
+        about: 'About',
+        contact: 'Contact',
+        privacy: 'Privacy Policy',
+        terms: 'Terms and Conditions',
+        copyright: 'All rights reserved.',
+      },
+    },
   },
 
   auth: {
@@ -582,15 +591,6 @@ export default {
 
   event: {
     draft: 'Draft',
-  },
-
-  footer: {
-    about: 'About',
-    events: 'Events',
-    contact: 'Contact',
-    privacy: 'Privacy Policy',
-    terms: 'Terms and Conditions',
-    copyright: 'All rights reserved.',
   },
 
   search: {
@@ -633,12 +633,5 @@ export default {
   theme: {
     light_mode: 'Light Mode',
     dark_mode: 'Dark Mode',
-  },
-
-  home: {
-    hero: {},
-    sections: {
-      upcomingEvents: 'Upcoming Events',
-    },
   },
 }
