@@ -12,6 +12,7 @@ trait PriceRepository:
   def save(ticketPrice: TicketPrice): Either[Throwable, Unit]
   def findByTicketTypeId(ticketTypeId: String): Option[TicketPrice]
   def findByEventId(eventId: String): List[TicketPrice]
+  def findEventIdsInPriceRange(minPrice: Double, maxPrice: Double): List[String]
   def delete(ticketTypeId: String): Either[Throwable, Unit]
 
 case class MongoPriceRepository(
@@ -56,6 +57,22 @@ case class MongoPriceRepository(
         .asScala
         .map(TicketPrice.fromDocument)
         .toList
+    }.getOrElse(List.empty)
+
+  def findEventIdsInPriceRange(minPrice: Double, maxPrice: Double): List[String] =
+    import scala.jdk.CollectionConverters.*
+    Try {
+      val priceFilter = Filters.and(
+        Filters.gte("price", minPrice),
+        Filters.lte("price", maxPrice)
+      )
+      collection
+        .find(priceFilter)
+        .into(new java.util.ArrayList[Document]())
+        .asScala
+        .map(doc => doc.getString("eventId"))
+        .toList
+        .distinct
     }.getOrElse(List.empty)
 
   def delete(ticketTypeId: String): Either[Throwable, Unit] =

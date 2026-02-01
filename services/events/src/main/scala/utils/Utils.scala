@@ -136,6 +136,7 @@ object Utils:
       query: Option[String],
       near: Option[String],
       other: Option[String],
+      price: Option[String],
       isAuthenticated: Boolean
   ): GetFilteredEventsCommand =
     var parsedStatus: Option[List[EventStatus]] = status.map(
@@ -161,7 +162,7 @@ object Utils:
     }
     val limitValue = math.min(limit.getOrElse(DEFAULT_LIMIT), MAX_LIMIT)
     val validSortBy = sortBy.filter(s =>
-      Set("date", "instant", "title").contains(s.toLowerCase)
+      Set("date", "instant", "title", "price").contains(s.toLowerCase)
     ).orElse(Some("date"))
     val validSortOrder = sortOrder.filter(o =>
       Set("asc", "desc").contains(o.toLowerCase)
@@ -171,6 +172,13 @@ object Utils:
       coords.split(",").map(_.trim) match
         case Array(lat, lon) =>
           Try((lat.toDouble, lon.toDouble)).toOption
+        case _ => None
+    }
+
+    val parsedPrice: Option[(Double, Double)] = price.flatMap { priceRange =>
+      priceRange.split(",").map(_.trim) match
+        case Array(min, max) =>
+          Try((min.toDouble, max.toDouble)).toOption
         case _ => None
     }
 
@@ -189,7 +197,8 @@ object Utils:
       sortOrder = validSortOrder,
       query = query,
       near = parsedNear,
-      other = other
+      other = other,
+      price = parsedPrice
     )
 
   def createPaginatedResponse(

@@ -401,6 +401,17 @@ paths:
             type: string
             pattern: '^-?\d+\.?\d*,-?\d+\.?\d*$'
           example: "44.494887,11.342616"
+        - name: price
+          in: query
+          description: |
+            Filter events by price range (min,max).
+            Example: `price=0,50` returns events with prices between 0 and 50.
+            Events without any ticket prices are considered free (price=0).
+          required: false
+          schema:
+            type: string
+            pattern: '^\d+\.?\d*,\d+\.?\d*$'
+          example: "0,50"
         - name: other
           in: query
           description: |
@@ -408,10 +419,11 @@ paths:
             - `upcoming`: Sort by date (ascending) - upcoming events first
             - `popular`: Random shuffle of results
             - `recently_added`: Sort by most recently updated events
+            - `feed`: Events matching tags parameter first. Requires tags parameter.
           required: false
           schema:
             type: string
-            enum: [upcoming, popular, recently_added]
+            enum: [upcoming, popular, recently_added, feed]
           example: "upcoming"
       responses:
         '200':

@@ -34,7 +34,8 @@ trait EventRepository:
       sortOrder: Option[String] = None,
       query: Option[String] = None,
       near: Option[(Double, Double)] = None,
-      other: Option[String] = None
+      other: Option[String] = None,
+      price: Option[(Double, Double)] = None
   ): Either[Throwable, (List[Event], Boolean)]
 
 case class MongoEventRepository(
@@ -132,15 +133,30 @@ case class MongoEventRepository(
       sortOrder: Option[String] = None,
       query: Option[String] = None,
       near: Option[(Double, Double)] = None,
-      other: Option[String] = None
+      other: Option[String] = None,
+      price: Option[(Double, Double)] = None
   ): Either[Throwable, (List[Event], Boolean)] =
     Try {
+      val isFeedMode    = other.exists(_.toLowerCase == "feed")
+      val tagsForFilter = if isFeedMode then None else tags
+
       val combinedFilter =
-        buildFilterQuery(status, title, tags, startDate, endDate, organizationId, city, location_name, query)
+        buildFilterQuery(
+          status,
+          title,
+          tagsForFilter,
+          startDate,
+          endDate,
+          organizationId,
+          city,
+          location_name,
+          query,
+          price
+        )
 
       (other, near) match
         case (Some(otherSort), _) =>
-          handleOtherSort(otherSort, combinedFilter, offset, limit, sortBy, sortOrder)
+          handleOtherSort(otherSort, combinedFilter, offset, limit, sortBy, sortOrder, tags)
 
         case (None, Some((lat, lon))) =>
           handleNearSort(lat, lon, combinedFilter, offset, limit, sortBy, sortOrder)
@@ -183,7 +199,8 @@ case class MongoEventRepository(
       organizationId: Option[String],
       city: Option[String],
       location_name: Option[String],
-      query: Option[String]
+      query: Option[String],
+      price: Option[(Double, Double)] = None
   ): org.bson.conversions.Bson =
     val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
 
@@ -216,6 +233,24 @@ case class MongoEventRepository(
         filters += Filters.in("tags", tagList.asJava)
     }
 
+    price.foreach { case (minPrice, maxPrice) =>
+      if priceRepository.isDefined then
+        val eventIdsInRange = priceRepository.get.findEventIdsInPriceRange(minPrice, maxPrice)
+        val allEventIds = collection
+          .find(new Document())
+          .projection(new Document("_id", 1))
+          .into(new java.util.ArrayList[Document]())
+          .asScala
+          .map(_.getString("_id"))
+          .toList
+        val freeEventIds     = allEventIds.filterNot(eventIdsInRange.contains)
+        val matchingEventIds = if minPrice == 0.0 then eventIdsInRange ++ freeEventIds else eventIdsInRange
+        if matchingEventIds.nonEmpty then
+          filters += Filters.in("_id", matchingEventIds.asJava)
+        else
+          filters += Filters.eq("_id", "no-match")
+    }
+
     startDate.foreach(start => filters += Filters.gte("date", start))
     endDate.foreach(end => filters += Filters.lte("date", end))
     if filters.isEmpty then
@@ -231,9 +266,37 @@ case class MongoEventRepository(
       offset: Option[Int],
       limit: Option[Int],
       sortBy: Option[String],
-      sortOrder: Option[String]
+      sortOrder: Option[String],
+      tags: Option[List[String]]
   ): (List[Event], Boolean) =
     otherSort.toLowerCase match
+      case "feed" =>
+        val allEvents = collection
+          .find(filter)
+          .into(new java.util.ArrayList[Document]())
+          .asScala
+          .map(fromDocument)
+          .map(updateEventIfPast)
+          .toList
+
+        val (matchingEvents, nonMatchingEvents) = tags match
+          case Some(tagsList) if tagsList.nonEmpty =>
+            allEvents.partition { event =>
+              event.tags.exists(eventTags => eventTags.exists(tag => tagsList.contains(tag.displayName)))
+            }
+          case _ =>
+            (List.empty[Event], allEvents)
+
+        val sortedMatching    = applySortBy(matchingEvents, sortBy, sortOrder)
+        val sortedNonMatching = applySortBy(nonMatchingEvents, sortBy, sortOrder)
+        val orderedEvents     = sortedMatching ++ sortedNonMatching
+
+        val offsetValue = offset.getOrElse(0)
+        val limitValue  = limit.getOrElse(10)
+        val paginated   = orderedEvents.drop(offsetValue).take(limitValue + 1)
+
+        calculateHasMore(paginated, limit)
+
       case "upcoming" =>
         val now = java.time.LocalDateTime.now()
         val upcomingFilter = Filters.and(
@@ -268,10 +331,11 @@ case class MongoEventRepository(
           .toList
 
         val shuffled = scala.util.Random.shuffle(allEvents)
+        val sorted   = applySortBy(shuffled, sortBy, sortOrder)
 
         val offsetValue = offset.getOrElse(0)
         val limitValue  = limit.getOrElse(10)
-        val paginated   = shuffled.drop(offsetValue).take(limitValue + 1)
+        val paginated   = sorted.drop(offsetValue).take(limitValue + 1)
 
         calculateHasMore(paginated, limit)
 
@@ -399,8 +463,8 @@ case class MongoEventRepository(
       .toList
 
     val eventsWithPrice = allEvents.map { event =>
-      val prices = priceRepository.get.findByEventId(event._id)
-      val minPrice = if prices.nonEmpty then prices.map(_.price).min else Double.MaxValue
+      val prices   = priceRepository.get.findByEventId(event._id)
+      val minPrice = if prices.nonEmpty then prices.map(_.price).min else 0.0
       (event, minPrice)
     }
 
@@ -416,6 +480,22 @@ case class MongoEventRepository(
 
   private def escapeRegex(str: String): String =
     str.replaceAll("([\\[\\]\\(\\)\\{\\}\\*\\+\\?\\|\\^\\$\\.\\\\/])", "\\\\$1")
+
+  private def applySortBy(events: List[Event], sortBy: Option[String], sortOrder: Option[String]): List[Event] =
+    val sortField    = sortBy.getOrElse("date")
+    val isDescending = sortOrder.contains("desc")
+
+    val sorted = sortField.toLowerCase match
+      case "date" =>
+        events.sortBy(_.date.map(_.toString).getOrElse(""))
+      case "title" =>
+        events.sortBy(_.title.getOrElse(""))
+      case "instant" =>
+        events.sortBy(_.instant.toString)
+      case _ =>
+        events.sortBy(_.date.map(_.toString).getOrElse(""))
+
+    if isDescending then sorted.reverse else sorted
 
   private def applyPagination(
       query: com.mongodb.client.FindIterable[Document],

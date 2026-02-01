@@ -58,5 +58,6 @@ case class GetFilteredEventsCommand(
     sortOrder: Option[String],
     query: Option[String],
     near: Option[(Double, Double)],
-    other: Option[String] = None
+    other: Option[String] = None,
+    price: Option[(Double, Double)] = None
 ) extends Commands
