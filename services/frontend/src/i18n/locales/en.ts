@@ -336,11 +336,13 @@ export default {
         register: '@:defaults.register', //[ignorei18n]
       },
     },
-    buttons:{
-      basicButtons:{
-        SeeA
-      }
-    }
+    buttons: {
+      basicButtons: {
+        SeeAllButton: {
+          seeAll: 'See All',
+        },
+      },
+    },
   },
 
   auth: {
