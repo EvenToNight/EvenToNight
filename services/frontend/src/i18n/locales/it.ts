@@ -5,6 +5,10 @@ export default {
     keywords: 'eventi, movida, concerti, feste, eventi notturni',
   },
 
+  defaults: {
+    searchHint: 'Cerca eventi, organizzazioni o utenti...',
+  },
+
   views: {
     AboutView: {
       title: 'Chi siamo',
@@ -76,7 +80,7 @@ export default {
           uploadButtonLabel: 'Carica poster',
         },
         actions: {
-          cancel: 'Torna indietro',
+          cancel: 'Indietro',
           delete: 'Elimina evento',
           saveDraft: 'Salva bozza',
           updateDraft: 'Aggiorna bozza',
@@ -89,7 +93,7 @@ export default {
             message:
               'Sei sicuro di voler eliminare questo evento? Questa azione non può essere annullata.',
             confirmButton: 'Eliminare',
-            cancelButton: 'Torna indietro',
+            cancelButton: 'Indietro',
           },
         },
         messages: {
@@ -118,6 +122,43 @@ export default {
           loadEvent: "Impossibile caricare l'evento",
         },
       },
+    },
+    EditProfileView: {
+      title: 'Modifica profilo',
+      form: {
+        name: {
+          label: 'Nome',
+          placeholder: 'Inserisci il tuo nome',
+          error: 'Il nome è obbligatorio',
+        },
+        bio: {
+          label: 'Bio',
+          placeholder: 'Inserisci la tua biografia',
+        },
+        website: {
+          label: 'Sito web',
+          placeholder: 'https://esempio.com',
+        },
+        actions: {
+          save: 'Salva',
+          cancel: 'Indietro',
+        },
+        messages: {
+          errors: {
+            imageUpload: "Impossibile caricare l'immagine avatar, riprova",
+            profileUpdate: 'Impossibile aggiornare il profilo, riprova',
+          },
+          success: {
+            profileUpdate: 'Profilo aggiornato con successo!',
+          },
+        },
+      },
+    },
+    ExploreView: {
+      searchHint: '@:defaults.searchHint', //[ignorei18n]
+    },
+    HomeView: {
+      searchHint: '@:defaults.searchHint', //[ignorei18n]
     },
   },
 

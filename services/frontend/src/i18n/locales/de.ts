@@ -5,6 +5,10 @@ export default {
     keywords: 'Veranstaltungen, Nachtleben, Konzerte, Partys, Nachtveranstaltungen',
   },
 
+  defaults: {
+    searchHint: 'Suchen Sie nach Ereignissen, Organisationen oder Benutzern ...',
+  },
+
   views: {
     AboutView: {
       title: 'Über uns',
@@ -76,7 +80,7 @@ export default {
           uploadButtonLabel: 'Poster hochladen',
         },
         actions: {
-          cancel: 'Geh zurück',
+          cancel: 'Zurück',
           delete: 'Ereignis löschen',
           saveDraft: 'Entwurf speichern',
           updateDraft: 'Entwurf aktualisieren',
@@ -89,7 +93,7 @@ export default {
             message:
               'Sind Sie sicher, dass Sie dieses Ereignis löschen möchten? Diese Aktion kann nicht rückgängig gemacht werden.',
             confirmButton: 'Löschen',
-            cancelButton: 'Geh zurück',
+            cancelButton: 'Zurück',
           },
         },
         messages: {
@@ -119,6 +123,45 @@ export default {
           loadEvent: 'Ereignis konnte nicht geladen werden',
         },
       },
+    },
+    EditProfileView: {
+      title: 'Profil bearbeiten',
+      form: {
+        name: {
+          label: 'Name',
+          placeholder: 'Geben Sie Ihren Namen ein',
+          error: 'Name ist erforderlich',
+        },
+        bio: {
+          label: 'Bio',
+          placeholder: 'Geben Sie Ihre Biografie ein',
+        },
+        website: {
+          label: 'Webseite',
+          placeholder: 'https://example.com',
+        },
+        actions: {
+          save: 'Speichern',
+          cancel: 'Zurück',
+        },
+        messages: {
+          errors: {
+            imageUpload:
+              'Das Hochladen des Avatarbildes ist fehlgeschlagen. Bitte versuchen Sie es erneut',
+            profileUpdate:
+              'Das Profil konnte nicht aktualisiert werden. Bitte versuchen Sie es erneut',
+          },
+          success: {
+            profileUpdate: 'Profil erfolgreich aktualisiert!',
+          },
+        },
+      },
+    },
+    ExploreView: {
+      searchHint: '@:defaults.searchHint', //[ignorei18n]
+    },
+    HomeView: {
+      searchHint: '@:defaults.searchHint', //[ignorei18n]
     },
   },
 

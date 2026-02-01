@@ -5,6 +5,10 @@ export default {
     keywords: 'eventos, vida nocturna, conciertos, fiestas, eventos nocturnos',
   },
 
+  defaults: {
+    searchHint: 'Buscar eventos, organizaciones o usuarios...',
+  },
+
   views: {
     AboutView: {
       title: 'Sobre nosotros',
@@ -76,7 +80,7 @@ export default {
           uploadButtonLabel: 'Subir cartel',
         },
         actions: {
-          cancel: 'Volver',
+          cancel: 'Atrás',
           delete: 'Eliminar evento',
           saveDraft: 'Guardar borrador',
           updateDraft: 'Actualizar borrador',
@@ -89,7 +93,7 @@ export default {
             message:
               '¿Estás seguro de que deseas eliminar este evento? Esta acción no se puede deshacer.',
             confirmButton: 'Borrar',
-            cancelButton: 'Volver',
+            cancelButton: 'Atrás',
           },
         },
         messages: {
@@ -118,6 +122,43 @@ export default {
           loadEvent: 'No se pudo cargar el evento',
         },
       },
+    },
+    EditProfileView: {
+      title: 'Editar perfil',
+      form: {
+        name: {
+          label: 'Nombre',
+          placeholder: 'Introduce tu nombre',
+          error: 'El nombre es obligatorio',
+        },
+        bio: {
+          label: 'Biografía',
+          placeholder: 'Ingresa tu biografía',
+        },
+        website: {
+          label: 'Sitio web',
+          placeholder: 'https://ejemplo.com',
+        },
+        actions: {
+          save: 'Ahorrar',
+          cancel: 'Atrás',
+        },
+        messages: {
+          errors: {
+            imageUpload: 'No se pudo cargar la imagen de avatar, inténtelo de nuevo',
+            profileUpdate: 'No se pudo actualizar el perfil, inténtelo de nuevo',
+          },
+          success: {
+            profileUpdate: '¡Perfil actualizado exitosamente!',
+          },
+        },
+      },
+    },
+    ExploreView: {
+      searchHint: '@:defaults.searchHint', //[ignorei18n]
+    },
+    HomeView: {
+      searchHint: '@:defaults.searchHint', //[ignorei18n]
     },
   },
 

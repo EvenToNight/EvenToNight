@@ -5,6 +5,10 @@ export default {
     keywords: 'événements, vie nocturne, concerts, fêtes, événements nocturnes',
   },
 
+  defaults: {
+    searchHint: 'Rechercher des événements, des organisations ou des utilisateurs...',
+  },
+
   views: {
     AboutView: {
       title: 'À propos de nous',
@@ -76,7 +80,7 @@ export default {
           uploadButtonLabel: "Télécharger l'affiche",
         },
         actions: {
-          cancel: 'Retourner',
+          cancel: 'Dos',
           delete: "Supprimer l'événement",
           saveDraft: 'Enregistrer le brouillon',
           updateDraft: 'Mettre à jour le brouillon',
@@ -89,7 +93,7 @@ export default {
             message:
               'Êtes-vous sûr de vouloir supprimer cet événement ? Cette action ne peut pas être annulée.',
             confirmButton: 'Supprimer',
-            cancelButton: 'Retourner',
+            cancelButton: 'Dos',
           },
         },
         messages: {
@@ -118,6 +122,43 @@ export default {
           loadEvent: "Échec du chargement de l'événement",
         },
       },
+    },
+    EditProfileView: {
+      title: 'Modifier le profil',
+      form: {
+        name: {
+          label: 'Nom',
+          placeholder: 'Entrez votre nom',
+          error: 'Le nom est requis',
+        },
+        bio: {
+          label: 'Biographie',
+          placeholder: 'Entrez votre biographie',
+        },
+        website: {
+          label: 'Site web',
+          placeholder: 'https://exemple.com',
+        },
+        actions: {
+          save: 'Sauvegarder',
+          cancel: 'Dos',
+        },
+        messages: {
+          errors: {
+            imageUpload: "Échec du téléchargement de l'image de l'avatar, veuillez réessayer",
+            profileUpdate: 'Échec de la mise à jour du profil, veuillez réessayer',
+          },
+          success: {
+            profileUpdate: 'Profil mis à jour avec succès !',
+          },
+        },
+      },
+    },
+    ExploreView: {
+      searchHint: '@:defaults.searchHint', //[ignorei18n]
+    },
+    HomeView: {
+      searchHint: '@:defaults.searchHint', //[ignorei18n]
     },
   },
 
