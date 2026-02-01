@@ -1,15 +1,20 @@
-import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
+import type {
+  PaginatedRequest,
+  PaginatedResponse,
+  PaginatedResponseWithTotalCount,
+} from '../interfaces/commons'
 
 export const delay = (ms: number = 0) => new Promise((resolve) => setTimeout(resolve, ms))
 
 export const defaultLimit = 20
 const defaultOffset = 0
 
-export const emptyPaginatedResponse = <T>(): PaginatedResponse<T> => ({
+export const emptyPaginatedResponse = <T>(): PaginatedResponseWithTotalCount<T> => ({
   items: [],
   limit: defaultLimit,
   offset: defaultOffset,
   hasMore: false,
+  totalItems: 0,
 })
 
 export const evaluatePagination = (

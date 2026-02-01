@@ -27,11 +27,17 @@ const isOrganizer = computed(() => {
 const isFavorite = ref(false)
 const likesCount = ref(0)
 const showLikesDialog = ref(false)
+const participantsCount = ref(0)
+const showParticipantsDialog = ref(false)
 
 const loadInteractions = async () => {
   try {
     const likes = await api.interactions.getEventLikes(props.event.eventId)
     likesCount.value = likes.totalItems
+
+    const participants = await api.interactions.getEventParticipants(props.event.eventId)
+    participantsCount.value = participants.totalItems
+
     if (authStore.isAuthenticated) {
       isFavorite.value = await api.interactions.userLikesEvent(
         props.event.eventId,
@@ -42,6 +48,7 @@ const loadInteractions = async () => {
     console.error('Failed to load interactions:', error)
     likesCount.value = 0
     isFavorite.value = false
+    participantsCount.value = 0
   }
 }
 
@@ -94,6 +101,12 @@ onMounted(async () => {
         </button>
         <span class="like-count" @click="showLikesDialog = true">{{ likesCount }}</span>
       </div>
+      <div class="participants-container">
+        <q-icon name="people" size="24px" class="participants-icon" />
+        <span class="participants-count" @click="showParticipantsDialog = true">{{
+          participantsCount
+        }}</span>
+      </div>
     </div>
   </div>
 
@@ -107,6 +120,15 @@ onMounted(async () => {
     :title="t('eventDetails.likes')"
     :empty-text="t('eventDetails.noLikes')"
     empty-icon="favorite_border"
+  />
+  <UserList
+    v-model="showParticipantsDialog"
+    :load-fn="
+      (pagination) => api.interactions.getEventParticipants(props.event.eventId, pagination)
+    "
+    :title="t('eventDetails.participants')"
+    :empty-text="t('eventDetails.noParticipants')"
+    empty-icon="people"
   />
 </template>
 
@@ -198,6 +220,43 @@ onMounted(async () => {
 }
 
 .like-count {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  transition: all $transition-base;
+  color: $color-text-primary;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  @include dark-mode {
+    color: $color-text-dark;
+  }
+}
+
+.participants-container {
+  @include flex-center;
+  gap: $spacing-2;
+  padding: $spacing-3;
+  border-radius: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  background: transparent;
+  flex-shrink: 0;
+
+  @include dark-mode {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.participants-icon {
+  color: $color-text-primary;
+  @include dark-mode {
+    color: $color-text-dark;
+  }
+}
+
+.participants-count {
   font-size: $font-size-base;
   font-weight: $font-weight-semibold;
   cursor: pointer;

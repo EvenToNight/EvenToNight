@@ -14,7 +14,7 @@ import type {
   UserPartecipation,
   OrganizationReviewsStatistics,
 } from '../types/interaction'
-import type { UserID } from '../types/users'
+import type { UserID, UserInfo } from '../types/users'
 import { mockEvents } from './data/events'
 import { mockEventInteractions, mockEventReviews, mockUserInteractions } from './data/interactions'
 import type {
@@ -22,7 +22,7 @@ import type {
   PaginatedResponseWithTotalCount,
   SortOrder,
 } from '../interfaces/commons'
-import { getPaginatedItems } from '@/api/utils/requestUtils'
+import { emptyPaginatedResponse, getPaginatedItems } from '@/api/utils/requestUtils'
 import type { Rating } from '../types/interaction'
 import { mockUsers } from './data/users'
 
@@ -287,6 +287,13 @@ export const mockInteractionsApi: InteractionAPI = {
       averageRating,
       ratingDistribution,
     }
+  },
+
+  async getEventParticipants(
+    _eventId: EventID,
+    _pagination?: PaginatedRequest
+  ): Promise<GetUserInfoResponse> {
+    return emptyPaginatedResponse<UserInfo>()
   },
 
   async deleteEventReview(eventId: EventID, userId: UserID): Promise<void> {

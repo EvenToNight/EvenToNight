@@ -66,6 +66,10 @@ export interface InteractionAPI {
       pagination?: PaginatedRequest
     }
   ): Promise<GetReviewWithStatisticsResponse>
+  getEventParticipants(
+    eventId: EventID,
+    pagination?: PaginatedRequest
+  ): Promise<GetUserInfoResponse>
   deleteEventReview(eventId: EventID, userId: UserID): Promise<void>
   updateEventReview(eventId: EventID, userId: UserID, review: UpdateEventReviewData): Promise<void>
   getOrganizationReviews(

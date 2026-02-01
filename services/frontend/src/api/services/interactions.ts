@@ -146,6 +146,15 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
     return response
   },
 
+  async getEventParticipants(
+    eventId: EventID,
+    pagination?: PaginatedRequest
+  ): Promise<GetUserInfoResponse> {
+    return interactionsClient.get<GetUserInfoResponse>(
+      `/events/${eventId}/participants${buildQueryParams({ ...evaluatePagination(pagination) })}`
+    )
+  },
+
   async deleteEventReview(eventId: EventID, userId: UserID): Promise<void> {
     return interactionsClient.delete<void>(`/events/${eventId}/reviews/${userId}`)
   },
