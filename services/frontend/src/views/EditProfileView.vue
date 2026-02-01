@@ -8,9 +8,13 @@ import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import AvatarCropUpload from '@/components/imageUpload/AvatarCropUpload.vue'
 import FormField from '@/components/forms/FormField.vue'
 import { notEmpty } from '@/components/forms/validationUtils'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
+const logger = createLogger(import.meta.url)
 const authStore = useAuthStore()
 const { goToUserProfile } = useNavigation()
+const { t } = useTranslation('views.EditProfileView')
 const $q = useQuasar()
 
 const name = ref('')
@@ -21,13 +25,12 @@ const avatar = ref<File | null>(null)
 const currentAvatarUrl = ref<string | undefined>(undefined)
 const avatarModified = ref(false)
 
-const isOrganization = computed(() => authStore.user?.role === 'organization')
-
 const defaultIcon = computed(() => {
-  return isOrganization.value ? 'business' : 'person'
+  return authStore.isOrganization ? 'business' : 'person'
 })
 
 onMounted(() => {
+  //TODO: check redirection to login if not authenticated
   if (authStore.user) {
     name.value = authStore.user.name || ''
     bio.value = authStore.user.bio || ''
@@ -37,9 +40,10 @@ onMounted(() => {
 })
 
 const handleAvatarError = (message: string) => {
+  logger.error('Avatar upload error:', message)
   $q.notify({
     color: 'negative',
-    message,
+    message: t('form.messages.errors.imageUpload'),
   })
 }
 
@@ -52,7 +56,7 @@ const handleAvatar = (file: File | null) => {
 }
 
 const handleSave = async () => {
-  console.log('Saving profile')
+  logger.log('Saving profile')
   if (!authStore.isAuthenticated) return
 
   loading.value = true
@@ -71,15 +75,15 @@ const handleSave = async () => {
 
     $q.notify({
       color: 'positive',
-      message: 'Profile updated successfully',
+      message: t('form.messages.success.profileUpdate'),
       icon: 'check_circle',
     })
     goToUserProfile(authStore.user!.id)
   } catch (error) {
-    console.error('Failed to update profile:', error)
+    logger.error('Failed to update profile:', error)
     $q.notify({
       color: 'negative',
-      message: 'Failed to update profile',
+      message: t('form.messages.errors.profileUpdate'),
       icon: 'error',
     })
   } finally {
@@ -101,7 +105,7 @@ const handleCancel = () => {
     <div class="edit-profile-container">
       <div class="edit-profile-card">
         <div class="card-header">
-          <h1 class="page-title">Edit Profile</h1>
+          <h1 class="page-title">{{ t('title') }}</h1>
         </div>
 
         <q-form greedy @submit.prevent="handleSave">
@@ -118,15 +122,15 @@ const handleCancel = () => {
             <div class="form-section">
               <FormField
                 v-model="name"
-                :label="'Name'"
-                :placeholder="'Enter your name'"
-                :rules="[notEmpty('Name is required')]"
+                :label="t('form.name.label')"
+                :placeholder="t('form.name.placeholder')"
+                :rules="[notEmpty(t('form.name.error'))]"
               />
 
               <FormField
                 v-model="bio"
-                :label="'Bio'"
-                :placeholder="'Enter your bio'"
+                :label="t('form.bio.label')"
+                :placeholder="t('form.bio.placeholder')"
                 type="textarea"
                 :rows="4"
                 :maxlength="150"
@@ -134,10 +138,10 @@ const handleCancel = () => {
               />
 
               <FormField
-                v-if="isOrganization"
+                v-if="authStore.isOrganization"
                 v-model="website"
-                :label="'Website'"
-                :placeholder="'https://example.com'"
+                :label="t('form.website.label')"
+                :placeholder="t('form.website.placeholder')"
               />
             </div>
           </div>
@@ -145,7 +149,7 @@ const handleCancel = () => {
           <div class="card-actions">
             <q-btn
               flat
-              :label="'Cancel'"
+              :label="t('form.actions.cancel')"
               class="base-button base-button--secondary"
               type="button"
               @click="handleCancel"
@@ -153,7 +157,7 @@ const handleCancel = () => {
             <q-btn
               unelevated
               color="primary"
-              :label="'Save'"
+              :label="t('form.actions.save')"
               class="base-button base-button--primary"
               type="submit"
               :loading="loading"

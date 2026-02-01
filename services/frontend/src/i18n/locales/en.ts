@@ -116,6 +116,37 @@ export default {
         },
       },
     },
+    EditProfileView: {
+      title: 'Edit Profile',
+      form: {
+        name: {
+          label: 'Name',
+          placeholder: 'Enter your name',
+          error: 'Name is required',
+        },
+        bio: {
+          label: 'Bio',
+          placeholder: 'Enter your bio',
+        },
+        website: {
+          label: 'Website',
+          placeholder: 'https://example.com',
+        },
+        actions: {
+          save: 'Save',
+          cancel: 'Back',
+        },
+        messages: {
+          errors: {
+            imageUpload: 'Failed to upload avatar image, please try again',
+            profileUpdate: 'Failed to update profile, please try again',
+          },
+          success: {
+            profileUpdate: 'Profile updated successfully!',
+          },
+        },
+      },
+    },
   },
 
   date: 'Date',
