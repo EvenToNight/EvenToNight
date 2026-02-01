@@ -70,4 +70,7 @@ export interface NewEventPublishedEvent {
   eventName: string
 }
 
-export type OnlineInfoEvent = boolean
+export interface OnlineInfoEvent {
+  userId: UserID
+  isOnline: boolean
+}

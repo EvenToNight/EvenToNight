@@ -11,8 +11,8 @@ export type APINotificationType =
   | 'follow'
   | 'message'
   | 'new_event'
-  | 'user_online'
-  | 'user_offline'
+  | 'user-online'
+  | 'user-offline'
 export type NotificationAPIData = {
   type: APINotificationType
   metadata: NotificationEvent
@@ -37,9 +37,9 @@ export const NotificationAdapter = {
         return 'new_message_received'
       case 'new_event':
         return 'new_event_published'
-      case 'user_online':
+      case 'user-online':
         return 'user_online'
-      case 'user_offline':
+      case 'user-offline':
         return 'user_offline'
       default:
         throw new Error(`Unknown API notification type: ${apiType}`)
@@ -59,9 +59,9 @@ export const NotificationAdapter = {
       case 'new_event_published':
         return 'new_event'
       case 'user_online':
-        return 'user_online'
+        return 'user-online'
       case 'user_offline':
-        return 'user_offline'
+        return 'user-offline'
       default:
         throw new Error(`Unknown API notification type: ${apiType}`)
     }

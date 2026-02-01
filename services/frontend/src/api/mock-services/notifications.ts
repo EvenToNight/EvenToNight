@@ -27,9 +27,9 @@ export const mockNotificationsApi: NotificationsAPI = {
     ws = undefined
   },
 
-  async isUserOnline(_userId: UserID): Promise<boolean> {
+  async isUserOnline(userId: UserID): Promise<OnlineInfoEvent> {
     // TODO: Implement online status check
-    return Promise.resolve(false)
+    return Promise.resolve({ userId, isOnline: true } as OnlineInfoEvent)
   },
 
   async getUnreadNotificationsCount(): Promise<number> {

@@ -1,7 +1,7 @@
 import { io, type Socket } from 'socket.io-client'
 import type { ApiClient } from '../client'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
-import type { NotificationsAPI } from '../interfaces/notifications'
+import type { NotificationOnlineStatusPayload, NotificationsAPI } from '../interfaces/notifications'
 import type {
   FollowRecievedEvent,
   LikeRecievedEvent,
@@ -22,10 +22,7 @@ import {
 
 let socket: Socket | undefined
 
-const handlers = new Map<
-  unknown,
-  { handler: (apiEvent: NotificationAPIData) => void; eventType: string }
->()
+const handlers = new Map<unknown, { handler: (...args: any[]) => void; eventType: string }>()
 
 function createNotificationHandler<T>(
   callback: (data: T) => void
@@ -69,8 +66,8 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
     return notificationClient.get<number>(`/unread-count`)
   },
 
-  async isUserOnline(userId: UserID): Promise<boolean> {
-    return notificationClient.get<boolean>(`/users/${userId}/is-online`)
+  async isUserOnline(userId: UserID): Promise<OnlineInfoEvent> {
+    return notificationClient.get<OnlineInfoEvent>(`/users/${userId}/is-online`)
   },
 
   async connect(userId: UserID, token?: string): Promise<void> {
@@ -103,6 +100,9 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
         console.log(`[Socket.IO] Re-registered ${handlers.size} handlers`)
       })
 
+      socket.on('user-online', (data: any) => {
+        console.log('[Socket.IO] ONLINE:', data)
+      })
       socket.on('registered', (data: { userId: string }) => {
         console.log('[Socket.IO] Registered with user ID:', data.userId)
       })
@@ -131,19 +131,37 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
   },
 
   onUserOnline(callback: (online: OnlineInfoEvent) => void): void {
-    const onlineHandler = () => callback(true)
-    const offlineHandler = () => callback(false)
+    const onlineHandler = (event: NotificationOnlineStatusPayload) =>
+      callback({ userId: event.userId, isOnline: true })
+    const offlineHandler = (event: NotificationOnlineStatusPayload) =>
+      callback({ userId: event.userId, isOnline: false })
     const onlineEventType = NotificationAdapter.toAPIType('user_online')
     const offlineEventType = NotificationAdapter.toAPIType('user_offline')
-    handlers.set(callback, { handler: onlineHandler, eventType: onlineEventType })
+
+    handlers.set(`${callback}_online` as any, {
+      handler: onlineHandler,
+      eventType: onlineEventType,
+    })
+    handlers.set(`${callback}_offline` as any, {
+      handler: offlineHandler,
+      eventType: offlineEventType,
+    })
+
     socket?.on(onlineEventType, onlineHandler)
     socket?.on(offlineEventType, offlineHandler)
   },
   offUserOnline(callback: (online: OnlineInfoEvent) => void): void {
-    const entry = handlers.get(callback)
-    if (entry) {
-      socket?.off(entry.eventType, entry.handler)
-      handlers.delete(callback)
+    const onlineEntry = handlers.get(`${callback}_online` as any)
+    const offlineEntry = handlers.get(`${callback}_offline` as any)
+
+    if (onlineEntry) {
+      socket?.off(onlineEntry.eventType, onlineEntry.handler)
+      handlers.delete(`${callback}_online` as any)
+    }
+
+    if (offlineEntry) {
+      socket?.off(offlineEntry.eventType, offlineEntry.handler)
+      handlers.delete(`${callback}_offline` as any)
     }
   },
   onLikeReceived(callback: (data: LikeRecievedEvent) => void): void {
@@ -151,7 +169,6 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
     const eventType = NotificationAdapter.toAPIType('like_received')
     handlers.set(callback, { handler, eventType })
     socket?.on(eventType, handler)
-    console.log(`[Socket.IO] Registered like handler, total handlers: ${handlers.size}`)
   },
 
   offLikeReceived(callback: (data: LikeRecievedEvent) => void): void {
@@ -203,7 +220,6 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
     const entry = handlers.get(callback)
     if (entry) {
       socket?.off(entry.eventType, entry.handler)
-      console.log('[Socket.IO] Off NewMessageReceived handler removed')
       handlers.delete(callback)
     }
   },

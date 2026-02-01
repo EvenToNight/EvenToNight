@@ -2,21 +2,44 @@
 import type { ChatUser } from '@/api/types/chat'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import { useNavigation } from '@/router/utils'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { api } from '@/api'
+import type { OnlineInfoEvent } from '@/api/types/notifications'
 
 interface Props {
   selectedChatUser: ChatUser
   showBackButton?: boolean
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   showBackButton: false,
 })
 
 const emit = defineEmits<{
   back: []
 }>()
+const isOnline = ref(false)
+watch(
+  () => props.selectedChatUser,
+  async (newUser) => {
+    const status = await api.notifications.isUserOnline(newUser.id)
+    isOnline.value = status.isOnline
+  },
+  { immediate: true }
+)
 
+const onlineStatusHandler = (event: OnlineInfoEvent) => {
+  if (event.userId === props.selectedChatUser.id) {
+    isOnline.value = event.isOnline
+  }
+}
 const { goToUserProfile } = useNavigation()
+onMounted(() => {
+  api.notifications.onUserOnline(onlineStatusHandler)
+})
+onUnmounted(() => {
+  api.notifications.offUserOnline(onlineStatusHandler)
+})
 </script>
 
 <template>
@@ -38,7 +61,7 @@ const { goToUserProfile } = useNavigation()
       <div class="user-name cursor-pointer" @click="goToUserProfile(selectedChatUser.id)">
         {{ selectedChatUser.name }}
       </div>
-      <div class="status">Online</div>
+      <div v-if="isOnline" class="status">Online</div>
     </div>
     <q-space />
     <!-- <q-btn flat round icon="more_vert" /> -->
