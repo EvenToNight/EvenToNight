@@ -68,6 +68,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       sortBy: Option[String] = None,
       sortOrder: Option[String] = None,
       query: Option[String] = None,
+      near: Option[String] = None,
       req: cask.Request
   ): cask.Response[ujson.Value] =
     val authOpt = req.headers.get("authorization").flatMap(_.headOption).flatMap { auth =>
@@ -118,6 +119,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
         sortBy,
         sortOrder,
         query,
+        near,
         isAuthenticated
       )
       eventService.handleCommand(command) match

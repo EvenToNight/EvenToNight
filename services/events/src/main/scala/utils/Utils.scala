@@ -134,6 +134,7 @@ object Utils:
       sortBy: Option[String],
       sortOrder: Option[String],
       query: Option[String],
+      near: Option[String],
       isAuthenticated: Boolean
   ): GetFilteredEventsCommand =
     var parsedStatus: Option[List[EventStatus]] = status.map(
@@ -164,6 +165,14 @@ object Utils:
     val validSortOrder = sortOrder.filter(o =>
       Set("asc", "desc").contains(o.toLowerCase)
     ).map(_.toLowerCase).orElse(Some("asc"))
+
+    val parsedNear: Option[(Double, Double)] = near.flatMap { coords =>
+      coords.split(",").map(_.trim) match
+        case Array(lat, lon) =>
+          Try((lat.toDouble, lon.toDouble)).toOption
+        case _ => None
+    }
+
     GetFilteredEventsCommand(
       limit = Some(limitValue),
       offset = offset,
@@ -177,7 +186,8 @@ object Utils:
       location_name = location_name,
       sortBy = validSortBy,
       sortOrder = validSortOrder,
-      query = query
+      query = query,
+      near = parsedNear
     )
 
   def createPaginatedResponse(

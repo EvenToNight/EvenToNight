@@ -68,7 +68,8 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       location_name = Some("Sample Venue"),
       sortBy = Some("date"),
       sortOrder = Some("asc"),
-      query = None
+      query = None,
+      near = None
     )
 
   "CreateEventDraftCommand" should "implement Commands trait" in:
@@ -99,13 +100,13 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   it should "support pattern matching" in:
     val command: Commands = createCommand("Pattern Test")
     val result = command match
-      case CreateEventCommand(title, _, _, _, _, _, _, _, _)               => "Command: " + title.getOrElse("No Title")
-      case GetEventCommand(eventId)                                        => s"Get Command: $eventId"
-      case UpdateEventPosterCommand(eventId, posterUrl)                    => s"Update Poster Command: $eventId"
-      case GetAllEventsCommand()                                           => "Get All Events Command"
-      case UpdateEventCommand(id, _, _, _, _, _, _, _)                     => s"Update $id Event Command"
-      case DeleteEventCommand(eventId)                                     => s"Delete Command: $eventId"
-      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
+      case CreateEventCommand(title, _, _, _, _, _, _, _, _) => "Command: " + title.getOrElse("No Title")
+      case GetEventCommand(eventId)                          => s"Get Command: $eventId"
+      case UpdateEventPosterCommand(eventId, posterUrl)      => s"Update Poster Command: $eventId"
+      case GetAllEventsCommand()                             => "Get All Events Command"
+      case UpdateEventCommand(id, _, _, _, _, _, _, _)       => s"Update $id Event Command"
+      case DeleteEventCommand(eventId)                       => s"Delete Command: $eventId"
+      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:

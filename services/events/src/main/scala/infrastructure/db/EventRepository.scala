@@ -3,7 +3,7 @@ package infrastructure.db
 import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
 import com.mongodb.client.model.{Filters, ReplaceOptions, Sorts}
 import domain.events.EventCompleted
-import domain.models.{Event, EventStatus}
+import domain.models.{Event, EventStatus, Location}
 import domain.models.EventConversions.{fromDocument, toDocument}
 import infrastructure.messaging.EventPublisher
 import org.bson.Document
@@ -32,7 +32,8 @@ trait EventRepository:
       location_name: Option[String] = None,
       sortBy: Option[String] = None,
       sortOrder: Option[String] = None,
-      query: Option[String] = None
+      query: Option[String] = None,
+      near: Option[(Double, Double)] = None
   ): Either[Throwable, (List[Event], Boolean)]
 
 case class MongoEventRepository(
@@ -127,31 +128,59 @@ case class MongoEventRepository(
       location_name: Option[String] = None,
       sortBy: Option[String] = None,
       sortOrder: Option[String] = None,
-      query: Option[String] = None
+      query: Option[String] = None,
+      near: Option[(Double, Double)] = None
   ): Either[Throwable, (List[Event], Boolean)] =
     Try {
-
       val combinedFilter =
         buildFilterQuery(status, title, tags, startDate, endDate, organizationId, city, location_name, query)
 
-      val sortField     = sortBy.getOrElse("date")
-      val sortDirection = if sortOrder.contains("desc") then -1 else 1
+      near match
+        case Some((lat, lon)) =>
+          val allEvents = collection
+            .find(combinedFilter)
+            .into(new java.util.ArrayList[Document]())
+            .asScala
+            .map(fromDocument)
+            .map(Utils.updateEventIfPastDate)
+            .toList
 
-      val sortCriteria = if sortField == "date" then
-        Sorts.orderBy(
-          if sortDirection == 1 then Sorts.ascending("date") else Sorts.descending("date")
-        )
-      else
-        Sorts.orderBy(
-          if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField),
-          Sorts.ascending("date")
-        )
+          val sortedByDistance = allEvents
+            .map { event =>
+              val distance = calculateDistance(
+                lat,
+                lon,
+                event.location.getOrElse(Location.Nil()).lat.getOrElse(0.0),
+                event.location.getOrElse(Location.Nil()).lon.getOrElse(0.0)
+              )
+              (event, distance)
+            }
+            .sortBy(_._2)
+            .map(_._1)
 
-      val dbQuery = applyPagination(collection.find(combinedFilter).sort(sortCriteria), offset, limit)
+          val offsetValue = offset.getOrElse(0)
+          val limitValue  = limit.getOrElse(10)
+          val paginated   = sortedByDistance.drop(offsetValue).take(limitValue + 1)
 
-      val results = executeQueryAndUpdateEvents(dbQuery)
+          calculateHasMore(paginated, limit)
 
-      calculateHasMore(results, limit)
+        case None =>
+          val sortField     = sortBy.getOrElse("date")
+          val sortDirection = if sortOrder.contains("desc") then -1 else 1
+
+          val sortCriteria = if sortField == "date" then
+            Sorts.orderBy(
+              if sortDirection == 1 then Sorts.ascending("date") else Sorts.descending("date")
+            )
+          else
+            Sorts.orderBy(
+              if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField),
+              Sorts.ascending("date")
+            )
+
+          val dbQuery = applyPagination(collection.find(combinedFilter).sort(sortCriteria), offset, limit)
+          val results = executeQueryAndUpdateEvents(dbQuery)
+          calculateHasMore(results, limit)
     }.toEither.left.map { ex =>
       println(s"[MongoDB][Error] Failed to retrieve filtered events - ${ex.getMessage}")
       ex
@@ -252,3 +281,13 @@ case class MongoEventRepository(
     limit match
       case Some(lim) if results.size > lim => (results.take(lim), true)
       case _                               => (results, false)
+
+  private def calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double =
+    val R    = 6371.0
+    val dLat = math.toRadians(lat2 - lat1)
+    val dLon = math.toRadians(lon2 - lon1)
+    val a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+      math.cos(math.toRadians(lat1)) * math.cos(math.toRadians(lat2)) *
+      math.sin(dLon / 2) * math.sin(dLon / 2)
+    val c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    R * c
