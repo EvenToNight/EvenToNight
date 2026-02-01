@@ -1,7 +1,7 @@
 package app
 
 import controller.Controller
-import infrastructure.db.{MongoEventRepository, MongoUserMetadataRepository}
+import infrastructure.db.{MongoEventRepository, MongoPriceRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.{ExternalEventHandler, RabbitEventConsumer, RabbitEventPublisher}
 import middleware.auth.JwtService
 import service.EventService
@@ -34,9 +34,16 @@ object Main extends App:
     messageBroker
   )
 
+  val priceDatabase: MongoPriceRepository = new MongoPriceRepository(
+    mongoUri,
+    "eventonight",
+    "prices",
+    messageBroker
+  )
+
   val eventService: EventService = new EventService(eventDatabase, userDatabase, messageBroker)
 
-  val externalEventHandler: ExternalEventHandler = new ExternalEventHandler(userDatabase)
+  val externalEventHandler: ExternalEventHandler = new ExternalEventHandler(userDatabase, priceDatabase)
   val messageConsumer: RabbitEventConsumer = new RabbitEventConsumer(
     host = rabbitHost,
     port = rabbitPort,
@@ -44,7 +51,8 @@ object Main extends App:
     password = rabbitPass,
     exchangeName = "eventonight",
     queueName = "events-service-queue",
-    routingKeys = List("user.created", "user.deleted"),
+    routingKeys =
+      List("user.created", "user.deleted", "ticket-type.created", "ticket-type.updated", "ticket-type.deleted"),
     handler = externalEventHandler
   )
   messageConsumer.start()
