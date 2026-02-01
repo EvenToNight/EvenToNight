@@ -18,7 +18,7 @@ import DrawerMenu from './DrawerMenu.vue'
 import NotificationsButton from '@/components/notifications/NotificationsButton.vue'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
-const searchQuery = inject<Ref<string>>('searchQuery')
+const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 const searchBarHasFocus = inject<Ref<boolean>>('searchBarHasFocus', ref(false))
 interface Props {
   showSearch?: boolean

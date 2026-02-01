@@ -22,7 +22,7 @@ const isLoginMode = computed(() => routeName.value === LOGIN_ROUTE_NAME)
 .auth-page {
   @include flex-center;
   min-height: 100vh;
-  background: linear-gradient(135deg, $color-primary 0%, $color-secondary-light 100%);
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
   padding: $spacing-5;
 }
 

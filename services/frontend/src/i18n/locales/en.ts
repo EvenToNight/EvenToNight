@@ -1,4 +1,9 @@
 export default {
+  meta: {
+    description: 'Find the event for you. Search upcoming events and discover amazing experiences.',
+    keywords: 'events, nightlife, concerts, parties, night events',
+  },
+
   views: {
     AboutView: {
       title: 'About Us',
@@ -15,12 +20,104 @@ export default {
         item3: 'Continuous innovation to enhance user experience',
       },
     },
+    CreateEventView: {
+      title: {
+        new: 'Create New Event',
+        edit: 'Edit Event',
+      },
+      form: {
+        title: {
+          label: 'Event Title',
+          error: 'Title is required',
+        },
+        date: {
+          label: 'Date',
+          error: 'Date is required',
+        },
+        time: {
+          label: 'Time',
+          error: 'Time is required',
+        },
+        description: {
+          label: 'Description',
+          error: 'Description is required',
+        },
+        ticketTypes: {
+          sectionTitle: 'Ticket Types',
+          type: {
+            label: 'Type',
+            error: 'Please select a ticket type',
+          },
+          price: {
+            label: 'Price',
+            error: 'Please enter a price',
+          },
+          quantity: {
+            label: 'Quantity',
+            error: 'Please enter a quantity',
+          },
+        },
+        tags: {
+          label: 'Tags',
+        },
+        collaborators: {
+          label: 'Collaborators',
+          avatarAlt: 'Collaborator Avatar',
+        },
+        location: {
+          label: 'Location',
+          error: 'Location is required',
+          noOptionHint: 'Type at least 3 characters to search',
+        },
+        poster: {
+          label: 'Event Poster',
+          error: 'Poster is required',
+          uploadButtonLabel: 'Upload Poster',
+        },
+        actions: {
+          cancel: 'Go Back',
+          delete: 'Delete Event',
+          saveDraft: 'Save Draft',
+          updateDraft: 'Update Draft',
+          publishEvent: 'Publish Event',
+          updatePublishedEvent: 'Update Event',
+        },
+        dialog: {
+          delete: {
+            title: 'Delete Event',
+            message: 'Are you sure you want to delete this event? This action cannot be undone.',
+            confirmButton: 'Delete',
+            cancelButton: 'Go Back',
+          },
+        },
+        messages: {
+          errors: {
+            updateEventDraft: 'Failed to update event draft',
+            updateEvent: 'Failed to update event',
+            saveEventDraft: 'Failed to save event draft',
+            saveEvent: 'Failed to save event',
+            deleteEvent: 'Failed to delete event',
+            fetchLocations: 'Failed to fetch locations, service is temporarily unavailable',
+            imageUpload: 'Failed to upload image, please try again',
+          },
+          success: {
+            updateEventDraft: 'Event draft updated successfully!',
+            updateEvent: 'Event updated successfully!',
+            saveEventDraft: 'Event draft saved successfully!',
+            saveEvent: 'Event saved successfully!',
+            deleteEvent: 'Event deleted successfully!',
+          },
+        },
+      },
+      messages: {
+        errors: {
+          createEvent: 'Failed to create event',
+          loadEvent: 'Failed to load event',
+        },
+      },
+    },
   },
 
-  meta: {
-    description: 'Find the event for you. Search upcoming events and discover amazing experiences.',
-    keywords: 'events, nightlife, concerts, parties, night events',
-  },
   date: 'Date',
   time: 'Time',
   location: 'Location',
@@ -143,44 +240,6 @@ export default {
     cancel: 'Cancel',
     submit: 'Submit',
     noEventFound: 'No event found',
-  },
-
-  eventCreationForm: {
-    createNewEvent: 'Create New Event',
-    editEvent: 'Edit Event',
-    eventTitle: 'Event Title',
-    titleError: 'Title is required',
-    date: 'Date',
-    dateError: 'Date is required',
-    time: 'Time',
-    timeError: 'Time is required',
-    description: 'Description',
-    descriptionError: 'Description is required',
-    price: 'Price',
-    priceError: 'Price is required',
-    tags: 'Tags',
-    collaborators: 'Collaborators',
-    collaboratorAvatarAlt: 'Collaborator Avatar',
-    location: 'Location',
-    locationError: 'Location is required',
-    eventPoster: 'Event Poster',
-    posterError: 'Poster is required',
-    uploadPoster: 'Upload Poster',
-    cancel: 'Cancel',
-    deleteEvent: 'Delete',
-    deleteEventConfirm: 'Are you sure you want to delete this event? This action cannot be undone.',
-    saveDraft: 'Save Draft',
-    publishEvent: 'Publish Event',
-    updateEvent: 'Update Event',
-    locationNoOptionHint: 'Type at least 3 characters to search',
-    successForEventPublication: 'Event published successfully!',
-    successForEventUpdate: 'Event updated successfully!',
-    successForEventDeletion: 'Event deleted successfully!',
-    errorForEventCreation: 'Please fill all required fields',
-    errorForEventPublication: 'Failed to create event. Please try again.',
-    errorForEventUpdate: 'Failed to update event. Please try again.',
-    errorForEventDeletion: 'Failed to delete event. Please try again.',
-    errorForEventLoad: 'Failed to load event. Please try again.',
   },
 
   theme: {

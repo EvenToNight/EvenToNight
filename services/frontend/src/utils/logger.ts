@@ -18,7 +18,19 @@ export const logger = {
   },
 }
 
-export const createLogger = (namespace: string) => {
+export const createLogger = (namespaceOrUrl: string) => {
+  let namespace = namespaceOrUrl
+
+  // If it looks like a URL/path, extract the filename
+  if (namespaceOrUrl.includes('/')) {
+    const filename =
+      namespaceOrUrl
+        .split('/')
+        .pop()
+        ?.replace(/\.(vue|ts|js)$/, '') || 'Unknown'
+    namespace = filename
+  }
+
   const prefix = `[${namespace}]`
 
   return {
