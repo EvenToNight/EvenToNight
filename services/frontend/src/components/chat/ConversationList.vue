@@ -272,7 +272,6 @@ defineExpose({
           </q-item>
         </template>
 
-        <!-- Empty state message -->
         <div
           v-if="conversations.length === 0 && potentialConversations.length === 0 && !loading"
           class="empty-state"

@@ -107,6 +107,7 @@ body.body--dark {
     stroke: #000000 !important;
   }
 
+
 //   // Chat support component CSS variables
 //   --q-background: #202c33;
 //   --q-text-primary: #e9edef;
@@ -115,6 +116,12 @@ body.body--dark {
 //   --q-hover-color: #2a3942;
 //   --q-selected-color: #2a3942;
 //   --q-input-background: #2a3942;
+}
+
+
+// Fix notification avatar to cover the container
+.q-notification__avatar img {
+  object-fit: cover;
 }
 
 #app {
