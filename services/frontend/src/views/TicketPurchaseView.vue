@@ -9,8 +9,13 @@ import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import { useAuthStore } from '@/stores/auth'
 import { preventInvalidNumberKeys } from '@/utils/inputUtils'
+import { createLogger } from '@/utils/logger'
+import { SERVER_ERROR_ROUTE_NAME } from '@/router'
+import { useTranslation } from '@/composables/useTranslation'
 
-const { params, goBack } = useNavigation()
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('views.TicketPurchaseView')
+const { params, goBack, goToRoute } = useNavigation()
 const $q = useQuasar()
 const authStore = useAuthStore()
 
@@ -101,12 +106,12 @@ onMounted(async () => {
     event.value = eventData
     ticketTypes.value = ticketsAvailable
   } catch (error) {
-    console.error('Failed to load event:', error)
+    logger.error('Failed to load event:', error)
     $q.notify({
       type: 'negative',
-      message: 'Failed to load event',
+      message: t('messages.errors.load'),
     })
-    goBack()
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
   } finally {
     loading.value = false
   }
@@ -116,7 +121,7 @@ const handlePurchase = async () => {
   if (!authStore.user || !hasAnyTickets.value) {
     $q.notify({
       type: 'negative',
-      message: 'Please select at least one ticket',
+      message: t('messages.errors.noTicketsSelected'),
     })
     return
   }
@@ -142,10 +147,10 @@ const handlePurchase = async () => {
 
     window.location.href = session.redirectUrl
   } catch (error) {
-    console.error('Failed to create checkout session:', error)
+    logger.error('Failed to create checkout session:', error)
     $q.notify({
       type: 'negative',
-      message: 'Failed to start payment process',
+      message: t('messages.errors.createCheckoutSession'),
     })
     purchasing.value = false
   }
@@ -189,11 +194,9 @@ const handlePurchase = async () => {
           </div>
         </div>
 
-        <!-- Right: Ticket Selection -->
         <div class="selection-card">
-          <h1 class="card-title">Select Tickets</h1>
+          <h1 class="card-title">{{ t('ticketSelection.title') }}</h1>
 
-          <!-- Ticket Types -->
           <div class="ticket-types-list">
             <div
               v-for="tt in ticketTypes"
@@ -209,9 +212,9 @@ const handlePurchase = async () => {
                   <div class="ticket-type-name">{{ tt.type }}</div>
                   <div class="ticket-type-availability">
                     <span v-if="tt.availableQuantity > 0">
-                      {{ tt.availableQuantity }} available
+                      {{ tt.availableQuantity }} {{ t('ticketSelection.available') }}
                     </span>
-                    <span v-else class="sold-out-text">Sold out</span>
+                    <span v-else class="sold-out-text">{{ t('ticketSelection.soldOut') }}</span>
                   </div>
                 </div>
                 <div class="ticket-type-price">
@@ -251,33 +254,32 @@ const handlePurchase = async () => {
             </div>
           </div>
 
-          <!-- Summary -->
           <div v-if="hasAnyTickets" class="summary-section">
             <div v-for="item in selectedTickets" :key="item.ticketType.id" class="summary-row">
               <span>{{ item.ticketType.type }} x {{ item.quantity }}</span>
-              <span>{{ (item.ticketType.price * item.quantity).toFixed(2) }} USD</span>
+              <span>{{ (item.ticketType.price * item.quantity).toFixed(2) }} $</span>
             </div>
             <div class="summary-divider"></div>
             <div class="summary-row total">
               <span
-                >Total ({{ totalTicketCount }} ticket{{ totalTicketCount > 1 ? 's' : '' }})</span
+                >{{ t('ticketSelection.total') }} ({{ totalTicketCount }}
+                {{ t('ticketSelection.ticket') }}{{ totalTicketCount > 1 ? 's' : '' }})</span
               >
               <span class="total-amount">{{ totalPrice.toFixed(2) }} $</span>
             </div>
           </div>
 
-          <!-- Actions -->
           <div class="actions-section">
             <q-btn
               flat
-              label="Cancel"
+              :label="t('ticketSelection.actions.cancel')"
               class="cancel-btn base-button base-button--tertiary"
               @click="goBack"
             />
             <q-btn
               unelevated
               color="primary"
-              label="Continue to Payment"
+              :label="t('ticketSelection.actions.continueToPayment')"
               :loading="purchasing"
               :disable="!hasAnyTickets"
               class="purchase-btn base-button base-button--primary"

@@ -259,6 +259,26 @@ export default {
         },
       },
     },
+    TicketPurchaseView: {
+      messages: {
+        errors: {
+          load: 'Failed to load event details',
+          noTicketsSelected: 'Please select at least one ticket to proceed with the purchase',
+          createCheckoutSession: 'Failed to create checkout session, please try again',
+        },
+      },
+      ticketSelection: {
+        title: 'Select Tickets',
+        available: 'available',
+        soldOut: 'Sold out',
+        total: 'Total',
+        ticket: 'Ticket',
+        actions: {
+          cancel: 'Back',
+          continueToPayment: 'Continue to Payment',
+        },
+      },
+    },
   },
 
   date: 'Date',
