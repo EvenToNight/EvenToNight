@@ -424,6 +424,43 @@ export default {
         submitLabel: 'Submit',
       },
     },
+    eventDetails: {
+      EventDetailsActions: {
+        downloadTickets: 'Download Tickets',
+        viewMyTickets: 'View My Tickets',
+        buyMoreTickets: 'Buy More Tickets',
+        soldOut: 'Sold Out',
+        buyTickets: 'Buy Tickets',
+        noTicketsAvailable: 'No tickets available for purchase',
+      },
+      EventDetailsHeader: {
+        editEvent: 'Edit',
+        organizedBy: 'Organized by',
+        likes: 'Likes',
+        noLikes: 'No likes yet',
+        participants: 'Participants',
+        noParticipants: 'No participants yet',
+      },
+      EventInfo: {
+        freePrice: 'Free',
+        startingFrom: 'Starting from',
+        notAvailable: 'Not available',
+        date: 'Date',
+        time: 'Time',
+        location: 'Location',
+        price: 'Price',
+        about: 'About this event',
+      },
+      EventReviewsPreview: {
+        title: 'Reviews',
+        leaveReview: 'Leave a Review',
+        noReviews: 'No reviews for this event yet',
+      },
+      OrganizationInfo: {
+        organizedBy: 'Organized by',
+        inCollaborationWith: 'In collaboration with',
+      },
+    },
   },
 
   auth: {

@@ -6,7 +6,8 @@ import type { Event } from '@/api/types/events'
 import { useTicketDownload } from '@/composables/useTicketDownload'
 import { useNavigation } from '@/router/utils'
 import type { EventTicketType } from '@/api/types/payments'
-import { useI18n } from 'vue-i18n'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
 interface Props {
   event: Event
@@ -19,7 +20,8 @@ const emit = defineEmits<{
   authRequired: [void]
 }>()
 const authStore = useAuthStore()
-const { t } = useI18n()
+const { t } = useTranslation('components.eventDetails.EventDetailsActions')
+const logger = createLogger(import.meta.url)
 const { goToUserProfile, goToPurchaseTickets } = useNavigation()
 const { downloadTickets } = useTicketDownload()
 
@@ -36,7 +38,7 @@ const checkUserHasTickets = async () => {
       await api.interactions.userParticipatedToEvent(authStore.user.id, props.event.eventId)
     ).hasParticipated
   } catch (error) {
-    console.error('Failed to check user tickets:', error)
+    logger.error('Failed to check user tickets:', error)
     userHasTickets.value = false
   }
 }
@@ -63,7 +65,7 @@ onMounted(() => {
         unelevated
         color="primary"
         icon="download"
-        label="Download Tickets"
+        :label="t('downloadTickets')"
         class="full-width base-button base-button--primary"
         size="lg"
         @click="downloadTickets(event)"
@@ -72,7 +74,7 @@ onMounted(() => {
         outline
         color="primary"
         icon="confirmation_number"
-        label="View My Tickets"
+        :label="t('viewMyTickets')"
         class="full-width base-button"
         size="lg"
         @click="goToUserProfile(authStore.user.id, 'tickets')"
@@ -81,26 +83,28 @@ onMounted(() => {
         v-if="ticketsAvailable()"
         flat
         color="primary"
-        label="Buy More Tickets"
+        :label="t('buyMoreTickets')"
         class="full-width"
         @click="handleBuyTickets"
       />
-      <div v-else class="ticket-status-message text-center full-width q-pa-sm">Sold Out</div>
+      <div v-else class="ticket-status-message text-center full-width q-pa-sm">
+        {{ t('soldOut') }}
+      </div>
     </div>
     <template v-else>
       <q-btn
         v-if="ticketsAvailable()"
         unelevated
         color="primary"
-        :label="t('eventDetails.buyTickets')"
+        :label="t('buyTickets')"
         class="full-width base-button base-button--primary"
         size="lg"
         @click="handleBuyTickets"
       />
       <div v-else-if="eventTickets.length === 0" class="sold-out-message text-center full-width">
-        No Tickets Available
+        {{ t('noTicketsAvailable') }}
       </div>
-      <div v-else class="sold-out-message text-center full-width">Sold Out</div>
+      <div v-else class="sold-out-message text-center full-width">{{ t('soldOut') }}</div>
     </template>
   </div>
 </template>

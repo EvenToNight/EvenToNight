@@ -9,6 +9,8 @@ import RatingInfo from '../reviews/ratings/RatingInfo.vue'
 import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
 import LoadableComponent from '@/components/common/LoadableComponent.vue'
 import { useAuthStore } from '@/stores/auth'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   eventId: string
@@ -18,6 +20,8 @@ interface Props {
 const props = defineProps<Props>()
 const { goToEventReviews } = useNavigation()
 const authStore = useAuthStore()
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('components.eventDetails.EventReviewsPreview')
 
 const reviews = ref<EventReview[]>([])
 const loading = ref(true)
@@ -38,13 +42,13 @@ const loadReviews = async () => {
         authStore.user.id,
         props.eventId
       )
-      console.log('User participation response:', response)
+      logger.debug('User participation response:', response)
       canUserLeaveReview.value = !(
         await api.interactions.userParticipatedToEvent(authStore.user.id, props.eventId)
       ).hasReviewed
     }
   } catch (error) {
-    console.error('Failed to load reviews:', error)
+    logger.error('Failed to load reviews:', error)
   } finally {
     loading.value = false
   }
@@ -65,7 +69,7 @@ onMounted(() => {
     <div v-if="reviews.length > 0" class="reviews-preview">
       <div class="preview-header">
         <div class="header-top">
-          <h3 class="section-title">Recensioni</h3>
+          <h3 class="section-title">{{ t('title') }}</h3>
           <SeeAllButton @click="goToAllReviews" />
         </div>
         <RatingInfo
@@ -78,10 +82,16 @@ onMounted(() => {
       <div class="reviews-list">
         <ReviewCard
           v-for="review in reviews"
-          :key="review.eventId + '-' + review.userId"
+          :key="review.id"
           :review="review"
           :show-event-info="false"
         />
+      </div>
+    </div>
+    <div v-else class="reviews-preview">
+      <div class="empty-state">
+        <q-icon name="rate_review" size="48px" />
+        <span class="empty-text">{{ t('noReviews') }}</span>
       </div>
     </div>
     <div
@@ -90,13 +100,7 @@ onMounted(() => {
       @click="goToEventReviews(props.organizationId, props.eventId, true)"
     >
       <q-icon name="rate_review" class="event-icon" />
-      <span class="event-title">Lascia una recensione</span>
-    </div>
-    <div v-else-if="reviews.length === 0" class="reviews-preview">
-      <div class="empty-state">
-        <q-icon name="rate_review" size="48px" />
-        <span class="empty-text">Non ci sono ancora recensioni per questo evento</span>
-      </div>
+      <span class="event-title">{{ t('leaveReview') }}</span>
     </div>
   </LoadableComponent>
 </template>

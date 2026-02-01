@@ -4,8 +4,9 @@ import type { Event } from '@/api/types/events'
 import { useAuthStore } from '@/stores/auth'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
-import { useI18n } from 'vue-i18n'
 import UserList from '@/components/user/UserList.vue'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
 interface Props {
   event: Event
@@ -18,8 +19,8 @@ const emit = defineEmits<{
 const props = defineProps<Props>()
 const authStore = useAuthStore()
 const { goToEditEvent } = useNavigation()
-const { t } = useI18n()
-
+const { t } = useTranslation('components.eventDetails.EventDetailsHeader')
+const logger = createLogger(import.meta.url)
 const isOrganizer = computed(() => {
   return authStore.user?.id === props.event.creatorId
 })
@@ -45,7 +46,7 @@ const loadInteractions = async () => {
       )
     }
   } catch (error) {
-    console.error('Failed to load interactions:', error)
+    logger.error('Failed to load interactions:', error)
     likesCount.value = 0
     isFavorite.value = false
     participantsCount.value = 0
@@ -70,7 +71,7 @@ const toggleLike = async () => {
       await api.interactions.unlikeEvent(props.event.eventId, authStore.user!.id)
     }
   } catch (error) {
-    console.error('Failed to toggle like:', error)
+    logger.error('Failed to toggle like:', error)
     isFavorite.value = wasLiked
     likesCount.value += wasLiked ? 1 : -1
   }
@@ -90,7 +91,7 @@ onMounted(async () => {
       <q-btn
         v-if="isOrganizer"
         flat
-        :label="t('eventDetails.editEvent')"
+        :label="t('editEvent')"
         icon="edit"
         class="base-button base-button--secondary"
         @click="goToEditEvent(props.event.eventId)"
@@ -117,8 +118,8 @@ onMounted(async () => {
   <UserList
     v-model="showLikesDialog"
     :load-fn="(pagination) => api.interactions.getEventLikes(props.event.eventId, pagination)"
-    :title="t('eventDetails.likes')"
-    :empty-text="t('eventDetails.noLikes')"
+    :title="t('likes')"
+    :empty-text="t('noLikes')"
     empty-icon="favorite_border"
   />
   <UserList
@@ -126,8 +127,8 @@ onMounted(async () => {
     :load-fn="
       (pagination) => api.interactions.getEventParticipants(props.event.eventId, pagination)
     "
-    :title="t('eventDetails.participants')"
-    :empty-text="t('eventDetails.noParticipants')"
+    :title="t('participants')"
+    :empty-text="t('noParticipants')"
     empty-icon="people"
   />
 </template>

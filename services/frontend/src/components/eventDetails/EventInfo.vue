@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
 import type { Event } from '@/api/types/events'
 import type { EventTicketType } from '@/api/types/payments'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   event: Event
   eventTickets: EventTicketType[]
 }
-const { t } = useI18n()
+const { t } = useTranslation('components.eventDetails.EventInfo')
 const { locale } = useNavigation()
 const props = defineProps<Props>()
 
@@ -44,14 +44,14 @@ const formattedPrice = computed(() => {
     const minPrice = Math.min(...prices)
     const maxPrice = Math.max(...prices)
     if (minPrice === 0) {
-      return t('eventDetails.freePrice')
+      return t('freePrice')
     }
     if (minPrice === maxPrice) {
       return `${minPrice} $`
     }
-    return `Starting from ${minPrice} $`
+    return `${t('startingFrom')} ${minPrice} $`
   }
-  return 'Not available'
+  return t('notAvailable')
 })
 </script>
 <template>
@@ -99,7 +99,7 @@ const formattedPrice = computed(() => {
   </div>
 
   <div class="description-section">
-    <h2 class="section-title">{{ t('eventDetails.about') }}</h2>
+    <h2 class="section-title">{{ t('about') }}</h2>
     <p class="event-description">{{ event.description }}</p>
   </div>
 </template>
