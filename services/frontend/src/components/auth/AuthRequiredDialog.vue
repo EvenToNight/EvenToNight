@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import { watch } from 'vue'
 import { useNavigation } from '@/router/utils'
 import CloseButton from '@/components/buttons/actionButtons/CloseButton.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   isOpen: boolean
@@ -13,7 +13,7 @@ const emit = defineEmits<{
   'update:isOpen': [value: boolean]
 }>()
 
-const { t } = useI18n()
+const { t } = useTranslation('components.auth.AuthRequiredDialog')
 const { goToLogin, goToRegister } = useNavigation()
 
 const close = () => {
@@ -52,21 +52,21 @@ watch(
           <div class="dialog-icon">
             <q-icon name="lock" size="48px" />
           </div>
-          <h2 class="dialog-title">{{ t('auth.notLoggedIn') }}</h2>
-          <p class="dialog-message">{{ t('auth.loginRequired') }}</p>
+          <h2 class="dialog-title">{{ t('title') }}</h2>
+          <p class="dialog-message">{{ t('message') }}</p>
         </q-card-section>
 
         <q-card-actions class="dialog-actions">
           <q-btn
             unelevated
             color="primary"
-            :label="t('auth.login')"
+            :label="t('login')"
             class="full-width base-button base-button--primary"
             @click="openLogin"
           />
           <q-btn
             flat
-            :label="t('auth.register')"
+            :label="t('register')"
             class="full-width base-button base-button--secondary"
             @click="openRegister"
           />

@@ -6,6 +6,8 @@ export default {
 
   defaults: {
     searchHint: 'Search events, organizations, or users...',
+    login: 'Sign In',
+    register: 'Sign Up',
   },
 
   views: {
@@ -292,6 +294,58 @@ export default {
       successMessage: 'This ticket has been verified and marked as used.',
     },
   },
+  components: {
+    auth: {
+      AuthButtons: {
+        login: '@:defaults.login', //[ignorei18n]
+        register: '@:defaults.register', //[ignorei18n]
+      },
+      AuthRequiredDialog: {
+        title: 'Oops! Not logged in',
+        message: 'You need to be logged in to perform this action',
+        login: '@:defaults.login', //[ignorei18n]
+        register: '@:defaults.register', //[ignorei18n]
+      },
+      LoginForm: {
+        title: '@:defaults.login', //[ignorei18n]
+        successfulLogin: 'Login successful!',
+        failedLogin: 'Wrong username or password',
+        switchToRegister: 'Need an account? Register',
+        usernameOrEmailLabel: 'Username or Email',
+        usernameOrEmailError: 'Username or Email is required',
+        passwordLabel: 'Password',
+        passwordError: 'Password is required',
+        login: '@:defaults.login', //[ignorei18n]
+      },
+      RegisterForm: {
+        title: '@:defaults.register', //[ignorei18n]
+        successfulRegistration: 'Registration successful!',
+        failedRegistration: 'Registration failed',
+        switchToLogin: 'Already have an account? Login',
+        nameLabel: 'Name',
+        nameError: 'Name is required',
+        emailLabel: 'Email',
+        emailError: 'Email is required',
+        emailFormatError: 'Please enter a valid email address',
+        passwordLabel: 'Password',
+        passwordError: 'Password is required',
+        confirmPasswordLabel: 'Confirm Password',
+        emptyConfirmPasswordError: 'Please confirm your password',
+        passwordMismatchError: 'Passwords do not match',
+        isOrganizationLabel: "I'm registering as an organization",
+        register: '@:defaults.register', //[ignorei18n]
+      },
+    },
+    buttons:{
+      basicButtons:{
+        SeeA
+      }
+    }
+  },
+
+  auth: {
+    logout: 'Logout',
+  },
 
   date: 'Date',
   time: 'Time',
@@ -308,37 +362,6 @@ export default {
   brand: {
     appName: 'EvenToNight', //[ignorei18n]
     logo: 'Logo',
-  },
-
-  auth: {
-    login: 'Sign Up',
-    register: 'Sign In',
-    logout: 'Logout',
-    notLoggedIn: 'Oops! Not logged in',
-    loginRequired: 'You need to be logged in to perform this action',
-    form: {
-      emailLabel: 'Email',
-      emailError: 'Email is required',
-      emailFormatError: 'Please enter a valid email address',
-      passwordLabel: 'Password',
-      passwordError: 'Password is required',
-    },
-    loginForm: {
-      successfulLogin: 'Login successful!',
-      failedLogin: 'Login failed',
-      switchToRegister: 'Need an account? Register',
-    },
-    registerForm: {
-      nameLabel: 'Name',
-      nameError: 'Name is required',
-      confirmPasswordLabel: 'Confirm Password',
-      emptyConfirmPasswordError: 'Please confirm your password',
-      passwordMismatchError: 'Passwords do not match',
-      isOrganizationLabel: "I'm registering as an organization",
-      successfulRegistration: 'Registration successful!',
-      failedRegistration: 'Registration failed',
-      switchToLogin: 'Already have an account? Login',
-    },
   },
 
   cards: {
