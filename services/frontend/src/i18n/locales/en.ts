@@ -343,6 +343,37 @@ export default {
         },
       },
     },
+    cards: {
+      CardSlider: {
+        scrollLeftAriaLabel: 'Scroll Left',
+        scrollRightAriaLabel: 'Scroll Right',
+      },
+      EventCard: {
+        posterAlt: 'Event Poster',
+        favoriteButtonAriaLabel: 'Toggle Favorite',
+        draftBadge: 'Draft',
+        cancelledBadge: 'Cancelled',
+        draftMissingTitle: 'Untitled Event',
+      },
+      ReviewCard: {
+        deleteDialog: {
+          title: 'Confirm Deletion',
+          message: 'Are you sure you want to delete this review? This action cannot be undone.',
+          cancelLabel: 'Back',
+          confirmLabel: 'Delete',
+          failedDelete: 'Some error occurred while trying to delete the review',
+        },
+        menu: {
+          edit: 'Edit',
+          delete: 'Delete',
+        },
+      },
+      SearchResultCard: {
+        event: 'Event',
+        organization: 'Organization',
+        member: 'User',
+      },
+    },
   },
 
   auth: {
@@ -364,23 +395,6 @@ export default {
   brand: {
     appName: 'EvenToNight', //[ignorei18n]
     logo: 'Logo',
-  },
-
-  cards: {
-    slider: {
-      seeAll: 'See All',
-      scrollLeftAriaLabel: 'Scroll Left',
-      scrollRightAriaLabel: 'Scroll Right',
-    },
-    eventCard: {
-      loadingPoster: 'Loading...',
-      favoriteButtonAriaLabel: 'Toggle Favorite',
-      posterAlt: 'Event Poster',
-      draftMissingTitle: 'Untitled Event',
-    },
-    ticketCard: {
-      ticket: 'Ticket',
-    },
   },
 
   event: {

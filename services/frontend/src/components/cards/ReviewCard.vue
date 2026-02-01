@@ -9,6 +9,8 @@ import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import type { User } from '@/api/types/users'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   review: EventReview
@@ -24,6 +26,8 @@ const deleteReview = inject<((eventId: string, userId: string) => void) | undefi
   undefined
 )
 
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('components.cards.ReviewCard')
 const { goToUserProfile, goToEventDetails } = useNavigation()
 const authStore = useAuthStore()
 const $q = useQuasar()
@@ -40,7 +44,7 @@ const loadUserInfo = async () => {
   try {
     user.value = await api.users.getUserById(props.review.userId)
   } catch (error) {
-    console.error('Failed to load user info:', error)
+    logger.error('Failed to load user info:', error)
     user.value = undefined
   }
 }
@@ -50,7 +54,7 @@ const loadEventInfo = async () => {
   try {
     eventInfo.value = await api.events.getEventById(props.review.eventId)
   } catch (error) {
-    console.error('Failed to load event info:', error)
+    logger.error('Failed to load event info:', error)
     eventInfo.value = undefined
   }
 }
@@ -67,17 +71,17 @@ const handleEventClick = () => {
 
 const handleDelete = () => {
   $q.dialog({
-    title: 'Conferma eliminazione',
-    message: 'Sei sicuro di voler eliminare questa recensione?',
+    title: t('deleteDialog.title'),
+    message: t('deleteDialog.message'),
     cancel: {
       flat: true,
       textColor: 'black',
-      label: 'Annulla',
+      label: t('deleteDialog.cancelLabel'),
     },
     ok: {
       color: 'negative',
       textColor: 'black',
-      label: 'Elimina',
+      label: t('deleteDialog.confirmLabel'),
     },
     focus: 'none',
   }).onOk(async () => {
@@ -85,10 +89,10 @@ const handleDelete = () => {
       await api.interactions.deleteEventReview(props.review.eventId, props.review.userId)
       deleteReview?.(props.review.eventId, props.review.userId)
     } catch (error) {
-      console.error('Failed to delete review:', error)
+      logger.error('Failed to delete review:', error)
       $q.notify({
         type: 'negative',
-        message: "Errore durante l'eliminazione della recensione",
+        message: t('deleteDialog.failedDelete'),
       })
     }
   })
@@ -120,13 +124,13 @@ onMounted(() => {
               <q-item-section avatar>
                 <q-icon name="edit" />
               </q-item-section>
-              <q-item-section>Modifica</q-item-section>
+              <q-item-section>{{ t('menu.edit') }}</q-item-section>
             </q-item>
             <q-item v-close-popup clickable @click="handleDelete">
               <q-item-section avatar>
                 <q-icon name="delete" color="negative" />
               </q-item-section>
-              <q-item-section>Elimina</q-item-section>
+              <q-item-section>{{ t('menu.delete') }}</q-item-section>
             </q-item>
           </q-list>
         </q-menu>

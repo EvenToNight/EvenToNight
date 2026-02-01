@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SearchResult } from '@/api/utils/searchUtils'
+import { useTranslation } from '@/composables/useTranslation'
 import { useNavigation } from '@/router/utils'
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 
 defineProps<Props>()
 const { locale } = useNavigation()
+const { t } = useTranslation('components.cards.SearchResultCard')
 const getResultIcon = (result: SearchResult): string => {
   if (result.type === 'event') return 'event'
   if (result.type === 'organization') return 'business'
@@ -16,9 +18,9 @@ const getResultIcon = (result: SearchResult): string => {
 }
 
 const getResultTypeLabel = (result: SearchResult): string => {
-  if (result.type === 'event') return 'Event'
-  if (result.type === 'organization') return 'Organization'
-  return 'Member'
+  if (result.type === 'event') return t('event')
+  if (result.type === 'organization') return t('organization')
+  return t('member')
 }
 
 const getResultPrimaryText = (result: SearchResult): string => {
