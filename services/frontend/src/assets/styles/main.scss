@@ -164,6 +164,11 @@ body.body--dark {
 //   }
 // }
 
+// Disable all transitions temporarily (used during dark mode toggle)
+.disable-transitions * {
+  transition: none !important;
+}
+
 // -----------------------------------------------------------------------------
 // 5. Utilities - Helper Classes
 // -----------------------------------------------------------------------------

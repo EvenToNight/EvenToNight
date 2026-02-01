@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from 'vue'
 import { RouterView } from 'vue-router'
-import { useQuasar } from 'quasar'
+import { useDarkMode } from '@/composables/useDarkMode'
 import { setTokenProvider, setTokenExpiredCallback } from '@/api/client'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
@@ -9,19 +9,11 @@ import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 import NotificationHandler from '@/components/notifications/NotificationHandler.vue'
 
 const authStore = useAuthStore()
-const $q = useQuasar()
+const darkMode = useDarkMode()
 useKeyboardShortcuts()
 
 onMounted(() => {
-  const savedDarkMode = localStorage.getItem('darkMode')
-  console.log('Saved dark mode preference:', savedDarkMode)
-  if (savedDarkMode === 'true') {
-    $q.dark.set(true)
-  } else if (savedDarkMode === 'false') {
-    $q.dark.set(false)
-  } else {
-    $q.dark.set('auto')
-  }
+  darkMode.load()
 
   const refreshed = authStore.refreshCurrentSessionUserData()
 
