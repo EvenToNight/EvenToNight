@@ -171,7 +171,9 @@ onMounted(async () => {
             </span>
           </div>
         </div>
+        <!-- TODO: evaluate putting a watcher inside the component instead of using the key trick -->
         <ReviewsList
+          :key="tempEventId + '-' + tempSelectedRating"
           ref="reviewsListRef"
           :organization-id="organizationId"
           :event-id="tempEventId || undefined"
