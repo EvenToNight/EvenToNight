@@ -134,9 +134,9 @@ onMounted(async () => {
 .home-view-content {
   width: 100%;
   min-height: 100%;
-  background: #f5f5f5;
+  background: $grey-2;
   @include dark-mode {
-    background: $color-background-dark;
+    background: $grey-10;
   }
 }
 

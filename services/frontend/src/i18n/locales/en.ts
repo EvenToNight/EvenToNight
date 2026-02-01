@@ -202,6 +202,22 @@ export default {
       buttonSeparatorText: 'or',
       modifyButtonText: 'Modify your Reviews',
     },
+    SettingsView: {
+      tabs: {
+        general: {
+          label: 'General',
+        },
+        language: {
+          label: 'Language',
+        },
+        changePassword: {
+          label: 'Change Password',
+        },
+        reviews: {
+          label: 'My Reviews',
+        },
+      },
+    },
   },
 
   date: 'Date',

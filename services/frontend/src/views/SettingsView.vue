@@ -8,41 +8,38 @@ import LanguageTab from '@/components/settings/tabs/LanguageTab.vue'
 import ChangePasswordTab from '@/components/settings/tabs/ChangePasswordTab.vue'
 import type { Tab } from '@/components/navigation/TabView.vue'
 import { useNavigation } from '@/router/utils'
-import { useQuasar } from 'quasar'
-import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
+import { useBreakpoints } from '@/composables/useBreakpoints'
+import { useTranslation } from '@/composables/useTranslation'
 
-const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
-
+const { t } = useTranslation('views.SettingsView')
 const { hash, replaceRoute } = useNavigation()
-const $q = useQuasar()
+const { isMobile } = useBreakpoints()
 const activeTabId = ref<string | null>(null)
 const layoutRef = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
 const showingContent = ref(false)
 
-const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
-
 const tabs = computed<Tab[]>(() => [
   {
     id: 'general',
-    label: 'General',
+    label: t('tabs.general.label'),
     icon: 'settings',
     component: GeneralSettingsTab,
   },
   {
     id: 'language',
-    label: 'Language',
+    label: t('tabs.language.label'),
     icon: 'language',
     component: LanguageTab,
   },
   {
     id: 'change-password',
-    label: 'Change Password',
+    label: t('tabs.changePassword.label'),
     icon: 'lock',
     component: ChangePasswordTab,
   },
   {
     id: 'reviews',
-    label: 'My Reviews',
+    label: t('tabs.reviews.label'),
     icon: 'rate_review',
     component: MyReviewsTab,
   },
@@ -73,7 +70,6 @@ const handleBack = () => {
 function updateTabIdFromHash() {
   const tabId = hash.value.replace('#', '')
   const exists = tabs.value.some((tab) => tab.id === tabId)
-  console.log('Updating tab from hash:', tabId, exists)
 
   if (layoutRef.value) {
     if (isMobile.value) {
