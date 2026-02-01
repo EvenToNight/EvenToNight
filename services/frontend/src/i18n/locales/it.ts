@@ -160,6 +160,141 @@ export default {
     HomeView: {
       searchHint: '@:defaults.searchHint', //[ignorei18n]
     },
+    PlaceHolderView: {
+      navigationMessageHint: 'Fare clic per tornare a casa',
+      navigationMessage: 'Vai a casa',
+    },
+    PrivacyView: {
+      title: 'politica sulla riservatezza',
+      lastUpdated: 'Ultimo aggiornamento: 23/01/2025',
+      sections: {
+        firstSection: {
+          title: 'Introduzione',
+          content:
+            'Noi di EvenToNight ci impegniamo a proteggere la tua privacy. La presente Informativa sulla privacy spiega come raccogliamo, utilizziamo e salvaguardamo le tue informazioni quando utilizzi la nostra piattaforma.',
+        },
+        secondSection: {
+          title: 'Informazioni che raccogliamo',
+          content:
+            "Raccogliamo le informazioni che ci fornisci direttamente, ad esempio quando crei un account, aggiorni il tuo profilo o acquisti biglietti. Raccogliamo inoltre informazioni automaticamente attraverso l'utilizzo dei nostri servizi, comprese informazioni sul dispositivo e dati di utilizzo.  Tutti i dati vengono raccolti in conformità con il GDPR.",
+        },
+        thirdSection: {
+          title: 'Come utilizziamo le tue informazioni',
+          content:
+            'Utilizziamo le tue informazioni per fornire e migliorare i nostri servizi, comunicare con te, elaborare transazioni e garantire la sicurezza della nostra piattaforma. Non vendiamo le tue informazioni personali a terzi.',
+        },
+        fourthSection: {
+          title: 'Protezione dei dati',
+          content:
+            'Implementiamo misure di sicurezza tecniche e organizzative per proteggere i tuoi dati personali da accessi non autorizzati, perdita o alterazione. Utilizziamo la crittografia SSL/TLS per tutte le transazioni.',
+        },
+        fifthSection: {
+          title: 'I tuoi diritti',
+          content:
+            'Hai il diritto di accedere ai tuoi dati, rettificare dati inesatti, richiederne la cancellazione, opporti al trattamento e richiedere la portabilità dei dati. Per esercitare questi diritti, ti invitiamo a contattarci.',
+        },
+        sixthSection: {
+          title: 'Contattaci',
+          content:
+            "In caso di domande o dubbi sulla presente Informativa sulla privacy o sulle nostre pratiche relative ai dati, contattaci all'indirizzo privacy{'@'}eventonight.com.",
+        },
+      },
+    },
+    ReviewsView: {
+      reviewButtonText: 'Lascia una recensione',
+      buttonSeparatorText: 'O',
+      modifyButtonText: 'Modifica le tue recensioni',
+    },
+    SettingsView: {
+      tabs: {
+        general: {
+          label: 'Generale',
+        },
+        language: {
+          label: 'Lingua',
+        },
+        changePassword: {
+          label: 'Cambiare la password',
+        },
+        reviews: {
+          label: 'Le mie recensioni',
+        },
+      },
+    },
+    TermsView: {
+      title: 'Termini e Condizioni',
+      lastUpdated: 'Ultimo aggiornamento: 23/01/2025',
+      sections: {
+        firstSection: {
+          title: 'Accordo sui termini',
+          content:
+            'Utilizzando EvenToNight, accetti di essere vincolato da questi Termini e Condizioni. Se non accetti questi termini, ti preghiamo di non utilizzare la piattaforma.',
+        },
+        secondSection: {
+          title: 'Utilizzo del servizio',
+          content:
+            'Accetti di utilizzare EvenToNight solo per scopi legittimi e in conformità con tutte le leggi applicabili. Non puoi caricare contenuti offensivi, illegali o che violino i diritti degli altri.',
+        },
+        thirdSection: {
+          title: 'Conto utente',
+          content:
+            'Sei responsabile della sicurezza del tuo account e delle tue password. È necessario avvisarci immediatamente di qualsiasi accesso non autorizzato. Non puoi trasferire il tuo account a terzi.',
+        },
+        fourthSection: {
+          title: 'Pagamenti e biglietti',
+          content:
+            "I pagamenti vengono elaborati tramite fornitori di servizi di pagamento sicuri. I prezzi sono chiaramente indicati prima dell'acquisto. Una volta completato l'acquisto, riceverai i biglietti via email.",
+        },
+        fifthSection: {
+          title: 'Rimborsi e Cancellazioni',
+          content:
+            "La politica di rimborso dipende dall'organizzatore dell'evento. In caso di annullamento dell'evento da parte dell'organizzatore si ha diritto al rimborso totale. Contatta l'assistenza per le richieste di rimborso.",
+        },
+        sixthSection: {
+          title: 'Limitazione di responsabilità',
+          content:
+            'EvenToNight funge da intermediario della piattaforma tra organizzatori e partecipanti. Non siamo responsabili della qualità degli eventi, delle cancellazioni o dei problemi che si verificano durante gli eventi.',
+        },
+        seventhSection: {
+          title: 'Modifiche ai Termini',
+          content:
+            "Ci riserviamo il diritto di modificare i presenti Termini e Condizioni in qualsiasi momento. Le modifiche saranno effettive immediatamente dopo la pubblicazione. L'uso continuato della piattaforma implica l'accettazione delle modifiche.",
+        },
+      },
+    },
+    TicketPurchaseView: {
+      messages: {
+        errors: {
+          load: "Impossibile caricare i dettagli dell'evento",
+          noTicketsSelected: "Seleziona almeno un biglietto per procedere con l'acquisto",
+          createCheckoutSession: 'Impossibile creare la sessione di pagamento, riprova',
+        },
+      },
+      ticketSelection: {
+        title: 'Seleziona Biglietti',
+        available: 'disponibile',
+        soldOut: 'Esaurito',
+        total: 'Totale',
+        ticket: 'Biglietto',
+        actions: {
+          cancel: 'Indietro',
+          continueToPayment: 'Continua al pagamento',
+        },
+      },
+    },
+    VerifyTicketView: {
+      ticketID: 'Identificativo del biglietto',
+      loadingTitle: 'Verifica biglietto...',
+      loadingMessage: 'Ti preghiamo di attendere mentre verifichiamo il tuo biglietto',
+      failedTitle: 'Verifica non riuscita',
+      failedMessage:
+        'La verifica del biglietto non è riuscita. Controlla il codice del biglietto e riprova.',
+      alreadyUsedTitle: 'Biglietto già utilizzato',
+      alreadyUsedMessage:
+        'Questo biglietto è già stato verificato e utilizzato. Non può essere riutilizzato.',
+      successTitle: 'Biglietto verificato con successo!',
+      successMessage: 'Questo biglietto è stato verificato e contrassegnato come utilizzato.',
+    },
   },
 
   date: 'Data',
