@@ -115,7 +115,7 @@ object Utils:
     eventDate.isBefore(LocalDateTime.now())
 
   def updateEventIfPastDate(event: Event): Event =
-    if event.date.exists(pastDate) && event.status != EventStatus.COMPLETED then
+    if event.date.exists(pastDate) && event.status == EventStatus.PUBLISHED then
       event.copy(status = EventStatus.COMPLETED)
     else
       event
