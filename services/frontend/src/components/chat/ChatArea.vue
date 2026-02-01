@@ -10,6 +10,8 @@ import type { NewMessageReceivedEvent } from '@/api/types/notifications'
 import { useBreakpoints } from '@/composables/useBreakpoints'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { emptyPaginatedResponse } from '@/api/utils/requestUtils'
+import { useNavigation } from '@/router/utils'
+import { useTranslation } from '@/composables/useTranslation'
 
 const props = defineProps<{
   selectedChatUser?: ChatUser
@@ -30,6 +32,8 @@ const unreadScrollCount = ref(0)
 
 const authStore = useAuthStore()
 const { isMobile } = useBreakpoints()
+const { locale } = useNavigation()
+const { t } = useTranslation('components.chat.ChatArea')
 
 const {
   items: messages,
@@ -55,7 +59,7 @@ function isFromCurrentUser(message: Message): boolean {
 }
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+  return date.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
 }
 
 function formatDateSeparator(date: Date): string {
@@ -67,11 +71,11 @@ function formatDateSeparator(date: Date): string {
   const msgDate = new Date(messageDate.getFullYear(), messageDate.getMonth(), messageDate.getDate())
 
   if (msgDate.getTime() === today.getTime()) {
-    return 'Oggi'
+    return t('today')
   } else if (msgDate.getTime() === yesterday.getTime()) {
-    return 'Ieri'
+    return t('yesterday')
   } else {
-    return messageDate.toLocaleDateString('it-IT', {
+    return messageDate.toLocaleDateString(locale.value, {
       day: '2-digit',
       month: '2-digit',
       year: 'numeric',
@@ -115,7 +119,6 @@ function scrollToBottom(smooth = false) {
 function onScroll(info: { verticalPercentage: number }) {
   const scrollTarget = scrollAreaRef.value?.getScrollTarget()
   if (scrollTarget) {
-    // Se non c'è scroll (tutto il contenuto è visibile), considera sempre "at bottom"
     const hasScroll = scrollTarget.scrollHeight > scrollTarget.clientHeight
     const atBottom = !hasScroll || info.verticalPercentage >= 0.98
     autoScroll.value = atBottom
@@ -194,8 +197,8 @@ watch(
   <div class="chat-area">
     <div v-if="!selectedChatUser" class="empty-state">
       <q-icon name="chat_bubble_outline" size="120px" color="grey-5" />
-      <h3>Seleziona una conversazione</h3>
-      <p>Scegli una chat dalla lista o inizia una nuova conversazione</p>
+      <h3>{{ t('selectConversation') }}</h3>
+      <p>{{ t('selectConversationHint') }}</p>
     </div>
 
     <template v-else>
@@ -212,8 +215,8 @@ watch(
 
         <div v-else-if="messages.length === 0" class="empty-messages">
           <q-icon name="chat" size="80px" color="grey-4" />
-          <p>Nessun messaggio ancora</p>
-          <span>Inizia la conversazione scrivendo un messaggio</span>
+          <p>{{ t('emptyConversation') }}</p>
+          <span>{{ t('emptyConversationHint') }}</span>
         </div>
 
         <q-infinite-scroll v-else reverse :offset="200" @load="onLoad">

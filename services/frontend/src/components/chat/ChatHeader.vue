@@ -5,6 +5,7 @@ import { useNavigation } from '@/router/utils'
 import { onMounted, onUnmounted, ref, watch } from 'vue'
 import { api } from '@/api'
 import type { OnlineInfoEvent } from '@/api/types/notifications'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   selectedChatUser: ChatUser
@@ -18,6 +19,7 @@ const props = withDefaults(defineProps<Props>(), {
 const emit = defineEmits<{
   back: []
 }>()
+const { t } = useTranslation('components.chat.ChatHeader')
 const isOnline = ref(false)
 watch(
   () => props.selectedChatUser,
@@ -52,7 +54,6 @@ onUnmounted(() => {
       class="back-button"
       @click="emit('back')"
     >
-      <q-tooltip>Indietro</q-tooltip>
     </q-btn>
     <q-avatar size="40px">
       <img :src="selectedChatUser.avatar" :alt="selectedChatUser.name" style="object-fit: cover" />
@@ -61,7 +62,7 @@ onUnmounted(() => {
       <div class="user-name cursor-pointer" @click="goToUserProfile(selectedChatUser.id)">
         {{ selectedChatUser.name }}
       </div>
-      <div v-if="isOnline" class="status">Online</div>
+      <div v-if="isOnline" class="status">{{ t('online') }}</div>
     </div>
     <q-space />
     <!-- <q-btn flat round icon="more_vert" /> -->
@@ -107,7 +108,6 @@ onUnmounted(() => {
   }
 }
 
-// Dark mode overrides
 .body--dark {
   .chat-header {
     background-color: $color-background-dark-soft;

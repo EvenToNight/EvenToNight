@@ -9,8 +9,12 @@ import { getConversationAvatar, getConversationName, getOtherUser } from '@/api/
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { defaultLimit, emptyPaginatedResponse } from '@/api/utils/requestUtils'
 import type { UserID } from '@/api/types/users'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
 const { locale } = useNavigation()
+const { t } = useTranslation('components.chat.ConversationList')
+const logger = createLogger(import.meta.url)
 const authStore = useAuthStore()
 const potentialConversations = ref<Conversation[]>([])
 const selectedConversationId = defineModel<string | undefined>('selectedConversationId', {
@@ -68,7 +72,7 @@ function formatTime(date: Date | undefined): string {
   if (days === 0) {
     return dateObj.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
   } else if (days === 1) {
-    return 'Ieri'
+    return t('yesterday')
   } else if (days < 7) {
     return dateObj.toLocaleDateString(locale.value, { weekday: 'short' })
   } else {
@@ -90,7 +94,7 @@ async function searchConversations(query: string) {
     conversations.value = response.items.filter((c) => c.id)
     potentialConversations.value = response.items.filter((c) => !c.id)
   } catch (error) {
-    console.error('Failed to search conversations:', error)
+    logger.error('Failed to search conversations:', error)
   } finally {
     isSearching.value = false
   }
@@ -107,7 +111,7 @@ watch(searchQuery, (query) => {
 })
 
 function resetUnreadCount() {
-  console.log('Resetting unread count for conversation:', selectedConversationId.value)
+  logger.log('Resetting unread count for conversation:', selectedConversationId.value)
   const conversation = conversations.value.find((c) => c.id === selectedConversationId.value)
   if (conversation) {
     conversation.unreadCount = 0
@@ -123,14 +127,8 @@ function moveToTop(conversationIndex: number) {
 }
 
 const newMessageHandler = async (event: NewMessageReceivedEvent) => {
-  const {
-    conversationId,
-    senderId,
-    /* senderName, senderAvatar, messageId,*/
-    message,
-    createdAt,
-  } = event
-  console.log('New message received for conversation:', conversationId)
+  const { conversationId, senderId, message, createdAt } = event
+  logger.log('New message received for conversation:', conversationId)
   //TODO: ignore message when searching for now, when the search is cleared the conversations are fully reloaded
   if (searchQuery.value.trim()) return
 
@@ -169,7 +167,7 @@ defineExpose({
 <template>
   <div v-if="userId" class="conversation-list">
     <div class="conversation-list-header">
-      <h1 class="title">Chat</h1>
+      <h1 class="title">{{ t('title') }}</h1>
     </div>
 
     <div class="search-box">
@@ -177,7 +175,7 @@ defineExpose({
         v-model="searchQuery"
         outlined
         dense
-        placeholder="Cerca o inizia una nuova chat"
+        :placeholder="t('searchHint')"
         class="search-input"
         debounce="300"
       >
@@ -194,7 +192,7 @@ defineExpose({
           header
           class="search-section-header"
         >
-          Conversazioni
+          {{ t('conversations') }}
         </q-item-label>
 
         <q-item
@@ -220,7 +218,9 @@ defineExpose({
               {{ getConversationName(userId, conversation) }}
             </q-item-label>
             <q-item-label caption lines="1" class="last-message">
-              <span v-if="isLastMessageFromMe(conversation)" class="message-prefix">Tu: </span>
+              <span v-if="isLastMessageFromMe(conversation)" class="message-prefix"
+                >{{ t('you') }}:
+              </span>
               {{ conversation.lastMessage?.content }}
             </q-item-label>
           </q-item-section>
@@ -241,7 +241,7 @@ defineExpose({
 
         <template v-if="searchQuery.trim() && potentialConversations.length > 0">
           <q-item-label header class="search-section-header">
-            Inizia una conversazione
+            {{ t('startConversation') }}
           </q-item-label>
           <q-item
             v-for="conv in potentialConversations"
@@ -266,7 +266,7 @@ defineExpose({
                 {{ getConversationName(userId, conv) }}
               </q-item-label>
               <q-item-label caption lines="1" class="last-message">
-                Inizia una conversazione
+                {{ t('startConversation') }}
               </q-item-label>
             </q-item-section>
           </q-item>
@@ -279,8 +279,8 @@ defineExpose({
           <p class="empty-state-message">
             {{
               searchQuery.trim()
-                ? 'Nessun risultato trovato per la ricerca.'
-                : 'Nessuna conversazione trovata.\nCerca e inizia una nuova conversazione.'
+                ? t('searchNoResults')
+                : t('noConversations') + '\n' + t('searchConversations')
             }}
           </p>
         </div>
@@ -288,7 +288,7 @@ defineExpose({
 
       <template #loading>
         <div class="row justify-center q-my-md">
-          <q-spinner-dots color="primary" size="40px" />
+          <q-spinner color="primary" size="40px" />
         </div>
       </template>
     </q-infinite-scroll>

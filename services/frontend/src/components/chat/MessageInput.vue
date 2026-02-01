@@ -1,15 +1,16 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { useQuasar } from 'quasar'
+import { useDarkMode } from '@/composables/useDarkMode'
 import EmojiPicker, { type EmojiExt } from 'vue3-emoji-picker'
 import 'vue3-emoji-picker/css'
+import { useTranslation } from '@/composables/useTranslation'
 
 const emit = defineEmits<{
   sendMessage: [content: string]
 }>()
 
-const $q = useQuasar()
-const pickerTheme = computed(() => ($q.dark.isActive ? 'dark' : 'light'))
+const { t } = useTranslation('components.chat.MessageInput')
+const pickerTheme = computed(() => (useDarkMode().isActive ? 'dark' : 'light'))
 
 const messageText = ref('')
 const inputRef = ref<HTMLTextAreaElement>()
@@ -41,7 +42,14 @@ function adjustHeight() {
 
 <template>
   <div class="message-input">
-    <q-btn flat round icon="emoji_emotions" color="grey-7" class="emoji-btn">
+    <q-btn
+      flat
+      round
+      icon="emoji_emotions"
+      color="grey-7"
+      class="emoji-btn"
+      :aria-label="t('emojiButtonAriaLabel')"
+    >
       <q-menu anchor="top left" self="bottom left" :offset="[0, 8]" class="emoji-menu">
         <EmojiPicker
           :key="pickerTheme"
@@ -52,14 +60,13 @@ function adjustHeight() {
           @select="onSelectEmoji"
         />
       </q-menu>
-      <q-tooltip>Emoji</q-tooltip>
     </q-btn>
 
     <div class="input-wrapper">
       <textarea
         ref="inputRef"
         v-model="messageText"
-        placeholder="Scrivi un messaggio"
+        :placeholder="t('placeholder')"
         class="text-input"
         rows="1"
         @keydown="handleKeyPress"
@@ -74,9 +81,9 @@ function adjustHeight() {
       icon="send"
       color="primary"
       class="send-btn"
+      :aria-label="t('sendButtonAriaLabel')"
       @click="sendMessage"
     >
-      <q-tooltip>Invia</q-tooltip>
     </q-btn>
   </div>
 </template>

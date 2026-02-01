@@ -374,6 +374,35 @@ export default {
         member: 'User',
       },
     },
+    chat: {
+      ChatArea: {
+        today: 'Today',
+        yesterday: 'Yesterday',
+        selectConversation: 'Select a conversation',
+        selectConversationHint: 'Choose a chat from the list or start a new conversation',
+        emptyConversation: 'No messages yet',
+        emptyConversationHint: 'Start the conversation by writing a message',
+      },
+      ChatHeader: {
+        online: 'Online', //[ignorei18n]
+      },
+      ConversationList: {
+        yesterday: 'Yesterday',
+        title: 'Chat', //[ignorei18n]
+        searchHint: 'Search conversations...',
+        conversations: 'Conversations',
+        you: 'You',
+        startConversation: 'Start a new Conversation',
+        noConversations: 'No conversations found',
+        searchConversations: 'Search and start a new conversation',
+        searchNoResults: 'No results found for the search.',
+      },
+      MessageInput: {
+        placeholder: 'Type a message...',
+        sendButtonAriaLabel: 'Send Message',
+        emojiButtonAriaLabel: 'Select Emoji',
+      },
+    },
   },
 
   auth: {
