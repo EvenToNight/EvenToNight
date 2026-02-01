@@ -6,8 +6,8 @@ export const NAVBAR_HEIGHT_CSS = `${NAVBAR_HEIGHT}px`
 <script setup lang="ts">
 import { computed, ref, inject, type Ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { useDarkMode } from '@/composables/useDarkMode'
 import { useUnreadMessagesCount } from '@/composables/useUnreadMessagesCount'
 import SearchBar from './SearchBar.vue'
 import AppBrand from '@/components/common/AppBrand.vue'
@@ -16,6 +16,7 @@ import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import AuthButtons from '../auth/AuthButtons.vue'
 import DrawerMenu from './DrawerMenu.vue'
 import NotificationsButton from '@/components/notifications/NotificationsButton.vue'
+import { useTranslation } from '@/composables/useTranslation'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
@@ -26,21 +27,13 @@ interface Props {
 
 const props = defineProps<Props>()
 const $q = useQuasar()
-const { t } = useI18n()
+const { t } = useTranslation('components.navigation.NavigationBar')
 const authStore = useAuthStore()
 const { goToHome, goToUserProfile, goToCreateEvent, goToChat } = useNavigation()
 const { unreadMessagesCount } = useUnreadMessagesCount()
 
-const isOrganization = computed(() => authStore.user?.role === 'organization')
-
 const mobileSearchOpen = ref(false) //TODO evaluate usage
 const mobileMenuOpen = ref(false)
-
-const toggleDarkMode = () => {
-  $q.dark.toggle()
-  authStore.updateUser({ darkMode: $q.dark.isActive })
-  localStorage.setItem('darkMode', String($q.dark.isActive))
-}
 
 watch(
   () => searchBarHasFocus.value,
@@ -101,64 +94,44 @@ const goToProfile = () => {
             <q-btn flat dense icon="search" @click="toggleMobileSearch" />
           </template>
           <template v-if="authStore.isAuthenticated">
-            <!-- Notifications Button Mobile -->
             <NotificationsButton dense />
-
-            <!-- Chat Button Mobile -->
             <q-btn flat dense icon="chat" @click="goToChat()">
               <q-badge v-if="unreadMessagesCount && unreadMessagesCount > 0" color="red" floating>{{
                 String(unreadMessagesCount)
               }}</q-badge>
-              <q-tooltip>Chat</q-tooltip>
             </q-btn>
           </template>
           <q-btn flat dense icon="menu" @click="toggleMobileMenu" />
         </template>
         <template v-else>
-          <!-- Left Section: Logo -->
           <div class="brand-title">
             <AppBrand />
           </div>
-
           <q-space />
-
-          <!-- Center Section: Search Bar -->
           <div v-if="showSearch" class="search-wrapper">
             <SearchBar />
           </div>
-
           <q-space />
-
-          <!-- Right Section: Actions -->
           <div class="actions-wrapper">
             <div v-if="authStore.isAuthenticated" class="authenticated-actions">
-              <!-- Theme Toggle -->
               <q-btn
                 flat
                 round
                 class="theme-toggle"
                 :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
-                @click="toggleDarkMode"
+                @click="useDarkMode().toggle"
               >
-                <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
               </q-btn>
-
-              <!-- Create Event Button (Organizations only) -->
               <q-btn
-                v-if="isOrganization"
+                v-if="authStore.isOrganization"
                 flat
                 round
                 icon="add"
                 class="create-event-btn"
                 @click="goToCreateEvent()"
               >
-                <q-tooltip>Create Event</q-tooltip>
               </q-btn>
-
-              <!-- Notifications Button -->
               <NotificationsButton />
-
-              <!-- Chat Button -->
               <q-btn flat round icon="chat" @click="goToChat()">
                 <q-badge
                   v-if="unreadMessagesCount && unreadMessagesCount > 0"
@@ -166,16 +139,10 @@ const goToProfile = () => {
                   floating
                   >{{ String(unreadMessagesCount) }}</q-badge
                 >
-                <q-tooltip>Chat</q-tooltip>
               </q-btn>
-
-              <!-- User Profile Avatar -->
               <q-btn flat round>
                 <q-avatar size="40px">
-                  <img
-                    :src="authStore.user?.avatar || '/default-avatar.png'"
-                    :alt="authStore.user?.name"
-                  />
+                  <img :src="authStore.user!.avatar" :alt="authStore.user!.name" />
                 </q-avatar>
                 <q-menu>
                   <q-list style="min-width: 200px" class="profile-menu-list">
@@ -190,7 +157,7 @@ const goToProfile = () => {
                       <q-item-section avatar>
                         <q-icon name="logout" />
                       </q-item-section>
-                      <q-item-section>{{ t('auth.logout') }}</q-item-section>
+                      <q-item-section>{{ t('logout') }}</q-item-section>
                     </q-item>
                   </q-list>
                 </q-menu>
@@ -202,9 +169,8 @@ const goToProfile = () => {
                 round
                 class="theme-toggle"
                 :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
-                @click="toggleDarkMode"
+                @click="useDarkMode().toggle"
               >
-                <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
               </q-btn>
               <AuthButtons />
             </div>
@@ -217,14 +183,11 @@ const goToProfile = () => {
       <div v-if="authStore.isAuthenticated">
         <div class="drawer-user-info">
           <q-avatar size="60px">
-            <img
-              :src="authStore.user?.avatar || '/default-avatar.png'"
-              :alt="authStore.user?.name"
-            />
+            <img :src="authStore.user!.avatar" :alt="authStore.user!.name" />
           </q-avatar>
           <div class="drawer-user-details">
-            <div class="drawer-user-name">{{ authStore.user?.name }}</div>
-            <div class="drawer-user-email">{{ authStore.user?.email }}</div>
+            <div class="drawer-user-name">{{ authStore.user!.name }}</div>
+            <div class="drawer-user-email">{{ authStore.user!.email }}</div>
           </div>
         </div>
         <q-separator class="q-my-md" />
@@ -232,12 +195,12 @@ const goToProfile = () => {
           <div class="toggle-field">
             <div class="toggle-label">
               <q-icon :name="'dark_mode'" size="24px" />
-              <span>Dark Mode</span>
+              <span>{{ t('darkMode') }}</span>
             </div>
             <q-toggle
               :model-value="$q.dark.isActive"
               color="primary"
-              @update:model-value="toggleDarkMode"
+              @update:model-value="useDarkMode().toggle"
             />
           </div>
         </div>
@@ -251,7 +214,7 @@ const goToProfile = () => {
             @click="goToProfile"
           />
           <q-btn
-            v-if="isOrganization"
+            v-if="authStore.isOrganization"
             unelevated
             color="primary"
             icon="add"
@@ -267,7 +230,7 @@ const goToProfile = () => {
           <q-btn
             flat
             icon="logout"
-            :label="t('auth.logout')"
+            :label="t('logout')"
             class="base-button base-button--secondary"
             @click="handleLogout"
           />
@@ -278,12 +241,12 @@ const goToProfile = () => {
           <div class="toggle-field">
             <div class="toggle-label">
               <q-icon :name="'dark_mode'" size="24px" />
-              <span>Dark Mode</span>
+              <span>{{ t('darkMode') }}</span>
             </div>
             <q-toggle
               :model-value="$q.dark.isActive"
               color="primary"
-              @update:model-value="toggleDarkMode"
+              @update:model-value="useDarkMode().toggle"
             />
           </div>
         </div>

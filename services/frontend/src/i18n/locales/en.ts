@@ -570,6 +570,15 @@ export default {
         terms: 'Terms and Conditions',
         copyright: 'All rights reserved.',
       },
+      NavigationBar: {
+        profile: 'Profile',
+        logout: 'Logout',
+        darkMode: 'Dark Mode',
+      },
+      SearchBar: {
+        baseHint: 'Search...',
+        searchingText: 'Searching...',
+      },
     },
   },
 
