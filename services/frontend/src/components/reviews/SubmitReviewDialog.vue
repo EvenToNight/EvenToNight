@@ -34,10 +34,11 @@ const updateReview = inject<((eventId: string, userId: string) => void) | undefi
 watch(
   () => props.selectedEventId,
   async (eventId) => {
-    if (!eventId) {
-      selectedEvent.value = null
-      return
-    }
+    selectedEvent.value = null
+    if (!authStore.user || !eventId) return
+
+    const canReviewEventId = await api.interactions.userReviewForEvent(authStore.user.id, eventId!)
+    if (!canReviewEventId) return
 
     try {
       const event = await api.events.getEventById(eventId)
