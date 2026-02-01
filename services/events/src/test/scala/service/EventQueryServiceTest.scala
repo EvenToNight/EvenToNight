@@ -132,7 +132,8 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
       city = None,
       location_name = None,
       sortBy = None,
-      sortOrder = None
+      sortOrder = None,
+      query = None
     )
 
     val result = service.execCommand(cmd)

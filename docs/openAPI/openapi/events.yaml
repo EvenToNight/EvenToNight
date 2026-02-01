@@ -358,6 +358,13 @@ paths:
           required: false
           schema:
             type: string
+        - name: query
+          in: query
+          description: Filter by search query across title, location name, and city (case-insensitive partial match)
+          required: false
+          schema:
+            type: string
+          example: Concert Milano
         - name: sortBy
           in: query
           description: Field to sort results by. Secondary sort is always by date (ascending).

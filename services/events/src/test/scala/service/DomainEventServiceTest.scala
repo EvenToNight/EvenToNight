@@ -32,7 +32,8 @@ class FailingEventRepository extends EventRepository:
       city: Option[String],
       location_name: Option[String],
       sortBy: Option[String],
-      sortOrder: Option[String]
+      sortOrder: Option[String],
+      query: Option[String]
   ): Either[Throwable, (List[Event], Boolean)] =
     Left(new RuntimeException("Database connection failed"))
 

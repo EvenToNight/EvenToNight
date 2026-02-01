@@ -340,6 +340,23 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val updatedEvent = Utils.updateEventIfPastDate(completedEvent)
     updatedEvent.status shouldBe EventStatus.COMPLETED
 
+  it should "not change event status if CANCELLED" in:
+    val cancelledEvent = Event(
+      _id = "event-cancelled",
+      title = Some("Cancelled Event"),
+      description = Some("This event was cancelled."),
+      poster = Some("cancelled.jpg"),
+      tags = Some(List(EventTag.EventType.Party)),
+      location = None,
+      date = Some(java.time.LocalDateTime.now().minusDays(10)),
+      status = EventStatus.CANCELLED,
+      instant = java.time.Instant.now(),
+      creatorId = "creator-cancelled",
+      collaboratorIds = None
+    )
+    val updatedEvent = Utils.updateEventIfPastDate(cancelledEvent)
+    updatedEvent.status shouldBe EventStatus.CANCELLED
+
   "Utils.createPaginatedResponse" should "create correct paginated response JSON" in:
     val events = List(
       Event(

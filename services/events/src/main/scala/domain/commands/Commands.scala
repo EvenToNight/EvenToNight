@@ -55,5 +55,6 @@ case class GetFilteredEventsCommand(
     city: Option[String],
     location_name: Option[String],
     sortBy: Option[String],
-    sortOrder: Option[String]
+    sortOrder: Option[String],
+    query: Option[String]
 ) extends Commands

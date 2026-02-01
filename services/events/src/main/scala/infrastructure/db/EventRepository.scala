@@ -31,7 +31,8 @@ trait EventRepository:
       city: Option[String] = None,
       location_name: Option[String] = None,
       sortBy: Option[String] = None,
-      sortOrder: Option[String] = None
+      sortOrder: Option[String] = None,
+      query: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)]
 
 case class MongoEventRepository(
@@ -125,12 +126,13 @@ case class MongoEventRepository(
       city: Option[String] = None,
       location_name: Option[String] = None,
       sortBy: Option[String] = None,
-      sortOrder: Option[String] = None
+      sortOrder: Option[String] = None,
+      query: Option[String] = None
   ): Either[Throwable, (List[Event], Boolean)] =
     Try {
 
       val combinedFilter =
-        buildFilterQuery(status, title, tags, startDate, endDate, organizationId, city, location_name)
+        buildFilterQuery(status, title, tags, startDate, endDate, organizationId, city, location_name, query)
 
       val sortField     = sortBy.getOrElse("date")
       val sortDirection = if sortOrder.contains("desc") then -1 else 1
@@ -145,9 +147,9 @@ case class MongoEventRepository(
           Sorts.ascending("date")
         )
 
-      val query = applyPagination(collection.find(combinedFilter).sort(sortCriteria), offset, limit)
+      val dbQuery = applyPagination(collection.find(combinedFilter).sort(sortCriteria), offset, limit)
 
-      val results = executeQueryAndUpdateEvents(query)
+      val results = executeQueryAndUpdateEvents(dbQuery)
 
       calculateHasMore(results, limit)
     }.toEither.left.map { ex =>
@@ -166,7 +168,8 @@ case class MongoEventRepository(
       endDate: Option[String],
       organizationId: Option[String],
       city: Option[String],
-      location_name: Option[String]
+      location_name: Option[String],
+      query: Option[String]
   ): org.bson.conversions.Bson =
     val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
 
@@ -178,6 +181,13 @@ case class MongoEventRepository(
           filters += Filters.in("status", statusList.map(_.toString).asJava)
     }
     title.foreach(t => filters += Filters.regex("title", escapeRegex(t), "i"))
+    query.foreach { q =>
+      filters += Filters.or(
+        Filters.regex("title", escapeRegex(q), "i"),
+        Filters.regex("location.name", escapeRegex(q), "i"),
+        Filters.regex("location.city", escapeRegex(q), "i")
+      )
+    }
     organizationId.foreach { org =>
       filters += Filters.or(
         Filters.eq("creatorId", org),
