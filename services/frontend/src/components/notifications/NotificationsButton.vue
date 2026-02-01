@@ -71,7 +71,7 @@ const loadNotifications = async (
         title = data.userName
         caption = `Liked your event "${data.eventName}"`
         onClick = () => {
-          goToEventDetails(data.userId)
+          goToUserProfile(data.userId)
         }
         break
       }
@@ -118,7 +118,9 @@ const incrementUnreadCountCallback = () => {
 }
 
 onMounted(async () => {
-  unreadNotificationsCount.value = await api.notifications.getUnreadNotificationsCount()
+  //TODO: check if return string or number
+  const initialCount = await api.notifications.getUnreadNotificationsCount()
+  unreadNotificationsCount.value = Number(initialCount) || 0
   api.notifications.onLikeReceived(incrementUnreadCountCallback)
   api.notifications.onFollowReceived(incrementUnreadCountCallback)
   api.notifications.onNewEventPublished(incrementUnreadCountCallback)

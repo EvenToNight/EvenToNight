@@ -1,4 +1,9 @@
-import type { NotificationData, NotificationEvent, NotificationType } from '../types/notifications'
+import type {
+  NotificationData,
+  NotificationEvent,
+  NotificationType,
+  Notification,
+} from '../types/notifications'
 
 export type APINotificationType =
   | 'review'
@@ -12,6 +17,13 @@ export type NotificationAPIData = {
   type: APINotificationType
   metadata: NotificationEvent
 }
+
+export interface NotificationAPIResponse extends NotificationAPIData {
+  id: string
+  createdAt: Date
+  read: boolean
+}
+
 export const NotificationAdapter = {
   fromAPIType(apiType: APINotificationType): NotificationType {
     switch (apiType) {
@@ -58,6 +70,16 @@ export const NotificationAdapter = {
   fromAPI(data: NotificationAPIData): NotificationData {
     return {
       type: this.fromAPIType(data.type),
+      data: data.metadata,
+    }
+  },
+
+  fromRestAPI(data: NotificationAPIResponse): Notification {
+    return {
+      id: data.id,
+      timestamp: data.createdAt,
+      read: data.read,
+      type: this.fromAPIType(data.type as APINotificationType),
       data: data.metadata,
     }
   },

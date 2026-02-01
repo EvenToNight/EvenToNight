@@ -44,7 +44,6 @@ const showNotification = (
 }
 
 const handleNewMessage = (event: NewMessageReceivedEvent) => {
-  console.log('New message received notification:', event)
   const { senderName, message, senderAvatar, senderId } = event
   if (authStore.user?.id === senderId) return
   if (routeName.value === 'chat') return
