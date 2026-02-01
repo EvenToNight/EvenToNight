@@ -4,11 +4,14 @@ import { api } from '@/api'
 import type { TagCategory } from '@/api/interfaces/events'
 import { useNavigation } from '@/router/utils'
 import LoadableComponent from '../common/LoadableComponent.vue'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
 const { goToExplore } = useNavigation()
-
+const { t } = useTranslation('components.home.CategorySelection')
 const categories = ref<TagCategory[]>([])
 const loading = ref(true)
+const logger = createLogger(import.meta.url)
 
 const categoryIcons: Record<string, string> = {
   EventType: 'event',
@@ -34,7 +37,7 @@ onMounted(async () => {
   try {
     categories.value = await api.events.getTags()
   } catch (error) {
-    console.error('Error loading categories:', error)
+    logger.error('Error loading categories:', error)
   } finally {
     loading.value = false
   }
@@ -44,8 +47,8 @@ onMounted(async () => {
   <loadable-component :loading="loading">
     <div class="category-selection q-py-lg">
       <div class="text-center q-mb-lg">
-        <h2 class="category-title q-mb-sm">Explore by Category</h2>
-        <p class="category-subtitle q-ma-none">Discover events based on your interests</p>
+        <h2 class="category-title q-mb-sm">{{ t('title') }}</h2>
+        <p class="category-subtitle q-ma-none">{{ t('subtitle') }}</p>
       </div>
 
       <div class="category-grid row justify-center q-mt-lg">

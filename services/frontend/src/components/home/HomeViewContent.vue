@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ref, onMounted, inject } from 'vue'
 import type { Ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
 import SearchBar from '@/components/navigation/SearchBar.vue'
 import EventCard from '@/components/cards/EventCard.vue'
@@ -11,11 +10,14 @@ import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useNavigation } from '@/router/utils'
 import { loadEvents, type EventLoadResult } from '@/api/utils/eventUtils'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
 const emit = defineEmits(['auth-required'])
 
 const { goToExplore, goToUserProfile } = useNavigation()
-const { t } = useI18n()
+const { t } = useTranslation('components.home.HomeViewContent')
+const logger = createLogger(import.meta.url)
 const authStore = useAuthStore()
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
@@ -36,25 +38,25 @@ onMounted(async () => {
           status: 'DRAFT',
           organizationId: authStore.user!.id,
         })
-      ).items.slice(0, 5) //TODO: evaluate max preveiw
+      ).items.slice(0, 5) //TODO: evaluate max preview number
     }
     if (authStore.isAuthenticated) {
-      console.log('Loading likes for upcoming events')
+      logger.log('Loading likes for upcoming events')
       const userId = authStore.user!.id
       const likePromises = upcomingEvents.value.map(async (event) => {
         try {
           const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
-          console.log(`Event ${event.eventId} liked: ${isLiked}`)
+          logger.log(`Event ${event.eventId} liked: ${isLiked}`)
           event.liked = isLiked
         } catch (error) {
-          console.error(`Failed to load like status for event ${event.eventId}:`, error)
+          logger.error(`Failed to load like status for event ${event.eventId}:`, error)
           event.liked = false
         }
       })
       await Promise.all(likePromises)
     }
   } catch (error) {
-    console.error('Failed to load upcoming events:', error)
+    logger.error('Failed to load upcoming events:', error)
   }
 })
 </script>
@@ -64,7 +66,7 @@ onMounted(async () => {
     <div class="hero-section">
       <div class="hero-container">
         <div class="hero-content">
-          <h1 class="hero-title">{{ t('home.hero.title') }}</h1>
+          <h1 class="hero-title">{{ t('title') }}</h1>
           <div ref="pageContentSearchBarRef" class="hero-search-wrapper">
             <div v-if="!showSearchInNavbar">
               <SearchBar ref="searchBarRef" />
@@ -78,7 +80,7 @@ onMounted(async () => {
       <div class="content-section">
         <CardSlider
           v-if="myDrafts.length > 0"
-          :title="'Continue editing your events'"
+          :title="t('draftSectionTitle')"
           @see-all="goToUserProfile(authStore.user!.id, '#drafted')"
         >
           <EventCard
@@ -89,7 +91,7 @@ onMounted(async () => {
         </CardSlider>
         <CardSlider
           v-else-if="upcomingEvents.length > 0"
-          :title="t('home.sections.upcomingEvents')"
+          :title="t('upcomingEventsSectionTitle')"
           @see-all="handleSeeAllEvents"
         >
           <EventCard
@@ -101,7 +103,7 @@ onMounted(async () => {
         </CardSlider>
         <CardSlider
           v-if="upcomingEvents.length > 0"
-          :title="t('home.sections.upcomingEvents')"
+          :title="t('upcomingEventsSectionTitle')"
           @see-all="handleSeeAllEvents"
         >
           <EventCard
@@ -115,7 +117,7 @@ onMounted(async () => {
         <CategorySelection />
         <CardSlider
           v-if="upcomingEvents.length > 0"
-          :title="t('home.sections.upcomingEvents')"
+          :title="t('upcomingEventsSectionTitle')"
           @see-all="handleSeeAllEvents"
         >
           <EventCard

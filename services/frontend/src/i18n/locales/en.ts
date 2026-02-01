@@ -528,6 +528,17 @@ export default {
         subtitile: 'Find events, organizers, or connect with your friends',
       },
     },
+    home: {
+      CategorySelection: {
+        title: 'Explore by Category',
+        subtitle: 'Discover events that match your interests',
+      },
+      HomeViewContent: {
+        title: 'Find the event for you',
+        draftSectionTitle: 'Continue editing your events',
+        upcomingEventsSectionTitle: 'Upcoming Events',
+      },
+    },
   },
 
   auth: {
@@ -611,9 +622,7 @@ export default {
   },
 
   home: {
-    hero: {
-      title: 'Find the event for you',
-    },
+    hero: {},
     sections: {
       upcomingEvents: 'Upcoming Events',
     },
