@@ -75,7 +75,7 @@ export default {
           uploadButtonLabel: 'Upload Poster',
         },
         actions: {
-          cancel: 'Go Back',
+          cancel: 'Back',
           delete: 'Delete Event',
           saveDraft: 'Save Draft',
           updateDraft: 'Update Draft',
@@ -87,7 +87,7 @@ export default {
             title: 'Delete Event',
             message: 'Are you sure you want to delete this event? This action cannot be undone.',
             confirmButton: 'Delete',
-            cancelButton: 'Go Back',
+            cancelButton: 'Back',
           },
         },
         messages: {

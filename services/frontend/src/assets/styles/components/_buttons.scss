@@ -40,8 +40,8 @@
 
 // Outline button fix styles (formerly from Button.vue global styles)
 .outline-btn-fix.q-btn.q-btn--outline {
-  color: #6f00ff !important;
-  border-color: #6f00ff !important;
+  color: $color-primary !important;
+  border-color: $color-primary !important;
   background: transparent !important;
 
   .q-btn__content,
@@ -56,7 +56,7 @@
   i,
   i.q-icon,
   i.material-icons {
-    color: #6f00ff !important;
+    color: $color-primary !important;
   }
 
   // Deep selectors for scoped components
@@ -68,7 +68,7 @@
   :deep(div),
   :deep(div span),
   :deep(.row span) {
-    color: #6f00ff !important;
+    color: $color-primary !important;
   }
 
   // Fix all interactive states
@@ -78,7 +78,7 @@
   &:focus,
   &.q-hoverable:hover,
   &.q-focusable:focus {
-    color: #6f00ff !important;
+    color: $color-primary !important;
     background: rgba(111, 0, 255, 0.1) !important;
 
     .q-btn__content,
@@ -93,7 +93,7 @@
     i,
     i.q-icon,
     i.material-icons {
-      color: #6f00ff !important;
+      color: $color-primary !important;
     }
 
     :deep(.q-icon),
@@ -104,14 +104,14 @@
     :deep(div),
     :deep(div span),
     :deep(.row span) {
-      color: #6f00ff !important;
+      color: $color-primary !important;
     }
   }
 }
 
 body.body--dark .outline-btn-fix.q-btn.q-btn--outline {
-  color: #bb86fc !important;
-  border-color: #bb86fc !important;
+  color: $color-primary-light !important;
+  border-color: $color-primary-light !important;
   background: transparent !important;
 
   .q-btn__content,
@@ -126,7 +126,7 @@ body.body--dark .outline-btn-fix.q-btn.q-btn--outline {
   i,
   i.q-icon,
   i.material-icons {
-    color: #bb86fc !important;
+    color: $color-primary-light !important;
   }
 
   :deep(.q-icon),
@@ -137,7 +137,7 @@ body.body--dark .outline-btn-fix.q-btn.q-btn--outline {
   :deep(div),
   :deep(div span),
   :deep(.row span) {
-    color: #bb86fc !important;
+    color: $color-primary-light !important;
   }
 
   // Fix all interactive states in dark mode
@@ -147,8 +147,8 @@ body.body--dark .outline-btn-fix.q-btn.q-btn--outline {
   &:focus,
   &.q-hoverable:hover,
   &.q-focusable:focus {
-    color: #bb86fc !important;
-    background: rgba(187, 134, 252, 0.1) !important;
+    color: $color-primary-light !important;
+    background: color.adjust($color-primary-light, $alpha: 0.1) !important;
 
     .q-btn__content,
     .q-btn__content span,
@@ -162,7 +162,7 @@ body.body--dark .outline-btn-fix.q-btn.q-btn--outline {
     i,
     i.q-icon,
     i.material-icons {
-      color: #bb86fc !important;
+      color: $color-primary-light !important;
     }
 
     :deep(.q-icon),
@@ -173,7 +173,7 @@ body.body--dark .outline-btn-fix.q-btn.q-btn--outline {
     :deep(div),
     :deep(div span),
     :deep(.row span) {
-      color: #bb86fc !important;
+      color: $color-primary-light !important;
     }
   }
 }

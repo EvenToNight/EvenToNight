@@ -666,7 +666,7 @@ onMounted(async () => {
             <div class="action-buttons">
               <q-btn
                 flat
-                :label="t('form.cancel')"
+                :label="t('form.actions.cancel')"
                 class="base-button base-button--tertiary"
                 @click="goToUserProfile(currentUserId!)"
               />
