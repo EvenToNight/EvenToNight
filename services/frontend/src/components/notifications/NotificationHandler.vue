@@ -16,7 +16,7 @@ const $q = useQuasar()
 const activeNotifications = ref(0)
 const MAX_NOTIFICATIONS = 3
 const authStore = useAuthStore()
-const { goToChat, goToUserProfile, goToEventDetails, routeName } = useNavigation()
+const { goToChat, goToUserProfile, goToEventDetails, goToEventReviews, routeName } = useNavigation()
 
 const showNotification = (
   options: QNotifyCreateOptions,
@@ -116,7 +116,7 @@ const handleNewEvent = async (event: NewEventPublishedEvent) => {
 }
 
 const handleNewReview = (event: NewReviewRecievedEvent) => {
-  const { eventId, userName, userAvatar } = event
+  const { eventId, userName, userId, userAvatar } = event
   showNotification(
     {
       message: userName,
@@ -126,7 +126,7 @@ const handleNewReview = (event: NewReviewRecievedEvent) => {
     {
       label: 'View Review',
       handler: () => {
-        goToEventDetails(eventId)
+        goToEventReviews(userId, eventId)
       },
     }
   )
