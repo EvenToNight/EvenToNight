@@ -7,9 +7,9 @@ import SortFilters, { type SortBy } from './SortFilters.vue'
 import type { Tag } from '@/api/types/events'
 import type { OtherFilter } from './FeedFilters.vue'
 import FeedFilters from './FeedFilters.vue'
-import { useI18n } from 'vue-i18n'
+import { useTranslation } from '@/composables/useTranslation'
 
-const { t } = useI18n()
+const { t } = useTranslation('components.explore.filters.FiltersButton')
 
 // const normalizeQuery = (queryObj: any) => {
 //   return typeof queryObj === 'object' && queryObj !== null
@@ -237,7 +237,7 @@ onUnmounted(() => {
 
 <template>
   <div ref="filtersButtonRef" class="filters-button-wrapper">
-    <q-btn outline color="primary" :label="t('filters.filters')" class="outline-btn-fix">
+    <q-btn outline color="primary" :label="t('filters')" class="outline-btn-fix">
       <q-badge
         v-if="hasActiveFilters"
         floating
@@ -259,12 +259,12 @@ onUnmounted(() => {
               flat
               dense
               color="grey-7"
-              :label="t('filters.cancel')"
+              :label="t('cancel')"
               class="clear-filters-btn"
               @click="clearFilters"
             />
             <q-space v-else />
-            <q-btn color="primary" :label="t('filters.apply')" @click="applyFilters" />
+            <q-btn color="primary" :label="t('apply')" @click="applyFilters" />
           </div>
         </div>
       </q-menu>

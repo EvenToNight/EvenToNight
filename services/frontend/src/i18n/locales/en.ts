@@ -461,6 +461,73 @@ export default {
         inCollaborationWith: 'In collaboration with',
       },
     },
+    explore: {
+      filters: {
+        DateFilters: {
+          today: 'Today',
+          thisWeek: 'This Week',
+          thisMonth: 'This Month',
+          date: 'Date',
+          selectPeriod: 'Select Period',
+          cancel: 'Cancel',
+          apply: 'Apply',
+        },
+        FeedFilters: {
+          others: 'Others',
+          upcoming: 'Upcoming',
+          popular: 'Popular',
+          nearby: 'Nearby',
+          forYou: 'For You',
+          new: 'New',
+        },
+        FilterButton: {
+          filters: 'Filters',
+          cancel: 'Clear',
+          apply: 'Apply',
+        },
+        PriceFilters: {
+          free: 'Free',
+          paid: 'Paid',
+          from: 'From',
+          to: 'To',
+          customize: 'Customize',
+          price: 'Price',
+          selectPrice: 'Select Price Range',
+          minPrice: 'Minimum Price',
+          maxPrice: 'Maximum Price',
+          cancel: 'Close',
+          clear: 'Clear',
+          apply: 'Apply',
+        },
+        SortFilters: {
+          sort: 'Sort By',
+          date_asc: 'Ascenting Date',
+          date_desc: 'Descending Date',
+          price_asc: 'Ascenting Price',
+          price_desc: 'Descending Price',
+        },
+        TagFilters: {
+          tags: 'Tags',
+        },
+      },
+      tabs: {
+        ExploreEventsTab: {
+          emptySearch: 'No events found',
+          emptySearchText: 'Search events by name',
+        },
+      },
+      ExploreViewContent: {
+        eventsTabTitle: 'Events',
+        organizationsTabTitle: 'Organizations',
+        organizationEmptySearch: 'No organizations found',
+        organizationEmptySearchText: 'Search organizations by name',
+        usersTabTitle: 'Users',
+        usersEmptySearch: 'No users found',
+        usersEmptySearchText: 'Search users by name',
+        title: 'Explore',
+        subtitile: 'Find events, organizers, or connect with your friends',
+      },
+    },
   },
 
   auth: {
@@ -549,68 +616,6 @@ export default {
     },
     sections: {
       upcomingEvents: 'Upcoming Events',
-    },
-  },
-  explore: {
-    title: 'Explore',
-    subtitile: 'Find events, organizers, or connect with your friends',
-    events: {
-      title: 'Events',
-      emptySearch: 'No events found',
-      emptySearchText: 'Search events by name',
-    },
-    organizations: {
-      title: 'Organizations',
-      emptySearch: 'No organizations found',
-      emptySearchText: 'Search organizations by name',
-    },
-    users: {
-      title: 'Users',
-      emptySearch: 'No users found',
-      emptySearchText: 'Search users by name',
-    },
-  },
-
-  filters: {
-    filters: 'Filters',
-    cancel: 'Cancel',
-    delete: 'Clear',
-    apply: 'Apply',
-    dateFilters: {
-      date: 'Date',
-      selectPeriod: 'Select Period',
-      today: 'Today',
-      thisWeek: 'This Week',
-      thisMonth: 'This Month',
-    },
-    feedFilters: {
-      others: 'Others',
-      upcoming: 'Upcoming',
-      popular: 'Popular',
-      nearby: 'Nearby',
-      forYou: 'For You',
-      new: 'New',
-    },
-    priceFilters: {
-      price: 'Price',
-      selectPrice: 'Select Price Range',
-      minPrice: 'Minimum Price',
-      maxPrice: 'Maximum Price',
-      customize: 'Customize',
-      free: 'Free',
-      paid: 'Paid',
-      from: 'From',
-      to: 'To',
-    },
-    sortFilters: {
-      sort: 'Sort By',
-      date_asc: 'Ascenting Date',
-      date_desc: 'Descending Date',
-      price_asc: 'Ascenting Price',
-      price_desc: 'Descending Price',
-    },
-    TagFilters: {
-      tags: 'Tags',
     },
   },
 }

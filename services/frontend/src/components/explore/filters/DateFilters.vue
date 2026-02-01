@@ -4,7 +4,7 @@ export const DATE_FILTERS = ['today', 'this_week', 'this_month'] as const
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useNavigation } from '@/router/utils'
-import { useI18n } from 'vue-i18n'
+import { useTranslation } from '@/composables/useTranslation'
 
 export type DateFilter = (typeof DATE_FILTERS)[number]
 
@@ -24,7 +24,7 @@ const emit = defineEmits<{
 }>()
 
 const { locale } = useNavigation()
-const { t } = useI18n()
+const { t } = useTranslation('components.explore.filters.DateFilters')
 
 const selectedDateFilter = ref<DateFilter | null>(props.modelValue?.dateFilter || null)
 const selectedDateRange = ref<{ from: Date; to: Date } | null>(props.modelValue?.dateRange || null)
@@ -32,9 +32,9 @@ const showDateRangePicker = ref(false)
 const today = new Date().toISOString().split('T')[0] as string
 
 const dateFilters: { label: string; value: DateFilter }[] = [
-  { label: t('filters.dateFilters.today'), value: 'today' },
-  { label: t('filters.dateFilters.thisWeek'), value: 'this_week' },
-  { label: t('filters.dateFilters.thisMonth'), value: 'this_month' },
+  { label: t('today'), value: 'today' },
+  { label: t('thisWeek'), value: 'this_week' },
+  { label: t('thisMonth'), value: 'this_month' },
 ]
 
 const emitChange = () => {
@@ -83,7 +83,7 @@ watch(
 
 <template>
   <div class="filter-group">
-    <span class="filter-label">{{ t('filters.dateFilters.date') }}:</span>
+    <span class="filter-label">{{ t('date') }}:</span>
     <div class="filter-chips">
       <q-chip
         v-for="filter in dateFilters"
@@ -106,7 +106,7 @@ watch(
         <q-menu v-model="showDateRangePicker" anchor="bottom left" self="top left">
           <q-card style="min-width: 350px">
             <q-card-section>
-              <div class="text-h6">{{ t('filters.dateFilters.selectPeriod') }}</div>
+              <div class="text-h6">{{ t('selectPeriod') }}</div>
             </q-card-section>
             <q-card-section class="q-pt-none">
               <q-date
@@ -117,17 +117,22 @@ watch(
               />
             </q-card-section>
             <q-card-actions align="right">
-              <q-btn flat label="Annulla" color="grey-7" @click="showDateRangePicker = false" />
+              <q-btn
+                flat
+                :label="t('cancel')"
+                color="grey-7"
+                @click="showDateRangePicker = false"
+              />
               <q-btn
                 v-if="selectedDateRange"
                 flat
-                :label="t('filters.cancel')"
+                :label="t('cancel')"
                 color="grey-7"
                 @click="clearDateRange"
               />
               <q-btn
                 flat
-                :label="t('filters.apply')"
+                :label="t('apply')"
                 color="primary"
                 :disable="!selectedDateRange"
                 @click="applyDateRange"

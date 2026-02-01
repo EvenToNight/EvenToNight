@@ -2,8 +2,8 @@
 export const FEED_FILTERS = ['upcoming', 'popular', 'for_you', 'new', 'nearby'] as const
 </script>
 <script setup lang="ts">
+import { useTranslation } from '@/composables/useTranslation'
 import { ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 export type OtherFilter = (typeof FEED_FILTERS)[number]
 
@@ -17,15 +17,15 @@ const emit = defineEmits<{
   'update:modelValue': [value: OtherFilter | null]
 }>()
 
-const { t } = useI18n()
+const { t } = useTranslation('components.explore.filters.FeedFilters')
 const selectedOtherFilter = ref<OtherFilter | null>(props.modelValue || null)
 
 const otherFilters: { label: string; value: OtherFilter }[] = [
-  { label: t('filters.feedFilters.upcoming'), value: 'upcoming' },
-  { label: t('filters.feedFilters.popular'), value: 'popular' },
-  { label: t('filters.feedFilters.forYou'), value: 'for_you' },
-  { label: t('filters.feedFilters.new'), value: 'new' },
-  { label: t('filters.feedFilters.nearby'), value: 'nearby' },
+  { label: t('upcoming'), value: 'upcoming' },
+  { label: t('popular'), value: 'popular' },
+  { label: t('forYou'), value: 'for_you' },
+  { label: t('new'), value: 'new' },
+  { label: t('nearby'), value: 'nearby' },
 ]
 
 const toggleOtherFilter = (value: OtherFilter) => {
@@ -43,7 +43,7 @@ watch(
 
 <template>
   <div class="filter-group">
-    <span class="filter-label">{{ t('filters.feedFilters.others') }}:</span>
+    <span class="filter-label">{{ t('others') }}:</span>
     <div class="filter-chips">
       <q-chip
         v-for="filter in otherFilters"

@@ -2,8 +2,8 @@
 export const PRICE_FILTERS = ['free', 'paid'] as const
 </script>
 <script setup lang="ts">
+import { useTranslation } from '@/composables/useTranslation'
 import { ref, computed, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 export type PriceFilter = (typeof PRICE_FILTERS)[number]
 
 export interface PriceFilterValue {
@@ -15,7 +15,7 @@ interface Props {
   modelValue?: PriceFilterValue
 }
 
-const { t } = useI18n()
+const { t } = useTranslation('components.explore.filters.PriceFilters')
 
 const props = defineProps<Props>()
 
@@ -25,8 +25,8 @@ const emit = defineEmits<{
 
 const selectedPriceFilter = ref<PriceFilter | null>(props.modelValue?.priceFilter || null)
 const priceFilters: { label: string; value: PriceFilter }[] = [
-  { label: t('filters.priceFilters.free'), value: 'free' },
-  { label: t('filters.priceFilters.paid'), value: 'paid' },
+  { label: t('free'), value: 'free' },
+  { label: t('paid'), value: 'paid' },
 ]
 
 const customPriceRange = ref<{ min?: number | null; max?: number | null }>(
@@ -52,11 +52,11 @@ const formatPriceRange = (range: { min?: number | null; max?: number | null }) =
   if (range.min && range.max) {
     return `€${range.min} - €${range.max}`
   } else if (range.min) {
-    return `${t('filters.priceFilters.from')} €${range.min}`
+    return `${t('from')} €${range.min}`
   } else if (range.max) {
-    return `${t('filters.priceFilters.to')} €${range.max}`
+    return `${t('to')} €${range.max}`
   }
-  return t('filters.priceFilters.customize')
+  return t('customize')
 }
 
 const applyPriceRange = () => {
@@ -94,7 +94,7 @@ watch(
 
 <template>
   <div class="filter-group">
-    <span class="filter-label">{{ t('filters.priceFilters.price') }}:</span>
+    <span class="filter-label">{{ t('price') }}:</span>
     <div class="filter-chips">
       <q-chip
         v-for="filter in priceFilters"
@@ -126,7 +126,7 @@ watch(
         >
           <q-card style="min-width: 320px">
             <q-card-section>
-              <div class="text-h6">{{ t('filters.priceFilters.selectPrice') }}</div>
+              <div class="text-h6">{{ t('selectPrice') }}</div>
             </q-card-section>
 
             <q-card-section class="q-pt-none">
@@ -134,8 +134,8 @@ watch(
                 <q-input
                   v-model.number="tempPriceRange.min"
                   type="number"
-                  :label="t('filters.priceFilters.minPrice')"
-                  prefix="€"
+                  :label="t('minPrice')"
+                  prefix="$"
                   outlined
                   dense
                   :min="0"
@@ -143,8 +143,8 @@ watch(
                 <q-input
                   v-model.number="tempPriceRange.max"
                   type="number"
-                  :label="t('filters.priceFilters.maxPrice')"
-                  prefix="€"
+                  :label="t('maxPrice')"
+                  prefix="$"
                   outlined
                   dense
                   :min="tempPriceRange.min || 0"
@@ -155,20 +155,20 @@ watch(
             <q-card-actions align="right">
               <q-btn
                 flat
-                :label="t('filters.cancel')"
+                :label="t('cancel')"
                 color="grey-7"
                 @click="showPriceRangePicker = false"
               />
               <q-btn
                 v-if="tempPriceRange.min !== null || tempPriceRange.max !== null"
                 flat
-                :label="t('filters.priceFilters.clear')"
+                :label="t('clear')"
                 color="grey-7"
                 @click="clearPriceRange"
               />
               <q-btn
                 flat
-                :label="t('filters.priceFilters.apply')"
+                :label="t('apply')"
                 color="primary"
                 :disable="!isPriceRangeValid"
                 @click="applyPriceRange"

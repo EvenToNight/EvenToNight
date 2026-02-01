@@ -5,13 +5,13 @@ import EventFiltersButton, {
   type EventFilters,
 } from '@/components/explore/filters/FiltersButton.vue'
 import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
-import { useI18n } from 'vue-i18n'
+import { useTranslation } from '@/composables/useTranslation'
 import type { PaginatedRequest, PaginatedResponse } from '@/api/interfaces/commons'
 import type { EventLoadResult } from '@/api/utils/eventUtils'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { defaultLimit } from '@/api/utils/requestUtils'
 
-const { t } = useI18n()
+const { t } = useTranslation('components.explore.tabs.ExploreEventsTab')
 
 interface Props {
   searchQuery: string
@@ -81,12 +81,8 @@ watch(eventFilters, () => {
         </div>
       </template>
     </q-infinite-scroll>
-    <EmptyTab
-      v-else-if="searchQuery"
-      :emptyText="t('explore.events.emptySearch')"
-      :emptyIconName="'event_busy'"
-    />
-    <EmptyTab v-else :emptyText="t('explore.events.emptySearchText')" :emptyIconName="'search'" />
+    <EmptyTab v-else-if="searchQuery" :emptyText="t('emptySearch')" :emptyIconName="'event_busy'" />
+    <EmptyTab v-else :emptyText="t('emptySearchText')" :emptyIconName="'search'" />
   </div>
 </template>
 

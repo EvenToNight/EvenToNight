@@ -4,6 +4,7 @@ import { api } from '@/api'
 import type { TagCategory } from '@/api/interfaces/events'
 import type { Tag } from '@/api/types/events'
 import { useI18n } from 'vue-i18n'
+import { createLogger } from '@/utils/logger'
 
 interface Props {
   modelValue?: Tag[]
@@ -12,6 +13,7 @@ interface Props {
 const { t } = useI18n()
 
 const props = defineProps<Props>()
+const logger = createLogger(import.meta.url)
 
 const emit = defineEmits<{
   'update:modelValue': [value: Tag[]]
@@ -25,7 +27,7 @@ const loadTagFilters = async () => {
     const tagCategories: TagCategory[] = await api.events.getTags()
     tagFilters.value = tagCategories.flatMap((category) => category.tags)
   } catch (err) {
-    console.error('Failed to load tag filters:', err)
+    logger.error('Failed to load tag filters:', err)
   }
 }
 
@@ -54,7 +56,7 @@ watch(
 
 <template>
   <div class="filter-group">
-    <span class="filter-label">{{ t('filters.TagFilters.tags') }}:</span>
+    <span class="filter-label">{{ t('tags') }}:</span>
     <div class="filter-chips">
       <q-chip
         v-for="tag in tagFilters"

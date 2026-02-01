@@ -9,15 +9,17 @@ import TabView, { type Tab } from '@/components/navigation/TabView.vue'
 import ExploreEventsTab from '@/components/explore/tabs/ExploreEventsTab.vue'
 import ExplorePeopleTab from '@/components/explore/tabs/ExplorePeopleTab.vue'
 import type { EventFilters } from './filters/FiltersButton.vue'
-import { useI18n } from 'vue-i18n'
+import { useTranslation } from '@/composables/useTranslation'
 import { useRoute } from 'vue-router'
 import type { PaginatedRequest } from '@/api/interfaces/commons'
 import { emptyPaginatedResponse } from '@/api/utils/requestUtils'
 import { loadEvents } from '@/api/utils/eventUtils'
 import { useNavigation } from '@/router/utils'
+import { createLogger } from '@/utils/logger'
 
-const { t } = useI18n()
+const { t } = useTranslation('components.explore.ExploreViewContent')
 const route = useRoute()
+const logger = createLogger(import.meta.url)
 
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 const emit = defineEmits(['authRequired'])
@@ -37,7 +39,7 @@ const searchEvents = async (
   //   return emptyPaginatedResponse<EventLoadResult>()
   // }
   //TODO: implement filters in search
-  console.log('Searching events with filters:', _eventFilters)
+  logger.log('Searching events with filters:', _eventFilters)
   return loadEvents({
     title: searchQuery.value || undefined,
     userId: authStore.user?.id,
@@ -61,7 +63,7 @@ watch(activeTab, (newTab) => {
 })
 
 watch(searchQuery, () => {
-  console.log('Search query changed:', searchQuery.value)
+  logger.log('Search query changed:', searchQuery.value)
   if (!searchQuery.value.trim()) {
     lastActiveTab.value = activeTab.value
     activeTab.value = 'events'
@@ -74,6 +76,7 @@ watch(
   () => route.query.search,
   (newSearch) => {
     if (newSearch && typeof newSearch === 'string') {
+      logger.log('Route search query changed:', newSearch)
       searchQuery.value = newSearch.trim()
     } else if (!newSearch) {
       searchQuery.value = ''
@@ -92,7 +95,7 @@ const searchUsersByRole = async (role: UserRole, pagination: PaginatedRequest) =
 const tabs = computed<Tab[]>(() => [
   {
     id: 'events',
-    label: t('explore.events.title'),
+    label: t('eventsTabTitle'),
     component: ExploreEventsTab,
     props: {
       searchQuery: searchQuery.value,
@@ -102,24 +105,24 @@ const tabs = computed<Tab[]>(() => [
   },
   {
     id: 'organizations',
-    label: t('explore.organizations.title'),
+    label: t('organizationsTabTitle'),
     component: ExplorePeopleTab,
     props: {
       searchQuery: searchQuery.value,
-      emptySearchText: t('explore.organizations.emptySearchText'),
-      emptyText: t('explore.organizations.emptySearch'),
+      emptySearchText: t('organizationEmptySearchText'),
+      emptyText: t('organizationEmptySearch'),
       loadFn: (limit: number, offset: number) =>
         searchUsersByRole('organization', { limit, offset }),
     },
   },
   {
     id: 'people',
-    label: t('explore.users.title'),
+    label: t('usersTabTitle'),
     component: ExplorePeopleTab,
     props: {
       searchQuery: searchQuery.value,
-      emptySearchText: t('explore.users.emptySearchText'),
-      emptyText: t('explore.users.emptySearch'),
+      emptySearchText: t('usersEmptySearchText'),
+      emptyText: t('usersEmptySearch'),
       loadFn: (limit: number, offset: number) => searchUsersByRole('member', { limit, offset }),
     },
   },
@@ -130,8 +133,8 @@ const tabs = computed<Tab[]>(() => [
   <div class="explore-page">
     <div class="explore-hero">
       <div class="explore-header">
-        <h1 class="explore-title">{{ t('explore.title') }}</h1>
-        <p class="explore-subtitle">{{ t('explore.subtitile') }}</p>
+        <h1 class="explore-title">{{ t('title') }}</h1>
+        <p class="explore-subtitle">{{ t('subtitile') }}</p>
         <div ref="pageContentSearchBarRef" class="search-container">
           <div v-if="!showSearchInNavbar">
             <SearchBar ref="searchBarRef" />
@@ -154,13 +157,12 @@ const tabs = computed<Tab[]>(() => [
 }
 
 .explore-hero {
-  background: linear-gradient(135deg, #6b46c1 0%, #7c3aed 50%, #8b5cf6 100%);
+  background: linear-gradient(135deg, $color-primary 0%, $color-primary-light 100%);
 
   @include dark-mode {
-    background: linear-gradient(135deg, #4c1d95 0%, #5b21b6 50%, #6d28d9 100%);
+    background: linear-gradient(135deg, $color-primary-dark 0%, $color-primary 100%);
   }
 
-  // Rounded corners only when viewport exceeds max-width
   @media (min-width: calc($app-max-width + 1px)) {
     border-radius: 24px;
   }
