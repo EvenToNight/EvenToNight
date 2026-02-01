@@ -84,6 +84,7 @@ export class ParticipationService {
     reviewed?: boolean,
     eventStatus?: string,
     order?: 'asc' | 'desc',
+    title?: string,
   ): Promise<PaginatedResponseDto<UserParticipationDto>> {
     await this.metadataService.validateUserExistence(userId);
 
@@ -139,6 +140,15 @@ export class ParticipationService {
     if (reviewed !== undefined) {
       enrichedItems = enrichedItems.filter(
         (item) => item.reviewed === reviewed,
+      );
+    }
+
+    if (title !== undefined) {
+      const titleEventIds =
+        await this.metadataService.getEventIdsByTitle(title);
+      const titleEventSet = new Set(titleEventIds);
+      enrichedItems = enrichedItems.filter((item) =>
+        titleEventSet.has(item.eventId),
       );
     }
 
