@@ -49,5 +49,5 @@ const getUserInteractionsInfo = async (userId: UserID): Promise<UserInteractions
 const getOrganizationReviewsStatistics = async (
   organizationId: UserID
 ): Promise<OrganizationReviewsStatistics> => {
-  return await api.interactions.getOrganizationReviews(organizationId)
+  return await api.interactions.getOrganizationReviewStatistics(organizationId)
 }

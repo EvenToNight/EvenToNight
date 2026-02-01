@@ -41,19 +41,11 @@ const showReviewDialog = ref(false)
 const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 
 const loadReviewsStatistics = async () => {
-  const response = await api.interactions.getOrganizationReviews(organizationId.value, {
-    pagination: {
-      offset: 0,
-      limit: 1,
-    },
-  })
-
-  reviewsStatistics.value = {
-    averageRating: response.averageRating,
-    totalReviews: response.totalReviews,
-    ratingDistribution: response.ratingDistribution,
-  }
+  reviewsStatistics.value = await api.interactions.getOrganizationReviewStatistics(
+    organizationId.value
+  )
 }
+
 const loadOrganizationInfo = async () => {
   try {
     const user = await api.users.getUserById(organizationId.value)
