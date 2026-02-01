@@ -279,6 +279,18 @@ export default {
         },
       },
     },
+    VerifyTicketView: {
+      ticketID: 'Ticket ID',
+      loadingTitle: 'Verifying Ticket...',
+      loadingMessage: 'Please wait while we verify your ticket',
+      failedTitle: 'Verification Failed',
+      failedMessage: 'Ticket verification failed. Please check the ticket code and try again.',
+      alreadyUsedTitle: 'Ticket Already Used',
+      alreadyUsedMessage:
+        'This ticket has already been verified and used. It cannot be used again.',
+      successTitle: 'Ticket Verified Successfully!',
+      successMessage: 'This ticket has been verified and marked as used.',
+    },
   },
 
   date: 'Date',

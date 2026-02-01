@@ -19,7 +19,6 @@ watch(
   () => route.params.id,
   async (newId, oldId) => {
     if (newId !== oldId) {
-      console.log('Route param changed from', oldId, 'to', newId)
       user.value = await loadUserWithInfo(newId as string)
       scrollToTop()
     }
