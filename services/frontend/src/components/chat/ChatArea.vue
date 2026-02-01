@@ -113,8 +113,13 @@ function scrollToBottom(smooth = false) {
 }
 
 function onScroll(info: { verticalPercentage: number }) {
-  const atBottom = info.verticalPercentage >= 0.98
-  autoScroll.value = atBottom
+  const scrollTarget = scrollAreaRef.value?.getScrollTarget()
+  if (scrollTarget) {
+    // Se non c'è scroll (tutto il contenuto è visibile), considera sempre "at bottom"
+    const hasScroll = scrollTarget.scrollHeight > scrollTarget.clientHeight
+    const atBottom = !hasScroll || info.verticalPercentage >= 0.98
+    autoScroll.value = atBottom
+  }
 }
 
 async function handleSendMessage(content: string) {
