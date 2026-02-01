@@ -53,6 +53,10 @@ export class ParticipationService {
       this.participationModel.countDocuments({ eventId }),
     ]);
 
+    if (items.length === 0) {
+      return new PaginatedResponseDto([], total, limit ?? total, offset ?? 0);
+    }
+
     const userIds = items.map((item) => item.userId);
     const users = await this.metadataService.getUsersInfo(userIds);
 
@@ -89,22 +93,16 @@ export class ParticipationService {
     await this.metadataService.validateUserExistence(userId);
 
     const sortOrder = order === 'asc' ? 1 : -1;
-    let query = this.participationModel
+    const query = this.participationModel
       .find({ userId })
       .select({ _id: 0, eventId: 1, createdAt: 1 })
       .sort({ createdAt: sortOrder });
 
-    if (offset !== undefined) {
-      query = query.skip(offset);
-    }
-    if (limit !== undefined) {
-      query = query.limit(limit);
-    }
+    const items = await query.exec();
 
-    const [items] = await Promise.all([
-      query.exec(),
-      this.participationModel.countDocuments({ userId }),
-    ]);
+    if (items.length === 0) {
+      return new PaginatedResponseDto([], 0, limit ?? 0, offset ?? 0);
+    }
 
     const eventIds = items.map((item) => item.eventId);
 
@@ -126,6 +124,9 @@ export class ParticipationService {
       enrichedItems = enrichedItems.filter((item) =>
         orgEventSet.has(item.eventId),
       );
+      if (enrichedItems.length === 0) {
+        return new PaginatedResponseDto([], 0, limit ?? 0, offset ?? 0);
+      }
     }
 
     if (eventStatus !== undefined) {
@@ -135,12 +136,18 @@ export class ParticipationService {
       enrichedItems = enrichedItems.filter((item) =>
         statusEventSet.has(item.eventId),
       );
+      if (enrichedItems.length === 0) {
+        return new PaginatedResponseDto([], 0, limit ?? 0, offset ?? 0);
+      }
     }
 
     if (reviewed !== undefined) {
       enrichedItems = enrichedItems.filter(
         (item) => item.reviewed === reviewed,
       );
+      if (enrichedItems.length === 0) {
+        return new PaginatedResponseDto([], 0, limit ?? 0, offset ?? 0);
+      }
     }
 
     if (title !== undefined) {
@@ -154,8 +161,12 @@ export class ParticipationService {
 
     const filteredTotal = enrichedItems.length;
 
+    const start = offset ?? 0;
+    const end = limit !== undefined ? start + limit : undefined;
+    const paginatedItems = enrichedItems.slice(start, end);
+
     return new PaginatedResponseDto(
-      enrichedItems,
+      paginatedItems,
       filteredTotal,
       limit ?? filteredTotal,
       offset ?? 0,
