@@ -3,14 +3,23 @@ import { ref, watch } from 'vue'
 import type { EventID } from '@/api/types/events'
 import type { Rating } from '@/api/types/interaction'
 import type { UserID } from '@/api/types/users'
-
+import { api } from '@/api'
 import EventFilter from './filters/EventFilter.vue'
 import RatingFilter from './filters/RatingFilter.vue'
+import { defaultLimit } from '@/api/utils/requestUtils'
 
 interface Props {
   selectedEventId: EventID | null
   selectedRating: Rating | null
   organizationId: UserID
+}
+
+async function loadEvents() {
+  return api.events.searchEvents({
+    organizationId: props.organizationId,
+    status: 'COMPLETED',
+    pagination: { limit: defaultLimit },
+  })
 }
 
 const props = defineProps<Props>()
@@ -37,6 +46,7 @@ watch(selectedRating, (newValue) => {
     <EventFilter
       v-model:selectedEventId="selectedEventId"
       :organization-id="props.organizationId"
+      :load-fn="loadEvents"
     />
     <RatingFilter v-model:selectedRating="selectedRating" />
   </div>

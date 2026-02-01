@@ -35,8 +35,10 @@ const loadNotifications = async (
   offset: number
 ): Promise<PaginatedResponse<Notification>> => {
   const response = await api.notifications.getNotifications({ limit, offset })
+  console.log('Notifications response:', response)
   await api.notifications.readAllNotifications()
   unreadNotificationsCount.value = 0
+  console.log('Cleared unread notifications count ', unreadNotificationsCount.value)
   const notificationsPromises = response.items.map(async (apiNotification) => {
     let image: string
     let title: string
@@ -108,17 +110,29 @@ const loadNotifications = async (
   }
 }
 
-const { items: notifications, onLoad } = useInfiniteScroll<Notification>({
+const {
+  items: notifications,
+  onLoad,
+  loadItems,
+} = useInfiniteScroll<Notification>({
   itemsPerPage: defaultLimit,
   loadFn: loadNotifications,
 })
 
+const isMenuOpen = ref(false)
+
 const incrementUnreadCountCallback = () => {
-  unreadNotificationsCount.value++
+  if (!isMenuOpen.value) unreadNotificationsCount.value++
+}
+
+const handleMenuOpen = () => {
+  isMenuOpen.value = true
+  loadItems()
 }
 
 onMounted(async () => {
   //TODO: check if return string or number
+  // await loadItems()
   const initialCount = await api.notifications.getUnreadNotificationsCount()
   unreadNotificationsCount.value = Number(initialCount) || 0
   api.notifications.onLikeReceived(incrementUnreadCountCallback)
@@ -141,7 +155,11 @@ onUnmounted(() => {
       String(unreadNotificationsCount)
     }}</q-badge>
     <q-tooltip>Notifications</q-tooltip>
-    <q-menu class="notifications-menu">
+    <q-menu
+      class="notifications-menu"
+      @before-show="handleMenuOpen"
+      @before-hide="isMenuOpen = false"
+    >
       <q-list style="min-width: 300px; max-width: 400px" class="notifications-list">
         <q-item-label header>Notifications</q-item-label>
         <q-separator />
@@ -149,7 +167,7 @@ onUnmounted(() => {
           class="notifications-scroll-area"
           :thumb-style="{ width: '4px', borderRadius: '2px', opacity: '0.5' }"
         >
-          <q-infinite-scroll :offset="50" @load="onLoad">
+          <q-infinite-scroll v-if="notifications.length > 0" :offset="50" @load="onLoad">
             <template v-for="(notification, index) in notifications" :key="notification.id">
               <q-item clickable @click="notification.onClick?.()">
                 <q-item-section avatar>
@@ -173,6 +191,9 @@ onUnmounted(() => {
               </div>
             </template>
           </q-infinite-scroll>
+          <div v-else class="row justify-center items-center q-pa-md no-notifications">
+            <p>No notifications</p>
+          </div>
         </q-scroll-area>
       </q-list>
     </q-menu>
@@ -189,10 +210,17 @@ onUnmounted(() => {
       }
     }
   }
+
+  :deep(.q-avatar img) {
+    object-fit: cover;
+  }
 }
 
 .notifications-scroll-area {
   height: 400px;
-  max-height: 60vh;
+}
+
+.no-notifications {
+  height: 400px;
 }
 </style>

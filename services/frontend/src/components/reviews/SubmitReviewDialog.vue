@@ -76,6 +76,7 @@ const filterEvents = (query: string, update: (callback: () => void) => void) => 
       hasSearched.value = false
     } else {
       hasSearched.value = true
+      //TODO: search in user partecipations
       api.events
         .searchEvents({ organizationId: props.creatorId, status: 'COMPLETED', title: query })
         .then((response) => {

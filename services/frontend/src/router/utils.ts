@@ -135,11 +135,24 @@ export const useNavigation = () => {
     }
   }
 
-  const goToEventReviews = (organizationId: string, eventId?: string, swap: boolean = false) => {
+  const goToEventReviews = (
+    organizationId: string,
+    eventId?: string,
+    openDialog: boolean = true,
+    swap: boolean = false
+  ) => {
     if (swap) {
-      replaceWithLocale(EVENT_REVIEWS_ROUTE_NAME, { organizationId }, { eventId })
+      replaceWithLocale(
+        EVENT_REVIEWS_ROUTE_NAME,
+        { organizationId },
+        { eventId, openDialog: openDialog }
+      )
     } else {
-      pushWithLocale(EVENT_REVIEWS_ROUTE_NAME, { organizationId }, { eventId })
+      pushWithLocale(
+        EVENT_REVIEWS_ROUTE_NAME,
+        { organizationId },
+        { eventId, openDialog: openDialog }
+      )
     }
   }
 

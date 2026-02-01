@@ -3,9 +3,11 @@ import { ref, computed, onMounted, watch } from 'vue'
 import type { Event, EventID } from '@/api/types/events'
 import { api } from '@/api'
 import type { UserID } from '@/api/types/users'
+import type { PaginatedResponse } from '@/api/interfaces/commons'
 
 interface Props {
   organizationId: UserID
+  loadFn: () => Promise<PaginatedResponse<Event>>
 }
 
 const props = defineProps<Props>()
@@ -31,12 +33,7 @@ const loadInitialEvent = async () => {
 
 watch(selectedEventId, async (newEventId) => {
   if (newEventId === null) {
-    const events = await api.events.searchEvents({
-      organizationId: props.organizationId,
-      status: 'COMPLETED',
-      pagination: { limit: 5 },
-    })
-    eventOptions.value = events.items
+    eventOptions.value = (await props.loadFn()).items
     isFiltering.value = true
   }
 })

@@ -122,10 +122,15 @@ const handleUpdateReview = async (eventId: string, userId: string) => {
 provide('deleteReview', handleUpdateReview)
 provide('updateReview', handleUpdateReview)
 
-onMounted(() => {
+onMounted(async () => {
   loadOrganizationInfo()
-  loadCurrentUserReviewInfo()
+  await loadCurrentUserReviewInfo()
   loadReviewsStatistics()
+
+  // Apri automaticamente il dialog se il parametro query è presente
+  if (query.openDialog === 'true' && canUserLeaveReview.value) {
+    showReviewDialog.value = true
+  }
 })
 </script>
 
