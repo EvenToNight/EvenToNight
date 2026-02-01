@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, provide } from 'vue'
 import NavigationPageView from '@/layouts/NavigationWithSearch.vue'
 import HomeViewContent from '@/components/home/HomeViewContent.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 const showAuthDialog = ref(false)
+const { t } = useTranslation('views.ExploreView')
+provide('searchHint', t('searchHint'))
 </script>
 
 <template>

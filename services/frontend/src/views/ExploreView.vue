@@ -3,9 +3,11 @@ import { ref, provide, onMounted } from 'vue'
 import NavigationPageView from '@/layouts/NavigationWithSearch.vue'
 import ExploreViewContent from '@/components/explore/ExploreViewContent.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 const showAuthDialog = ref(false)
-provide('searchHint', 'Cerca eventi, organizzazioni o persone...')
+const { t } = useTranslation('views.ExploreView')
+provide('searchHint', t('searchHint'))
 provide('hideDropdown', true)
 
 onMounted(() => {

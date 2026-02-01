@@ -4,6 +4,10 @@ export default {
     keywords: 'events, nightlife, concerts, parties, night events',
   },
 
+  defaults: {
+    searchHint: 'Search events, organizations, or users...',
+  },
+
   views: {
     AboutView: {
       title: 'About Us',
@@ -146,6 +150,12 @@ export default {
           },
         },
       },
+    },
+    ExploreView: {
+      searchHint: '@:defaults.searchHint', //[ignorei18n]
+    },
+    HomeView: {
+      searchHint: '@:defaults.searchHint', //[ignorei18n]
     },
   },
 
