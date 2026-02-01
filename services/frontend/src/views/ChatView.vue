@@ -71,16 +71,9 @@ function handleBackToList() {
   twoColumnLayout.value?.showSidebar()
 }
 
-function handleConversationCreated(conversation: Conversation) {
-  conversationListRef.value?.addNewConversation(conversation)
+function handleMessagesRead() {
+  conversationListRef.value?.resetUnreadCount()
 }
-
-// function handleMessageSent(
-//   conversationId: string,
-//   lastMessage: { senderId: string; content: string; createdAt: Date }
-// ) {
-//   conversationListRef.value?.updateConversationLastMessage(conversationId, lastMessage)
-// }
 </script>
 
 <template>
@@ -94,18 +87,11 @@ function handleConversationCreated(conversation: Conversation) {
       />
     </template>
     <template #content>
-      <!-- <ChatArea
-        v-model:selected-conversation-id="selectedConversationId"
-        :selected-chat-user="selectedChatUser"
-        @back="handleBackToList"
-        @conversation-created="handleConversationCreated"
-        @message-sent="handleMessageSent"
-      /> -->
       <ChatArea
         v-model:selected-conversation-id="selectedConversationId"
         :selected-chat-user="selectedChatUser"
         @back="handleBackToList"
-        @conversation-created="handleConversationCreated"
+        @read="handleMessagesRead"
       />
     </template>
   </TwoColumnLayout>

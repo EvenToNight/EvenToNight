@@ -142,24 +142,6 @@ watch(searchQuery, (query) => {
   }
 })
 
-// Exposed functions for parent component
-function updateConversationLastMessage(
-  conversationId: string,
-  lastMessage: { senderId: string; content: string; createdAt: Date }
-) {
-  const index = conversations.value.findIndex((c) => c.id === conversationId)
-  if (index !== -1) {
-    const conversation = conversations.value[index]
-    if (conversation) {
-      conversation.lastMessage = lastMessage
-      conversation.unreadCount = 0 // Reset since we're sending
-      // Move to top
-      conversations.value.splice(index, 1)
-      conversations.value.unshift(conversation)
-    }
-  }
-}
-
 function addOrMoveConversationToTop(conversationId: string) {
   const index = conversations.value.findIndex((c) => c.id === conversationId)
   if (index !== -1 && index !== 0) {
@@ -181,6 +163,14 @@ function addNewConversation(conversation: Conversation) {
   conversations.value.unshift(conversation)
 }
 
+function resetUnreadCount() {
+  console.log('Resetting unread count for conversation:', selectedConversationId.value)
+  const conversation = conversations.value.find((c) => c.id === selectedConversationId.value)
+  if (conversation) {
+    conversation.unreadCount = 0
+  }
+}
+
 onMounted(() => {
   const newMessageHandler = async (event: NewMessageReceivedEvent) => {
     const {
@@ -190,7 +180,7 @@ onMounted(() => {
       message,
       createdAt,
     } = event
-
+    console.log('New message received for conversation:', conversationId)
     //TODO: ignore message when searching for now, when the search is cleared the conversations are fully reloaded
     if (searchQuery.value.trim()) return
 
@@ -204,9 +194,11 @@ onMounted(() => {
           content: message,
           createdAt: createdAt,
         }
-        if (selectedConversationId.value !== conversationId && senderId !== authStore.user?.id) {
-          conversation.unreadCount += 1
-        }
+        // if (selectedConversationId.value !== conversationId && senderId !== authStore.user?.id) {
+        conversation.unreadCount += 1
+        console.log('New message received for conversation:', conversation.unreadCount)
+
+        // }
         // Move to top
         conversations.value.splice(index, 1)
         conversations.value.unshift(conversation)
@@ -223,10 +215,9 @@ onMounted(() => {
 })
 
 defineExpose({
-  // loadConversations,
-  updateConversationLastMessage,
   addOrMoveConversationToTop,
   addNewConversation,
+  resetUnreadCount,
   getOtherUser,
 })
 </script>

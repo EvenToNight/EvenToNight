@@ -18,7 +18,7 @@ function sendMessage() {
   if (messageText.value.trim()) {
     emit('sendMessage', messageText.value.trim())
     messageText.value = ''
-    adjustHeight()
+    inputRef.value!.style.height = 'auto'
   }
 }
 
@@ -35,10 +35,7 @@ function handleKeyPress(event: KeyboardEvent) {
 }
 
 function adjustHeight() {
-  if (inputRef.value) {
-    inputRef.value.style.height = 'auto'
-    inputRef.value.style.height = Math.min(inputRef.value.scrollHeight, 120) + 'px'
-  }
+  inputRef.value!.style.height = inputRef.value!.scrollHeight + 'px'
 }
 </script>
 

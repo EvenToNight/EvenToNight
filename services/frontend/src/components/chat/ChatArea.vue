@@ -98,6 +98,7 @@ function shouldShowDateSeparator(index: number): boolean {
 }
 
 function scrollToBottom(smooth = false) {
+  emit('read')
   nextTick(() => {
     const scrollTarget = scrollAreaRef.value?.getScrollTarget()
     if (scrollTarget) {
@@ -148,7 +149,6 @@ const newMessageHandler = (event: NewMessageReceivedEvent) => {
 
   if (autoScroll.value) {
     api.chat.readConversationMessages(conversationId, authStore.user!.id)
-    emit('read')
   } else {
     unreadScrollCount.value += 1
   }
