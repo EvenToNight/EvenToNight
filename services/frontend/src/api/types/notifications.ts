@@ -10,6 +10,8 @@ export type NotificationType =
   | 'new_review_received'
   | 'new_message_received'
   | 'new_event_published'
+  | 'user_online'
+  | 'user_offline'
 
 export type NotificationEvent =
   | LikeRecievedEvent
@@ -17,6 +19,7 @@ export type NotificationEvent =
   | NewReviewRecievedEvent
   | NewMessageReceivedEvent
   | NewEventPublishedEvent
+  | OnlineInfoEvent
 
 export interface NotificationData {
   type: NotificationType
@@ -25,6 +28,7 @@ export interface NotificationData {
 
 export interface Notification extends NotificationData {
   id: NotificationID
+  timestamp: Date
   read: boolean
 }
 
@@ -42,7 +46,6 @@ export interface FollowRecievedEvent {
   followerAvatar: string
 }
 
-//TODO: evaluate usage
 export interface NewReviewRecievedEvent {
   eventId: EventID
   userId: UserID
@@ -66,3 +69,5 @@ export interface NewEventPublishedEvent {
   eventId: EventID
   eventName: string
 }
+
+export type OnlineInfoEvent = boolean

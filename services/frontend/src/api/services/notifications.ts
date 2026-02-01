@@ -10,6 +10,7 @@ import type {
   NewReviewRecievedEvent,
   Notification,
   NotificationID,
+  OnlineInfoEvent,
 } from '../types/notifications'
 import type { UserID } from '../types/users'
 import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
@@ -38,7 +39,11 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
   },
 
   async readNotification(notificationId: NotificationID): Promise<void> {
-    return notificationClient.post<void>(`/notifications/${notificationId}`)
+    return notificationClient.post<void>(`/${notificationId}`)
+  },
+
+  async readAllNotifications(): Promise<void> {
+    return notificationClient.post<void>(`/read-all`)
   },
 
   async getUnreadNotificationsCount(): Promise<number> {
@@ -46,7 +51,7 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
   },
 
   async isUserOnline(userId: UserID): Promise<boolean> {
-    return notificationClient.get<boolean>(`/users/${userId}/online-status`)
+    return notificationClient.get<boolean>(`/users/${userId}/is-online`)
   },
 
   async connect(userId: UserID, token?: string): Promise<void> {
@@ -108,6 +113,26 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
     console.log('[Socket.IO] Disconnected and cleaned up')
   },
 
+  onUserOnline(callback: (online: OnlineInfoEvent) => void): void {
+    const onlineHandler = () => callback(true)
+    const offlineHandler = () => callback(false)
+    handlers.set(callback, onlineHandler)
+    handlers.set(callback, offlineHandler)
+    socket?.on(NotificationAdapter.toAPIType('user_online'), onlineHandler)
+    socket?.on(NotificationAdapter.toAPIType('user_offline'), offlineHandler)
+  },
+  offUserOnline(callback: (online: OnlineInfoEvent) => void): void {
+    const onlineHandler = handlers.get(() => callback(true))
+    const offlineHandler = handlers.get(() => callback(false))
+    if (onlineHandler) {
+      socket?.off(NotificationAdapter.toAPIType('user_online'), onlineHandler)
+      handlers.delete(callback)
+    }
+    if (offlineHandler) {
+      socket?.off(NotificationAdapter.toAPIType('user_offline'), offlineHandler)
+      handlers.delete(callback)
+    }
+  },
   onLikeReceived(callback: (data: LikeRecievedEvent) => void): void {
     const handler = createNotificationHandler<LikeRecievedEvent>(callback)
     handlers.set(callback, handler)

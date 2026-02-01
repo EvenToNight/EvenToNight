@@ -8,6 +8,7 @@ import type {
   NewReviewRecievedEvent,
   Notification,
   NotificationID,
+  OnlineInfoEvent,
 } from '../types/notifications'
 import type { UserID } from '../types/users'
 import { createWebSocket, type WebSocket } from './webSocket'
@@ -50,6 +51,19 @@ export const mockNotificationsApi: NotificationsAPI = {
   async readNotification(_notificationId: NotificationID): Promise<void> {
     // TODO: Implement mark as read
     return Promise.resolve()
+  },
+
+  async readAllNotifications(): Promise<void> {
+    // TODO: Implement mark all as read
+    return Promise.resolve()
+  },
+
+  onUserOnline(callback: (online: OnlineInfoEvent) => void): void {
+    ws?.on('user_online', (event) => callback(event as OnlineInfoEvent))
+  },
+
+  offUserOnline(callback: (online: OnlineInfoEvent) => void): void {
+    ws?.off('user_online', (event) => callback(event as OnlineInfoEvent))
   },
 
   onLikeReceived(callback: (data: LikeRecievedEvent) => void): void {

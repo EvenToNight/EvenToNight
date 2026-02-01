@@ -6,6 +6,7 @@ import type {
   NewReviewRecievedEvent,
   NotificationID,
   Notification,
+  OnlineInfoEvent,
 } from '../types/notifications'
 import type { UserID } from '../types/users'
 import type { PaginatedRequest, PaginatedResponse } from './commons'
@@ -14,11 +15,13 @@ import type { AccessToken } from './users'
 export interface NotificationsAPI {
   connect(userId: UserID, token: AccessToken): Promise<void>
   disconnect(): Promise<void>
-  //TODO: missing
   isUserOnline: (userId: UserID) => Promise<boolean>
   getUnreadNotificationsCount: () => Promise<number>
   getNotifications: (pagination?: PaginatedRequest) => Promise<PaginatedResponse<Notification>>
   readNotification: (notificationId: NotificationID) => Promise<void>
+  readAllNotifications: () => Promise<void>
+  onUserOnline: (callback: (online: OnlineInfoEvent) => void) => void
+  offUserOnline: (callback: (online: OnlineInfoEvent) => void) => void
   onLikeReceived: (callback: (data: LikeRecievedEvent) => void) => void
   offLikeReceived: (callback: (data: LikeRecievedEvent) => void) => void
   onFollowReceived: (callback: (data: FollowRecievedEvent) => void) => void
