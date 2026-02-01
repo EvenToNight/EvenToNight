@@ -11,6 +11,7 @@ import scala.util.{Failure, Success, Try}
 trait PriceRepository:
   def save(ticketPrice: TicketPrice): Either[Throwable, Unit]
   def findByTicketTypeId(ticketTypeId: String): Option[TicketPrice]
+  def findByEventId(eventId: String): List[TicketPrice]
   def delete(ticketTypeId: String): Either[Throwable, Unit]
 
 case class MongoPriceRepository(
@@ -45,6 +46,17 @@ case class MongoPriceRepository(
   def findByTicketTypeId(ticketTypeId: String): Option[TicketPrice] =
     val docOption = Option(collection.find(Filters.eq("ticketTypeId", ticketTypeId)).first())
     docOption.map(TicketPrice.fromDocument)
+
+  def findByEventId(eventId: String): List[TicketPrice] =
+    import scala.jdk.CollectionConverters.*
+    Try {
+      collection
+        .find(Filters.eq("eventId", eventId))
+        .into(new java.util.ArrayList[Document]())
+        .asScala
+        .map(TicketPrice.fromDocument)
+        .toList
+    }.getOrElse(List.empty)
 
   def delete(ticketTypeId: String): Either[Throwable, Unit] =
     Try {

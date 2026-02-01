@@ -41,7 +41,8 @@ case class MongoEventRepository(
     connectionString: String,
     databaseName: String,
     collectionName: String = "events",
-    messageBroker: EventPublisher
+    messageBroker: EventPublisher,
+    priceRepository: Option[PriceRepository] = None
 ) extends EventRepository:
 
   private val mongoClient: MongoClient              = MongoClients.create(connectionString)
@@ -145,22 +146,26 @@ case class MongoEventRepository(
           handleNearSort(lat, lon, combinedFilter, offset, limit, sortBy, sortOrder)
 
         case (None, None) =>
-          val sortField     = sortBy.getOrElse("date")
-          val sortDirection = if sortOrder.contains("desc") then -1 else 1
+          val sortField = sortBy.getOrElse("date")
 
-          val sortCriteria = if sortField == "date" then
-            Sorts.orderBy(
-              if sortDirection == 1 then Sorts.ascending("date") else Sorts.descending("date")
-            )
+          if sortField == "price" && priceRepository.isDefined then
+            handlePriceSort(combinedFilter, offset, limit, sortOrder)
           else
-            Sorts.orderBy(
-              if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField),
-              Sorts.ascending("date")
-            )
+            val sortDirection = if sortOrder.contains("desc") then -1 else 1
 
-          val dbQuery = applyPagination(collection.find(combinedFilter).sort(sortCriteria), offset, limit)
-          val results = executeQueryAndUpdateEvents(dbQuery)
-          calculateHasMore(results, limit)
+            val sortCriteria = if sortField == "date" then
+              Sorts.orderBy(
+                if sortDirection == 1 then Sorts.ascending("date") else Sorts.descending("date")
+              )
+            else
+              Sorts.orderBy(
+                if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField),
+                Sorts.ascending("date")
+              )
+
+            val dbQuery = applyPagination(collection.find(combinedFilter).sort(sortCriteria), offset, limit)
+            val results = executeQueryAndUpdateEvents(dbQuery)
+            calculateHasMore(results, limit)
     }.toEither.left.map { ex =>
       println(s"[MongoDB][Error] Failed to retrieve filtered events - ${ex.getMessage}")
       ex
@@ -372,6 +377,36 @@ case class MongoEventRepository(
         eventsWithDistance.sortBy(_._2).toList
 
     val sortedEvents = finalSorted.map(_._1)
+
+    val offsetValue = offset.getOrElse(0)
+    val limitValue  = limit.getOrElse(10)
+    val paginated   = sortedEvents.drop(offsetValue).take(limitValue + 1)
+
+    calculateHasMore(paginated, limit)
+
+  private def handlePriceSort(
+      filter: org.bson.conversions.Bson,
+      offset: Option[Int],
+      limit: Option[Int],
+      sortOrder: Option[String]
+  ): (List[Event], Boolean) =
+    val allEvents = collection
+      .find(filter)
+      .into(new java.util.ArrayList[Document]())
+      .asScala
+      .map(fromDocument)
+      .map(updateEventIfPast)
+      .toList
+
+    val eventsWithPrice = allEvents.map { event =>
+      val prices = priceRepository.get.findByEventId(event._id)
+      val minPrice = if prices.nonEmpty then prices.map(_.price).min else Double.MaxValue
+      (event, minPrice)
+    }
+
+    val sortedEvents = sortOrder match
+      case Some("desc") => eventsWithPrice.sortBy(_._2).reverse.map(_._1)
+      case _            => eventsWithPrice.sortBy(_._2).map(_._1)
 
     val offsetValue = offset.getOrElse(0)
     val limitValue  = limit.getOrElse(10)

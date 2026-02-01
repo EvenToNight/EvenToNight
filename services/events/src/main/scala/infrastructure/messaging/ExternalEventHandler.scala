@@ -18,7 +18,7 @@ case class UserDeletedEvent(id: String)
 
 case class TicketTypeCreatedPayload(eventId: String, ticketTypeId: String, price: Double)
 
-case class TicketTypeUpdatedPayload(eventId: String, ticketTypeId: String, price: Double)
+case class TicketTypeUpdatedPayload(ticketTypeId: String, price: Double)
 
 case class TicketTypeDeletedPayload(ticketTypeId: String)
 
@@ -87,12 +87,12 @@ class ExternalEventHandler(
       case Right(envelope) =>
         envelope.payload.as[TicketTypeUpdatedPayload] match
           case Right(event) =>
-            val ticketPrice = TicketPrice(
-              eventId = event.eventId,
-              ticketTypeId = event.ticketTypeId,
-              price = event.price
-            )
-            priceRepo.save(ticketPrice)
+            priceRepo.findByTicketTypeId(event.ticketTypeId) match
+              case Some(existingPrice) =>
+                val updatedPrice = existingPrice.copy(price = event.price)
+                priceRepo.save(updatedPrice)
+              case None =>
+                println(s"[HANDLER] ⚠️ Cannot update price: TicketPrice not found for ticketTypeId: ${event.ticketTypeId}")
           case Left(error) =>
             println(s"[HANDLER] ❌ Error parsing payload: ${error.getMessage}")
             println(s"[HANDLER]    Raw payload: ${envelope.payload}")

@@ -25,19 +25,25 @@ object Main extends App:
     exchangeName = "eventonight"
   )
 
-  val eventDatabase: MongoEventRepository = MongoEventRepository(mongoUri, "eventonight", "events", messageBroker)
+  val priceDatabase: MongoPriceRepository = new MongoPriceRepository(
+    mongoUri,
+    "eventonight",
+    "prices",
+    messageBroker
+  )
+
+  val eventDatabase: MongoEventRepository = MongoEventRepository(
+    mongoUri,
+    "eventonight",
+    "events",
+    messageBroker,
+    Some(priceDatabase)
+  )
 
   val userDatabase: MongoUserMetadataRepository = new MongoUserMetadataRepository(
     mongoUri,
     "eventonight",
     "users",
-    messageBroker
-  )
-
-  val priceDatabase: MongoPriceRepository = new MongoPriceRepository(
-    mongoUri,
-    "eventonight",
-    "prices",
     messageBroker
   )
 
