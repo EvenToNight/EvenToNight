@@ -218,6 +218,47 @@ export default {
         },
       },
     },
+    TermsView: {
+      title: 'Terms and Conditions',
+      lastUpdated: 'Last updated: 23/01/2025',
+      sections: {
+        firstSection: {
+          title: 'Agreement to Terms',
+          content:
+            'By using EvenToNight, you agree to be bound by these Terms and Conditions. If you do not agree to these terms, please do not use the platform.',
+        },
+        secondSection: {
+          title: 'Use of Service',
+          content:
+            'You agree to use EvenToNight only for lawful purposes and in accordance with all applicable laws. You may not upload any content that is offensive, illegal, or infringes on the rights of others.',
+        },
+        thirdSection: {
+          title: 'User Account',
+          content:
+            'You are responsible for the security of your account and passwords. You must notify us immediately of any unauthorized access. You may not transfer your account to third parties.',
+        },
+        fourthSection: {
+          title: 'Payments and Tickets',
+          content:
+            'Payments are processed through secure payment service providers. Prices are clearly indicated before purchase. Once the purchase is complete, you will receive the tickets via email.',
+        },
+        fifthSection: {
+          title: 'Refunds and Cancellations',
+          content:
+            'The refund policy depends on the event organizer. In case of event cancellation by the organizer, you are entitled to a full refund. Contact support for refund requests.',
+        },
+        sixthSection: {
+          title: 'Limitation of Liability',
+          content:
+            'EvenToNight acts as a platform intermediary between organizers and participants. We are not responsible for the quality of events, cancellations, or issues that occur during events.',
+        },
+        seventhSection: {
+          title: 'Changes to Terms',
+          content:
+            'We reserve the right to modify these Terms and Conditions at any time. Changes will be effective immediately upon posting. Continued use of the platform constitutes acceptance of the changes.',
+        },
+      },
+    },
   },
 
   date: 'Date',
