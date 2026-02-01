@@ -4,6 +4,7 @@ import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import TwoColumnLayout from '@/layouts/TwoColumnLayout.vue'
 import ConversationList from '@/components/chat/ConversationList.vue'
+import { getOtherUser } from '@/api/utils/chatUtils'
 import type { ChatUser, Conversation, ConversationID } from '@/api/types/chat'
 import ChatArea from '@/components/chat/ChatArea.vue'
 import { useNavigation } from '@/router/utils'
@@ -38,7 +39,6 @@ async function loadConversation(userId: string) {
         : existingConversation.organization
     selectedConversationId.value = existingConversation.id
   } else {
-    // No existing conversation, load user to start a new one
     await loadUser(userId)
   }
   removeQuery('userId')
@@ -54,7 +54,7 @@ async function loadUser(userId: string) {
 }
 
 function handleSelectConversation(conversation: Conversation) {
-  selectedChatUser.value = conversationListRef.value?.getOtherUser(conversation)
+  selectedChatUser.value = getOtherUser(authStore.user!.id, conversation)
   selectedConversationId.value = conversation.id
   twoColumnLayout.value?.showContent()
 }

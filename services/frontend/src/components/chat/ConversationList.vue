@@ -1,48 +1,56 @@
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { ChatUser, Conversation } from '@/api/types/chat'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import type { NewMessageReceivedEvent } from '@/api/types/notifications'
+import { getConversationAvatar, getConversationName, getOtherUser } from '@/api/utils/chatUtils'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { defaultLimit, emptyPaginatedResponse } from '@/api/utils/requestUtils'
+import type { UserID } from '@/api/types/users'
 
 const { locale } = useNavigation()
 const authStore = useAuthStore()
-const conversations = ref<Conversation[]>([])
 const potentialConversations = ref<Conversation[]>([])
 const selectedConversationId = defineModel<string | undefined>('selectedConversationId', {
   default: undefined,
 })
+const selectedChatUserId = ref<UserID | undefined>(undefined)
 const searchQuery = ref('')
-const loading = ref(false)
-const hasMore = ref(true)
-const offset = ref(0)
-const LIMIT = 20
+const isSearching = ref(false)
+
+const {
+  items: conversations,
+  loading,
+  onLoad,
+  reload,
+} = useInfiniteScroll<Conversation>({
+  itemsPerPage: defaultLimit,
+  loadFn: async (limit, offset) => {
+    if (isSearching.value) {
+      return emptyPaginatedResponse<Conversation>()
+    }
+    return api.chat.getConversations(authStore.user!.id, { limit, offset })
+  },
+})
 
 const emit = defineEmits<{
   selectConversation: [conversation: Conversation]
   selectChatUser: [user: ChatUser]
 }>()
 
-function getConversationAvatar(conversation: Conversation): string {
-  const isCurrentUserMember = authStore.user?.id === conversation.member.id
-  return isCurrentUserMember ? conversation.organization.avatar : conversation.member.avatar
-}
-
-function getConversationName(conversation: Conversation): string {
-  const isCurrentUserMember = authStore.user?.id === conversation.member.id
-  return isCurrentUserMember ? conversation.organization.name : conversation.member.name
-}
-
-function getOtherUser(conversation: Conversation): ChatUser {
-  const isCurrentUserMember = authStore.user?.id === conversation.member.id
-  return isCurrentUserMember ? conversation.organization : conversation.member
-}
-
 function handleSelectConversation(conversation: Conversation) {
   conversation.unreadCount = 0
   selectedConversationId.value = conversation.id
+  selectedChatUserId.value = undefined
   emit('selectConversation', conversation)
+}
+
+function handleSelectPotentialConversation(conversation: Conversation) {
+  const otherUser = getOtherUser(authStore.user!.id, conversation)
+  selectedChatUserId.value = otherUser.id
+  emit('selectChatUser', otherUser)
 }
 
 function isLastMessageFromMe(conversation: Conversation): boolean {
@@ -72,65 +80,19 @@ function formatTime(date: Date | undefined): string {
   }
 }
 
-async function loadConversations(reset = false) {
-  try {
-    if (reset) {
-      loading.value = true
-      offset.value = 0
-      conversations.value = []
-      potentialConversations.value = []
-      searchQuery.value = ''
-    }
-    const response = await api.chat.getConversations(authStore.user!.id, {
-      limit: LIMIT,
-      offset: offset.value,
-    })
-    conversations.value = [...conversations.value, ...response.items]
-    hasMore.value = response.hasMore
-    offset.value += response.items.length
-  } catch (error) {
-    console.error('Failed to load conversations:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
 async function searchConversations(query: string) {
   try {
-    loading.value = true
-    offset.value = 0
+    isSearching.value = true
     const response = await api.chat.searchConversations(authStore.user!.id, {
       name: query,
-      pagination: { limit: LIMIT },
+      pagination: { limit: 20 },
     })
     conversations.value = response.items.filter((c) => c.id)
     potentialConversations.value = response.items.filter((c) => !c.id)
-    hasMore.value = response.hasMore
-    offset.value = response.items.length
   } catch (error) {
     console.error('Failed to search conversations:', error)
   } finally {
-    loading.value = false
-  }
-}
-
-async function onLoadMore(_index: number, done: (stop?: boolean) => void) {
-  if (searchQuery.value.trim()) {
-    done(true)
-    return
-  }
-  try {
-    const response = await api.chat.getConversations(authStore.user!.id, {
-      limit: LIMIT,
-      offset: offset.value,
-    })
-    conversations.value = [...conversations.value, ...response.items]
-    hasMore.value = response.hasMore
-    offset.value += response.items.length
-    done(!response.hasMore)
-  } catch (error) {
-    console.error('Failed to load more conversations:', error)
-    done(true)
+    isSearching.value = false
   }
 }
 
@@ -138,30 +100,11 @@ watch(searchQuery, (query) => {
   if (query.trim()) {
     searchConversations(query.trim())
   } else {
-    loadConversations(true)
+    potentialConversations.value = []
+    isSearching.value = false
+    reload()
   }
 })
-
-function addOrMoveConversationToTop(conversationId: string) {
-  const index = conversations.value.findIndex((c) => c.id === conversationId)
-  if (index !== -1 && index !== 0) {
-    const conversation = conversations.value[index]
-    if (conversation) {
-      conversations.value.splice(index, 1)
-      conversations.value.unshift(conversation)
-    }
-  }
-}
-
-function addNewConversation(conversation: Conversation) {
-  // Clear search if active
-  if (searchQuery.value.trim()) {
-    searchQuery.value = ''
-    potentialConversations.value = []
-  }
-  // Add to top of list
-  conversations.value.unshift(conversation)
-}
 
 function resetUnreadCount() {
   console.log('Resetting unread count for conversation:', selectedConversationId.value)
@@ -171,43 +114,47 @@ function resetUnreadCount() {
   }
 }
 
-onMounted(() => {
-  const newMessageHandler = async (event: NewMessageReceivedEvent) => {
-    const {
-      conversationId,
-      senderId,
-      /* senderName, senderAvatar, messageId,*/
-      message,
-      createdAt,
-    } = event
-    console.log('New message received for conversation:', conversationId)
-    //TODO: ignore message when searching for now, when the search is cleared the conversations are fully reloaded
-    if (searchQuery.value.trim()) return
-
-    const index = conversations.value.findIndex((c) => c.id === conversationId)
-    if (index !== -1) {
-      const conversation = conversations.value[index]
-
-      if (conversation) {
-        conversation.lastMessage = {
-          senderId: senderId,
-          content: message,
-          createdAt: createdAt,
-        }
-        // if (selectedConversationId.value !== conversationId && senderId !== authStore.user?.id) {
-        conversation.unreadCount += 1
-        console.log('New message received for conversation:', conversation.unreadCount)
-
-        // }
-        // Move to top
-        conversations.value.splice(index, 1)
-        conversations.value.unshift(conversation)
-      }
-    } else {
-      const conversation = await api.chat.getConversation(authStore.user!.id, conversationId)
-      conversations.value.unshift(conversation)
-    }
+function moveToTop(conversationIndex: number) {
+  if (conversationIndex !== -1) {
+    const conversation = conversations.value[conversationIndex]!
+    conversations.value.splice(conversationIndex, 1)
+    conversations.value.unshift(conversation)
   }
+}
+
+const newMessageHandler = async (event: NewMessageReceivedEvent) => {
+  const {
+    conversationId,
+    senderId,
+    /* senderName, senderAvatar, messageId,*/
+    message,
+    createdAt,
+  } = event
+  console.log('New message received for conversation:', conversationId)
+  //TODO: ignore message when searching for now, when the search is cleared the conversations are fully reloaded
+  if (searchQuery.value.trim()) return
+
+  const index = conversations.value.findIndex((c) => c.id === conversationId)
+  if (index !== -1) {
+    const conversation = conversations.value[index]
+
+    if (conversation) {
+      conversation.lastMessage = {
+        senderId: senderId,
+        content: message,
+        createdAt: createdAt,
+      }
+      conversation.unreadCount += 1
+      moveToTop(index)
+    }
+  } else {
+    const conversation = await api.chat.getConversation(userId.value!, conversationId)
+    conversations.value.unshift(conversation)
+  }
+}
+
+const userId = computed(() => authStore.user?.id)
+onMounted(() => {
   api.notifications.onNewMessageReceived(newMessageHandler)
   onUnmounted(() => {
     api.notifications.offNewMessageReceived(newMessageHandler)
@@ -215,15 +162,12 @@ onMounted(() => {
 })
 
 defineExpose({
-  addOrMoveConversationToTop,
-  addNewConversation,
   resetUnreadCount,
-  getOtherUser,
 })
 </script>
 
 <template>
-  <div v-if="authStore.user" class="conversation-list">
+  <div v-if="userId" class="conversation-list">
     <div class="conversation-list-header">
       <h1 class="title">Chat</h1>
     </div>
@@ -243,9 +187,8 @@ defineExpose({
       </q-input>
     </div>
 
-    <q-infinite-scroll class="conversations" :offset="250" @load="onLoadMore">
+    <q-infinite-scroll class="conversations" :offset="250" :disable="isSearching" @load="onLoad">
       <q-list>
-        <!-- Show conversations header only if searching -->
         <q-item-label
           v-if="searchQuery.trim() && conversations.length > 0"
           header
@@ -254,7 +197,6 @@ defineExpose({
           Conversazioni
         </q-item-label>
 
-        <!-- Show conversations -->
         <q-item
           v-for="conversation in conversations"
           :key="conversation.id"
@@ -266,8 +208,8 @@ defineExpose({
           <q-item-section avatar>
             <q-avatar>
               <img
-                :src="getConversationAvatar(conversation)"
-                :alt="getConversationName(conversation)"
+                :src="getConversationAvatar(userId, conversation)"
+                :alt="getConversationName(userId, conversation)"
                 class="avatar-image"
               />
             </q-avatar>
@@ -275,7 +217,7 @@ defineExpose({
 
           <q-item-section>
             <q-item-label class="conversation-name">
-              {{ getConversationName(conversation) }}
+              {{ getConversationName(userId, conversation) }}
             </q-item-label>
             <q-item-label caption lines="1" class="last-message">
               <span v-if="isLastMessageFromMe(conversation)" class="message-prefix">Tu: </span>
@@ -297,23 +239,23 @@ defineExpose({
           </q-item-section>
         </q-item>
 
-        <!-- Show potential new conversations -->
         <template v-if="searchQuery.trim() && potentialConversations.length > 0">
           <q-item-label header class="search-section-header">
             Inizia una conversazione
           </q-item-label>
           <q-item
             v-for="conv in potentialConversations"
-            :key="getOtherUser(conv).id"
+            :key="getOtherUser(userId, conv).id"
+            :active="selectedChatUserId === getOtherUser(userId, conv).id"
             clickable
             class="conversation-item potential-conversation"
-            @click="emit('selectChatUser', getOtherUser(conv))"
+            @click="handleSelectPotentialConversation(conv)"
           >
             <q-item-section avatar>
               <q-avatar>
                 <img
-                  :src="getConversationAvatar(conv)"
-                  :alt="getConversationName(conv)"
+                  :src="getConversationAvatar(userId, conv)"
+                  :alt="getConversationName(userId, conv)"
                   class="avatar-image"
                 />
               </q-avatar>
@@ -321,7 +263,7 @@ defineExpose({
 
             <q-item-section>
               <q-item-label class="conversation-name">
-                {{ getConversationName(conv) }}
+                {{ getConversationName(userId, conv) }}
               </q-item-label>
               <q-item-label caption lines="1" class="last-message">
                 Inizia una conversazione
