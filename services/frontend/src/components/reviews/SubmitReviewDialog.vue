@@ -37,7 +37,9 @@ watch(
     selectedEvent.value = null
     if (!authStore.user || !eventId) return
 
-    const canReviewEventId = await api.interactions.userReviewForEvent(authStore.user.id, eventId!)
+    const canReviewEventId = !(
+      await api.interactions.userParticipatedToEvent(authStore.user.id, eventId!)
+    ).hasReviewed
     if (!canReviewEventId) return
 
     try {

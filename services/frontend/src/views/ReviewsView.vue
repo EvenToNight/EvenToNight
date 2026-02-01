@@ -70,7 +70,6 @@ const loadCurrentUserReviewInfo = async () => {
         limit: 1,
       },
     })
-
     //TODO: check from dialog
     // if (query.eventId as EventID) {
     //   const tempEventIdForDialogResponse = await api.interactions.userParticipatedToEvent(
@@ -111,7 +110,6 @@ onMounted(async () => {
   await loadCurrentUserReviewInfo()
   await loadReviewsStatistics()
 
-  // Apri automaticamente il dialog se il parametro query è presente
   if (query.openDialog === 'true' && canUserLeaveReview.value) {
     showReviewDialog.value = true
   }

@@ -5,6 +5,7 @@ import { useUserProfile } from '@/composables/useUserProfile'
 import { useUnreadMessagesCount } from '@/composables/useUnreadMessagesCount'
 import { useNavigation } from '@/router/utils'
 import { useI18n } from 'vue-i18n'
+import { useAuthStore } from '@/stores/auth'
 
 const { t } = useI18n()
 const { goToCreateEvent, goToEditProfile, goToSettings, goToChat } = useNavigation()
@@ -16,6 +17,7 @@ const props = defineProps<Props>()
 
 const { isOwnProfile, isOrganization } = useUserProfile(toRef(() => props.user))
 const { unreadMessagesCount } = useUnreadMessagesCount()
+const authStore = useAuthStore()
 
 const emit = defineEmits<{
   followToggle: []
@@ -69,7 +71,7 @@ const handleOpenChat = () => {
     </template>
     <template v-else>
       <q-btn
-        v-if="isOrganization"
+        v-if="isOrganization != authStore.isOrganization"
         icon="send"
         flat
         class="action-btn action-btn--secondary"
