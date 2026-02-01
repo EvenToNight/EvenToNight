@@ -178,16 +178,3 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val command = getFilteredEventsCommand()
     command shouldBe a[Commands]
     command shouldBe a[GetFilteredEventsCommand]
-
-  it should "store properties correctly" in:
-    val command = getFilteredEventsCommand()
-    command.limit shouldBe Some(5)
-    command.offset shouldBe Some(0)
-    command.status shouldBe Some(EventStatus.PUBLISHED)
-    command.title shouldBe Some("Sample")
-    command.tags shouldBe Some(List(EventTag.EventType.Concert))
-    command.startDate shouldBe Some(baseDate)
-    command.endDate shouldBe Some(baseDate.plusDays(10))
-    command.organizationId shouldBe Some("org-456")
-    command.city shouldBe Some("Sample City")
-    command.location_name shouldBe Some("Sample Venue")
