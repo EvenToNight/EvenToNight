@@ -409,6 +409,21 @@ export default {
         altText: 'EvenToNight Logo', //[ignorei18n]
       },
     },
+    contacts: {
+      ContactDialog: {
+        title: 'Contact Us',
+        nameLabel: 'Name',
+        emailLabel: 'Email',
+        emailError: 'Email is required',
+        emailFormatError: 'Please enter a valid email address',
+        subjectLabel: 'Subject',
+        subjectError: 'Subject is required',
+        messageLabel: 'Message',
+        messageError: 'Message is required',
+        cancelLabel: 'Close',
+        submitLabel: 'Submit',
+      },
+    },
   },
 
   auth: {
