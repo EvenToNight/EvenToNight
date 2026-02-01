@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useNavigation } from '@/router/utils'
-import { useI18n } from 'vue-i18n'
+import { useTranslation } from '@/composables/useTranslation'
 
-const { t } = useI18n()
+const { t } = useTranslation('components.common.AppBrand')
 const { goToHome } = useNavigation()
 
 const goToHomeTop = () => {

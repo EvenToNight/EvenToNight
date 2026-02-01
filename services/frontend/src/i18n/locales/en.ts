@@ -403,6 +403,12 @@ export default {
         emojiButtonAriaLabel: 'Select Emoji',
       },
     },
+    common: {
+      AppBrand: {
+        appName: 'EvenToNight', //[ignorei18n]
+        altText: 'EvenToNight Logo', //[ignorei18n]
+      },
+    },
   },
 
   auth: {
@@ -419,11 +425,6 @@ export default {
   users: {
     organizations: 'Organizations',
     members: 'Users',
-  },
-
-  brand: {
-    appName: 'EvenToNight', //[ignorei18n]
-    logo: 'Logo',
   },
 
   event: {
