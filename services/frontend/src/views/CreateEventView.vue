@@ -17,6 +17,7 @@ import { notEmpty, required } from '@/components/forms/validationUtils'
 import { useTranslation } from '@/composables/useTranslation'
 import { createLogger } from '@/utils/logger'
 import { SERVER_ERROR_ROUTE_NAME } from '@/router'
+import { preventInvalidNumberKeys } from '@/utils/inputUtils'
 
 const logger = createLogger(import.meta.url)
 const { t } = useTranslation('views.CreateEventView')
@@ -522,6 +523,7 @@ onMounted(async () => {
                 lazy-rules="ondemand"
                 class="ticket-price-input"
                 :rules="[notEmpty(t('form.ticketTypes.price.error'))]"
+                @keydown="preventInvalidNumberKeys"
               />
 
               <q-input
@@ -533,6 +535,7 @@ onMounted(async () => {
                 lazy-rules="ondemand"
                 class="ticket-quantity-input"
                 :rules="[notEmpty(t('form.ticketTypes.quantity.error'))]"
+                @keydown="preventInvalidNumberKeys"
               />
 
               <q-btn

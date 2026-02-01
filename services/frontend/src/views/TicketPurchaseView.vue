@@ -8,6 +8,7 @@ import { useQuasar } from 'quasar'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 import { useAuthStore } from '@/stores/auth'
+import { preventInvalidNumberKeys } from '@/utils/inputUtils'
 
 const { params, goBack } = useNavigation()
 const $q = useQuasar()
@@ -51,13 +52,6 @@ const handleQuantityChange = (tt: EventTicketType, quantity: string) => {
     delete ticketQuantities.value[tt.id]
   } else {
     ticketQuantities.value[tt.id] = clampedValue
-  }
-}
-
-const preventInvalidKeys = (event: KeyboardEvent) => {
-  const invalidKeys = ['e', 'E', '+', '-', '.']
-  if (invalidKeys.includes(event.key)) {
-    event.preventDefault()
   }
 }
 
@@ -241,7 +235,7 @@ const handlePurchase = async () => {
                   type="number"
                   :value="getQuantity(tt.id)"
                   class="quantity-input"
-                  @keydown="preventInvalidKeys"
+                  @keydown="preventInvalidNumberKeys"
                   @blur="(e) => handleQuantityChange(tt, (e.target as HTMLInputElement).value)"
                 />
                 <q-btn
