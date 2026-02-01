@@ -1,4 +1,22 @@
 export default {
+  views: {
+    AboutView: {
+      title: 'About Us',
+      firstSectionTitle: 'Our Mission',
+      firstSectionContent:
+        'EvenToNight was born with the goal of connecting people through unique experiences. We believe that every event is an opportunity to create unforgettable memories and build communities.',
+      secondSectionTitle: 'Our Story',
+      secondSectionContent:
+        'Founded in 2025, EvenToNight has rapidly grown to become the go-to platform for discovering and managing events. From day one, we have worked to make organizing and attending events simple and accessible to everyone.',
+      thirdSectionTitle: 'Our Values',
+      thirdSectionItems: {
+        item1: 'Transparency in communications and transactions',
+        item2: 'Community at the heart of everything we do',
+        item3: 'Continuous innovation to enhance user experience',
+      },
+    },
+  },
+
   meta: {
     description: 'Find the event for you. Search upcoming events and discover amazing experiences.',
     keywords: 'events, nightlife, concerts, parties, night events',
