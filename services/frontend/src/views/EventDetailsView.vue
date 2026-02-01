@@ -11,8 +11,9 @@ import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useNavigation } from '@/router/utils'
 import type { EventTicketType } from '@/api/types/payments'
+import { NOT_FOUND_ROUTE_NAME } from '@/router'
 
-const { params, goToHome } = useNavigation()
+const { params, goToRoute } = useNavigation()
 const eventId = computed(() => params.id as string)
 const showAuthDialog = ref(false)
 
@@ -27,7 +28,7 @@ const loadEvent = async () => {
     }
   } catch (error) {
     console.error('Failed to load event:', error)
-    goToHome()
+    goToRoute(NOT_FOUND_ROUTE_NAME)
   }
 }
 

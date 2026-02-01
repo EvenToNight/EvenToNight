@@ -8,6 +8,7 @@ import SeeAllButton from '@/components/buttons/basicButtons/SeeAllButton.vue'
 import RatingInfo from '../reviews/ratings/RatingInfo.vue'
 import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
 import LoadableComponent from '@/components/common/LoadableComponent.vue'
+import { useAuthStore } from '@/stores/auth'
 
 interface Props {
   eventId: string
@@ -16,10 +17,12 @@ interface Props {
 
 const props = defineProps<Props>()
 const { goToEventReviews } = useNavigation()
+const authStore = useAuthStore()
 
 const reviews = ref<EventReview[]>([])
 const loading = ref(true)
 const reviewsStatistics = ref<OrganizationReviewsStatistics>()
+const canUserLeaveReview = ref(false)
 
 const loadReviews = async () => {
   try {
@@ -30,6 +33,16 @@ const loadReviews = async () => {
       })
     ).items
     reviewsStatistics.value = await api.interactions.getOrganizationReviews(props.organizationId)
+    if (authStore.user) {
+      const response = await api.interactions.userParticipatedToEvent(
+        authStore.user.id,
+        props.eventId
+      )
+      console.log('User participation response:', response)
+      canUserLeaveReview.value = !(
+        await api.interactions.userParticipatedToEvent(authStore.user.id, props.eventId)
+      ).hasReviewed
+    }
   } catch (error) {
     console.error('Failed to load reviews:', error)
   } finally {
@@ -71,8 +84,15 @@ onMounted(() => {
         />
       </div>
     </div>
-    <!-- TODO: if user can leave a review, show a button to open the SubmitReviewDialog -->
-    <div v-else class="reviews-preview">
+    <div
+      v-if="canUserLeaveReview"
+      class="event-info"
+      @click="goToEventReviews(props.organizationId, props.eventId, true)"
+    >
+      <q-icon name="rate_review" class="event-icon" />
+      <span class="event-title">Lascia una recensione</span>
+    </div>
+    <div v-else-if="reviews.length === 0" class="reviews-preview">
       <div class="empty-state">
         <q-icon name="rate_review" size="48px" />
         <span class="empty-text">Non ci sono ancora recensioni per questo evento</span>
@@ -206,6 +226,36 @@ onMounted(() => {
 
   .q-icon {
     font-size: 1.25rem;
+  }
+}
+.event-info {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  color: $color-text-primary;
+  // margin-bottom: $spacing-3;
+  padding: $spacing-2 $spacing-4;
+  cursor: pointer;
+  transition: all $transition-base;
+  border-radius: $radius-full;
+  border: 2px solid $color-border;
+
+  @include dark-mode {
+    color: $color-white;
+    border-color: $color-text-muted;
+  }
+
+  .event-icon {
+    font-size: 1rem;
+    color: $color-text-primary;
+
+    @include dark-mode {
+      color: $color-white;
+    }
+  }
+  .event-title {
+    font-size: $font-size-base;
+    font-weight: 600;
   }
 }
 </style>
