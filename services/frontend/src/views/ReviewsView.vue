@@ -12,7 +12,12 @@ import type { EventID } from '@/api/types/events'
 import type { Rating } from '@/api/types/interaction'
 import { useAuthStore } from '@/stores/auth'
 import type { User } from '@/api/types/users'
-import { NOT_FOUND_ROUTE_NAME } from '@/router'
+import { SERVER_ERROR_ROUTE_NAME } from '@/router'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
+
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('views.ReviewsView')
 
 const { query, params, goToUserProfile, goToSettings, goToRoute } = useNavigation()
 const authStore = useAuthStore()
@@ -40,17 +45,22 @@ const userHasReviews = ref(false)
 const showReviewDialog = ref(false)
 
 const loadReviewsStatistics = async () => {
-  reviewsStatistics.value = await api.interactions.getOrganizationReviewStatistics(
-    organization.value!.id
-  )
+  try {
+    reviewsStatistics.value = await api.interactions.getOrganizationReviewStatistics(
+      organization.value!.id
+    )
+  } catch (error) {
+    logger.error('Failed to load reviews statistics:', error)
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
+  }
 }
 
 const loadOrganizationInfo = async () => {
   try {
     organization.value = await api.users.getUserById(params.organizationId as string)
   } catch (error) {
-    console.error('Failed to load organization:', error)
-    goToRoute(NOT_FOUND_ROUTE_NAME)
+    logger.error('Failed to load organization:', error)
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
   }
 }
 
@@ -90,16 +100,17 @@ const loadCurrentUserReviewInfo = async () => {
       canUserLeaveReview.value = true
     }
   } catch (error) {
-    console.error('Failed to load current user review info:', error)
+    logger.error('Failed to load current user review info:', error)
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
   }
 }
 const reviewsListRef = ref<{ reload: () => void } | null>(null)
 
 const handleUpdateReview = async (eventId: string, userId: string) => {
-  console.log('review modified or deleted', eventId, userId)
+  logger.info('review modified or deleted', eventId, userId)
   reviewsListRef.value?.reload()
   await loadCurrentUserReviewInfo()
-  console.log('reviews reloaded')
+  logger.info('reviews reloaded')
 }
 
 provide('deleteReview', handleUpdateReview)
@@ -147,15 +158,17 @@ onMounted(async () => {
           <div v-if="canUserLeaveReview || userHasReviews" class="add-review-section">
             <div v-if="canUserLeaveReview" class="event-info" @click="showReviewDialog = true">
               <q-icon name="rate_review" class="event-icon" />
-              <span class="event-title">Lascia una recensione</span>
+              <span class="event-title">{{ t('reviewButtonText') }}</span>
             </div>
-            <span v-if="canUserLeaveReview && userHasReviews" class="separator">oppure</span>
+            <span v-if="canUserLeaveReview && userHasReviews" class="separator">{{
+              t('buttonSeparatorText')
+            }}</span>
             <span
               v-if="userHasReviews"
               class="modify-link"
               @click="goToSettings(false, '#reviews')"
             >
-              modifica le tue recensioni
+              {{ t('modifyButtonText') }}
             </span>
           </div>
         </div>
@@ -356,7 +369,6 @@ onMounted(async () => {
   align-items: center;
   gap: $spacing-2;
   color: $color-text-primary;
-  // margin-bottom: $spacing-3;
   padding: $spacing-2 $spacing-4;
   cursor: pointer;
   transition: all $transition-base;

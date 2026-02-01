@@ -197,6 +197,11 @@ export default {
         },
       },
     },
+    ReviewsView: {
+      reviewButtonText: 'Leave a Review',
+      buttonSeparatorText: 'or',
+      modifyButtonText: 'Modify your Reviews',
+    },
   },
 
   date: 'Date',
