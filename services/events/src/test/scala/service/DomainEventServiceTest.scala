@@ -23,7 +23,7 @@ class FailingEventRepository extends EventRepository:
   override def findByFilters(
       limit: Option[Int],
       offset: Option[Int],
-      status: Option[EventStatus],
+      status: Option[List[EventStatus]],
       title: Option[String],
       tags: Option[List[String]],
       startDate: Option[String],

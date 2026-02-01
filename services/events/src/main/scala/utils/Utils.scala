@@ -123,7 +123,7 @@ object Utils:
   def parseEventFilters(
       limit: Option[Int],
       offset: Option[Int],
-      status: Option[String],
+      status: Option[List[String]],
       title: Option[String],
       tags: Option[List[String]],
       startDate: Option[String],
@@ -135,12 +135,21 @@ object Utils:
       sortOrder: Option[String],
       isAuthenticated: Boolean
   ): GetFilteredEventsCommand =
-    var parsedStatus: Option[EventStatus] = None
-    isAuthenticated match
-      case true  => parsedStatus = status.flatMap(s => EventStatus.withNameOpt(s))
-      case false => parsedStatus = status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
+    var parsedStatus: Option[List[EventStatus]] = status.map(
+      _.flatMap(s => s.split(",").map(_.trim))
+        .map(str => EventStatus.withNameOpt(str.trim).getOrElse(EventStatus.PUBLISHED))
+    )
 
-    val parsedTags: Option[List[EventTag]] = tags.map(_.map(t => EventTag.fromString(t)))
+    isAuthenticated match
+      case true => parsedStatus = status.map(_.flatMap(s => EventStatus.withNameOpt(s)))
+      case false =>
+        parsedStatus = status.map(_.flatMap(s => EventStatus.withNameOpt(s))).orElse(Some(List(EventStatus.PUBLISHED)))
+
+    val parsedTags: Option[List[EventTag]] = tags.map(
+      _.flatMap(t => t.split(",").map(_.trim))
+        .map(t => EventTag.fromString(t))
+    )
+
     val parsedStartDate: Option[LocalDateTime] = startDate.flatMap { sd =>
       Try(LocalDateTime.parse(sd)).toOption
     }

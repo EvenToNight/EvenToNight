@@ -46,7 +46,7 @@ case class DeleteEventCommand(
 case class GetFilteredEventsCommand(
     limit: Option[Int],
     offset: Option[Int],
-    status: Option[EventStatus],
+    status: Option[List[EventStatus]],
     title: Option[String],
     tags: Option[List[EventTag]],
     startDate: Option[LocalDateTime],

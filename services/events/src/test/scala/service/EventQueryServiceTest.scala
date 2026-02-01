@@ -123,7 +123,7 @@ class EventQueryServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfte
     val cmd = GetFilteredEventsCommand(
       limit = Some(10),
       offset = Some(0),
-      status = Some(EventStatus.PUBLISHED),
+      status = Some(List(EventStatus.PUBLISHED)),
       title = None,
       tags = Some(List(EventTag.EventType.Concert)),
       startDate = None,

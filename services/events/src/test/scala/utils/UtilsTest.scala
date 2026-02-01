@@ -344,7 +344,7 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val commands = Utils.parseEventFilters(
       limit = Some(2),
       offset = Some(5),
-      status = Some("PUBLISHED"),
+      status = Some(List("PUBLISHED")),
       title = Some("Music Fest"),
       tags = Some(List("Concert", "Rock")),
       startDate = Some("2025-10-01T00:00:00"),

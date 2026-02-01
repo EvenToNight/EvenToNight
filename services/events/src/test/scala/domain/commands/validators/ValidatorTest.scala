@@ -52,7 +52,7 @@ class ValidatorTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   private def validGetFilteredEventsCommand(
       limit: Option[Int] = Some(10),
       offset: Option[Int] = Some(0),
-      status: Option[EventStatus] = Some(EventStatus.PUBLISHED),
+      status: Option[List[EventStatus]] = Some(List(EventStatus.PUBLISHED)),
       title: Option[String] = Some("Sample Event"),
       tags: Option[List[EventTag]] = Some(List(EventTag.EventType.Concert)),
       startDate: Option[LocalDateTime] = Some(LocalDateTime.now().plusDays(1)),

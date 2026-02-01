@@ -58,7 +58,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     GetFilteredEventsCommand(
       limit = Some(5),
       offset = Some(0),
-      status = Some(EventStatus.PUBLISHED),
+      status = Some(List(EventStatus.PUBLISHED)),
       title = Some("Sample"),
       tags = Some(List(EventTag.EventType.Concert)),
       startDate = Some(baseDate),

@@ -93,7 +93,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
   private def validGetFilteredEventsCommand(
       limit: Option[Int] = None,
       offset: Option[Int] = None,
-      status: Option[EventStatus] = None,
+      status: Option[List[EventStatus]] = None,
       title: Option[String] = None,
       tags: Option[List[EventTag]] = None,
       startDate: Option[LocalDateTime] = None,

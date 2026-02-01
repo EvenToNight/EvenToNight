@@ -290,12 +290,22 @@ paths:
           example: 0
         - name: status
           in: query
-          description: Filter by event status
+          description: |
+            Filter by event status. Provide multiple statuses as a comma-separated string.
+            Example: `status=PUBLISHED,COMPLETED`
           required: false
           schema:
             type: string
-            enum: [DRAFT, PUBLISHED, CANCELLED, COMPLETED]
-          example: PUBLISHED
+          examples:
+            single:
+              summary: Single status
+              value: "PUBLISHED"
+            multiple:
+              summary: Multiple statuses (comma-separated)
+              value: "PUBLISHED,COMPLETED"
+            cancelled:
+              summary: Cancelled events
+              value: "CANCELLED"
         - name: title
           in: query
           description: Filter by event title (case-insensitive partial match)
@@ -304,19 +314,17 @@ paths:
             type: string
         - name: tags
           in: query
-          description: Filter by tags (can be repeated for multiple tags)
+          description: Filter by tags (comma-separated for multiple tags)
           required: false
           schema:
-            type: array
-            items:
-              type: string
-          style: form
-          explode: true
+            type: string
           examples:
             single:
               summary: Single tag
+              value: "Party"
             multiple:
               summary: Multiple tags
+              value: "Party,Outdoor"
         - name: startDate
           in: query
           description: Filter events starting from this date (ISO 8601 format)

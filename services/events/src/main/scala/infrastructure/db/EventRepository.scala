@@ -22,7 +22,7 @@ trait EventRepository:
   def findByFilters(
       limit: Option[Int] = None,
       offset: Option[Int] = None,
-      status: Option[EventStatus] = None,
+      status: Option[List[EventStatus]] = None,
       title: Option[String] = None,
       tags: Option[List[String]] = None,
       startDate: Option[String] = None,
@@ -116,7 +116,7 @@ case class MongoEventRepository(
   override def findByFilters(
       limit: Option[Int] = None,
       offset: Option[Int] = None,
-      status: Option[EventStatus] = None,
+      status: Option[List[EventStatus]] = None,
       title: Option[String] = None,
       tags: Option[List[String]] = None,
       startDate: Option[String] = None,
@@ -159,7 +159,7 @@ case class MongoEventRepository(
     mongoClient.close()
 
   private def buildFilterQuery(
-      status: Option[EventStatus],
+      status: Option[List[EventStatus]],
       title: Option[String],
       tags: Option[List[String]],
       startDate: Option[String],
@@ -170,7 +170,13 @@ case class MongoEventRepository(
   ): org.bson.conversions.Bson =
     val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
 
-    status.foreach(s => filters += Filters.eq("status", s.toString))
+    status.foreach { statusList =>
+      if statusList.nonEmpty then
+        if statusList.size == 1 then
+          filters += Filters.eq("status", statusList.head.toString)
+        else
+          filters += Filters.in("status", statusList.map(_.toString).asJava)
+    }
     title.foreach(t => filters += Filters.regex("title", escapeRegex(t), "i"))
     organizationId.foreach { org =>
       filters += Filters.or(
