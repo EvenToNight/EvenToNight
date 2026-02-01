@@ -26,7 +26,7 @@ const loadReviews = async () => {
     loading.value = true
     reviews.value = (
       await api.interactions.getEventReviews(props.eventId, {
-        limit: 4,
+        pagination: { limit: 4 },
       })
     ).items
     reviewsStatistics.value = await api.interactions.getOrganizationReviews(props.organizationId)

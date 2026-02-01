@@ -5,18 +5,23 @@ import type {
   GetUserLikedEventsResponse,
   InteractionAPI,
 } from '../interfaces/interactions'
-import type { EventID, OrganizationRole } from '../types/events'
+import type { EventID, EventStatus, OrganizationRole } from '../types/events'
 import type {
   EventReview,
   EventReviewData,
   PartecipationInfo,
   UpdateEventReviewData,
   UserPartecipation,
+  OrganizationReviewsStatistics,
 } from '../types/interaction'
 import type { UserID } from '../types/users'
 import { mockEvents } from './data/events'
 import { mockEventInteractions, mockEventReviews, mockUserInteractions } from './data/interactions'
-import type { PaginatedRequest, PaginatedResponseWithTotalCount } from '../interfaces/commons'
+import type {
+  PaginatedRequest,
+  PaginatedResponseWithTotalCount,
+  SortOrder,
+} from '../interfaces/commons'
 import { getPaginatedItems } from '@/api/utils/requestUtils'
 import type { Rating } from '../types/interaction'
 import { mockUsers } from './data/users'
@@ -157,12 +162,19 @@ export const mockInteractionsApi: InteractionAPI = {
     params?: {
       organizationId?: UserID
       reviewed?: boolean
+      eventStatus?: EventStatus
+      order?: SortOrder
       pagination?: PaginatedRequest
     }
   ): Promise<PaginatedResponseWithTotalCount<UserPartecipation>> {
-    //TODO: filter checking user's partecipation to events
+    //TODO: filter checking user's partecipation to events and sort
     let participations = mockEvents
-      .filter((event) => event.status !== 'DRAFT')
+      .filter((event) => {
+        if (params?.eventStatus) {
+          return event.status === params.eventStatus
+        }
+        return event.status !== 'DRAFT'
+      })
       .map((event) => ({
         ...event,
         reviewed: mockEventReviews.some(
@@ -248,9 +260,18 @@ export const mockInteractionsApi: InteractionAPI = {
 
   async getEventReviews(
     eventId: EventID,
-    pagination?: PaginatedRequest
+    params?: {
+      rating?: Rating
+      pagination?: PaginatedRequest
+    }
   ): Promise<GetReviewWithStatisticsResponse> {
-    const reviews = mockEventReviews.filter((review) => review.eventId === eventId)
+    const reviews = mockEventReviews.filter((review) => {
+      let ratingFilter = true
+      if (params?.rating) {
+        ratingFilter = review.rating === params.rating
+      }
+      return review.eventId === eventId && ratingFilter
+    })
     const averageRating =
       reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length || 0
     const ratingDistribution: Record<Rating, number> = reviews.reduce(
@@ -261,7 +282,7 @@ export const mockInteractionsApi: InteractionAPI = {
       {} as Record<Rating, number>
     )
     return {
-      ...getPaginatedItems(reviews, pagination),
+      ...getPaginatedItems(reviews, params?.pagination),
       totalReviews: reviews.length,
       averageRating,
       ratingDistribution,
@@ -305,6 +326,7 @@ export const mockInteractionsApi: InteractionAPI = {
     organizationId: UserID,
     params?: {
       role?: OrganizationRole
+      rating?: Rating
       pagination?: PaginatedRequest
     }
   ): Promise<GetReviewWithStatisticsResponse> {
@@ -320,6 +342,12 @@ export const mockInteractionsApi: InteractionAPI = {
         }
         return true
       })
+      .filter((review) => {
+        if (params?.rating) {
+          return review.rating === params.rating
+        }
+        return true
+      })
     const averageRating =
       reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length || 0
     const ratingDistribution: Record<Rating, number> = reviews.reduce(
@@ -332,6 +360,28 @@ export const mockInteractionsApi: InteractionAPI = {
 
     return {
       ...getPaginatedItems(reviews, params?.pagination),
+      totalReviews: reviews.length,
+      averageRating,
+      ratingDistribution,
+    }
+  },
+
+  async getOrganizationReviewStatistics(
+    organizationId: UserID
+  ): Promise<OrganizationReviewsStatistics> {
+    const organizationEvents = mockEvents.filter((event) => event.creatorId === organizationId)
+    const eventIds = organizationEvents.map((event) => event.eventId)
+    const reviews = mockEventReviews.filter((review) => eventIds.includes(review.eventId))
+    const averageRating =
+      reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length || 0
+    const ratingDistribution: Record<Rating, number> = reviews.reduce(
+      (acc, review) => {
+        acc[review.rating] = (acc[review.rating] || 0) + 1
+        return acc
+      },
+      {} as Record<Rating, number>
+    )
+    return {
       totalReviews: reviews.length,
       averageRating,
       ratingDistribution,

@@ -1,5 +1,5 @@
 import type { UserID, UserInfo } from '../types/users'
-import type { EventID, OrganizationRole } from '../types/events'
+import type { EventID, EventStatus, OrganizationRole } from '../types/events'
 import type {
   EventReview,
   EventReviewData,
@@ -7,11 +7,13 @@ import type {
   OrganizationReviewsStatistics,
   PartecipationInfo,
   UserPartecipation,
+  Rating,
 } from '../types/interaction'
 import type {
   PaginatedRequest,
   PaginatedResponseWithTotalCount,
   ExtendedPaginatedResponse,
+  SortOrder,
 } from './commons'
 
 export type GetReviewResponse = PaginatedResponseWithTotalCount<EventReview>
@@ -47,6 +49,8 @@ export interface InteractionAPI {
     params?: {
       organizationId?: UserID
       reviewed?: boolean
+      eventStatus?: EventStatus
+      order?: SortOrder
       pagination?: PaginatedRequest
     }
   ): Promise<PaginatedResponseWithTotalCount<UserPartecipation>>
@@ -57,7 +61,10 @@ export interface InteractionAPI {
   createEventReview(eventId: EventID, review: EventReviewData): Promise<void>
   getEventReviews(
     eventId: EventID,
-    pagination?: PaginatedRequest
+    params?: {
+      rating?: Rating
+      pagination?: PaginatedRequest
+    }
   ): Promise<GetReviewWithStatisticsResponse>
   deleteEventReview(eventId: EventID, userId: UserID): Promise<void>
   updateEventReview(eventId: EventID, userId: UserID, review: UpdateEventReviewData): Promise<void>
@@ -65,7 +72,9 @@ export interface InteractionAPI {
     organizationId: UserID,
     params?: {
       role?: OrganizationRole
+      rating?: Rating
       pagination?: PaginatedRequest
     }
   ): Promise<GetReviewWithStatisticsResponse>
+  getOrganizationReviewStatistics(organizationId: UserID): Promise<OrganizationReviewsStatistics>
 }
