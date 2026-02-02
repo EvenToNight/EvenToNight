@@ -29,7 +29,8 @@ const BaseEventSeedSchema = z.object({
   }).optional(),
   date: z.string().datetime().optional(),
   instant: z.string().datetime().optional(),
-  collaborators: z.array(z.string()).optional()
+  collaborators: z.array(z.string()).optional(),
+  isFree: z.boolean(),
 });
 
 const DraftEventSeedSchema = BaseEventSeedSchema.extend({
