@@ -290,7 +290,7 @@ export default {
       },
     },
     VerifyTicketView: {
-      ticketID: 'Ticket-ID',
+      ticketID: 'Ticket-ID', //[ignorei18n]
       loadingTitle: 'Ticket wird überprüft...',
       loadingMessage: 'Bitte warten Sie, während wir Ihr Ticket überprüfen',
       failedTitle: 'Überprüfung fehlgeschlagen',
@@ -491,7 +491,7 @@ export default {
           forYou: 'Für Sie',
           new: 'Neu',
         },
-        FilterButton: {
+        FiltersButton: {
           filters: 'Filter',
           cancel: 'Klar',
           apply: 'Anwenden',
@@ -549,6 +549,8 @@ export default {
         title: 'Finden Sie die Veranstaltung für Sie',
         draftSectionTitle: 'Bearbeiten Sie Ihre Ereignisse weiter',
         upcomingEventsSectionTitle: 'Kommende Veranstaltungen',
+        popularEventsSectionTitle: 'Beliebte Veranstaltungen',
+        newestSectionTitle: 'Neueste Ereignisse',
       },
     },
     imageUpload: {
@@ -627,7 +629,6 @@ export default {
         follow: 'Folgen',
       },
       ProfileBody: {
-        myEvents: 'Meine Veranstaltungen',
         myEventsExternal: 'Veranstaltungen',
         myEventsPublishedLabel: 'Kommende Veranstaltungen',
         myEventsPastEventsLabel: 'Vergangene Veranstaltungen',
@@ -635,15 +636,13 @@ export default {
         noEventCreatedExternal: 'Diese Organisation hat noch keine Veranstaltungen erstellt.',
         draftedEvents: 'Entwurf',
         noDraftedEvents: 'Sie haben keine geplanten Ereignisse.',
-        myLikes: 'Meine Vorlieben',
         myLikesExternal: 'Gefällt mir',
-        myParticipations: 'Meine Teilnahmen',
         myParticipationsExternal: 'Beteiligungen',
-        myPartecipationsUpcomingLabel: 'Kommende Veranstaltungen',
-        myPartecipationsPastLabel: 'Vergangene Veranstaltungen',
+        myParticipationsUpcomingLabel: 'Kommende Veranstaltungen',
+        myParticipationsPastLabel: 'Vergangene Veranstaltungen',
         noEventJoined: 'Sie haben noch keine Veranstaltungen besucht.',
         noEventJoinedExternal: 'Dieser Benutzer hat noch keine Veranstaltungen besucht.',
-        myTickets: 'Meine Tickets',
+        myTickets: 'Tickets',
         reviews: 'Rezensionen',
       },
       ProfileHeader: {
@@ -769,56 +768,5 @@ export default {
         },
       },
     },
-  },
-
-  date: 'Datum',
-  time: 'Zeit',
-  location: 'Standort',
-  price: 'Preis',
-  download: 'Herunterladen',
-  profile: 'Profil',
-
-  users: {
-    organizations: 'Organisationen',
-    members: 'Benutzer',
-  },
-
-  event: {
-    draft: 'Entwurf',
-  },
-
-  search: {
-    baseHint: 'Suchen...',
-    searchingText: 'Suche...',
-    noResultsText: 'Keine Ergebnisse gefunden',
-  },
-
-  userProfile: {
-    followers: 'Anhänger',
-    following: 'Nachfolgend',
-    follow: 'Folgen',
-    myTickets: 'Meine Tickets',
-    myEvents: 'Meine Veranstaltungen',
-    events: 'Veranstaltungen',
-
-    noTickets: 'Noch keine Tickets',
-    draftedEvents: 'Entworfene Ereignisse',
-    reviews: 'Rezensionen',
-    noReviews: 'Noch keine Bewertungen.',
-    leaveReview: 'Hinterlassen Sie eine Bewertung',
-    selectEvent: 'Ereignis auswählen',
-    selectRating: 'Bewertung auswählen:',
-    reviewTitle: 'Titel',
-    reviewTitlePlaceholder: 'Geben Sie Ihrer Rezension einen Titel...',
-    reviewDescription: 'Beschreibung',
-    reviewDescriptionPlaceholder: 'Schreiben Sie Ihre Bewertung...',
-    cancel: 'Stornieren',
-    submit: 'Einreichen',
-    noEventFound: 'Keine Veranstaltung gefunden',
-  },
-
-  theme: {
-    light_mode: 'Lichtmodus',
-    dark_mode: 'Dunkler Modus',
   },
 }

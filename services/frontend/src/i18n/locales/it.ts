@@ -285,7 +285,7 @@ export default {
       },
     },
     VerifyTicketView: {
-      ticketID: 'Ticket ID',
+      ticketID: 'Ticket ID', //[ignorei18n]
       loadingTitle: 'Verifica biglietto...',
       loadingMessage: 'Ti preghiamo di attendere mentre verifichiamo il tuo biglietto',
       failedTitle: 'Verifica non riuscita',
@@ -485,13 +485,14 @@ export default {
           forYou: 'Per te',
           new: 'Ultimi Aggiunti',
         },
-        FilterButton: {
+        FiltersButton: {
           filters: 'Filtri',
-          cancel: 'Chiudi',
-          apply: 'Applica',
+          cancel: 'Chiaro',
+          apply: 'Fare domanda a',
         },
         PriceFilters: {
           free: 'Gratuito',
+          paid: 'Pagato',
           from: 'Da',
           to: 'A',
           customize: 'Personalizza',
@@ -529,7 +530,7 @@ export default {
         usersEmptySearch: 'Nessun utente trovato',
         usersEmptySearchText: 'Cerca gli utenti per nome',
         title: 'Esplora',
-        subtitle: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
+        subtitile: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
       },
     },
     home: {
@@ -542,7 +543,7 @@ export default {
         draftSectionTitle: 'Continua a modificare i tuoi eventi',
         upcomingEventsSectionTitle: 'Prossimi eventi',
         popularEventsSectionTitle: 'Eventi popolari',
-        newestSectionTitle: 'Ultimi eventi aggiunti',
+        newestSectionTitle: 'Eventi più recenti',
       },
     },
     imageUpload: {
@@ -630,8 +631,8 @@ export default {
         noDraftedEvents: 'Non hai nessuna bozza.',
         myLikesExternal: 'Mi piace',
         myParticipationsExternal: 'Partecipazioni',
-        myPartecipationsUpcomingLabel: 'Prossimi eventi',
-        myPartecipationsPastLabel: 'Eventi passati',
+        myParticipationsUpcomingLabel: 'Prossimi eventi',
+        myParticipationsPastLabel: 'Eventi passati',
         noEventJoined: 'Non hai ancora partecipato a nessun evento.',
         noEventJoinedExternal: 'Questo utente non ha ancora partecipato ad alcun evento.',
         myTickets: 'Biglietti',
@@ -756,56 +757,5 @@ export default {
         },
       },
     },
-  },
-
-  date: 'Data',
-  time: 'Orario',
-  location: 'Posizione',
-  price: 'Prezzo',
-  download: 'Scarica',
-  profile: 'Profilo',
-
-  users: {
-    organizations: 'Organizzazioni',
-    members: 'Utenti',
-  },
-
-  event: {
-    draft: 'Bozza',
-  },
-
-  search: {
-    baseHint: 'Ricerca...',
-    searchingText: 'Ricerca...',
-    noResultsText: 'Nessun risultato trovato',
-  },
-
-  userProfile: {
-    followers: 'Follower',
-    following: 'Seguiti',
-    follow: 'Segui',
-    myTickets: 'I miei biglietti',
-    myEvents: 'I miei eventi',
-    events: 'Eventi',
-
-    noTickets: 'Nessun biglietto disponibile',
-    draftedEvents: 'Bozze',
-    reviews: 'Recensioni',
-    noReviews: 'Nessuna recensione ancora.',
-    leaveReview: 'Lascia una recensione',
-    selectEvent: 'Seleziona un evento',
-    selectRating: 'Seleziona una valutazione:',
-    reviewTitle: 'Titolo',
-    reviewTitlePlaceholder: 'Dai un titolo alla tua recensione...',
-    reviewDescription: 'Descrizione',
-    reviewDescriptionPlaceholder: 'Scrivi la tua recensione...',
-    cancel: 'Annulla',
-    submit: 'Invia',
-    noEventFound: 'Nessun evento trovato',
-  },
-
-  theme: {
-    light_mode: 'Modalità chiara',
-    dark_mode: 'Modalità scura',
   },
 }
