@@ -10,12 +10,10 @@ import FeedFilters from './FeedFilters.vue'
 import { useTranslation } from '@/composables/useTranslation'
 import { useRoute, useRouter } from 'vue-router'
 import { buildExploreFiltersFromQuery, buildExploreRouteQuery } from '@/api/utils/filtersUtils'
-import { createLogger } from '@/utils/logger'
 
 const route = useRoute()
 const router = useRouter()
 const { t } = useTranslation('components.explore.filters.FiltersButton')
-const logger = createLogger(import.meta.url)
 export interface EventFilters extends DateFilterValue, PriceFilterValue {
   tags?: Tag[] | null
   sortBy?: SortBy | null
@@ -30,7 +28,7 @@ const normalizeQuery = (queryObj: any) => {
     : {}
 }
 
-const filters = defineModel<EventFilters | undefined>('filters')
+const filters = defineModel<EventFilters>('filters', { default: {} })
 const isUpdating = ref(false)
 
 watch(
@@ -39,9 +37,7 @@ watch(
     if (isUpdating.value) return
     isUpdating.value = true
     const normalized = normalizeQuery(newQuery)
-    logger.log('Route query changed:', normalized)
     filters.value = buildExploreFiltersFromQuery(normalized)
-    logger.log('Parsed filters from URL:', { ...filters.value })
     await nextTick() // Wait for other watchers to process
     isUpdating.value = false
   },
@@ -54,7 +50,6 @@ watch(
     if (isUpdating.value) return
     isUpdating.value = true
     const newQuery = buildExploreRouteQuery(newFilters)
-    logger.log('Updating URL with filters:', newQuery)
     router.replace({ query: newQuery })
     await nextTick() // Wait for other watchers to process
     isUpdating.value = false
@@ -70,13 +65,13 @@ const selectedOtherFilter = ref<OtherFilter | null>(null)
 
 const countActiveFilters = () => {
   let count = 0
-  if (filters.value?.dateFilter) count++
-  if (filters.value?.dateRange) count++
-  count += filters.value?.tags?.length ?? 0
-  if (filters.value?.priceFilter) count++
-  if (filters.value?.customPriceRange) count++
-  if (filters.value?.sortBy) count++
-  if (filters.value?.otherFilter) count++
+  if (filters.value.dateFilter) count++
+  if (filters.value.dateRange) count++
+  count += filters.value.tags?.length ?? 0
+  if (filters.value.priceFilter) count++
+  if (filters.value.customPriceRange) count++
+  if (filters.value.sortBy) count++
+  if (filters.value.otherFilter) count++
   return count
 }
 
@@ -85,13 +80,13 @@ const filtersMenuOpen = ref(false)
 
 const applyFilters = () => {
   // Simply copy draft values to active (watchers already handle mutual exclusion)
-  filters.value = {
-    ...dateFilterValue.value,
-    ...priceFilterValue.value,
-    tags: [...selectedTags.value],
-    sortBy: selectedSortBy.value,
-    otherFilter: selectedOtherFilter.value,
-  }
+  filters.value.dateFilter = dateFilterValue.value.dateFilter
+  filters.value.dateRange = dateFilterValue.value.dateRange
+  filters.value.tags = selectedTags.value
+  filters.value.priceFilter = priceFilterValue.value.priceFilter
+  filters.value.customPriceRange = priceFilterValue.value.customPriceRange
+  filters.value.sortBy = selectedSortBy.value
+  filters.value.otherFilter = selectedOtherFilter.value
   filtersMenuOpen.value = false
 }
 
@@ -106,13 +101,13 @@ const clearFilters = () => {
 
 const hasActiveFilters = computed(
   () =>
-    filters.value?.dateFilter ||
-    filters.value?.dateRange ||
-    (filters.value?.tags && filters.value?.tags.length > 0) ||
-    filters.value?.priceFilter ||
-    filters.value?.customPriceRange ||
-    filters.value?.sortBy ||
-    filters.value?.otherFilter
+    filters.value.dateFilter ||
+    filters.value.dateRange ||
+    (filters.value.tags && filters.value.tags.length > 0) ||
+    filters.value.priceFilter ||
+    filters.value.customPriceRange ||
+    filters.value.sortBy ||
+    filters.value.otherFilter
 )
 
 const isElementHiddenBehindStickyHeader = (el: HTMLElement | null) => {
@@ -128,10 +123,10 @@ const isElementHiddenBehindStickyHeader = (el: HTMLElement | null) => {
 watch(filtersMenuOpen, (isOpen) => {
   if (isOpen) {
     dateFilterValue.value = { ...filters.value }
-    selectedTags.value = [...(filters.value?.tags || [])]
+    selectedTags.value = [...(filters.value.tags || [])]
     priceFilterValue.value = { ...filters.value }
-    selectedSortBy.value = filters.value?.sortBy ?? null
-    selectedOtherFilter.value = filters.value?.otherFilter ?? null
+    selectedSortBy.value = filters.value.sortBy ?? null
+    selectedOtherFilter.value = filters.value.otherFilter ?? null
   }
 })
 
