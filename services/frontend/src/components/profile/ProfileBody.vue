@@ -68,7 +68,7 @@ const tabs = computed<Tab[]>(() => {
   if (isOrganization.value) {
     baseTabs.push({
       id: 'publishedEvents',
-      label: isOwnProfile.value ? t('myEvents') : t('myEventsExternal'),
+      label: t('myEventsExternal'),
       icon: 'event',
       component: EventsTab,
       props: {
@@ -131,7 +131,7 @@ const tabs = computed<Tab[]>(() => {
 
   baseTabs.push({
     id: 'likes',
-    label: isOwnProfile.value ? t('myLikes') : t('myLikesExternal'),
+    label: t('myLikesExternal'),
     icon: 'favorite',
     component: MyLikesTab,
     props: {
@@ -141,7 +141,7 @@ const tabs = computed<Tab[]>(() => {
 
   baseTabs.push({
     id: 'events',
-    label: isOwnProfile.value ? t('myParticipations') : t('myParticipationsExternal'),
+    label: t('myParticipationsExternal'),
     icon: 'event',
     component: EventsTab,
     props: {

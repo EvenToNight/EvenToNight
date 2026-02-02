@@ -615,7 +615,6 @@ export default {
         follow: 'Follow',
       },
       ProfileBody: {
-        myEvents: 'My Events',
         myEventsExternal: 'Events',
         myEventsPublishedLabel: 'Upcoming Events',
         myEventsPastEventsLabel: 'Past Events',
@@ -623,15 +622,13 @@ export default {
         noEventCreatedExternal: 'This organization has not created any events yet.',
         draftedEvents: 'Draft',
         noDraftedEvents: 'You have no drafted events.',
-        myLikes: 'My Likes',
         myLikesExternal: 'Likes',
-        myParticipations: 'My Participations',
         myParticipationsExternal: 'Participations',
-        myPartecipationsUpcomingLabel: 'Upcoming Events',
-        myPartecipationsPastLabel: 'Past Events',
+        myParticipationsUpcomingLabel: 'Upcoming Events',
+        myParticipationsPastLabel: 'Past Events',
         noEventJoined: 'You have not attended any events yet.',
         noEventJoinedExternal: 'This user has not attended any events yet.',
-        myTickets: 'My Tickets',
+        myTickets: 'Tickets',
         reviews: 'Reviews',
       },
       ProfileHeader: {
@@ -752,56 +749,5 @@ export default {
         },
       },
     },
-  },
-
-  date: 'Date',
-  time: 'Time',
-  location: 'Location',
-  price: 'Price',
-  download: 'Download',
-  profile: 'Profile',
-
-  users: {
-    organizations: 'Organizations',
-    members: 'Users',
-  },
-
-  event: {
-    draft: 'Draft',
-  },
-
-  search: {
-    baseHint: 'Search...',
-    searchingText: 'Searching...',
-    noResultsText: 'No results found',
-  },
-
-  userProfile: {
-    followers: 'Followers',
-    following: 'Following',
-    follow: 'Follow',
-    myTickets: 'My Tickets',
-    myEvents: 'My Events',
-    events: 'Events',
-
-    noTickets: 'No tickets yet',
-    draftedEvents: 'Drafted Events',
-    reviews: 'Reviews',
-    noReviews: 'No reviews yet.',
-    leaveReview: 'Leave a review',
-    selectEvent: 'Select event',
-    selectRating: 'Select rating:',
-    reviewTitle: 'Title',
-    reviewTitlePlaceholder: 'Give your review a title...',
-    reviewDescription: 'Description',
-    reviewDescriptionPlaceholder: 'Write your review...',
-    cancel: 'Cancel',
-    submit: 'Submit',
-    noEventFound: 'No event found',
-  },
-
-  theme: {
-    light_mode: 'Light Mode',
-    dark_mode: 'Dark Mode',
   },
 }
