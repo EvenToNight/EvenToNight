@@ -13,6 +13,8 @@ interface Props {
 const props = withDefaults(defineProps<Props>(), {
   modelValue: null,
   maxSize: 5000000,
+  label: undefined,
+  buttonLabel: undefined,
 })
 
 const { t } = useTranslation('components.imageUpload.PosterCropUpload')

@@ -17,6 +17,7 @@ interface Props {
 const logger = createLogger(import.meta.url)
 const props = withDefaults(defineProps<Props>(), {
   maxSize: 5000000,
+  dialogTitle: undefined,
 })
 
 const { t } = useTranslation('components.imageUpload.BaseCropUpload')
