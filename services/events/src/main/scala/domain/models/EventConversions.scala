@@ -26,6 +26,7 @@ object EventConversions:
       doc.append("instant", event.instant.toString)
       doc.append("creatorId", event.creatorId)
       appendIfPresent("collaboratorIds", event.collaboratorIds, (c: List[String]) => c.asJava)
+      doc.append("isFree", event.isFree)
 
       doc
 
@@ -34,7 +35,8 @@ object EventConversions:
         "eventId"   -> event._id,
         "status"    -> event.status.toString,
         "instant"   -> event.instant.toString,
-        "creatorId" -> event.creatorId
+        "creatorId" -> event.creatorId,
+        "isFree"    -> event.isFree
       )
 
       def addIfPresent[T](key: String, value: Option[T], transform: T => ujson.Value): Unit =
@@ -63,7 +65,8 @@ object EventConversions:
       status = EventStatus.valueOf(doc.getString("status")),
       instant = Instant.parse(doc.getString("instant")),
       creatorId = doc.getString("creatorId"),
-      collaboratorIds = Option(doc.get("collaboratorIds", classOf[java.util.List[String]])).map(_.asScala.toList)
+      collaboratorIds = Option(doc.get("collaboratorIds", classOf[java.util.List[String]])).map(_.asScala.toList),
+      isFree = doc.getBoolean("isFree")
     )
 
   private def localityToDocument(locality: Location): Document =

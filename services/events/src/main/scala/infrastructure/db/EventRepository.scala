@@ -143,6 +143,7 @@ case class MongoEventRepository(
 
       val combinedFilter =
         buildFilterQuery(
+          limit = limit.getOrElse(20),
           status,
           title,
           tagsForFilter,
@@ -192,6 +193,7 @@ case class MongoEventRepository(
     mongoClient.close()
 
   private def buildFilterQuery(
+      limit: Int,
       status: Option[List[EventStatus]],
       title: Option[String],
       tags: Option[List[String]],
@@ -236,20 +238,11 @@ case class MongoEventRepository(
 
     price.foreach { case (minPrice, maxPrice) =>
       if priceRepository.isDefined then
-        val eventIdsInRange = priceRepository.get.findEventIdsInPriceRange(minPrice, maxPrice)
-        /* TODO: Consider free events as well
-        val allEventIds = collection
-          .find(new Document())
-          .projection(new Document("_id", 1))
-          .into(new java.util.ArrayList[Document]())
-          .asScala
-          .map(_.getString("_id"))
-          .toList
-        val freeEventIds     = allEventIds.filterNot(eventIdsInRange.contains)
+        val eventIdsInRange  = priceRepository.get.findEventIdsInPriceRange(limit, minPrice, maxPrice)
+        val freeEventIds     = this.findAllFree(limit)
         val matchingEventIds = if minPrice == 0.0 then eventIdsInRange ++ freeEventIds else eventIdsInRange
-         */
-        if eventIdsInRange.nonEmpty then
-          filters += Filters.in("_id", eventIdsInRange.asJava)
+        if matchingEventIds.nonEmpty then
+          filters += Filters.in("_id", matchingEventIds.asJava)
         else
           filters += Filters.eq("_id", "no-match")
     }
@@ -607,3 +600,13 @@ case class MongoEventRepository(
       math.sin(dLon / 2) * math.sin(dLon / 2)
     val c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     R * c
+
+  private def findAllFree(limit: Int): List[String] =
+    collection
+      .find(Filters.eq("isFree", true))
+      .limit(limit)
+      .projection(new Document("_id", 1))
+      .into(new java.util.ArrayList[Document]())
+      .asScala
+      .map(_.getString("_id"))
+      .toList
