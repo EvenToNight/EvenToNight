@@ -47,6 +47,7 @@ const searchEvents = async (
   return loadEvents({
     title: searchQuery.value || undefined,
     userId: authStore.user?.id,
+    status: new Set(['PUBLISHED', 'COMPLETED', 'CANCELLED']),
     pagination,
     ...params,
   })
@@ -159,6 +160,10 @@ const tabs = computed<Tab[]>(() => [
 <style lang="scss" scoped>
 .explore-page {
   @include flex-column;
+  background-color: $grey-2;
+  @include dark-mode {
+    background-color: $grey-10;
+  }
 }
 
 .explore-hero {

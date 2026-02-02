@@ -75,23 +75,38 @@ const tabs = computed<Tab[]>(() => {
         sections: [
           {
             key: 'PUBLISHED',
-            options: { status: 'PUBLISHED', label: t('myEventsPublishedLabel'), sortOrder: 'asc' },
+            options: {
+              status: new Set(['PUBLISHED', 'CANCELLED']),
+              label: t('myEventsPublishedLabel'),
+              sortOrder: 'asc',
+              startDate: new Date(),
+            },
           },
           {
             key: 'COMPLETED',
             options: {
-              status: 'COMPLETED',
+              status: new Set(['COMPLETED', 'CANCELLED']),
               label: t('myEventsPastEventsLabel'),
               sortOrder: 'desc',
+              endDate: new Date(),
             },
           },
         ],
-        loadEvents: (status: EventStatus, offset: number, limit: number, sortOrder: SortOrder) =>
+        loadEvents: (
+          status: EventStatus | Set<EventStatus>,
+          offset: number,
+          limit: number,
+          sortOrder: SortOrder,
+          startDate?: Date,
+          endDate?: Date
+        ) =>
           loadEvents({
             organizationId: props.user.id,
             userId: authStore.user?.id,
             status,
             sortOrder,
+            startDate,
+            endDate,
             pagination: { offset, limit },
           }),
         onAuthRequired: () => emit('auth-required'),

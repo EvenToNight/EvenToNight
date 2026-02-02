@@ -13,18 +13,22 @@ import {
 const ITEMS_PER_PAGE = 10
 
 interface SectionOptions {
-  status: EventStatus
+  status: EventStatus | Set<EventStatus>
   label?: string
   sortOrder: SortOrder
+  startDate?: Date
+  endDate?: Date
 }
 
 interface Props {
   sections: SectionConfig<EventStatus, SectionOptions>[]
   loadEvents: (
-    status: EventStatus,
+    status: EventStatus | Set<EventStatus>,
     offset: number,
     limit: number,
-    sortOrder: SortOrder
+    sortOrder: SortOrder,
+    startDate?: Date,
+    endDate?: Date
   ) => Promise<PaginatedResponse<EventLoadResult>>
   onAuthRequired?: () => void
   emptyText: string
@@ -37,8 +41,15 @@ const { sectionsData, loading, loadingMore, hasMore, isEmpty, onLoad, loadMore, 
   useMultiSectionInfiniteScroll<EventStatus, SectionOptions, EventLoadResult>({
     sections: props.sections,
     itemsPerPage: ITEMS_PER_PAGE,
-    loadFn: async (status, offset, limit, options) => {
-      return props.loadEvents(status, offset, limit, options?.sortOrder || 'asc')
+    loadFn: async (_key, offset, limit, options) => {
+      return props.loadEvents(
+        options!.status,
+        offset,
+        limit,
+        options!.sortOrder,
+        options!.startDate,
+        options!.endDate
+      )
     },
   })
 
