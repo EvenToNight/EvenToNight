@@ -140,10 +140,13 @@ case class MongoEventRepository(
     Try {
       val isFeedMode    = other.exists(_.toLowerCase == "feed")
       val tagsForFilter = if isFeedMode then None else tags
+      val pageLimit     = limit.getOrElse(20)
+      val pageOffset    = offset.getOrElse(0)
+      val prefetchLimit = pageOffset + pageLimit + 1
 
       val combinedFilter =
         buildFilterQuery(
-          limit = limit.getOrElse(20),
+          limit = prefetchLimit,
           status,
           title,
           tagsForFilter,
