@@ -4,40 +4,35 @@ import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
 import FormField from '@/components/forms/FormField.vue'
 import { notEmpty, matching } from '@/components/forms/validationUtils'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
+const { t } = useTranslation('components.settings.ChangePasswordTab')
+const logger = createLogger(import.meta.url)
 
 const currentPassword = ref('')
 const newPassword = ref('')
 const confirmPassword = ref('')
-const formRef = ref<any>(null)
+const errorMessage = ref('')
 
 const handleChangePassword = async () => {
-  // Validate form
-  const isValid = await formRef.value?.validate()
-  if (!isValid) {
-    return
-  }
-
   try {
     await authStore.changePassword(currentPassword.value, newPassword.value)
 
     $q.notify({
       type: 'positive',
-      message: 'Password changed successfully',
+      message: t('passwordChangedSuccess'),
     })
 
-    // Clear form
+    errorMessage.value = ''
     currentPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
-    formRef.value?.resetValidation()
   } catch (error: any) {
-    $q.notify({
-      type: 'negative',
-      message: error.message || 'Failed to change password',
-    })
+    logger.error('Failed to change password:', error)
+    errorMessage.value = t('passwordChangedError')
   }
 }
 </script>
@@ -45,44 +40,47 @@ const handleChangePassword = async () => {
 <template>
   <div class="change-password-tab">
     <div class="password-header">
-      <h2 class="password-title">Change Password</h2>
-      <p class="password-subtitle">Update your password to keep your account secure</p>
+      <h2 class="password-title">{{ t('changePasswordTitle') }}</h2>
+      <p class="password-subtitle">{{ t('changePasswordSubtitle') }}</p>
     </div>
 
-    <q-form ref="formRef" class="password-form" @submit.prevent="handleChangePassword">
+    <q-form greedy class="password-form" @submit.prevent="handleChangePassword">
       <FormField
         v-model="currentPassword"
         type="password"
-        label="Current Password *"
+        :label="t('currentPasswordLabel') + ' *'"
         icon="lock"
-        :rules="[notEmpty('Current password is required')]"
+        :rules="[notEmpty(t('currentPasswordError'))]"
       />
 
       <FormField
         v-model="newPassword"
         type="password"
-        label="New Password *"
+        :label="t('newPasswordLabel') + ' *'"
         icon="lock"
-        :rules="[notEmpty('New password is required')]"
+        :rules="[notEmpty(t('newPasswordError'))]"
       />
 
       <FormField
         v-model="confirmPassword"
         type="password"
-        label="Confirm New Password *"
+        :label="t('confirmPasswordLabel') + ' *'"
         icon="lock"
         :rules="[
-          notEmpty('Please confirm your new password'),
-          matching(newPassword, 'Passwords do not match'),
+          notEmpty(t('confirmPasswordError')),
+          matching(newPassword, t('passwordMismatchError')),
         ]"
       />
+      <div v-if="errorMessage" class="error-message text-center q-my-md">
+        {{ errorMessage }}
+      </div>
 
       <div class="form-actions">
         <q-btn
           unelevated
           color="primary"
           type="submit"
-          label="Change Password"
+          :label="t('changePasswordButton')"
           :loading="authStore.isLoading"
           class="submit-button base-button base-button--primary"
         />
@@ -129,11 +127,16 @@ const handleChangePassword = async () => {
 
 .form-actions {
   display: flex;
-  justify-content: flex-start;
+  justify-content: flex-end;
   margin-top: $spacing-4;
 }
 
 .submit-button {
   min-width: 180px;
+}
+
+.error-message {
+  color: $color-error;
+  font-size: $font-size-sm;
 }
 </style>

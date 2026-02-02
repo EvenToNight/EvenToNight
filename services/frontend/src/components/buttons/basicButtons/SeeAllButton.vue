@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-const { t } = useI18n()
+import { useTranslation } from '@/composables/useTranslation'
+const { t } = useTranslation('components.buttons.basicButtons.SeeAllButton')
 interface Props {
   onClick: () => void
   variant?: 'default' | 'minimal'
@@ -12,7 +12,7 @@ withDefaults(defineProps<Props>(), {
 
 <template>
   <span class="see-all-link" :data-variant="variant" @click="onClick">
-    <span class="see-all-text">{{ t('cards.slider.seeAll') }}</span>
+    <span class="see-all-text">{{ t('seeAll') }}</span>
     <q-icon v-if="variant === 'default'" name="arrow_forward" size="18px" class="see-all-arrow" />
   </span>
 </template>

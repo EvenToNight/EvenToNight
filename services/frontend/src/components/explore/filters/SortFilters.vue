@@ -2,8 +2,8 @@
 export const SORT_BY_OPTIONS = ['date_asc', 'date_desc', 'price_asc', 'price_desc'] as const
 </script>
 <script setup lang="ts">
+import { useTranslation } from '@/composables/useTranslation'
 import { ref, watch } from 'vue'
-import { useI18n } from 'vue-i18n'
 
 export type SortBy = (typeof SORT_BY_OPTIONS)[number]
 
@@ -11,7 +11,7 @@ interface Props {
   modelValue?: SortBy | null
 }
 
-const { t } = useI18n()
+const { t } = useTranslation('components.explore.filters.SortFilters')
 
 const props = defineProps<Props>()
 
@@ -22,10 +22,10 @@ const emit = defineEmits<{
 const selectedSortBy = ref<SortBy | null>(props.modelValue || null)
 
 const sortByOptions: { label: string; value: SortBy }[] = [
-  { label: t('filters.sortFilters.date_asc'), value: 'date_asc' },
-  { label: t('filters.sortFilters.date_desc'), value: 'date_desc' },
-  { label: t('filters.sortFilters.price_asc'), value: 'price_asc' },
-  { label: t('filters.sortFilters.price_desc'), value: 'price_desc' },
+  { label: t('date_asc'), value: 'date_asc' },
+  { label: t('date_desc'), value: 'date_desc' },
+  { label: t('price_asc'), value: 'price_asc' },
+  { label: t('price_desc'), value: 'price_desc' },
 ]
 
 const toggleSortBy = (value: SortBy) => {
@@ -43,7 +43,7 @@ watch(
 
 <template>
   <div class="filter-group">
-    <span class="filter-label">{{ t('filters.sortFilters.sort') }}:</span>
+    <span class="filter-label">{{ t('sort') }}:</span>
     <div class="filter-chips">
       <q-chip
         v-for="option in sortByOptions"

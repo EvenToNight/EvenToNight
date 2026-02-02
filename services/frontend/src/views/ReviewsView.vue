@@ -1,12 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, provide } from 'vue'
+import { ref, onMounted, provide } from 'vue'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
-import {
-  RATING_VALUES,
-  type EventReview,
-  type OrganizationReviewsStatistics,
-} from '@/api/types/interaction'
+import { RATING_VALUES, type OrganizationReviewsStatistics } from '@/api/types/interaction'
 import ReviewsList from '@/components/reviews/ReviewsList.vue'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import SubmitReviewDialog from '@/components/reviews/SubmitReviewDialog.vue'
@@ -15,52 +11,56 @@ import ReviewsFilters from '@/components/reviews/ReviewsFilters.vue'
 import type { EventID } from '@/api/types/events'
 import type { Rating } from '@/api/types/interaction'
 import { useAuthStore } from '@/stores/auth'
+import type { User } from '@/api/types/users'
+import { SERVER_ERROR_ROUTE_NAME } from '@/router'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
-const { query, params, goToUserProfile, goToSettings } = useNavigation()
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('views.ReviewsView')
+
+const { query, params, goToUserProfile, goToSettings, goToRoute } = useNavigation()
 const authStore = useAuthStore()
-const organizationId = computed(() => params.organizationId as string)
-const tempEventId = ref<EventID | null>((query.eventId as EventID) || null)
-const tempEventIdForDialog = ref<EventID | null>(null)
-const canUserLeaveReview = ref(false)
-const userHasReviews = ref(true)
+const organization = ref<User>()
+const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 
-const tempReview = ref<EventReview | null>(null)
+//TODO: when to put as query param?
 const getRatingFromQuery = (): Rating | null => {
   if (typeof query.rating !== 'string') return null
   const num = Number(query.rating)
   if (RATING_VALUES.includes(num as Rating)) return num as Rating
   return null
 }
-const tempSelectedRating = ref<Rating | null>(getRatingFromQuery())
-const organizationName = ref<string>('')
-const organizationAvatar = ref<string>('')
+
+const selectedEventIdFilter = ref<EventID | null>((query.eventId as EventID) || null)
+const selectedRatingFilter = ref<Rating | null>(getRatingFromQuery())
+
+const canUserLeaveReview = ref(false)
+const userHasReviews = ref(false)
+// const tempEventIdForDialog = ref<EventID | null>(null)
+// const tempReview = ref<EventReview | null>(null)
 
 // TODO: show leave a review button if: user is Logged in (bait if user is not logged? mh sus) and is NOT own profile
 // AND user has participated in at least one event of the organization
 const showReviewDialog = ref(false)
-const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 
 const loadReviewsStatistics = async () => {
-  const response = await api.interactions.getOrganizationReviews(organizationId.value, {
-    pagination: {
-      offset: 0,
-      limit: 1,
-    },
-  })
-
-  reviewsStatistics.value = {
-    averageRating: response.averageRating,
-    totalReviews: response.totalReviews,
-    ratingDistribution: response.ratingDistribution,
+  try {
+    reviewsStatistics.value = await api.interactions.getOrganizationReviewStatistics(
+      organization.value!.id
+    )
+  } catch (error) {
+    logger.error('Failed to load reviews statistics:', error)
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
   }
 }
+
 const loadOrganizationInfo = async () => {
   try {
-    const user = await api.users.getUserById(organizationId.value)
-    organizationName.value = user.name
-    organizationAvatar.value = user.avatar || ''
+    organization.value = await api.users.getUserById(params.organizationId as string)
   } catch (error) {
-    console.error('Failed to load organization:', error)
+    logger.error('Failed to load organization:', error)
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
   }
 }
 
@@ -68,64 +68,62 @@ const loadCurrentUserReviewInfo = async () => {
   if (!authStore.isAuthenticated) return
   try {
     const userId = authStore.user!.id
-    const reviewsResponse = await api.interactions.getUserReviews(userId, {
+    const userHasLeavedReview = await api.interactions.getUserReviews(userId, {
       pagination: {
         limit: 1,
       },
     })
-    const canReviewResponse = await api.interactions.userParticipations(userId, {
-      organizationId: organizationId.value,
+    const userHasUnreviewedParticipations = await api.interactions.userParticipations(userId, {
+      organizationId: organization.value!.id,
       reviewed: false,
       pagination: {
         limit: 1,
       },
     })
-    if (query.eventId as EventID) {
-      const tempEventIdForDialogResponse = await api.interactions.userParticipatedToEvent(
-        userId,
-        query.eventId as EventID
-      )
-      if (tempEventIdForDialogResponse) {
-        const canAddReview =
-          tempEventIdForDialogResponse.hasParticipated && !tempEventIdForDialogResponse.hasReviewed
-        tempEventIdForDialog.value = canAddReview ? (query.eventId as EventID) : null
-      }
-    }
+    //TODO: check from dialog
+    // if (query.eventId as EventID) {
+    //   const tempEventIdForDialogResponse = await api.interactions.userParticipatedToEvent(
+    //     userId,
+    //     query.eventId as EventID
+    //   )
+    //   if (tempEventIdForDialogResponse) {
+    //     const canAddReview =
+    //       tempEventIdForDialogResponse.hasParticipated && !tempEventIdForDialogResponse.hasReviewed
+    //     tempEventIdForDialog.value = canAddReview ? (query.eventId as EventID) : null
+    //   }
+    // }
 
-    if (query.eventId as EventID) {
-      const existingReview = reviewsResponse.items.find(
-        (review) => review.eventId === (query.eventId as EventID)
-      )
-      if (existingReview) {
-        tempReview.value = existingReview
-      }
-    }
-    if (reviewsResponse.totalItems > 0) {
+    if (userHasLeavedReview.totalItems > 0) {
       userHasReviews.value = true
     }
-    if (canReviewResponse.totalItems > 0) {
+    if (userHasUnreviewedParticipations.totalItems > 0) {
       canUserLeaveReview.value = true
     }
   } catch (error) {
-    console.error('Failed to load current user review info:', error)
+    logger.error('Failed to load current user review info:', error)
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
   }
 }
 const reviewsListRef = ref<{ reload: () => void } | null>(null)
 
 const handleUpdateReview = async (eventId: string, userId: string) => {
-  console.log('review deleted', eventId, userId)
+  logger.info('review modified or deleted', eventId, userId)
   reviewsListRef.value?.reload()
   await loadCurrentUserReviewInfo()
-  console.log('reviews reloaded')
+  logger.info('reviews reloaded')
 }
 
 provide('deleteReview', handleUpdateReview)
 provide('updateReview', handleUpdateReview)
 
-onMounted(() => {
-  loadOrganizationInfo()
-  loadCurrentUserReviewInfo()
-  loadReviewsStatistics()
+onMounted(async () => {
+  await loadOrganizationInfo()
+  await loadCurrentUserReviewInfo()
+  await loadReviewsStatistics()
+
+  if (query.openDialog === 'true' && canUserLeaveReview.value) {
+    showReviewDialog.value = true
+  }
 })
 </script>
 
@@ -133,20 +131,19 @@ onMounted(() => {
   <div class="reviews-view">
     <NavigationButtons />
     <div class="page-content">
-      <div class="container">
+      <div v-if="organization" class="container">
         <div class="header-section">
           <div class="title-row">
-            <div v-if="organizationId" class="organization-info">
+            <div class="organization-info">
               <q-avatar
                 size="40px"
                 class="organization-avatar"
-                @click="goToUserProfile(organizationId)"
+                @click="goToUserProfile(organization.id)"
               >
-                <img v-if="organizationAvatar" :src="organizationAvatar" :alt="organizationName" />
-                <q-icon v-else name="business" />
+                <img :src="organization.avatar" :alt="organization.name + ' avatar'" />
               </q-avatar>
-              <span class="organization-name" @click="goToUserProfile(organizationId)">{{
-                organizationName
+              <span class="organization-name" @click="goToUserProfile(organization.id)">{{
+                organization.name
               }}</span>
             </div>
           </div>
@@ -154,39 +151,42 @@ onMounted(() => {
         <div class="reviews-header">
           <ReviewsStatistics v-if="reviewsStatistics" :reviews-statistics="reviewsStatistics" />
           <ReviewsFilters
-            v-if="organizationId"
-            v-model:selectedEventId="tempEventId"
-            v-model:selectedRating="tempSelectedRating"
-            :organizationId="organizationId"
+            v-model:selectedEventId="selectedEventIdFilter"
+            v-model:selectedRating="selectedRatingFilter"
+            :organizationId="organization.id"
           />
           <div v-if="canUserLeaveReview || userHasReviews" class="add-review-section">
             <div v-if="canUserLeaveReview" class="event-info" @click="showReviewDialog = true">
               <q-icon name="rate_review" class="event-icon" />
-              <span class="event-title">Lascia una recensione</span>
+              <span class="event-title">{{ t('reviewButtonText') }}</span>
             </div>
-            <span v-if="canUserLeaveReview && userHasReviews" class="separator">oppure</span>
+            <span v-if="canUserLeaveReview && userHasReviews" class="separator">{{
+              t('buttonSeparatorText')
+            }}</span>
             <span
               v-if="userHasReviews"
               class="modify-link"
               @click="goToSettings(false, '#reviews')"
             >
-              modifica le tue recensioni
+              {{ t('modifyButtonText') }}
             </span>
           </div>
         </div>
+        <!-- TODO: evaluate putting a watcher inside the component instead of using the key trick -->
         <ReviewsList
+          :key="selectedEventIdFilter + '-' + selectedRatingFilter"
           ref="reviewsListRef"
-          :organization-id="organizationId"
-          :event-id="tempEventId || undefined"
-          :selected-rating="tempSelectedRating || undefined"
+          :organization-id="organization.id"
+          :event-id="selectedEventIdFilter || undefined"
+          :selected-rating="selectedRatingFilter || undefined"
         />
       </div>
     </div>
     <SubmitReviewDialog
-      v-if="organizationId"
+      v-if="organization"
       v-model:isOpen="showReviewDialog"
-      :creator-id="organizationId"
-      :selected-event-id="tempEventIdForDialog ?? undefined"
+      :creator-id="organization.id"
+      :selected-event-id="selectedEventIdFilter ?? undefined"
     />
   </div>
 </template>
@@ -369,7 +369,6 @@ onMounted(() => {
   align-items: center;
   gap: $spacing-2;
   color: $color-text-primary;
-  // margin-bottom: $spacing-3;
   padding: $spacing-2 $spacing-4;
   cursor: pointer;
   transition: all $transition-base;

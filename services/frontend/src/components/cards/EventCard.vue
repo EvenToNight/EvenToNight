@@ -1,22 +1,25 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import { useImageLoader } from '@/composables/useImageLoader'
+import { useTranslation } from '@/composables/useTranslation'
 import type { EventLoadResult } from '@/api/utils/eventUtils'
+import { createLogger } from '@/utils/logger'
+import { SERVER_ERROR_ROUTE_NAME } from '@/router'
 
 const event = defineModel<EventLoadResult>({ required: true })
 const isDraft = computed(() => event.value.status === 'DRAFT')
 const isCancelled = computed(() => event.value.status === 'CANCELLED')
+const logger = createLogger(import.meta.url)
 
 const emit = defineEmits<{
   authRequired: []
 }>()
 
-const { t } = useI18n()
-const { locale, goToEventDetails, goToEditEvent } = useNavigation()
+const { t } = useTranslation('components.cards.EventCard')
+const { locale, goToEventDetails, goToEditEvent, goToRoute } = useNavigation()
 const authStore = useAuthStore()
 
 const { imageObjectUrl, isLoadingImage, loadImage } = useImageLoader()
@@ -51,7 +54,8 @@ const toggleFavorite = async (e: Event) => {
     }
     event.value.liked = !event.value.liked
   } catch (error) {
-    console.error('Failed to toggle like:', error)
+    logger.error('Failed to toggle like:', error)
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
   }
 }
 </script>
@@ -65,7 +69,7 @@ const toggleFavorite = async (e: Event) => {
       <img
         v-if="!isLoadingImage && imageObjectUrl"
         :src="imageObjectUrl"
-        :alt="event.title ?? t('cards.eventCard.posterAlt')"
+        :alt="event.title ?? t('posterAlt')"
         class="event-image"
       />
       <div v-else class="image-loading">
@@ -80,7 +84,7 @@ const toggleFavorite = async (e: Event) => {
         size="md"
         class="favorite-button"
         :class="{ 'is-favorite': event.liked }"
-        :aria-label="t('cards.eventCard.favoriteButtonAriaLabel')"
+        :aria-label="t('favoriteButtonAriaLabel')"
         @click="toggleFavorite"
       />
 
@@ -91,17 +95,17 @@ const toggleFavorite = async (e: Event) => {
 
       <div v-if="isDraft" class="draft-badge">
         <q-icon name="edit_note" size="16px" />
-        {{ t('event.draft') }}
+        {{ t('draftBadge') }}
       </div>
 
       <div v-if="isCancelled" class="cancelled-banner row items-center justify-center">
         <q-icon name="cancel" size="18px" class="q-mr-xs" />
-        <span class="text-body2 text-weight-bold text-uppercase">{{ t('event.cancelled') }}</span>
+        <span class="text-body2 text-weight-bold text-uppercase">{{ t('cancelledBadge') }}</span>
       </div>
     </div>
     <div class="event-info q-pa-md">
       <h3 class="text-h6 text-weight-bold event-title q-ma-none">
-        {{ event.title?.trim() ? event.title : t('cards.eventCard.draftMissingTitle') }}
+        {{ event.title?.trim() ? event.title : t('draftMissingTitle') }}
       </h3>
       <div v-if="!isDraft" class="column q-mt-sm event-details">
         <span class="row items-center text-body2 event-location">

@@ -14,13 +14,15 @@ import type { ApiClient } from '../client'
 import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
 import { LoginAdapter, UserAdapter } from '../adapters/users'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
   async login(credentials: LoginRequest): Promise<LoginResponse> {
     const data = LoginAdapter.fromApi(
       await usersClient.post<LoginAPIResponse>('/login', credentials)
     )
-    console.log('Login response data:', data)
+    logger.log('Login response data:', data)
     return data
   },
 
@@ -38,7 +40,7 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
 
   async getUserById(id: UserID): Promise<User> {
     const res = await usersClient.get<UserAPIResponse>(`/${id}`)
-    console.log('Fetched user by ID:', { id, res })
+    logger.log('Fetched user by ID:', { id, res })
     return UserAdapter.fromApi(res)
   },
 

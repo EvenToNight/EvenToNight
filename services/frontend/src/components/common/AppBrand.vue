@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useNavigation } from '@/router/utils'
-import { useI18n } from 'vue-i18n'
+import { useTranslation } from '@/composables/useTranslation'
 
-const { t } = useI18n()
+const { t } = useTranslation('components.common.AppBrand')
 const { goToHome } = useNavigation()
 
 const goToHomeTop = () => {
@@ -13,8 +13,8 @@ const goToHomeTop = () => {
 
 <template>
   <div class="app-brand" @click="goToHomeTop">
-    <img src="/logo.png" :alt="t('brand.appName') + ' ' + t('brand.logo')" class="brand-logo" />
-    <span class="brand-text">{{ t('brand.appName') }}</span>
+    <img src="/logo.png" :alt="t('altText')" class="brand-logo" />
+    <span class="brand-text">{{ t('appName') }}</span>
   </div>
 </template>
 

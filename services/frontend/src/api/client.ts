@@ -1,5 +1,8 @@
+import { createLogger } from '@/utils/logger'
 import type { ApiError } from './interfaces/commons'
 import { dateReviver } from '@/api/utils/parsingUtils'
+
+const logger = createLogger(import.meta.url)
 
 const getServiceUrl = (service: string): string => {
   const host = import.meta.env.VITE_HOST || 'localhost'
@@ -52,6 +55,18 @@ export class ApiClient {
   async put<T>(endpoint: string, data?: unknown, options?: { credentials?: boolean }): Promise<T> {
     return this.requestJson<T>(endpoint, {
       method: 'PUT',
+      body: JSON.stringify(data),
+      ...(options?.credentials && { credentials: 'include' }),
+    })
+  }
+
+  async patch<T>(
+    endpoint: string,
+    data?: unknown,
+    options?: { credentials?: boolean }
+  ): Promise<T> {
+    return this.requestJson<T>(endpoint, {
+      method: 'PATCH',
       body: JSON.stringify(data),
       ...(options?.credentials && { credentials: 'include' }),
     })
@@ -118,9 +133,9 @@ export class ApiClient {
       headers,
     }
 
-    console.log(`API Request: ${options.method} ${url}`)
+    logger.log(`API Request: ${options.method} ${url}`)
     const response = await fetch(url, config)
-    console.log(`API Response: ${options.method} ${url} - Status: ${response.status}`)
+    logger.log(`API Response: ${options.method} ${url} - Status: ${response.status}`)
 
     // Handle token expiration (401 Unauthorized)
     if (response.status === 401 && !isRetry && onTokenExpired) {

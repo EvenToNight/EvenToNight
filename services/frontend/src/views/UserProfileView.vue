@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
-import { type UserLoadResult, loadUser } from '@/api/utils/userUtils'
+import { type UserLoadResult, loadUserWithInfo } from '@/api/utils/userUtils'
 import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileBody from '@/components/profile/ProfileBody.vue'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
@@ -19,15 +19,14 @@ watch(
   () => route.params.id,
   async (newId, oldId) => {
     if (newId !== oldId) {
-      console.log('Route param changed from', oldId, 'to', newId)
-      user.value = await loadUser(newId as string)
+      user.value = await loadUserWithInfo(newId as string)
       scrollToTop()
     }
   }
 )
 
 onMounted(async () => {
-  user.value = await loadUser(route.params.id as string)
+  user.value = await loadUserWithInfo(route.params.id as string)
   await nextTick() // profileHeaderRef is not set until next tick
   setupScrollObserver()
 })
@@ -79,7 +78,7 @@ const scrollToTop = (behavior: ScrollBehavior = 'auto') => {
   </NavigationButtons>
 
   <div class="user-profile">
-    <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
+    <AuthRequiredDialog v-model:isOpen="showAuthDialog" :redirect="route.fullPath" />
     <template v-if="user">
       <div ref="profileHeaderRef">
         <ProfileHeader

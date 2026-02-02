@@ -19,6 +19,7 @@ import {
   SETTINGS_ROUTE_NAME,
   EDIT_PROFILE_ROUTE_NAME,
   CHAT_ROUTE_NAME,
+  TICKET_PURCHASE_ROUTE_NAME,
 } from '@/router'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
 
@@ -40,7 +41,8 @@ export const useNavigation = () => {
   const replaceWithLocale = (
     name: string,
     additionalParams?: Record<string, any>,
-    additionalQuery?: Record<string, any>
+    additionalQuery?: Record<string, any>,
+    hash?: string
   ) => {
     router.replace({
       name,
@@ -51,13 +53,15 @@ export const useNavigation = () => {
       query: {
         ...additionalQuery,
       },
+      ...(hash && { hash }),
     })
   }
 
   const pushWithLocale = (
     name: string,
     additionalParams?: Record<string, any>,
-    additionalQuery?: Record<string, any>
+    additionalQuery?: Record<string, any>,
+    hash?: string
   ) => {
     router.push({
       name,
@@ -68,6 +72,7 @@ export const useNavigation = () => {
       query: {
         ...additionalQuery,
       },
+      ...(hash && { hash }),
     })
   }
 
@@ -106,19 +111,31 @@ export const useNavigation = () => {
     }
   }
 
-  const goToLogin = (swap: boolean = false) => {
+  const goToLogin = (redirectTo?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(LOGIN_ROUTE_NAME)
+      replaceWithLocale(
+        LOGIN_ROUTE_NAME,
+        undefined,
+        redirectTo ? { redirect: redirectTo } : undefined
+      )
     } else {
-      pushWithLocale(LOGIN_ROUTE_NAME)
+      pushWithLocale(LOGIN_ROUTE_NAME, undefined, redirectTo ? { redirect: redirectTo } : undefined)
     }
   }
 
-  const goToRegister = (swap: boolean = false) => {
+  const goToRegister = (redirectTo?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(REGISTER_ROUTE_NAME)
+      replaceWithLocale(
+        REGISTER_ROUTE_NAME,
+        undefined,
+        redirectTo ? { redirect: redirectTo } : undefined
+      )
     } else {
-      pushWithLocale(REGISTER_ROUTE_NAME)
+      pushWithLocale(
+        REGISTER_ROUTE_NAME,
+        undefined,
+        redirectTo ? { redirect: redirectTo } : undefined
+      )
     }
   }
 
@@ -130,16 +147,30 @@ export const useNavigation = () => {
     }
   }
 
-  const goToEventReviews = (organizationId: string, eventId?: string, swap: boolean = false) => {
+  const goToEventReviews = (
+    organizationId: string,
+    eventId?: string,
+    openDialog: boolean = true,
+    swap: boolean = false
+  ) => {
     if (swap) {
-      replaceWithLocale(EVENT_REVIEWS_ROUTE_NAME, { organizationId }, { eventId })
+      replaceWithLocale(
+        EVENT_REVIEWS_ROUTE_NAME,
+        { organizationId },
+        { eventId, openDialog: openDialog }
+      )
     } else {
-      pushWithLocale(EVENT_REVIEWS_ROUTE_NAME, { organizationId }, { eventId })
+      pushWithLocale(
+        EVENT_REVIEWS_ROUTE_NAME,
+        { organizationId },
+        { eventId, openDialog: openDialog }
+      )
     }
   }
 
   const goToExplore = (
     initialFilter?: EventFilters & { searchQuery?: string },
+    hash?: string,
     swap: boolean = false
   ) => {
     const queryParams: Record<string, string> = {}
@@ -188,9 +219,9 @@ export const useNavigation = () => {
     }
 
     if (swap) {
-      replaceWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams)
+      replaceWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams, hash)
     } else {
-      pushWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams)
+      pushWithLocale(EXPLORE_ROUTE_NAME, {}, queryParams, hash)
     }
   }
 
@@ -210,11 +241,11 @@ export const useNavigation = () => {
     }
   }
 
-  const goToUserProfile = (userId: string, swap: boolean = false) => {
+  const goToUserProfile = (userId: string, hash?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId })
+      replaceWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId }, {}, hash)
     } else {
-      pushWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId })
+      pushWithLocale(USER_PROFILE_ROUTE_NAME, { id: userId }, {}, hash)
     }
   }
 
@@ -246,6 +277,14 @@ export const useNavigation = () => {
       replaceWithLocale(CHAT_ROUTE_NAME, undefined, { userId })
     } else {
       pushWithLocale(CHAT_ROUTE_NAME, undefined, { userId })
+    }
+  }
+
+  const goToPurchaseTickets = (eventId: string, swap: boolean = false) => {
+    if (swap) {
+      replaceWithLocale(TICKET_PURCHASE_ROUTE_NAME, { id: eventId })
+    } else {
+      pushWithLocale(TICKET_PURCHASE_ROUTE_NAME, { id: eventId })
     }
   }
 
@@ -295,6 +334,7 @@ export const useNavigation = () => {
     goToSettings,
     goToEditProfile,
     goToChat,
+    goToPurchaseTickets,
     goToRoute,
     replaceRoute,
     changeLocale,

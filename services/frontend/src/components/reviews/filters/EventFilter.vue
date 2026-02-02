@@ -3,11 +3,17 @@ import { ref, computed, onMounted, watch } from 'vue'
 import type { Event, EventID } from '@/api/types/events'
 import { api } from '@/api'
 import type { UserID } from '@/api/types/users'
+import type { PaginatedResponse } from '@/api/interfaces/commons'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   organizationId: UserID
+  loadFn: () => Promise<PaginatedResponse<Event>>
 }
 
+const { t } = useTranslation('components.reviews.filters.EventFilter')
+const logger = createLogger(import.meta.url)
 const props = defineProps<Props>()
 const hasSearched = ref(false)
 const hasFocus = ref(false)
@@ -22,7 +28,7 @@ const loadInitialEvent = async () => {
       const event = await api.events.getEventById(selectedEventId.value)
       eventOptions.value = [event]
     } catch (error) {
-      console.error('Failed to load initial event:', error)
+      logger.error('Failed to load initial event:', error)
     }
   } else {
     isFiltering.value = true
@@ -31,12 +37,7 @@ const loadInitialEvent = async () => {
 
 watch(selectedEventId, async (newEventId) => {
   if (newEventId === null) {
-    const events = await api.events.searchEvents({
-      organizationId: props.organizationId,
-      status: 'COMPLETED',
-      pagination: { limit: 5 },
-    })
-    eventOptions.value = events.items
+    eventOptions.value = (await props.loadFn()).items
     isFiltering.value = true
   }
 })
@@ -47,7 +48,7 @@ const displayValue = computed({
       if (hasFocus.value) {
         return undefined
       } else {
-        return 'Tutti gli eventi'
+        return t('allEvents')
       }
     }
     return selectedEventId.value
@@ -60,7 +61,7 @@ const displayValue = computed({
 const filterEvents = async (query: string, update: (callback: () => void) => void) => {
   if (!query) {
     if (selectedEventId.value) {
-      console.log('Filtering to selected event only')
+      logger.debug('Filtering to selected event only')
       update(() => {
         isFiltering.value = true
         const found = eventOptions.value.find((e) => e.eventId === selectedEventId.value)
@@ -81,13 +82,12 @@ const filterEvents = async (query: string, update: (callback: () => void) => voi
         eventOptions.value = events.items
       })
     } else {
-      // Eventi già caricati, usa solo update senza ricaricare
       update(() => {
         hasSearched.value = false
       })
     }
   } else {
-    console.log('Searching events with query:', query)
+    logger.debug('Searching events with query:', query)
     const response = await api.events.searchEvents({
       organizationId: props.organizationId,
       status: 'COMPLETED',
@@ -112,7 +112,7 @@ onMounted(() => {
     :options="eventOptions"
     option-value="eventId"
     option-label="title"
-    label="Filtra per evento"
+    :label="t('label')"
     outlined
     use-input
     hide-selected
@@ -128,7 +128,7 @@ onMounted(() => {
     <template #option="scope">
       <q-item v-bind="scope.itemProps">
         <q-item-section v-if="scope.opt.poster" avatar>
-          <img :src="scope.opt.poster" alt="Event poster" class="event-option-image" />
+          <img :src="scope.opt.poster" :alt="t('eventPosterAlt')" class="event-option-image" />
         </q-item-section>
         <q-item-section>
           <q-item-label>{{ scope.opt.title }}</q-item-label>
@@ -138,7 +138,7 @@ onMounted(() => {
     <template #no-option>
       <q-item>
         <q-item-section class="text-grey">
-          {{ hasSearched ? 'Nessun evento trovato' : 'Inizia a digitare per cercare eventi' }}
+          {{ hasSearched ? t('noEventsFound') : t('searchHint') }}
         </q-item-section>
       </q-item>
     </template>

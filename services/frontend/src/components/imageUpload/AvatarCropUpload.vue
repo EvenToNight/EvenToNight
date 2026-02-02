@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 import { CircleStencil } from 'vue-advanced-cropper'
 import BaseCropUpload from './BaseCropUpload.vue'
 import { DEFAULT_AVATAR_URL } from '@/stores/auth'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   previewUrl: string
@@ -14,11 +15,12 @@ const props = withDefaults(defineProps<Props>(), {
 })
 
 const emit = defineEmits<{
-  'update:imageFile': [value: File | null]
+  imageFile: [value: File | null]
   error: [message: string]
   remove: []
 }>()
 
+const { t } = useTranslation('components.imageUpload.AvatarCropUpload')
 const isDefault = computed(() => {
   return props.previewUrl === DEFAULT_AVATAR_URL
 })
@@ -43,7 +45,7 @@ const handleImageUpdate = (file: File) => {
   }
 
   croppedImage.value = URL.createObjectURL(file)
-  emit('update:imageFile', file)
+  emit('imageFile', file)
 }
 
 const removeAvatar = () => {
@@ -51,7 +53,7 @@ const removeAvatar = () => {
     URL.revokeObjectURL(croppedImage.value)
     croppedImage.value = null
   }
-  emit('update:imageFile', null)
+  emit('imageFile', null)
   emit('remove')
 }
 
@@ -72,8 +74,8 @@ defineExpose({
       :stencil-component="CircleStencil"
       :stencil-props="stencilProps"
       :stencil-size="stencilSize"
-      dialog-title="Crop Photo"
-      @update:image-file="handleImageUpdate"
+      :dialog-title="t('title')"
+      @imageFile="handleImageUpdate"
       @error="emit('error', $event)"
     >
       <template #empty-state="{ triggerFileInput: trigger }">
@@ -95,11 +97,11 @@ defineExpose({
       size="sm"
       color="negative"
       icon="delete"
-      label="Remove Photo"
+      :label="t('removeAvatar')"
       class="remove-button"
       @click.stop="removeAvatar"
     />
-    <p v-else class="avatar-hint">Upload your profile photo</p>
+    <p v-else class="avatar-hint">{{ t('hint') }}</p>
   </div>
 </template>
 

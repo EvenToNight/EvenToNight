@@ -10,7 +10,8 @@ export type NotificationType =
   | 'new_review_received'
   | 'new_message_received'
   | 'new_event_published'
-  | 'ticket_sold'
+  | 'user_online'
+  | 'user_offline'
 
 export type NotificationEvent =
   | LikeRecievedEvent
@@ -18,7 +19,7 @@ export type NotificationEvent =
   | NewReviewRecievedEvent
   | NewMessageReceivedEvent
   | NewEventPublishedEvent
-  | TicketSoldEvent
+  | OnlineInfoEvent
 
 export interface NotificationData {
   type: NotificationType
@@ -27,6 +28,8 @@ export interface NotificationData {
 
 export interface Notification extends NotificationData {
   id: NotificationID
+  timestamp: Date
+  read: boolean
 }
 
 export interface LikeRecievedEvent {
@@ -34,25 +37,30 @@ export interface LikeRecievedEvent {
   eventName: string
   userId: UserID
   userName: string
+  userAvatar: string
 }
 
 export interface FollowRecievedEvent {
   followerId: UserID
   followerName: string
+  followerAvatar: string
 }
 
-//TODO: evaluate usage
 export interface NewReviewRecievedEvent {
+  eventId: EventID
   userId: UserID
   userName: string
+  userAvatar: string
 }
 
 export interface NewMessageReceivedEvent {
   conversationId: ConversationID
   senderId: UserID
   senderName: string
+  senderAvatar: string
   messageId: MessageID
   message: MessageContent
+  createdAt: Date
 }
 
 export interface NewEventPublishedEvent {
@@ -62,9 +70,7 @@ export interface NewEventPublishedEvent {
   eventName: string
 }
 
-export interface TicketSoldEvent {
+export interface OnlineInfoEvent {
   userId: UserID
-  userName: string
-  eventId: EventID
-  eventName: string
+  isOnline: boolean
 }

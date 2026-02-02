@@ -4,7 +4,6 @@ import { useI18n } from 'vue-i18n'
 import TicketCard from '@/components/cards/TicketCard.vue'
 import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
-import { api } from '@/api'
 import { useAuthStore } from '@/stores/auth'
 import type { Event } from '@/api/types/events'
 import { loadUserEventParticipations } from '@/api/utils/paymentsUtils'
@@ -22,12 +21,11 @@ const {
   loadingMore,
   onLoad,
   loadItems,
-} = useInfiniteScroll<{ userId: string }, Event>({
+} = useInfiniteScroll<Event>({
   itemsPerPage: ITEMS_PER_PAGE,
-  options: { userId: userId.value },
-  loadFn: async (limit, offset, options) => {
+  loadFn: async (limit, offset) => {
     return loadUserEventParticipations(
-      options!.userId,
+      userId.value,
       { limit, offset },
       {
         eventStatus: 'PUBLISHED',
@@ -40,35 +38,6 @@ const {
 onMounted(() => {
   loadItems()
 })
-
-const handleDownload = async (eventId: string) => {
-  if (!userId.value) {
-    console.error('User not logged in')
-    return
-  }
-
-  const event = events.value.find((e) => e.eventId === eventId)
-  if (!event) {
-    console.error('Event not found')
-    return
-  }
-
-  try {
-    const blob = await api.payments.getEventPdfTickets(userId.value, eventId)
-
-    const url = window.URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `tickets-${event.title.replace(/\s+/g, '-')}.pdf`
-    document.body.appendChild(link)
-    link.click()
-
-    document.body.removeChild(link)
-    window.URL.revokeObjectURL(url)
-  } catch (error) {
-    console.error('Error downloading ticket PDF:', error)
-  }
-}
 </script>
 
 <template>
@@ -81,12 +50,7 @@ const handleDownload = async (eventId: string) => {
       @load="onLoad"
     >
       <div class="tickets-list">
-        <TicketCard
-          v-for="event in events"
-          :key="event.eventId"
-          :event="event"
-          @download="handleDownload"
-        />
+        <TicketCard v-for="event in events" :key="event.eventId" :event="event" />
       </div>
 
       <template #loading>

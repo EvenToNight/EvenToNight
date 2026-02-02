@@ -8,7 +8,7 @@ import type {
   NewReviewRecievedEvent,
   Notification,
   NotificationID,
-  TicketSoldEvent,
+  OnlineInfoEvent,
 } from '../types/notifications'
 import type { UserID } from '../types/users'
 import { createWebSocket, type WebSocket } from './webSocket'
@@ -27,20 +27,17 @@ export const mockNotificationsApi: NotificationsAPI = {
     ws = undefined
   },
 
-  async isUserOnline(_userId: UserID): Promise<boolean> {
+  async isUserOnline(userId: UserID): Promise<OnlineInfoEvent> {
     // TODO: Implement online status check
-    return Promise.resolve(false)
+    return Promise.resolve({ userId, isOnline: true } as OnlineInfoEvent)
   },
 
-  async getUnreadNotificationsCount(_userId: UserID): Promise<number> {
+  async getUnreadNotificationsCount(): Promise<number> {
     // TODO: Implement unread count
     return Promise.resolve(10)
   },
 
-  async getNotifications(
-    _userId: UserID,
-    _pagination?: PaginatedRequest
-  ): Promise<PaginatedResponse<Notification>> {
+  async getNotifications(_pagination?: PaginatedRequest): Promise<PaginatedResponse<Notification>> {
     // TODO: Implement notification fetching
     return Promise.resolve({
       items: [] as Notification[],
@@ -51,32 +48,60 @@ export const mockNotificationsApi: NotificationsAPI = {
     })
   },
 
-  async readNotification(_userId: UserID, _notificationId: NotificationID): Promise<void> {
+  async readNotification(_notificationId: NotificationID): Promise<void> {
     // TODO: Implement mark as read
     return Promise.resolve()
   },
 
+  async readAllNotifications(): Promise<void> {
+    // TODO: Implement mark all as read
+    return Promise.resolve()
+  },
+
+  onUserOnline(callback: (online: OnlineInfoEvent) => void): void {
+    ws?.on('user_online', (event) => callback(event as OnlineInfoEvent))
+  },
+
+  offUserOnline(callback: (online: OnlineInfoEvent) => void): void {
+    ws?.off('user_online', (event) => callback(event as OnlineInfoEvent))
+  },
+
   onLikeReceived(callback: (data: LikeRecievedEvent) => void): void {
-    ws?.on('like_received', (event) => callback(event.data as LikeRecievedEvent))
+    ws?.on('like_received', (event) => callback(event as LikeRecievedEvent))
+  },
+
+  offLikeReceived(callback: (data: LikeRecievedEvent) => void): void {
+    ws?.off('like_received', (event) => callback(event as LikeRecievedEvent))
   },
 
   onFollowReceived(callback: (data: FollowRecievedEvent) => void): void {
-    ws?.on('follow_received', (event) => callback(event.data as FollowRecievedEvent))
+    ws?.on('follow_received', (event) => callback(event as FollowRecievedEvent))
   },
 
-  onNewReviewRecieved(callback: (data: NewReviewRecievedEvent) => void): void {
-    ws?.on('new_review_received', (event) => callback(event.data as NewReviewRecievedEvent))
+  offFollowReceived(callback: (data: FollowRecievedEvent) => void): void {
+    ws?.off('follow_received', (event) => callback(event as FollowRecievedEvent))
+  },
+
+  onNewReviewReceived(callback: (data: NewReviewRecievedEvent) => void): void {
+    ws?.on('new_review_received', (event) => callback(event as NewReviewRecievedEvent))
+  },
+
+  offNewReviewReceived(callback: (data: NewReviewRecievedEvent) => void): void {
+    ws?.off('new_review_received', (event) => callback(event as NewReviewRecievedEvent))
   },
 
   onNewMessageReceived(callback: (data: NewMessageReceivedEvent) => void): void {
-    ws?.on('new_message_received', (event) => callback(event.data as NewMessageReceivedEvent))
+    ws?.on('new_message_received', (event) => callback(event as NewMessageReceivedEvent))
+  },
+
+  offNewMessageReceived(callback: (data: NewMessageReceivedEvent) => void): void {
+    ws?.off('new_message_received', (event) => callback(event as NewMessageReceivedEvent))
   },
 
   onNewEventPublished(callback: (data: NewEventPublishedEvent) => void): void {
-    ws?.on('new_event_published', (event) => callback(event.data as NewEventPublishedEvent))
+    ws?.on('new_event_published', (event) => callback(event as NewEventPublishedEvent))
   },
-
-  onTicketSold(callback: (data: TicketSoldEvent) => void): void {
-    ws?.on('ticket_sold', (event) => callback(event.data as TicketSoldEvent))
+  offNewEventPublished(callback: (data: NewEventPublishedEvent) => void): void {
+    ws?.off('new_event_published', (event) => callback(event as NewEventPublishedEvent))
   },
 }

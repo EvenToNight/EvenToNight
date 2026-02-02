@@ -4,10 +4,12 @@ import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
 import { ABOUT_ROUTE_NAME, PRIVACY_ROUTE_NAME, TERMS_ROUTE_NAME } from '@/router'
 import AppBrand from '@/components/common/AppBrand.vue'
-import ContactDialog from '@/components/dialogs/ContactDialog.vue'
+import ContactDialog from '@/components/contacts/ContactDialog.vue'
 import { useAuthStore } from '@/stores/auth'
+import { useTranslation } from '@/composables/useTranslation'
 
-const { t, locale, availableLocales } = useI18n()
+const { t } = useTranslation('components.navigation.Footer')
+const { locale, availableLocales } = useI18n()
 const { changeLocale, goToRoute } = useNavigation()
 const authStore = useAuthStore()
 const showContactDialog = ref(false)
@@ -33,12 +35,10 @@ const openContact = () => {
         <AppBrand />
 
         <div class="footer-links">
-          <a class="footer-link" @click="goToRoute(ABOUT_ROUTE_NAME)">{{ t('footer.about') }}</a>
-          <a class="footer-link" @click="openContact">{{ t('footer.contact') }}</a>
-          <a class="footer-link" @click="goToRoute(PRIVACY_ROUTE_NAME)">{{
-            t('footer.privacy')
-          }}</a>
-          <a class="footer-link" @click="goToRoute(TERMS_ROUTE_NAME)">{{ t('footer.terms') }}</a>
+          <a class="footer-link" @click="goToRoute(ABOUT_ROUTE_NAME)">{{ t('about') }}</a>
+          <a class="footer-link" @click="openContact">{{ t('contact') }}</a>
+          <a class="footer-link" @click="goToRoute(PRIVACY_ROUTE_NAME)">{{ t('privacy') }}</a>
+          <a class="footer-link" @click="goToRoute(TERMS_ROUTE_NAME)">{{ t('terms') }}</a>
         </div>
 
         <ContactDialog v-model="showContactDialog" />
@@ -55,7 +55,7 @@ const openContact = () => {
         </div>
 
         <div class="footer-bottom">
-          <p class="footer-copyright">{{ '© 2025 EvenToNight. ' + t('footer.copyright') }}</p>
+          <p class="footer-copyright">{{ '© 2025 EvenToNight. ' + t('copyright') }}</p>
         </div>
       </div>
     </div>

@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 : '
 Application Runner Script
 
@@ -13,9 +14,13 @@ DESCRIPTION
 OPTIONS
     --dev
         Include docker-compose-dev.yaml files in the search.
-    
+
     --init-db
         Initialize the database by running the seed service after composing the application.
+
+    --no-deps
+        Sets the TEST_DEPLOYMENT environment variable to "true" for testing deployments.
+        It avoids using dependent services (e.g. stripe) during testing.
 
     Other arguments provided will be passed directly to the docker compose command.
 
@@ -35,8 +40,6 @@ NOTES:
   - The docker compose project name is set to eventonight.
   - If the script start seed process if called with "-d --wait"
 '
-
-#!/usr/bin/env bash
 set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1
@@ -82,17 +85,24 @@ for arg in "$@"; do
     elif [[ "$arg" == "pull" ]]; then
         PULL="pull"
         FILTERED_ARGS+=("$arg")
+    elif [[ "$arg" == "--no-deps" ]]; then
+        export TEST_DEPLOYMENT="true"
     else
         FILTERED_ARGS+=("$arg")
     fi
 done
 
-./scripts/composeAll.sh --project-name "$PROJECT_NAME" -p ./services -p ./infrastructure -eP ./infrastructure/seed ${FILTERED_ARGS[@]+"${FILTERED_ARGS[@]}"}
+if [ "$INIT_DB" = true ]; then
+    echo "💬 Database initialization requested. Clean all volumes"
+    ./scripts/composeAll.sh --project-name "$PROJECT_NAME" -p ./services -p ./infrastructure -eP ./infrastructure/seed down -v --remove-orphans
+    echo "💬 All volumes removed."
+fi
 
-if [ "$INIT_DB" = true ] && [ "$DETACHED" = true ] && [ "$WAIT" = true ]; then
+echo "💬 Deploying the application..."
+./scripts/composeAll.sh --project-name "$PROJECT_NAME" -p ./services -p ./infrastructure -eP ./infrastructure/seed "${FILTERED_ARGS[@]}"
+
+if [ "$INIT_DB" = true ]; then
   echo "💬 Initializing the database..."
-  SEED_CMD="./scripts/composeAll.sh ${PULL:+$PULL} --project-name $PROJECT_NAME -p ./infrastructure/seed ${DEV:+$DEV} run --rm ${BUILD:+$BUILD} seed"
-  echo "🔧 Running: $SEED_CMD"
-  $SEED_CMD
+  ./scripts/composeAll.sh ${PULL:+$PULL} --project-name $PROJECT_NAME -p ./infrastructure/seed ${DEV:+$DEV} run --rm ${BUILD:+$BUILD} seed
   echo "💬 Database initialized."
 fi

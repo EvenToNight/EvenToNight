@@ -2,13 +2,15 @@
 import { ref, watch, onMounted, inject, type Ref } from 'vue'
 import type { QInput } from 'quasar'
 import { useNavigation } from '@/router/utils'
-import { useI18n } from 'vue-i18n'
 import type { SearchResult } from '@/api/utils/searchUtils'
 import { getSearchResult } from '@/api/utils/searchUtils'
 import SearchResultCard from '../cards/SearchResultCard.vue'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
-const { t } = useI18n()
-const searchHint = inject<string>('searchHint', t('search.baseHint'))
+const { t } = useTranslation('components.navigation.SearchBar')
+const logger = createLogger(import.meta.url)
+const searchHint = inject<string>('searchHint', t('baseHint'))
 const hideDropdown = inject<boolean>('hideDropdown', false)
 const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 const searchResults = inject<Ref<SearchResult[]>>('searchResults', ref([]))
@@ -22,15 +24,9 @@ const isSearching = ref(false)
 const maxResults = 5
 const selectedIndex = ref(-1)
 
-let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
-
 watch(searchQuery, (value) => {
   showSuggestions.value = !hideDropdown && value.length > 0
   selectedIndex.value = -1
-
-  if (searchDebounceTimer) {
-    clearTimeout(searchDebounceTimer)
-  }
 
   // Skip internal search if dropdown is hidden (parent handles search)
   if (hideDropdown) {
@@ -38,9 +34,7 @@ watch(searchQuery, (value) => {
   }
 
   if (value.trim()) {
-    searchDebounceTimer = setTimeout(() => {
-      performSearch()
-    }, 300)
+    performSearch()
   } else {
     searchResults.value = []
   }
@@ -82,7 +76,7 @@ const performSearch = async () => {
     isSearching.value = true
     searchResults.value = await getSearchResult(query, maxResults)
   } catch (error) {
-    console.error('Search failed:', error)
+    logger.error('Search failed:', error)
     searchResults.value = []
   } finally {
     isSearching.value = false
@@ -119,13 +113,11 @@ const selectResult = (result: SearchResult) => {
 const handleArrowDown = () => {
   if (searchResults.value.length === 0) return
   selectedIndex.value = Math.min(selectedIndex.value + 1, searchResults.value.length - 1)
-  console.log('Arrow down - selected:', selectedIndex.value)
 }
 
 const handleArrowUp = () => {
   if (searchResults.value.length === 0) return
   selectedIndex.value = Math.max(selectedIndex.value - 1, -1)
-  console.log('Arrow up - selected:', selectedIndex.value)
 }
 
 const hideSuggestions = () => {
@@ -151,6 +143,7 @@ const handleBlur = () => {
       v-model="searchQuery"
       dense
       standout
+      :debounce="300"
       :placeholder="searchHint"
       :autofocus="hasFocus"
       class="search-input"
@@ -181,7 +174,7 @@ const handleBlur = () => {
       <div v-if="showSuggestions && isSearching" class="suggestions-dropdown loading">
         <div class="loading-item">
           <q-spinner size="20px" color="primary" />
-          <span>{{ t('search.searchingText') }}</span>
+          <span>{{ t('searchingText') }}</span>
         </div>
       </div>
     </Transition>

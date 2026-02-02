@@ -1,105 +1,76 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import type { EventReview } from '@/api/types/interaction'
-import ReviewCard from './ReviewCard.vue'
+import { onMounted } from 'vue'
+import type { EventReview, Rating } from '@/api/types/interaction'
+import ReviewCard from '../cards/ReviewCard.vue'
 import { api } from '@/api'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { defaultLimit } from '@/api/utils/requestUtils'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   organizationId: string
   eventId?: string
-  selectedRating?: number
+  selectedRating?: Rating
 }
 const props = defineProps<Props>()
-
-const ITEMS_PER_PAGE = 10
-
-const reviews = ref<EventReview[]>([])
-const loading = ref(true)
-const loadingMore = ref(false)
-const hasMore = ref(true)
-
-const loadReviews = async (isLoadingMore = false) => {
-  if (isLoadingMore) {
-    loadingMore.value = true
-  } else {
-    loading.value = true
-  }
-
-  try {
-    const response = await api.interactions.getOrganizationReviews(props.organizationId, {
-      pagination: {
-        limit: ITEMS_PER_PAGE,
-        offset: reviews.value.length || 0,
-      },
-    })
-
-    if (isLoadingMore) {
-      reviews.value = [...reviews.value, ...response.items]
-    } else {
-      reviews.value = response.items
+const { t } = useTranslation('components.reviews.ReviewsList')
+const {
+  items: reviews,
+  loading,
+  loadingMore,
+  onLoad,
+  loadItems,
+} = useInfiniteScroll<EventReview>({
+  itemsPerPage: defaultLimit,
+  loadFn: async (limit, offset) => {
+    if (props.eventId) {
+      return await api.interactions.getEventReviews(props.eventId, {
+        pagination: { limit, offset },
+        rating: props.selectedRating,
+      })
     }
-
-    hasMore.value = response.hasMore
-  } catch (error) {
-    console.error('Failed to load reviews:', error)
-  } finally {
-    loading.value = false
-    loadingMore.value = false
-  }
-}
-
-const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
-  if (!hasMore.value) {
-    done(true)
-    return
-  }
-
-  try {
-    await loadReviews(true)
-  } finally {
-    done(!hasMore.value)
-  }
-}
+    return await api.interactions.getOrganizationReviews(props.organizationId, {
+      pagination: { limit, offset },
+      rating: props.selectedRating,
+    })
+  },
+})
 
 onMounted(() => {
-  loadReviews()
+  loadItems()
 })
 
 defineExpose({
-  reload: () => loadReviews(),
+  reload: () => loadItems(),
 })
 </script>
 
 <template>
   <div class="reviews-list">
     <q-inner-loading :showing="loading && reviews.length === 0">
-      <q-spinner-dots color="primary" size="50px" />
+      <q-spinner color="primary" size="50px" />
     </q-inner-loading>
 
     <q-infinite-scroll
       v-if="!loading && reviews.length > 0"
       :offset="250"
-      :disable="loadingMore || !hasMore"
+      :disable="loadingMore"
       @load="onLoad"
     >
       <div class="reviews-container">
-        <ReviewCard
-          v-for="review in reviews"
-          :key="review.eventId + '-' + review.userId"
-          :review="review"
-        />
+        <ReviewCard v-for="review in reviews" :key="review.id" :review="review" />
       </div>
 
       <template #loading>
         <div class="loading-state">
-          <q-spinner-dots color="primary" size="50px" />
+          <q-spinner color="primary" size="50px" />
         </div>
       </template>
     </q-infinite-scroll>
 
     <div v-else-if="!loading && reviews.length === 0" class="empty-state">
       <q-icon name="reviews" size="64px" />
-      <p>No reviews found</p>
+      <p>{{ t('noReviews') }}</p>
     </div>
   </div>
 </template>

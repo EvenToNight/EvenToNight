@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { SearchResult } from '@/api/utils/searchUtils'
+import { useTranslation } from '@/composables/useTranslation'
 import { useNavigation } from '@/router/utils'
 
 interface Props {
@@ -9,6 +10,7 @@ interface Props {
 
 defineProps<Props>()
 const { locale } = useNavigation()
+const { t } = useTranslation('components.cards.SearchResultCard')
 const getResultIcon = (result: SearchResult): string => {
   if (result.type === 'event') return 'event'
   if (result.type === 'organization') return 'business'
@@ -16,9 +18,9 @@ const getResultIcon = (result: SearchResult): string => {
 }
 
 const getResultTypeLabel = (result: SearchResult): string => {
-  if (result.type === 'event') return 'Event'
-  if (result.type === 'organization') return 'Organization'
-  return 'Member'
+  if (result.type === 'event') return t('event')
+  if (result.type === 'organization') return t('organization')
+  return t('member')
 }
 
 const getResultPrimaryText = (result: SearchResult): string => {
@@ -28,6 +30,13 @@ const getResultPrimaryText = (result: SearchResult): string => {
 const getResultSecondaryText = (result: SearchResult): string => {
   if (result.type === 'event') {
     return `${result.location} • ${formatDate(result.date)}`
+  }
+  return ''
+}
+
+const getResultTertiaryText = (result: SearchResult): string => {
+  if (result.type === 'event' && result.status !== 'PUBLISHED') {
+    return result.status
   }
   return ''
 }
@@ -58,6 +67,9 @@ const formatDate = (date: Date): string => {
         <span v-if="getResultSecondaryText(result)" class="result-detail">
           • {{ getResultSecondaryText(result) }}
         </span>
+      </div>
+      <div v-if="getResultTertiaryText(result)" class="result-tertiary">
+        {{ getResultTertiaryText(result) }}
       </div>
     </div>
   </div>
@@ -130,6 +142,17 @@ const formatDate = (date: Date): string => {
 
     @include dark-mode {
       color: $color-text-dark;
+    }
+  }
+
+  .result-tertiary {
+    @include text-truncate;
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+    font-style: italic;
+
+    @include dark-mode {
+      color: rgba($color-text-dark, 0.7);
     }
   }
 

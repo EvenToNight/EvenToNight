@@ -6,19 +6,25 @@ import { api } from '@/api'
 import type { CreationEventStatus, PartialEventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
 import { parseLocation, buildLocationDisplayName } from '@/api/utils/locationUtils'
-import type { TicketType } from '@/api/types/payments'
+import { MAX_TICKET_PRICE, type TicketType } from '@/api/types/payments'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import FormField from '@/components/forms/FormField.vue'
 import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import type { Tag } from '@/api/types/events'
-import { useI18n } from 'vue-i18n'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { notEmpty, required } from '@/components/forms/validationUtils'
-const { t } = useI18n()
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
+import { SERVER_ERROR_ROUTE_NAME } from '@/router'
+import { preventInvalidNumberKeys } from '@/utils/inputUtils'
+
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('views.CreateEventView')
+
 const $q = useQuasar()
 
-const { goToEventDetails, goToUserProfile, params } = useNavigation()
+const { goToEventDetails, goToUserProfile, goToRoute, params } = useNavigation()
 const authStore = useAuthStore()
 const currentUserId = authStore.user?.id
 const eventId = computed(() => params.id as string)
@@ -40,7 +46,6 @@ const location = ref<LocationOption | null>(null)
 const poster = ref<File | null>(null)
 const isDraft = ref(false)
 
-// Ticket types
 interface TicketEntry {
   id: string | null
   type: TicketType | null
@@ -48,6 +53,7 @@ interface TicketEntry {
   quantity: string
 }
 
+const maxTicketPrice = MAX_TICKET_PRICE
 const availableTicketTypes = ref<TicketType[]>([])
 const ticketEntries = ref<TicketEntry[]>([])
 
@@ -70,6 +76,12 @@ const canAddMoreTickets = computed(() => {
   return ticketEntries.value.length < availableTicketTypes.value.length
 })
 
+const clampPrice = (entry: TicketEntry) => {
+  if (!entry.price) return
+  const numValue = parseFloat(entry.price) || 0
+  entry.price = Math.max(0, Math.min(numValue, maxTicketPrice)).toString()
+}
+
 const addTicketEntry = () => {
   if (canAddMoreTickets.value) {
     ticketEntries.value.push(createEmptyTicketEntry())
@@ -80,38 +92,11 @@ const removeTicketEntry = (index: number) => {
   ticketEntries.value.splice(index, 1)
 }
 
-const loadTicketTypes = async () => {
-  try {
-    availableTicketTypes.value = await api.payments.getTicketTypes()
-    if (availableTicketTypes.value.length > 0 && ticketEntries.value.length === 0) {
-      ticketEntries.value.push(createEmptyTicketEntry())
-    }
-  } catch (error) {
-    console.error('Failed to load ticket types:', error)
-  }
-}
-
-const loadTickets = async () => {
-  try {
-    const ticketTypes = await api.payments.getEventTicketsType(eventId.value)
-    ticketEntries.value = ticketTypes.map((ticket) => ({
-      id: ticket.id,
-      type: ticket.type,
-      price: ticket.price.toString(),
-      quantity: ticket.totalQuantity.toString(),
-    }))
-    if (ticketEntries.value.length === 0) {
-      addTicketEntry()
-    }
-  } catch (error) {
-    console.error('Failed to load event tickets:', error)
-  }
-}
-
 const handleImageError = (message: string) => {
+  logger.error('Poster image upload error:', message)
   $q.notify({
     color: 'negative',
-    message,
+    message: t('form.messages.errors.imageUpload'),
   })
 }
 
@@ -140,64 +125,9 @@ const buildOptionsFromCategories = (category: string, tags: Tag[]) => {
   return options
 }
 
-const loadTags = async () => {
-  try {
-    const tagResponse = await api.events.getTags()
-    const options: any[] = []
-    tagResponse.forEach((tagCategory) => {
-      options.push(...buildOptionsFromCategories(tagCategory.category, tagCategory.tags))
-    })
-    allTags.value = tagResponse.flatMap((tagCategory) => tagCategory.tags)
-    tagOptions.value = options
-    tagCategories.value = tagResponse
-  } catch (error) {
-    console.error('Failed to load tags:', error)
-  }
-}
-
-const loadEvent = async () => {
-  if (!eventId.value) return
-
-  try {
-    const event = await api.events.getEventById(eventId.value)
-    isDraft.value = event.status === 'DRAFT'
-    title.value = event.title ?? ''
-    if (event.date) {
-      const eventDate = new Date(event.date)
-      const isoDate = eventDate.toISOString().split('T')[0] // YYYY-MM-DD
-      date.value = isoDate || ''
-      time.value = eventDate.toTimeString().slice(0, 5) // HH:mm
-    }
-    description.value = event.description ?? ''
-    tags.value = event.tags ?? []
-    collaborators.value = event.collaboratorIds ?? []
-    if (event.location) {
-      location.value = {
-        label: buildLocationDisplayName(event.location),
-        value: event.location,
-        description: '',
-      }
-    }
-    poster.value = (await api.media.get(event.poster!)).file
-  } catch (error) {
-    console.error('Failed to load event:', error)
-    $q.notify({
-      color: 'negative',
-      message: t('eventCreationForm.errorForEventLoad'),
-    })
-  }
-}
-
-onMounted(async () => {
-  await Promise.all([loadTags(), loadTicketTypes()])
-  if (isEditMode.value) {
-    await Promise.all([loadEvent(), loadTickets()])
-  }
-})
-
 watch(location, (newLocation) => {
   if (newLocation) {
-    console.log('Location link:', newLocation.value.link)
+    logger.log('Location link:', newLocation.value.link)
   }
 })
 
@@ -274,7 +204,11 @@ const filterLocations = async (val: string, update: (fn: () => void) => void) =>
       })
     })
   } catch (err) {
-    console.error('Error fetching locations:', err)
+    logger.error('Error fetching locations:', err)
+    $q.notify({
+      color: 'negative',
+      message: t('form.messages.errors.fetchLocations'),
+    })
     update(() => {
       locationOptions.value = []
     })
@@ -287,33 +221,19 @@ const handleLocationInputValue = (val: string) => {
   }
 }
 
-const buildEventData = (status: CreationEventStatus): PartialEventData => {
-  return {
-    title: title.value || undefined,
-    description: description.value || undefined,
-    poster: poster.value || undefined,
-    tags: tags.value.length > 0 ? tags.value : undefined,
-    location: location.value?.value || undefined,
-    date: date.value && time.value ? new Date(`${date.value}T${time.value}`) : undefined,
-    status: status,
-    creatorId: currentUserId!,
-    collaboratorIds: collaborators.value.length > 0 ? collaborators.value : undefined,
-  }
-}
-
 const handleDelete = async () => {
   $q.dialog({
-    title: t('eventCreationForm.deleteEvent'),
-    message: t('eventCreationForm.deleteEventConfirm'),
+    title: t('form.dialog.delete.title'),
+    message: t('form.dialog.delete.message'),
     cancel: {
       flat: true,
       textColor: 'black',
-      label: t('eventCreationForm.cancel'),
+      label: t('form.dialog.delete.cancelButton'),
     },
     ok: {
       color: 'negative',
       textColor: 'black',
-      label: t('eventCreationForm.deleteEvent'),
+      label: t('form.dialog.delete.confirmButton'),
     },
     focus: 'none',
   }).onOk(async () => {
@@ -321,43 +241,17 @@ const handleDelete = async () => {
       await api.events.deleteEvent(eventId.value)
       $q.notify({
         color: 'positive',
-        message: t('eventCreationForm.successForEventDeletion'),
+        message: t('form.messages.success.deleteEvent'),
       })
       goToUserProfile(currentUserId!)
     } catch (error) {
-      console.error('Failed to delete event:', error)
+      logger.error('Failed to delete event:', error)
       $q.notify({
         color: 'negative',
-        message: t('eventCreationForm.errorForEventDeletion'),
+        message: t('form.messages.errors.deleteEvent'),
       })
     }
   })
-}
-
-const saveDraft = async () => {
-  const partialEventData: PartialEventData = buildEventData('DRAFT')
-
-  if (isEditMode.value) {
-    await api.events.updateEventData(eventId.value, partialEventData)
-    if (poster.value) {
-      await api.events.updateEventPoster(eventId.value, poster.value)
-    } else {
-      await api.events.deleteEventPoster(eventId.value)
-    }
-    await createOrUpdateEventTicketTypes(eventId.value)
-    $q.notify({
-      color: 'positive',
-      message: t('eventCreationForm.successForEventUpdate'),
-    })
-  } else {
-    const response = await api.events.createEvent(partialEventData)
-    await createOrUpdateEventTicketTypes(response.eventId)
-    $q.notify({
-      color: 'positive',
-      message: t('eventCreationForm.successForEventPublication'),
-    })
-  }
-  goToUserProfile(partialEventData.creatorId)
 }
 
 const createOrUpdateEventTicketTypes = async (eventId: string) => {
@@ -377,6 +271,57 @@ const createOrUpdateEventTicketTypes = async (eventId: string) => {
   })
 }
 
+const buildEventData = (status: CreationEventStatus): PartialEventData => {
+  return {
+    title: title.value || undefined,
+    description: description.value || undefined,
+    poster: poster.value || undefined,
+    tags: tags.value.length > 0 ? tags.value : undefined,
+    location: location.value?.value || undefined,
+    date: date.value && time.value ? new Date(`${date.value}T${time.value}`) : undefined,
+    status: status,
+    creatorId: currentUserId!,
+    collaboratorIds: collaborators.value.length > 0 ? collaborators.value : undefined,
+  }
+}
+
+const saveDraft = async () => {
+  try {
+    const partialEventData: PartialEventData = buildEventData('DRAFT')
+
+    if (isEditMode.value) {
+      await api.events.updateEventData(eventId.value, partialEventData)
+      if (poster.value) {
+        await api.events.updateEventPoster(eventId.value, poster.value)
+      } else {
+        await api.events.deleteEventPoster(eventId.value)
+      }
+      await createOrUpdateEventTicketTypes(eventId.value)
+      $q.notify({
+        color: 'positive',
+        message: t('form.messages.success.updateEventDraft'),
+      })
+    } else {
+      const response = await api.events.createEvent(partialEventData)
+      await createOrUpdateEventTicketTypes(response.eventId)
+      $q.notify({
+        color: 'positive',
+        message: t('form.messages.success.saveEventDraft'),
+      })
+    }
+    goToUserProfile(partialEventData.creatorId)
+  } catch (error) {
+    logger.error('Failed to save draft:', error)
+    $q.notify({
+      color: 'negative',
+      message: isEditMode.value
+        ? t('form.messages.errors.updateEventDraft')
+        : t('form.messages.errors.saveEventDraft'),
+    })
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
+  }
+}
+
 const onSubmit = async () => {
   try {
     const partiaEventData: PartialEventData = buildEventData('PUBLISHED')
@@ -386,7 +331,7 @@ const onSubmit = async () => {
       await createOrUpdateEventTicketTypes(eventId.value)
       $q.notify({
         color: 'positive',
-        message: t('eventCreationForm.successForEventUpdate'),
+        message: t('form.messages.success.updateEvent'),
       })
       goToEventDetails(eventId.value)
     } else {
@@ -394,20 +339,113 @@ const onSubmit = async () => {
       await createOrUpdateEventTicketTypes(response.eventId)
       $q.notify({
         color: 'positive',
-        message: t('eventCreationForm.successForEventPublication'),
+        message: t('form.messages.success.saveEvent'),
       })
       goToEventDetails(response.eventId)
     }
   } catch (error) {
-    console.error('Failed to save event:', error)
+    logger.error('Failed to save event:', error)
     $q.notify({
       color: 'negative',
       message: isEditMode.value
-        ? t('eventCreationForm.errorForEventUpdate')
-        : t('eventCreationForm.errorForEventPublication'),
+        ? t('form.messages.errors.updateEvent')
+        : t('form.messages.errors.saveEvent'),
     })
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
   }
 }
+
+const loadTickets = async () => {
+  try {
+    const ticketTypes = await api.payments.getEventTicketsType(eventId.value)
+    ticketEntries.value = ticketTypes.map((ticket) => ({
+      id: ticket.id,
+      type: ticket.type,
+      price: ticket.price.toString(),
+      quantity: ticket.totalQuantity.toString(),
+    }))
+    if (ticketEntries.value.length === 0) {
+      addTicketEntry()
+    }
+  } catch (error) {
+    logger.error('Failed to load event tickets:', error)
+    throw error
+  }
+}
+
+const loadEvent = async () => {
+  if (!eventId.value) return
+
+  try {
+    const event = await api.events.getEventById(eventId.value)
+    isDraft.value = event.status === 'DRAFT'
+    title.value = event.title ?? ''
+    if (event.date) {
+      const eventDate = new Date(event.date)
+      const isoDate = eventDate.toISOString().split('T')[0] // YYYY-MM-DD
+      date.value = isoDate || ''
+      time.value = eventDate.toTimeString().slice(0, 5) // HH:mm
+    }
+    description.value = event.description ?? ''
+    tags.value = event.tags ?? []
+    collaborators.value = event.collaboratorIds ?? []
+    if (event.location) {
+      location.value = {
+        label: buildLocationDisplayName(event.location),
+        value: event.location,
+        description: '',
+      }
+    }
+    poster.value = (await api.media.get(event.poster!)).file
+  } catch (error) {
+    logger.error('Failed to load event:', error)
+    throw error
+  }
+}
+
+const loadTicketTypes = async () => {
+  try {
+    availableTicketTypes.value = await api.payments.getTicketTypes()
+    if (availableTicketTypes.value.length > 0 && ticketEntries.value.length === 0) {
+      ticketEntries.value.push(createEmptyTicketEntry())
+    }
+  } catch (error) {
+    logger.error('Failed to load ticket types:', error)
+    throw error
+  }
+}
+
+const loadTags = async () => {
+  try {
+    const tagResponse = await api.events.getTags()
+    const options: any[] = []
+    tagResponse.forEach((tagCategory) => {
+      options.push(...buildOptionsFromCategories(tagCategory.category, tagCategory.tags))
+    })
+    allTags.value = tagResponse.flatMap((tagCategory) => tagCategory.tags)
+    tagOptions.value = options
+    tagCategories.value = tagResponse
+  } catch (error) {
+    logger.error('Failed to load tags:', error)
+    throw error
+  }
+}
+
+onMounted(async () => {
+  try {
+    await Promise.all([loadTags(), loadTicketTypes()])
+    if (isEditMode.value) {
+      await Promise.all([loadEvent(), loadTickets()])
+    }
+  } catch (error) {
+    logger.error('Error during initialization:', error)
+    $q.notify({
+      color: 'negative',
+      message: isEditMode.value ? t('messages.errors.loadEvent') : t('messages.errors.createEvent'),
+    })
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
+  }
+})
 </script>
 
 <template>
@@ -417,24 +455,22 @@ const onSubmit = async () => {
     <div class="page-content">
       <div class="container">
         <h1 class="text-h3 q-mb-lg">
-          {{
-            isEditMode ? t('eventCreationForm.editEvent') : t('eventCreationForm.createNewEvent')
-          }}
+          {{ isEditMode ? t('title.edit') : t('title.new') }}
         </h1>
 
         <q-form class="form-container" greedy @submit.prevent="onSubmit">
           <FormField
             v-model="title"
             type="text"
-            :label="t('eventCreationForm.eventTitle') + ' *'"
-            :rules="[notEmpty(t('eventCreationForm.titleError'))]"
+            :label="t('form.title.label') + ' *'"
+            :rules="[notEmpty(t('form.title.error'))]"
           />
           <FormField
             ref="dateInput"
             v-model="date"
             type="date"
-            :label="t('eventCreationForm.date') + ' *'"
-            :rules="[notEmpty(t('eventCreationForm.dateError'))]"
+            :label="t('form.date.label') + ' *'"
+            :rules="[notEmpty(t('form.date.error'))]"
           >
             <template #prepend>
               <q-icon
@@ -449,8 +485,8 @@ const onSubmit = async () => {
             ref="timeInput"
             v-model="time"
             type="time"
-            :label="t('eventCreationForm.time') + ' *'"
-            :rules="[notEmpty(t('eventCreationForm.timeError'))]"
+            :label="t('form.time.label') + ' *'"
+            :rules="[notEmpty(t('form.time.error'))]"
           >
             <template #prepend>
               <q-icon
@@ -464,48 +500,51 @@ const onSubmit = async () => {
           <FormField
             v-model="description"
             type="textarea"
-            :label="t('eventCreationForm.description')"
-            :rules="[notEmpty(t('eventCreationForm.descriptionError'))]"
+            :label="t('form.description.label')"
+            :rules="[notEmpty(t('form.description.error'))]"
             rows="4"
           />
 
-          <!-- Ticket Types Section -->
           <div v-if="availableTicketTypes.length > 0" class="ticket-types-section q-my-md">
-            <div class="text-subtitle1 q-mb-sm">Ticket Types</div>
+            <div class="text-subtitle1 q-mb-sm">{{ t('form.ticketTypes.sectionTitle') }}</div>
 
             <div v-for="(entry, index) in ticketEntries" :key="index" class="ticket-entry-row">
               <q-select
                 v-model="entry.type"
                 :options="getAvailableTypesForEntry(index)"
-                label="Type"
+                :label="t('form.ticketTypes.type.label') + ' *'"
                 outlined
                 dense
                 lazy-rules="ondemand"
                 class="ticket-type-select"
-                :rules="[notEmpty('Please select a ticket type')]"
+                :rules="[notEmpty(t('form.ticketTypes.type.error'))]"
               />
 
               <q-input
                 v-model="entry.price"
                 type="number"
-                label="Price ($)"
+                :label="t('form.ticketTypes.price.label') + ' *'"
                 prefix="$"
                 outlined
                 dense
                 lazy-rules="ondemand"
                 class="ticket-price-input"
-                :rules="[notEmpty('Please enter a price')]"
+                :hint="`Max $${maxTicketPrice}`"
+                :rules="[notEmpty(t('form.ticketTypes.price.error'))]"
+                @keydown="preventInvalidNumberKeys"
+                @blur="clampPrice(entry)"
               />
 
               <q-input
                 v-model="entry.quantity"
                 type="number"
-                label="Quantity"
+                :label="t('form.ticketTypes.quantity.label') + ' *'"
                 outlined
                 dense
                 lazy-rules="ondemand"
                 class="ticket-quantity-input"
-                :rules="[notEmpty('Please enter a quantity')]"
+                :rules="[notEmpty(t('form.ticketTypes.quantity.error'))]"
+                @keydown="preventInvalidNumberKeys"
               />
 
               <q-btn
@@ -528,7 +567,7 @@ const onSubmit = async () => {
           <FormSelectorField
             v-model="tags"
             :options="tagOptions"
-            :label="t('eventCreationForm.tags')"
+            :label="t('form.tags.label')"
             multiple
             use-chips
             use-input
@@ -557,7 +596,7 @@ const onSubmit = async () => {
           <FormSelectorField
             v-model="collaborators"
             :options="collaboratorOptions"
-            :label="t('eventCreationForm.collaborators')"
+            :label="t('form.collaborators.label')"
             multiple
             use-chips
             use-input
@@ -573,7 +612,7 @@ const onSubmit = async () => {
                   <q-avatar size="32px" class="collaborator-avatar" rounded>
                     <img
                       :src="scope.opt.avatar"
-                      :alt="t('eventCreationForm.collaboratorAvatarAlt')"
+                      :alt="t('form.collaborators.avatarAlt')"
                       style="object-fit: cover; width: 100%; height: 100%; border-radius: 50%"
                     />
                   </q-avatar>
@@ -591,19 +630,19 @@ const onSubmit = async () => {
           <FormSelectorField
             v-model="location"
             :options="locationOptions"
-            :label="t('eventCreationForm.location') + ' *'"
+            :label="t('form.location.label') + ' *'"
             use-input
             fill-input
             hide-selected
             clearable
-            :rules="[required(t('eventCreationForm.locationError'))]"
+            :rules="[required(t('form.location.error'))]"
             @filter="filterLocations"
             @input-value="handleLocationInputValue"
           >
             <template #no-option>
               <q-item>
                 <q-item-section class="text-grey">
-                  {{ t('eventCreationForm.locationNoOptionHint') }}
+                  {{ t('form.location.noOptionHint') }}
                 </q-item-section>
               </q-item>
             </template>
@@ -619,7 +658,7 @@ const onSubmit = async () => {
 
           <q-field
             :model-value="poster"
-            :rules="[required(t('eventCreationForm.posterError'))]"
+            :rules="[required(t('form.poster.error'))]"
             lazy-rules="ondemand"
             hide-bottom-space
             borderless
@@ -628,8 +667,8 @@ const onSubmit = async () => {
             <template #control>
               <PosterCropUpload
                 v-model="poster"
-                :label="t('eventCreationForm.eventPoster') + ' *'"
-                :button-label="t('eventCreationForm.uploadPoster')"
+                :label="t('form.poster.label') + ' *'"
+                :button-label="t('form.poster.uploadButtonLabel')"
                 :max-size="5000000"
                 @error="handleImageError"
               />
@@ -639,13 +678,13 @@ const onSubmit = async () => {
             <div class="action-buttons">
               <q-btn
                 flat
-                :label="t('eventCreationForm.cancel')"
+                :label="t('form.actions.cancel')"
                 class="base-button base-button--tertiary"
                 @click="goToUserProfile(currentUserId!)"
               />
               <q-btn
                 v-if="isEditMode"
-                :label="t('eventCreationForm.deleteEvent')"
+                :label="t('form.actions.delete')"
                 color="negative"
                 flat
                 @click="handleDelete"
@@ -654,7 +693,7 @@ const onSubmit = async () => {
             <div class="action-buttons">
               <q-btn
                 v-if="!isEditMode || isDraft"
-                :label="isEditMode ? 'Update Draft' : t('eventCreationForm.saveDraft')"
+                :label="isEditMode ? t('form.actions.updateDraft') : t('form.actions.saveDraft')"
                 outline
                 unelevated
                 color="primary"
@@ -665,10 +704,10 @@ const onSubmit = async () => {
               <q-btn
                 :label="
                   isDraft
-                    ? t('eventCreationForm.publishEvent')
+                    ? t('form.actions.publishEvent')
                     : isEditMode
-                      ? t('eventCreationForm.updateEvent')
-                      : t('eventCreationForm.publishEvent')
+                      ? t('form.actions.updatePublishedEvent')
+                      : t('form.actions.publishEvent')
                 "
                 unelevated
                 color="primary"
@@ -689,7 +728,6 @@ const onSubmit = async () => {
   min-height: 100vh;
   position: relative;
   padding-top: $spacing-6;
-  //padding-top: calc(#{$spacing-4} + 40px + #{$spacing-4});
 }
 
 .collaborator-avatar {

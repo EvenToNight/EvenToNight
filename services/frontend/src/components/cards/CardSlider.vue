@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import SeeAllButton from '../buttons/basicButtons/SeeAllButton.vue'
 import { useBreakpoints } from '@/composables/useBreakpoints'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   title: string
@@ -14,7 +14,7 @@ const emit = defineEmits<{
   seeAll: []
 }>()
 
-const { t } = useI18n()
+const { t } = useTranslation('components.cards.CardSlider')
 const { isMobile } = useBreakpoints()
 const cardsContainer = ref<HTMLElement | null>(null)
 const canScrollLeft = ref(false)
@@ -85,7 +85,7 @@ onMounted(() => {
       icon="chevron_left"
       size="18px"
       class="nav-arrow nav-arrow-left shadow-2"
-      :aria-label="t('cards.slider.scrollLeftAriaLabel')"
+      :aria-label="t('scrollLeftAriaLabel')"
       @click="scrollLeft"
     />
     <q-btn
@@ -95,7 +95,7 @@ onMounted(() => {
       icon="chevron_right"
       size="18px"
       class="nav-arrow nav-arrow-right shadow-2"
-      :aria-label="t('cards.slider.scrollRightAriaLabel')"
+      :aria-label="t('scrollRightAriaLabel')"
       @click="scrollRight"
     />
   </div>

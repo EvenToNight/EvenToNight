@@ -1,24 +1,24 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { api } from '@/api'
-import { useQuasar } from 'quasar'
 import { useNavigation } from '@/router/utils'
 import { FORBIDDEN_ROUTE_NAME } from '@/router'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
-const $q = useQuasar()
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('views.verifyTicketView')
 
 const { params, goToRoute } = useNavigation()
 const ticketId = ref<string>(params.ticketId as string)
 const loading = ref(true)
 const error = ref(false)
-const errorMessage = ref('')
 const wasAlreadyUsed = ref(false)
 
 const verifyTicket = async () => {
   loading.value = true
   error.value = false
-  errorMessage.value = ''
 
   try {
     const result = await api.payments.verifyTicket(ticketId.value)
@@ -28,18 +28,12 @@ const verifyTicket = async () => {
     } else {
       wasAlreadyUsed.value = true
     }
-  } catch (err: any) {
-    if (err.status === 403) {
+  } catch (error: any) {
+    logger.error('Ticket verification failed:', error)
+    if (error.status === 403) {
       goToRoute(FORBIDDEN_ROUTE_NAME)
     } else {
       error.value = true
-      errorMessage.value =
-        err.response?.data?.message || 'Failed to verify ticket. Please try again.'
-      $q.notify({
-        type: 'negative',
-        message: errorMessage.value,
-        position: 'top',
-      })
     }
   } finally {
     loading.value = false
@@ -58,14 +52,14 @@ onMounted(() => {
     <div class="verify-container">
       <div v-if="loading" class="verify-state loading-state">
         <q-spinner-dots color="primary" size="60px" />
-        <h1 class="verify-title">Verifying Ticket...</h1>
-        <p class="verify-message">Please wait while we verify your ticket</p>
+        <h1 class="verify-title">{{ t('loadingTitle') }}</h1>
+        <p class="verify-message">{{ t('loadingMessage') }}</p>
       </div>
 
       <div v-else-if="error" class="verify-state error-state">
         <q-icon name="error" size="80px" color="negative" />
-        <h1 class="verify-title">Verification Failed</h1>
-        <p class="verify-message">{{ errorMessage }}</p>
+        <h1 class="verify-title">{{ t('failedTitle') }}</h1>
+        <p class="verify-message">{{ t('failedMessage') }}</p>
         <q-btn
           label="Try Again"
           color="primary"
@@ -77,21 +71,19 @@ onMounted(() => {
 
       <div v-else-if="wasAlreadyUsed" class="verify-state already-used-state">
         <q-icon name="block" size="80px" color="negative" />
-        <h1 class="verify-title">Ticket Already Used</h1>
-        <p class="verify-message">
-          This ticket has already been verified and used. It cannot be used again.
-        </p>
+        <h1 class="verify-title">{{ t('alreadyUsedTitle') }}</h1>
+        <p class="verify-message">{{ t('alreadyUsedMessage') }}</p>
         <div class="ticket-info">
-          <p class="ticket-id">Ticket ID: {{ ticketId }}</p>
+          <p class="ticket-id">{{ t('ticketID') }}: {{ ticketId }}</p>
         </div>
       </div>
 
       <div v-else class="verify-state success-state">
         <q-icon name="check_circle" size="80px" color="positive" />
-        <h1 class="verify-title">Ticket Verified Successfully!</h1>
-        <p class="verify-message">This ticket has been verified and marked as used.</p>
+        <h1 class="verify-title">{{ t('successTitle') }}</h1>
+        <p class="verify-message">{{ t('successMessage') }}</p>
         <div class="ticket-info">
-          <p class="ticket-id">Ticket ID: {{ ticketId }}</p>
+          <p class="ticket-id">{{ t('ticketID') }}: {{ ticketId }}</p>
         </div>
       </div>
     </div>

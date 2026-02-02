@@ -1,26 +1,29 @@
 <script lang="ts" setup>
-import { useI18n } from 'vue-i18n'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
 import type { User, UserID } from '@/api/types/users'
 import type { Event } from '@/api/types/events'
 import { ref, onMounted } from 'vue'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
+import { SERVER_ERROR_ROUTE_NAME } from '@/router'
 interface Props {
   event: Event
 }
 const props = defineProps<Props>()
-const { t } = useI18n()
-const { goToUserProfile } = useNavigation()
+const { t } = useTranslation('components.eventDetails.OrganizationInfo')
+const { goToUserProfile, goToRoute } = useNavigation()
+const logger = createLogger(import.meta.url)
 
-const organizer = ref<User | null>(null)
-const collaborators = ref<User[]>([])
+const organizer = ref<User | undefined>(undefined)
+const collaborators = ref<User[] | undefined>(undefined)
 
 const loadOrganizer = async (userId: UserID) => {
   try {
     organizer.value = await api.users.getUserById(userId)
   } catch (error) {
-    console.error('Failed to load organizer:', error)
-    organizer.value = null
+    logger.error('Failed to load organizer:', error)
+    organizer.value = undefined
   }
 }
 
@@ -29,8 +32,8 @@ const loadCollaborators = async (userIds: UserID[]) => {
     const promises = userIds.map((userId) => api.users.getUserById(userId))
     collaborators.value = await Promise.all(promises)
   } catch (error) {
-    console.error('Failed to load collaborators:', error)
-    collaborators.value = []
+    logger.error('Failed to load collaborators:', error)
+    collaborators.value = undefined
   }
 }
 
@@ -40,13 +43,18 @@ onMounted(async () => {
   if (props.event.collaboratorIds?.length) {
     promises.push(loadCollaborators(props.event.collaboratorIds))
   }
-  await Promise.all(promises)
+  try {
+    await Promise.all(promises)
+  } catch (error) {
+    logger.error('Failed to load organization info:', error)
+    goToRoute(SERVER_ERROR_ROUTE_NAME)
+  }
 })
 </script>
 
 <template>
   <div v-if="organizer" class="organizer-section">
-    <h3 class="section-subtitle">{{ t('eventDetails.organizer') }}</h3>
+    <h3 class="section-subtitle">{{ t('organizedBy') }}</h3>
     <div class="organizer-card" @click="goToUserProfile(event.creatorId)">
       <img
         v-if="organizer.avatar"
@@ -63,8 +71,8 @@ onMounted(async () => {
     </div>
   </div>
 
-  <div v-if="collaborators.length > 0" class="collaborators-section">
-    <h3 class="section-subtitle">{{ t('eventDetails.collaborators') }}</h3>
+  <div v-if="collaborators && collaborators.length > 0" class="collaborators-section">
+    <h3 class="section-subtitle">{{ t('inCollaborationWith') }}</h3>
     <div class="collaborators-list">
       <div
         v-for="collab in collaborators"

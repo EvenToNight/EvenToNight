@@ -36,7 +36,7 @@ const handleSwitch = () => {
 
     <q-card-section>
       <q-form greedy @submit.prevent="handleSubmit">
-        <q-banner v-if="errorMessage" class="bg-negative text-white q-mb-md" rounded>
+        <q-banner v-if="errorMessage" class="error-banner bg-negative q-mb-md" rounded dense>
           <template #avatar>
             <q-icon name="error" color="white" />
           </template>
@@ -66,6 +66,12 @@ const handleSwitch = () => {
 .card-header {
   .text-h5 {
     text-align: center;
+  }
+}
+
+.error-banner {
+  :deep(.q-banner__content) {
+    color: $color-white !important;
   }
 }
 </style>

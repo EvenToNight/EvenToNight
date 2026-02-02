@@ -3,6 +3,7 @@ import {
   IsNotEmpty,
   IsNumber,
   Min,
+  Max,
   IsOptional,
   IsIn,
 } from 'class-validator';
@@ -23,6 +24,7 @@ export class CreateEventTicketTypeDto {
 
   @IsNumber()
   @Min(0)
+  @Max(1000)
   price: number;
 
   @IsNumber()

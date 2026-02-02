@@ -1,11 +1,17 @@
 import { api } from '@/api'
-import type { Event, Tag } from '../types/events'
+import type { Event, EventStatus, Tag } from '../types/events'
 import type { User, UserRole } from '../types/users'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
 import type { EventsQueryParams } from '../interfaces/events'
 import type { SortBy } from '@/components/explore/filters/SortFilters.vue'
 import type { DateFilter } from '@/components/explore/filters/DateFilters.vue'
 import type { PriceFilter } from '@/components/explore/filters/PriceFilters.vue'
+import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
+import { createLogger } from '@/utils/logger'
+import { useAuthStore } from '@/stores/auth'
+import type { OtherFilter } from '@/components/explore/filters/FeedFilters.vue'
+
+const logger = createLogger(import.meta.url)
 
 export interface SearchResultBase {
   type: 'event' | UserRole
@@ -18,6 +24,7 @@ export interface SearchResultEvent extends SearchResultBase {
   title: string
   location: string
   date: Date
+  status: EventStatus
   imageUrl?: string
 }
 
@@ -28,6 +35,33 @@ export interface SearchResultUser extends SearchResultBase {
 }
 
 export type SearchResult = SearchResultEvent | SearchResultUser
+
+export const convertUserToSearchResult = (user: User, relevance: number = 0): SearchResultUser => {
+  return {
+    type: user.role,
+    id: user.id,
+    name: user.name,
+    avatarUrl: user.avatar,
+    relevance,
+  }
+}
+
+export const searchUsers = async (params: {
+  query: string
+  role?: UserRole
+  pagination?: PaginatedRequest
+}): Promise<PaginatedResponse<SearchResultUser>> => {
+  const response = await api.users.searchUsers({
+    prefix: params.query,
+    role: params.role,
+    pagination: params.pagination,
+  })
+  const results: SearchResultUser[] = response.items.map((user) => convertUserToSearchResult(user))
+  return {
+    ...response,
+    items: results,
+  }
+}
 
 const calculateRelevance = (query: string, targetText: string): number => {
   const lowerQuery = query.toLowerCase().trim()
@@ -69,6 +103,7 @@ const processEventSearchResults = async (
         type: 'event',
         id: event.eventId,
         title: event.title,
+        status: event.status,
         location: event.location.name || event.location.city,
         date: new Date(event.date),
         imageUrl: event.poster,
@@ -89,13 +124,7 @@ const processUserSearchResults = async (users: User[], query: string): Promise<S
   const resultPromises = users.map(async (user): Promise<SearchResultUser | null> => {
     const relevance = await calculateUserResultRelevance(user, query)
     if (relevance > 0) {
-      return {
-        type: user.role,
-        id: user.id,
-        name: user.name,
-        avatarUrl: user.avatar,
-        relevance: relevance,
-      }
+      return convertUserToSearchResult(user, relevance)
     }
     return null
   })
@@ -108,10 +137,11 @@ export const getSearchResult = async (
   maxResults: number
 ): Promise<SearchResult[]> => {
   const [eventsResponse, usersResponse] = await Promise.all([
-    api.events.searchEvents({ title: query }),
+    api.events.searchEvents({ query, status: new Set(['PUBLISHED', 'COMPLETED', 'CANCELLED']) }),
     api.users.searchUsers({ prefix: query }),
   ])
-  console.log('User search response:', usersResponse)
+  logger.log('Event search response:', eventsResponse)
+  logger.log('User search response:', usersResponse)
   const processedEvents = await processEventSearchResults(eventsResponse.items, query)
   const processedUsers = await processUserSearchResults(usersResponse.items, query)
   const results: SearchResult[] = processedEvents.concat(processedUsers)
@@ -179,8 +209,8 @@ const convertDateFilter = (
         break
     }
 
-    eventsQueryParams.startDate = startDate!.toISOString().replace(/\.\d{3}Z$/, '')
-    eventsQueryParams.endDate = endDate!.toISOString().replace(/\.\d{3}Z$/, '')
+    eventsQueryParams.startDate = startDate
+    eventsQueryParams.endDate = endDate
   }
 }
 
@@ -189,8 +219,8 @@ const convertDateRange = (
   dateRange: { from: Date; to: Date } | undefined | null
 ): void => {
   if (dateRange) {
-    eventsQueryParams.startDate = dateRange.from.toISOString().replace(/\.\d{3}Z$/, '')
-    eventsQueryParams.endDate = dateRange.to.toISOString().replace(/\.\d{3}Z$/, '')
+    eventsQueryParams.startDate = dateRange.from
+    eventsQueryParams.endDate = dateRange.to
   }
 }
 
@@ -199,7 +229,7 @@ const convertTags = (
   tags: Tag[] | undefined | null
 ): void => {
   if (tags && tags.length > 0) {
-    eventsQueryParams.tags = tags
+    eventsQueryParams.tags = new Set(tags)
   }
 }
 
@@ -208,12 +238,14 @@ const convertCustomPriceRange = (
   customPriceRange: { min?: number | null; max?: number | null } | undefined | null
 ): void => {
   if (customPriceRange) {
+    const price = { min: 0, max: Infinity }
     if (customPriceRange.min !== null && customPriceRange.min !== undefined) {
-      eventsQueryParams.priceMin = customPriceRange.min
+      price.min = customPriceRange.min
     }
     if (customPriceRange.max !== null && customPriceRange.max !== undefined) {
-      eventsQueryParams.priceMax = customPriceRange.max
+      price.max = customPriceRange.max
     }
+    eventsQueryParams.price = price
   }
 }
 
@@ -222,21 +254,67 @@ const convertPriceFilter = (
   priceFilter: PriceFilter | undefined | null
 ): void => {
   if (priceFilter === 'free') {
-    eventsQueryParams.priceMin = 0
-    eventsQueryParams.priceMax = 0
-  } else if (priceFilter === 'paid') {
-    eventsQueryParams.priceMin = 0.01
+    eventsQueryParams.price = { min: 0, max: 0 }
   }
 }
 
-export const convertFiltersToEventsQueryParams = (filters: EventFilters): EventsQueryParams => {
-  const { sortBy, dateRange, customPriceRange, dateFilter, priceFilter, tags } = filters
+const convertOtherFilters = async (
+  eventsQueryParams: EventsQueryParams,
+  otherFilter: OtherFilter | null
+): Promise<void> => {
+  if (otherFilter) {
+    switch (otherFilter) {
+      case 'for_you': {
+        eventsQueryParams.other = 'feed'
+        const authStore = useAuthStore()
+        if (authStore.user?.interests) {
+          eventsQueryParams.tags = new Set(authStore.user.interests)
+        }
+        break
+      }
+      case 'new':
+        eventsQueryParams.other = 'recently_added'
+        break
+      case 'nearby':
+        try {
+          const position = await getCurrentPosition()
+          eventsQueryParams.near = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          }
+        } catch (error) {
+          logger.error('Error getting user position:', error)
+        }
+        break
+      case 'popular':
+        eventsQueryParams.other = 'popular'
+        break
+      case 'upcoming':
+        eventsQueryParams.other = 'upcoming'
+        break
+    }
+  }
+}
+
+const getCurrentPosition = (): Promise<GeolocationPosition> => {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject)
+  })
+}
+
+export const convertFiltersToEventsQueryParams = async (
+  filters: EventFilters
+): Promise<EventsQueryParams> => {
   const eventsQueryParams: EventsQueryParams = {}
+  const { sortBy, dateRange, customPriceRange, dateFilter, priceFilter, tags } = filters
   convertSortBy(eventsQueryParams, sortBy)
   convertDateFilter(eventsQueryParams, dateFilter)
   convertDateRange(eventsQueryParams, dateRange)
   convertTags(eventsQueryParams, tags)
   convertCustomPriceRange(eventsQueryParams, customPriceRange)
   convertPriceFilter(eventsQueryParams, priceFilter)
+  if (filters.otherFilter) {
+    await convertOtherFilters(eventsQueryParams, filters.otherFilter)
+  }
   return eventsQueryParams
 }

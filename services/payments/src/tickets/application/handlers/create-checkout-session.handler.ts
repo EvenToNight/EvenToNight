@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Inject,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { Ticket } from '../../domain/aggregates/ticket.aggregate';
@@ -27,6 +28,7 @@ import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { EventService } from '../services/event.service';
 import { CheckoutSessionExpiredHandler } from './checkout-session-expired.handler';
 import { UserService } from '../services/user.service';
+import { CheckoutSessionCompletedHandler } from './checkout-session-completed.handler';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -39,6 +41,8 @@ type LineItemsMap = Map<string, LineItem>;
 @Injectable()
 export class CreateCheckoutSessionHandler {
   private readonly isDev = process.env.NODE_ENV === 'development';
+  private readonly isTest = process.env.TEST_DEPLOYMENT === 'true';
+  private readonly logger = new Logger(CreateCheckoutSessionHandler.name);
   constructor(
     private readonly transactionManager: TransactionManager,
     @Inject(PAYMENT_SERVICE)
@@ -49,6 +53,8 @@ export class CreateCheckoutSessionHandler {
     private readonly eventService: EventService,
     private readonly userService: UserService,
     private readonly checkoutSessionExpiredHandler: CheckoutSessionExpiredHandler,
+    //for testing purposes
+    private readonly checkoutCompletedHandler: CheckoutSessionCompletedHandler,
   ) {}
 
   private async getTicketTypeWithLock(
@@ -197,12 +203,19 @@ export class CreateCheckoutSessionHandler {
       ticketIds,
     );
 
-    if (this.isDev) {
+    this.logger.log('CREATING CHECKOUT SESSION');
+    if (this.isDev || this.isTest) {
+      this.logger.log('DEV/TEST ENVIRONMENT - MOCK CHECKOUT SESSION');
       //TODO evaluate to uniform the redirectUrl, normally a GET has to be performed not a POST
-      const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/webhooks/stripe/`;
+      // const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/webhooks/stripe/`;
+      await this.checkoutCompletedHandler.handle(
+        'cs_test_dev_session',
+        order.getId(),
+      );
+      this.logger.log('Mock checkout session created');
       return {
         sessionId: 'cs_test_dev_session',
-        redirectUrl: tempWebHook,
+        redirectUrl: dto.successUrl,
         expiresAt: Date.now() + 3600,
         orderId: order.getId(),
       };

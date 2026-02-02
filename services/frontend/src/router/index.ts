@@ -29,6 +29,7 @@ export const PRIVACY_ROUTE_NAME = 'privacy'
 export const TERMS_ROUTE_NAME = 'terms'
 export const ABOUT_ROUTE_NAME = 'about'
 export const VERIFY_TICKET_ROUTE_NAME = 'verify-ticket'
+export const SERVER_ERROR_ROUTE_NAME = 'server-error'
 export const NOT_FOUND_ROUTE_NAME = 'not-found'
 
 const getInitialLocale = (): string => {
@@ -168,6 +169,11 @@ const router = createRouter({
         {
           path: 'forbidden',
           name: FORBIDDEN_ROUTE_NAME,
+          component: PlaceHolderView,
+        },
+        {
+          path: 'server-error',
+          name: SERVER_ERROR_ROUTE_NAME,
           component: PlaceHolderView,
         },
         {

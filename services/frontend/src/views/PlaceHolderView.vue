@@ -1,24 +1,24 @@
 <script setup lang="ts">
 import { onMounted, onUnmounted, reactive, computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { FORBIDDEN_ROUTE_NAME, NOT_FOUND_ROUTE_NAME } from '@/router'
+import { FORBIDDEN_ROUTE_NAME, NOT_FOUND_ROUTE_NAME, SERVER_ERROR_ROUTE_NAME } from '@/router'
+import { useNavigation } from '@/router/utils'
+import { useTranslation } from '@/composables/useTranslation'
 
-const route = useRoute()
-const router = useRouter()
+const { t } = useTranslation('views.PlaceHolderView')
+const { routeName, goToHome } = useNavigation()
 
 const message = computed(() => {
-  if (route.name === FORBIDDEN_ROUTE_NAME) {
+  if (routeName.value === FORBIDDEN_ROUTE_NAME) {
     return 'FORBIDDEN 🚫'
   }
-  if (route.name === NOT_FOUND_ROUTE_NAME) {
+  if (routeName.value === NOT_FOUND_ROUTE_NAME) {
     return 'NOT FOUND 🥸'
+  }
+  if (routeName.value === SERVER_ERROR_ROUTE_NAME) {
+    return 'SERVER ERROR 💥'
   }
   return 'EvenToNight🌚'
 })
-
-const goHome = () => {
-  router.push('/')
-}
 
 const state = reactive({
   x: 100,
@@ -78,13 +78,13 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div id="dvd" :style="dvdStyle" @click="goHome">
+  <div id="dvd" :style="dvdStyle" @click="() => goToHome()">
     <div class="dvd-content">
       <div class="main-message">{{ message }}</div>
-      <div class="sub-message">Click to go home</div>
+      <div class="sub-message">{{ t('navigationMessageHint') }}</div>
     </div>
   </div>
-  <!-- <div class="home-link" @click="goHome">Torna alla home</div> -->
+  <!-- <div class="home-link" @click="() => goToHome()">{{ t('navigationMessage') }}</div> -->
 </template>
 
 <style scoped>

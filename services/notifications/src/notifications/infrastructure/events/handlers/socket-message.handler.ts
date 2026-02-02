@@ -19,6 +19,7 @@ export class SocketMessageHandler {
           message: event.message,
           messageId: event.messageId,
           senderAvatar: event.senderAvatar,
+          createdAt: event.createdAt,
         },
       };
 

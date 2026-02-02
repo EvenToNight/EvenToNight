@@ -5,11 +5,16 @@ import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { loadLikedEvents, type EventLoadResult } from '@/api/utils/eventUtils'
 import type { UserID } from '@/api/types/users'
-const ITEMS_PER_PAGE = 20
+import { defaultLimit } from '@/api/utils/requestUtils'
+import { useAuthStore } from '@/stores/auth'
+import { useTranslation } from '@/composables/useTranslation'
 interface Props {
   userId: UserID
 }
 const props = defineProps<Props>()
+const { t } = useTranslation('components.profile.tabs.MyLikesTab')
+
+const authStore = useAuthStore()
 
 const {
   items: events,
@@ -17,11 +22,10 @@ const {
   loadingMore,
   onLoad,
   loadItems,
-} = useInfiniteScroll<{ userId: UserID }, EventLoadResult>({
-  itemsPerPage: ITEMS_PER_PAGE,
-  options: { userId: props.userId },
-  loadFn: async (limit, offset, options) => {
-    return loadLikedEvents(options!.userId, { limit, offset })
+} = useInfiniteScroll<EventLoadResult>({
+  itemsPerPage: defaultLimit,
+  loadFn: async (limit, offset) => {
+    return loadLikedEvents(props.userId, authStore.user?.id, { limit, offset })
   },
 })
 
@@ -53,7 +57,7 @@ onMounted(() => {
     <EmptyState
       v-else-if="!loading"
       empty-icon-name="favorite_border"
-      :empty-text="'You have not liked any events yet.'"
+      :empty-text="t('noLikedEvents')"
     />
   </div>
 </template>

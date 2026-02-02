@@ -3,83 +3,56 @@ import { ref, onMounted, provide, watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import type { EventReview } from '@/api/types/interaction'
-import ReviewCard from '@/components/reviews/ReviewCard.vue'
+import ReviewCard from '@/components/cards/ReviewCard.vue'
 import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
-
-const ITEMS_PER_PAGE = 10
+import { defaultLimit, emptyPaginatedResponse } from '@/api/utils/requestUtils'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { useQuasar } from 'quasar'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
 const authStore = useAuthStore()
-const reviews = ref<EventReview[]>([])
-const loading = ref(true)
-const loadingMore = ref(false)
-const hasMore = ref(true)
+const $q = useQuasar()
 const searchQuery = ref('')
 const hasReviews = ref(false)
-let searchTimeout: number | null = null
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('components.settings.tabs.MyReviewsTab')
 
-const loadReviews = async (isLoadingMore = false, isSearch = false) => {
-  if (!authStore.isAuthenticated) return
-
-  if (isLoadingMore) {
-    loadingMore.value = true
-  } else if (!isSearch) {
-    loading.value = true
-  }
-
-  try {
-    const response = await api.interactions.getUserReviews(authStore.user!.id, {
-      search: searchQuery.value || undefined,
-      pagination: {
-        limit: ITEMS_PER_PAGE,
-        offset: isLoadingMore ? reviews.value.length : 0,
-      },
-    })
-
-    if (isLoadingMore) {
-      reviews.value = [...reviews.value, ...response.items]
-    } else {
-      reviews.value = response.items
+const {
+  items: reviews,
+  loadingMore,
+  onLoad,
+  loadItems,
+} = useInfiniteScroll<EventReview>({
+  itemsPerPage: defaultLimit,
+  loadFn: async (limit, offset) => {
+    try {
+      return await api.interactions.getUserReviews(authStore.user!.id, {
+        search: searchQuery.value || undefined,
+        pagination: {
+          limit,
+          offset,
+        },
+      })
+    } catch (error) {
+      logger.error('Failed to load user reviews:', error)
+      $q.notify({
+        type: 'negative',
+        message: t('loadReviewsError'),
+      })
+      return emptyPaginatedResponse<EventReview>()
     }
+  },
+})
 
-    hasMore.value = response.hasMore
-
-    if (response.items.length > 0 || response.totalItems > 0) {
-      hasReviews.value = true
-    }
-  } catch (error) {
-    console.error('Failed to load user reviews:', error)
-  } finally {
-    loading.value = false
-    loadingMore.value = false
-  }
-}
-
-onMounted(() => {
-  loadReviews()
+onMounted(async () => {
+  await loadItems()
+  hasReviews.value = reviews.value.length > 0
 })
 
 watch(searchQuery, () => {
-  if (searchTimeout) {
-    clearTimeout(searchTimeout)
-  }
-
-  searchTimeout = setTimeout(() => {
-    loadReviews(false, true)
-  }, 500)
+  loadItems()
 })
-
-const onLoad = async (_index: number, done: (stop?: boolean) => void) => {
-  if (!hasMore.value) {
-    done(true)
-    return
-  }
-
-  try {
-    await loadReviews(true)
-  } finally {
-    done(!hasMore.value)
-  }
-}
 
 const deleteReview = (eventId: string, userId: string) => {
   reviews.value = reviews.value.filter(
@@ -92,68 +65,61 @@ provide('deleteReview', deleteReview)
 
 <template>
   <div class="my-reviews-tab">
-    <q-inner-loading :showing="loading" />
+    <template v-if="hasReviews">
+      <q-input
+        v-model="searchQuery"
+        outlined
+        dense
+        debounce="300"
+        :placeholder="t('searchHint')"
+        class="search-input"
+      >
+        <template #prepend>
+          <q-icon name="search" />
+        </template>
+        <template v-if="searchQuery" #append>
+          <q-icon name="close" class="cursor-pointer" @click="searchQuery = ''" />
+        </template>
+      </q-input>
 
-    <template v-if="!loading">
-      <template v-if="hasReviews">
-        <q-input
-          v-model="searchQuery"
-          outlined
-          dense
-          placeholder="Search reviews..."
-          class="search-input"
-        >
-          <template #prepend>
-            <q-icon name="search" />
-          </template>
-          <template v-if="searchQuery" #append>
-            <q-icon name="close" class="cursor-pointer" @click="searchQuery = ''" />
-          </template>
-        </q-input>
+      <q-infinite-scroll
+        v-if="reviews.length > 0"
+        :offset="250"
+        :disable="loadingMore"
+        @load="onLoad"
+      >
+        <div class="reviews-list">
+          <ReviewCard v-for="review in reviews" :key="review.id" :review="review" />
+        </div>
 
-        <q-infinite-scroll
-          v-if="reviews.length > 0"
-          :offset="250"
-          :disable="loadingMore"
-          @load="onLoad"
-        >
-          <div class="reviews-list">
-            <ReviewCard
-              v-for="review in reviews"
-              :key="`${review.eventId}-${review.userId}`"
-              :review="review"
-            />
+        <template #loading>
+          <div class="loading-state">
+            <q-spinner color="primary" size="50px" />
           </div>
-
-          <template #loading>
-            <div class="loading-state">
-              <q-spinner-dots color="primary" size="50px" />
-            </div>
-          </template>
-        </q-infinite-scroll>
-
-        <EmptyState
-          v-else
-          empty-icon-name="search_off"
-          empty-text="No reviews found matching your search."
-          class="empty-state"
-        />
-      </template>
+        </template>
+      </q-infinite-scroll>
 
       <EmptyState
         v-else
-        empty-icon-name="rate_review"
-        empty-text="You have not submitted any reviews yet."
+        empty-icon-name="search_off"
+        :empty-text="t('noReviewsFound')"
         class="empty-state"
       />
     </template>
+
+    <EmptyState
+      v-else
+      empty-icon-name="rate_review"
+      :empty-text="t('noReviews')"
+      class="empty-state"
+    />
   </div>
 </template>
 
 <style lang="scss" scoped>
 .my-reviews-tab {
   padding: $spacing-6;
-  min-height: 400px;
+  height: 100%;
   position: relative;
 
   @media (max-width: $breakpoint-mobile) {

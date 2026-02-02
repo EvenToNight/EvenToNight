@@ -4,134 +4,36 @@ export const NAVBAR_HEIGHT_CSS = `${NAVBAR_HEIGHT}px`
 </script>
 
 <script setup lang="ts">
-import { computed, ref, inject, type Ref, watch, onMounted } from 'vue'
+import { computed, ref, inject, type Ref, watch } from 'vue'
 import { useQuasar } from 'quasar'
-import { useI18n } from 'vue-i18n'
 import { useAuthStore } from '@/stores/auth'
+import { useDarkMode } from '@/composables/useDarkMode'
+import { useUnreadMessagesCount } from '@/composables/useUnreadMessagesCount'
 import SearchBar from './SearchBar.vue'
 import AppBrand from '@/components/common/AppBrand.vue'
 import { useNavigation } from '@/router/utils'
 import breakpoints from '@/assets/styles/abstracts/breakpoints.module.scss'
 import AuthButtons from '../auth/AuthButtons.vue'
 import DrawerMenu from './DrawerMenu.vue'
-import { api } from '@/api'
+import NotificationsButton from '@/components/notifications/NotificationsButton.vue'
+import { useTranslation } from '@/composables/useTranslation'
 const MOBILE_BREAKPOINT = parseInt(breakpoints.breakpointMobile!)
 
-const searchQuery = inject<Ref<string>>('searchQuery')
+const searchQuery = inject<Ref<string>>('searchQuery', ref(''))
 const searchBarHasFocus = inject<Ref<boolean>>('searchBarHasFocus', ref(false))
 interface Props {
   showSearch?: boolean
 }
 
-interface Notification {
-  id: string
-  icon: string
-  iconColor: string
-  message: string
-  timestamp: string
-}
-
 const props = defineProps<Props>()
 const $q = useQuasar()
-const { t } = useI18n()
+const { t } = useTranslation('components.navigation.NavigationBar')
 const authStore = useAuthStore()
 const { goToHome, goToUserProfile, goToCreateEvent, goToChat } = useNavigation()
-
-const isOrganization = computed(() => authStore.user?.role === 'organization')
-
-// Notifications management
-const notifications = ref<Notification[]>([
-  {
-    id: '1',
-    icon: 'event',
-    iconColor: 'primary',
-    message: 'New event near you',
-    timestamp: '2 hours ago',
-  },
-  {
-    id: '2',
-    icon: 'person_add',
-    iconColor: 'primary',
-    message: 'New follower',
-    timestamp: '5 hours ago',
-  },
-  {
-    id: '3',
-    icon: 'chat',
-    iconColor: 'primary',
-    message: 'New message',
-    timestamp: '1 day ago',
-  },
-])
-const notificationsPage = ref(1)
-const hasMoreNotifications = ref(true)
-const loadingNotifications = ref(false)
-
-const unreadMessagesCount = ref(0)
-
-const loadUnreadMessagesCount = async () => {
-  if (authStore.isAuthenticated) {
-    try {
-      const response = await api.chat.unreadMessageCountFor(authStore.user!.id)
-      unreadMessagesCount.value = response.unreadCount
-    } catch (error) {
-      console.error('Failed to load unread messages count:', error)
-      unreadMessagesCount.value = 0
-    }
-  }
-}
-
-onMounted(() => {
-  loadUnreadMessagesCount()
-})
-
-const loadMoreNotifications = async (index: number, done: (stop?: boolean) => void) => {
-  if (loadingNotifications.value || !hasMoreNotifications.value) {
-    done(true)
-    return
-  }
-
-  loadingNotifications.value = true
-
-  // Simula chiamata API
-  setTimeout(() => {
-    const newNotifications: Notification[] = []
-    const startId = notifications.value.length + 1
-
-    for (let i = 0; i < 5; i++) {
-      const id = startId + i
-      newNotifications.push({
-        id: String(id),
-        icon: ['event', 'person_add', 'chat', 'favorite', 'info'][i % 5]!,
-        iconColor: 'primary',
-        message: `Notification ${id}`,
-        timestamp: `${id} days ago`,
-      })
-    }
-
-    notifications.value.push(...newNotifications)
-    notificationsPage.value++
-
-    // Simula fine delle notifiche dopo 20 item
-    if (notifications.value.length >= 20) {
-      hasMoreNotifications.value = false
-      done(true)
-    } else {
-      done()
-    }
-
-    loadingNotifications.value = false
-  }, 1000)
-}
+const { unreadMessagesCount } = useUnreadMessagesCount()
 
 const mobileSearchOpen = ref(false) //TODO evaluate usage
 const mobileMenuOpen = ref(false)
-
-const toggleDarkMode = () => {
-  $q.dark.toggle()
-  authStore.updateUser({ darkMode: $q.dark.isActive })
-  localStorage.setItem('darkMode', String($q.dark.isActive))
-}
 
 watch(
   () => searchBarHasFocus.value,
@@ -192,150 +94,55 @@ const goToProfile = () => {
             <q-btn flat dense icon="search" @click="toggleMobileSearch" />
           </template>
           <template v-if="authStore.isAuthenticated">
-            <!-- Notifications Button Mobile -->
-            <q-btn flat dense icon="notifications">
-              <q-badge color="red" floating>{{ String(notifications.length) }}</q-badge>
-              <q-tooltip>Notifications</q-tooltip>
-              <q-menu class="notifications-menu">
-                <q-list style="min-width: 300px; max-width: 400px" class="notifications-list">
-                  <q-item-label header>Notifications</q-item-label>
-                  <q-separator />
-                  <q-scroll-area
-                    class="notifications-scroll-area"
-                    :thumb-style="{ width: '4px', borderRadius: '2px', opacity: '0.5' }"
-                  >
-                    <q-infinite-scroll :offset="50" @load="loadMoreNotifications">
-                      <template
-                        v-for="(notification, index) in notifications"
-                        :key="notification.id"
-                      >
-                        <q-item clickable>
-                          <q-item-section avatar>
-                            <q-icon :name="notification.icon" :color="notification.iconColor" />
-                          </q-item-section>
-                          <q-item-section>
-                            <q-item-label>{{ notification.message }}</q-item-label>
-                            <q-item-label caption>{{ notification.timestamp }}</q-item-label>
-                          </q-item-section>
-                        </q-item>
-                        <q-separator v-if="index < notifications.length - 1" />
-                      </template>
-                      <template #loading>
-                        <div class="row justify-center q-my-md">
-                          <q-spinner-dots color="primary" size="40px" />
-                        </div>
-                      </template>
-                    </q-infinite-scroll>
-                  </q-scroll-area>
-                </q-list>
-              </q-menu>
-            </q-btn>
-
-            <!-- Chat Button Mobile -->
+            <NotificationsButton dense />
             <q-btn flat dense icon="chat" @click="goToChat()">
-              <q-badge v-if="unreadMessagesCount > 0" color="red" floating>{{
+              <q-badge v-if="unreadMessagesCount && unreadMessagesCount > 0" color="red" floating>{{
                 String(unreadMessagesCount)
               }}</q-badge>
-              <q-tooltip>Chat</q-tooltip>
             </q-btn>
           </template>
           <q-btn flat dense icon="menu" @click="toggleMobileMenu" />
         </template>
         <template v-else>
-          <!-- Left Section: Logo -->
           <div class="brand-title">
             <AppBrand />
           </div>
-
           <q-space />
-
-          <!-- Center Section: Search Bar -->
           <div v-if="showSearch" class="search-wrapper">
             <SearchBar />
           </div>
-
           <q-space />
-
-          <!-- Right Section: Actions -->
           <div class="actions-wrapper">
             <div v-if="authStore.isAuthenticated" class="authenticated-actions">
-              <!-- Theme Toggle -->
               <q-btn
                 flat
                 round
                 class="theme-toggle"
                 :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
-                @click="toggleDarkMode"
+                @click="useDarkMode().toggle"
               >
-                <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
               </q-btn>
-
-              <!-- Create Event Button (Organizations only) -->
               <q-btn
-                v-if="isOrganization"
+                v-if="authStore.isOrganization"
                 flat
                 round
                 icon="add"
                 class="create-event-btn"
                 @click="goToCreateEvent()"
               >
-                <q-tooltip>Create Event</q-tooltip>
               </q-btn>
-
-              <!-- Notifications Button -->
-              <q-btn flat round icon="notifications">
-                <q-badge color="red" floating>{{ String(notifications.length) }}</q-badge>
-                <q-tooltip>Notifications</q-tooltip>
-                <q-menu class="notifications-menu">
-                  <q-list style="min-width: 300px; max-width: 400px" class="notifications-list">
-                    <q-item-label header>Notifications</q-item-label>
-                    <q-separator />
-                    <q-scroll-area
-                      class="notifications-scroll-area"
-                      :thumb-style="{ width: '4px', borderRadius: '2px', opacity: '0.5' }"
-                    >
-                      <q-infinite-scroll :offset="50" @load="loadMoreNotifications">
-                        <template
-                          v-for="(notification, index) in notifications"
-                          :key="notification.id"
-                        >
-                          <q-item clickable>
-                            <q-item-section avatar>
-                              <q-icon :name="notification.icon" :color="notification.iconColor" />
-                            </q-item-section>
-                            <q-item-section>
-                              <q-item-label>{{ notification.message }}</q-item-label>
-                              <q-item-label caption>{{ notification.timestamp }}</q-item-label>
-                            </q-item-section>
-                          </q-item>
-                          <q-separator v-if="index < notifications.length - 1" />
-                        </template>
-                        <template #loading>
-                          <div class="row justify-center q-my-md">
-                            <q-spinner-dots color="primary" size="40px" />
-                          </div>
-                        </template>
-                      </q-infinite-scroll>
-                    </q-scroll-area>
-                  </q-list>
-                </q-menu>
-              </q-btn>
-
-              <!-- Chat Button -->
+              <NotificationsButton />
               <q-btn flat round icon="chat" @click="goToChat()">
-                <q-badge v-if="unreadMessagesCount > 0" color="red" floating>{{
-                  String(unreadMessagesCount)
-                }}</q-badge>
-                <q-tooltip>Chat</q-tooltip>
+                <q-badge
+                  v-if="unreadMessagesCount && unreadMessagesCount > 0"
+                  color="red"
+                  floating
+                  >{{ String(unreadMessagesCount) }}</q-badge
+                >
               </q-btn>
-
-              <!-- User Profile Avatar -->
               <q-btn flat round>
                 <q-avatar size="40px">
-                  <img
-                    :src="authStore.user?.avatar || '/default-avatar.png'"
-                    :alt="authStore.user?.name"
-                  />
+                  <img :src="authStore.user!.avatar" :alt="authStore.user!.name" />
                 </q-avatar>
                 <q-menu>
                   <q-list style="min-width: 200px" class="profile-menu-list">
@@ -350,7 +157,7 @@ const goToProfile = () => {
                       <q-item-section avatar>
                         <q-icon name="logout" />
                       </q-item-section>
-                      <q-item-section>{{ t('auth.logout') }}</q-item-section>
+                      <q-item-section>{{ t('logout') }}</q-item-section>
                     </q-item>
                   </q-list>
                 </q-menu>
@@ -362,9 +169,8 @@ const goToProfile = () => {
                 round
                 class="theme-toggle"
                 :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
-                @click="toggleDarkMode"
+                @click="useDarkMode().toggle"
               >
-                <q-tooltip>{{ $q.dark.isActive ? 'Light Mode' : 'Dark Mode' }}</q-tooltip>
               </q-btn>
               <AuthButtons />
             </div>
@@ -377,14 +183,11 @@ const goToProfile = () => {
       <div v-if="authStore.isAuthenticated">
         <div class="drawer-user-info">
           <q-avatar size="60px">
-            <img
-              :src="authStore.user?.avatar || '/default-avatar.png'"
-              :alt="authStore.user?.name"
-            />
+            <img :src="authStore.user!.avatar" :alt="authStore.user!.name" />
           </q-avatar>
           <div class="drawer-user-details">
-            <div class="drawer-user-name">{{ authStore.user?.name }}</div>
-            <div class="drawer-user-email">{{ authStore.user?.email }}</div>
+            <div class="drawer-user-name">{{ authStore.user!.name }}</div>
+            <div class="drawer-user-email">{{ authStore.user!.email }}</div>
           </div>
         </div>
         <q-separator class="q-my-md" />
@@ -392,12 +195,12 @@ const goToProfile = () => {
           <div class="toggle-field">
             <div class="toggle-label">
               <q-icon :name="'dark_mode'" size="24px" />
-              <span>Dark Mode</span>
+              <span>{{ t('darkMode') }}</span>
             </div>
             <q-toggle
               :model-value="$q.dark.isActive"
               color="primary"
-              @update:model-value="toggleDarkMode"
+              @update:model-value="useDarkMode().toggle"
             />
           </div>
         </div>
@@ -411,7 +214,7 @@ const goToProfile = () => {
             @click="goToProfile"
           />
           <q-btn
-            v-if="isOrganization"
+            v-if="authStore.isOrganization"
             unelevated
             color="primary"
             icon="add"
@@ -427,7 +230,7 @@ const goToProfile = () => {
           <q-btn
             flat
             icon="logout"
-            :label="t('auth.logout')"
+            :label="t('logout')"
             class="base-button base-button--secondary"
             @click="handleLogout"
           />
@@ -438,12 +241,12 @@ const goToProfile = () => {
           <div class="toggle-field">
             <div class="toggle-label">
               <q-icon :name="'dark_mode'" size="24px" />
-              <span>Dark Mode</span>
+              <span>{{ t('darkMode') }}</span>
             </div>
             <q-toggle
               :model-value="$q.dark.isActive"
               color="primary"
-              @update:model-value="toggleDarkMode"
+              @update:model-value="useDarkMode().toggle"
             />
           </div>
         </div>
@@ -617,36 +420,6 @@ const goToProfile = () => {
   &:hover :deep(.q-icon) {
     transform: rotate(90deg);
   }
-}
-
-.notifications-btn,
-.chat-btn {
-  position: relative;
-
-  :deep(.q-badge) {
-    font-size: 10px;
-    min-width: 18px;
-    height: 18px;
-    padding: 2px 4px;
-    font-weight: $font-weight-semibold;
-  }
-}
-
-.notifications-list,
-.profile-menu-list {
-  :deep(.q-item) {
-    @include dark-mode {
-      background: $color-background-dark;
-      &:hover {
-        background: color-alpha($color-background-dark, 0.5);
-      }
-    }
-  }
-}
-
-.notifications-scroll-area {
-  height: 400px;
-  max-height: 60vh;
 }
 
 .theme-toggle {

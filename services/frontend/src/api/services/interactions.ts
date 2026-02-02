@@ -5,7 +5,7 @@ import type {
   GetUserLikedEventsResponse,
   InteractionAPI,
 } from '../interfaces/interactions'
-import type { EventID, OrganizationRole } from '../types/events'
+import type { EventID, EventStatus, OrganizationRole } from '../types/events'
 import type { ApiClient } from '../client'
 import type { UserID } from '../types/users'
 import type {
@@ -14,8 +14,14 @@ import type {
   EventReview,
   UserPartecipation,
   PartecipationInfo,
+  Rating,
+  OrganizationReviewsStatistics,
 } from '../types/interaction'
-import type { PaginatedRequest, PaginatedResponseWithTotalCount } from '../interfaces/commons'
+import type {
+  PaginatedRequest,
+  PaginatedResponseWithTotalCount,
+  SortOrder,
+} from '../interfaces/commons'
 import { evaluatePagination, buildQueryParams } from '@/api/utils/requestUtils'
 
 export const createInteractionsApi = (interactionsClient: ApiClient): InteractionAPI => ({
@@ -83,6 +89,8 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
     params?: {
       organizationId?: UserID
       reviewed?: boolean
+      eventStatus?: EventStatus
+      order?: SortOrder
       pagination?: PaginatedRequest
     }
   ): Promise<PaginatedResponseWithTotalCount<UserPartecipation>> {
@@ -91,6 +99,8 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
         ...evaluatePagination(params?.pagination),
         organizationId: params?.organizationId,
         reviewed: params?.reviewed,
+        eventStatus: params?.eventStatus,
+        order: params?.order,
       })}`
     )
   },
@@ -122,13 +132,27 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
 
   async getEventReviews(
     eventId: EventID,
-    pagination?: PaginatedRequest
+    params?: {
+      rating?: Rating
+      pagination?: PaginatedRequest
+    }
   ): Promise<GetReviewWithStatisticsResponse> {
     const response = await interactionsClient.get<
       GetReviewWithStatisticsResponse & { totalItems: number }
-    >(`/events/${eventId}/reviews${buildQueryParams({ ...evaluatePagination(pagination) })}`)
+    >(
+      `/events/${eventId}/reviews${buildQueryParams({ ...evaluatePagination(params?.pagination), rating: params?.rating })}`
+    )
     response.totalReviews = response.totalItems
     return response
+  },
+
+  async getEventParticipants(
+    eventId: EventID,
+    pagination?: PaginatedRequest
+  ): Promise<GetUserInfoResponse> {
+    return interactionsClient.get<GetUserInfoResponse>(
+      `/events/${eventId}/participants${buildQueryParams({ ...evaluatePagination(pagination) })}`
+    )
   },
 
   async deleteEventReview(eventId: EventID, userId: UserID): Promise<void> {
@@ -147,15 +171,22 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
     organizationId: UserID,
     params?: {
       role?: OrganizationRole
+      rating?: Rating
       pagination?: PaginatedRequest
     }
   ): Promise<GetReviewWithStatisticsResponse> {
     const response = await interactionsClient.get<
       GetReviewWithStatisticsResponse & { totalItems: number }
     >(
-      `/organizations/${organizationId}/reviews${buildQueryParams({ ...evaluatePagination(params?.pagination) })}`
+      `/organizations/${organizationId}/reviews${buildQueryParams({ ...evaluatePagination(params?.pagination), role: params?.role, rating: params?.rating })}`
     )
     response.totalReviews = response.totalItems
     return response
+  },
+
+  getOrganizationReviewStatistics(organizationId: UserID): Promise<OrganizationReviewsStatistics> {
+    return interactionsClient.get<OrganizationReviewsStatistics>(
+      `/organizations/${organizationId}/reviews/statistics`
+    )
   },
 })

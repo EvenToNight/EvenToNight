@@ -1,6 +1,6 @@
 <script setup lang="ts">
+import { useTranslation } from '@/composables/useTranslation'
 import { useNavigation } from '@/router/utils'
-import { useI18n } from 'vue-i18n'
 
 interface Props {
   variant?: 'horizontal' | 'vertical'
@@ -10,7 +10,7 @@ withDefaults(defineProps<Props>(), {
   variant: 'horizontal',
 })
 
-const { t } = useI18n()
+const { t } = useTranslation('components.auth.AuthButtons')
 const { goToLogin, goToRegister } = useNavigation()
 </script>
 
@@ -18,7 +18,7 @@ const { goToLogin, goToRegister } = useNavigation()
   <div :class="['auth-buttons', `auth-buttons--${variant}`]">
     <q-btn
       flat
-      :label="t('auth.login')"
+      :label="t('login')"
       :class="['base-button base-button--tertiary', { 'full-width': variant === 'vertical' }]"
       @click="() => goToLogin()"
     />
@@ -26,7 +26,7 @@ const { goToLogin, goToRegister } = useNavigation()
     <q-btn
       unelevated
       color="primary"
-      :label="t('auth.register')"
+      :label="t('register')"
       :class="['base-button base-button--primary', { 'full-width': variant === 'vertical' }]"
       @click="() => goToRegister()"
     />

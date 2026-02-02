@@ -3,11 +3,14 @@ import { ref, onMounted, computed, inject } from 'vue'
 import { useQuasar } from 'quasar'
 import type { EventReview } from '@/api/types/interaction'
 import type { Event } from '@/api/types/events'
-import RatingStars from './ratings/RatingStars.vue'
-import SubmitReviewDialog from './SubmitReviewDialog.vue'
+import RatingStars from '../reviews/ratings/RatingStars.vue'
+import SubmitReviewDialog from '../reviews/SubmitReviewDialog.vue'
 import { api } from '@/api'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
+import type { User } from '@/api/types/users'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   review: EventReview
@@ -18,32 +21,31 @@ const props = withDefaults(defineProps<Props>(), {
   showEventInfo: true,
 })
 
-const { goToUserProfile, goToEventDetails } = useNavigation()
-const authStore = useAuthStore()
-const $q = useQuasar()
-
 const deleteReview = inject<((eventId: string, userId: string) => void) | undefined>(
   'deleteReview',
   undefined
 )
 
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('components.cards.ReviewCard')
+const { goToUserProfile, goToEventDetails } = useNavigation()
+const authStore = useAuthStore()
+const $q = useQuasar()
+
 const isOwnReview = computed(() => {
   return authStore.user?.id === props.review.userId
 })
 
-const userName = ref<string>('Loading...')
-const userAvatar = ref<string | null>(null)
-const eventInfo = ref<Event | null>(null)
+const user = ref<User | undefined>(undefined)
+const eventInfo = ref<Event | undefined>(undefined)
 const showEditDialog = ref(false)
 
 const loadUserInfo = async () => {
   try {
-    const user = await api.users.getUserById(props.review.userId)
-    userName.value = user.name
-    userAvatar.value = user.avatar || null
+    user.value = await api.users.getUserById(props.review.userId)
   } catch (error) {
-    console.error('Failed to load user info:', error)
-    userName.value = 'Unknown User'
+    logger.error('Failed to load user info:', error)
+    user.value = undefined
   }
 }
 
@@ -52,7 +54,8 @@ const loadEventInfo = async () => {
   try {
     eventInfo.value = await api.events.getEventById(props.review.eventId)
   } catch (error) {
-    console.error('Failed to load event info:', error)
+    logger.error('Failed to load event info:', error)
+    eventInfo.value = undefined
   }
 }
 
@@ -68,17 +71,17 @@ const handleEventClick = () => {
 
 const handleDelete = () => {
   $q.dialog({
-    title: 'Conferma eliminazione',
-    message: 'Sei sicuro di voler eliminare questa recensione?',
+    title: t('deleteDialog.title'),
+    message: t('deleteDialog.message'),
     cancel: {
       flat: true,
       textColor: 'black',
-      label: 'Annulla',
+      label: t('deleteDialog.cancelLabel'),
     },
     ok: {
       color: 'negative',
       textColor: 'black',
-      label: 'Elimina',
+      label: t('deleteDialog.confirmLabel'),
     },
     focus: 'none',
   }).onOk(async () => {
@@ -86,10 +89,10 @@ const handleDelete = () => {
       await api.interactions.deleteEventReview(props.review.eventId, props.review.userId)
       deleteReview?.(props.review.eventId, props.review.userId)
     } catch (error) {
-      console.error('Failed to delete review:', error)
+      logger.error('Failed to delete review:', error)
       $q.notify({
         type: 'negative',
-        message: "Errore durante l'eliminazione della recensione",
+        message: t('deleteDialog.failedDelete'),
       })
     }
   })
@@ -106,11 +109,11 @@ onMounted(() => {
     <div class="review-header">
       <div class="user-info flex items-center">
         <q-avatar size="40px" class="user-avatar cursor-pointer" @click="handleUserClick">
-          <img v-if="userAvatar" :src="userAvatar" :alt="userName" />
+          <img v-if="user?.avatar" :src="user.avatar" :alt="user.name" />
           <q-icon v-else name="person" />
         </q-avatar>
         <div class="user-details flex column items-start">
-          <span class="user-name cursor-pointer" @click="handleUserClick">{{ userName }}</span>
+          <span class="user-name cursor-pointer" @click="handleUserClick">{{ user?.name }}</span>
           <RatingStars :rating="review.rating" size="sm" variant="compact" />
         </div>
       </div>
@@ -121,13 +124,13 @@ onMounted(() => {
               <q-item-section avatar>
                 <q-icon name="edit" />
               </q-item-section>
-              <q-item-section>Modifica</q-item-section>
+              <q-item-section>{{ t('menu.edit') }}</q-item-section>
             </q-item>
             <q-item v-close-popup clickable @click="handleDelete">
               <q-item-section avatar>
                 <q-icon name="delete" color="negative" />
               </q-item-section>
-              <q-item-section>Elimina</q-item-section>
+              <q-item-section>{{ t('menu.delete') }}</q-item-section>
             </q-item>
           </q-list>
         </q-menu>

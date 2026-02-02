@@ -4,21 +4,23 @@ import type { Event } from '@/api/types/events'
 import { useAuthStore } from '@/stores/auth'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
-import { useI18n } from 'vue-i18n'
 import UserList from '@/components/user/UserList.vue'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
 interface Props {
   event: Event
-  isAuthRequired: boolean
 }
 
-const emit = defineEmits(['update:isAuthRequired'])
+const emit = defineEmits<{
+  authRequired: [void]
+}>()
 
 const props = defineProps<Props>()
 const authStore = useAuthStore()
 const { goToEditEvent } = useNavigation()
-const { t } = useI18n()
-
+const { t } = useTranslation('components.eventDetails.EventDetailsHeader')
+const logger = createLogger(import.meta.url)
 const isOrganizer = computed(() => {
   return authStore.user?.id === props.event.creatorId
 })
@@ -26,11 +28,17 @@ const isOrganizer = computed(() => {
 const isFavorite = ref(false)
 const likesCount = ref(0)
 const showLikesDialog = ref(false)
+const participantsCount = ref(0)
+const showParticipantsDialog = ref(false)
 
 const loadInteractions = async () => {
   try {
     const likes = await api.interactions.getEventLikes(props.event.eventId)
     likesCount.value = likes.totalItems
+
+    const participants = await api.interactions.getEventParticipants(props.event.eventId)
+    participantsCount.value = participants.totalItems
+
     if (authStore.isAuthenticated) {
       isFavorite.value = await api.interactions.userLikesEvent(
         props.event.eventId,
@@ -38,15 +46,16 @@ const loadInteractions = async () => {
       )
     }
   } catch (error) {
-    console.error('Failed to load interactions:', error)
+    logger.error('Failed to load interactions:', error)
     likesCount.value = 0
     isFavorite.value = false
+    participantsCount.value = 0
   }
 }
 
 const toggleLike = async () => {
   if (!authStore.isAuthenticated) {
-    emit('update:isAuthRequired', true)
+    emit('authRequired')
     return
   }
   const wasLiked = isFavorite.value
@@ -62,7 +71,7 @@ const toggleLike = async () => {
       await api.interactions.unlikeEvent(props.event.eventId, authStore.user!.id)
     }
   } catch (error) {
-    console.error('Failed to toggle like:', error)
+    logger.error('Failed to toggle like:', error)
     isFavorite.value = wasLiked
     likesCount.value += wasLiked ? 1 : -1
   }
@@ -82,7 +91,7 @@ onMounted(async () => {
       <q-btn
         v-if="isOrganizer"
         flat
-        :label="t('eventDetails.editEvent')"
+        :label="t('editEvent')"
         icon="edit"
         class="base-button base-button--secondary"
         @click="goToEditEvent(props.event.eventId)"
@@ -92,6 +101,12 @@ onMounted(async () => {
           <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="24px" />
         </button>
         <span class="like-count" @click="showLikesDialog = true">{{ likesCount }}</span>
+      </div>
+      <div class="participants-container">
+        <q-icon name="people" size="24px" class="participants-icon" />
+        <span class="participants-count" @click="showParticipantsDialog = true">{{
+          participantsCount
+        }}</span>
       </div>
     </div>
   </div>
@@ -103,9 +118,18 @@ onMounted(async () => {
   <UserList
     v-model="showLikesDialog"
     :load-fn="(pagination) => api.interactions.getEventLikes(props.event.eventId, pagination)"
-    :title="t('eventDetails.likes')"
-    :empty-text="t('eventDetails.noLikes')"
+    :title="t('likes')"
+    :empty-text="t('noLikes')"
     empty-icon="favorite_border"
+  />
+  <UserList
+    v-model="showParticipantsDialog"
+    :load-fn="
+      (pagination) => api.interactions.getEventParticipants(props.event.eventId, pagination)
+    "
+    :title="t('participants')"
+    :empty-text="t('noParticipants')"
+    empty-icon="people"
   />
 </template>
 
@@ -197,6 +221,43 @@ onMounted(async () => {
 }
 
 .like-count {
+  font-size: $font-size-base;
+  font-weight: $font-weight-semibold;
+  cursor: pointer;
+  transition: all $transition-base;
+  color: $color-text-primary;
+
+  &:hover {
+    opacity: 0.8;
+  }
+
+  @include dark-mode {
+    color: $color-text-dark;
+  }
+}
+
+.participants-container {
+  @include flex-center;
+  gap: $spacing-2;
+  padding: $spacing-3;
+  border-radius: 12px;
+  border: 2px solid rgba(0, 0, 0, 0.1);
+  background: transparent;
+  flex-shrink: 0;
+
+  @include dark-mode {
+    border-color: rgba(255, 255, 255, 0.15);
+  }
+}
+
+.participants-icon {
+  color: $color-text-primary;
+  @include dark-mode {
+    color: $color-text-dark;
+  }
+}
+
+.participants-count {
   font-size: $font-size-base;
   font-weight: $font-weight-semibold;
   cursor: pointer;

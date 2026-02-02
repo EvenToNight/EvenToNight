@@ -11,6 +11,9 @@ import type {
   TokenResponse,
 } from '@/api/interfaces/users'
 import { useNavigation } from '@/router/utils'
+import { dateReviver } from '@/api/utils/parsingUtils'
+import { useDarkMode } from '@/composables/useDarkMode'
+import { createLogger } from '@/utils/logger'
 export const DEFAULT_AVATAR_URL = `http://media.${import.meta.env.VITE_HOST || 'localhost'}/users/default.png`
 
 const ACCESS_TOKEN_SESSION_KEY = 'access_token_session'
@@ -18,24 +21,25 @@ const TOKEN_EXPIRY_SESSION_KEY = 'token_expiry_session'
 const REFRESH_TOKEN_SESSION_KEY = 'refresh_token_session'
 const REFRESH_TOKEN_EXPIRY_SESSION_KEY = 'refresh_token_expiry_session'
 const USER_SESSION_KEY = 'user_session'
-
 export const useAuthStore = defineStore('auth', () => {
   const { t } = useI18n()
   const { locale, changeLocale } = useNavigation()
   const $q = useQuasar()
-  const user = ref<(User & { unreadMessagesCount?: number }) | null>(null)
+  const user = ref<User | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
     if (!expiredAt.value) return false
     return expiredAt.value > Date.now()
   })
+  const isOrganization = computed(() => user.value?.role === 'organization')
+  const isMember = computed(() => user.value?.role === 'member')
   const accessToken = ref<AccessToken | null>(null)
   const expiredAt = ref<number | null>(null)
   const refreshToken = ref<RefreshToken | null>(null)
   const refreshExpiredAt = ref<number | null>(null)
-
+  const logger = createLogger(import.meta.url)
   const setTokens = (tokenResponse: TokenResponse) => {
-    console.log('Setting tokens', tokenResponse)
+    logger.log('Setting tokens', tokenResponse)
     accessToken.value = tokenResponse.accessToken
     expiredAt.value = Date.now() + tokenResponse.expiresIn * 1000
     refreshToken.value = tokenResponse.refreshToken
@@ -46,15 +50,14 @@ export const useAuthStore = defineStore('auth', () => {
     sessionStorage.setItem(REFRESH_TOKEN_EXPIRY_SESSION_KEY, refreshExpiredAt.value.toString())
   }
 
-  const setUser = async (authUser: User) => {
+  const setUser = (authUser: User) => {
     user.value = authUser
-    user.value.unreadMessagesCount = await loadUnreadMessagesCount(authUser.id)
     sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(authUser))
   }
 
   const setAuthData = async (authData: LoginResponse) => {
     setTokens(authData)
-    await setUser(authData.user)
+    setUser(authData.user)
     setupAutoRefresh()
     await api.notifications.connect(authData.user.id, authData.accessToken)
   }
@@ -107,10 +110,9 @@ export const useAuthStore = defineStore('auth', () => {
     isLoading.value = true
     try {
       const data = await api.users.login({ username, password })
-      setAuthData(data)
-      $q.dark.set(user.value?.darkMode || false)
+      await setAuthData(data)
+      useDarkMode().set(user.value?.darkMode || false)
       localStorage.setItem('user-locale', user.value!.language!)
-      localStorage.setItem('darkMode', String($q.dark.isActive))
       changeLocale(user.value!.language!)
       return { success: true }
     } catch (error) {
@@ -181,16 +183,6 @@ export const useAuthStore = defineStore('auth', () => {
     return user.value!
   }
 
-  const loadUnreadMessagesCount = async (userId: UserID): Promise<number | undefined> => {
-    try {
-      const response = await api.chat.unreadMessageCountFor(userId)
-      return response.unreadCount
-    } catch (error) {
-      console.error('Failed to load unread messages count:', error)
-      return undefined
-    }
-  }
-
   const refreshCurrentSessionUserData = () => {
     const storedAccessToken = sessionStorage.getItem(ACCESS_TOKEN_SESSION_KEY)
     const storedExpiry = sessionStorage.getItem(TOKEN_EXPIRY_SESSION_KEY)
@@ -215,7 +207,7 @@ export const useAuthStore = defineStore('auth', () => {
         expiresIn: expiresIn,
         refreshToken: storedRefreshToken,
         refreshExpiresIn: refreshExpiresIn,
-        user: JSON.parse(storedUser),
+        user: JSON.parse(storedUser, dateReviver),
       })
       return true
     }
@@ -236,18 +228,18 @@ export const useAuthStore = defineStore('auth', () => {
             }
           })
           .catch(() => {
-            console.log('Failed to refresh token, logging out')
+            logger.log('Failed to refresh token, logging out')
             logout()
           })
       }, refreshTime)
     } else {
-      console.log('Refresh token already expired or about to expire, logging out')
+      logger.log('Refresh token already expired or about to expire, logging out')
       logout()
     }
   }
 
-  const isOwnProfile = (userId: UserID): boolean => {
-    return isAuthenticated.value && user.value?.id === userId
+  const isOwnProfile = (profileUserId: UserID): boolean => {
+    return user.value?.id === profileUserId
   }
 
   const changePassword = async (currentPassword: string, newPassword: string) => {
@@ -273,6 +265,8 @@ export const useAuthStore = defineStore('auth', () => {
     user,
     isLoading,
     isAuthenticated,
+    isOrganization,
+    isMember,
     accessToken,
     register,
     login,

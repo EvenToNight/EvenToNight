@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 : '
 Docker Compose Runner Script
 
@@ -48,7 +49,6 @@ NOTES:
   - Requires Bash and Docker installed.
   - Changes directory to the project root before execution.
 '
-#!/usr/bin/env bash
 set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1

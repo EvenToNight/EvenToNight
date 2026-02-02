@@ -14,7 +14,9 @@ import type {
 import type { EventID } from '../types/events'
 import type { PaginatedRequest, PaginatedResponse, SortOrder } from '../interfaces/commons'
 import { buildQueryParams } from '../utils/requestUtils'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
   async getTicketTypes(): Promise<TicketType[]> {
     return paymentsClient.get<TicketType[]>(`/ticket-types/values`)
@@ -24,7 +26,7 @@ export const createPaymentsApi = (paymentsClient: ApiClient): PaymentsAPI => ({
     ticketTypeId: string,
     request: UpdateEventTicketTypeData
   ): Promise<EventTicketType> {
-    console.log('Updating ticket type:', ticketTypeId, request)
+    logger.log('Updating ticket type:', ticketTypeId, request)
     return paymentsClient.put<EventTicketType>(`/ticket-types/${ticketTypeId}`, request)
   },
   async createEventTicketType(

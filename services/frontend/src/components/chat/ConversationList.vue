@@ -1,49 +1,60 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import type { ChatUser, Conversation } from '@/api/types/chat'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
+import type { NewMessageReceivedEvent } from '@/api/types/notifications'
+import { getConversationAvatar, getConversationName, getOtherUser } from '@/api/utils/chatUtils'
+import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
+import { defaultLimit, emptyPaginatedResponse } from '@/api/utils/requestUtils'
+import type { UserID } from '@/api/types/users'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
 const { locale } = useNavigation()
+const { t } = useTranslation('components.chat.ConversationList')
+const logger = createLogger(import.meta.url)
 const authStore = useAuthStore()
-const conversations = ref<Conversation[]>([])
 const potentialConversations = ref<Conversation[]>([])
 const selectedConversationId = defineModel<string | undefined>('selectedConversationId', {
   default: undefined,
 })
+const selectedChatUserId = ref<UserID | undefined>(undefined)
 const searchQuery = ref('')
-const loading = ref(false)
-const hasMore = ref(true)
-const offset = ref(0)
-const LIMIT = 20
+const isSearching = ref(false)
 
-let searchDebounceTimer: ReturnType<typeof setTimeout> | null = null
+const {
+  items: conversations,
+  loading,
+  onLoad,
+  reload,
+} = useInfiniteScroll<Conversation>({
+  itemsPerPage: defaultLimit,
+  loadFn: async (limit, offset) => {
+    if (isSearching.value) {
+      return emptyPaginatedResponse<Conversation>()
+    }
+    return api.chat.getConversations(authStore.user!.id, { limit, offset })
+  },
+})
 
 const emit = defineEmits<{
   selectConversation: [conversation: Conversation]
   selectChatUser: [user: ChatUser]
 }>()
 
-function getConversationAvatar(conversation: Conversation): string {
-  const isCurrentUserMember = authStore.user?.id === conversation.member.id
-  return isCurrentUserMember ? conversation.organization.avatar : conversation.member.avatar
-}
-
-function getConversationName(conversation: Conversation): string {
-  const isCurrentUserMember = authStore.user?.id === conversation.member.id
-  return isCurrentUserMember ? conversation.organization.name : conversation.member.name
-}
-
-function getOtherUser(conversation: Conversation): ChatUser {
-  const isCurrentUserMember = authStore.user?.id === conversation.member.id
-  return isCurrentUserMember ? conversation.organization : conversation.member
-}
-
 function handleSelectConversation(conversation: Conversation) {
   conversation.unreadCount = 0
   selectedConversationId.value = conversation.id
+  selectedChatUserId.value = undefined
   emit('selectConversation', conversation)
+}
+
+function handleSelectPotentialConversation(conversation: Conversation) {
+  const otherUser = getOtherUser(authStore.user!.id, conversation)
+  selectedChatUserId.value = otherUser.id
+  emit('selectChatUser', otherUser)
 }
 
 function isLastMessageFromMe(conversation: Conversation): boolean {
@@ -61,7 +72,7 @@ function formatTime(date: Date | undefined): string {
   if (days === 0) {
     return dateObj.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
   } else if (days === 1) {
-    return 'Ieri'
+    return t('yesterday')
   } else if (days < 7) {
     return dateObj.toLocaleDateString(locale.value, { weekday: 'short' })
   } else {
@@ -73,131 +84,90 @@ function formatTime(date: Date | undefined): string {
   }
 }
 
-async function loadConversations(reset = false) {
-  try {
-    if (reset) {
-      loading.value = true
-      offset.value = 0
-      conversations.value = []
-      potentialConversations.value = []
-      searchQuery.value = ''
-    }
-    const response = await api.chat.getConversations(authStore.user!.id, {
-      limit: LIMIT,
-      offset: offset.value,
-    })
-    conversations.value = [...conversations.value, ...response.items]
-    hasMore.value = response.hasMore
-    offset.value += response.items.length
-  } catch (error) {
-    console.error('Failed to load conversations:', error)
-  } finally {
-    loading.value = false
-  }
-}
-
 async function searchConversations(query: string) {
   try {
-    loading.value = true
-    offset.value = 0
+    isSearching.value = true
     const response = await api.chat.searchConversations(authStore.user!.id, {
       name: query,
-      pagination: { limit: LIMIT },
+      pagination: { limit: 20 },
     })
     conversations.value = response.items.filter((c) => c.id)
     potentialConversations.value = response.items.filter((c) => !c.id)
-    hasMore.value = response.hasMore
-    offset.value = response.items.length
   } catch (error) {
-    console.error('Failed to search conversations:', error)
+    logger.error('Failed to search conversations:', error)
   } finally {
-    loading.value = false
+    isSearching.value = false
   }
 }
 
-async function onLoadMore(_index: number, done: (stop?: boolean) => void) {
-  if (searchQuery.value.trim()) {
-    done(true)
-    return
+watch(searchQuery, (query) => {
+  if (query.trim()) {
+    searchConversations(query.trim())
+  } else {
+    potentialConversations.value = []
+    isSearching.value = false
+    reload()
   }
-  try {
-    const response = await api.chat.getConversations(authStore.user!.id, {
-      limit: LIMIT,
-      offset: offset.value,
-    })
-    conversations.value = [...conversations.value, ...response.items]
-    hasMore.value = response.hasMore
-    offset.value += response.items.length
-    done(!response.hasMore)
-  } catch (error) {
-    console.error('Failed to load more conversations:', error)
-    done(true)
+})
+
+function resetUnreadCount() {
+  logger.log('Resetting unread count for conversation:', selectedConversationId.value)
+  const conversation = conversations.value.find((c) => c.id === selectedConversationId.value)
+  if (conversation) {
+    conversation.unreadCount = 0
   }
 }
 
-function onSearchInput() {
-  if (searchDebounceTimer) clearTimeout(searchDebounceTimer)
-  searchDebounceTimer = setTimeout(() => {
-    if (searchQuery.value.trim()) {
-      searchConversations(searchQuery.value.trim())
-    } else {
-      loadConversations(true)
-    }
-  }, 300)
+function moveToTop(conversationIndex: number) {
+  if (conversationIndex !== -1) {
+    const conversation = conversations.value[conversationIndex]!
+    conversations.value.splice(conversationIndex, 1)
+    conversations.value.unshift(conversation)
+  }
 }
 
-// Exposed functions for parent component
-function updateConversationLastMessage(
-  conversationId: string,
-  lastMessage: { senderId: string; content: string; createdAt: Date }
-) {
+const newMessageHandler = async (event: NewMessageReceivedEvent) => {
+  const { conversationId, senderId, message, createdAt } = event
+  logger.log('New message received for conversation:', conversationId)
+  //TODO: ignore message when searching for now, when the search is cleared the conversations are fully reloaded
+  if (searchQuery.value.trim()) return
+
   const index = conversations.value.findIndex((c) => c.id === conversationId)
   if (index !== -1) {
     const conversation = conversations.value[index]
+
     if (conversation) {
-      conversation.lastMessage = lastMessage
-      conversation.unreadCount = 0 // Reset since we're sending
-      // Move to top
-      conversations.value.splice(index, 1)
-      conversations.value.unshift(conversation)
+      conversation.lastMessage = {
+        senderId: senderId,
+        content: message,
+        createdAt: createdAt,
+      }
+      conversation.unreadCount += 1
+      moveToTop(index)
     }
+  } else {
+    const conversation = await api.chat.getConversation(userId.value!, conversationId)
+    conversations.value.unshift(conversation)
   }
 }
 
-function addOrMoveConversationToTop(conversationId: string) {
-  const index = conversations.value.findIndex((c) => c.id === conversationId)
-  if (index !== -1 && index !== 0) {
-    const conversation = conversations.value[index]
-    if (conversation) {
-      conversations.value.splice(index, 1)
-      conversations.value.unshift(conversation)
-    }
-  }
-}
-
-function addNewConversation(conversation: Conversation) {
-  // Clear search if active
-  if (searchQuery.value.trim()) {
-    searchQuery.value = ''
-    potentialConversations.value = []
-  }
-  // Add to top of list
-  conversations.value.unshift(conversation)
-}
+const userId = computed(() => authStore.user?.id)
+onMounted(() => {
+  api.notifications.onNewMessageReceived(newMessageHandler)
+  onUnmounted(() => {
+    api.notifications.offNewMessageReceived(newMessageHandler)
+  })
+})
 
 defineExpose({
-  // loadConversations,
-  updateConversationLastMessage,
-  addOrMoveConversationToTop,
-  addNewConversation,
-  getOtherUser,
+  resetUnreadCount,
 })
 </script>
 
 <template>
-  <div class="conversation-list">
+  <div v-if="userId" class="conversation-list">
     <div class="conversation-list-header">
-      <h1 class="title">Chat</h1>
+      <h1 class="title">{{ t('title') }}</h1>
     </div>
 
     <div class="search-box">
@@ -205,9 +175,9 @@ defineExpose({
         v-model="searchQuery"
         outlined
         dense
-        placeholder="Cerca o inizia una nuova chat"
+        :placeholder="t('searchHint')"
         class="search-input"
-        @update:model-value="onSearchInput"
+        debounce="300"
       >
         <template #prepend>
           <q-icon name="search" />
@@ -215,18 +185,16 @@ defineExpose({
       </q-input>
     </div>
 
-    <q-infinite-scroll class="conversations" :offset="250" @load="onLoadMore">
+    <q-infinite-scroll class="conversations" :offset="250" :disable="isSearching" @load="onLoad">
       <q-list>
-        <!-- Show conversations header only if searching -->
         <q-item-label
           v-if="searchQuery.trim() && conversations.length > 0"
           header
           class="search-section-header"
         >
-          Conversazioni
+          {{ t('conversations') }}
         </q-item-label>
 
-        <!-- Show conversations -->
         <q-item
           v-for="conversation in conversations"
           :key="conversation.id"
@@ -238,8 +206,8 @@ defineExpose({
           <q-item-section avatar>
             <q-avatar>
               <img
-                :src="getConversationAvatar(conversation)"
-                :alt="getConversationName(conversation)"
+                :src="getConversationAvatar(userId, conversation)"
+                :alt="getConversationName(userId, conversation)"
                 class="avatar-image"
               />
             </q-avatar>
@@ -247,10 +215,12 @@ defineExpose({
 
           <q-item-section>
             <q-item-label class="conversation-name">
-              {{ getConversationName(conversation) }}
+              {{ getConversationName(userId, conversation) }}
             </q-item-label>
             <q-item-label caption lines="1" class="last-message">
-              <span v-if="isLastMessageFromMe(conversation)" class="message-prefix">Tu: </span>
+              <span v-if="isLastMessageFromMe(conversation)" class="message-prefix"
+                >{{ t('you') }}:
+              </span>
               {{ conversation.lastMessage?.content }}
             </q-item-label>
           </q-item-section>
@@ -269,23 +239,23 @@ defineExpose({
           </q-item-section>
         </q-item>
 
-        <!-- Show potential new conversations -->
         <template v-if="searchQuery.trim() && potentialConversations.length > 0">
           <q-item-label header class="search-section-header">
-            Inizia una conversazione
+            {{ t('startConversation') }}
           </q-item-label>
           <q-item
             v-for="conv in potentialConversations"
-            :key="getOtherUser(conv).id"
+            :key="getOtherUser(userId, conv).id"
+            :active="selectedChatUserId === getOtherUser(userId, conv).id"
             clickable
             class="conversation-item potential-conversation"
-            @click="emit('selectChatUser', getOtherUser(conv))"
+            @click="handleSelectPotentialConversation(conv)"
           >
             <q-item-section avatar>
               <q-avatar>
                 <img
-                  :src="getConversationAvatar(conv)"
-                  :alt="getConversationName(conv)"
+                  :src="getConversationAvatar(userId, conv)"
+                  :alt="getConversationName(userId, conv)"
                   class="avatar-image"
                 />
               </q-avatar>
@@ -293,16 +263,15 @@ defineExpose({
 
             <q-item-section>
               <q-item-label class="conversation-name">
-                {{ getConversationName(conv) }}
+                {{ getConversationName(userId, conv) }}
               </q-item-label>
               <q-item-label caption lines="1" class="last-message">
-                Inizia una conversazione
+                {{ t('startConversation') }}
               </q-item-label>
             </q-item-section>
           </q-item>
         </template>
 
-        <!-- Empty state message -->
         <div
           v-if="conversations.length === 0 && potentialConversations.length === 0 && !loading"
           class="empty-state"
@@ -310,8 +279,8 @@ defineExpose({
           <p class="empty-state-message">
             {{
               searchQuery.trim()
-                ? 'Nessun risultato trovato per la ricerca.'
-                : 'Nessuna conversazione trovata.\nCerca e inizia una nuova conversazione.'
+                ? t('searchNoResults')
+                : t('noConversations') + '\n' + t('searchConversations')
             }}
           </p>
         </div>
@@ -319,7 +288,7 @@ defineExpose({
 
       <template #loading>
         <div class="row justify-center q-my-md">
-          <q-spinner-dots color="primary" size="40px" />
+          <q-spinner color="primary" size="40px" />
         </div>
       </template>
     </q-infinite-scroll>

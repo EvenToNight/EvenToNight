@@ -2,13 +2,13 @@
 import { toRef } from 'vue'
 import type { UserLoadResult } from '@/api/utils/userUtils'
 import { useUserProfile } from '@/composables/useUserProfile'
+import { useUnreadMessagesCount } from '@/composables/useUnreadMessagesCount'
 import { useNavigation } from '@/router/utils'
-import { useI18n } from 'vue-i18n'
+import { useTranslation } from '@/composables/useTranslation'
 import { useAuthStore } from '@/stores/auth'
 
-const { t } = useI18n()
+const { t } = useTranslation('components.profile.ProfileActions')
 const { goToCreateEvent, goToEditProfile, goToSettings, goToChat } = useNavigation()
-const authStore = useAuthStore()
 
 interface Props {
   user: UserLoadResult
@@ -16,6 +16,8 @@ interface Props {
 const props = defineProps<Props>()
 
 const { isOwnProfile, isOrganization } = useUserProfile(toRef(() => props.user))
+const { unreadMessagesCount } = useUnreadMessagesCount()
+const authStore = useAuthStore()
 
 const emit = defineEmits<{
   followToggle: []
@@ -47,16 +49,9 @@ const handleOpenChat = () => {
     <template v-if="isOwnProfile">
       <q-btn icon="edit" flat class="action-btn action-btn--secondary" @click="handleEditProfile" />
       <q-btn icon="chat" flat class="action-btn action-btn--secondary" @click="handleOpenChat">
-        <q-badge
-          v-if="
-            authStore.user &&
-            authStore.user.unreadMessagesCount &&
-            authStore.user.unreadMessagesCount > 0
-          "
-          color="red"
-          floating
-          >{{ String(authStore.user.unreadMessagesCount) }}</q-badge
-        >
+        <q-badge v-if="unreadMessagesCount && unreadMessagesCount > 0" color="red" floating>{{
+          String(unreadMessagesCount)
+        }}</q-badge>
       </q-btn>
       <q-btn
         icon="settings"
@@ -66,7 +61,7 @@ const handleOpenChat = () => {
       />
       <q-btn
         v-if="isOrganization"
-        :label="t('userProfile.createEvent')"
+        :label="t('createEvent')"
         icon="add"
         unelevated
         color="primary"
@@ -76,16 +71,14 @@ const handleOpenChat = () => {
     </template>
     <template v-else>
       <q-btn
-        v-if="isOrganization"
+        v-if="isOrganization != authStore.isOrganization"
         icon="send"
         flat
         class="action-btn action-btn--secondary"
         @click="handleOpenChat"
       />
       <q-btn
-        :label="
-          user.interactionsInfo?.isFollowing ? t('userProfile.following') : t('userProfile.follow')
-        "
+        :label="user.interactionsInfo?.isFollowing ? t('following') : t('follow')"
         :unelevated="!user.interactionsInfo?.isFollowing"
         :flat="user.interactionsInfo?.isFollowing"
         :color="!user.interactionsInfo?.isFollowing ? 'primary' : undefined"

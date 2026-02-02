@@ -17,14 +17,20 @@ import type {
 } from '../types/chat'
 import { Message, Conversation as ConversationAdapter } from '../adapters/chat'
 export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
+  async getConversation(userId: UserID, conversationId: ConversationID): Promise<Conversation> {
+    const response = await chatClient.get<ConversationAPIResponse>(
+      `/users/${userId}/conversations/${conversationId}`
+    )
+    return ConversationAdapter.fromApi(response)
+  },
   async startConversation(
-    userId: string,
+    userId: UserID,
     firstMessage: FirstMessage
   ): Promise<SendMessageAPIResponse> {
     return chatClient.post<SendMessageAPIResponse>(`/users/${userId}/conversations`, firstMessage)
   },
   async getConversations(
-    userId: string,
+    userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<Conversation>> {
     const response = await chatClient.get<PaginatedResponse<ConversationAPIResponse>>(
@@ -39,7 +45,7 @@ export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
     return { items: adaptedConversations, ...rest }
   },
   async searchConversations(
-    userId: string,
+    userId: UserID,
     params: {
       name: string
       pagination?: PaginatedRequest
@@ -57,7 +63,10 @@ export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
     })
     return { items: adaptedConversations, ...rest }
   },
-  async getConversation(organizationId: string, memberId: string): Promise<Conversation | null> {
+  async getConversationBetween(
+    organizationId: UserID,
+    memberId: UserID
+  ): Promise<Conversation | null> {
     return chatClient
       .get<Conversation>(`/conversations/${organizationId}/${memberId}`)
       .catch(() => null)
@@ -93,8 +102,7 @@ export const createChatApi = (chatClient: ApiClient): ChatAPI => ({
     })
     return { items: adaptedMessages, ...rest }
   },
-  //TODO: post -> patch
   async readConversationMessages(conversationId: ConversationID, userId: UserID): Promise<void> {
-    return chatClient.post<void>(`/users/${userId}/conversations/${conversationId}/read`, {})
+    return chatClient.patch<void>(`/users/${userId}/conversations/${conversationId}/read`, {})
   },
 })

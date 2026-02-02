@@ -43,20 +43,25 @@ export type UnreadMessageResponse = {
 }
 
 export interface ChatAPI {
-  startConversation(userId: string, firstMessage: FirstMessage): Promise<SendMessageAPIResponse>
+  //TODO: is user needed?
+  getConversation(userId: UserID, conversationId: ConversationID): Promise<Conversation>
+  startConversation(userId: UserID, firstMessage: FirstMessage): Promise<SendMessageAPIResponse>
   //TODO: sync with backend to add search query
   getConversations(
-    userId: string,
+    userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<Conversation>>
   searchConversations(
-    userId: string,
+    userId: UserID,
     params: {
       name: string
       pagination?: PaginatedRequest
     }
   ): Promise<PaginatedResponse<Conversation>>
-  getConversation(organizationId: string, memberId: string): Promise<ConversationBaseInfo | null>
+  getConversationBetween(
+    organizationId: UserID,
+    memberId: UserID
+  ): Promise<ConversationBaseInfo | null>
   sendMessage(
     senderId: UserID,
     conversationId: ConversationID,

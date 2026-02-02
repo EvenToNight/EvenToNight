@@ -3,6 +3,8 @@ import { ref } from 'vue'
 import { useQuasar } from 'quasar'
 import { Cropper } from 'vue-advanced-cropper'
 import 'vue-advanced-cropper/dist/style.css'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
 interface Props {
   maxSize?: number
@@ -12,13 +14,18 @@ interface Props {
   dialogTitle?: string
 }
 
+const logger = createLogger(import.meta.url)
 const props = withDefaults(defineProps<Props>(), {
   maxSize: 5000000,
-  dialogTitle: 'Crop Photo',
+  dialogTitle: undefined,
 })
 
+const { t } = useTranslation('components.imageUpload.BaseCropUpload')
+
+const dialogTitle = props.dialogTitle ?? t('title')
+
 const emit = defineEmits<{
-  'update:imageFile': [value: File]
+  imageFile: [value: File]
   error: [message: string]
 }>()
 
@@ -36,12 +43,12 @@ const onFileSelect = (event: Event) => {
   if (!file) return
 
   if (file.size > props.maxSize) {
-    emit('error', `Maximum file size is ${props.maxSize / 1000000}MB`)
+    emit('error', `${t('fileTooBigError')} ${props.maxSize / 1000000}MB`)
     return
   }
 
   if (!file.type.startsWith('image/')) {
-    emit('error', 'Only image files are allowed')
+    emit('error', t('fileTypeError'))
     return
   }
 
@@ -68,7 +75,7 @@ const cropImage = async () => {
       canvas.toBlob(
         (blob) => {
           if (blob) resolve(blob)
-          else reject(new Error('Failed to create blob'))
+          else reject(new Error(t('blobCreationError')))
         },
         'image/jpeg',
         0.9
@@ -76,11 +83,11 @@ const cropImage = async () => {
     })
 
     const file = new File([blob], 'image.jpg', { type: 'image/jpeg' })
-    emit('update:imageFile', file)
+    emit('imageFile', file)
     showCropper.value = false
   } catch (error) {
-    console.error('Error cropping image:', error)
-    emit('error', 'Failed to crop image')
+    logger.error('Error cropping image:', error)
+    emit('error', t('cropError'))
   }
 }
 
@@ -132,8 +139,8 @@ defineExpose({
         </q-card-section>
         <slot name="actions" :crop-image="cropImage" :close-cropper="closeCropper">
           <q-card-actions align="right" class="dialog-actions">
-            <q-btn flat label="Cancel" @click="closeCropper" />
-            <q-btn color="primary" label="Save" @click="cropImage" />
+            <q-btn flat :label="t('dialogCancelButton')" @click="closeCropper" />
+            <q-btn color="primary" :label="t('dialogConfirmButton')" @click="cropImage" />
           </q-card-actions>
         </slot>
       </q-card>

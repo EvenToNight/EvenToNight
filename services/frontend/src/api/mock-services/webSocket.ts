@@ -4,8 +4,10 @@ import type {
   NotificationEvent,
   NotificationType,
 } from '../types/notifications'
+import { createLogger } from '@/utils/logger'
 
-type EventCallback = (event: NotificationData) => void
+const logger = createLogger(import.meta.url)
+type EventCallback = (event: NotificationEvent) => void
 
 export class WebSocket {
   private channel: BroadcastChannel | null = null
@@ -16,30 +18,30 @@ export class WebSocket {
 
   connect(): void {
     if (this.isConnected) {
-      console.log('[WebSocket] Already connected')
+      logger.log('[WebSocket] Already connected')
       return
     }
 
     // Check if BroadcastChannel is supported
     if (typeof BroadcastChannel === 'undefined') {
-      console.error('[WebSocket] BroadcastChannel is not supported in this browser')
+      logger.error('[WebSocket] BroadcastChannel is not supported in this browser')
       return
     }
 
     // Create a BroadcastChannel for cross-tab communication
     // Use a global channel so all tabs can communicate regardless of user
-    const channelName = 'support-chat-global'
-    console.log('[WebSocket] Connecting to channel:', channelName, 'for user:', this.userId)
+    const channelName = 'eventonight-global'
+    logger.log('[WebSocket] Connecting to channel:', channelName, 'for user:', this.userId)
     this.channel = new BroadcastChannel(channelName)
 
     this.channel.onmessage = (event: MessageEvent) => {
-      console.log('[WebSocket] Received message:', event.data)
+      logger.log('[WebSocket] Received message:', event.data)
       const wsEvent = event.data as NotificationData
       this.notifyListeners(wsEvent)
     }
 
     this.isConnected = true
-    console.log('[WebSocket] Connected successfully')
+    logger.log('[WebSocket] Connected successfully')
   }
 
   disconnect(): void {
@@ -63,13 +65,17 @@ export class WebSocket {
     }
   }
 
+  off(eventType: NotificationType, callback: EventCallback): void {
+    this.listeners.get(eventType)?.delete(callback)
+  }
+
   emit(eventType: NotificationType, data: NotificationEvent): void {
     if (!this.channel) {
-      console.warn('[WebSocket] Cannot emit - WebSocket not connected')
+      logger.warn('[WebSocket] Cannot emit - WebSocket not connected')
       return
     }
     const notificationData: NotificationData = { type: eventType, data }
-    console.log('[WebSocket] Emitting event:', notificationData)
+    logger.log('[WebSocket] Emitting event:', notificationData)
     this.channel.postMessage(notificationData)
   }
 
@@ -77,9 +83,9 @@ export class WebSocket {
     const listeners = this.listeners.get(event.type)
     listeners?.forEach((callback) => {
       try {
-        callback(event)
+        callback(event.data)
       } catch (error) {
-        console.error('Error in WebSocket event listener:', error)
+        logger.error('Error in WebSocket event listener:', error)
       }
     })
   }

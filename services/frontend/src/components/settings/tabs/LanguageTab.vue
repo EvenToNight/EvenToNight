@@ -1,11 +1,17 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useQuasar } from 'quasar'
 import { SUPPORTED_LOCALES } from '@/i18n'
 import { useAuthStore } from '@/stores/auth'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
 const { locale } = useI18n()
 const authStore = useAuthStore()
+const $q = useQuasar()
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('components.settings.tabs.LanguageTab')
 
 interface LanguageOption {
   code: string
@@ -36,7 +42,6 @@ const getFlagEmoji = (languageCode: string): string => {
   }
 }
 
-// Generate language names using Intl.DisplayNames API
 const getLanguageInfo = (code: string): LanguageOption => {
   const englishNames = new Intl.DisplayNames(['en'], { type: 'language' })
   const nativeNames = new Intl.DisplayNames([code], { type: 'language' })
@@ -55,15 +60,23 @@ const availableLanguages = computed(() => {
 
 const selectLanguage = async (langCode: string) => {
   locale.value = langCode
-  await authStore.updateUser({ language: langCode })
+  try {
+    await authStore.updateUser({ language: langCode })
+  } catch (error: any) {
+    logger.error('Failed to update language:', error)
+    $q.notify({
+      type: 'negative',
+      message: t('updateLanguageError'),
+    })
+  }
 }
 </script>
 
 <template>
   <div class="language-tab">
     <div class="language-header">
-      <h2 class="language-title">Language Preferences</h2>
-      <p class="language-subtitle">Choose your preferred language for the application</p>
+      <h2 class="language-title">{{ t('languageTitle') }}</h2>
+      <p class="language-subtitle">{{ t('languageSubtitle') }}</p>
     </div>
 
     <div class="language-list">

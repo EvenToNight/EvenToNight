@@ -2,6 +2,7 @@
 import { ref, watch } from 'vue'
 import { RectangleStencil } from 'vue-advanced-cropper'
 import BaseCropUpload from './BaseCropUpload.vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   modelValue?: File | null
@@ -9,13 +10,17 @@ interface Props {
   buttonLabel?: string
   maxSize?: number
 }
-
 const props = withDefaults(defineProps<Props>(), {
   modelValue: null,
-  label: 'Event Image',
-  buttonLabel: 'Upload Image',
   maxSize: 5000000,
+  label: undefined,
+  buttonLabel: undefined,
 })
+
+const { t } = useTranslation('components.imageUpload.PosterCropUpload')
+
+const label = props.label ?? t('label')
+const buttonLabel = props.buttonLabel ?? t('uploadButtonLabel')
 
 const emit = defineEmits<{
   'update:modelValue': [value: File | null]
@@ -74,12 +79,12 @@ const removeImage = () => {
 
     <BaseCropUpload
       ref="baseCropUploadRef"
-      :max-size="maxSize"
+      :max-size="props.maxSize"
       :stencil-component="RectangleStencil"
       :stencil-props="stencilProps"
       :stencil-size="stencilSize"
-      dialog-title="Crop Image"
-      @update:image-file="handleImageUpdate"
+      :dialog-title="t('title')"
+      @imageFile="handleImageUpdate"
       @error="emit('error', $event)"
     >
       <template #empty-state="{ triggerFileInput: trigger }">
@@ -110,8 +115,8 @@ const removeImage = () => {
 
       <template #actions="{ cropImage, closeCropper }">
         <q-card-actions align="right" class="dialog-actions">
-          <q-btn flat label="Cancel" @click="closeCropper" />
-          <q-btn color="primary" label="Crop & Save" @click="cropImage" />
+          <q-btn flat :label="t('dialogCancelButton')" @click="closeCropper" />
+          <q-btn color="primary" :label="t('dialogConfirmButton')" @click="cropImage" />
         </q-card-actions>
       </template>
     </BaseCropUpload>

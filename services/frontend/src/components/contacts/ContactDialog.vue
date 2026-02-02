@@ -1,31 +1,44 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import FormField from '@/components/forms/FormField.vue'
+import { isEmail, notEmpty } from '../forms/validationUtils'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('components.contacts.ContactDialog')
 const show = defineModel<boolean>({ required: true })
+const loading = ref(false)
 
-const form = ref({
+interface ContactForm {
+  name: string
+  email: string
+  subject: string
+  message: string
+}
+
+const defaultContactForm: ContactForm = {
   name: '',
   email: '',
   subject: '',
   message: '',
-})
+}
 
-const loading = ref(false)
+const form = ref<ContactForm>({ ...defaultContactForm })
 
 const handleSubmit = async () => {
   loading.value = true
   // TODO: Implement contact form submission
   await new Promise((resolve) => setTimeout(resolve, 1000))
-  console.log('Contact form submitted:', form.value)
+  logger.info('Contact form submitted:', form.value)
   loading.value = false
   show.value = false
-  // Reset form
-  form.value = {
-    name: '',
-    email: '',
-    subject: '',
-    message: '',
-  }
+  form.value = { ...defaultContactForm }
+}
+
+const hideDialog = () => {
+  form.value = { ...defaultContactForm }
+  show.value = false
 }
 </script>
 
@@ -33,53 +46,41 @@ const handleSubmit = async () => {
   <q-dialog v-model="show">
     <q-card class="contact-dialog">
       <q-card-section class="dialog-header">
-        <div class="text-h6">Contattaci</div>
-        <q-btn flat round dense icon="close" @click="show = false" />
+        <div class="text-h6">{{ t('title') }}</div>
+        <q-btn flat round dense icon="close" @click="hideDialog" />
       </q-card-section>
 
       <q-card-section class="dialog-content">
-        <q-form @submit.prevent="handleSubmit">
-          <q-input
-            v-model="form.name"
-            label="Nome"
-            outlined
-            :rules="[(val) => !!val || 'Il nome è obbligatorio']"
-            class="input-field"
-          />
+        <q-form greedy @submit.prevent="handleSubmit">
+          <FormField v-model="form.name" type="text" :label="t('nameLabel')" class="input-field" />
 
-          <q-input
+          <FormField
             v-model="form.email"
-            label="Email"
+            :label="t('emailLabel') + ' *'"
             type="email"
-            outlined
-            :rules="[
-              (val) => !!val || 'L\'email è obbligatoria',
-              (val) => /.+@.+\..+/.test(val) || 'Inserisci un\'email valida',
-            ]"
+            :rules="[notEmpty(t('emailError')), isEmail(t('emailFormatError'))]"
             class="input-field"
           />
 
-          <q-input
+          <FormField
             v-model="form.subject"
-            label="Oggetto"
-            outlined
-            :rules="[(val) => !!val || 'L\'oggetto è obbligatorio']"
+            :label="t('subjectLabel') + ' *'"
+            :rules="[notEmpty(t('subjectError'))]"
             class="input-field"
           />
 
-          <q-input
+          <FormField
             v-model="form.message"
-            label="Messaggio"
+            :label="t('messageLabel') + ' *'"
             type="textarea"
-            outlined
             rows="5"
-            :rules="[(val) => !!val || 'Il messaggio è obbligatorio']"
+            :rules="[notEmpty(t('messageError'))]"
             class="input-field"
           />
 
           <div class="dialog-actions">
-            <q-btn flat label="Annulla" @click="show = false" />
-            <q-btn type="submit" color="primary" label="Invia" :loading="loading" />
+            <q-btn flat :label="t('cancelLabel')" @click="hideDialog" />
+            <q-btn type="submit" color="primary" :label="t('submitLabel')" :loading="loading" />
           </div>
         </q-form>
       </q-card-section>

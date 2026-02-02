@@ -16,16 +16,10 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     return eventsClient.get<GetTagResponse>('/tags')
   },
   async getEventById(eventId: EventID): Promise<GetEventByIdResponse> {
-    console.log('Fetching event by ID2:', eventId)
     return eventsClient.get<GetEventByIdResponse>(`/${eventId}`)
   },
   async getEventsByIds(eventIds: EventID[]): Promise<EventsDataResponse> {
-    return await Promise.all(
-      eventIds.map((eventId) => {
-        console.log('Fetching event for ID:', eventId)
-        return this.getEventById(eventId)
-      })
-    )
+    return await Promise.all(eventIds.map((eventId) => this.getEventById(eventId)))
   },
   async createEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
     const { poster, date, ...rest } = eventData
@@ -61,9 +55,16 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     await eventsClient.delete(`/${eventId}`)
   },
   async searchEvents(params: EventsQueryParams): Promise<PaginatedResponse<Event>> {
-    const { pagination = { ...evaluatePagination(params.pagination) }, ...rest } = params
+    const {
+      pagination = { ...evaluatePagination(params.pagination) },
+      startDate,
+      endDate,
+      ...rest
+    } = params
+    const pareseStartDate = startDate?.toISOString().replace(/\.\d{3}Z$/, '')
+    const pareseEndDate = endDate?.toISOString().replace(/\.\d{3}Z$/, '')
     return eventsClient.get<PaginatedResponse<Event>>(
-      `/search${buildQueryParams({ ...pagination, ...rest })}`
+      `/search${buildQueryParams({ ...pagination, startDate: pareseStartDate, endDate: pareseEndDate, ...rest })}`
     )
   },
 })

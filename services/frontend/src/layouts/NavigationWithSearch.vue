@@ -55,7 +55,7 @@ provide<(() => void) | undefined>('onSearch', () =>
 <style lang="scss" scoped>
 .navigation-view {
   @include flex-column;
-  min-height: 100vh;
+  // min-height: 100vh;
   position: relative;
   min-width: $app-min-width;
 }
@@ -63,6 +63,7 @@ provide<(() => void) | undefined>('onSearch', () =>
 .scroll-wrapper {
   @include flex-column;
   width: 100%;
+  min-height: 100vh;
 }
 
 .page-content {

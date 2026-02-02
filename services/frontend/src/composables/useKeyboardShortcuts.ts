@@ -1,8 +1,7 @@
-import { onMounted, onUnmounted, toRef } from 'vue'
-import { useQuasar } from 'quasar'
+import { onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { useNavigation } from '@/router/utils'
-import { useUserProfile } from './useUserProfile'
+import { useDarkMode } from './useDarkMode'
 
 export interface KeyboardShortcut {
   key: string
@@ -15,9 +14,10 @@ export interface KeyboardShortcut {
 }
 
 export const useKeyboardShortcuts = () => {
-  const $q = useQuasar()
   const authStore = useAuthStore()
   const { goToUserProfile, goToCreateEvent, goToHome } = useNavigation()
+  const darkMode = useDarkMode()
+
   const shortcuts: KeyboardShortcut[] = [
     {
       key: 'd',
@@ -26,9 +26,7 @@ export const useKeyboardShortcuts = () => {
       description: 'Toggle dark mode',
       action: (event) => {
         event.preventDefault()
-        $q.dark.toggle()
-        authStore.updateUser({ darkMode: $q.dark.isActive })
-        localStorage.setItem('darkMode', String($q.dark.isActive))
+        darkMode.toggle()
       },
     },
     {
@@ -60,8 +58,7 @@ export const useKeyboardShortcuts = () => {
       action: (event) => {
         event.preventDefault()
         if (!authStore.isAuthenticated) return
-        const { isOrganization } = useUserProfile(toRef(authStore.user!))
-        if (isOrganization.value) {
+        if (authStore.user?.role === 'organization') {
           goToCreateEvent()
         }
       },
@@ -70,7 +67,7 @@ export const useKeyboardShortcuts = () => {
 
   const handleKeyDown = (event: KeyboardEvent) => {
     for (const shortcut of shortcuts) {
-      const key = event.key.toLowerCase()
+      const key = event.key?.toLowerCase() || '' // Fingerprint is a keydown event without key property
       const ctrlPressed = event.ctrlKey || event.metaKey
       const shiftPressed = event.shiftKey
       const altPressed = event.altKey

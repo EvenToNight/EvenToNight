@@ -6,8 +6,7 @@ import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import UserInfoCard from '@/components/cards/UserInfoCard.vue'
 import EmptyTab from '@/components/navigation/tabs/EmptyTab.vue'
 import type { PaginatedRequest, PaginatedResponse } from '@/api/interfaces/commons'
-
-const ITEMS_PER_PAGE = 20
+import { defaultLimit } from '@/api/utils/requestUtils'
 
 interface Props {
   loadFn: (pagination?: PaginatedRequest) => Promise<PaginatedResponse<UserInfo>>
@@ -30,8 +29,8 @@ const {
   hasMore,
   onLoad,
   reload,
-} = useInfiniteScroll<undefined, UserInfo>({
-  itemsPerPage: ITEMS_PER_PAGE,
+} = useInfiniteScroll<UserInfo>({
+  itemsPerPage: defaultLimit,
   loadFn: async (limit, offset) => {
     return props.loadFn({ limit, offset })
   },
@@ -41,10 +40,6 @@ const totalItems = computed(() => users.value.length)
 
 const onShow = () => {
   reload()
-}
-
-const handleUserClick = () => {
-  show.value = false
 }
 </script>
 
@@ -94,7 +89,7 @@ const handleUserClick = () => {
               v-for="user in users"
               :key="user.userId"
               :user="user"
-              @click="handleUserClick"
+              @click="show = false"
             />
           </div>
 

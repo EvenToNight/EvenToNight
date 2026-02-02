@@ -1,15 +1,20 @@
-import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
+import type {
+  PaginatedRequest,
+  PaginatedResponse,
+  PaginatedResponseWithTotalCount,
+} from '../interfaces/commons'
 
 export const delay = (ms: number = 0) => new Promise((resolve) => setTimeout(resolve, ms))
 
-const defaultLimit = 4
+export const defaultLimit = 20
 const defaultOffset = 0
 
-export const emptyPaginatedResponse = <T>(): PaginatedResponse<T> => ({
+export const emptyPaginatedResponse = <T>(): PaginatedResponseWithTotalCount<T> => ({
   items: [],
   limit: defaultLimit,
   offset: defaultOffset,
   hasMore: false,
+  totalItems: 0,
 })
 
 export const evaluatePagination = (
@@ -39,7 +44,16 @@ export const buildQueryParams = <T extends Record<string, any>>(params: T): stri
   const searchParams = new URLSearchParams()
 
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
+    if (value === undefined || value === null) return
+
+    if (value instanceof Set) {
+      searchParams.append(key, Array.from(value).join(','))
+    } else if (Array.isArray(value)) {
+      searchParams.append(key, value.join(','))
+    } else if (typeof value === 'object') {
+      const values = Object.values(value)
+      searchParams.append(key, values.join(','))
+    } else {
       searchParams.append(key, String(value))
     }
   })
