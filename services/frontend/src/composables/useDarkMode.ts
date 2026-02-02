@@ -1,11 +1,10 @@
-import { useQuasar } from 'quasar'
+import { Dark } from 'quasar'
 import { useAuthStore } from '@/stores/auth'
 import { createLogger } from '@/utils/logger'
 
 const logger = createLogger('DARK MODE')
 
 export const useDarkMode = () => {
-  const $q = useQuasar()
   const authStore = useAuthStore()
 
   const doWithoutTransitions = (action: () => void) => {
@@ -17,10 +16,10 @@ export const useDarkMode = () => {
   }
 
   const savePreference = () => {
-    localStorage.setItem('darkMode', String($q.dark.isActive))
+    localStorage.setItem('darkMode', String(Dark.isActive))
     if (authStore.isAuthenticated) {
       logger.log('Updating user dark mode preference')
-      authStore.updateUser({ darkMode: $q.dark.isActive })
+      authStore.updateUser({ darkMode: Dark.isActive })
     }
   }
 
@@ -38,14 +37,14 @@ export const useDarkMode = () => {
 
   const toggle = () => {
     doWithoutTransitions(() => {
-      $q.dark.toggle()
+      Dark.toggle()
     })
     savePreference()
   }
 
   const set = (value: boolean | 'auto') => {
     doWithoutTransitions(() => {
-      $q.dark.set(value)
+      Dark.set(value)
     })
     savePreference()
   }
@@ -54,7 +53,7 @@ export const useDarkMode = () => {
     toggle,
     load,
     get isActive() {
-      return $q.dark.isActive
+      return Dark.isActive
     },
     set,
   }
