@@ -536,7 +536,7 @@ export default {
         usersEmptySearch: 'Keine Benutzer gefunden',
         usersEmptySearchText: 'Suchen Sie Benutzer nach Namen',
         title: 'Erkunden',
-        subtitile:
+        subtitle:
           'Finden Sie Veranstaltungen, Organisatoren oder vernetzen Sie sich mit Ihren Freunden',
       },
     },
@@ -649,6 +649,7 @@ export default {
         followError: 'Der Follow-Status konnte nicht aktualisiert werden',
         uploadAvatarError:
           'Das Hochladen des Avatarbildes ist fehlgeschlagen. Bitte versuchen Sie es erneut',
+        profileUpdate: 'Profil erfolgreich aktualisiert!',
         userAvatarAlt: 'Benutzer-Avatar',
       },
       UserInfo: {
@@ -674,7 +675,7 @@ export default {
           label: 'Nach Bewertung filtern',
         },
       },
-      rating: {
+      ratings: {
         RatingInfo: {
           noReviews: 'Keine Bewertungen',
           reviews: 'Rezensionen',

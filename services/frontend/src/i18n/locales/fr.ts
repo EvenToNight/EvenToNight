@@ -531,7 +531,7 @@ export default {
         usersEmptySearch: 'Aucun utilisateur trouvé',
         usersEmptySearchText: 'Rechercher des utilisateurs par nom',
         title: 'Explorer',
-        subtitile: 'Trouvez des événements, des organisateurs ou connectez-vous avec vos amis',
+        subtitle: 'Trouvez des événements, des organisateurs ou connectez-vous avec vos amis',
       },
     },
     home: {
@@ -642,6 +642,7 @@ export default {
       ProfileHeader: {
         followError: 'Échec de la mise à jour du statut de suivi',
         uploadAvatarError: "Échec du téléchargement de l'image de l'avatar, veuillez réessayer",
+        profileUpdate: 'Profil mis à jour avec succès !',
         userAvatarAlt: "Avatar de l'utilisateur",
       },
       UserInfo: {
@@ -667,7 +668,7 @@ export default {
           label: 'Filtrer par note',
         },
       },
-      rating: {
+      ratings: {
         RatingInfo: {
           noReviews: 'Aucun avis',
           reviews: 'Avis',

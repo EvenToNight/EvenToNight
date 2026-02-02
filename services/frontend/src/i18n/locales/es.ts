@@ -531,7 +531,7 @@ export default {
         usersEmptySearch: 'No se encontraron usuarios',
         usersEmptySearchText: 'Buscar usuarios por nombre',
         title: 'Explorar',
-        subtitile: 'Encuentra eventos, organizadores o conéctate con tus amigos',
+        subtitle: 'Encuentra eventos, organizadores o conéctate con tus amigos',
       },
     },
     home: {
@@ -642,6 +642,7 @@ export default {
       ProfileHeader: {
         followError: 'No se pudo actualizar el estado de seguimiento',
         uploadAvatarError: 'No se pudo cargar la imagen de avatar, inténtelo de nuevo',
+        profileUpdate: '¡Perfil actualizado exitosamente!',
         userAvatarAlt: 'Avatar de usuario',
       },
       UserInfo: {
@@ -667,7 +668,7 @@ export default {
           label: 'Filtrar por calificación',
         },
       },
-      rating: {
+      ratings: {
         RatingInfo: {
           noReviews: 'Sin reseñas',
           reviews: 'Reseñas',
