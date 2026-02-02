@@ -167,11 +167,13 @@ const filterCollaborators = (query: string, update: (fn: () => void) => void) =>
     })
     return
   }
-  api.users.searchUsers({ prefix: query, pagination: { limit: 10 } }).then((response) => {
-    update(() => {
-      collaboratorOptions.value = response.items.map(mapCollaborator)
+  api.users
+    .searchUsers({ prefix: query, role: 'organization', pagination: { limit: 10 } })
+    .then((response) => {
+      update(() => {
+        collaboratorOptions.value = response.items.map(mapCollaborator)
+      })
     })
-  })
 }
 
 const filterLocations = async (val: string, update: (fn: () => void) => void) => {
