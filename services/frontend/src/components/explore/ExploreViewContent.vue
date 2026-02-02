@@ -139,7 +139,7 @@ const tabs = computed<Tab[]>(() => [
     <div class="explore-hero">
       <div class="explore-header">
         <h1 class="explore-title">{{ t('title') }}</h1>
-        <p class="explore-subtitle">{{ t('subtitile') }}</p>
+        <p class="explore-subtitle">{{ t('subtitle') }}</p>
         <div ref="pageContentSearchBarRef" class="search-container">
           <div v-if="!showSearchInNavbar">
             <SearchBar ref="searchBarRef" />

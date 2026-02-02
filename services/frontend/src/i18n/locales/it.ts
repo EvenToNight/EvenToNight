@@ -7,8 +7,8 @@ export default {
 
   defaults: {
     searchHint: 'Cerca eventi, organizzazioni o utenti...',
-    login: 'Registrazione',
-    register: 'Iscrizione',
+    login: 'Accedi',
+    register: 'Registrati',
   },
 
   views: {
@@ -34,7 +34,7 @@ export default {
       },
       form: {
         title: {
-          label: "Titolo dell'evento",
+          label: 'Titolo',
           error: 'Il titolo è obbligatorio',
         },
         date: {
@@ -42,15 +42,15 @@ export default {
           error: 'La data è obbligatoria',
         },
         time: {
-          label: 'Tempo',
-          error: 'È necessario tempo',
+          label: 'Ora',
+          error: "L'ora è obbligatoria",
         },
         description: {
           label: 'Descrizione',
           error: 'La descrizione è obbligatoria',
         },
         ticketTypes: {
-          sectionTitle: 'Tipi di biglietti',
+          sectionTitle: 'Biglietti',
           type: {
             label: 'Tipo',
             error: 'Seleziona un tipo di biglietto',
@@ -77,9 +77,9 @@ export default {
           noOptionHint: 'Digita almeno 3 caratteri per la ricerca',
         },
         poster: {
-          label: "Locandina dell'evento",
-          error: 'Il manifesto è obbligatorio',
-          uploadButtonLabel: 'Carica poster',
+          label: 'Locandina',
+          error: 'La locandina è obbligatoria',
+          uploadButtonLabel: 'Carica locandina',
         },
         actions: {
           cancel: 'Indietro',
@@ -94,8 +94,8 @@ export default {
             title: 'Elimina evento',
             message:
               'Sei sicuro di voler eliminare questo evento? Questa azione non può essere annullata.',
-            confirmButton: 'Eliminare',
-            cancelButton: 'Indietro',
+            confirmButton: 'Elimina',
+            cancelButton: 'Chiudi',
           },
         },
         messages: {
@@ -163,11 +163,11 @@ export default {
       searchHint: '@:defaults.searchHint', //[ignorei18n]
     },
     PlaceHolderView: {
-      navigationMessageHint: 'Fare clic per tornare a casa',
-      navigationMessage: 'Vai a casa',
+      navigationMessageHint: 'Clicca per tornare alla home',
+      navigationMessage: 'Torna alla home',
     },
     PrivacyView: {
-      title: 'politica sulla riservatezza',
+      title: 'Politica sulla riservatezza',
       lastUpdated: 'Ultimo aggiornamento: 23/01/2025',
       sections: {
         firstSection: {
@@ -204,7 +204,7 @@ export default {
     },
     ReviewsView: {
       reviewButtonText: 'Lascia una recensione',
-      buttonSeparatorText: 'O',
+      buttonSeparatorText: 'o',
       modifyButtonText: 'Modifica le tue recensioni',
     },
     SettingsView: {
@@ -216,7 +216,7 @@ export default {
           label: 'Lingua',
         },
         changePassword: {
-          label: 'Cambiare la password',
+          label: 'Cambia la password',
         },
         reviews: {
           label: 'Le mie recensioni',
@@ -280,12 +280,12 @@ export default {
         ticket: 'Biglietto',
         actions: {
           cancel: 'Indietro',
-          continueToPayment: 'Continua al pagamento',
+          continueToPayment: 'Procedi al pagamento',
         },
       },
     },
     VerifyTicketView: {
-      ticketID: 'Identificativo del biglietto',
+      ticketID: 'Ticket ID',
       loadingTitle: 'Verifica biglietto...',
       loadingMessage: 'Ti preghiamo di attendere mentre verifichiamo il tuo biglietto',
       failedTitle: 'Verifica non riuscita',
@@ -305,7 +305,7 @@ export default {
         register: '@:defaults.register', //[ignorei18n]
       },
       AuthRequiredDialog: {
-        title: "Ops! Non effettuato l'accesso",
+        title: "Ops! Non hai effettuato l'accesso",
         message: "È necessario effettuare l'accesso per eseguire questa azione",
         login: '@:defaults.login', //[ignorei18n]
         register: '@:defaults.register', //[ignorei18n]
@@ -314,7 +314,7 @@ export default {
         title: '@:defaults.login', //[ignorei18n]
         successfulLogin: 'Accesso riuscito!',
         failedLogin: 'Nome utente o password errati',
-        switchToRegister: 'Hai bisogno di un account? Registro',
+        switchToRegister: 'Hai bisogno di un account? Registrati',
         usernameOrEmailLabel: 'Nome utente o e-mail',
         usernameOrEmailError: "È richiesto il nome utente o l'e-mail",
         passwordLabel: 'Password',
@@ -325,14 +325,14 @@ export default {
         title: '@:defaults.register', //[ignorei18n]
         successfulRegistration: 'Registrazione riuscita!',
         failedRegistration: 'La registrazione non è riuscita',
-        switchToLogin: 'Hai già un account? Login',
+        switchToLogin: 'Hai già un account? Accedi',
         nameLabel: 'Nome',
         nameError: 'Il nome è obbligatorio',
         emailLabel: 'E-mail',
         emailError: "L'e-mail è obbligatoria",
         emailFormatError: 'Si prega di inserire un indirizzo email valido',
         passwordLabel: 'Password',
-        passwordError: 'È richiesta la password',
+        passwordError: 'La password è obbligatoria',
         confirmPasswordLabel: 'Conferma password',
         emptyConfirmPasswordError: 'Per favore conferma la tua password',
         passwordMismatchError: 'Le password non corrispondono',
@@ -365,12 +365,12 @@ export default {
           message:
             'Sei sicuro di voler eliminare questa recensione? Questa azione non può essere annullata.',
           cancelLabel: 'Indietro',
-          confirmLabel: 'Eliminare',
+          confirmLabel: 'Elimina',
           failedDelete: 'Si è verificato un errore durante il tentativo di eliminare la recensione',
         },
         menu: {
-          edit: 'Modificare',
-          delete: 'Eliminare',
+          edit: 'Modifica',
+          delete: 'Elimina',
         },
       },
       SearchResultCard: {
@@ -396,7 +396,7 @@ export default {
         title: 'Chat', //[ignorei18n]
         searchHint: 'Cerca conversazioni...',
         conversations: 'Conversazioni',
-        you: 'Voi',
+        you: 'Tu',
         startConversation: 'Inizia una nuova conversazione',
         noConversations: 'Nessuna conversazione trovata',
         searchConversations: 'Cerca e avvia una nuova conversazione',
@@ -425,7 +425,7 @@ export default {
         subjectError: "L'oggetto è obbligatorio",
         messageLabel: 'Messaggio',
         messageError: 'Il messaggio è obbligatorio',
-        cancelLabel: 'Vicino',
+        cancelLabel: 'Chiudi',
         submitLabel: 'Invia',
       },
     },
@@ -439,10 +439,10 @@ export default {
         noTicketsAvailable: "Nessun biglietto disponibile per l'acquisto",
       },
       EventDetailsHeader: {
-        editEvent: 'Modificare',
+        editEvent: 'Modifica',
         organizedBy: 'Organizzato da',
         likes: 'Mi piace',
-        noLikes: 'Nessun Mi piace ancora',
+        noLikes: 'Nessun mi piace ancora',
         participants: 'Partecipanti',
         noParticipants: 'Nessun partecipante ancora',
       },
@@ -474,25 +474,24 @@ export default {
           thisMonth: 'Questo mese',
           date: 'Data',
           selectPeriod: 'Seleziona Periodo',
-          cancel: 'Cancellare',
-          apply: 'Fare domanda a',
+          cancel: 'Cancella',
+          apply: 'Applica',
         },
         FeedFilters: {
           others: 'Altri',
           upcoming: 'Prossimamente',
-          popular: 'Popolare',
+          popular: 'Popolari',
           nearby: 'Nelle vicinanze',
           forYou: 'Per te',
-          new: 'Nuovo',
+          new: 'Ultimi Aggiunti',
         },
         FilterButton: {
           filters: 'Filtri',
-          cancel: 'Chiaro',
-          apply: 'Fare domanda a',
+          cancel: 'Chiudi',
+          apply: 'Applica',
         },
         PriceFilters: {
           free: 'Gratuito',
-          paid: 'Pagato',
           from: 'Da',
           to: 'A',
           customize: 'Personalizza',
@@ -500,15 +499,15 @@ export default {
           selectPrice: 'Seleziona fascia di prezzo',
           minPrice: 'Prezzo minimo',
           maxPrice: 'Prezzo massimo',
-          cancel: 'Vicino',
-          clear: 'Chiaro',
-          apply: 'Fare domanda a',
+          cancel: 'Chiudi',
+          clear: 'Cancella',
+          apply: 'Applica',
         },
         SortFilters: {
           sort: 'Ordina per',
-          date_asc: 'Data di ascesa',
-          date_desc: 'Data discendente',
-          price_asc: 'Prezzo ascendente',
+          date_asc: 'Data crescente',
+          date_desc: 'Data decrescente',
+          price_asc: 'Prezzo crescente',
           price_desc: 'Prezzo decrescente',
         },
         TagFilters: {
@@ -529,8 +528,8 @@ export default {
         usersTabTitle: 'Utenti',
         usersEmptySearch: 'Nessun utente trovato',
         usersEmptySearchText: 'Cerca gli utenti per nome',
-        title: 'Esplorare',
-        subtitile: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
+        title: 'Esplora',
+        subtitle: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
       },
     },
     home: {
@@ -542,13 +541,15 @@ export default {
         title: "Trova l'evento che fa per te",
         draftSectionTitle: 'Continua a modificare i tuoi eventi',
         upcomingEventsSectionTitle: 'Prossimi eventi',
+        popularEventsSectionTitle: 'Eventi popolari',
+        newestSectionTitle: 'Ultimi eventi aggiunti',
       },
     },
     imageUpload: {
       AvatarCropUpload: {
         title: "Carica e ritaglia la foto dell'avatar",
         removeAvatar: 'Rimuovi foto',
-        hint: 'Carica la tua foto del profilo',
+        hint: 'Carica la tua foto profilo',
       },
       BaseCropUpload: {
         title: 'Carica e ritaglia foto',
@@ -556,29 +557,29 @@ export default {
         fileTypeError: 'Tipo di file non valido. Sono consentiti solo file di immagine.',
         blobCreationError: "Impossibile creare il BLOB dell'immagine. Per favore riprova.",
         cropError: "Impossibile ritagliare l'immagine. Per favore riprova.",
-        dialogCancelButton: 'Vicino',
+        dialogCancelButton: 'Chiudi',
         dialogConfirmButton: 'Salva',
       },
       PosterCropUpload: {
         label: "Locandina dell'evento",
         title: "Carica e ritaglia il poster dell'evento",
         uploadButtonLabel: 'Carica poster',
-        dialogCancelButton: 'Vicino',
+        dialogCancelButton: 'Chiudi',
         dialogConfirmButton: 'Salva',
       },
     },
     navigation: {
       Footer: {
-        about: 'Di',
-        contact: 'Contatto',
-        privacy: 'politica sulla riservatezza',
+        about: 'Chi siamo',
+        contact: 'Contattaci',
+        privacy: 'Politica sulla riservatezza',
         terms: 'Termini e Condizioni',
         copyright: 'Tutti i diritti riservati.',
       },
       NavigationBar: {
         profile: 'Profilo',
         logout: 'Esci',
-        darkMode: 'Modalità oscura',
+        darkMode: 'Modalità scura',
       },
       SearchBar: {
         baseHint: 'Ricerca...',
@@ -587,27 +588,27 @@ export default {
     },
     notifications: {
       NotificationHandler: {
-        newMessageLabel: 'Rispondere',
-        newLikeLabel: 'Visualizza profilo',
-        newFollowLabel: 'Visualizza profilo',
+        newMessageLabel: 'Rispondi',
+        newLikeLabel: 'Vedi',
+        newFollowLabel: 'Vedi',
         newEventCaption: 'Pubblicato un nuovo evento',
-        newEventLabel: 'Visualizza evento',
-        newReviewCaption: 'Hai lasciato una recensione sul tuo evento',
-        newReviewLabel: 'Visualizza recensione',
+        newEventLabel: 'Vedi',
+        newReviewCaption: 'Ha lasciato una recensione sul tuo evento',
+        newReviewLabel: 'Vedi',
       },
       NotificationsButton: {
         title: 'Notifiche',
         noNotifications: 'Nessuna notifica ancora',
-        newEventCaption: 'Pubblicato un nuovo evento',
-        followerReceivedCaption: 'Ho iniziato a seguirti',
-        likeReceivedCaption: 'Mi è piaciuto il tuo evento',
-        reviewReceivedCaption: 'Hai lasciato una recensione sul tuo evento',
+        newEventCaption: 'Ha pubblicato un nuovo evento',
+        followerReceivedCaption: 'Ha iniziato a seguirti',
+        likeReceivedCaption: 'Ha messo like al tuo evento',
+        reviewReceivedCaption: 'Ha lasciato una recensione sul tuo evento',
       },
     },
     profile: {
       tabs: {
         MyLikesTab: {
-          noLikedEvents: 'Non ti è ancora piaciuto nessun evento',
+          noLikedEvents: 'Non hai ancora messo like a nessun evento',
         },
         ReviewsTab: {
           loading: 'Caricamento recensioni...',
@@ -616,27 +617,24 @@ export default {
       },
       ProfileActions: {
         createEvent: 'Crea evento',
-        following: 'Seguente',
-        follow: 'Seguire',
+        following: 'Segui Già',
+        follow: 'Segui',
       },
       ProfileBody: {
-        myEvents: 'I miei eventi',
         myEventsExternal: 'Eventi',
         myEventsPublishedLabel: 'Prossimi eventi',
         myEventsPastEventsLabel: 'Eventi passati',
         noEventCreated: 'Non hai ancora creato alcun evento.',
         noEventCreatedExternal: 'Questa organizzazione non ha ancora creato alcun evento.',
-        draftedEvents: 'Bozza',
-        noDraftedEvents: 'Non hai eventi in bozza.',
-        myLikes: 'I miei Mi piace',
+        draftedEvents: 'Bozze',
+        noDraftedEvents: 'Non hai nessuna bozza.',
         myLikesExternal: 'Mi piace',
-        myParticipations: 'Le mie partecipazioni',
         myParticipationsExternal: 'Partecipazioni',
         myPartecipationsUpcomingLabel: 'Prossimi eventi',
         myPartecipationsPastLabel: 'Eventi passati',
         noEventJoined: 'Non hai ancora partecipato a nessun evento.',
         noEventJoinedExternal: 'Questo utente non ha ancora partecipato ad alcun evento.',
-        myTickets: 'I miei biglietti',
+        myTickets: 'Biglietti',
         reviews: 'Recensioni',
       },
       ProfileHeader: {

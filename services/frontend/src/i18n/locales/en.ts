@@ -282,7 +282,7 @@ export default {
       },
     },
     VerifyTicketView: {
-      ticketID: 'Ticket ID',
+      ticketID: 'Ticket ID', //[ignorei18n]
       loadingTitle: 'Verifying Ticket...',
       loadingMessage: 'Please wait while we verify your ticket',
       failedTitle: 'Verification Failed',
@@ -537,6 +537,8 @@ export default {
         title: 'Find the event for you',
         draftSectionTitle: 'Continue editing your events',
         upcomingEventsSectionTitle: 'Upcoming Events',
+        popularEventsSectionTitle: 'Popular Events',
+        newestSectionTitle: 'Newest Events',
       },
     },
     imageUpload: {

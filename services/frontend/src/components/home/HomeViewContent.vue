@@ -6,7 +6,6 @@ import SearchBar from '@/components/navigation/SearchBar.vue'
 import EventCard from '@/components/cards/EventCard.vue'
 import CardSlider from '@/components/cards/CardSlider.vue'
 import CategorySelection from '@/components/home/CategorySelection.vue'
-import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useNavigation } from '@/router/utils'
 import { loadEvents, type EventLoadResult } from '@/api/utils/eventUtils'
@@ -22,6 +21,8 @@ const authStore = useAuthStore()
 const pageContentSearchBarRef = inject<Ref<HTMLElement | null>>('pageContentSearchBarRef')
 const showSearchInNavbar = inject<Ref<boolean>>('showSearchInNavbar')
 const upcomingEvents = ref<EventLoadResult[]>([])
+const newestEvents = ref<EventLoadResult[]>([])
+const popularEvents = ref<EventLoadResult[]>([])
 const myDrafts = ref<Event[]>([])
 const handleSeeAllEvents = () => {
   goToExplore({ otherFilter: 'upcoming' })
@@ -29,34 +30,40 @@ const handleSeeAllEvents = () => {
 
 onMounted(async () => {
   try {
-    const feedResponse = await api.feed.getUpcomingEvents()
-    const eventsResponse = await api.events.getEventsByIds(feedResponse.items)
-    upcomingEvents.value = eventsResponse
+    const userId = authStore.user?.id
+    upcomingEvents.value = (
+      await loadEvents({
+        userId,
+        other: 'upcoming',
+        pagination: { limit: 10, offset: 0 },
+      })
+    ).items
+    popularEvents.value = (
+      await loadEvents({
+        userId,
+        other: 'popular',
+        pagination: { limit: 10, offset: 0 },
+      })
+    ).items
+    newestEvents.value = (
+      await loadEvents({
+        userId,
+        other: 'recently_added',
+        pagination: { limit: 10, offset: 0 },
+      })
+    ).items
+
     if (authStore.isOrganization) {
       myDrafts.value = (
         await loadEvents({
+          pagination: { limit: 10, offset: 0 },
           status: 'DRAFT',
           organizationId: authStore.user!.id,
         })
-      ).items.slice(0, 5) //TODO: evaluate max preview number
-    }
-    if (authStore.isAuthenticated) {
-      logger.log('Loading likes for upcoming events')
-      const userId = authStore.user!.id
-      const likePromises = upcomingEvents.value.map(async (event) => {
-        try {
-          const isLiked = await api.interactions.userLikesEvent(event.eventId, userId)
-          logger.log(`Event ${event.eventId} liked: ${isLiked}`)
-          event.liked = isLiked
-        } catch (error) {
-          logger.error(`Failed to load like status for event ${event.eventId}:`, error)
-          event.liked = false
-        }
-      })
-      await Promise.all(likePromises)
+      ).items
     }
   } catch (error) {
-    logger.error('Failed to load upcoming events:', error)
+    logger.error('Failed to load home view content:', error)
   }
 })
 </script>
@@ -102,28 +109,28 @@ onMounted(async () => {
           />
         </CardSlider>
         <CardSlider
-          v-if="upcomingEvents.length > 0"
-          :title="t('upcomingEventsSectionTitle')"
+          v-if="popularEvents.length > 0"
+          :title="t('popularEventsSectionTitle')"
           @see-all="handleSeeAllEvents"
         >
           <EventCard
-            v-for="(event, index) in upcomingEvents"
+            v-for="(event, index) in popularEvents"
             :key="event.eventId"
-            v-model="upcomingEvents[index]!"
+            v-model="popularEvents[index]!"
             @auth-required="emit('auth-required')"
           />
         </CardSlider>
 
         <CategorySelection />
         <CardSlider
-          v-if="upcomingEvents.length > 0"
-          :title="t('upcomingEventsSectionTitle')"
+          v-if="newestEvents.length > 0"
+          :title="t('newestSectionTitle')"
           @see-all="handleSeeAllEvents"
         >
           <EventCard
-            v-for="(event, index) in upcomingEvents"
+            v-for="(event, index) in newestEvents"
             :key="event.eventId"
-            v-model="upcomingEvents[index]!"
+            v-model="newestEvents[index]!"
             @auth-required="emit('auth-required')"
           />
         </CardSlider>
