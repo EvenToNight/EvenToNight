@@ -525,7 +525,7 @@ export default {
         usersEmptySearch: 'No users found',
         usersEmptySearchText: 'Search users by name',
         title: 'Explore',
-        subtitile: 'Find events, organizers, or connect with your friends',
+        subtitle: 'Find events, organizers, or connect with your friends',
       },
     },
     home: {
@@ -661,7 +661,7 @@ export default {
           label: 'Filter by Rating',
         },
       },
-      rating: {
+      ratings: {
         RatingInfo: {
           noReviews: 'No reviews',
           reviews: 'Reviews',

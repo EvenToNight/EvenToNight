@@ -487,7 +487,7 @@ export default {
         },
         FiltersButton: {
           filters: 'Filtri',
-          cancel: 'Chiudi',
+          cancel: 'Cancella',
           apply: 'Applica',
         },
         PriceFilters: {
