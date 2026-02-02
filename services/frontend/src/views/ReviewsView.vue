@@ -76,23 +76,11 @@ const loadCurrentUserReviewInfo = async () => {
     const userHasUnreviewedParticipations = await api.interactions.userParticipations(userId, {
       organizationId: organization.value!.id,
       reviewed: false,
+      eventStatus: 'COMPLETED',
       pagination: {
         limit: 1,
       },
     })
-    //TODO: check from dialog
-    // if (query.eventId as EventID) {
-    //   const tempEventIdForDialogResponse = await api.interactions.userParticipatedToEvent(
-    //     userId,
-    //     query.eventId as EventID
-    //   )
-    //   if (tempEventIdForDialogResponse) {
-    //     const canAddReview =
-    //       tempEventIdForDialogResponse.hasParticipated && !tempEventIdForDialogResponse.hasReviewed
-    //     tempEventIdForDialog.value = canAddReview ? (query.eventId as EventID) : null
-    //   }
-    // }
-
     if (userHasLeavedReview.totalItems > 0) {
       userHasReviews.value = true
     }

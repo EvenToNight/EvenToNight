@@ -80,11 +80,18 @@ const filterEvents = (query: string, update: (callback: () => void) => void) => 
       hasSearched.value = false
     } else {
       hasSearched.value = true
-      //TODO: search in user partecipations
-      api.events
-        .searchEvents({ organizationId: props.creatorId, status: 'COMPLETED', title: query })
+      api.interactions
+        .userParticipations(authStore.user!.id, {
+          title: query,
+          reviewed: false,
+          eventStatus: 'COMPLETED',
+          organizationId: props.creatorId,
+        })
         .then((response) => {
-          eventOptions.value = response.items
+          return Promise.all(response.items.map((event) => api.events.getEventById(event.eventId)))
+        })
+        .then((response) => {
+          eventOptions.value = response
         })
       const needle = query.toLowerCase()
       eventOptions.value = eventOptions.value.filter(

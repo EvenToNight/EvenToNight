@@ -270,6 +270,9 @@ onMounted(() => {
   .event-title {
     font-size: $font-size-base;
     font-weight: 600;
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 </style>
