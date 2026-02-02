@@ -27,6 +27,7 @@ export const createLogger = (namespaceOrUrl: string) => {
       namespaceOrUrl
         .split('/')
         .pop()
+        ?.replace(/\?.*$/, '')
         ?.replace(/\.(vue|ts|js)$/, '') || 'Unknown'
     namespace = filename
   }
