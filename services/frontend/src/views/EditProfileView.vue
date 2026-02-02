@@ -112,10 +112,10 @@ const handleCancel = () => {
           <div class="card-body">
             <div class="avatar-section">
               <AvatarCropUpload
-                :preview-url="currentAvatarUrl || ''"
+                :preview-url="currentAvatarUrl"
                 :default-icon="defaultIcon"
                 @error="handleAvatarError"
-                @update:imageFile="handleAvatar"
+                @imageFile="handleAvatar"
               />
             </div>
 

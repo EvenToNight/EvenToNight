@@ -636,6 +636,7 @@ export default {
       ProfileHeader: {
         followError: 'Failed to update follow status',
         uploadAvatarError: 'Failed to upload avatar image, please try again',
+        profileUpdate: 'Profile updated successfully!',
         userAvatarAlt: 'User Avatar',
       },
       UserInfo: {

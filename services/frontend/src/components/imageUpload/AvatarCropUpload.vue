@@ -6,11 +6,12 @@ import { DEFAULT_AVATAR_URL } from '@/stores/auth'
 import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
-  previewUrl: string
+  previewUrl?: string
   maxSize?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
+  previewUrl: DEFAULT_AVATAR_URL,
   maxSize: 5000000,
 })
 
@@ -22,7 +23,7 @@ const emit = defineEmits<{
 
 const { t } = useTranslation('components.imageUpload.AvatarCropUpload')
 const isDefault = computed(() => {
-  return props.previewUrl === DEFAULT_AVATAR_URL
+  return !props.previewUrl || props.previewUrl === DEFAULT_AVATAR_URL
 })
 
 const baseCropUploadRef = ref<InstanceType<typeof BaseCropUpload> | null>(null)
