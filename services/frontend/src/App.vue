@@ -7,7 +7,9 @@ import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import { useKeyboardShortcuts } from '@/composables/useKeyboardShortcuts'
 import NotificationHandler from '@/components/notifications/NotificationHandler.vue'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 const authStore = useAuthStore()
 const darkMode = useDarkMode()
 useKeyboardShortcuts()
@@ -26,12 +28,12 @@ onMounted(() => {
         import.meta.env.VITE_DEV_ROLE === 'organization'
       )
     } catch (error) {
-      console.error('Error when try to auto register user:', error)
+      logger.error('Error when try to auto register user:', error)
     }
     try {
       authStore.login(import.meta.env.VITE_DEV_EMAIL, import.meta.env.VITE_DEV_PASSWORD)
     } catch (error) {
-      console.error('Error when try to auto login user:', error)
+      logger.error('Error when try to auto login user:', error)
     }
   }
 
@@ -42,21 +44,21 @@ onMounted(() => {
 
   // Dev logging
   const isDev = import.meta.env.DEV
-  console.log(
+  logger.log(
     `🔌 API Mode("import.meta.env.DEV"): ${isDev ? 'MOCK (Development)' : 'REAL (Production)'}`
   )
-  console.log(`🌐 Use HTTPS: ${import.meta.env.VITE_USE_HTTPS}`)
+  logger.log(`🌐 Use HTTPS: ${import.meta.env.VITE_USE_HTTPS}`)
 
   if (authStore.isAuthenticated) {
-    console.log('🔐 User authenticated:', authStore.user?.email)
+    logger.log('🔐 User authenticated:', authStore.user?.email)
   }
   api.events
     .getTags()
     .then((tags) => {
-      console.log('🏷️ Fetched event tags:', tags)
+      logger.log('🏷️ Fetched event tags:', tags)
     })
     .catch((err) => {
-      console.error('Failed to fetch event tags:', err)
+      logger.error('Failed to fetch event tags:', err)
     })
 })
 </script>

@@ -21,9 +21,11 @@ import {
 import { mockChatApi } from './mock-services/chat'
 import { mockNotificationsApi } from './mock-services/notifications'
 import { createNotificationsApi } from './services/notifications'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 const useRealApi: boolean = import.meta.env.VITE_USE_MOCK_API === 'false'
-console.log('Using real API:', useRealApi)
+logger.log('Using real API:', useRealApi)
 export const api = {
   events: useRealApi ? createEventsApi(createEventsClient()) : mockEventsApi,
   media: mediaApi,

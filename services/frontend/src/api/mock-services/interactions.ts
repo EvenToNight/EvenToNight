@@ -25,7 +25,9 @@ import type {
 import { emptyPaginatedResponse, getPaginatedItems } from '@/api/utils/requestUtils'
 import type { Rating } from '../types/interaction'
 import { mockUsers } from './data/users'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 const findInteractionByEventId = (eventId: EventID) => {
   const interaction = mockEventInteractions.find((interaction) => interaction.eventId === eventId)
 
@@ -325,7 +327,7 @@ export const mockInteractionsApi: InteractionAPI = {
         status: 404,
       }
     }
-    console.log('Updated review:', { eventId, userId, review })
+    logger.log('Updated review:', { eventId, userId, review })
     return
   },
 

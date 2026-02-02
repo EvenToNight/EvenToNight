@@ -8,11 +8,13 @@ import { getOtherUser } from '@/api/utils/chatUtils'
 import type { ChatUser, Conversation, ConversationID } from '@/api/types/chat'
 import ChatArea from '@/components/chat/ChatArea.vue'
 import { useNavigation } from '@/router/utils'
+import { createLogger } from '@/utils/logger'
 
 const twoColumnLayout = ref<InstanceType<typeof TwoColumnLayout> | null>(null)
 const conversationListRef = ref<InstanceType<typeof ConversationList> | null>(null)
 const authStore = useAuthStore()
 const { query, removeQuery } = useNavigation()
+const logger = createLogger(import.meta.url)
 
 const selectedConversationId = ref<ConversationID | undefined>()
 const selectedChatUser = ref<ChatUser | undefined>()
@@ -49,7 +51,7 @@ async function loadUser(userId: string) {
     const user = await api.users.getUserById(userId)
     selectedChatUser.value = user
   } catch (error) {
-    console.error('Failed to load user:', error)
+    logger.error('Failed to load user:', error)
   }
 }
 

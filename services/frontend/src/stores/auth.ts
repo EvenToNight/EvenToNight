@@ -13,6 +13,7 @@ import type {
 import { useNavigation } from '@/router/utils'
 import { dateReviver } from '@/api/utils/parsingUtils'
 import { useDarkMode } from '@/composables/useDarkMode'
+import { createLogger } from '@/utils/logger'
 export const DEFAULT_AVATAR_URL = `http://media.${import.meta.env.VITE_HOST || 'localhost'}/users/default.png`
 
 const ACCESS_TOKEN_SESSION_KEY = 'access_token_session'
@@ -36,9 +37,9 @@ export const useAuthStore = defineStore('auth', () => {
   const expiredAt = ref<number | null>(null)
   const refreshToken = ref<RefreshToken | null>(null)
   const refreshExpiredAt = ref<number | null>(null)
-
+  const logger = createLogger(import.meta.url)
   const setTokens = (tokenResponse: TokenResponse) => {
-    console.log('Setting tokens', tokenResponse)
+    logger.log('Setting tokens', tokenResponse)
     accessToken.value = tokenResponse.accessToken
     expiredAt.value = Date.now() + tokenResponse.expiresIn * 1000
     refreshToken.value = tokenResponse.refreshToken
@@ -227,12 +228,12 @@ export const useAuthStore = defineStore('auth', () => {
             }
           })
           .catch(() => {
-            console.log('Failed to refresh token, logging out')
+            logger.log('Failed to refresh token, logging out')
             logout()
           })
       }, refreshTime)
     } else {
-      console.log('Refresh token already expired or about to expire, logging out')
+      logger.log('Refresh token already expired or about to expire, logging out')
       logout()
     }
   }

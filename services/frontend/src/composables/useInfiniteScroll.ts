@@ -1,6 +1,8 @@
 import { ref, computed, type Ref } from 'vue'
 import type { PaginatedResponse } from '@/api/interfaces/commons'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 interface InfiniteScrollConfiguration<R> {
   itemsPerPage?: number
   prepend?: boolean
@@ -42,7 +44,7 @@ export function useInfiniteScroll<R>(config: InfiniteScrollConfiguration<R>) {
       if (onError) {
         onError(error)
       } else {
-        console.error('Failed to load items:', error)
+        logger.error('Failed to load items:', error)
       }
     } finally {
       loading.value = false

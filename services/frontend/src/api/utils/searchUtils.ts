@@ -140,8 +140,8 @@ export const getSearchResult = async (
     api.events.searchEvents({ query, status: new Set(['PUBLISHED', 'COMPLETED', 'CANCELLED']) }),
     api.users.searchUsers({ prefix: query }),
   ])
-  console.log('Event search response:', eventsResponse)
-  console.log('User search response:', usersResponse)
+  logger.log('Event search response:', eventsResponse)
+  logger.log('User search response:', usersResponse)
   const processedEvents = await processEventSearchResults(eventsResponse.items, query)
   const processedUsers = await processUserSearchResults(usersResponse.items, query)
   const results: SearchResult[] = processedEvents.concat(processedUsers)

@@ -3,14 +3,16 @@ import type { PaginatedRequest, PaginatedResponse, SortOrder } from '../interfac
 import type { UserID } from '../types/users'
 import { api } from '..'
 import type { EventsQueryParams } from '../interfaces/events'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 export interface EventLoadResult extends Event {
   liked?: boolean
 }
 export const loadEvents = async (
   params: EventsQueryParams & { userId?: UserID }
 ): Promise<PaginatedResponse<EventLoadResult>> => {
-  console.log(
+  logger.log(
     'Loading events for user:',
     params.userId,
     'status:',

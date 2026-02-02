@@ -1,6 +1,8 @@
 import { ref, computed, type Ref } from 'vue'
 import type { PaginatedResponse } from '@/api/interfaces/commons'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 export interface SectionConfig<K extends PropertyKey, O> {
   key: K
   options?: O
@@ -96,7 +98,7 @@ export function useMultiSectionInfiniteScroll<K extends PropertyKey, O, T>(
       if (onError) {
         onError(error)
       } else {
-        console.error('Failed to load items:', error)
+        logger.error('Failed to load items:', error)
       }
     } finally {
       loading.value = false

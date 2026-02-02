@@ -2,7 +2,9 @@ import { useQuasar } from 'quasar'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useAuthStore } from '@/stores/auth'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 export function useTicketDownload() {
   const $q = useQuasar()
   const authStore = useAuthStore()
@@ -26,7 +28,7 @@ export function useTicketDownload() {
         icon: 'download',
       })
     } catch (error) {
-      console.error('Failed to download tickets:', error)
+      logger.error('Failed to download tickets:', error)
       $q.notify({
         type: 'negative',
         message: 'Failed to download tickets',

@@ -1,6 +1,8 @@
 import { ref, onUnmounted, type Ref } from 'vue'
 import { api } from '@/api'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 export interface UseImageLoaderReturn {
   imageObjectUrl: Ref<string>
   isLoadingImage: Ref<boolean>
@@ -16,7 +18,7 @@ export function useImageLoader(): UseImageLoaderReturn {
 
   const loadImage = async (url: string) => {
     if (!url) {
-      console.warn('useImageLoader: No URL provided')
+      logger.warn('useImageLoader: No URL provided')
       return
     }
 
@@ -27,7 +29,7 @@ export function useImageLoader(): UseImageLoaderReturn {
       const response = await api.media.get(url)
       imageObjectUrl.value = URL.createObjectURL(response.file)
     } catch (err) {
-      console.error('Failed to load image:', err)
+      logger.error('Failed to load image:', err)
       error.value = err as Error
     } finally {
       isLoadingImage.value = false

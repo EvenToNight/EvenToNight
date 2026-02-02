@@ -19,7 +19,9 @@ import {
   type NotificationAPIData,
   type NotificationAPIResponse,
 } from '../adapters/notification'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 let socket: Socket | undefined
 
 const handlers = new Map<unknown, { handler: (...args: any[]) => void; eventType: string }>()
@@ -31,9 +33,9 @@ function createNotificationHandler<T>(
     const event = NotificationAdapter.fromAPI(apiEvent)
     try {
       callback(event.data as T)
-      console.log(`[SOCKET.IO] callback executed successfully:`, callback.name || 'anonymous')
+      logger.log(`[SOCKET.IO] callback executed successfully:`, callback.name || 'anonymous')
     } catch (error) {
-      console.error(`[SOCKET.IO] callback error:`, callback.name || 'anonymous', error)
+      logger.error(`[SOCKET.IO] callback error:`, callback.name || 'anonymous', error)
     }
   }
 }
@@ -72,13 +74,13 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
 
   async connect(userId: UserID, token?: string): Promise<void> {
     if (socket?.connected) {
-      console.log('[Socket.IO] already connected')
+      logger.log('[Socket.IO] already connected')
       return
     }
 
     try {
       const url = notificationClient.baseUrl
-      console.log('[Socket.IO] Connecting to:', url)
+      logger.log('[Socket.IO] Connecting to:', url)
 
       socket = io(url, {
         auth: {
@@ -93,33 +95,33 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
       })
 
       socket.on('connect', () => {
-        console.log('[Socket.IO] Connected')
+        logger.log('[Socket.IO] Connected')
         handlers.forEach(({ handler, eventType }) => {
           socket?.on(eventType, handler)
         })
-        console.log(`[Socket.IO] Re-registered ${handlers.size} handlers`)
+        logger.log(`[Socket.IO] Re-registered ${handlers.size} handlers`)
       })
 
       socket.on('user-online', (data: any) => {
-        console.log('[Socket.IO] ONLINE:', data)
+        logger.log('[Socket.IO] ONLINE:', data)
       })
       socket.on('registered', (data: { userId: string }) => {
-        console.log('[Socket.IO] Registered with user ID:', data.userId)
+        logger.log('[Socket.IO] Registered with user ID:', data.userId)
       })
 
       socket.on('disconnect', (reason: string) => {
-        console.log('[Socket.IO] Disconnected:', reason)
+        logger.log('[Socket.IO] Disconnected:', reason)
       })
 
       socket.on('connect_error', (error: Error) => {
-        console.error('[Socket.IO] connection error:', error)
+        logger.error('[Socket.IO] connection error:', error)
       })
 
       socket.on('error', (error: Error) => {
-        console.error('[Socket.IO] error:', error)
+        logger.error('[Socket.IO] error:', error)
       })
     } catch (error) {
-      console.error('[Socket.IO] Failed to create connection:', error)
+      logger.error('[Socket.IO] Failed to create connection:', error)
       throw error
     }
   },
@@ -127,7 +129,7 @@ export const createNotificationsApi = (notificationClient: ApiClient): Notificat
   async disconnect(): Promise<void> {
     socket?.disconnect()
     socket = undefined
-    console.log('[Socket.IO] Disconnected and cleaned up')
+    logger.log('[Socket.IO] Disconnected and cleaned up')
   },
 
   onUserOnline(callback: (online: OnlineInfoEvent) => void): void {

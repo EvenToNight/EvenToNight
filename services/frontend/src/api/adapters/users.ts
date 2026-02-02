@@ -36,7 +36,6 @@ export const LoginAdapter = {
 
 export const UserAdapter = {
   fromApi(dto: UserAPIResponse): User {
-    console.log('Adapting user from API:', dto)
     return {
       id: dto.id,
       role: dto.role,

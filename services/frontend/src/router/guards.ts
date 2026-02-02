@@ -2,6 +2,9 @@ import type { NavigationGuardNext, RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import { EDIT_EVENT_ROUTE_NAME, FORBIDDEN_ROUTE_NAME, HOME_ROUTE_NAME, LOGIN_ROUTE_NAME } from '.'
+import { createLogger } from '@/utils/logger'
+
+const logger = createLogger(import.meta.url)
 
 const getLocale = (route: RouteLocationNormalized): string => {
   return (route.params.locale as string) || 'en'
@@ -88,7 +91,7 @@ export const requireEventCreator = async (
       next()
     }
   } catch (error) {
-    console.error('Failed to verify event creator:', error)
+    logger.error('Failed to verify event creator:', error)
     const locale = getLocale(to)
     next({ name: HOME_ROUTE_NAME, params: { locale } })
   }
@@ -121,7 +124,7 @@ export const requireNotDraft = async (
       next()
     }
   } catch (error) {
-    console.error('Failed to load event:', error)
+    logger.error('Failed to load event:', error)
     const locale = getLocale(to)
     next({ name: HOME_ROUTE_NAME, params: { locale } })
   }

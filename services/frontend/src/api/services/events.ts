@@ -16,16 +16,10 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     return eventsClient.get<GetTagResponse>('/tags')
   },
   async getEventById(eventId: EventID): Promise<GetEventByIdResponse> {
-    console.log('Fetching event by ID2:', eventId)
     return eventsClient.get<GetEventByIdResponse>(`/${eventId}`)
   },
   async getEventsByIds(eventIds: EventID[]): Promise<EventsDataResponse> {
-    return await Promise.all(
-      eventIds.map((eventId) => {
-        console.log('Fetching event for ID:', eventId)
-        return this.getEventById(eventId)
-      })
-    )
+    return await Promise.all(eventIds.map((eventId) => this.getEventById(eventId)))
   },
   async createEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
     const { poster, date, ...rest } = eventData

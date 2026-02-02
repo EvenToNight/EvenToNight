@@ -2,7 +2,9 @@ import { ref, watch, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import { api } from '@/api'
 import type { NewMessageReceivedEvent } from '@/api/types/notifications'
+import { createLogger } from '@/utils/logger'
 
+const logger = createLogger(import.meta.url)
 export function useUnreadMessagesCount() {
   const authStore = useAuthStore()
   const unreadMessagesCount = ref<number | undefined>(undefined)
@@ -13,7 +15,7 @@ export function useUnreadMessagesCount() {
         const response = await api.chat.unreadMessageCountFor(authStore.user.id)
         unreadMessagesCount.value = response.unreadCount
       } catch (error) {
-        console.error('Failed to load unread messages count:', error)
+        logger.error('Failed to load unread messages count:', error)
         unreadMessagesCount.value = 0
       }
     }
