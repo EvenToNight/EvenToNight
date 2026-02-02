@@ -28,6 +28,19 @@ const handleSeeAllEvents = () => {
   goToExplore({ otherFilter: 'upcoming' })
 }
 
+const handleToggleLike = (eventId: string, liked: boolean) => {
+  const updateEventInList = (eventsList: Ref<EventLoadResult[]>) => {
+    const eventIndex = eventsList.value.findIndex((event) => event.eventId === eventId)
+    if (eventIndex !== -1) {
+      eventsList.value[eventIndex]!.liked = liked
+    }
+  }
+
+  updateEventInList(upcomingEvents)
+  updateEventInList(popularEvents)
+  updateEventInList(newestEvents)
+}
+
 onMounted(async () => {
   try {
     const userId = authStore.user?.id
@@ -106,6 +119,7 @@ onMounted(async () => {
             :key="event.eventId"
             v-model="upcomingEvents[index]!"
             @auth-required="emit('auth-required')"
+            @togglelike="handleToggleLike"
           />
         </CardSlider>
         <CardSlider
@@ -118,6 +132,7 @@ onMounted(async () => {
             :key="event.eventId"
             v-model="popularEvents[index]!"
             @auth-required="emit('auth-required')"
+            @togglelike="handleToggleLike"
           />
         </CardSlider>
 
@@ -132,6 +147,7 @@ onMounted(async () => {
             :key="event.eventId"
             v-model="newestEvents[index]!"
             @auth-required="emit('auth-required')"
+            @togglelike="handleToggleLike"
           />
         </CardSlider>
       </div>
