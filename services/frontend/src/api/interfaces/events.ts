@@ -18,20 +18,23 @@ export interface PublishEventResponse {
 export type EventsDataResponse = Event[]
 
 export type EventSortOption = 'date' | 'price' | 'title' | 'instant'
+export type OtherEventFilters = 'upcoming' | 'popular' | 'recently_added' | 'feed'
 export interface EventsQueryParams {
+  pagination?: PaginatedRequest
+  status?: EventStatus | Set<EventStatus>
   title?: string
-  status?: EventStatus
-  tags?: Tag[]
-  startDate?: string
-  endDate?: string
+  tags?: Tag | Set<Tag>
+  startDate?: Date
+  endDate?: Date
   organizationId?: UserID
   city?: string
   location_name?: string
-  priceMin?: number
-  priceMax?: number
+  query?: string
   sortBy?: EventSortOption
   sortOrder?: SortOrder
-  pagination?: PaginatedRequest
+  near?: { latitude: number; longitude: number }
+  price?: { min: number; max: number }
+  other?: OtherEventFilters
 }
 
 export interface EventAPI {

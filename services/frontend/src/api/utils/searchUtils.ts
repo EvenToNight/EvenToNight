@@ -201,8 +201,8 @@ const convertDateFilter = (
         break
     }
 
-    eventsQueryParams.startDate = startDate!.toISOString().replace(/\.\d{3}Z$/, '')
-    eventsQueryParams.endDate = endDate!.toISOString().replace(/\.\d{3}Z$/, '')
+    eventsQueryParams.startDate = startDate
+    eventsQueryParams.endDate = endDate
   }
 }
 
@@ -211,8 +211,8 @@ const convertDateRange = (
   dateRange: { from: Date; to: Date } | undefined | null
 ): void => {
   if (dateRange) {
-    eventsQueryParams.startDate = dateRange.from.toISOString().replace(/\.\d{3}Z$/, '')
-    eventsQueryParams.endDate = dateRange.to.toISOString().replace(/\.\d{3}Z$/, '')
+    eventsQueryParams.startDate = dateRange.from
+    eventsQueryParams.endDate = dateRange.to
   }
 }
 
@@ -221,7 +221,7 @@ const convertTags = (
   tags: Tag[] | undefined | null
 ): void => {
   if (tags && tags.length > 0) {
-    eventsQueryParams.tags = tags
+    eventsQueryParams.tags = new Set(tags)
   }
 }
 
@@ -230,12 +230,14 @@ const convertCustomPriceRange = (
   customPriceRange: { min?: number | null; max?: number | null } | undefined | null
 ): void => {
   if (customPriceRange) {
+    const price = { min: 0, max: Infinity }
     if (customPriceRange.min !== null && customPriceRange.min !== undefined) {
-      eventsQueryParams.priceMin = customPriceRange.min
+      price.min = customPriceRange.min
     }
     if (customPriceRange.max !== null && customPriceRange.max !== undefined) {
-      eventsQueryParams.priceMax = customPriceRange.max
+      price.max = customPriceRange.max
     }
+    eventsQueryParams.price = price
   }
 }
 
@@ -244,10 +246,9 @@ const convertPriceFilter = (
   priceFilter: PriceFilter | undefined | null
 ): void => {
   if (priceFilter === 'free') {
-    eventsQueryParams.priceMin = 0
-    eventsQueryParams.priceMax = 0
+    eventsQueryParams.price = { min: 0, max: 0 }
   } else if (priceFilter === 'paid') {
-    eventsQueryParams.priceMin = 0.01
+    eventsQueryParams.price = { min: 0.01, max: Infinity }
   }
 }
 

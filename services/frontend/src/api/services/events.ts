@@ -61,9 +61,16 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     await eventsClient.delete(`/${eventId}`)
   },
   async searchEvents(params: EventsQueryParams): Promise<PaginatedResponse<Event>> {
-    const { pagination = { ...evaluatePagination(params.pagination) }, ...rest } = params
+    const {
+      pagination = { ...evaluatePagination(params.pagination) },
+      startDate,
+      endDate,
+      ...rest
+    } = params
+    const pareseStartDate = startDate?.toISOString().replace(/\.\d{3}Z$/, '')
+    const pareseEndDate = endDate?.toISOString().replace(/\.\d{3}Z$/, '')
     return eventsClient.get<PaginatedResponse<Event>>(
-      `/search${buildQueryParams({ ...pagination, ...rest })}`
+      `/search${buildQueryParams({ ...pagination, startDate: pareseStartDate, endDate: pareseEndDate, ...rest })}`
     )
   },
 })
