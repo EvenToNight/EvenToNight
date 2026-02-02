@@ -13,7 +13,7 @@ trait PriceRepository:
   def findByTicketTypeId(ticketTypeId: String): Option[TicketPrice]
   def findByEventId(eventId: String): List[TicketPrice]
   def findByEventIds(eventIds: List[String]): Map[String, List[TicketPrice]]
-  def findEventIdsInPriceRange(minPrice: Double, maxPrice: Double): List[String]
+  def findEventIdsInPriceRange(limit: Int, minPrice: Double, maxPrice: Double): List[String]
   def delete(ticketTypeId: String): Either[Throwable, Unit]
 
 case class MongoPriceRepository(
@@ -75,7 +75,7 @@ case class MongoPriceRepository(
         prices.groupBy(_.eventId)
       }.getOrElse(Map.empty)
 
-  def findEventIdsInPriceRange(minPrice: Double, maxPrice: Double): List[String] =
+  def findEventIdsInPriceRange(limit: Int, minPrice: Double, maxPrice: Double): List[String] =
     import scala.jdk.CollectionConverters.*
     Try {
       val priceFilter = Filters.and(
@@ -84,6 +84,7 @@ case class MongoPriceRepository(
       )
       collection
         .find(priceFilter)
+        .limit(limit)
         .into(new java.util.ArrayList[Document]())
         .asScala
         .map(doc => doc.getString("eventId"))

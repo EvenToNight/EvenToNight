@@ -23,7 +23,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "DRAFT",
     date: new Date("2026-05-30T21:00:00").toISOString().slice(0, -1),
-    poster: "begin-summer-2026.jpg"
+    poster: "begin-summer-2026.jpg",
+    isFree: false
   },
 
   {
@@ -47,7 +48,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "PUBLISHED",
     date: new Date("2026-03-02T20:30:00").toISOString().slice(0, -1),
-    poster: "mika-tour.jpg"
+    poster: "mika-tour.jpg",
+    isFree: false
   },
 
   {
@@ -71,7 +73,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "PUBLISHED",
     date: new Date("2026-06-20T18:00:00").toISOString().slice(0, -1),
-    poster: "white-party.jpg"
+    poster: "white-party.jpg",
+    isFree: false
   },
 
   {
@@ -95,7 +98,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "CANCELLED",
     date: new Date("2026-10-31T21:00:00").toISOString().slice(0, -1),
-    poster: "cornerbar-halloween.png"
+    poster: "cornerbar-halloween.png",
+    isFree: true
   },
 
   {
@@ -119,7 +123,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "COMPLETED",
     date: new Date("2025-06-15T19:00:00").toISOString().slice(0, -1),
-    poster: "sunset-on-the-beach.jpg"
+    poster: "sunset-on-the-beach.jpg",
+    isFree: false
   },
 
   {
@@ -143,7 +148,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "PUBLISHED",
     date: new Date("2026-04-18T21:00:00").toISOString().slice(0, -1),
-    poster: "indie-night.jpg"
+    poster: "indie-night.jpg",
+    isFree: false
   },
 
   {
@@ -167,7 +173,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "PUBLISHED",
     date: new Date("2026-07-10T16:00:00").toISOString().slice(0, -1),
-    poster: "openair-festival.jpg"
+    poster: "openair-festival.jpg",
+    isFree: false
   },
 
   {
@@ -191,7 +198,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "PUBLISHED",
     date: new Date("2026-02-13T21:30:00").toISOString().slice(0, -1),
-    poster: "karaoke-night.jpg"
+    poster: "karaoke-night.jpg",
+    isFree: false
   },
 
   {
@@ -215,7 +223,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "PUBLISHED",
     date: new Date("2026-11-22T20:00:00").toISOString().slice(0, -1),
-    poster: "dinner-jazz.jpg"
+    poster: "dinner-jazz.jpg",
+    isFree: false
   },
 
   {
@@ -239,7 +248,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "PUBLISHED",
     date: new Date("2026-09-18T21:00:00").toISOString().slice(0, -1),
-    poster: "luxury-night.jpg"
+    poster: "luxury-night.jpg",
+    isFree: false
   },
 
   {
@@ -263,7 +273,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "PUBLISHED",
     date: new Date("2026-06-06T18:00:00").toISOString().slice(0, -1),
-    poster: "sunset-cesena.jpg"
+    poster: "sunset-cesena.jpg",
+    isFree: false
   },
 
   {
@@ -287,7 +298,8 @@ export const eventsSeedData: EventSeedInput[] = [
     },
     status: "DRAFT",
     date: new Date("2026-07-04T18:00:00").toISOString().slice(0, -1),
-    poster: "sunset-cesena2.jpg"
+    poster: "sunset-cesena2.jpg",
+    isFree: true
   },
 
 ];

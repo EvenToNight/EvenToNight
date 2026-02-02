@@ -157,6 +157,9 @@ export class ParticipationService {
       enrichedItems = enrichedItems.filter((item) =>
         titleEventSet.has(item.eventId),
       );
+      if (enrichedItems.length === 0) {
+        return new PaginatedResponseDto([], 0, limit ?? 0, offset ?? 0);
+      }
     }
 
     const filteredTotal = enrichedItems.length;

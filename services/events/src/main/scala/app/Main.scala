@@ -49,7 +49,7 @@ object Main extends App:
 
   val eventService: EventService = new EventService(eventDatabase, userDatabase, messageBroker)
 
-  val externalEventHandler: ExternalEventHandler = new ExternalEventHandler(userDatabase, priceDatabase)
+  val externalEventHandler: ExternalEventHandler = new ExternalEventHandler(userDatabase, priceDatabase, eventDatabase)
   val messageConsumer: RabbitEventConsumer = new RabbitEventConsumer(
     host = rabbitHost,
     port = rabbitPort,
