@@ -4,13 +4,14 @@ import type { Rating } from '@/api/types/interaction'
 import { RATING_VALUES } from '@/api/types/interaction'
 import RatingStars from './ratings/RatingStars.vue'
 import type { OrganizationReviewsStatistics } from '@/api/types/interaction'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   reviewsStatistics: OrganizationReviewsStatistics
 }
 
 const props = defineProps<Props>()
-
+const { t } = useTranslation('components.reviews.ReviewsStatistics')
 const hasReviews = computed(() => {
   return props.reviewsStatistics.totalReviews > 0
 })
@@ -43,7 +44,7 @@ const descendingRatings = computed(() => {
       <div class="rating-stars">
         <RatingStars :rating="reviewsStatistics.averageRating" :show-number="true" size="md" />
       </div>
-      <span class="review-count">{{ reviewsStatistics.totalReviews }} recensioni</span>
+      <span class="review-count">{{ reviewsStatistics.totalReviews }} {{ t('reviews') }}</span>
     </div>
   </div>
 </template>

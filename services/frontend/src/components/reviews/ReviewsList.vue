@@ -5,6 +5,7 @@ import ReviewCard from '../cards/ReviewCard.vue'
 import { api } from '@/api'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { defaultLimit } from '@/api/utils/requestUtils'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   organizationId: string
@@ -12,7 +13,7 @@ interface Props {
   selectedRating?: Rating
 }
 const props = defineProps<Props>()
-
+const { t } = useTranslation('components.reviews.ReviewsList')
 const {
   items: reviews,
   loading,
@@ -69,7 +70,7 @@ defineExpose({
 
     <div v-else-if="!loading && reviews.length === 0" class="empty-state">
       <q-icon name="reviews" size="64px" />
-      <p>No reviews found</p>
+      <p>{{ t('noReviews') }}</p>
     </div>
   </div>
 </template>

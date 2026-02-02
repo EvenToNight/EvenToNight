@@ -646,6 +646,53 @@ export default {
         noFollowing: 'Not following anyone yet',
       },
     },
+    reviews: {
+      filters: {
+        EventFilter: {
+          allEvents: 'All Events',
+          eventPosterAlt: 'Event Poster',
+          label: 'Filter by Event',
+          noEventsFound: 'No event found',
+          searchHint: 'Start typing to search for events',
+        },
+        RatingFilter: {
+          allRatings: 'All Ratings',
+          starLabel: 'Star',
+          starsLabel: 'Stars',
+          label: 'Filter by Rating',
+        },
+      },
+      rating: {
+        RatingInfo: {
+          noReviews: 'No reviews',
+          reviews: 'Reviews',
+        },
+      },
+      ReviewsList: {
+        noReviews: 'No reviews found',
+      },
+      ReviewsStatistics: {
+        reviews: 'Reviews',
+      },
+      SubmitReviewDialog: {
+        leaveReviewLabel: 'Leave a Review',
+        editReviewLabel: 'Edit Review',
+        selectEventLabel: 'Select Event',
+        selectEventError: 'Please select an event',
+        eventPosterAlt: 'Event Poster',
+        noEventsFound: 'No event found',
+        searchEventsHint: 'Start typing to search for events',
+        ratingLabel: 'Rating',
+        reviewTitle: 'Title',
+        reviewTitlePlaceholder: 'Give your review a title...',
+        reviewTitleError: 'Please enter a title for your review',
+        reviewDescription: 'Description',
+        reviewDescriptionPlaceholder: 'Write your review...',
+        reviewDescriptionError: 'Please enter a description for your review',
+        cancel: 'Close',
+        submit: 'Submit',
+      },
+    },
   },
 
   date: 'Date',

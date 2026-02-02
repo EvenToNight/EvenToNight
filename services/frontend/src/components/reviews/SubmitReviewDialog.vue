@@ -5,14 +5,15 @@ import type { Event, EventID } from '@/api/types/events'
 import { useAuthStore } from '@/stores/auth'
 import type { Rating, EventReview } from '@/api/types/interaction'
 import RatingStars from './ratings/RatingStars.vue'
-import { useI18n } from 'vue-i18n'
 import { required, notEmpty } from '@/components/forms/validationUtils'
 import FormField from '../forms/FormField.vue'
 import FormSelectorField from '../forms/FormSelectorField.vue'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
-const { t } = useI18n()
+const { t } = useTranslation('components.reviews.SubmitReviewDialog')
 const authStore = useAuthStore()
-
+const logger = createLogger(import.meta.url)
 interface Props {
   creatorId: string
   selectedEventId?: EventID
@@ -47,7 +48,7 @@ watch(
       selectedEvent.value = event
       eventOptions.value = [event]
     } catch (error) {
-      console.error('Failed to load event:', error)
+      logger.error('Failed to load event:', error)
       selectedEvent.value = null
     }
   },
@@ -127,7 +128,7 @@ const submitReview = async () => {
 
     isOpen.value = false
   } catch (error) {
-    console.error('Failed to submit review:', error)
+    logger.error('Failed to submit review:', error)
   } finally {
     submittingReview.value = false
   }
@@ -137,8 +138,8 @@ const submitReview = async () => {
   <q-dialog v-model="isOpen">
     <q-card class="modal-dialog relative-position">
       <q-card-section>
-        <div v-if="existingReview" class="text-h6">Modifica la tua recensione</div>
-        <div v-else class="text-h6">Lascia una recensione</div>
+        <div v-if="existingReview" class="text-h6">{{ t('editReviewLabel') }}</div>
+        <div v-else class="text-h6">{{ t('leaveReviewLabel') }}</div>
       </q-card-section>
 
       <q-card-section class="q-pt-none">
@@ -148,8 +149,8 @@ const submitReview = async () => {
             :options="eventOptions"
             option-value="eventId"
             option-label="title"
-            label="Seleziona evento"
-            :rules="[required('Seleziona un evento')]"
+            :label="t('selectEventLabel')"
+            :rules="[required(t('selectEventError'))]"
             :disable="!!existingReview"
             use-input
             hide-selected
@@ -160,7 +161,11 @@ const submitReview = async () => {
             <template #option="scope">
               <q-item v-bind="scope.itemProps">
                 <q-item-section v-if="scope.opt.poster" avatar>
-                  <img :src="scope.opt.poster" alt="Event poster" class="event-option-image" />
+                  <img
+                    :src="scope.opt.poster"
+                    :alt="t('eventPosterAlt')"
+                    class="event-option-image"
+                  />
                 </q-item-section>
                 <q-item-section>
                   <q-item-label>{{ scope.opt.title }}</q-item-label>
@@ -170,16 +175,14 @@ const submitReview = async () => {
             <template #no-option>
               <q-item>
                 <q-item-section class="text-grey">
-                  {{
-                    hasSearched ? 'Nessun evento trovato' : 'Inizia a digitare per cercare eventi'
-                  }}
+                  {{ hasSearched ? t('noEventsFound') : t('searchEventsHint') }}
                 </q-item-section>
               </q-item>
             </template>
           </FormSelectorField>
 
           <div class="rating-input">
-            <label>{{ t('userProfile.selectRating') }}</label>
+            <label>{{ t('ratingLabel') }}</label>
             <RatingStars
               v-model:rating="rating"
               :show-number="true"
@@ -190,27 +193,27 @@ const submitReview = async () => {
 
           <FormField
             v-model="reviewTitle"
-            :label="t('userProfile.reviewTitle')"
-            :placeholder="t('userProfile.reviewTitlePlaceholder')"
-            :rules="[notEmpty('Inserisci un titolo per la recensione')]"
+            :label="t('reviewTitle')"
+            :placeholder="t('reviewTitlePlaceholder')"
+            :rules="[notEmpty(t('reviewTitleError'))]"
             :disable="!!existingReview"
           />
 
           <FormField
             v-model="reviewDescription"
             type="textarea"
-            :label="t('userProfile.reviewDescription')"
-            :placeholder="t('userProfile.reviewDescriptionPlaceholder')"
-            :rules="[notEmpty('Inserisci una descrizione per la recensione')]"
+            :label="t('reviewDescription')"
+            :placeholder="t('reviewDescriptionPlaceholder')"
+            :rules="[notEmpty(t('reviewDescriptionError'))]"
             rows="5"
           />
 
           <q-card-actions align="right" class="q-px-none q-pb-none">
-            <q-btn v-close-popup flat :label="t('userProfile.cancel')" color="black" />
+            <q-btn v-close-popup flat :label="t('cancel')" color="black" />
             <q-btn
               type="submit"
               flat
-              :label="t('userProfile.submit')"
+              :label="t('submit')"
               color="primary"
               :loading="submittingReview"
             />
