@@ -492,6 +492,7 @@ export default {
         },
         PriceFilters: {
           free: 'Gratis',
+          paid: 'Pagato',
           from: 'Da',
           to: 'A',
           customize: 'Personalizza',
