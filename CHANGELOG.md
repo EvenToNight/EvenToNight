@@ -1,3 +1,9 @@
+## [1.25.2](https://github.com/EvenToNight/EvenToNight/compare/v1.25.1...v1.25.2) (2026-02-02)
+
+### Bug Fixes
+
+* **interactions:** fix bug in get user participations ([3dfdec3](https://github.com/EvenToNight/EvenToNight/commit/3dfdec3e372247816e1048cd655939dc79145b9f))
+
 ## [1.25.1](https://github.com/EvenToNight/EvenToNight/compare/v1.25.0...v1.25.1) (2026-01-31)
 
 ### Bug Fixes
