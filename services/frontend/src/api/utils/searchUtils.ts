@@ -7,6 +7,11 @@ import type { SortBy } from '@/components/explore/filters/SortFilters.vue'
 import type { DateFilter } from '@/components/explore/filters/DateFilters.vue'
 import type { PriceFilter } from '@/components/explore/filters/PriceFilters.vue'
 import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
+import { createLogger } from '@/utils/logger'
+import { useAuthStore } from '@/stores/auth'
+import type { OtherFilter } from '@/components/explore/filters/FeedFilters.vue'
+
+const logger = createLogger(import.meta.url)
 
 export interface SearchResultBase {
   type: 'event' | UserRole
@@ -253,14 +258,63 @@ const convertPriceFilter = (
   }
 }
 
-export const convertFiltersToEventsQueryParams = (filters: EventFilters): EventsQueryParams => {
-  const { sortBy, dateRange, customPriceRange, dateFilter, priceFilter, tags } = filters
+const convertOtherFilters = async (
+  eventsQueryParams: EventsQueryParams,
+  otherFilter: OtherFilter | null
+): Promise<void> => {
+  if (otherFilter) {
+    switch (otherFilter) {
+      case 'for_you': {
+        eventsQueryParams.other = 'feed'
+        const authStore = useAuthStore()
+        if (authStore.user?.interests) {
+          eventsQueryParams.tags = new Set(authStore.user.interests)
+        }
+        break
+      }
+      case 'new':
+        eventsQueryParams.other = 'recently_added'
+        break
+      case 'nearby':
+        try {
+          const position = await getCurrentPosition()
+          eventsQueryParams.near = {
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          }
+        } catch (error) {
+          logger.error('Error getting user position:', error)
+        }
+        break
+      case 'popular':
+        eventsQueryParams.other = 'popular'
+        break
+      case 'upcoming':
+        eventsQueryParams.other = 'upcoming'
+        break
+    }
+  }
+}
+
+const getCurrentPosition = (): Promise<GeolocationPosition> => {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(resolve, reject)
+  })
+}
+
+export const convertFiltersToEventsQueryParams = async (
+  filters: EventFilters
+): Promise<EventsQueryParams> => {
   const eventsQueryParams: EventsQueryParams = {}
+  const { sortBy, dateRange, customPriceRange, dateFilter, priceFilter, tags } = filters
   convertSortBy(eventsQueryParams, sortBy)
   convertDateFilter(eventsQueryParams, dateFilter)
   convertDateRange(eventsQueryParams, dateRange)
   convertTags(eventsQueryParams, tags)
   convertCustomPriceRange(eventsQueryParams, customPriceRange)
   convertPriceFilter(eventsQueryParams, priceFilter)
+  if (filters.otherFilter) {
+    await convertOtherFilters(eventsQueryParams, filters.otherFilter)
+  }
   return eventsQueryParams
 }

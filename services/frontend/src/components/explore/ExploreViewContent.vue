@@ -40,10 +40,9 @@ const searchEvents = async (
   eventFilters: EventFilters | undefined,
   pagination: PaginatedRequest
 ) => {
-  //TODO: implement filters in search
   logger.log('Searching events with filters:', eventFilters)
   const params: EventsQueryParams = eventFilters
-    ? convertFiltersToEventsQueryParams(eventFilters)
+    ? await convertFiltersToEventsQueryParams(eventFilters)
     : {}
   return loadEvents({
     title: searchQuery.value || undefined,
