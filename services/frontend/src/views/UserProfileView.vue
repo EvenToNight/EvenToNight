@@ -78,7 +78,7 @@ const scrollToTop = (behavior: ScrollBehavior = 'auto') => {
   </NavigationButtons>
 
   <div class="user-profile">
-    <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
+    <AuthRequiredDialog v-model:isOpen="showAuthDialog" :redirect="route.fullPath" />
     <template v-if="user">
       <div ref="profileHeaderRef">
         <ProfileHeader

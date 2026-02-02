@@ -13,9 +13,11 @@ import { useNavigation } from '@/router/utils'
 import type { EventTicketType } from '@/api/types/payments'
 import { NOT_FOUND_ROUTE_NAME } from '@/router'
 import { createLogger } from '@/utils/logger'
+import { useRoute } from 'vue-router'
 
 const logger = createLogger(import.meta.url)
 const { params, goToRoute } = useNavigation()
+const route = useRoute()
 const eventId = computed(() => params.id as string)
 const showAuthDialog = ref(false)
 
@@ -41,7 +43,7 @@ onMounted(async () => {
 
 <template>
   <div v-if="event" class="event-details-view">
-    <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
+    <AuthRequiredDialog v-model:isOpen="showAuthDialog" :redirect="route.fullPath" />
     <NavigationWithParallaxEffect :posterLink="event.poster" :title="event.title">
       <div class="content-wrapper">
         <div class="info-box">

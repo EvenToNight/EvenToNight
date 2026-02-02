@@ -4,9 +4,11 @@ import NavigationPageView from '@/layouts/NavigationWithSearch.vue'
 import ExploreViewContent from '@/components/explore/ExploreViewContent.vue'
 import AuthRequiredDialog from '@/components/auth/AuthRequiredDialog.vue'
 import { useTranslation } from '@/composables/useTranslation'
+import { useRoute } from 'vue-router'
 
 const showAuthDialog = ref(false)
 const { t } = useTranslation('views.ExploreView')
+const route = useRoute()
 provide('searchHint', t('searchHint'))
 provide('hideDropdown', true)
 
@@ -16,7 +18,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
+  <AuthRequiredDialog v-model:isOpen="showAuthDialog" :redirect="route.fullPath" />
   <NavigationPageView>
     <ExploreViewContent @auth-required="showAuthDialog = true" />
   </NavigationPageView>

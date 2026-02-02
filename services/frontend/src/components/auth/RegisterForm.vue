@@ -13,7 +13,7 @@ const $q = useQuasar()
 const authStore = useAuthStore()
 const { t } = useTranslation('components.auth.RegisterForm')
 const logger = createLogger(import.meta.url)
-const { goToHome, goToLogin } = useNavigation()
+const { goToHome, goToLogin, goToRedirect } = useNavigation()
 
 const name = ref('')
 const email = ref('')
@@ -28,7 +28,9 @@ const onSuccessfulRegistration = () => {
     type: 'positive',
     message: t('successfulRegistration'),
   })
-  goToHome()
+  if (!goToRedirect()) {
+    goToHome()
+  }
 }
 
 const onFailedRegistration = (errorMsg?: string) => {

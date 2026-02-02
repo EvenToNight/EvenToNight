@@ -92,20 +92,11 @@ export const useNavigation = () => {
 
   const goToRedirect = (swap: boolean = true) => {
     const redirectPath = redirect.value
-    const radirectPage = query.redirectPage as string | undefined
     if (redirectPath) {
       if (swap) {
         router.replace(redirectPath)
       } else {
         router.push(redirectPath)
-      }
-      return true
-    }
-    if (radirectPage) {
-      if (swap) {
-        router.replace({ name: radirectPage })
-      } else {
-        router.push({ name: radirectPage })
       }
       return true
     }
@@ -120,19 +111,31 @@ export const useNavigation = () => {
     }
   }
 
-  const goToLogin = (swap: boolean = false) => {
+  const goToLogin = (redirectTo?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(LOGIN_ROUTE_NAME)
+      replaceWithLocale(
+        LOGIN_ROUTE_NAME,
+        undefined,
+        redirectTo ? { redirect: redirectTo } : undefined
+      )
     } else {
-      pushWithLocale(LOGIN_ROUTE_NAME)
+      pushWithLocale(LOGIN_ROUTE_NAME, undefined, redirectTo ? { redirect: redirectTo } : undefined)
     }
   }
 
-  const goToRegister = (swap: boolean = false) => {
+  const goToRegister = (redirectTo?: string, swap: boolean = false) => {
     if (swap) {
-      replaceWithLocale(REGISTER_ROUTE_NAME)
+      replaceWithLocale(
+        REGISTER_ROUTE_NAME,
+        undefined,
+        redirectTo ? { redirect: redirectTo } : undefined
+      )
     } else {
-      pushWithLocale(REGISTER_ROUTE_NAME)
+      pushWithLocale(
+        REGISTER_ROUTE_NAME,
+        undefined,
+        redirectTo ? { redirect: redirectTo } : undefined
+      )
     }
   }
 

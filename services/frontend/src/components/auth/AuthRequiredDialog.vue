@@ -6,6 +6,7 @@ import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   isOpen: boolean
+  redirect?: string
 }
 
 const props = defineProps<Props>()
@@ -22,12 +23,12 @@ const close = () => {
 
 const openLogin = () => {
   close()
-  goToLogin()
+  goToLogin(props.redirect)
 }
 
 const openRegister = () => {
   close()
-  goToRegister()
+  goToRegister(props.redirect)
 }
 
 watch(
