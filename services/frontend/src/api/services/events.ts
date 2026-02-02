@@ -3,14 +3,13 @@ import type {
   GetEventByIdResponse,
   PublishEventResponse,
   EventsDataResponse,
+  EventsQueryParams,
 } from '../interfaces/events'
 import type { GetTagResponse } from '../interfaces/events'
-import type { EventID, Event, EventStatus, PartialEventData } from '../types/events'
+import type { EventID, Event, PartialEventData } from '../types/events'
 import { buildQueryParams, evaluatePagination } from '../utils/requestUtils'
-import type { PaginatedRequest, PaginatedResponse } from '../interfaces/commons'
-import type { UserID } from '../types/users'
+import type { PaginatedResponse } from '../interfaces/commons'
 import type { ApiClient } from '../client'
-// import { createPaymentsClient } from '../client'
 
 export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async getTags(): Promise<GetTagResponse> {
@@ -21,13 +20,12 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
     return eventsClient.get<GetEventByIdResponse>(`/${eventId}`)
   },
   async getEventsByIds(eventIds: EventID[]): Promise<EventsDataResponse> {
-    const eventsResponses = await Promise.all(
+    return await Promise.all(
       eventIds.map((eventId) => {
         console.log('Fetching event for ID:', eventId)
         return this.getEventById(eventId)
       })
     )
-    return { events: eventsResponses }
   },
   async createEvent(eventData: PartialEventData): Promise<PublishEventResponse> {
     const { poster, date, ...rest } = eventData
@@ -62,12 +60,7 @@ export const createEventsApi = (eventsClient: ApiClient): EventAPI => ({
   async deleteEvent(eventId: EventID): Promise<void> {
     await eventsClient.delete(`/${eventId}`)
   },
-  async searchEvents(params: {
-    title?: string
-    pagination?: PaginatedRequest
-    organizationId?: UserID
-    status?: EventStatus
-  }): Promise<PaginatedResponse<Event>> {
+  async searchEvents(params: EventsQueryParams): Promise<PaginatedResponse<Event>> {
     const { pagination = { ...evaluatePagination(params.pagination) }, ...rest } = params
     return eventsClient.get<PaginatedResponse<Event>>(
       `/search${buildQueryParams({ ...pagination, ...rest })}`

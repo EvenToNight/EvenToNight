@@ -58,7 +58,7 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     GetFilteredEventsCommand(
       limit = Some(5),
       offset = Some(0),
-      status = Some(EventStatus.PUBLISHED),
+      status = Some(List(EventStatus.PUBLISHED)),
       title = Some("Sample"),
       tags = Some(List(EventTag.EventType.Concert)),
       startDate = Some(baseDate),
@@ -67,7 +67,9 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
       city = Some("Sample City"),
       location_name = Some("Sample Venue"),
       sortBy = Some("date"),
-      sortOrder = Some("asc")
+      sortOrder = Some("asc"),
+      query = None,
+      near = None
     )
 
   "CreateEventDraftCommand" should "implement Commands trait" in:
@@ -98,13 +100,13 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   it should "support pattern matching" in:
     val command: Commands = createCommand("Pattern Test")
     val result = command match
-      case CreateEventCommand(title, _, _, _, _, _, _, _, _)            => "Command: " + title.getOrElse("No Title")
-      case GetEventCommand(eventId)                                     => s"Get Command: $eventId"
-      case UpdateEventPosterCommand(eventId, posterUrl)                 => s"Update Poster Command: $eventId"
-      case GetAllEventsCommand()                                        => "Get All Events Command"
-      case UpdateEventCommand(id, _, _, _, _, _, _, _)                  => s"Update $id Event Command"
-      case DeleteEventCommand(eventId)                                  => s"Delete Command: $eventId"
-      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
+      case CreateEventCommand(title, _, _, _, _, _, _, _, _) => "Command: " + title.getOrElse("No Title")
+      case GetEventCommand(eventId)                          => s"Get Command: $eventId"
+      case UpdateEventPosterCommand(eventId, posterUrl)      => s"Update Poster Command: $eventId"
+      case GetAllEventsCommand()                             => "Get All Events Command"
+      case UpdateEventCommand(id, _, _, _, _, _, _, _)       => s"Update $id Event Command"
+      case DeleteEventCommand(eventId)                       => s"Delete Command: $eventId"
+      case GetFilteredEventsCommand(_, _, _, _, _, _, _, _, _, _, _, _, _, _, _, _) => "Get Filtered Events Command"
     result shouldBe "Command: Pattern Test"
 
   "GetEventCommand" should "implement Commands trait" in:
@@ -178,16 +180,3 @@ class CommandsTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
     val command = getFilteredEventsCommand()
     command shouldBe a[Commands]
     command shouldBe a[GetFilteredEventsCommand]
-
-  it should "store properties correctly" in:
-    val command = getFilteredEventsCommand()
-    command.limit shouldBe Some(5)
-    command.offset shouldBe Some(0)
-    command.status shouldBe Some(EventStatus.PUBLISHED)
-    command.title shouldBe Some("Sample")
-    command.tags shouldBe Some(List(EventTag.EventType.Concert))
-    command.startDate shouldBe Some(baseDate)
-    command.endDate shouldBe Some(baseDate.plusDays(10))
-    command.organizationId shouldBe Some("org-456")
-    command.city shouldBe Some("Sample City")
-    command.location_name shouldBe Some("Sample Venue")

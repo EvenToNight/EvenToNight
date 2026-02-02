@@ -43,6 +43,24 @@ const decrementQuantity = (tt: EventTicketType) => {
   }
 }
 
+const handleQuantityChange = (tt: EventTicketType, quantity: string) => {
+  const numValue = parseInt(quantity) || 0
+  const clampedValue = Math.max(0, Math.min(numValue, tt.availableQuantity))
+
+  if (clampedValue === 0) {
+    delete ticketQuantities.value[tt.id]
+  } else {
+    ticketQuantities.value[tt.id] = clampedValue
+  }
+}
+
+const preventInvalidKeys = (event: KeyboardEvent) => {
+  const invalidKeys = ['e', 'E', '+', '-', '.']
+  if (invalidKeys.includes(event.key)) {
+    event.preventDefault()
+  }
+}
+
 const hasAnyTickets = computed(() => {
   return Object.values(ticketQuantities.value).some((q) => q > 0)
 })
@@ -219,7 +237,13 @@ const handlePurchase = async () => {
                   class="qty-btn"
                   @click="decrementQuantity(tt)"
                 />
-                <span class="quantity-value">{{ getQuantity(tt.id) }}</span>
+                <input
+                  type="number"
+                  :value="getQuantity(tt.id)"
+                  class="quantity-input"
+                  @keydown="preventInvalidKeys"
+                  @blur="(e) => handleQuantityChange(tt, (e.target as HTMLInputElement).value)"
+                />
                 <q-btn
                   round
                   flat
@@ -511,15 +535,39 @@ const handlePurchase = async () => {
   }
 }
 
-.quantity-value {
+.quantity-input {
   font-size: $font-size-xl;
   font-weight: $font-weight-bold;
-  min-width: 50px;
+  width: 60px;
   text-align: center;
   color: $color-text-primary;
+  background: $color-white;
+  border: 1px solid $color-gray-200;
+  border-radius: $radius-sm;
+  padding: $spacing-1 $spacing-2;
+  transition: all 0.2s ease;
 
   @include dark-mode {
     color: $color-text-dark;
+    background: #1a1a1a;
+    border-color: rgba(255, 255, 255, 0.2);
+  }
+
+  &:focus {
+    outline: none;
+    border-color: $color-primary;
+  }
+
+  // Hide arrows for number input
+  &::-webkit-outer-spin-button,
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  &[type='number'] {
+    -moz-appearance: textfield;
+    appearance: textfield;
   }
 }
 

@@ -115,7 +115,7 @@ object Utils:
     eventDate.isBefore(LocalDateTime.now())
 
   def updateEventIfPastDate(event: Event): Event =
-    if event.date.exists(pastDate) && event.status != EventStatus.COMPLETED then
+    if event.date.exists(pastDate) && event.status == EventStatus.PUBLISHED then
       event.copy(status = EventStatus.COMPLETED)
     else
       event
@@ -123,7 +123,7 @@ object Utils:
   def parseEventFilters(
       limit: Option[Int],
       offset: Option[Int],
-      status: Option[String],
+      status: Option[List[String]],
       title: Option[String],
       tags: Option[List[String]],
       startDate: Option[String],
@@ -133,14 +133,27 @@ object Utils:
       location_name: Option[String],
       sortBy: Option[String],
       sortOrder: Option[String],
+      query: Option[String],
+      near: Option[String],
+      other: Option[String],
+      price: Option[String],
       isAuthenticated: Boolean
   ): GetFilteredEventsCommand =
-    var parsedStatus: Option[EventStatus] = None
-    isAuthenticated match
-      case true  => parsedStatus = status.flatMap(s => EventStatus.withNameOpt(s))
-      case false => parsedStatus = status.flatMap(s => EventStatus.withNameOpt(s)).orElse(Some(EventStatus.PUBLISHED))
+    var parsedStatus: Option[List[EventStatus]] = status.map(
+      _.flatMap(s => s.split(",").map(_.trim))
+        .map(str => EventStatus.withNameOpt(str.trim).getOrElse(EventStatus.PUBLISHED))
+    )
 
-    val parsedTags: Option[List[EventTag]] = tags.map(_.map(t => EventTag.fromString(t)))
+    isAuthenticated match
+      case true => parsedStatus = status.map(_.flatMap(s => EventStatus.withNameOpt(s)))
+      case false =>
+        parsedStatus = status.map(_.flatMap(s => EventStatus.withNameOpt(s))).orElse(Some(List(EventStatus.PUBLISHED)))
+
+    val parsedTags: Option[List[EventTag]] = tags.map(
+      _.flatMap(t => t.split(",").map(_.trim))
+        .map(t => EventTag.fromString(t))
+    )
+
     val parsedStartDate: Option[LocalDateTime] = startDate.flatMap { sd =>
       Try(LocalDateTime.parse(sd)).toOption
     }
@@ -149,11 +162,26 @@ object Utils:
     }
     val limitValue = math.min(limit.getOrElse(DEFAULT_LIMIT), MAX_LIMIT)
     val validSortBy = sortBy.filter(s =>
-      Set("date", "instant").contains(s.toLowerCase)
+      Set("date", "instant", "title", "price").contains(s.toLowerCase)
     ).orElse(Some("date"))
     val validSortOrder = sortOrder.filter(o =>
       Set("asc", "desc").contains(o.toLowerCase)
     ).map(_.toLowerCase).orElse(Some("asc"))
+
+    val parsedNear: Option[(Double, Double)] = near.flatMap { coords =>
+      coords.split(",").map(_.trim) match
+        case Array(lat, lon) =>
+          Try((lat.toDouble, lon.toDouble)).toOption
+        case _ => None
+    }
+
+    val parsedPrice: Option[(Double, Double)] = price.flatMap { priceRange =>
+      priceRange.split(",").map(_.trim) match
+        case Array(min, max) =>
+          Try((min.toDouble, max.toDouble)).toOption
+        case _ => None
+    }
+
     GetFilteredEventsCommand(
       limit = Some(limitValue),
       offset = offset,
@@ -166,7 +194,11 @@ object Utils:
       city = city,
       location_name = location_name,
       sortBy = validSortBy,
-      sortOrder = validSortOrder
+      sortOrder = validSortOrder,
+      query = query,
+      near = parsedNear,
+      other = other,
+      price = parsedPrice
     )
 
   def createPaginatedResponse(

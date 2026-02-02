@@ -543,6 +543,10 @@ const goToProfile = () => {
 .drawer-user-info {
   @include flex-center;
   gap: $spacing-3;
+
+  :deep(.q-avatar img) {
+    object-fit: cover;
+  }
 }
 
 .drawer-user-details {
@@ -582,6 +586,10 @@ const goToProfile = () => {
 
   :deep(.q-badge) {
     font-weight: $font-weight-semibold;
+  }
+
+  :deep(.q-avatar img) {
+    object-fit: cover;
   }
 }
 

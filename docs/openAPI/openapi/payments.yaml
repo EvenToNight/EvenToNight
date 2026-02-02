@@ -796,8 +796,8 @@ paths:
 
   /users/{userId}/events/{eventId}/pdf:
     get:
-      summary: Get PDF with all tickets for a user and event
-      description: Download a PDF containing all tickets for the specified user and event
+      summary: Get PDF with all tickets with ACTIVE status for a user and event
+      description: Download a PDF containing all tickets with ACTIVE status for the specified user and event
       security:
         - BearerAuth: []
       parameters:
@@ -832,14 +832,14 @@ paths:
                 message: "Forbidden: Cannot access tickets of other users"
                 error: Forbidden
         '404':
-          description: No tickets found for this event
+          description: No active tickets found for this event
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
               example:
                 statusCode: 404
-                message: "No tickets found for this event"
+                message: "No active  tickets found for this event"
                 error: Not Found
       tags:
         - User Events

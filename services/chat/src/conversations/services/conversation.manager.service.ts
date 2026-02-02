@@ -186,13 +186,21 @@ export class ConversationManagerService {
     limit: number,
     offset: number,
   ): Promise<any[]> {
-    return this.participantModel
-      .find({ userId })
-      .populate('conversationId')
-      .sort({ 'conversationId.updatedAt': -1 })
-      .skip(offset)
-      .limit(limit + 1)
-      .exec();
+    return this.participantModel.aggregate([
+      { $match: { userId } },
+      {
+        $lookup: {
+          from: 'conversations',
+          localField: 'conversationId',
+          foreignField: '_id',
+          as: 'conversationId',
+        },
+      },
+      { $unwind: '$conversationId' },
+      { $sort: { 'conversationId.updatedAt': -1 } },
+      { $skip: offset },
+      { $limit: limit + 1 },
+    ]);
   }
 
   async ensureConversationDoesNotExist(

@@ -54,6 +54,7 @@ WAIT=false
 FILTERED_ARGS=()
 PROJECT_NAME="eventonight"
 SKIP_NEXT=false
+PULL=""
 
 for arg in "$@"; do
     if [[ "$SKIP_NEXT" == true ]]; then
@@ -78,6 +79,9 @@ for arg in "$@"; do
     elif [[ "$arg" == "--wait" ]]; then
         WAIT=true
         FILTERED_ARGS+=("$arg")
+    elif [[ "$arg" == "pull" ]]; then
+        PULL="pull"
+        FILTERED_ARGS+=("$arg")
     else
         FILTERED_ARGS+=("$arg")
     fi
@@ -87,7 +91,7 @@ done
 
 if [ "$INIT_DB" = true ] && [ "$DETACHED" = true ] && [ "$WAIT" = true ]; then
   echo "💬 Initializing the database..."
-  SEED_CMD="./scripts/composeAll.sh --project-name $PROJECT_NAME -p ./infrastructure/seed ${DEV:+$DEV} run --rm ${BUILD:+$BUILD} seed"
+  SEED_CMD="./scripts/composeAll.sh ${PULL:+$PULL} --project-name $PROJECT_NAME -p ./infrastructure/seed ${DEV:+$DEV} run --rm ${BUILD:+$BUILD} seed"
   echo "🔧 Running: $SEED_CMD"
   $SEED_CMD
   echo "💬 Database initialized."

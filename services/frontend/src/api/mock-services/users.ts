@@ -85,10 +85,6 @@ export const mockUsersApi: UsersAPI = {
     return
   },
 
-  async getUsers(pagination?: PaginatedRequest): Promise<PaginatedResponse<User>> {
-    return getPaginatedItems(mockUsers.data, pagination)
-  },
-
   async getUserById(id: UserID): Promise<User> {
     const user = mockUsers.data.find((u) => u.id === id)
     if (!user) {

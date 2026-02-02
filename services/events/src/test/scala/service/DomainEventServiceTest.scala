@@ -1,7 +1,7 @@
 package service
 
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventCommand}
-import domain.models.{Event, EventStatus, EventTag, Location}
+import domain.models.{Event, EventStatus, EventTag, Location, UserMetadata}
 import infrastructure.db.{EventRepository, MongoEventRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.{EventPublisher, MockEventPublisher}
 import org.scalatest.BeforeAndAfterEach
@@ -23,7 +23,7 @@ class FailingEventRepository extends EventRepository:
   override def findByFilters(
       limit: Option[Int],
       offset: Option[Int],
-      status: Option[EventStatus],
+      status: Option[List[EventStatus]],
       title: Option[String],
       tags: Option[List[String]],
       startDate: Option[String],
@@ -32,7 +32,11 @@ class FailingEventRepository extends EventRepository:
       city: Option[String],
       location_name: Option[String],
       sortBy: Option[String],
-      sortOrder: Option[String]
+      sortOrder: Option[String],
+      query: Option[String],
+      near: Option[(Double, Double)],
+      other: Option[String],
+      price: Option[(Double, Double)] = None
   ): Either[Throwable, (List[Event], Boolean)] =
     Left(new RuntimeException("Database connection failed"))
 
@@ -55,9 +59,10 @@ class DomainEventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAft
       "eventonight_test",
       messageBroker = new MockEventPublisher()
     )
-    userRepo.save(domain.models.UserMetadata(
+    userRepo.save(UserMetadata(
       id = creatorId,
-      role = "organization"
+      role = "organization",
+      name = "Test Organization"
     ))
 
     publisher = new MockEventPublisher()

@@ -1,3 +1,51 @@
+## [1.25.2](https://github.com/EvenToNight/EvenToNight/compare/v1.25.1...v1.25.2) (2026-02-02)
+
+### Bug Fixes
+
+* **interactions:** fix bug in get user participations ([3dfdec3](https://github.com/EvenToNight/EvenToNight/commit/3dfdec3e372247816e1048cd655939dc79145b9f))
+
+## [1.25.1](https://github.com/EvenToNight/EvenToNight/compare/v1.25.0...v1.25.1) (2026-01-31)
+
+### Bug Fixes
+
+* **chat:** fix bug in get conversations order ([df8dadd](https://github.com/EvenToNight/EvenToNight/commit/df8dadd00392e7cbcfaef88b52a4c1e1fe7c116b))
+* **events:** fix bug in search events order by ([5826c60](https://github.com/EvenToNight/EvenToNight/commit/5826c6091fe52977dfc75779300bd4652b87f030))
+
+## [1.25.0](https://github.com/EvenToNight/EvenToNight/compare/v1.24.1...v1.25.0) (2026-01-30)
+
+### Features
+
+* **notification:** implement get notifications routes ([8f665a8](https://github.com/EvenToNight/EvenToNight/commit/8f665a88cb4fd2e469b08ddb6b49eb9977e741be))
+* **notification:** solved implementation of notification service ([cffaa7d](https://github.com/EvenToNight/EvenToNight/commit/cffaa7dd0a46a5747bbff69d16026d30eff362d7))
+
+### Bug Fixes
+
+* **notification:** fix import and env vars usage ([007c470](https://github.com/EvenToNight/EvenToNight/commit/007c470dd961b346319e20aa58e25e38514bfab2))
+
+## [1.24.1](https://github.com/EvenToNight/EvenToNight/compare/v1.24.0...v1.24.1) (2026-01-30)
+
+### Bug Fixes
+
+* **payments:** remove unused metadata to fix max metadata size error ([bdf05f2](https://github.com/EvenToNight/EvenToNight/commit/bdf05f223f1d3d11fc42fdc71f12404a0629f411))
+* **profile:** fix follow button display condition ([95f73ca](https://github.com/EvenToNight/EvenToNight/commit/95f73cac9c543563597efd238e021d7b0c6d5b71))
+* **profile:** fix navigation bar custom content ([242860f](https://github.com/EvenToNight/EvenToNight/commit/242860fdc9826651c7d0a18fe1d91a845cc4cfb2))
+* **review:** avoid loosing focus when search reviews in settings tab ([ade81b1](https://github.com/EvenToNight/EvenToNight/commit/ade81b1a00d27223249db32349e8b0911d487a55))
+* **tickets:** update qr code link and verify route handling ([816b3c3](https://github.com/EvenToNight/EvenToNight/commit/816b3c38a8b3c2a33850f2b9033b8b15d67dd95c))
+* **user:** fix search api usage ([a6aaeea](https://github.com/EvenToNight/EvenToNight/commit/a6aaeea4c2c3c7215cc9142961b1835eae692473))
+
+## [1.24.0](https://github.com/EvenToNight/EvenToNight/compare/v1.23.1...v1.24.0) (2026-01-29)
+
+### Features
+
+* **users:** implement DELETE /{userId}/avatar endpoint and add OpenAPI spec ([f089764](https://github.com/EvenToNight/EvenToNight/commit/f08976433ca2154cb9395a6d75cfc79948338e61))
+
+### Bug Fixes
+
+* **deleteAvatar:** delete avatar from media service and publish UserUpdated event ([ed51699](https://github.com/EvenToNight/EvenToNight/commit/ed51699e07272bb84d01c8bb60603935394371a3))
+* **deleteUser:** remove user from MongoDB and use authenticateAndAuthorize ([82c862e](https://github.com/EvenToNight/EvenToNight/commit/82c862e1da39dbd6c6c025a643b20cb1fdf4ab01))
+* **updatePassword:** verify current password before updating it ([7ba486d](https://github.com/EvenToNight/EvenToNight/commit/7ba486d32461e4852f58f037a0fc882d2117711f))
+* **updateUser:** support "replace all" update, add gender and name validation ([55304fe](https://github.com/EvenToNight/EvenToNight/commit/55304fe9b42603b993903ef816fbc5c926aa71af))
+
 ## [1.23.1](https://github.com/EvenToNight/EvenToNight/compare/v1.23.0...v1.23.1) (2026-01-28)
 
 ### Bug Fixes

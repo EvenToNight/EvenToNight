@@ -70,12 +70,7 @@ export class StripeService implements PaymentService {
             }
           : undefined,
         metadata: {
-          userId: params.userId,
-          ticketIds: JSON.stringify(params.ticketIds),
-          ticketTypeIds: JSON.stringify(params.ticketTypeIds),
-          eventId: params.eventId,
           orderId: params.orderId,
-          eventTitle: params.eventTitle || '',
         },
         success_url: params.successUrl,
         cancel_url: params.cancelUrl,

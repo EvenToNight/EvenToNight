@@ -32,8 +32,6 @@ const getRatingFromQuery = (): Rating | null => {
   return null
 }
 const tempSelectedRating = ref<Rating | null>(getRatingFromQuery())
-const reviews = ref<EventReview[]>([])
-const loading = ref(true)
 const organizationName = ref<string>('')
 const organizationAvatar = ref<string>('')
 
@@ -42,20 +40,18 @@ const organizationAvatar = ref<string>('')
 const showReviewDialog = ref(false)
 const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 
-const loadReviews = async () => {
-  loading.value = true
-  try {
-    const response = await api.interactions.getOrganizationReviews(organizationId.value)
-    reviews.value = response.items
-    reviewsStatistics.value = {
-      averageRating: response.averageRating,
-      totalReviews: response.totalReviews,
-      ratingDistribution: response.ratingDistribution,
-    }
-  } catch (error) {
-    console.error('Failed to load reviews:', error)
-  } finally {
-    loading.value = false
+const loadReviewsStatistics = async () => {
+  const response = await api.interactions.getOrganizationReviews(organizationId.value, {
+    pagination: {
+      offset: 0,
+      limit: 1,
+    },
+  })
+
+  reviewsStatistics.value = {
+    averageRating: response.averageRating,
+    totalReviews: response.totalReviews,
+    ratingDistribution: response.ratingDistribution,
   }
 }
 const loadOrganizationInfo = async () => {
@@ -114,21 +110,22 @@ const loadCurrentUserReviewInfo = async () => {
     console.error('Failed to load current user review info:', error)
   }
 }
+const reviewsListRef = ref<{ reload: () => void } | null>(null)
+
 const handleUpdateReview = async (eventId: string, userId: string) => {
   console.log('review deleted', eventId, userId)
-  await loadReviews()
+  reviewsListRef.value?.reload()
   await loadCurrentUserReviewInfo()
   console.log('reviews reloaded')
-  // allReviews.value = allReviews.value.filter((review) => review.id !== reviewId)
 }
 
 provide('deleteReview', handleUpdateReview)
 provide('updateReview', handleUpdateReview)
 
 onMounted(() => {
-  loadReviews()
   loadOrganizationInfo()
   loadCurrentUserReviewInfo()
+  loadReviewsStatistics()
 })
 </script>
 
@@ -178,9 +175,10 @@ onMounted(() => {
           </div>
         </div>
         <ReviewsList
-          :reviews="reviews"
-          :loading="loading"
-          @delete="() => console.log('review deleted')"
+          ref="reviewsListRef"
+          :organization-id="organizationId"
+          :event-id="tempEventId || undefined"
+          :selected-rating="tempSelectedRating || undefined"
         />
       </div>
     </div>

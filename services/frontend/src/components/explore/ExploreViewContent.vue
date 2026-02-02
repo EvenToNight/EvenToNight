@@ -298,7 +298,6 @@ watch(searchQuery, () => {
         :tabs="tabs"
         :default-tab="'events'"
       />
-      <div class="colored-box"></div>
     </div>
   </div>
 </template>
@@ -306,7 +305,6 @@ watch(searchQuery, () => {
 <style lang="scss" scoped>
 .explore-page {
   @include flex-column;
-  min-height: 100vh;
 }
 
 .explore-hero {
@@ -365,14 +363,6 @@ watch(searchQuery, () => {
 
 .padded-content {
   padding: $spacing-4;
-}
-
-.colored-box {
-  width: 100%;
-  height: 800px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: $radius-xl;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
 .hide-tabs {

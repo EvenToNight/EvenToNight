@@ -3,13 +3,12 @@ import type {
   GetTagResponse,
   PublishEventResponse,
   EventsDataResponse,
+  EventsQueryParams,
 } from '../interfaces/events'
 import type { EventAPI } from '../interfaces/events'
-import type { EventID, EventStatus, PartialEventData, Event } from '../types/events'
+import type { EventID, PartialEventData, Event } from '../types/events'
 import { mockEvents } from './data/events'
 import { mockTags } from './data/tags'
-import type { UserID } from '../types/users'
-import type { PaginatedRequest } from '../interfaces/commons'
 import { getPaginatedItems } from '../utils/requestUtils'
 import type { PaginatedResponse } from '../interfaces/commons'
 
@@ -31,8 +30,7 @@ export const mockEventsApi: EventAPI = {
     return event
   },
   async getEventsByIds(eventIds: EventID[]): Promise<EventsDataResponse> {
-    const events = await Promise.all(eventIds.map((eventId) => this.getEventById(eventId)))
-    return { events }
+    return await Promise.all(eventIds.map((eventId) => this.getEventById(eventId)))
   },
   async createEvent(_eventData: PartialEventData): Promise<PublishEventResponse> {
     return { eventId: mockEvents[0]!.eventId }
@@ -49,12 +47,7 @@ export const mockEventsApi: EventAPI = {
   async deleteEvent(_eventId: EventID): Promise<void> {
     return
   },
-  async searchEvents(params: {
-    title?: string
-    pagination?: PaginatedRequest
-    organizationId?: UserID
-    status?: EventStatus
-  }): Promise<PaginatedResponse<Event>> {
+  async searchEvents(params: EventsQueryParams): Promise<PaginatedResponse<Event>> {
     const lowerTitle = (params.title ?? '').toLowerCase().trim()
     const status = params.status ?? 'PUBLISHED'
 

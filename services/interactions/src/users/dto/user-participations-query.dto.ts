@@ -1,6 +1,7 @@
-import { IsOptional, IsString, IsBoolean } from 'class-validator';
+import { IsOptional, IsString, IsBoolean, IsEnum } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { PaginatedQueryDto } from 'src/commons/dto/paginated-query.dto';
+import { EventStatus } from 'src/metadata/schemas/event.schema';
 
 export class UserParticipationsQueryDto extends PaginatedQueryDto {
   @IsOptional()
@@ -15,4 +16,16 @@ export class UserParticipationsQueryDto extends PaginatedQueryDto {
     return value;
   })
   reviewed?: boolean;
+
+  @IsOptional()
+  @IsEnum(EventStatus)
+  eventStatus?: EventStatus;
+
+  @IsOptional()
+  @IsEnum(['asc', 'desc'])
+  order?: 'asc' | 'desc';
+
+  @IsOptional()
+  @IsString()
+  title?: string;
 }

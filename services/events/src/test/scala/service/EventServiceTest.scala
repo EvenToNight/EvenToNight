@@ -93,7 +93,7 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
   private def validGetFilteredEventsCommand(
       limit: Option[Int] = None,
       offset: Option[Int] = None,
-      status: Option[EventStatus] = None,
+      status: Option[List[EventStatus]] = None,
       title: Option[String] = None,
       tags: Option[List[EventTag]] = None,
       startDate: Option[LocalDateTime] = None,
@@ -102,7 +102,9 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       city: Option[String] = None,
       location_name: Option[String] = None,
       sortBy: Option[String] = None,
-      sortOrder: Option[String] = None
+      sortOrder: Option[String] = None,
+      query: Option[String] = None,
+      near: Option[(Double, Double)] = None
   ): GetFilteredEventsCommand =
     GetFilteredEventsCommand(
       limit,
@@ -116,7 +118,9 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       city,
       location_name,
       sortBy,
-      sortOrder
+      sortOrder,
+      query,
+      near
     )
 
   "EventService" should "be instantiated correctly" in:

@@ -15,7 +15,10 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
   override def beforeEach(): Unit =
     super.beforeEach()
     eventPublished = EventPublished(
-      eventId = "event-published-1"
+      eventId = "event-published-1",
+      name = "Sample Event Published",
+      creatorId = "creator-1",
+      creatorName = "Creator Name"
     )
     eventUpdated = EventUpdated(
       eventId = "event-updated-1",
@@ -33,10 +36,15 @@ class DomainEventTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
   it should "store all provided data correctly" in:
     eventPublished.eventId shouldBe "event-published-1"
+    eventPublished.creatorId shouldBe "creator-1"
+    eventPublished.creatorName shouldBe "Creator Name"
 
   it should "be comparable with itself" in:
     val event2 = EventPublished(
-      eventId = "event-published-1"
+      eventId = "event-published-1",
+      name = "Sample Event Published",
+      creatorId = "creator-1",
+      creatorName = "Creator Name"
     )
     eventPublished shouldBe event2
 

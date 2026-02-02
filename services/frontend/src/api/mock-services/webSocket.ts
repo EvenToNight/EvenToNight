@@ -1,10 +1,15 @@
-import type { WebSocketEvent, NewMessageEvent } from '../types/notification'
+import type {
+  NewMessageReceivedEvent,
+  NotificationData,
+  NotificationEvent,
+  NotificationType,
+} from '../types/notifications'
 
-type EventCallback = (event: WebSocketEvent) => void
+type EventCallback = (event: NotificationData) => void
 
 export class WebSocket {
   private channel: BroadcastChannel | null = null
-  private listeners: Set<EventCallback> = new Set()
+  private listeners = new Map<NotificationType, Set<EventCallback>>()
   private isConnected = false
 
   constructor(private userId: string) {}
@@ -27,9 +32,9 @@ export class WebSocket {
     console.log('[WebSocket] Connecting to channel:', channelName, 'for user:', this.userId)
     this.channel = new BroadcastChannel(channelName)
 
-    this.channel.onmessage = (event) => {
+    this.channel.onmessage = (event: MessageEvent) => {
       console.log('[WebSocket] Received message:', event.data)
-      const wsEvent = event.data as WebSocketEvent
+      const wsEvent = event.data as NotificationData
       this.notifyListeners(wsEvent)
     }
 
@@ -46,26 +51,31 @@ export class WebSocket {
     this.listeners.clear()
   }
 
-  on(callback: EventCallback): () => void {
-    this.listeners.add(callback)
+  on(eventType: NotificationType, callback: EventCallback): () => void {
+    if (!this.listeners.has(eventType)) {
+      this.listeners.set(eventType, new Set())
+    }
+    this.listeners.get(eventType)!.add(callback)
+
     // Return unsubscribe function
     return () => {
-      this.listeners.delete(callback)
+      this.listeners.get(eventType)?.delete(callback)
     }
   }
 
-  // Emit event to all other tabs
-  emit(event: WebSocketEvent): void {
+  emit(eventType: NotificationType, data: NotificationEvent): void {
     if (!this.channel) {
       console.warn('[WebSocket] Cannot emit - WebSocket not connected')
       return
     }
-    console.log('[WebSocket] Emitting event:', event)
-    this.channel.postMessage(event)
+    const notificationData: NotificationData = { type: eventType, data }
+    console.log('[WebSocket] Emitting event:', notificationData)
+    this.channel.postMessage(notificationData)
   }
 
-  private notifyListeners(event: WebSocketEvent): void {
-    this.listeners.forEach((callback) => {
+  private notifyListeners(event: NotificationData): void {
+    const listeners = this.listeners.get(event.type)
+    listeners?.forEach((callback) => {
       try {
         callback(event)
       } catch (error) {
@@ -79,12 +89,13 @@ export class WebSocket {
   }
 }
 
-// Factory function to create WebSocket instances
 export function createWebSocket(userId: string): WebSocket {
   return new WebSocket(userId)
 }
 
-// Type guards for event types
-export function isNewMessageEvent(event: WebSocketEvent): event is NewMessageEvent {
-  return event.type === 'new_message'
+//TODO: evaluate usage of type guards for event types
+export function isNewMessageEvent(
+  event: NotificationData
+): event is NotificationData & { data: NewMessageReceivedEvent } {
+  return event.type === 'new_message_received'
 }

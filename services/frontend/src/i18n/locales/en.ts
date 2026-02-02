@@ -1,6 +1,7 @@
 export default {
   meta: {
     description: 'Find the event for you. Search upcoming events and discover amazing experiences.',
+    keywords: 'events, nightlife, concerts, parties, night events',
   },
   date: 'Date',
   time: 'Time',

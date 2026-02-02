@@ -1,0 +1,20 @@
+services:
+  notifications:
+    build:
+      context: .
+      dockerfile: ./services/notifications/Dockerfile
+    ports:
+      - "${NOTIFICATIONS_SERVICE_PORT}:${NOTIFICATIONS_SERVICE_PORT}"
+
+  mongo-notifications-express:
+    image: mongo-express:1.0.2-20-alpine3.19
+    restart: unless-stopped
+    networks:
+      - notifications-network
+    ports:
+      - '${MONGO_EXPRESS_NOTIFICATIONS_PORT}:8081'
+    environment:
+      ME_CONFIG_MONGODB_URL: 'mongodb://mongo-notifications:27017/?replicaSet=rs0&directConnection=true'
+    depends_on:
+      mongo-notifications:
+        condition: service_healthy

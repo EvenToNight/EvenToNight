@@ -28,7 +28,7 @@ onMounted(async () => {
   try {
     const feedResponse = await api.feed.getUpcomingEvents()
     const eventsResponse = await api.events.getEventsByIds(feedResponse.items)
-    upcomingEvents.value = eventsResponse.events
+    upcomingEvents.value = eventsResponse
 
     if (authStore.isAuthenticated) {
       console.log('Loading likes for upcoming events')

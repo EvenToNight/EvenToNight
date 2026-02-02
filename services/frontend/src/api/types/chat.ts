@@ -2,15 +2,16 @@ import type { User, UserID } from './users'
 
 export type ConversationID = string
 export type MessageID = string
+export type MessageContent = string
 
 export type FirstMessage = {
   recipientId: UserID
-  content: string
+  content: MessageContent
 }
 
 export interface LastMessageData {
   senderId: UserID
-  content: string
+  content: MessageContent
   createdAt: Date
 }
 
@@ -18,7 +19,7 @@ export interface Message {
   id: MessageID
   conversationId: ConversationID
   senderId: UserID
-  content: string
+  content: MessageContent
   createdAt: Date
   isRead: boolean
   //   isSent: boolean

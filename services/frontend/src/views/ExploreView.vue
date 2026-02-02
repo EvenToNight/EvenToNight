@@ -14,10 +14,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
-    <NavigationPageView>
-      <ExploreViewContent @auth-required="showAuthDialog = true" />
-    </NavigationPageView>
-  </div>
+  <AuthRequiredDialog v-model:isOpen="showAuthDialog" />
+  <NavigationPageView>
+    <ExploreViewContent @auth-required="showAuthDialog = true" />
+  </NavigationPageView>
 </template>
