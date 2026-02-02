@@ -34,6 +34,13 @@ const getResultSecondaryText = (result: SearchResult): string => {
   return ''
 }
 
+const getResultTertiaryText = (result: SearchResult): string => {
+  if (result.type === 'event' && result.status !== 'PUBLISHED') {
+    return result.status
+  }
+  return ''
+}
+
 const formatDate = (date: Date): string => {
   return date.toLocaleDateString(locale.value, { month: 'short', day: 'numeric', year: 'numeric' })
 }
@@ -60,6 +67,9 @@ const formatDate = (date: Date): string => {
         <span v-if="getResultSecondaryText(result)" class="result-detail">
           • {{ getResultSecondaryText(result) }}
         </span>
+      </div>
+      <div v-if="getResultTertiaryText(result)" class="result-tertiary">
+        {{ getResultTertiaryText(result) }}
       </div>
     </div>
   </div>
@@ -132,6 +142,17 @@ const formatDate = (date: Date): string => {
 
     @include dark-mode {
       color: $color-text-dark;
+    }
+  }
+
+  .result-tertiary {
+    @include text-truncate;
+    font-size: $font-size-xs;
+    color: $color-text-muted;
+    font-style: italic;
+
+    @include dark-mode {
+      color: rgba($color-text-dark, 0.7);
     }
   }
 

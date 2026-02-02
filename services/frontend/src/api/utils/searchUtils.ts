@@ -1,5 +1,5 @@
 import { api } from '@/api'
-import type { Event, Tag } from '../types/events'
+import type { Event, EventStatus, Tag } from '../types/events'
 import type { User, UserRole } from '../types/users'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
 import type { EventsQueryParams } from '../interfaces/events'
@@ -19,6 +19,7 @@ export interface SearchResultEvent extends SearchResultBase {
   title: string
   location: string
   date: Date
+  status: EventStatus
   imageUrl?: string
 }
 
@@ -97,6 +98,7 @@ const processEventSearchResults = async (
         type: 'event',
         id: event.eventId,
         title: event.title,
+        status: event.status,
         location: event.location.name || event.location.city,
         date: new Date(event.date),
         imageUrl: event.poster,
@@ -130,7 +132,7 @@ export const getSearchResult = async (
   maxResults: number
 ): Promise<SearchResult[]> => {
   const [eventsResponse, usersResponse] = await Promise.all([
-    api.events.searchEvents({ title: query }),
+    api.events.searchEvents({ query, status: new Set(['PUBLISHED', 'COMPLETED', 'CANCELLED']) }),
     api.users.searchUsers({ prefix: query }),
   ])
   console.log('User search response:', usersResponse)
