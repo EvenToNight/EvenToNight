@@ -57,7 +57,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
   def getEvents(
       limit: Option[Int] = None,
       offset: Option[Int] = None,
-      status: Option[String] = None,
+      status: Option[Seq[String]] = None,
       title: Option[String] = None,
       tags: Option[Seq[String]] = None,
       startDate: Option[String] = None,
@@ -67,6 +67,10 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
       location_name: Option[String] = None,
       sortBy: Option[String] = None,
       sortOrder: Option[String] = None,
+      query: Option[String] = None,
+      near: Option[String] = None,
+      other: Option[String] = None,
+      price: Option[String] = None,
       req: cask.Request
   ): cask.Response[ujson.Value] =
     val authOpt = req.headers.get("authorization").flatMap(_.headOption).flatMap { auth =>
@@ -80,7 +84,7 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
     val isAuthenticated = organizationId.exists(orgId => authenticatedUserId.contains(orgId))
 
     val authCheckResponse: Option[cask.Response[ujson.Value]] =
-      if status.map(_.toUpperCase).contains("DRAFT") then
+      if status.map(_.map(_.toUpperCase).contains("DRAFT")).getOrElse(false) then
         authenticatedUserId match
           case None =>
             Some(cask.Response(
@@ -101,12 +105,12 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
     if authCheckResponse.isDefined then
       authCheckResponse.get
     else
-
-      val tagsList: Option[List[String]] = tags.map(_.toList)
+      val tagsList: Option[List[String]]   = tags.map(_.toList)
+      val statusList: Option[List[String]] = status.map(_.toList)
       val command: GetFilteredEventsCommand = Utils.parseEventFilters(
         limit,
         offset,
-        status,
+        statusList,
         title,
         tagsList,
         startDate,
@@ -116,6 +120,10 @@ class EventQueryRoutes(eventService: EventService) extends Routes:
         location_name,
         sortBy,
         sortOrder,
+        query,
+        near,
+        other,
+        price,
         isAuthenticated
       )
       eventService.handleCommand(command) match

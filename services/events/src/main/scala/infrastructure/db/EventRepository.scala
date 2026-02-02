@@ -3,7 +3,7 @@ package infrastructure.db
 import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
 import com.mongodb.client.model.{Filters, ReplaceOptions, Sorts}
 import domain.events.EventCompleted
-import domain.models.{Event, EventStatus}
+import domain.models.{Event, EventStatus, Location}
 import domain.models.EventConversions.{fromDocument, toDocument}
 import infrastructure.messaging.EventPublisher
 import org.bson.Document
@@ -22,7 +22,7 @@ trait EventRepository:
   def findByFilters(
       limit: Option[Int] = None,
       offset: Option[Int] = None,
-      status: Option[EventStatus] = None,
+      status: Option[List[EventStatus]] = None,
       title: Option[String] = None,
       tags: Option[List[String]] = None,
       startDate: Option[String] = None,
@@ -31,14 +31,19 @@ trait EventRepository:
       city: Option[String] = None,
       location_name: Option[String] = None,
       sortBy: Option[String] = None,
-      sortOrder: Option[String] = None
+      sortOrder: Option[String] = None,
+      query: Option[String] = None,
+      near: Option[(Double, Double)] = None,
+      other: Option[String] = None,
+      price: Option[(Double, Double)] = None
   ): Either[Throwable, (List[Event], Boolean)]
 
 case class MongoEventRepository(
     connectionString: String,
     databaseName: String,
     collectionName: String = "events",
-    messageBroker: EventPublisher
+    messageBroker: EventPublisher,
+    priceRepository: Option[PriceRepository] = None
 ) extends EventRepository:
 
   private val mongoClient: MongoClient              = MongoClients.create(connectionString)
@@ -116,7 +121,7 @@ case class MongoEventRepository(
   override def findByFilters(
       limit: Option[Int] = None,
       offset: Option[Int] = None,
-      status: Option[EventStatus] = None,
+      status: Option[List[EventStatus]] = None,
       title: Option[String] = None,
       tags: Option[List[String]] = None,
       startDate: Option[String] = None,
@@ -125,31 +130,58 @@ case class MongoEventRepository(
       city: Option[String] = None,
       location_name: Option[String] = None,
       sortBy: Option[String] = None,
-      sortOrder: Option[String] = None
+      sortOrder: Option[String] = None,
+      query: Option[String] = None,
+      near: Option[(Double, Double)] = None,
+      other: Option[String] = None,
+      price: Option[(Double, Double)] = None
   ): Either[Throwable, (List[Event], Boolean)] =
     Try {
+      val isFeedMode    = other.exists(_.toLowerCase == "feed")
+      val tagsForFilter = if isFeedMode then None else tags
 
       val combinedFilter =
-        buildFilterQuery(status, title, tags, startDate, endDate, organizationId, city, location_name)
-
-      val sortField     = sortBy.getOrElse("date")
-      val sortDirection = if sortOrder.contains("desc") then -1 else 1
-
-      val sortCriteria = if sortField == "date" then
-        Sorts.orderBy(
-          if sortDirection == 1 then Sorts.ascending("date") else Sorts.descending("date")
-        )
-      else
-        Sorts.orderBy(
-          if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField),
-          Sorts.ascending("date")
+        buildFilterQuery(
+          status,
+          title,
+          tagsForFilter,
+          startDate,
+          endDate,
+          organizationId,
+          city,
+          location_name,
+          query,
+          price
         )
 
-      val query = applyPagination(collection.find(combinedFilter).sort(sortCriteria), offset, limit)
+      (other, near) match
+        case (Some(otherSort), _) =>
+          handleOtherSort(otherSort, combinedFilter, offset, limit, sortBy, sortOrder, tags)
 
-      val results = executeQueryAndUpdateEvents(query)
+        case (None, Some((lat, lon))) =>
+          handleNearSort(lat, lon, combinedFilter, offset, limit, sortBy, sortOrder)
 
-      calculateHasMore(results, limit)
+        case (None, None) =>
+          val sortField = sortBy.getOrElse("date")
+
+          if sortField == "price" && priceRepository.isDefined then
+            handlePriceSort(combinedFilter, offset, limit, sortOrder)
+          else
+            val sortDirection = if sortOrder.contains("desc") then -1 else 1
+
+            val sortCriteria = if sortField == "date" then
+              Sorts.orderBy(
+                if sortDirection == 1 then Sorts.ascending("date") else Sorts.descending("date")
+              )
+            else
+              Sorts.orderBy(
+                if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField),
+                Sorts.ascending("date")
+              )
+
+            val dbQuery = applyPagination(collection.find(combinedFilter).sort(sortCriteria), offset, limit)
+            val results = executeQueryAndUpdateEvents(dbQuery)
+            calculateHasMore(results, limit)
     }.toEither.left.map { ex =>
       println(s"[MongoDB][Error] Failed to retrieve filtered events - ${ex.getMessage}")
       ex
@@ -159,19 +191,34 @@ case class MongoEventRepository(
     mongoClient.close()
 
   private def buildFilterQuery(
-      status: Option[EventStatus],
+      status: Option[List[EventStatus]],
       title: Option[String],
       tags: Option[List[String]],
       startDate: Option[String],
       endDate: Option[String],
       organizationId: Option[String],
       city: Option[String],
-      location_name: Option[String]
+      location_name: Option[String],
+      query: Option[String],
+      price: Option[(Double, Double)]
   ): org.bson.conversions.Bson =
     val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
 
-    status.foreach(s => filters += Filters.eq("status", s.toString))
+    status.foreach { statusList =>
+      if statusList.nonEmpty then
+        if statusList.size == 1 then
+          filters += Filters.eq("status", statusList.head.toString)
+        else
+          filters += Filters.in("status", statusList.map(_.toString).asJava)
+    }
     title.foreach(t => filters += Filters.regex("title", escapeRegex(t), "i"))
+    query.foreach { q =>
+      filters += Filters.or(
+        Filters.regex("title", escapeRegex(q), "i"),
+        Filters.regex("location.name", escapeRegex(q), "i"),
+        Filters.regex("location.city", escapeRegex(q), "i")
+      )
+    }
     organizationId.foreach { org =>
       filters += Filters.or(
         Filters.eq("creatorId", org),
@@ -186,6 +233,24 @@ case class MongoEventRepository(
         filters += Filters.in("tags", tagList.asJava)
     }
 
+    price.foreach { case (minPrice, maxPrice) =>
+      if priceRepository.isDefined then
+        val eventIdsInRange = priceRepository.get.findEventIdsInPriceRange(minPrice, maxPrice)
+        val allEventIds = collection
+          .find(new Document())
+          .projection(new Document("_id", 1))
+          .into(new java.util.ArrayList[Document]())
+          .asScala
+          .map(_.getString("_id"))
+          .toList
+        val freeEventIds     = allEventIds.filterNot(eventIdsInRange.contains)
+        val matchingEventIds = if minPrice == 0.0 then eventIdsInRange ++ freeEventIds else eventIdsInRange
+        if matchingEventIds.nonEmpty then
+          filters += Filters.in("_id", matchingEventIds.asJava)
+        else
+          filters += Filters.eq("_id", "no-match")
+    }
+
     startDate.foreach(start => filters += Filters.gte("date", start))
     endDate.foreach(end => filters += Filters.lte("date", end))
     if filters.isEmpty then
@@ -195,8 +260,225 @@ case class MongoEventRepository(
     else
       Filters.and(filters.asJava)
 
+  private def handleOtherSort(
+      otherSort: String,
+      filter: org.bson.conversions.Bson,
+      offset: Option[Int],
+      limit: Option[Int],
+      sortBy: Option[String],
+      sortOrder: Option[String],
+      tags: Option[List[String]]
+  ): (List[Event], Boolean) =
+    otherSort.toLowerCase match
+      case "feed" =>
+        val allEvents = collection
+          .find(filter)
+          .into(new java.util.ArrayList[Document]())
+          .asScala
+          .map(fromDocument)
+          .map(updateEventIfPast)
+          .toList
+
+        val (matchingEvents, nonMatchingEvents) = tags match
+          case Some(tagsList) if tagsList.nonEmpty =>
+            allEvents.partition { event =>
+              event.tags.exists(eventTags => eventTags.exists(tag => tagsList.contains(tag.displayName)))
+            }
+          case _ =>
+            (List.empty[Event], allEvents)
+
+        val sortedMatching    = applySortBy(matchingEvents, sortBy, sortOrder)
+        val sortedNonMatching = applySortBy(nonMatchingEvents, sortBy, sortOrder)
+        val orderedEvents     = sortedMatching ++ sortedNonMatching
+
+        val offsetValue = offset.getOrElse(0)
+        val limitValue  = limit.getOrElse(10)
+        val paginated   = orderedEvents.drop(offsetValue).take(limitValue + 1)
+
+        calculateHasMore(paginated, limit)
+
+      case "upcoming" =>
+        val now = java.time.LocalDateTime.now()
+        val upcomingFilter = Filters.and(
+          filter,
+          Filters.gte("date", now.toString)
+        )
+
+        val sortField     = sortBy.getOrElse("date")
+        val sortDirection = if sortOrder.contains("desc") then -1 else 1
+
+        val sortCriteria = if sortField == "date" then
+          Sorts.orderBy(
+            if sortDirection == 1 then Sorts.ascending("date") else Sorts.descending("date")
+          )
+        else
+          Sorts.orderBy(
+            if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField),
+            Sorts.ascending("date")
+          )
+
+        val dbQuery = applyPagination(collection.find(upcomingFilter).sort(sortCriteria), offset, limit)
+        val results = executeQueryAndUpdateEvents(dbQuery)
+        calculateHasMore(results, limit)
+
+      case "popular" =>
+        val allEvents = collection
+          .find(filter)
+          .into(new java.util.ArrayList[Document]())
+          .asScala
+          .map(fromDocument)
+          .map(updateEventIfPast)
+          .toList
+
+        val shuffled = scala.util.Random.shuffle(allEvents)
+        val sorted   = applySortBy(shuffled, sortBy, sortOrder)
+
+        val offsetValue = offset.getOrElse(0)
+        val limitValue  = limit.getOrElse(10)
+        val paginated   = sorted.drop(offsetValue).take(limitValue + 1)
+
+        calculateHasMore(paginated, limit)
+
+      case "recently_added" =>
+        val sortField     = sortBy.getOrElse("instant")
+        val sortDirection = if sortOrder.contains("desc") then -1 else 1
+
+        val sortCriteria = if sortField == "instant" then
+          Sorts.descending("instant")
+        else
+          Sorts.orderBy(
+            Sorts.descending("instant"),
+            if sortDirection == 1 then Sorts.ascending(sortField) else Sorts.descending(sortField)
+          )
+
+        val dbQuery = applyPagination(collection.find(filter).sort(sortCriteria), offset, limit)
+        val results = executeQueryAndUpdateEvents(dbQuery)
+        calculateHasMore(results, limit)
+
+      case _ =>
+        val sortCriteria = Sorts.ascending("date")
+        val dbQuery      = applyPagination(collection.find(filter).sort(sortCriteria), offset, limit)
+        val results      = executeQueryAndUpdateEvents(dbQuery)
+        calculateHasMore(results, limit)
+
+  private def handleNearSort(
+      lat: Double,
+      lon: Double,
+      filter: org.bson.conversions.Bson,
+      offset: Option[Int],
+      limit: Option[Int],
+      sortBy: Option[String],
+      sortOrder: Option[String]
+  ): (List[Event], Boolean) =
+    val allEvents = collection
+      .find(filter)
+      .into(new java.util.ArrayList[Document]())
+      .asScala
+      .map(fromDocument)
+      .map(updateEventIfPast)
+      .toList
+
+    val eventsWithDistance = allEvents.map { event =>
+      val distance = calculateDistance(
+        lat,
+        lon,
+        event.location.getOrElse(Location.Nil()).lat.getOrElse(0.0),
+        event.location.getOrElse(Location.Nil()).lon.getOrElse(0.0)
+      )
+      (event, distance)
+    }
+
+    val finalSorted = (sortBy, sortOrder) match
+      case (Some(field), Some("desc")) =>
+        eventsWithDistance
+          .groupBy(_._2)
+          .toSeq
+          .sortBy(_._1)
+          .flatMap { case (_, events) =>
+            field.toLowerCase match
+              case "date"    => events.sortBy(_._1.date.map(_.toString).getOrElse("")).reverse
+              case "title"   => events.sortBy(_._1.title.getOrElse("")).reverse
+              case "instant" => events.sortBy(_._1.instant.toString).reverse
+              case _         => events.sortBy(_._1.date.map(_.toString).getOrElse("")).reverse
+          }
+          .toList
+
+      case (Some(field), _) =>
+        eventsWithDistance
+          .groupBy(_._2)
+          .toSeq
+          .sortBy(_._1)
+          .flatMap { case (_, events) =>
+            field.toLowerCase match
+              case "date"    => events.sortBy(_._1.date.map(_.toString).getOrElse(""))
+              case "title"   => events.sortBy(_._1.title.getOrElse(""))
+              case "instant" => events.sortBy(_._1.instant.toString)
+              case _         => events.sortBy(_._1.date.map(_.toString).getOrElse(""))
+          }
+          .toList
+
+      case (None, _) =>
+        eventsWithDistance.sortBy(_._2).toList
+
+    val sortedEvents = finalSorted.map(_._1)
+
+    val offsetValue = offset.getOrElse(0)
+    val limitValue  = limit.getOrElse(10)
+    val paginated   = sortedEvents.drop(offsetValue).take(limitValue + 1)
+
+    calculateHasMore(paginated, limit)
+
+  private def handlePriceSort(
+      filter: org.bson.conversions.Bson,
+      offset: Option[Int],
+      limit: Option[Int],
+      sortOrder: Option[String]
+  ): (List[Event], Boolean) =
+    val allEvents = collection
+      .find(filter)
+      .into(new java.util.ArrayList[Document]())
+      .asScala
+      .map(fromDocument)
+      .map(updateEventIfPast)
+      .toList
+
+    val eventIds  = allEvents.map(_._id)
+    val pricesMap = priceRepository.get.findByEventIds(eventIds)
+
+    val eventsWithPrice = allEvents.map { event =>
+      val prices   = pricesMap.getOrElse(event._id, List.empty)
+      val minPrice = if prices.nonEmpty then prices.map(_.price).min else 0.0
+      (event, minPrice)
+    }
+
+    val sortedEvents = sortOrder match
+      case Some("desc") => eventsWithPrice.sortBy(_._2).reverse.map(_._1)
+      case _            => eventsWithPrice.sortBy(_._2).map(_._1)
+
+    val offsetValue = offset.getOrElse(0)
+    val limitValue  = limit.getOrElse(10)
+    val paginated   = sortedEvents.drop(offsetValue).take(limitValue + 1)
+
+    calculateHasMore(paginated, limit)
+
   private def escapeRegex(str: String): String =
     str.replaceAll("([\\[\\]\\(\\)\\{\\}\\*\\+\\?\\|\\^\\$\\.\\\\/])", "\\\\$1")
+
+  private def applySortBy(events: List[Event], sortBy: Option[String], sortOrder: Option[String]): List[Event] =
+    val sortField    = sortBy.getOrElse("date")
+    val isDescending = sortOrder.contains("desc")
+
+    val sorted = sortField.toLowerCase match
+      case "date" =>
+        events.sortBy(_.date.map(_.toString).getOrElse(""))
+      case "title" =>
+        events.sortBy(_.title.getOrElse(""))
+      case "instant" =>
+        events.sortBy(_.instant.toString)
+      case _ =>
+        events.sortBy(_.date.map(_.toString).getOrElse(""))
+
+    if isDescending then sorted.reverse else sorted
 
   private def applyPagination(
       query: com.mongodb.client.FindIterable[Document],
@@ -236,3 +518,13 @@ case class MongoEventRepository(
     limit match
       case Some(lim) if results.size > lim => (results.take(lim), true)
       case _                               => (results, false)
+
+  private def calculateDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double =
+    val R    = 6371.0
+    val dLat = math.toRadians(lat2 - lat1)
+    val dLon = math.toRadians(lon2 - lon1)
+    val a = math.sin(dLat / 2) * math.sin(dLat / 2) +
+      math.cos(math.toRadians(lat1)) * math.cos(math.toRadians(lat2)) *
+      math.sin(dLon / 2) * math.sin(dLon / 2)
+    val c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    R * c

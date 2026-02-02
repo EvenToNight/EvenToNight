@@ -290,12 +290,22 @@ paths:
           example: 0
         - name: status
           in: query
-          description: Filter by event status
+          description: |
+            Filter by event status. Provide multiple statuses as a comma-separated string.
+            Example: `status=PUBLISHED,COMPLETED`
           required: false
           schema:
             type: string
-            enum: [DRAFT, PUBLISHED, CANCELLED, COMPLETED]
-          example: PUBLISHED
+          examples:
+            single:
+              summary: Single status
+              value: "PUBLISHED"
+            multiple:
+              summary: Multiple statuses (comma-separated)
+              value: "PUBLISHED,COMPLETED"
+            cancelled:
+              summary: Cancelled events
+              value: "CANCELLED"
         - name: title
           in: query
           description: Filter by event title (case-insensitive partial match)
@@ -304,19 +314,17 @@ paths:
             type: string
         - name: tags
           in: query
-          description: Filter by tags (can be repeated for multiple tags)
+          description: Filter by tags (comma-separated for multiple tags)
           required: false
           schema:
-            type: array
-            items:
-              type: string
-          style: form
-          explode: true
+            type: string
           examples:
             single:
               summary: Single tag
+              value: "Party"
             multiple:
               summary: Multiple tags
+              value: "Party,Outdoor"
         - name: startDate
           in: query
           description: Filter events starting from this date (ISO 8601 format)
@@ -350,13 +358,20 @@ paths:
           required: false
           schema:
             type: string
+        - name: query
+          in: query
+          description: Filter by search query across title, location name, and city (case-insensitive partial match)
+          required: false
+          schema:
+            type: string
+          example: Concert Milano
         - name: sortBy
           in: query
           description: Field to sort results by. Secondary sort is always by date (ascending).
           required: false
           schema:
             type: string
-            enum: [date, title, instant]
+            enum: [date, title, instant, price]
             default: date
           example: title
         - name: sortOrder
@@ -368,6 +383,48 @@ paths:
             enum: [asc, desc]
             default: asc
           example: asc
+        - name: near
+          in: query
+          description: |
+            Sort events by proximity to coordinates (latitude,longitude).
+            Example: `near=44.494887,11.342616`
+            
+            **Can be combined with sortBy:**
+            - Primary sort: distance (closest first)
+            - Secondary sort: specified sortBy field
+            
+            **Examples:**
+            - `near=44.49,11.34&sortBy=date`: Events sorted by distance, then by date
+            - `near=44.49,11.34&sortBy=title&sortOrder=desc`: Events sorted by distance, then by title (desc)
+          required: false
+          schema:
+            type: string
+            pattern: '^-?\d+\.?\d*,-?\d+\.?\d*$'
+          example: "44.494887,11.342616"
+        - name: price
+          in: query
+          description: |
+            Filter events by price range (min,max).
+            Example: `price=0,50` returns events with prices between 0 and 50.
+            Events without any ticket prices are considered free (price=0).
+          required: false
+          schema:
+            type: string
+            pattern: '^\d+\.?\d*,\d+\.?\d*$'
+          example: "0,50"
+        - name: other
+          in: query
+          description: |
+            Special sorting modes (has priority over sortBy and near):
+            - `upcoming`: Sort by date (ascending) - upcoming events first
+            - `popular`: Random shuffle of results
+            - `recently_added`: Sort by most recently updated events
+            - `feed`: Events matching tags parameter first. Requires tags parameter.
+          required: false
+          schema:
+            type: string
+            enum: [upcoming, popular, recently_added, feed]
+          example: "upcoming"
       responses:
         '200':
           description: Successfully retrieved filtered events
