@@ -56,7 +56,7 @@ class KeycloakAdminApi(connection: KeycloakConnection):
             if passwordKeywords.exists(kw => errMsg.toLowerCase.contains(kw)) then
               Left(s"Password not compliant: $errMsg")
             else
-              Left(s"Bad request from Keycloak: $errMsg")
+              Left(s"User creation rejected: $errMsg")
           case Left(_) =>
             Left(s"Failed to parse Keycloak response: $bodyString")
     )
