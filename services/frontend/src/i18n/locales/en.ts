@@ -480,7 +480,7 @@ export default {
           forYou: 'For You',
           new: 'New',
         },
-        FilterButton: {
+        FiltersButton: {
           filters: 'Filters',
           cancel: 'Clear',
           apply: 'Apply',

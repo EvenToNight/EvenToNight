@@ -1,5 +1,5 @@
 <script lang="ts">
-export const PRICE_FILTERS = ['free', 'paid'] as const
+export const PRICE_FILTERS = ['free'] as const
 </script>
 <script setup lang="ts">
 import { useTranslation } from '@/composables/useTranslation'
@@ -8,7 +8,7 @@ export type PriceFilter = (typeof PRICE_FILTERS)[number]
 
 export interface PriceFilterValue {
   priceFilter?: PriceFilter | null
-  customPriceRange?: { min?: number | null; max?: number | null }
+  customPriceRange?: { min: number; max: number } | null
 }
 
 interface Props {
@@ -23,70 +23,50 @@ const emit = defineEmits<{
   'update:modelValue': [value: PriceFilterValue]
 }>()
 
-const selectedPriceFilter = ref<PriceFilter | null>(props.modelValue?.priceFilter || null)
-const priceFilters: { label: string; value: PriceFilter }[] = [
-  { label: t('free'), value: 'free' },
-  { label: t('paid'), value: 'paid' },
-]
+const PRICE_MIN = 0
+const PRICE_MAX = 1000
 
-const customPriceRange = ref<{ min?: number | null; max?: number | null }>(
-  props.modelValue?.customPriceRange || { min: null, max: null }
+const isFreeSelected = ref<boolean>(props.modelValue?.priceFilter === 'free')
+const priceRange = ref<{ min: number; max: number }>(
+  props.modelValue?.customPriceRange || { min: PRICE_MIN, max: PRICE_MAX }
 )
-const tempPriceRange = ref<{ min?: number | null; max?: number | null }>({ min: null, max: null })
-const showPriceRangePicker = ref(false)
+const isSliderActive = computed(() => {
+  return (
+    !isFreeSelected.value && (priceRange.value.min > PRICE_MIN || priceRange.value.max < PRICE_MAX)
+  )
+})
 
 const emitChange = () => {
   emit('update:modelValue', {
-    priceFilter: selectedPriceFilter.value,
-    customPriceRange: customPriceRange.value,
+    priceFilter: isFreeSelected.value ? 'free' : null,
+    customPriceRange: isSliderActive.value ? priceRange.value : null,
   })
 }
 
-const togglePriceFilter = (value: PriceFilter) => {
-  selectedPriceFilter.value = selectedPriceFilter.value === value ? null : value
-  customPriceRange.value = { min: null, max: null }
-  emitChange()
-}
-
-const formatPriceRange = (range: { min?: number | null; max?: number | null }) => {
-  if (range.min && range.max) {
-    return `€${range.min} - €${range.max}`
-  } else if (range.min) {
-    return `${t('from')} €${range.min}`
-  } else if (range.max) {
-    return `${t('to')} €${range.max}`
+const toggleFree = () => {
+  isFreeSelected.value = !isFreeSelected.value
+  if (isFreeSelected.value) {
+    priceRange.value = { min: PRICE_MIN, max: PRICE_MAX }
   }
-  return t('customize')
-}
-
-const applyPriceRange = () => {
-  customPriceRange.value = { ...tempPriceRange.value }
-  selectedPriceFilter.value = null
-  showPriceRangePicker.value = false
   emitChange()
 }
 
-const clearPriceRange = () => {
-  tempPriceRange.value = { min: null, max: null }
-  customPriceRange.value = { min: null, max: null }
-  showPriceRangePicker.value = false
+const onSliderChange = () => {
+  if (isFreeSelected.value) {
+    isFreeSelected.value = false
+  }
   emitChange()
 }
 
-const isPriceRangeValid = computed(() => {
-  const { min, max } = tempPriceRange.value
-  if (min == null && max == null) return false
-  if (min != null && min < 0) return false
-  if (max != null && max < 0) return false
-  if (min != null && max != null && min > max) return false
-  return true
-})
+const formatPrice = (value: number) => {
+  return `€${value}`
+}
 
 watch(
   () => props.modelValue,
   (newValue) => {
-    selectedPriceFilter.value = newValue?.priceFilter || null
-    customPriceRange.value = newValue?.customPriceRange || { min: null, max: null }
+    isFreeSelected.value = newValue?.priceFilter === 'free'
+    priceRange.value = newValue?.customPriceRange || { min: PRICE_MIN, max: PRICE_MAX }
   },
   { deep: true }
 )
@@ -95,88 +75,36 @@ watch(
 <template>
   <div class="filter-group">
     <span class="filter-label">{{ t('price') }}:</span>
-    <div class="filter-chips">
+    <div class="price-filter-content">
       <q-chip
-        v-for="filter in priceFilters"
-        :key="filter.value"
-        :outline="selectedPriceFilter !== filter.value"
-        :color="selectedPriceFilter === filter.value ? 'primary' : 'grey-3'"
-        :text-color="selectedPriceFilter === filter.value ? 'white' : 'grey-8'"
+        :outline="!isFreeSelected"
+        :color="isFreeSelected ? 'primary' : 'grey-3'"
+        :text-color="isFreeSelected ? 'white' : 'grey-8'"
         clickable
-        @click="togglePriceFilter(filter.value)"
+        @click="toggleFree"
       >
-        {{ filter.label }}
+        {{ t('free') }}
       </q-chip>
-      <q-chip
-        :outline="customPriceRange.min === null && customPriceRange.max === null"
-        :color="
-          customPriceRange.min !== null || customPriceRange.max !== null ? 'primary' : 'grey-3'
-        "
-        :text-color="
-          customPriceRange.min !== null || customPriceRange.max !== null ? 'white' : 'grey-8'
-        "
-        clickable
-      >
-        {{ formatPriceRange(customPriceRange) }}
-        <q-menu
-          v-model="showPriceRangePicker"
-          anchor="bottom left"
-          self="top left"
-          @before-show="tempPriceRange = { ...customPriceRange }"
-        >
-          <q-card style="min-width: 320px">
-            <q-card-section>
-              <div class="text-h6">{{ t('selectPrice') }}</div>
-            </q-card-section>
 
-            <q-card-section class="q-pt-none">
-              <div class="price-range-inputs">
-                <q-input
-                  v-model.number="tempPriceRange.min"
-                  type="number"
-                  :label="t('minPrice')"
-                  prefix="$"
-                  outlined
-                  dense
-                  :min="0"
-                />
-                <q-input
-                  v-model.number="tempPriceRange.max"
-                  type="number"
-                  :label="t('maxPrice')"
-                  prefix="$"
-                  outlined
-                  dense
-                  :min="tempPriceRange.min || 0"
-                />
-              </div>
-            </q-card-section>
-
-            <q-card-actions align="right">
-              <q-btn
-                flat
-                :label="t('cancel')"
-                color="grey-7"
-                @click="showPriceRangePicker = false"
-              />
-              <q-btn
-                v-if="tempPriceRange.min !== null || tempPriceRange.max !== null"
-                flat
-                :label="t('clear')"
-                color="grey-7"
-                @click="clearPriceRange"
-              />
-              <q-btn
-                flat
-                :label="t('apply')"
-                color="primary"
-                :disable="!isPriceRangeValid"
-                @click="applyPriceRange"
-              />
-            </q-card-actions>
-          </q-card>
-        </q-menu>
-      </q-chip>
+      <div class="price-slider-container" :class="{ disabled: isFreeSelected }">
+        <q-range
+          v-model="priceRange"
+          :min="PRICE_MIN"
+          :max="PRICE_MAX"
+          :step="10"
+          label
+          :left-label-value="`€${priceRange.min}`"
+          :right-label-value="`€${priceRange.max}`"
+          color="primary"
+          snap
+          :disable="isFreeSelected"
+          @update:model-value="onSliderChange"
+        />
+        <div class="price-labels">
+          <span>{{ formatPrice(PRICE_MIN) }}</span>
+          <span>{{ formatPrice(PRICE_MAX) }}</span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -199,25 +127,28 @@ watch(
   }
 }
 
-.filter-chips {
+.price-filter-content {
   display: flex;
-  flex-wrap: wrap;
-  gap: $spacing-2;
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
+  align-items: center;
+  gap: $spacing-3;
+}
 
-  &::-webkit-scrollbar {
-    display: none;
-  }
+.price-slider-container {
+  flex: 1;
+  min-width: 150px;
+  padding: 0 $spacing-2;
 
-  @media (max-width: $breakpoint-mobile) {
-    flex-wrap: nowrap;
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
   }
 }
 
-.price-range-inputs {
-  @include flex-column;
-  gap: $spacing-3;
+.price-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: $font-size-xs;
+  color: $color-text-secondary;
+  margin-top: $spacing-1;
 }
 </style>

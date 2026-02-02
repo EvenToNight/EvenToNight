@@ -174,7 +174,7 @@ const handleBlur = () => {
       <div v-if="showSuggestions && isSearching" class="suggestions-dropdown loading">
         <div class="loading-item">
           <q-spinner size="20px" color="primary" />
-          <span>{{ t('search.searchingText') }}</span>
+          <span>{{ t('searchingText') }}</span>
         </div>
       </div>
     </Transition>

@@ -67,8 +67,8 @@ export const buildExploreFiltersFromQuery = (query: Record<string, string>): Eve
   }
   if (query.priceMin || query.priceMax) {
     filters.customPriceRange = {
-      min: query.priceMin ? parseFloat(query.priceMin) : undefined,
-      max: query.priceMax ? parseFloat(query.priceMax) : undefined,
+      min: query.priceMin ? parseFloat(query.priceMin) : 0,
+      max: query.priceMax ? parseFloat(query.priceMax) : 1000,
     }
   }
   //TODO tags type

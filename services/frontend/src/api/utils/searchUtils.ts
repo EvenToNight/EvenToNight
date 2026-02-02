@@ -135,6 +135,7 @@ export const getSearchResult = async (
     api.events.searchEvents({ query, status: new Set(['PUBLISHED', 'COMPLETED', 'CANCELLED']) }),
     api.users.searchUsers({ prefix: query }),
   ])
+  console.log('Event search response:', eventsResponse)
   console.log('User search response:', usersResponse)
   const processedEvents = await processEventSearchResults(eventsResponse.items, query)
   const processedUsers = await processUserSearchResults(usersResponse.items, query)
@@ -249,8 +250,6 @@ const convertPriceFilter = (
 ): void => {
   if (priceFilter === 'free') {
     eventsQueryParams.price = { min: 0, max: 0 }
-  } else if (priceFilter === 'paid') {
-    eventsQueryParams.price = { min: 0.01, max: Infinity }
   }
 }
 

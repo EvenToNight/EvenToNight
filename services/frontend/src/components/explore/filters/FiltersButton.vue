@@ -160,7 +160,7 @@ const syncFiltersFromUrl = (filters: EventFilters) => {
   selectedTags.value = (filters?.tags as Tag[]) || []
   priceFilterValue.value = {
     priceFilter: filters?.priceFilter ?? null,
-    customPriceRange: filters?.customPriceRange || { min: null, max: null },
+    customPriceRange: filters?.customPriceRange ?? null,
   }
   selectedSortBy.value = filters?.sortBy ?? null
   selectedOtherFilter.value = filters?.otherFilter ?? null
@@ -173,7 +173,7 @@ const syncFiltersFromUrl = (filters: EventFilters) => {
   activeTags.value = (filters?.tags as Tag[]) || []
   activePriceFilterValue.value = {
     priceFilter: filters?.priceFilter ?? null,
-    customPriceRange: filters?.customPriceRange || { min: null, max: null },
+    customPriceRange: filters?.customPriceRange ?? null,
   }
   activeSortBy.value = filters?.sortBy ?? null
   activeOtherFilter.value = filters?.otherFilter ?? null
@@ -304,7 +304,7 @@ onUnmounted(() => {
 
 <style lang="scss">
 .filter-badge.q-badge {
-  background-color: #6f00ff !important;
+  background-color: $color-primary !important;
 
   .q-badge__content,
   .q-badge__content *,
@@ -315,7 +315,7 @@ onUnmounted(() => {
 }
 
 .filter-badge.q-badge.q-badge--floating {
-  background-color: #6f00ff !important;
+  background-color: $color-primary !important;
 
   .q-badge__content,
   .q-badge__content *,
