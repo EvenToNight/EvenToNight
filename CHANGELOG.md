@@ -1,3 +1,34 @@
+## [1.27.0](https://github.com/EvenToNight/EvenToNight/compare/v1.26.0...v1.27.0) (2026-02-02)
+
+### Features
+
+* **chat:** fetch conversation if missing when new message arrives ([d5be911](https://github.com/EvenToNight/EvenToNight/commit/d5be91165cf438cbb49c8bbf01ba9578b8cc47e7))
+* **chat:** implement online status detection ([756fe0d](https://github.com/EvenToNight/EvenToNight/commit/756fe0d4118161674f35fe2793e5c3b6be69b849))
+* **chat:** integrate socket message notification ([46219f5](https://github.com/EvenToNight/EvenToNight/commit/46219f5730fdaa54d022b63116840a40fdf2c4ce))
+* **chat:** mark message as read for selected conversation ([9c54641](https://github.com/EvenToNight/EvenToNight/commit/9c546416a6cb3444720b0215a33be16a68c9e2a9))
+* **chat:** show message notifications ([65f3716](https://github.com/EvenToNight/EvenToNight/commit/65f371626a123af3474c2de6c4a187ac430846ed))
+* **events:** add event participants information in event details ([75a0a6f](https://github.com/EvenToNight/EvenToNight/commit/75a0a6f092fcf65e4be26f70cf0ab1d9ff410203))
+* **explore:** save last active tab to restore when continue to search ([9cd9b05](https://github.com/EvenToNight/EvenToNight/commit/9cd9b05d5e051bdc099f85f7f6ff48da00c6260a))
+* **home:** update event lanes ([ea5b9f9](https://github.com/EvenToNight/EvenToNight/commit/ea5b9f9bf8c528d5a5ad2f6e76c619970c39d8cb))
+* **notifications:** add other notifications toast ([8a31e87](https://github.com/EvenToNight/EvenToNight/commit/8a31e87b15911e60b7f66cefb81146879c338423))
+* **notifications:** setup notifications ([f8a855e](https://github.com/EvenToNight/EvenToNight/commit/f8a855ea2355b4a4e38fa6fbd95d1ed7fba383e0))
+* **search:** update convertFiltersToEventsQueryParams to handle new filter spec ([41d300b](https://github.com/EvenToNight/EvenToNight/commit/41d300b770464c00e06c7f9427e602af202873b5))
+
+### Bug Fixes
+
+* **chatArea:** hide scroll button in chat area when the aren't enough messages to scroll ([bc14e31](https://github.com/EvenToNight/EvenToNight/commit/bc14e3136899e88fbab79b43c270eeff13e7d5fb))
+* **chat:** fix scroll to bottom on first loading ([d15fd73](https://github.com/EvenToNight/EvenToNight/commit/d15fd73383911e80168d0994e1f4c5cb2ff3c41a))
+* **createEvent:** check colors and translation usage ([6da3e66](https://github.com/EvenToNight/EvenToNight/commit/6da3e6687900ed2412cf7605117f4ad1b15480b3))
+* **darkMode:** fix undefined dark variable ([60e9a28](https://github.com/EvenToNight/EvenToNight/commit/60e9a287ff81a7e1f0db339bf9f1b56bdd88fa5e))
+* **events:** fix limit in findByFilters ([0bc8db0](https://github.com/EvenToNight/EvenToNight/commit/0bc8db01a72cdbc2f1952ce6b95f6a010c08caae))
+* **messageInput:** fix input height ([2ef0043](https://github.com/EvenToNight/EvenToNight/commit/2ef00434fd4c9303860730e596ab39d3dc846d15))
+* **notification:** load notification when click on notification icon and don't increment unread count if menu is open ([701f7b3](https://github.com/EvenToNight/EvenToNight/commit/701f7b3c87109d00d8e5309b8231cf4dddf8201a))
+* **notification:** send createdAt in message event socket payload ([910faec](https://github.com/EvenToNight/EvenToNight/commit/910faec990e0eb7dc93bea960a8439821b171a9f))
+* **profile:** fix send message icon render condition ([c8d1ae7](https://github.com/EvenToNight/EvenToNight/commit/c8d1ae7947772636fc8c16116b9b05dfacccb300))
+* **profile:** fix tabs recomputation on meber/org switch and tabs data loading ([71c24d6](https://github.com/EvenToNight/EvenToNight/commit/71c24d69c2b2e6e7861730aa817e583373fd7d65))
+* **shortcut:** handle missing key field in KeyboardEvent ([faaa2ce](https://github.com/EvenToNight/EvenToNight/commit/faaa2ce7505ec331e04f7a8e47fd980f2de7e226))
+* **shortcut:** update user theme preferences only if authenticated ([fcd9730](https://github.com/EvenToNight/EvenToNight/commit/fcd9730e1c44585c91b944a70e473dc3bb716f02))
+
 ## [1.26.0](https://github.com/EvenToNight/EvenToNight/compare/v1.25.2...v1.26.0) (2026-02-02)
 
 ### Features
