@@ -67,6 +67,7 @@ function adjustHeight() {
         ref="inputRef"
         v-model="messageText"
         :placeholder="t('placeholder')"
+        :aria-label="t('placeholder')"
         class="text-input"
         rows="1"
         @keydown="handleKeyPress"

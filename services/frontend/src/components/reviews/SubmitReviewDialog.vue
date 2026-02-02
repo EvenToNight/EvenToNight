@@ -189,7 +189,7 @@ const submitReview = async () => {
           </FormSelectorField>
 
           <div class="rating-input">
-            <label>{{ t('ratingLabel') }}</label>
+            <span>{{ t('ratingLabel') }}</span>
             <RatingStars
               v-model:rating="rating"
               :show-number="true"

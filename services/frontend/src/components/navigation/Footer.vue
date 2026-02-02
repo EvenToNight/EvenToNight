@@ -35,10 +35,38 @@ const openContact = () => {
         <AppBrand />
 
         <div class="footer-links">
-          <a class="footer-link" @click="goToRoute(ABOUT_ROUTE_NAME)">{{ t('about') }}</a>
-          <a class="footer-link" @click="openContact">{{ t('contact') }}</a>
-          <a class="footer-link" @click="goToRoute(PRIVACY_ROUTE_NAME)">{{ t('privacy') }}</a>
-          <a class="footer-link" @click="goToRoute(TERMS_ROUTE_NAME)">{{ t('terms') }}</a>
+          <a
+            class="footer-link"
+            role="button"
+            tabindex="0"
+            @click="goToRoute(ABOUT_ROUTE_NAME)"
+            @keydown.enter="goToRoute(ABOUT_ROUTE_NAME)"
+            >{{ t('about') }}</a
+          >
+          <a
+            class="footer-link"
+            role="button"
+            tabindex="0"
+            @click="openContact"
+            @keydown.enter="openContact"
+            >{{ t('contact') }}</a
+          >
+          <a
+            class="footer-link"
+            role="button"
+            tabindex="0"
+            @click="goToRoute(PRIVACY_ROUTE_NAME)"
+            @keydown.enter="goToRoute(PRIVACY_ROUTE_NAME)"
+            >{{ t('privacy') }}</a
+          >
+          <a
+            class="footer-link"
+            role="button"
+            tabindex="0"
+            @click="goToRoute(TERMS_ROUTE_NAME)"
+            @keydown.enter="goToRoute(TERMS_ROUTE_NAME)"
+            >{{ t('terms') }}</a
+          >
         </div>
 
         <ContactDialog v-model="showContactDialog" />
@@ -48,7 +76,10 @@ const openContact = () => {
             v-for="lang in availableLocales"
             :key="lang"
             class="language-option"
+            role="button"
+            tabindex="0"
             @click="selectLanguage(lang)"
+            @keydown.enter="selectLanguage(lang)"
           >
             {{ lang.toUpperCase() }}
           </span>

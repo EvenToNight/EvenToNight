@@ -98,7 +98,14 @@ const handleAvatarChange = async (file: File | null) => {
     </div>
 
     <div class="profile-header">
-      <div class="avatar-container" :class="{ clickable: isOwnProfile }" @click="handleAvatarClick">
+      <div
+        class="avatar-container"
+        :class="{ clickable: isOwnProfile }"
+        role="button"
+        tabindex="0"
+        @click="handleAvatarClick"
+        @keydown.enter="handleAvatarClick"
+      >
         <img
           v-if="user.avatar"
           :src="user.avatar"

@@ -61,13 +61,17 @@ const toggleFavorite = async (e: Event) => {
     goToRoute(SERVER_ERROR_ROUTE_NAME)
   }
 }
+function onClick() {
+  if (isDraft.value) {
+    goToEditEvent(event.value.eventId)
+  } else {
+    goToEventDetails(event.value.eventId)
+  }
+}
 </script>
 
 <template>
-  <div
-    class="event-card"
-    @click="isDraft ? goToEditEvent(event.eventId) : goToEventDetails(event.eventId)"
-  >
+  <div class="event-card" role="button" tabindex="0" @click="onClick" @keydown.enter="onClick">
     <div class="event-image-container">
       <img
         v-if="!isLoadingImage && imageObjectUrl"

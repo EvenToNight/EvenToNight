@@ -100,13 +100,25 @@ onMounted(async () => {
         <button class="like-button" :class="{ liked: isFavorite }" @click="toggleLike">
           <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="24px" />
         </button>
-        <span class="like-count" @click="showLikesDialog = true">{{ likesCount }}</span>
+        <span
+          class="like-count"
+          role="button"
+          tabindex="0"
+          @click="showLikesDialog = true"
+          @keydown.enter="showLikesDialog = true"
+          >{{ likesCount }}</span
+        >
       </div>
       <div class="participants-container">
         <q-icon name="people" size="24px" class="participants-icon" />
-        <span class="participants-count" @click="showParticipantsDialog = true">{{
-          participantsCount
-        }}</span>
+        <span
+          class="participants-count"
+          role="button"
+          tabindex="0"
+          @click="showParticipantsDialog = true"
+          @keydown.enter="showParticipantsDialog = true"
+          >{{ participantsCount }}</span
+        >
       </div>
     </div>
   </div>

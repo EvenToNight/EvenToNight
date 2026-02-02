@@ -130,9 +130,14 @@ onMounted(async () => {
               >
                 <img :src="organization.avatar" :alt="organization.name + ' avatar'" />
               </q-avatar>
-              <span class="organization-name" @click="goToUserProfile(organization.id)">{{
-                organization.name
-              }}</span>
+              <span
+                class="organization-name"
+                role="button"
+                tabindex="0"
+                @click="goToUserProfile(organization.id)"
+                @keydown.enter="goToUserProfile(organization.id)"
+                >{{ organization.name }}</span
+              >
             </div>
           </div>
         </div>
@@ -144,7 +149,14 @@ onMounted(async () => {
             :organizationId="organization.id"
           />
           <div v-if="canUserLeaveReview || userHasReviews" class="add-review-section">
-            <div v-if="canUserLeaveReview" class="event-info" @click="showReviewDialog = true">
+            <div
+              v-if="canUserLeaveReview"
+              class="event-info"
+              role="button"
+              tabindex="0"
+              @click="showReviewDialog = true"
+              @keydown.enter="showReviewDialog = true"
+            >
               <q-icon name="rate_review" class="event-icon" />
               <span class="event-title">{{ t('reviewButtonText') }}</span>
             </div>
@@ -154,7 +166,10 @@ onMounted(async () => {
             <span
               v-if="userHasReviews"
               class="modify-link"
+              role="button"
+              tabindex="0"
               @click="goToSettings(false, '#reviews')"
+              @keydown.enter="goToSettings(false, '#reviews')"
             >
               {{ t('modifyButtonText') }}
             </span>

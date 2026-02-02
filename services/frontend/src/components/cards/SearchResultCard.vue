@@ -56,6 +56,7 @@ const formatDate = (date: Date): string => {
       <img
         v-if="result.type === 'event' ? result.imageUrl : result.avatarUrl"
         :src="result.type === 'event' ? result.imageUrl : result.avatarUrl"
+        :alt="result.type === 'event' ? t('eventPosterAlt') : t('userAvatarAlt')"
       />
       <q-icon v-else :name="getResultIcon(result)" size="20px" />
     </q-avatar>

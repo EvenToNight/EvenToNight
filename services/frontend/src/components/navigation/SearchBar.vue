@@ -136,6 +136,7 @@ const handleBlur = () => {
 }
 </script>
 
+<!-- eslint-disable vuejs-accessibility/no-autofocus -->
 <template>
   <div class="search-bar-wrapper">
     <q-input

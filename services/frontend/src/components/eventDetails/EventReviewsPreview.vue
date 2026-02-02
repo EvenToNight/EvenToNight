@@ -97,7 +97,10 @@ onMounted(() => {
     <div
       v-if="canUserLeaveReview"
       class="event-info"
+      role="button"
+      tabindex="0"
       @click="goToEventReviews(props.organizationId, props.eventId, true)"
+      @keydown.enter="goToEventReviews(props.organizationId, props.eventId, true)"
     >
       <q-icon name="rate_review" class="event-icon" />
       <span class="event-title">{{ t('leaveReview') }}</span>

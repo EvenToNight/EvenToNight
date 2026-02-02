@@ -43,7 +43,10 @@ const getCurrentTabComponent = computed((): Tab => {
         :key="tab.id"
         class="explore-tab"
         :class="{ active: activeTab === tab.id }"
+        role="button"
+        tabindex="0"
         @click="selectTab(tab.id)"
+        @keydown.enter="selectTab(tab.id)"
       >
         {{ tab.label }}
       </div>

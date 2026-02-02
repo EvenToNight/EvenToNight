@@ -56,7 +56,10 @@ onMounted(async () => {
           v-for="category in categories"
           :key="category.category"
           class="category-card row items-center"
+          role="button"
+          tabindex="0"
           @click="handleCategoryClick(category)"
+          @keydown.enter="handleCategoryClick(category)"
         >
           <div class="category-icon-wrapper flex items-center justify-center">
             <q-icon :name="getCategoryIcon(category.category)" size="36px" />

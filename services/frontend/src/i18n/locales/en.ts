@@ -273,6 +273,7 @@ export default {
         title: 'Select Tickets',
         available: 'available',
         soldOut: 'Sold out',
+        quantityAriaLabel: 'Quantity input for',
         total: 'Total',
         ticket: 'Ticket',
         actions: {
@@ -369,9 +370,14 @@ export default {
         },
       },
       SearchResultCard: {
+        eventPosterAlt: 'Event Poster',
+        userAvatarAlt: 'User Avatar',
         event: 'Event',
         organization: 'Organization',
         member: 'User',
+      },
+      UserInfoCard: {
+        avatarAlt: 'User Avatar',
       },
     },
     chat: {
@@ -450,6 +456,7 @@ export default {
         location: 'Location',
         price: 'Price',
         about: 'About this event',
+        openInMaps: 'Open in Google Maps',
       },
       EventReviewsPreview: {
         title: 'Reviews',
@@ -555,6 +562,7 @@ export default {
         cropError: 'Failed to crop the image. Please try again.',
         dialogCancelButton: 'Close',
         dialogConfirmButton: 'Save',
+        uploadAriaLabel: 'Upload Image',
       },
       PosterCropUpload: {
         label: 'Event Poster',

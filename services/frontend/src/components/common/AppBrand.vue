@@ -12,7 +12,13 @@ const goToHomeTop = () => {
 </script>
 
 <template>
-  <div class="app-brand" @click="goToHomeTop">
+  <div
+    class="app-brand"
+    role="button"
+    tabindex="0"
+    @click="goToHomeTop"
+    @keydown.enter="goToHomeTop"
+  >
     <img src="/logo.png" :alt="t('altText')" class="brand-logo" />
     <span class="brand-text">{{ t('appName') }}</span>
   </div>

@@ -237,6 +237,7 @@ const handlePurchase = async () => {
                 <input
                   type="number"
                   :value="getQuantity(tt.id)"
+                  :aria-label="t('ticketSelection.quantityAriaLabel') + ' ' + tt.type"
                   class="quantity-input"
                   @keydown="preventInvalidNumberKeys"
                   @blur="(e) => handleQuantityChange(tt, (e.target as HTMLInputElement).value)"

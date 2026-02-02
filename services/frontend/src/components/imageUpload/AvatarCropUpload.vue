@@ -80,7 +80,13 @@ defineExpose({
       @error="emit('error', $event)"
     >
       <template #empty-state="{ triggerFileInput: trigger }">
-        <div class="avatar-preview-container" @click="trigger">
+        <div
+          class="avatar-preview-container"
+          role="button"
+          tabindex="0"
+          @click="trigger"
+          @keydown.enter="trigger"
+        >
           <div class="avatar-preview">
             <img :src="croppedImage || previewUrl" alt="Avatar preview" class="avatar-image" />
             <div class="avatar-overlay">

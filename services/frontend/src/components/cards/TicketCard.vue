@@ -16,12 +16,24 @@ const { downloadTickets } = useTicketDownload()
 <template>
   <div class="ticket-card">
     <div class="ticket-content">
-      <div class="event-image-wrapper clickable" @click="goToEventDetails(event.eventId)">
+      <div
+        class="event-image-wrapper clickable"
+        role="button"
+        tabindex="0"
+        @click="goToEventDetails(event.eventId)"
+        @keydown.enter="goToEventDetails(event.eventId)"
+      >
         <img :src="event.poster" :alt="event.title" class="event-image" />
       </div>
 
       <div class="event-info">
-        <h3 class="event-name clickable" @click="goToEventDetails(event.eventId)">
+        <h3
+          class="event-name clickable"
+          role="button"
+          tabindex="0"
+          @click="goToEventDetails(event.eventId)"
+          @keydown.enter="goToEventDetails(event.eventId)"
+        >
           {{ event.title }}
         </h3>
         <p class="event-date">{{ new Date(event.date).toLocaleDateString() }}</p>

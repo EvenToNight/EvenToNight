@@ -67,7 +67,13 @@ const scrollToTop = (behavior: ScrollBehavior = 'auto') => {
   <NavigationButtons>
     <!-- TODO: improve username screen exiting detection -->
     <template v-if="user && showNavbarCustomContent" #left-custom-content>
-      <div class="navbar-user-info" @click="() => scrollToTop('smooth')">
+      <div
+        class="navbar-user-info"
+        role="button"
+        tabindex="0"
+        @click="() => scrollToTop('smooth')"
+        @keydown.enter="() => scrollToTop('smooth')"
+      >
         <q-avatar size="32px">
           <img v-if="user.avatar" :src="user.avatar" :alt="user.name" class="navbar-avatar" />
           <q-icon v-else :name="defaultIcon" size="24px" />
