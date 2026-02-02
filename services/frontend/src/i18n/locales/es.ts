@@ -7,6 +7,8 @@ export default {
 
   defaults: {
     searchHint: 'Buscar eventos, organizaciones o usuarios...',
+    login: 'Iniciar sesión',
+    register: 'Inscribirse',
   },
 
   views: {
@@ -297,6 +299,466 @@ export default {
       successMessage: 'Este billete ha sido verificado y marcado como usado.',
     },
   },
+  components: {
+    auth: {
+      AuthButtons: {
+        login: '@:defaults.login', //[ignorei18n]
+        register: '@:defaults.register', //[ignorei18n]
+      },
+      AuthRequiredDialog: {
+        title: '¡Ups! No iniciado sesión',
+        message: 'Debes iniciar sesión para realizar esta acción',
+        login: '@:defaults.login', //[ignorei18n]
+        register: '@:defaults.register', //[ignorei18n]
+      },
+      LoginForm: {
+        title: '@:defaults.login', //[ignorei18n]
+        successfulLogin: '¡Inicia sesión exitosamente!',
+        failedLogin: 'Nombre de usuario o contraseña incorrectos',
+        switchToRegister: '¿Necesitas una cuenta? Registro',
+        usernameOrEmailLabel: 'Nombre de usuario o correo electrónico',
+        usernameOrEmailError: 'Se requiere nombre de usuario o correo electrónico',
+        passwordLabel: 'Contraseña',
+        passwordError: 'Se requiere contraseña',
+        login: '@:defaults.login', //[ignorei18n]
+      },
+      RegisterForm: {
+        title: '@:defaults.register', //[ignorei18n]
+        successfulRegistration: '¡Registro exitoso!',
+        failedRegistration: 'Registro fallido',
+        switchToLogin: '¿Ya tienes una cuenta? Acceso',
+        nameLabel: 'Nombre',
+        nameError: 'El nombre es obligatorio',
+        emailLabel: 'Correo electrónico',
+        emailError: 'Se requiere correo electrónico',
+        emailFormatError: 'Por favor, introduce una dirección de correo electrónico válida',
+        passwordLabel: 'Contraseña',
+        passwordError: 'Se requiere contraseña',
+        confirmPasswordLabel: 'confirmar Contraseña',
+        emptyConfirmPasswordError: 'Por favor confirma tu contraseña',
+        passwordMismatchError: 'Las contraseñas no coinciden',
+        isOrganizationLabel: 'Me estoy registrando como organización',
+        register: '@:defaults.register', //[ignorei18n]
+      },
+    },
+    buttons: {
+      basicButtons: {
+        SeeAllButton: {
+          seeAll: 'Ver todo',
+        },
+      },
+    },
+    cards: {
+      CardSlider: {
+        scrollLeftAriaLabel: 'Desplazarse hacia la izquierda',
+        scrollRightAriaLabel: 'Desplazarse hacia la derecha',
+      },
+      EventCard: {
+        posterAlt: 'Cartel del evento',
+        favoriteButtonAriaLabel: 'Alternar favorito',
+        draftBadge: 'Borrador',
+        cancelledBadge: 'Cancelado',
+        draftMissingTitle: 'Evento sin título',
+      },
+      ReviewCard: {
+        deleteDialog: {
+          title: 'Confirmar eliminación',
+          message:
+            '¿Estás seguro de que deseas eliminar esta reseña? Esta acción no se puede deshacer.',
+          cancelLabel: 'Atrás',
+          confirmLabel: 'Borrar',
+          failedDelete: 'Se produjo algún error al intentar eliminar la reseña.',
+        },
+        menu: {
+          edit: 'Editar',
+          delete: 'Borrar',
+        },
+      },
+      SearchResultCard: {
+        event: 'Evento',
+        organization: 'Organización',
+        member: 'Usuario',
+      },
+    },
+    chat: {
+      ChatArea: {
+        today: 'Hoy',
+        yesterday: 'Ayer',
+        selectConversation: 'Seleccione una conversación',
+        selectConversationHint: 'Elija un chat de la lista o inicie una nueva conversación',
+        emptyConversation: 'Aún no hay mensajes',
+        emptyConversationHint: 'Inicia la conversación escribiendo un mensaje.',
+      },
+      ChatHeader: {
+        online: 'Online', //[ignorei18n]
+      },
+      ConversationList: {
+        yesterday: 'Ayer',
+        title: 'Chat', //[ignorei18n]
+        searchHint: 'Buscar conversaciones...',
+        conversations: 'Conversaciones',
+        you: 'Tú',
+        startConversation: 'Iniciar una nueva conversación',
+        noConversations: 'No se encontraron conversaciones',
+        searchConversations: 'Buscar e iniciar una nueva conversación',
+        searchNoResults: 'No se encontraron resultados para la búsqueda.',
+      },
+      MessageInput: {
+        placeholder: 'Escribe un mensaje...',
+        sendButtonAriaLabel: 'Enviar mensaje',
+        emojiButtonAriaLabel: 'Seleccione emojis',
+      },
+    },
+    common: {
+      AppBrand: {
+        appName: 'EvenToNight', //[ignorei18n]
+        altText: 'EvenToNight Logo', //[ignorei18n]
+      },
+    },
+    contacts: {
+      ContactDialog: {
+        title: 'Contáctenos',
+        nameLabel: 'Nombre',
+        emailLabel: 'Correo electrónico',
+        emailError: 'Se requiere correo electrónico',
+        emailFormatError: 'Por favor, introduce una dirección de correo electrónico válida',
+        subjectLabel: 'Sujeto',
+        subjectError: 'Se requiere sujeto',
+        messageLabel: 'Mensaje',
+        messageError: 'Se requiere mensaje',
+        cancelLabel: 'Cerca',
+        submitLabel: 'Entregar',
+      },
+    },
+    eventDetails: {
+      EventDetailsActions: {
+        downloadTickets: 'Descargar Entradas',
+        viewMyTickets: 'Ver mis entradas',
+        buyMoreTickets: 'Comprar más entradas',
+        soldOut: 'Agotado',
+        buyTickets: 'Comprar Entradas',
+        noTicketsAvailable: 'No hay entradas disponibles para la compra.',
+      },
+      EventDetailsHeader: {
+        editEvent: 'Editar',
+        organizedBy: 'Organizado por',
+        likes: 'Gustos',
+        noLikes: 'Aún no me gusta',
+        participants: 'Participantes',
+        noParticipants: 'Aún no hay participantes',
+      },
+      EventInfo: {
+        freePrice: 'Gratis',
+        startingFrom: 'A partir de',
+        notAvailable: 'No disponible',
+        date: 'Fecha',
+        time: 'Tiempo',
+        location: 'Ubicación',
+        price: 'Precio',
+        about: 'Acerca de este evento',
+      },
+      EventReviewsPreview: {
+        title: 'Reseñas',
+        leaveReview: 'Deja una reseña',
+        noReviews: 'Aún no hay reseñas para este evento.',
+      },
+      OrganizationInfo: {
+        organizedBy: 'Organizado por',
+        inCollaborationWith: 'En colaboración con',
+      },
+    },
+    explore: {
+      filters: {
+        DateFilters: {
+          today: 'Hoy',
+          thisWeek: 'Esta semana',
+          thisMonth: 'este mes',
+          date: 'Fecha',
+          selectPeriod: 'Seleccionar periodo',
+          cancel: 'Cancelar',
+          apply: 'Aplicar',
+        },
+        FeedFilters: {
+          others: 'Otros',
+          upcoming: 'Próximo',
+          popular: 'Popular',
+          nearby: 'Cercano',
+          forYou: 'Para ti',
+          new: 'Nuevo',
+        },
+        FilterButton: {
+          filters: 'Filtros',
+          cancel: 'Claro',
+          apply: 'Aplicar',
+        },
+        PriceFilters: {
+          free: 'Gratis',
+          paid: 'Pagado',
+          from: 'De',
+          to: 'A',
+          customize: 'Personalizar',
+          price: 'Precio',
+          selectPrice: 'Seleccionar rango de precios',
+          minPrice: 'Precio Mínimo',
+          maxPrice: 'Precio Máximo',
+          cancel: 'Cerca',
+          clear: 'Claro',
+          apply: 'Aplicar',
+        },
+        SortFilters: {
+          sort: 'Ordenar por',
+          date_asc: 'Fecha de ascenso',
+          date_desc: 'Fecha descendente',
+          price_asc: 'Precio ascendente',
+          price_desc: 'Precio descendente',
+        },
+        TagFilters: {
+          tags: 'Etiquetas',
+        },
+      },
+      tabs: {
+        ExploreEventsTab: {
+          emptySearch: 'No se encontraron eventos',
+          emptySearchText: 'Buscar eventos por nombre',
+        },
+      },
+      ExploreViewContent: {
+        eventsTabTitle: 'Eventos',
+        organizationsTabTitle: 'Organizaciones',
+        organizationEmptySearch: 'No se encontraron organizaciones',
+        organizationEmptySearchText: 'Buscar organizaciones por nombre',
+        usersTabTitle: 'Usuarios',
+        usersEmptySearch: 'No se encontraron usuarios',
+        usersEmptySearchText: 'Buscar usuarios por nombre',
+        title: 'Explorar',
+        subtitile: 'Encuentra eventos, organizadores o conéctate con tus amigos',
+      },
+    },
+    home: {
+      CategorySelection: {
+        title: 'Explorar por categoría',
+        subtitle: 'Descubra eventos que coincidan con sus intereses',
+      },
+      HomeViewContent: {
+        title: 'Encuentra el evento para ti',
+        draftSectionTitle: 'Continuar editando tus eventos',
+        upcomingEventsSectionTitle: 'Próximos eventos',
+      },
+    },
+    imageUpload: {
+      AvatarCropUpload: {
+        title: 'Cargar y recortar foto de avatar',
+        removeAvatar: 'Quitar foto',
+        hint: 'Sube tu foto de perfil',
+      },
+      BaseCropUpload: {
+        title: 'Cargar y recortar foto',
+        fileTooBigError: 'El archivo seleccionado es demasiado grande. El tamaño máximo es',
+        fileTypeError: 'Tipo de archivo no válido. Sólo se permiten archivos de imagen.',
+        blobCreationError: 'No se pudo crear el blob de imagen. Por favor inténtalo de nuevo.',
+        cropError: 'No se pudo recortar la imagen. Por favor inténtalo de nuevo.',
+        dialogCancelButton: 'Cerca',
+        dialogConfirmButton: 'Ahorrar',
+      },
+      PosterCropUpload: {
+        label: 'Cartel del evento',
+        title: 'Cargar y recortar póster del evento',
+        uploadButtonLabel: 'Subir cartel',
+        dialogCancelButton: 'Cerca',
+        dialogConfirmButton: 'Ahorrar',
+      },
+    },
+    navigation: {
+      Footer: {
+        about: 'Acerca de',
+        contact: 'Contacto',
+        privacy: 'política de privacidad',
+        terms: 'Términos y condiciones',
+        copyright: 'Reservados todos los derechos.',
+      },
+      NavigationBar: {
+        profile: 'Perfil',
+        logout: 'Cerrar sesión',
+        darkMode: 'Modo oscuro',
+      },
+      SearchBar: {
+        baseHint: 'Buscar...',
+        searchingText: 'Búsqueda...',
+      },
+    },
+    notifications: {
+      NotificationHandler: {
+        newMessageLabel: 'Responder',
+        newLikeLabel: 'Ver perfil',
+        newFollowLabel: 'Ver perfil',
+        newEventCaption: 'Publicado un nuevo evento',
+        newEventLabel: 'Ver evento',
+        newReviewCaption: 'Dejó una reseña sobre su evento',
+        newReviewLabel: 'Ver reseña',
+      },
+      NotificationsButton: {
+        title: 'Notificaciones',
+        noNotifications: 'Aún no hay notificaciones',
+        newEventCaption: 'Publicado un nuevo evento',
+        followerReceivedCaption: 'Empecé a seguirte',
+        likeReceivedCaption: 'Me gustó tu evento',
+        reviewReceivedCaption: 'Dejó una reseña sobre su evento',
+      },
+    },
+    profile: {
+      tabs: {
+        MyLikesTab: {
+          noLikedEvents: 'Aún no te ha gustado ningún evento',
+        },
+        ReviewsTab: {
+          loading: 'Cargando reseñas...',
+          noReviews: 'Aún no hay reseñas para esta organización.',
+        },
+      },
+      ProfileActions: {
+        createEvent: 'Crear evento',
+        following: 'Siguiente',
+        follow: 'Seguir',
+      },
+      ProfileBody: {
+        myEvents: 'Mis Eventos',
+        myEventsExternal: 'Eventos',
+        myEventsPublishedLabel: 'Próximos eventos',
+        myEventsPastEventsLabel: 'Eventos pasados',
+        noEventCreated: 'Aún no has creado ningún evento.',
+        noEventCreatedExternal: 'Esta organización aún no ha creado ningún evento.',
+        draftedEvents: 'Borrador',
+        noDraftedEvents: 'No tienes eventos redactados.',
+        myLikes: 'Mis gustos',
+        myLikesExternal: 'Gustos',
+        myParticipations: 'Mis participaciones',
+        myParticipationsExternal: 'Participaciones',
+        myPartecipationsUpcomingLabel: 'Próximos eventos',
+        myPartecipationsPastLabel: 'Eventos pasados',
+        noEventJoined: 'Aún no has asistido a ningún evento.',
+        noEventJoinedExternal: 'Este usuario aún no ha asistido a ningún evento.',
+        myTickets: 'Mis entradas',
+        reviews: 'Reseñas',
+      },
+      ProfileHeader: {
+        followError: 'No se pudo actualizar el estado de seguimiento',
+        uploadAvatarError: 'No se pudo cargar la imagen de avatar, inténtelo de nuevo',
+        userAvatarAlt: 'Avatar de usuario',
+      },
+      UserInfo: {
+        followers: 'Seguidores',
+        noFollowers: 'Aún no hay seguidores',
+        following: 'Siguiente',
+        noFollowing: 'No seguir a nadie todavía',
+      },
+    },
+    reviews: {
+      filters: {
+        EventFilter: {
+          allEvents: 'Todos los eventos',
+          eventPosterAlt: 'Cartel del evento',
+          label: 'Filtrar por evento',
+          noEventsFound: 'No se encontró ningún evento',
+          searchHint: 'Empiece a escribir para buscar eventos',
+        },
+        RatingFilter: {
+          allRatings: 'Todas las calificaciones',
+          starLabel: 'Estrella',
+          starsLabel: 'estrellas',
+          label: 'Filtrar por calificación',
+        },
+      },
+      rating: {
+        RatingInfo: {
+          noReviews: 'Sin reseñas',
+          reviews: 'Reseñas',
+        },
+      },
+      ReviewsList: {
+        noReviews: 'No se encontraron reseñas',
+      },
+      ReviewsStatistics: {
+        reviews: 'Reseñas',
+      },
+      SubmitReviewDialog: {
+        leaveReviewLabel: 'Deja una reseña',
+        editReviewLabel: 'Editar reseña',
+        selectEventLabel: 'Seleccionar evento',
+        selectEventError: 'Por favor seleccione un evento',
+        eventPosterAlt: 'Cartel del evento',
+        noEventsFound: 'No se encontró ningún evento',
+        searchEventsHint: 'Empiece a escribir para buscar eventos',
+        ratingLabel: 'Clasificación',
+        reviewTitle: 'Título',
+        reviewTitlePlaceholder: 'Ponle un título a tu reseña...',
+        reviewTitleError: 'Por favor ingrese un título para su reseña',
+        reviewDescription: 'Descripción',
+        reviewDescriptionPlaceholder: 'Escribe tu reseña...',
+        reviewDescriptionError: 'Por favor ingrese una descripción para su revisión',
+        cancel: 'Cerca',
+        submit: 'Entregar',
+      },
+    },
+    settings: {
+      tabs: {
+        ChangePasswordTab: {
+          changePasswordTitle: 'Cambia tu contraseña',
+          changePasswordSubtitle: 'Actualice la contraseña de su cuenta para mantenerla segura.',
+          passwordChangedSuccess: '¡La contraseña se cambió correctamente!',
+          passwordChangedError: 'La contraseña actual es incorrecta, inténtalo de nuevo.',
+          currentPasswordLabel: 'Contraseña actual',
+          currentPasswordError: 'Se requiere contraseña actual',
+          newPasswordLabel: 'Nueva contraseña',
+          newPasswordError: 'Se requiere nueva contraseña',
+          confirmPasswordLabel: 'Confirmar nueva contraseña',
+          confirmPasswordError: 'Por favor confirma tu nueva contraseña',
+          passwordMismatchError: 'Las nuevas contraseñas no coinciden',
+          changePasswordButton: 'Cambiar la contraseña',
+        },
+        GeneralSettingsTab: {
+          male: 'Masculino',
+          female: 'Femenino',
+          other: 'prefiero no especificar',
+          tooManyTagsWarning: 'Sólo puedes seleccionar hasta',
+          failedLoading: 'No se pudo cargar la configuración',
+          settingsSavedSuccess: '¡La configuración se guardó correctamente!',
+          settingsSavedError: 'No se pudo guardar la configuración, inténtelo de nuevo',
+          deleteProfileTitle: 'Eliminar perfil',
+          deleteProfileMessage:
+            '¿Estás seguro de que quieres eliminar tu perfil? Esta acción es irreversible y eliminará todos sus datos de nuestra plataforma.',
+          cancel: 'Atrás',
+          delete: 'Borrar',
+          profileDeletedSuccess: 'Su perfil ha sido eliminado exitosamente.',
+          profileDeletedError: 'No se pudo eliminar el perfil, inténtelo de nuevo',
+          informationSectionTitle: 'Información personal',
+          birthDateLabel: 'Fecha de nacimiento',
+          genderLabel: 'Género',
+          appearanceSectionTitle: 'Apariencia',
+          darkModeLabel: 'Modo oscuro',
+          interestSectionTitle: 'Intereses',
+          interestsLabelStart: 'Seleccione hasta',
+          interestsLabelEnd: 'que coinciden con tus intereses',
+          selected: 'Seleccionado',
+          save: 'Ahorrar',
+          dangerZoneTitle: 'Zona de peligro',
+          dangerZoneDescription:
+            'Una vez que eliminas tu perfil, no hay vuelta atrás. Por favor esté seguro.',
+          deleteProfileButton: 'Eliminar perfil',
+        },
+        LanguageTab: {
+          updateLanguageError: 'No se pudo actualizar la preferencia de idioma, inténtelo de nuevo',
+          languageTitle: 'Preferencia de idioma',
+          languageSubtitle: 'Elija su idioma preferido para la aplicación',
+        },
+        ReviewsTab: {
+          loadReviewsError: 'No se pudieron cargar tus reseñas, inténtalo de nuevo.',
+          searchHint: 'Busca tus reseñas...',
+          noReviews: 'Aún no has enviado ninguna reseña',
+          noReviewsFound: 'No se encontraron reseñas que coincidan con su búsqueda',
+        },
+      },
+    },
+  },
 
   date: 'Fecha',
   time: 'Tiempo',
@@ -310,79 +772,8 @@ export default {
     members: 'Usuarios',
   },
 
-  brand: {
-    appName: 'EvenToNight', //[ignorei18n]
-    logo: 'Logo',
-  },
-
-  auth: {
-    login: 'Inscribirse',
-    register: 'Iniciar sesión',
-    logout: 'Cerrar sesión',
-    notLoggedIn: '¡Ups! No iniciado sesión',
-    loginRequired: 'Debes iniciar sesión para realizar esta acción',
-    form: {
-      emailLabel: 'Correo electrónico',
-      emailError: 'Se requiere correo electrónico',
-      emailFormatError: 'Por favor, introduce una dirección de correo electrónico válida',
-      passwordLabel: 'Contraseña',
-      passwordError: 'Se requiere contraseña',
-    },
-    loginForm: {
-      successfulLogin: '¡Inicia sesión exitosamente!',
-      failedLogin: 'error de inicio de sesion',
-      switchToRegister: '¿Necesitas una cuenta? Registro',
-    },
-    registerForm: {
-      nameLabel: 'Nombre',
-      nameError: 'El nombre es obligatorio',
-      confirmPasswordLabel: 'confirmar Contraseña',
-      emptyConfirmPasswordError: 'Por favor confirma tu contraseña',
-      passwordMismatchError: 'Las contraseñas no coinciden',
-      isOrganizationLabel: 'Me estoy registrando como organización',
-      successfulRegistration: '¡Registro exitoso!',
-      failedRegistration: 'Registro fallido',
-      switchToLogin: '¿Ya tienes una cuenta? Acceso',
-    },
-  },
-
-  cards: {
-    slider: {
-      seeAll: 'Ver todo',
-      scrollLeftAriaLabel: 'Desplazarse hacia la izquierda',
-      scrollRightAriaLabel: 'Desplazarse hacia la derecha',
-    },
-    eventCard: {
-      loadingPoster: 'Cargando...',
-      favoriteButtonAriaLabel: 'Alternar favorito',
-      posterAlt: 'Cartel del evento',
-      draftMissingTitle: 'Evento sin título',
-    },
-    ticketCard: {
-      ticket: 'Boleto',
-    },
-  },
-
   event: {
     draft: 'Borrador',
-  },
-
-  eventDetails: {
-    buyTickets: 'Comprar Entradas',
-    about: 'Acerca de este evento',
-    organizer: 'Organizado por',
-    collaborators: 'En colaboración con',
-    editEvent: 'Editar',
-    freePrice: 'Gratis',
-  },
-
-  footer: {
-    about: 'Acerca de',
-    events: 'Eventos',
-    contact: 'Contacto',
-    privacy: 'política de privacidad',
-    terms: 'Términos y condiciones',
-    copyright: 'Reservados todos los derechos.',
   },
 
   search: {
@@ -392,24 +783,17 @@ export default {
   },
 
   userProfile: {
-    editProfile: 'Editar perfil',
-    createEvent: 'Crear evento',
     followers: 'Seguidores',
     following: 'Siguiente',
     follow: 'Seguir',
     myTickets: 'Mis entradas',
     myEvents: 'Mis Eventos',
     events: 'Eventos',
-    noEventCreated: 'Aún no has creado ningún evento.',
-    noEventCreatedExternal: 'Esta organización aún no ha creado ningún evento.',
-    noEventJoined: 'Aún no has asistido a ningún evento.',
-    noEventJoinedExternal: 'Este usuario aún no ha asistido a ningún evento.',
+
     noTickets: 'Aún no hay entradas',
     draftedEvents: 'Eventos redactados',
-    noDraftedEvents: 'No tienes eventos redactados.',
     reviews: 'Reseñas',
     noReviews: 'Aún no hay reseñas.',
-    userAvatarAlt: 'Avatar de usuario',
     leaveReview: 'Deja una reseña',
     selectEvent: 'Seleccionar evento',
     selectRating: 'Seleccionar calificación:',
@@ -425,76 +809,5 @@ export default {
   theme: {
     light_mode: 'Modo de luz',
     dark_mode: 'Modo oscuro',
-  },
-
-  home: {
-    hero: {
-      title: 'Encuentra el evento para ti',
-    },
-    sections: {
-      upcomingEvents: 'Próximos eventos',
-    },
-  },
-  explore: {
-    title: 'Explorar',
-    subtitile: 'Encuentra eventos, organizadores o conéctate con tus amigos',
-    events: {
-      title: 'Eventos',
-      emptySearch: 'No se encontraron eventos',
-      emptySearchText: 'Buscar eventos por nombre',
-    },
-    organizations: {
-      title: 'Organizaciones',
-      emptySearch: 'No se encontraron organizaciones',
-      emptySearchText: 'Buscar organizaciones por nombre',
-    },
-    users: {
-      title: 'Usuarios',
-      emptySearch: 'No se encontraron usuarios',
-      emptySearchText: 'Buscar usuarios por nombre',
-    },
-  },
-
-  filters: {
-    filters: 'Filtros',
-    cancel: 'Cancelar',
-    delete: 'Claro',
-    apply: 'Aplicar',
-    dateFilters: {
-      date: 'Fecha',
-      selectPeriod: 'Seleccionar periodo',
-      today: 'Hoy',
-      thisWeek: 'Esta semana',
-      thisMonth: 'este mes',
-    },
-    feedFilters: {
-      others: 'Otros',
-      upcoming: 'Próximo',
-      popular: 'Popular',
-      nearby: 'Cercano',
-      forYou: 'Para ti',
-      new: 'Nuevo',
-    },
-    priceFilters: {
-      price: 'Precio',
-      selectPrice: 'Seleccionar rango de precios',
-      minPrice: 'Precio Mínimo',
-      maxPrice: 'Precio Máximo',
-      customize: 'Personalizar',
-      free: 'Gratis',
-      paid: 'Pagado',
-      from: 'De',
-      to: 'A',
-    },
-    sortFilters: {
-      sort: 'Ordenar por',
-      date_asc: 'Fecha de ascenso',
-      date_desc: 'Fecha descendente',
-      price_asc: 'Precio ascendente',
-      price_desc: 'Precio descendente',
-    },
-    TagFilters: {
-      tags: 'Etiquetas',
-    },
   },
 }

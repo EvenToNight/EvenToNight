@@ -7,6 +7,8 @@ export default {
 
   defaults: {
     searchHint: 'Cerca eventi, organizzazioni o utenti...',
+    login: 'Registrazione',
+    register: 'Iscrizione',
   },
 
   views: {
@@ -296,6 +298,467 @@ export default {
       successMessage: 'Questo biglietto è stato verificato e contrassegnato come utilizzato.',
     },
   },
+  components: {
+    auth: {
+      AuthButtons: {
+        login: '@:defaults.login', //[ignorei18n]
+        register: '@:defaults.register', //[ignorei18n]
+      },
+      AuthRequiredDialog: {
+        title: "Ops! Non effettuato l'accesso",
+        message: "È necessario effettuare l'accesso per eseguire questa azione",
+        login: '@:defaults.login', //[ignorei18n]
+        register: '@:defaults.register', //[ignorei18n]
+      },
+      LoginForm: {
+        title: '@:defaults.login', //[ignorei18n]
+        successfulLogin: 'Accesso riuscito!',
+        failedLogin: 'Nome utente o password errati',
+        switchToRegister: 'Hai bisogno di un account? Registro',
+        usernameOrEmailLabel: 'Nome utente o e-mail',
+        usernameOrEmailError: "È richiesto il nome utente o l'e-mail",
+        passwordLabel: 'Password',
+        passwordError: 'È richiesta la password',
+        login: '@:defaults.login', //[ignorei18n]
+      },
+      RegisterForm: {
+        title: '@:defaults.register', //[ignorei18n]
+        successfulRegistration: 'Registrazione riuscita!',
+        failedRegistration: 'La registrazione non è riuscita',
+        switchToLogin: 'Hai già un account? Login',
+        nameLabel: 'Nome',
+        nameError: 'Il nome è obbligatorio',
+        emailLabel: 'E-mail',
+        emailError: "L'e-mail è obbligatoria",
+        emailFormatError: 'Si prega di inserire un indirizzo email valido',
+        passwordLabel: 'Password',
+        passwordError: 'È richiesta la password',
+        confirmPasswordLabel: 'Conferma password',
+        emptyConfirmPasswordError: 'Per favore conferma la tua password',
+        passwordMismatchError: 'Le password non corrispondono',
+        isOrganizationLabel: 'Mi sto registrando come organizzazione',
+        register: '@:defaults.register', //[ignorei18n]
+      },
+    },
+    buttons: {
+      basicButtons: {
+        SeeAllButton: {
+          seeAll: 'Vedi tutto',
+        },
+      },
+    },
+    cards: {
+      CardSlider: {
+        scrollLeftAriaLabel: 'Scorri a sinistra',
+        scrollRightAriaLabel: 'Scorri verso destra',
+      },
+      EventCard: {
+        posterAlt: "Locandina dell'evento",
+        favoriteButtonAriaLabel: 'Attiva/disattiva preferiti',
+        draftBadge: 'Bozza',
+        cancelledBadge: 'Annullato',
+        draftMissingTitle: 'Evento senza titolo',
+      },
+      ReviewCard: {
+        deleteDialog: {
+          title: "Conferma l'eliminazione",
+          message:
+            'Sei sicuro di voler eliminare questa recensione? Questa azione non può essere annullata.',
+          cancelLabel: 'Indietro',
+          confirmLabel: 'Eliminare',
+          failedDelete: 'Si è verificato un errore durante il tentativo di eliminare la recensione',
+        },
+        menu: {
+          edit: 'Modificare',
+          delete: 'Eliminare',
+        },
+      },
+      SearchResultCard: {
+        event: 'Evento',
+        organization: 'Organizzazione',
+        member: 'Utente',
+      },
+    },
+    chat: {
+      ChatArea: {
+        today: 'Oggi',
+        yesterday: 'Ieri',
+        selectConversation: 'Seleziona una conversazione',
+        selectConversationHint: "Scegli una chat dall'elenco o avvia una nuova conversazione",
+        emptyConversation: 'Nessun messaggio ancora',
+        emptyConversationHint: 'Inizia la conversazione scrivendo un messaggio',
+      },
+      ChatHeader: {
+        online: 'Online', //[ignorei18n]
+      },
+      ConversationList: {
+        yesterday: 'Ieri',
+        title: 'Chat', //[ignorei18n]
+        searchHint: 'Cerca conversazioni...',
+        conversations: 'Conversazioni',
+        you: 'Voi',
+        startConversation: 'Inizia una nuova conversazione',
+        noConversations: 'Nessuna conversazione trovata',
+        searchConversations: 'Cerca e avvia una nuova conversazione',
+        searchNoResults: 'Nessun risultato trovato per la ricerca.',
+      },
+      MessageInput: {
+        placeholder: 'Digita un messaggio...',
+        sendButtonAriaLabel: 'Invia messaggio',
+        emojiButtonAriaLabel: 'Seleziona Emoji',
+      },
+    },
+    common: {
+      AppBrand: {
+        appName: 'EvenToNight', //[ignorei18n]
+        altText: 'EvenToNight Logo', //[ignorei18n]
+      },
+    },
+    contacts: {
+      ContactDialog: {
+        title: 'Contattaci',
+        nameLabel: 'Nome',
+        emailLabel: 'E-mail',
+        emailError: "L'e-mail è obbligatoria",
+        emailFormatError: 'Si prega di inserire un indirizzo email valido',
+        subjectLabel: 'Soggetto',
+        subjectError: "L'oggetto è obbligatorio",
+        messageLabel: 'Messaggio',
+        messageError: 'Il messaggio è obbligatorio',
+        cancelLabel: 'Vicino',
+        submitLabel: 'Invia',
+      },
+    },
+    eventDetails: {
+      EventDetailsActions: {
+        downloadTickets: 'Scarica i biglietti',
+        viewMyTickets: 'Visualizza i miei biglietti',
+        buyMoreTickets: 'Acquista più biglietti',
+        soldOut: 'Esaurito',
+        buyTickets: 'Acquista i biglietti',
+        noTicketsAvailable: "Nessun biglietto disponibile per l'acquisto",
+      },
+      EventDetailsHeader: {
+        editEvent: 'Modificare',
+        organizedBy: 'Organizzato da',
+        likes: 'Mi piace',
+        noLikes: 'Nessun Mi piace ancora',
+        participants: 'Partecipanti',
+        noParticipants: 'Nessun partecipante ancora',
+      },
+      EventInfo: {
+        freePrice: 'Gratuito',
+        startingFrom: 'A partire da',
+        notAvailable: 'Non disponibile',
+        date: 'Data',
+        time: 'Tempo',
+        location: 'Posizione',
+        price: 'Prezzo',
+        about: 'A proposito di questo evento',
+      },
+      EventReviewsPreview: {
+        title: 'Recensioni',
+        leaveReview: 'Lascia una recensione',
+        noReviews: 'Ancora nessuna recensione per questo evento',
+      },
+      OrganizationInfo: {
+        organizedBy: 'Organizzato da',
+        inCollaborationWith: 'In collaborazione con',
+      },
+    },
+    explore: {
+      filters: {
+        DateFilters: {
+          today: 'Oggi',
+          thisWeek: 'Questa settimana',
+          thisMonth: 'Questo mese',
+          date: 'Data',
+          selectPeriod: 'Seleziona Periodo',
+          cancel: 'Cancellare',
+          apply: 'Fare domanda a',
+        },
+        FeedFilters: {
+          others: 'Altri',
+          upcoming: 'Prossimamente',
+          popular: 'Popolare',
+          nearby: 'Nelle vicinanze',
+          forYou: 'Per te',
+          new: 'Nuovo',
+        },
+        FilterButton: {
+          filters: 'Filtri',
+          cancel: 'Chiaro',
+          apply: 'Fare domanda a',
+        },
+        PriceFilters: {
+          free: 'Gratuito',
+          paid: 'Pagato',
+          from: 'Da',
+          to: 'A',
+          customize: 'Personalizza',
+          price: 'Prezzo',
+          selectPrice: 'Seleziona fascia di prezzo',
+          minPrice: 'Prezzo minimo',
+          maxPrice: 'Prezzo massimo',
+          cancel: 'Vicino',
+          clear: 'Chiaro',
+          apply: 'Fare domanda a',
+        },
+        SortFilters: {
+          sort: 'Ordina per',
+          date_asc: 'Data di ascesa',
+          date_desc: 'Data discendente',
+          price_asc: 'Prezzo ascendente',
+          price_desc: 'Prezzo decrescente',
+        },
+        TagFilters: {
+          tags: 'Tag',
+        },
+      },
+      tabs: {
+        ExploreEventsTab: {
+          emptySearch: 'Nessun evento trovato',
+          emptySearchText: 'Cerca eventi per nome',
+        },
+      },
+      ExploreViewContent: {
+        eventsTabTitle: 'Eventi',
+        organizationsTabTitle: 'Organizzazioni',
+        organizationEmptySearch: 'Nessuna organizzazione trovata',
+        organizationEmptySearchText: 'Cerca organizzazioni per nome',
+        usersTabTitle: 'Utenti',
+        usersEmptySearch: 'Nessun utente trovato',
+        usersEmptySearchText: 'Cerca gli utenti per nome',
+        title: 'Esplorare',
+        subtitile: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
+      },
+    },
+    home: {
+      CategorySelection: {
+        title: 'Esplora per categoria',
+        subtitle: 'Scopri gli eventi che corrispondono ai tuoi interessi',
+      },
+      HomeViewContent: {
+        title: "Trova l'evento che fa per te",
+        draftSectionTitle: 'Continua a modificare i tuoi eventi',
+        upcomingEventsSectionTitle: 'Prossimi eventi',
+      },
+    },
+    imageUpload: {
+      AvatarCropUpload: {
+        title: "Carica e ritaglia la foto dell'avatar",
+        removeAvatar: 'Rimuovi foto',
+        hint: 'Carica la tua foto del profilo',
+      },
+      BaseCropUpload: {
+        title: 'Carica e ritaglia foto',
+        fileTooBigError: 'Il file selezionato è troppo grande. La dimensione massima è',
+        fileTypeError: 'Tipo di file non valido. Sono consentiti solo file di immagine.',
+        blobCreationError: "Impossibile creare il BLOB dell'immagine. Per favore riprova.",
+        cropError: "Impossibile ritagliare l'immagine. Per favore riprova.",
+        dialogCancelButton: 'Vicino',
+        dialogConfirmButton: 'Salva',
+      },
+      PosterCropUpload: {
+        label: "Locandina dell'evento",
+        title: "Carica e ritaglia il poster dell'evento",
+        uploadButtonLabel: 'Carica poster',
+        dialogCancelButton: 'Vicino',
+        dialogConfirmButton: 'Salva',
+      },
+    },
+    navigation: {
+      Footer: {
+        about: 'Di',
+        contact: 'Contatto',
+        privacy: 'politica sulla riservatezza',
+        terms: 'Termini e Condizioni',
+        copyright: 'Tutti i diritti riservati.',
+      },
+      NavigationBar: {
+        profile: 'Profilo',
+        logout: 'Esci',
+        darkMode: 'Modalità oscura',
+      },
+      SearchBar: {
+        baseHint: 'Ricerca...',
+        searchingText: 'Ricerca...',
+      },
+    },
+    notifications: {
+      NotificationHandler: {
+        newMessageLabel: 'Rispondere',
+        newLikeLabel: 'Visualizza profilo',
+        newFollowLabel: 'Visualizza profilo',
+        newEventCaption: 'Pubblicato un nuovo evento',
+        newEventLabel: 'Visualizza evento',
+        newReviewCaption: 'Hai lasciato una recensione sul tuo evento',
+        newReviewLabel: 'Visualizza recensione',
+      },
+      NotificationsButton: {
+        title: 'Notifiche',
+        noNotifications: 'Nessuna notifica ancora',
+        newEventCaption: 'Pubblicato un nuovo evento',
+        followerReceivedCaption: 'Ho iniziato a seguirti',
+        likeReceivedCaption: 'Mi è piaciuto il tuo evento',
+        reviewReceivedCaption: 'Hai lasciato una recensione sul tuo evento',
+      },
+    },
+    profile: {
+      tabs: {
+        MyLikesTab: {
+          noLikedEvents: 'Non ti è ancora piaciuto nessun evento',
+        },
+        ReviewsTab: {
+          loading: 'Caricamento recensioni...',
+          noReviews: 'Nessuna recensione ancora per questa organizzazione',
+        },
+      },
+      ProfileActions: {
+        createEvent: 'Crea evento',
+        following: 'Seguente',
+        follow: 'Seguire',
+      },
+      ProfileBody: {
+        myEvents: 'I miei eventi',
+        myEventsExternal: 'Eventi',
+        myEventsPublishedLabel: 'Prossimi eventi',
+        myEventsPastEventsLabel: 'Eventi passati',
+        noEventCreated: 'Non hai ancora creato alcun evento.',
+        noEventCreatedExternal: 'Questa organizzazione non ha ancora creato alcun evento.',
+        draftedEvents: 'Bozza',
+        noDraftedEvents: 'Non hai eventi in bozza.',
+        myLikes: 'I miei Mi piace',
+        myLikesExternal: 'Mi piace',
+        myParticipations: 'Le mie partecipazioni',
+        myParticipationsExternal: 'Partecipazioni',
+        myPartecipationsUpcomingLabel: 'Prossimi eventi',
+        myPartecipationsPastLabel: 'Eventi passati',
+        noEventJoined: 'Non hai ancora partecipato a nessun evento.',
+        noEventJoinedExternal: 'Questo utente non ha ancora partecipato ad alcun evento.',
+        myTickets: 'I miei biglietti',
+        reviews: 'Recensioni',
+      },
+      ProfileHeader: {
+        followError: 'Impossibile aggiornare lo stato di follow',
+        uploadAvatarError: "Impossibile caricare l'immagine avatar, riprova",
+        userAvatarAlt: "Avatar dell'utente",
+      },
+      UserInfo: {
+        followers: 'Seguaci',
+        noFollowers: 'Nessun follower ancora',
+        following: 'Seguente',
+        noFollowing: 'Non seguo ancora nessuno',
+      },
+    },
+    reviews: {
+      filters: {
+        EventFilter: {
+          allEvents: 'Tutti gli eventi',
+          eventPosterAlt: "Locandina dell'evento",
+          label: 'Filtra per evento',
+          noEventsFound: 'Nessun evento trovato',
+          searchHint: 'Inizia a digitare per cercare eventi',
+        },
+        RatingFilter: {
+          allRatings: 'Tutte le valutazioni',
+          starLabel: 'Stella',
+          starsLabel: 'Stelle',
+          label: 'Filtra per valutazione',
+        },
+      },
+      rating: {
+        RatingInfo: {
+          noReviews: 'Nessuna recensione',
+          reviews: 'Recensioni',
+        },
+      },
+      ReviewsList: {
+        noReviews: 'Nessuna recensione trovata',
+      },
+      ReviewsStatistics: {
+        reviews: 'Recensioni',
+      },
+      SubmitReviewDialog: {
+        leaveReviewLabel: 'Lascia una recensione',
+        editReviewLabel: 'Modifica recensione',
+        selectEventLabel: 'Seleziona Evento',
+        selectEventError: 'Seleziona un evento',
+        eventPosterAlt: "Locandina dell'evento",
+        noEventsFound: 'Nessun evento trovato',
+        searchEventsHint: 'Inizia a digitare per cercare eventi',
+        ratingLabel: 'Valutazione',
+        reviewTitle: 'Titolo',
+        reviewTitlePlaceholder: 'Dai un titolo alla tua recensione...',
+        reviewTitleError: 'Inserisci un titolo per la tua recensione',
+        reviewDescription: 'Descrizione',
+        reviewDescriptionPlaceholder: 'Scrivi la tua recensione...',
+        reviewDescriptionError: 'Inserisci una descrizione per la tua recensione',
+        cancel: 'Vicino',
+        submit: 'Invia',
+      },
+    },
+    settings: {
+      tabs: {
+        ChangePasswordTab: {
+          changePasswordTitle: 'Cambia la tua password',
+          changePasswordSubtitle:
+            'Aggiorna la password del tuo account per mantenere il tuo account sicuro.',
+          passwordChangedSuccess: 'Password modificata con successo!',
+          passwordChangedError: 'La password attuale non è corretta, riprova',
+          currentPasswordLabel: 'password attuale',
+          currentPasswordError: 'È richiesta la password attuale',
+          newPasswordLabel: "Nuova parola d'ordine",
+          newPasswordError: 'È richiesta una nuova password',
+          confirmPasswordLabel: 'Conferma nuova password',
+          confirmPasswordError: 'Per favore conferma la tua nuova password',
+          passwordMismatchError: 'Le nuove password non corrispondono',
+          changePasswordButton: 'Cambiare la password',
+        },
+        GeneralSettingsTab: {
+          male: 'Maschio',
+          female: 'Femmina',
+          other: 'Preferisco non specificare',
+          tooManyTagsWarning: 'Puoi selezionarne solo fino a',
+          failedLoading: 'Impossibile caricare le impostazioni',
+          settingsSavedSuccess: 'Impostazioni salvate con successo!',
+          settingsSavedError: 'Impossibile salvare le impostazioni, riprova',
+          deleteProfileTitle: 'Elimina profilo',
+          deleteProfileMessage:
+            'Sei sicuro di voler eliminare il tuo profilo? Questa azione è irreversibile e rimuoverà tutti i tuoi dati dalla nostra piattaforma.',
+          cancel: 'Indietro',
+          delete: 'Eliminare',
+          profileDeletedSuccess: 'Il tuo profilo è stato eliminato con successo.',
+          profileDeletedError: 'Impossibile eliminare il profilo, riprova',
+          informationSectionTitle: 'Informazioni personali',
+          birthDateLabel: 'Data di nascita',
+          genderLabel: 'Genere',
+          appearanceSectionTitle: 'Aspetto',
+          darkModeLabel: 'Modalità oscura',
+          interestSectionTitle: 'Interessi',
+          interestsLabelStart: 'Seleziona fino a',
+          interestsLabelEnd: 'che corrispondono ai tuoi interessi',
+          selected: 'Selezionato',
+          save: 'Salva',
+          dangerZoneTitle: 'Zona pericolosa',
+          dangerZoneDescription:
+            'Una volta eliminato il tuo profilo, non è possibile tornare indietro. Per favore sii certo.',
+          deleteProfileButton: 'Elimina profilo',
+        },
+        LanguageTab: {
+          updateLanguageError: 'Impossibile aggiornare la preferenza della lingua, riprova',
+          languageTitle: 'Preferenza della lingua',
+          languageSubtitle: "Scegli la lingua preferita per l'applicazione",
+        },
+        ReviewsTab: {
+          loadReviewsError: 'Impossibile caricare le recensioni, riprova',
+          searchHint: 'Cerca le tue recensioni...',
+          noReviews: 'Non hai ancora inviato alcuna recensione',
+          noReviewsFound: 'Nessuna recensione trovata corrispondente alla tua ricerca',
+        },
+      },
+    },
+  },
 
   date: 'Data',
   time: 'Orario',
@@ -309,79 +772,8 @@ export default {
     members: 'Utenti',
   },
 
-  brand: {
-    appName: 'EvenToNight', //[ignorei18n]
-    logo: 'Logo',
-  },
-
-  auth: {
-    login: 'Accedi',
-    register: 'Registrati',
-    logout: 'Esci',
-    notLoggedIn: "Ops! Non hai effettuato l'accesso",
-    loginRequired: "È necessario effettuare l'accesso per eseguire questa azione",
-    form: {
-      emailLabel: 'E-mail',
-      emailError: "L'e-mail è obbligatoria",
-      emailFormatError: 'Si prega di inserire un indirizzo email valido',
-      passwordLabel: 'Password',
-      passwordError: 'La password è obbligatoria',
-    },
-    loginForm: {
-      successfulLogin: 'Accesso riuscito!',
-      failedLogin: 'Accesso non riuscito',
-      switchToRegister: 'Non hai un account? Registrati',
-    },
-    registerForm: {
-      nameLabel: 'Nome',
-      nameError: 'Il nome è obbligatorio',
-      confirmPasswordLabel: 'Conferma password',
-      emptyConfirmPasswordError: 'Per favore conferma la tua password',
-      passwordMismatchError: 'Le password non corrispondono',
-      isOrganizationLabel: 'Mi sto registrando come organizzazione',
-      successfulRegistration: 'Registrazione riuscita!',
-      failedRegistration: 'La registrazione non è riuscita',
-      switchToLogin: 'Hai già un account? Accedi',
-    },
-  },
-
-  cards: {
-    slider: {
-      seeAll: 'Vedi tutto',
-      scrollLeftAriaLabel: 'Scorri a sinistra',
-      scrollRightAriaLabel: 'Scorri verso destra',
-    },
-    eventCard: {
-      loadingPoster: 'Caricamento...',
-      favoriteButtonAriaLabel: 'metti/togli dai preferiti',
-      posterAlt: "Locandina dell'evento",
-      draftMissingTitle: 'Evento senza titolo',
-    },
-    ticketCard: {
-      ticket: 'Biglietto',
-    },
-  },
-
   event: {
     draft: 'Bozza',
-  },
-
-  eventDetails: {
-    buyTickets: 'Acquista i biglietti',
-    about: 'A proposito di questo evento',
-    organizer: 'Organizzato da',
-    collaborators: 'In collaborazione con',
-    editEvent: 'Modifica',
-    freePrice: 'Gratis',
-  },
-
-  footer: {
-    about: 'Chi siamo',
-    events: 'Eventi',
-    contact: 'Contatti',
-    privacy: 'Privacy Policy',
-    terms: 'Termini e Condizioni',
-    copyright: 'Tutti i diritti riservati.',
   },
 
   search: {
@@ -391,24 +783,17 @@ export default {
   },
 
   userProfile: {
-    editProfile: 'Modifica profilo',
-    createEvent: 'Crea evento',
     followers: 'Follower',
     following: 'Seguiti',
     follow: 'Segui',
     myTickets: 'I miei biglietti',
     myEvents: 'I miei eventi',
     events: 'Eventi',
-    noEventCreated: 'Non hai ancora creato alcun evento.',
-    noEventCreatedExternal: 'Questa organizzazione non ha ancora creato alcun evento.',
-    noEventJoined: 'Non hai ancora partecipato a nessun evento.',
-    noEventJoinedExternal: 'Questo utente non ha ancora partecipato ad alcun evento.',
+
     noTickets: 'Nessun biglietto disponibile',
     draftedEvents: 'Bozze',
-    noDraftedEvents: 'Non hai eventi in bozza.',
     reviews: 'Recensioni',
     noReviews: 'Nessuna recensione ancora.',
-    userAvatarAlt: "Avatar dell'utente",
     leaveReview: 'Lascia una recensione',
     selectEvent: 'Seleziona un evento',
     selectRating: 'Seleziona una valutazione:',
@@ -424,76 +809,5 @@ export default {
   theme: {
     light_mode: 'Modalità chiara',
     dark_mode: 'Modalità scura',
-  },
-
-  home: {
-    hero: {
-      title: "Trova l'evento che fa per te",
-    },
-    sections: {
-      upcomingEvents: 'Prossimi eventi',
-    },
-  },
-  explore: {
-    title: 'Esplora',
-    subtitile: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
-    events: {
-      title: 'Eventi',
-      emptySearch: 'Nessun evento trovato',
-      emptySearchText: 'Cerca eventi per nome',
-    },
-    organizations: {
-      title: 'Organizzazioni',
-      emptySearch: 'Nessuna organizzazione trovata',
-      emptySearchText: 'Cerca organizzazioni per nome',
-    },
-    users: {
-      title: 'Utenti',
-      emptySearch: 'Nessun utente trovato',
-      emptySearchText: 'Cerca gli utenti per nome',
-    },
-  },
-
-  filters: {
-    filters: 'Filtri',
-    cancel: 'Annulla',
-    delete: 'Cancella',
-    apply: 'Applica',
-    dateFilters: {
-      date: 'Data',
-      selectPeriod: 'Seleziona Periodo',
-      today: 'Oggi',
-      thisWeek: 'Questa settimana',
-      thisMonth: 'Questo mese',
-    },
-    feedFilters: {
-      others: 'Altri',
-      upcoming: 'Prossimamente',
-      popular: 'Popolari',
-      nearby: 'Nelle vicinanze',
-      forYou: 'Per te',
-      new: 'Nuovi',
-    },
-    priceFilters: {
-      price: 'Prezzo',
-      selectPrice: 'Seleziona fascia di prezzo',
-      minPrice: 'Prezzo minimo',
-      maxPrice: 'Prezzo massimo',
-      customize: 'Personalizza',
-      free: 'Gratuito',
-      paid: 'A pagamento',
-      from: 'Da',
-      to: 'A',
-    },
-    sortFilters: {
-      sort: 'Ordina per',
-      date_asc: 'Data di crescente',
-      date_desc: 'Data decrescente',
-      price_asc: 'Prezzo crescente',
-      price_desc: 'Prezzo decrescente',
-    },
-    TagFilters: {
-      tags: 'Tag',
-    },
   },
 }
