@@ -1,3 +1,16 @@
+## [1.26.0](https://github.com/EvenToNight/EvenToNight/compare/v1.25.2...v1.26.0) (2026-02-02)
+
+### Features
+
+* **keycloak:** add env-based password policy provisioning and password error handling ([9b5ee71](https://github.com/EvenToNight/EvenToNight/commit/9b5ee71799317338ac964d30f6b8c361eb578d88))
+* **OrganizationProfile:** validate contacts as URLs with http(s) schema only ([4bb54f9](https://github.com/EvenToNight/EvenToNight/commit/4bb54f9ee855fc68f43d1e11eb595455cf30c39c))
+
+## [1.25.2](https://github.com/EvenToNight/EvenToNight/compare/v1.25.1...v1.25.2) (2026-02-02)
+
+### Bug Fixes
+
+* **interactions:** fix bug in get user participations ([3dfdec3](https://github.com/EvenToNight/EvenToNight/commit/3dfdec3e372247816e1048cd655939dc79145b9f))
+
 ## [1.25.1](https://github.com/EvenToNight/EvenToNight/compare/v1.25.0...v1.25.1) (2026-01-31)
 
 ### Bug Fixes

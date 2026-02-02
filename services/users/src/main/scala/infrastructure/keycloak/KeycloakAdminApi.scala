@@ -1,6 +1,7 @@
 package infrastructure.keycloak
 
 import io.circe.Json
+import io.circe.parser.parse
 import io.circe.syntax._
 import sttp.client3._
 import sttp.model.StatusCode
@@ -37,7 +38,8 @@ class KeycloakAdminApi(connection: KeycloakConnection):
       .header("Content-Type", "application/json")
       .header("Authorization", s"Bearer $token")
 
-    val responseOrError = connection.sendRequest(request)
+    val passwordKeywords = Seq("length", "lowercase", "digit", "special")
+    val responseOrError  = connection.sendRequest(request)
     responseOrError.flatMap(response =>
       if response.code == StatusCode.Created then
         response.header("Location") match
@@ -47,7 +49,16 @@ class KeycloakAdminApi(connection: KeycloakConnection):
           case None =>
             Left("User created but could not retrieve ID from Keycloak")
       else
-        Left(s"Failed to create user on Keycloak: ${response.code} ${response.body}")
+        val bodyString = response.body.fold(identity, identity)
+        parse(bodyString) match
+          case Right(json) =>
+            val errMsg = json.hcursor.downField("error_description").as[String].getOrElse("Unknown error")
+            if passwordKeywords.exists(kw => errMsg.toLowerCase.contains(kw)) then
+              Left(s"Password not compliant: $errMsg")
+            else
+              Left(s"User creation rejected: $errMsg")
+          case Left(_) =>
+            Left(s"Failed to parse Keycloak response: $bodyString")
     )
 
   def deleteUser(adminToken: String, keycloakId: String): Either[String, Unit] =
