@@ -46,7 +46,7 @@ case class DeleteEventCommand(
 case class GetFilteredEventsCommand(
     limit: Option[Int],
     offset: Option[Int],
-    status: Option[EventStatus],
+    status: Option[List[EventStatus]],
     title: Option[String],
     tags: Option[List[EventTag]],
     startDate: Option[LocalDateTime],
@@ -55,5 +55,9 @@ case class GetFilteredEventsCommand(
     city: Option[String],
     location_name: Option[String],
     sortBy: Option[String],
-    sortOrder: Option[String]
+    sortOrder: Option[String],
+    query: Option[String],
+    near: Option[(Double, Double)],
+    other: Option[String] = None,
+    price: Option[(Double, Double)] = None
 ) extends Commands

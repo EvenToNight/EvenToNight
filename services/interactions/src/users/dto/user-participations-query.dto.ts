@@ -24,4 +24,8 @@ export class UserParticipationsQueryDto extends PaginatedQueryDto {
   @IsOptional()
   @IsEnum(['asc', 'desc'])
   order?: 'asc' | 'desc';
+
+  @IsOptional()
+  @IsString()
+  title?: string;
 }

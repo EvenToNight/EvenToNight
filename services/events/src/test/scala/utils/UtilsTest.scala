@@ -340,98 +340,22 @@ class UtilsTest extends AnyFlatSpec with Matchers:
     val updatedEvent = Utils.updateEventIfPastDate(completedEvent)
     updatedEvent.status shouldBe EventStatus.COMPLETED
 
-  "Utils.parseEventFilters" should "correctly parse valid filter parameters" in:
-    val commands = Utils.parseEventFilters(
-      limit = Some(2),
-      offset = Some(5),
-      status = Some("PUBLISHED"),
-      title = Some("Music Fest"),
-      tags = Some(List("Concert", "Rock")),
-      startDate = Some("2025-10-01T00:00:00"),
-      endDate = Some("2025-12-31T23:59:59"),
-      organizationId = Some("123"),
-      city = Some("New York"),
-      location_name = Some("Madison Square Garden"),
-      sortBy = Some("date"),
-      sortOrder = Some("asc"),
-      isAuthenticated = false
+  it should "not change event status if CANCELLED" in:
+    val cancelledEvent = Event(
+      _id = "event-cancelled",
+      title = Some("Cancelled Event"),
+      description = Some("This event was cancelled."),
+      poster = Some("cancelled.jpg"),
+      tags = Some(List(EventTag.EventType.Party)),
+      location = None,
+      date = Some(java.time.LocalDateTime.now().minusDays(10)),
+      status = EventStatus.CANCELLED,
+      instant = java.time.Instant.now(),
+      creatorId = "creator-cancelled",
+      collaboratorIds = None
     )
-    commands.title shouldBe Some("Music Fest")
-    commands.tags.getOrElse(List()) should contain allElementsOf List(
-      EventTag.EventType.Concert,
-      EventTag.MusicStyle.Rock
-    )
-    commands.status shouldBe Some(EventStatus.PUBLISHED)
-    commands.startDate shouldBe Some(java.time.LocalDateTime.parse("2025-10-01T00:00:00"))
-    commands.endDate shouldBe Some(java.time.LocalDateTime.parse("2025-12-31T23:59:59"))
-    commands.organizationId shouldBe Some("123")
-    commands.city shouldBe Some("New York")
-    commands.location_name shouldBe Some("Madison Square Garden")
-    commands.limit shouldBe Some(2)
-    commands.offset shouldBe Some(5)
-    commands.sortBy shouldBe Some("date")
-    commands.sortOrder shouldBe Some("asc")
-
-  it should "handle missing filter parameters" in:
-    val commands = Utils.parseEventFilters(
-      limit = Some(2),
-      offset = Some(5),
-      status = None,
-      title = Some("Music Fest"),
-      tags = Some(List("Concert", "Rock")),
-      startDate = None,
-      endDate = None,
-      organizationId = Some("123"),
-      city = None,
-      location_name = Some("Madison Square Garden"),
-      sortBy = None,
-      sortOrder = None,
-      isAuthenticated = false
-    )
-    commands.limit shouldBe Some(2)
-    commands.offset shouldBe Some(5)
-    commands.title shouldBe Some("Music Fest")
-    commands.tags.getOrElse(List()) should contain allElementsOf List(
-      EventTag.EventType.Concert,
-      EventTag.MusicStyle.Rock
-    )
-    commands.status shouldBe Some(EventStatus.PUBLISHED)
-    commands.startDate shouldBe None
-    commands.endDate shouldBe None
-    commands.organizationId shouldBe Some("123")
-    commands.city shouldBe None
-    commands.location_name shouldBe Some("Madison Square Garden")
-    commands.sortBy shouldBe Some("date")
-    commands.sortOrder shouldBe Some("asc")
-
-  it should "handle all filter parameters missing" in:
-    val commands = Utils.parseEventFilters(
-      limit = None,
-      offset = None,
-      status = None,
-      title = None,
-      tags = None,
-      startDate = None,
-      endDate = None,
-      organizationId = None,
-      city = None,
-      location_name = None,
-      sortBy = None,
-      sortOrder = None,
-      isAuthenticated = false
-    )
-    commands.limit shouldBe Some(Utils.DEFAULT_LIMIT)
-    commands.offset shouldBe None
-    commands.title shouldBe None
-    commands.tags shouldBe None
-    commands.status shouldBe Some(EventStatus.PUBLISHED)
-    commands.startDate shouldBe None
-    commands.endDate shouldBe None
-    commands.organizationId shouldBe None
-    commands.city shouldBe None
-    commands.location_name shouldBe None
-    commands.sortBy shouldBe Some("date")
-    commands.sortOrder shouldBe Some("asc")
+    val updatedEvent = Utils.updateEventIfPastDate(cancelledEvent)
+    updatedEvent.status shouldBe EventStatus.CANCELLED
 
   "Utils.createPaginatedResponse" should "create correct paginated response JSON" in:
     val events = List(

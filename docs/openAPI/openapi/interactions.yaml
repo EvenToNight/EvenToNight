@@ -636,6 +636,13 @@ paths:
             default: desc
           description: Sort order by creation date (asc = ascending, desc = descending)
           example: desc
+        - name: title
+          in: query
+          required: false
+          schema:
+            type: string
+          description: Filter participations by event title (case-insensitive substring match)
+          example: "concert"
       responses:
         '200':
           description: A paginated list of events the user is participating in
