@@ -6,7 +6,7 @@ import { api } from '@/api'
 import type { CreationEventStatus, PartialEventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
 import { parseLocation, buildLocationDisplayName } from '@/api/utils/locationUtils'
-import type { TicketType } from '@/api/types/payments'
+import { MAX_TICKET_PRICE, type TicketType } from '@/api/types/payments'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import FormField from '@/components/forms/FormField.vue'
@@ -53,6 +53,7 @@ interface TicketEntry {
   quantity: string
 }
 
+const maxTicketPrice = MAX_TICKET_PRICE
 const availableTicketTypes = ref<TicketType[]>([])
 const ticketEntries = ref<TicketEntry[]>([])
 
@@ -74,6 +75,12 @@ const getAvailableTypesForEntry = (currentIndex: number): TicketType[] => {
 const canAddMoreTickets = computed(() => {
   return ticketEntries.value.length < availableTicketTypes.value.length
 })
+
+const clampPrice = (entry: TicketEntry) => {
+  if (!entry.price) return
+  const numValue = parseFloat(entry.price) || 0
+  entry.price = Math.max(0, Math.min(numValue, maxTicketPrice)).toString()
+}
 
 const addTicketEntry = () => {
   if (canAddMoreTickets.value) {
@@ -516,14 +523,16 @@ onMounted(async () => {
               <q-input
                 v-model="entry.price"
                 type="number"
-                :label="t('form.ticketTypes.price.label') + ' ($)*'"
+                :label="t('form.ticketTypes.price.label') + ' *'"
                 prefix="$"
                 outlined
                 dense
                 lazy-rules="ondemand"
                 class="ticket-price-input"
+                :hint="`Max $${maxTicketPrice}`"
                 :rules="[notEmpty(t('form.ticketTypes.price.error'))]"
                 @keydown="preventInvalidNumberKeys"
+                @blur="clampPrice(entry)"
               />
 
               <q-input

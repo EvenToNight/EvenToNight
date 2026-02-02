@@ -2,6 +2,7 @@
 export const PRICE_FILTERS = ['free'] as const
 </script>
 <script setup lang="ts">
+import { MAX_TICKET_PRICE } from '@/api/types/payments'
 import { useTranslation } from '@/composables/useTranslation'
 import { ref, computed, watch } from 'vue'
 export type PriceFilter = (typeof PRICE_FILTERS)[number]
@@ -24,7 +25,7 @@ const emit = defineEmits<{
 }>()
 
 const PRICE_MIN = 0
-const PRICE_MAX = 1000
+const PRICE_MAX = MAX_TICKET_PRICE
 
 const isFreeSelected = ref<boolean>(props.modelValue?.priceFilter === 'free')
 const priceRange = ref<{ min: number; max: number }>(

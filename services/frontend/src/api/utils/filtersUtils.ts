@@ -1,3 +1,4 @@
+import { MAX_TICKET_PRICE } from '@/api/types/payments'
 import { DATE_FILTERS, type DateFilter } from '@/components/explore/filters/DateFilters.vue'
 import { FEED_FILTERS, type OtherFilter } from '@/components/explore/filters/FeedFilters.vue'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'
@@ -68,7 +69,7 @@ export const buildExploreFiltersFromQuery = (query: Record<string, string>): Eve
   if (query.priceMin || query.priceMax) {
     filters.customPriceRange = {
       min: query.priceMin ? parseFloat(query.priceMin) : 0,
-      max: query.priceMax ? parseFloat(query.priceMax) : 1000,
+      max: query.priceMax ? parseFloat(query.priceMax) : MAX_TICKET_PRICE,
     }
   }
   //TODO tags type
