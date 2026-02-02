@@ -12,6 +12,12 @@ export interface TicketTypeToCreate {
     soldQuantity: number;
 }
 
+export interface EventPrice {
+    eventId: string;
+    ticketTypeId: string;
+    price: number;
+}
+
 export type SeedTicketType = TicketTypeToCreate & {
     _id: ObjectId;
     createdAt: Date;

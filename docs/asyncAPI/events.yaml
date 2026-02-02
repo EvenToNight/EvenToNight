@@ -1,17 +1,17 @@
 asyncapi: "2.5.0"
 
 info:
-  title: EvenToNight - Async API
+  title: Events Service Async API
   version: "1.0.0"
-  description: |
-    AsyncAPI specification for domain events published on RabbitMQ
-    by services.
+  description: >
+    AsyncAPI specification for domain events published by the Events service.
+    The service publishes and consumes events to the central RabbitMQ exchange `eventonight`.
 
 servers:
   rabbitmq:
     url: amqp://localhost:5672
     protocol: amqp
-    description: RabbitMQ broker
+    description: RabbitMQ broker used by the Events Service to publish domain events related to events managed on the website.
 
 channels:
   eventonight:

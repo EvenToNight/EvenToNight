@@ -25,7 +25,8 @@ export function filterEvents(users: SeedUser[]): EventToCreate[] {
           date: e.date,
           status: e.status,
           creatorId: orgsIdMap[e.creator],
-          collaboratorsIds: collaboratorsIds
+          collaboratorsIds: collaboratorsIds,
+          isFree: e.isFree
         };
       });
 

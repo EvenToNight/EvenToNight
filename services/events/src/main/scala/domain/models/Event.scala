@@ -14,7 +14,8 @@ case class Event(
     status: EventStatus,
     instant: java.time.Instant,
     creatorId: String,
-    collaboratorIds: Option[List[String]]
+    collaboratorIds: Option[List[String]],
+    isFree: Boolean = true
 )
 
 object Event:

@@ -9,6 +9,7 @@ import infrastructure.messaging.EventPublisher
 import org.bson.Document
 import utils.Utils
 
+import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
@@ -142,6 +143,7 @@ case class MongoEventRepository(
 
       val combinedFilter =
         buildFilterQuery(
+          limit = limit.getOrElse(20),
           status,
           title,
           tagsForFilter,
@@ -191,6 +193,7 @@ case class MongoEventRepository(
     mongoClient.close()
 
   private def buildFilterQuery(
+      limit: Int,
       status: Option[List[EventStatus]],
       title: Option[String],
       tags: Option[List[String]],
@@ -235,15 +238,8 @@ case class MongoEventRepository(
 
     price.foreach { case (minPrice, maxPrice) =>
       if priceRepository.isDefined then
-        val eventIdsInRange = priceRepository.get.findEventIdsInPriceRange(minPrice, maxPrice)
-        val allEventIds = collection
-          .find(new Document())
-          .projection(new Document("_id", 1))
-          .into(new java.util.ArrayList[Document]())
-          .asScala
-          .map(_.getString("_id"))
-          .toList
-        val freeEventIds     = allEventIds.filterNot(eventIdsInRange.contains)
+        val eventIdsInRange  = priceRepository.get.findEventIdsInPriceRange(limit, minPrice, maxPrice)
+        val freeEventIds     = this.findAllFree(limit)
         val matchingEventIds = if minPrice == 0.0 then eventIdsInRange ++ freeEventIds else eventIdsInRange
         if matchingEventIds.nonEmpty then
           filters += Filters.in("_id", matchingEventIds.asJava)
@@ -271,31 +267,56 @@ case class MongoEventRepository(
   ): (List[Event], Boolean) =
     otherSort.toLowerCase match
       case "feed" =>
-        val allEvents = collection
-          .find(filter)
-          .into(new java.util.ArrayList[Document]())
-          .asScala
-          .map(fromDocument)
-          .map(updateEventIfPast)
-          .toList
-
-        val (matchingEvents, nonMatchingEvents) = tags match
-          case Some(tagsList) if tagsList.nonEmpty =>
-            allEvents.partition { event =>
-              event.tags.exists(eventTags => eventTags.exists(tag => tagsList.contains(tag.displayName)))
-            }
-          case _ =>
-            (List.empty[Event], allEvents)
-
-        val sortedMatching    = applySortBy(matchingEvents, sortBy, sortOrder)
-        val sortedNonMatching = applySortBy(nonMatchingEvents, sortBy, sortOrder)
-        val orderedEvents     = sortedMatching ++ sortedNonMatching
-
         val offsetValue = offset.getOrElse(0)
         val limitValue  = limit.getOrElse(10)
-        val paginated   = orderedEvents.drop(offsetValue).take(limitValue + 1)
+        val needed      = offsetValue + limitValue + 1
 
-        calculateHasMore(paginated, limit)
+        tags match
+          case Some(tagsList) if tagsList.nonEmpty =>
+            val filterWithTags = Filters.and(filter, Filters.in("tags", tagsList.asJava))
+            val matchingEvents = collection
+              .find(filterWithTags)
+              .limit(needed)
+              .into(new java.util.ArrayList[Document]())
+              .asScala
+              .map(fromDocument)
+              .map(updateEventIfPast)
+              .toList
+
+            val sortedMatching = applySortBy(matchingEvents, sortBy, sortOrder)
+            if sortedMatching.size >= needed then
+              val paginated = sortedMatching.drop(offsetValue).take(limitValue + 1)
+              calculateHasMore(paginated, limit)
+            else
+              val remaining         = needed - sortedMatching.size
+              val filterWithoutTags = Filters.and(filter, Filters.nin("tags", tagsList.asJava))
+              val nonMatchingEvents = collection
+                .find(filterWithoutTags)
+                .limit(remaining)
+                .into(new java.util.ArrayList[Document]())
+                .asScala
+                .map(fromDocument)
+                .map(updateEventIfPast)
+                .toList
+
+              val sortedNonMatching = applySortBy(nonMatchingEvents, sortBy, sortOrder)
+              val orderedEvents     = sortedMatching ++ sortedNonMatching
+              val paginated         = orderedEvents.drop(offsetValue).take(limitValue + 1)
+              calculateHasMore(paginated, limit)
+
+          case _ =>
+            val allEvents = collection
+              .find(filter)
+              .limit(needed)
+              .into(new java.util.ArrayList[Document]())
+              .asScala
+              .map(fromDocument)
+              .map(updateEventIfPast)
+              .toList
+
+            val sorted    = applySortBy(allEvents, sortBy, sortOrder)
+            val paginated = sorted.drop(offsetValue).take(limitValue + 1)
+            calculateHasMore(paginated, limit)
 
       case "upcoming" =>
         val now = java.time.LocalDateTime.now()
@@ -322,8 +343,14 @@ case class MongoEventRepository(
         calculateHasMore(results, limit)
 
       case "popular" =>
+        val offsetValue      = offset.getOrElse(0)
+        val limitValue       = limit.getOrElse(10)
+        val maxPopularEvents = 2000
+
+        val sampleSize = math.min(maxPopularEvents, (offsetValue + limitValue) * 10)
         val allEvents = collection
           .find(filter)
+          .limit(sampleSize)
           .into(new java.util.ArrayList[Document]())
           .asScala
           .map(fromDocument)
@@ -333,9 +360,7 @@ case class MongoEventRepository(
         val shuffled = scala.util.Random.shuffle(allEvents)
         val sorted   = applySortBy(shuffled, sortBy, sortOrder)
 
-        val offsetValue = offset.getOrElse(0)
-        val limitValue  = limit.getOrElse(10)
-        val paginated   = sorted.drop(offsetValue).take(limitValue + 1)
+        val paginated = sorted.drop(offsetValue).take(limitValue + 1)
 
         calculateHasMore(paginated, limit)
 
@@ -370,13 +395,39 @@ case class MongoEventRepository(
       sortBy: Option[String],
       sortOrder: Option[String]
   ): (List[Event], Boolean) =
-    val allEvents = collection
-      .find(filter)
-      .into(new java.util.ArrayList[Document]())
-      .asScala
-      .map(fromDocument)
-      .map(updateEventIfPast)
-      .toList
+    val offsetValue   = offset.getOrElse(0)
+    val limitValue    = limit.getOrElse(10)
+    val maxNearEvents = 2000
+    val batchSize     = 200
+
+    val results        = ListBuffer[Event]()
+    var currentSkip    = 0
+    var shouldContinue = true
+    var totalLoaded    = 0
+
+    while shouldContinue do
+      val batch = collection
+        .find(filter)
+        .skip(currentSkip)
+        .limit(batchSize)
+        .into(new java.util.ArrayList[Document]())
+        .asScala
+        .map(fromDocument)
+        .map(updateEventIfPast)
+        .toList
+
+      if batch.isEmpty then
+        shouldContinue = false
+      else
+        totalLoaded += batch.size
+        results ++= batch
+
+        if results.size >= offsetValue + limitValue + 1 || batch.size < batchSize || totalLoaded >= maxNearEvents then
+          shouldContinue = false
+        else
+          currentSkip += batchSize
+
+    val allEvents = results.toList
 
     val eventsWithDistance = allEvents.map { event =>
       val distance = calculateDistance(
@@ -422,9 +473,7 @@ case class MongoEventRepository(
 
     val sortedEvents = finalSorted.map(_._1)
 
-    val offsetValue = offset.getOrElse(0)
-    val limitValue  = limit.getOrElse(10)
-    val paginated   = sortedEvents.drop(offsetValue).take(limitValue + 1)
+    val paginated = sortedEvents.drop(offsetValue).take(limitValue + 1)
 
     calculateHasMore(paginated, limit)
 
@@ -434,14 +483,39 @@ case class MongoEventRepository(
       limit: Option[Int],
       sortOrder: Option[String]
   ): (List[Event], Boolean) =
-    val allEvents = collection
-      .find(filter)
-      .into(new java.util.ArrayList[Document]())
-      .asScala
-      .map(fromDocument)
-      .map(updateEventIfPast)
-      .toList
+    val offsetValue    = offset.getOrElse(0)
+    val limitValue     = limit.getOrElse(10)
+    val maxPriceEvents = 2000 // Safety limit for price sorting
+    val batchSize      = 200
 
+    val results        = ListBuffer[Event]()
+    var currentSkip    = 0
+    var shouldContinue = true
+    var totalLoaded    = 0
+
+    while shouldContinue do
+      val batch = collection
+        .find(filter)
+        .skip(currentSkip)
+        .limit(batchSize)
+        .into(new java.util.ArrayList[Document]())
+        .asScala
+        .map(fromDocument)
+        .map(updateEventIfPast)
+        .toList
+
+      if batch.isEmpty then
+        shouldContinue = false
+      else
+        totalLoaded += batch.size
+        results ++= batch
+
+        if results.size >= offsetValue + limitValue + 1 || batch.size < batchSize || totalLoaded >= maxPriceEvents then
+          shouldContinue = false
+        else
+          currentSkip += batchSize
+
+    val allEvents = results.toList
     val eventIds  = allEvents.map(_._id)
     val pricesMap = priceRepository.get.findByEventIds(eventIds)
 
@@ -455,9 +529,7 @@ case class MongoEventRepository(
       case Some("desc") => eventsWithPrice.sortBy(_._2).reverse.map(_._1)
       case _            => eventsWithPrice.sortBy(_._2).map(_._1)
 
-    val offsetValue = offset.getOrElse(0)
-    val limitValue  = limit.getOrElse(10)
-    val paginated   = sortedEvents.drop(offsetValue).take(limitValue + 1)
+    val paginated = sortedEvents.drop(offsetValue).take(limitValue + 1)
 
     calculateHasMore(paginated, limit)
 
@@ -528,3 +600,13 @@ case class MongoEventRepository(
       math.sin(dLon / 2) * math.sin(dLon / 2)
     val c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
     R * c
+
+  private def findAllFree(limit: Int): List[String] =
+    collection
+      .find(Filters.eq("isFree", true))
+      .limit(limit)
+      .projection(new Document("_id", 1))
+      .into(new java.util.ArrayList[Document]())
+      .asScala
+      .map(_.getString("_id"))
+      .toList

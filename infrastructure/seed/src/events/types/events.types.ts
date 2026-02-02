@@ -24,6 +24,7 @@ export interface EventToCreate {
   status: EventStatus;
   creatorId: string;
   collaboratorsIds?: string[];
+  isFree?: boolean;
 }
 
 export type SeedEvent = EventToCreate & {

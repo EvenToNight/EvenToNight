@@ -55,7 +55,9 @@ class AuthRoutes(authService: AuthenticationService, userService: UserService, e
           case Left(err) => Response(err, 400)
           case Right(validReq) =>
             authService.createUserWithRole(validReq) match
-              case Left(err) => Response(s"Failed to create user: $err", 500)
+              case Left(err) if err.startsWith("Password not compliant") => Response(err, 400)
+              case Left(err) if err.startsWith("User creation rejected") => Response(err, 400)
+              case Left(_)                                               => Response("Failed to create user", 500)
               case Right(userId) =>
                 val registeredUser = fromValidRegistration(validReq)
                 userService.insertUser(registeredUser, userId)

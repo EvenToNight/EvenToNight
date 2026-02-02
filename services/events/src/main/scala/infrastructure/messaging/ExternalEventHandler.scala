@@ -24,7 +24,8 @@ case class TicketTypeDeletedPayload(ticketTypeId: String)
 
 class ExternalEventHandler(
     userMetadataRepo: MongoUserMetadataRepository,
-    priceRepo: MongoPriceRepository
+    priceRepo: MongoPriceRepository,
+    eventRepo: infrastructure.db.EventRepository
 ) extends MessageHandler:
 
   override def handle(routingKey: String, message: String): Unit =
@@ -75,6 +76,11 @@ class ExternalEventHandler(
               price = event.price
             )
             priceRepo.save(ticketPrice)
+
+            eventRepo.findById(event.eventId).foreach { existingEvent =>
+              val updatedEvent = existingEvent.copy(isFree = false)
+              eventRepo.update(updatedEvent)
+            }
           case Left(error) =>
             println(s"[HANDLER] ❌ Error parsing payload: ${error.getMessage}")
             println(s"[HANDLER]    Raw payload: ${envelope.payload}")

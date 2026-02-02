@@ -96,7 +96,7 @@ if [ -z "$REALM_MGMT_CLIENT_UUID" ]; then
 fi
 echo "$LOG_PREFIX REALM_MGMT_CLIENT_UUID = $REALM_MGMT_CLIENT_UUID"
 
-ROLES=("manage-users" "view-realm")
+ROLES=("manage-users" "view-realm" "manage-realm")
 echo "$LOG_PREFIX[$CLIENT_ID] Assigning roles to service account..."
 
 for role in "${ROLES[@]}"; do
@@ -126,6 +126,22 @@ for role in "${ROLES[@]}"; do
   fi
 done
 echo "$LOG_PREFIX[$CLIENT_ID] Roles assigned."
+echo ""
+
+if [ "$ENV_MODE" != "dev" ]; then
+  echo "$LOG_PREFIX Setting Password Policy..."
+
+  PASSWORD_POLICY="length(8) and digits(1) and lowerCase(1) and specialChars(1)"
+
+  if /opt/keycloak/bin/kcadm.sh update realms/$REALM -s "passwordPolicy=$PASSWORD_POLICY"; then
+    echo "$LOG_PREFIX Password Policy configured successfully."
+  else
+    echo "$LOG_PREFIX [ERROR] Failed to set Password Policy, aborting!"
+    exit 1
+  fi  
+else
+  echo "$LOG_PREFIX DEV MODE: Skipping password policy configuration."
+fi  
 echo ""
 
 echo "$LOG_PREFIX[$CLIENT_ID] Fetching current client secret..."
