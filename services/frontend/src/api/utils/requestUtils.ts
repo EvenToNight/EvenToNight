@@ -44,7 +44,16 @@ export const buildQueryParams = <T extends Record<string, any>>(params: T): stri
   const searchParams = new URLSearchParams()
 
   Object.entries(params).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
+    if (value === undefined || value === null) return
+
+    if (value instanceof Set) {
+      searchParams.append(key, Array.from(value).join(','))
+    } else if (Array.isArray(value)) {
+      searchParams.append(key, value.join(','))
+    } else if (typeof value === 'object') {
+      const values = Object.values(value)
+      searchParams.append(key, values.join(','))
+    } else {
       searchParams.append(key, String(value))
     }
   })
