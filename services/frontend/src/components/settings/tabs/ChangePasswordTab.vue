@@ -4,9 +4,13 @@ import { useAuthStore } from '@/stores/auth'
 import { useQuasar } from 'quasar'
 import FormField from '@/components/forms/FormField.vue'
 import { notEmpty, matching } from '@/components/forms/validationUtils'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
+const { t } = useTranslation('components.settings.ChangePasswordTab')
+const logger = createLogger(import.meta.url)
 
 const currentPassword = ref('')
 const newPassword = ref('')
@@ -19,7 +23,7 @@ const handleChangePassword = async () => {
 
     $q.notify({
       type: 'positive',
-      message: 'Password changed successfully',
+      message: t('passwordChangedSuccess'),
     })
 
     errorMessage.value = ''
@@ -27,7 +31,8 @@ const handleChangePassword = async () => {
     newPassword.value = ''
     confirmPassword.value = ''
   } catch (error: any) {
-    errorMessage.value = error.message || 'La password attuale non è corretta.'
+    logger.error('Failed to change password:', error)
+    errorMessage.value = t('passwordChangedError')
   }
 }
 </script>
@@ -35,35 +40,35 @@ const handleChangePassword = async () => {
 <template>
   <div class="change-password-tab">
     <div class="password-header">
-      <h2 class="password-title">Change Password</h2>
-      <p class="password-subtitle">Update your password to keep your account secure</p>
+      <h2 class="password-title">{{ t('changePasswordTitle') }}</h2>
+      <p class="password-subtitle">{{ t('changePasswordSubtitle') }}</p>
     </div>
 
     <q-form greedy class="password-form" @submit.prevent="handleChangePassword">
       <FormField
         v-model="currentPassword"
         type="password"
-        label="Current Password *"
+        :label="t('currentPasswordLabel') + ' *'"
         icon="lock"
-        :rules="[notEmpty('Current password is required')]"
+        :rules="[notEmpty(t('currentPasswordError'))]"
       />
 
       <FormField
         v-model="newPassword"
         type="password"
-        label="New Password *"
+        :label="t('newPasswordLabel') + ' *'"
         icon="lock"
-        :rules="[notEmpty('New password is required')]"
+        :rules="[notEmpty(t('newPasswordError'))]"
       />
 
       <FormField
         v-model="confirmPassword"
         type="password"
-        label="Confirm New Password *"
+        :label="t('confirmPasswordLabel') + ' *'"
         icon="lock"
         :rules="[
-          notEmpty('Please confirm your new password'),
-          matching(newPassword, 'Passwords do not match'),
+          notEmpty(t('confirmPasswordError')),
+          matching(newPassword, t('passwordMismatchError')),
         ]"
       />
       <div v-if="errorMessage" class="error-message text-center q-my-md">
@@ -75,7 +80,7 @@ const handleChangePassword = async () => {
           unelevated
           color="primary"
           type="submit"
-          label="Change Password"
+          :label="t('changePasswordButton')"
           :loading="authStore.isLoading"
           class="submit-button base-button base-button--primary"
         />

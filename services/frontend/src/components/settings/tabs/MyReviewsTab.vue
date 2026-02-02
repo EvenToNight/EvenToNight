@@ -8,11 +8,15 @@ import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
 import { defaultLimit, emptyPaginatedResponse } from '@/api/utils/requestUtils'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { useQuasar } from 'quasar'
+import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
 const searchQuery = ref('')
 const hasReviews = ref(false)
+const logger = createLogger(import.meta.url)
+const { t } = useTranslation('components.settings.tabs.MyReviewsTab')
 
 const {
   items: reviews,
@@ -31,10 +35,10 @@ const {
         },
       })
     } catch (error) {
-      console.error('Failed to load user reviews:', error)
+      logger.error('Failed to load user reviews:', error)
       $q.notify({
         type: 'negative',
-        message: 'Failed to load your reviews.',
+        message: t('loadReviewsError'),
       })
       return emptyPaginatedResponse<EventReview>()
     }
@@ -67,7 +71,7 @@ provide('deleteReview', deleteReview)
         outlined
         dense
         debounce="300"
-        placeholder="Search reviews..."
+        :placeholder="t('searchHint')"
         class="search-input"
       >
         <template #prepend>
@@ -98,7 +102,7 @@ provide('deleteReview', deleteReview)
       <EmptyState
         v-else
         empty-icon-name="search_off"
-        empty-text="No reviews found matching your search."
+        :empty-text="t('noReviewsFound')"
         class="empty-state"
       />
     </template>
@@ -106,7 +110,7 @@ provide('deleteReview', deleteReview)
     <EmptyState
       v-else
       empty-icon-name="rate_review"
-      empty-text="You have not submitted any reviews yet."
+      :empty-text="t('noReviews')"
       class="empty-state"
     />
   </div>

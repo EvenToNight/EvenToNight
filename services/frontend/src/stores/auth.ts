@@ -12,6 +12,7 @@ import type {
 } from '@/api/interfaces/users'
 import { useNavigation } from '@/router/utils'
 import { dateReviver } from '@/api/utils/parsingUtils'
+import { useDarkMode } from '@/composables/useDarkMode'
 export const DEFAULT_AVATAR_URL = `http://media.${import.meta.env.VITE_HOST || 'localhost'}/users/default.png`
 
 const ACCESS_TOKEN_SESSION_KEY = 'access_token_session'
@@ -109,9 +110,8 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       const data = await api.users.login({ username, password })
       await setAuthData(data)
-      $q.dark.set(user.value?.darkMode || false)
+      useDarkMode().set(user.value?.darkMode || false)
       localStorage.setItem('user-locale', user.value!.language!)
-      localStorage.setItem('darkMode', String($q.dark.isActive))
       changeLocale(user.value!.language!)
       return { success: true }
     } catch (error) {

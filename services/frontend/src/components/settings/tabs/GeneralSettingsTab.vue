@@ -8,18 +8,22 @@ import FormField from '@/components/forms/FormField.vue'
 import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import { useAuthStore } from '@/stores/auth'
 import type { Gender } from '@/api/types/users'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
+import { useDarkMode } from '@/composables/useDarkMode'
 
 const $q = useQuasar()
 const authStore = useAuthStore()
-
+const { t } = useTranslation('components.settings.tabs.GeneralSettingsTab')
+const logger = createLogger(import.meta.url)
 const birthDate = ref<string>('')
 const dateInput = ref<InstanceType<typeof FormField> | null>(null)
 
 const gender = ref<Gender | null>(null)
 const genderOptions = [
-  { label: 'Male', value: 'male' },
-  { label: 'Female', value: 'female' },
-  { label: 'Other', value: 'other' },
+  { label: t('male'), value: 'male' },
+  { label: t('female'), value: 'female' },
+  { label: t('other'), value: 'other' },
 ]
 
 const isDarkMode = ref($q.dark.isActive)
@@ -38,7 +42,7 @@ watch(selectedTags, (newVal, oldVal) => {
     selectedTags.value = newVal.slice(0, maxTags)
     $q.notify({
       type: 'warning',
-      message: `You can only select up to ${maxTags} tags`,
+      message: `${t('tooManyTagsWarning')} ${maxTags} ${t('tags')}`,
       icon: 'warning',
       position: 'bottom',
     })
@@ -74,7 +78,7 @@ const loadTags = async () => {
     tagOptions.value = options
     tagCategories.value = tagResponse
   } catch (error) {
-    console.error('Failed to load tags:', error)
+    logger.error('Failed to load tags:', error)
   }
 }
 
@@ -111,10 +115,10 @@ onMounted(async () => {
     selectedTags.value = authStore.user?.interests || []
     isDarkMode.value = authStore.user?.darkMode || $q.dark.isActive
   } catch (error) {
-    console.error('Failed to load settings:', error)
+    logger.error('Failed to load settings:', error)
     $q.notify({
       type: 'negative',
-      message: 'Failed to load settings',
+      message: t('failedLoading'),
     })
   } finally {
     loading.value = false
@@ -122,11 +126,11 @@ onMounted(async () => {
 })
 
 onUnmounted(() => {
-  $q.dark.set(authStore.user!.darkMode as boolean)
+  useDarkMode().set(authStore.user!.darkMode as boolean)
 })
 
 const handleThemeToggle = (value: boolean) => {
-  $q.dark.set(value)
+  useDarkMode().set(value)
   isDarkMode.value = value
 }
 
@@ -142,12 +146,12 @@ const handleSave = async () => {
 
     $q.notify({
       type: 'positive',
-      message: 'Settings saved successfully',
+      message: t('settingsSavedSuccessfully'),
       icon: 'check_circle',
     })
   } catch (error: any) {
-    console.error('Failed to save settings:', error)
-    errorMessage.value = error.message || 'Failed to save settings.'
+    logger.error('Failed to save settings:', error)
+    errorMessage.value = t('failedSavingSettings')
   } finally {
     saving.value = false
   }
@@ -155,15 +159,15 @@ const handleSave = async () => {
 
 const handleDeleteProfile = () => {
   $q.dialog({
-    title: 'Delete Profile',
-    message: 'Are you sure you want to delete your profile? This action cannot be undone.',
+    title: t('deleteProfileTitle'),
+    message: t('deleteProfileMessage'),
     cancel: {
-      label: 'Cancel',
+      label: t('cancel'),
       flat: true,
       color: 'grey-7',
     },
     ok: {
-      label: 'Delete',
+      label: t('delete'),
       color: 'negative',
       flat: true,
     },
@@ -173,12 +177,12 @@ const handleDeleteProfile = () => {
       await api.users.deleteUserById(authStore.user!.id)
       $q.notify({
         type: 'positive',
-        message: 'Profile deleted successfully',
+        message: t('profileDeletedSuccessfully'),
       })
       authStore.logout()
     } catch (error: any) {
-      console.error('Failed to delete profile:', error)
-      errorMessage.value = error.message || 'Failed to delete profile.'
+      logger.error('Failed to delete profile:', error)
+      errorMessage.value = t('profileDeletedError')
     }
   })
 }
@@ -191,13 +195,13 @@ const handleDeleteProfile = () => {
     <template v-if="!loading">
       <div class="settings-sections">
         <section class="settings-section">
-          <h3 class="section-title">Profile Information</h3>
+          <h3 class="section-title">{{ t('informationSectionTitle') }}</h3>
 
           <FormField
             ref="dateInput"
             v-model="birthDate"
             type="date"
-            label="Birth Date"
+            :label="t('birthDateLabel')"
             :max="new Date().toISOString().split('T')[0]"
           >
             <template #prepend>
@@ -211,7 +215,7 @@ const handleDeleteProfile = () => {
 
           <FormSelectorField
             v-model="gender"
-            label="Gender"
+            :label="t('genderLabel')"
             :options="genderOptions"
             emit-value
             map-options
@@ -220,13 +224,13 @@ const handleDeleteProfile = () => {
         </section>
 
         <section class="settings-section">
-          <h3 class="section-title">Appearance</h3>
+          <h3 class="section-title">{{ t('appearanceSectionTitle') }}</h3>
 
           <div class="form-field">
             <div class="toggle-field">
               <div class="toggle-label">
                 <q-icon name="dark_mode" size="24px" class="toggle-icon" />
-                <span>Dark Mode</span>
+                <span>{{ t('darkModeLabel') }}</span>
               </div>
               <q-toggle
                 :model-value="isDarkMode"
@@ -238,9 +242,9 @@ const handleDeleteProfile = () => {
         </section>
 
         <section class="settings-section">
-          <h3 class="section-title">Interests</h3>
+          <h3 class="section-title">{{ t('interestsSectionTitle') }}</h3>
           <p class="section-description">
-            Select up to {{ maxTags }} tags that match your interests
+            {{ t('interestsLabelStart') }} {{ maxTags }} tags {{ t('interestsLabelEnd') }}
           </p>
 
           <FormSelectorField
@@ -254,7 +258,7 @@ const handleDeleteProfile = () => {
             map-options
             option-value="value"
             option-label="label"
-            :hint="`${selectedTags.length} / ${maxTags} tags selected`"
+            :hint="`${selectedTags.length} / ${maxTags} tags ${t('selected')}`"
             @filter="filterTags"
           >
             <template #option="scope">
@@ -279,17 +283,23 @@ const handleDeleteProfile = () => {
         </div>
 
         <div class="actions">
-          <q-btn label="Save" color="primary" unelevated :loading="saving" @click="handleSave" />
+          <q-btn
+            :label="t('save')"
+            color="primary"
+            unelevated
+            :loading="saving"
+            @click="handleSave"
+          />
         </div>
 
         <section class="settings-section danger-zone">
-          <h3 class="section-title danger-title">Danger Zone</h3>
+          <h3 class="section-title danger-title">{{ t('dangerZoneTitle') }}</h3>
           <p class="section-description">
-            Once you delete your profile, there is no going back. Please be certain.
+            {{ t('dangerZoneDescription') }}
           </p>
 
           <q-btn
-            label="Delete Profile"
+            :label="t('deleteProfile')"
             icon="delete_forever"
             outline
             color="negative"
