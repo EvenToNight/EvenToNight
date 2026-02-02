@@ -2,7 +2,11 @@
 import { ref, watch, computed, inject } from 'vue'
 import type { Ref } from 'vue'
 import type { UserRole } from '@/api/types/users'
-import { searchUsers, type SearchResultUser } from '@/api/utils/searchUtils'
+import {
+  convertFiltersToEventsQueryParams,
+  searchUsers,
+  type SearchResultUser,
+} from '@/api/utils/searchUtils'
 import { useAuthStore } from '@/stores/auth'
 import SearchBar from '@/components/navigation/SearchBar.vue'
 import TabView, { type Tab } from '@/components/navigation/TabView.vue'
@@ -16,6 +20,7 @@ import { emptyPaginatedResponse } from '@/api/utils/requestUtils'
 import { loadEvents } from '@/api/utils/eventUtils'
 import { useNavigation } from '@/router/utils'
 import { createLogger } from '@/utils/logger'
+import type { EventsQueryParams } from '@/api/interfaces/events'
 
 const { t } = useTranslation('components.explore.ExploreViewContent')
 const route = useRoute()
@@ -32,18 +37,19 @@ const activeTab = ref<ExploreTab>('events')
 const lastActiveTab = ref<ExploreTab>(activeTab.value)
 
 const searchEvents = async (
-  _eventFilters: EventFilters | undefined,
+  eventFilters: EventFilters | undefined,
   pagination: PaginatedRequest
 ) => {
-  // if (!searchQuery.value.trim() && eventFilters === undefined) {
-  //   return emptyPaginatedResponse<EventLoadResult>()
-  // }
   //TODO: implement filters in search
-  logger.log('Searching events with filters:', _eventFilters)
+  logger.log('Searching events with filters:', eventFilters)
+  const params: EventsQueryParams = eventFilters
+    ? convertFiltersToEventsQueryParams(eventFilters)
+    : {}
   return loadEvents({
     title: searchQuery.value || undefined,
     userId: authStore.user?.id,
     pagination,
+    ...params,
   })
 }
 

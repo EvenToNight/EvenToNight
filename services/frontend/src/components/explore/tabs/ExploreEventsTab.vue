@@ -50,14 +50,18 @@ watch(
   }
 )
 
-watch(eventFilters, () => {
-  reload()
-})
+watch(
+  eventFilters,
+  () => {
+    reload()
+  },
+  { immediate: true, deep: true }
+)
 </script>
 
 <template>
   <div class="tab-content">
-    <EventFiltersButton v-model="eventFilters" />
+    <EventFiltersButton v-model:filters="eventFilters" />
 
     <q-infinite-scroll
       v-if="events.length > 0"

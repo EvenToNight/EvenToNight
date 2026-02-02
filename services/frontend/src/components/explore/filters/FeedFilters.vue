@@ -3,10 +3,12 @@ export const FEED_FILTERS = ['upcoming', 'popular', 'for_you', 'new', 'nearby'] 
 </script>
 <script setup lang="ts">
 import { useTranslation } from '@/composables/useTranslation'
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 export type OtherFilter = (typeof FEED_FILTERS)[number]
 
+//TODO use defineModel
 interface Props {
   modelValue?: OtherFilter | null
 }
@@ -17,16 +19,21 @@ const emit = defineEmits<{
   'update:modelValue': [value: OtherFilter | null]
 }>()
 
+const authStore = useAuthStore()
 const { t } = useTranslation('components.explore.filters.FeedFilters')
 const selectedOtherFilter = ref<OtherFilter | null>(props.modelValue || null)
 
-const otherFilters: { label: string; value: OtherFilter }[] = [
-  { label: t('upcoming'), value: 'upcoming' },
-  { label: t('popular'), value: 'popular' },
-  { label: t('forYou'), value: 'for_you' },
-  { label: t('new'), value: 'new' },
-  { label: t('nearby'), value: 'nearby' },
-]
+const otherFilters = computed(() => {
+  const filters: { label: string; value: OtherFilter }[] = [
+    { label: t('upcoming'), value: 'upcoming' },
+    { label: t('popular'), value: 'popular' },
+  ]
+  if (authStore.isAuthenticated) {
+    filters.push({ label: t('forYou'), value: 'for_you' })
+  }
+  filters.push({ label: t('new'), value: 'new' }, { label: t('nearby'), value: 'nearby' })
+  return filters
+})
 
 const toggleOtherFilter = (value: OtherFilter) => {
   selectedOtherFilter.value = selectedOtherFilter.value === value ? null : value

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import DateFilters, { type DateFilterValue } from './DateFilters.vue'
 import TagFilters from './TagFilters.vue'
 import PriceFilters, { type PriceFilterValue } from './PriceFilters.vue'
@@ -8,41 +8,59 @@ import type { Tag } from '@/api/types/events'
 import type { OtherFilter } from './FeedFilters.vue'
 import FeedFilters from './FeedFilters.vue'
 import { useTranslation } from '@/composables/useTranslation'
+import { useRoute, useRouter } from 'vue-router'
+import { buildExploreFiltersFromQuery, buildExploreRouteQuery } from '@/api/utils/filtersUtils'
+import { createLogger } from '@/utils/logger'
 
+const route = useRoute()
+const router = useRouter()
 const { t } = useTranslation('components.explore.filters.FiltersButton')
-
-// const normalizeQuery = (queryObj: any) => {
-//   return typeof queryObj === 'object' && queryObj !== null
-//     ? Object.fromEntries(
-//         Object.entries(queryObj).map(([k, v]) => [k, Array.isArray(v) ? (v[0] ?? '') : (v ?? '')])
-//       )
-//     : {}
-// }
-
-// const filters = provide('filtersFromUrl', filtersFromUrl)
-
-// watch(
-//   () => route.query,
-//   (newQuery) => {
-//     const normalized = normalizeQuery(newQuery)
-//     const filtersFromQuery = buildExploreFiltersFromQuery(normalized)
-
-//     eventFilters.value = buildExploreRouteQuery(filtersFromQuery)
-
-//     // Update the reactive filters so FiltersButton can sync
-//     filtersFromUrl.value = filtersFromQuery
-
-//     searchEvents()
-//   },
-//   { immediate: true }
-// )
-
+const logger = createLogger(import.meta.url)
 export interface EventFilters extends DateFilterValue, PriceFilterValue {
   tags?: Tag[] | null
   sortBy?: SortBy | null
   otherFilter?: OtherFilter | null
 }
+
+const normalizeQuery = (queryObj: any) => {
+  return typeof queryObj === 'object' && queryObj !== null
+    ? Object.fromEntries(
+        Object.entries(queryObj).map(([k, v]) => [k, Array.isArray(v) ? (v[0] ?? '') : (v ?? '')])
+      )
+    : {}
+}
+
 const filters = defineModel<EventFilters | undefined>('filters')
+const isUpdating = ref(false)
+
+watch(
+  () => route.query,
+  async (newQuery) => {
+    if (isUpdating.value) return
+    isUpdating.value = true
+    const normalized = normalizeQuery(newQuery)
+    logger.log('Route query changed:', normalized)
+    filters.value = buildExploreFiltersFromQuery(normalized)
+    logger.log('Parsed filters from URL:', { ...filters.value })
+    await nextTick() // Wait for other watchers to process
+    isUpdating.value = false
+  },
+  { immediate: true }
+)
+
+watch(
+  filters,
+  async (newFilters) => {
+    if (isUpdating.value) return
+    isUpdating.value = true
+    const newQuery = buildExploreRouteQuery(newFilters)
+    logger.log('Updating URL with filters:', newQuery)
+    router.replace({ query: newQuery })
+    await nextTick() // Wait for other watchers to process
+    isUpdating.value = false
+  },
+  { deep: true }
+)
 
 const dateFilterValue = ref<DateFilterValue>({})
 const selectedTags = ref<Tag[]>([])
@@ -50,50 +68,30 @@ const priceFilterValue = ref<PriceFilterValue>({})
 const selectedSortBy = ref<SortBy | null>(null)
 const selectedOtherFilter = ref<OtherFilter | null>(null)
 
-const activeDateFilterValue = ref<DateFilterValue>({})
-const activeTags = ref<Tag[]>([])
-const activePriceFilterValue = ref<PriceFilterValue>({})
-const activeSortBy = ref<SortBy | null>(null)
-const activeOtherFilter = ref<OtherFilter | null>(null)
-
 const countActiveFilters = () => {
   let count = 0
-  if (activeDateFilterValue.value.dateFilter) count++
-  if (activeDateFilterValue.value.dateRange) count++
-  count += activeTags.value.length
-  if (activePriceFilterValue.value.priceFilter) count++
-  if (
-    activePriceFilterValue.value.customPriceRange?.min ||
-    activePriceFilterValue.value.customPriceRange?.max
-  )
-    count++
-  if (activeSortBy.value) count++
-  if (activeOtherFilter.value) count++
+  if (filters.value?.dateFilter) count++
+  if (filters.value?.dateRange) count++
+  count += filters.value?.tags?.length ?? 0
+  if (filters.value?.priceFilter) count++
+  if (filters.value?.customPriceRange) count++
+  if (filters.value?.sortBy) count++
+  if (filters.value?.otherFilter) count++
   return count
 }
 
 const filtersButtonRef = ref<HTMLElement | null>(null)
 const filtersMenuOpen = ref(false)
 
-// const emitFiltersChanged = () => {
-//   emit('filters-changed', {
-//     ...activeDateFilterValue.value,
-//     ...activePriceFilterValue.value,
-//     tags: activeTags.value,
-//     sortBy: activeSortBy.value,
-//     otherFilter: activeOtherFilter.value,
-//   })
-// }
-
 const applyFilters = () => {
   // Simply copy draft values to active (watchers already handle mutual exclusion)
-  activeDateFilterValue.value = { ...dateFilterValue.value }
-  activeTags.value = [...selectedTags.value]
-  activePriceFilterValue.value = { ...priceFilterValue.value }
-  activeSortBy.value = selectedSortBy.value
-  activeOtherFilter.value = selectedOtherFilter.value
-
-  // emitFiltersChanged()
+  filters.value = {
+    ...dateFilterValue.value,
+    ...priceFilterValue.value,
+    tags: [...selectedTags.value],
+    sortBy: selectedSortBy.value,
+    otherFilter: selectedOtherFilter.value,
+  }
   filtersMenuOpen.value = false
 }
 
@@ -103,26 +101,18 @@ const clearFilters = () => {
   priceFilterValue.value = {}
   selectedSortBy.value = null
   selectedOtherFilter.value = null
-
-  activeDateFilterValue.value = {}
-  activeTags.value = []
-  activePriceFilterValue.value = {}
-  activeSortBy.value = null
-  activeOtherFilter.value = null
-
-  // emitFiltersChanged()
+  filters.value = {}
 }
 
 const hasActiveFilters = computed(
   () =>
-    activeDateFilterValue.value.dateFilter ||
-    activeDateFilterValue.value.dateRange ||
-    activeTags.value.length > 0 ||
-    activePriceFilterValue.value.priceFilter ||
-    activePriceFilterValue.value.customPriceRange?.min ||
-    activePriceFilterValue.value.customPriceRange?.max ||
-    activeSortBy.value ||
-    activeOtherFilter.value
+    filters.value?.dateFilter ||
+    filters.value?.dateRange ||
+    (filters.value?.tags && filters.value?.tags.length > 0) ||
+    filters.value?.priceFilter ||
+    filters.value?.customPriceRange ||
+    filters.value?.sortBy ||
+    filters.value?.otherFilter
 )
 
 const isElementHiddenBehindStickyHeader = (el: HTMLElement | null) => {
@@ -135,104 +125,57 @@ const isElementHiddenBehindStickyHeader = (el: HTMLElement | null) => {
   return rect.top < stickyHeaderHeight
 }
 
+watch(filtersMenuOpen, (isOpen) => {
+  if (isOpen) {
+    dateFilterValue.value = { ...filters.value }
+    selectedTags.value = [...(filters.value?.tags || [])]
+    priceFilterValue.value = { ...filters.value }
+    selectedSortBy.value = filters.value?.sortBy ?? null
+    selectedOtherFilter.value = filters.value?.otherFilter ?? null
+  }
+})
+
 const handleScroll = () => {
   if (filtersMenuOpen.value && isElementHiddenBehindStickyHeader(filtersButtonRef.value)) {
     filtersMenuOpen.value = false
   }
 }
 
-watch(filtersMenuOpen, (isOpen) => {
-  if (isOpen) {
-    dateFilterValue.value = { ...activeDateFilterValue.value }
-    selectedTags.value = [...activeTags.value]
-    priceFilterValue.value = { ...activePriceFilterValue.value }
-    selectedSortBy.value = activeSortBy.value
-    selectedOtherFilter.value = activeOtherFilter.value
-  }
-})
-
-const syncFiltersFromUrl = (filters: EventFilters) => {
-  // Set draft filters
-  dateFilterValue.value = {
-    dateFilter: filters?.dateFilter ?? null,
-    dateRange: filters?.dateRange ?? null,
-  }
-  selectedTags.value = (filters?.tags as Tag[]) || []
-  priceFilterValue.value = {
-    priceFilter: filters?.priceFilter ?? null,
-    customPriceRange: filters?.customPriceRange ?? null,
-  }
-  selectedSortBy.value = filters?.sortBy ?? null
-  selectedOtherFilter.value = filters?.otherFilter ?? null
-
-  // Set active filters (same as draft)
-  activeDateFilterValue.value = {
-    dateFilter: filters?.dateFilter ?? null,
-    dateRange: filters?.dateRange ?? null,
-  }
-  activeTags.value = (filters?.tags as Tag[]) || []
-  activePriceFilterValue.value = {
-    priceFilter: filters?.priceFilter ?? null,
-    customPriceRange: filters?.customPriceRange ?? null,
-  }
-  activeSortBy.value = filters?.sortBy ?? null
-  activeOtherFilter.value = filters?.otherFilter ?? null
-}
-
-// Watch for URL changes
-watch(
-  filters,
-  (newFilters) => {
-    // Sync even if empty (to clear filters when URL is cleared)
-    syncFiltersFromUrl(newFilters || {})
-  },
-  { deep: true, immediate: true }
-)
-
-// Watch for changes in regular filters - if any is selected, clear otherFilter
-watch(
-  [dateFilterValue, selectedTags, priceFilterValue],
-  () => {
-    const hasRegularFilters =
-      dateFilterValue.value.dateFilter ||
-      dateFilterValue.value.dateRange ||
-      selectedTags.value.length > 0 ||
-      priceFilterValue.value.priceFilter ||
-      priceFilterValue.value.customPriceRange?.min ||
-      priceFilterValue.value.customPriceRange?.max
-
-    if (hasRegularFilters && selectedOtherFilter.value !== null) {
-      selectedOtherFilter.value = null
-    }
-  },
-  { deep: true }
-)
-
-// Watch for changes in otherFilter - if selected, clear regular filters
-watch(selectedOtherFilter, (newValue) => {
-  if (newValue !== null) {
-    // Clear all regular filters
-    dateFilterValue.value = {}
-    selectedTags.value = []
-    priceFilterValue.value = {}
-  }
-})
-
 onMounted(() => {
-  // // Always sync with initial filters (even if empty)
-  // syncFiltersFromUrl(initialFilters || {})
-
-  // // Only emit if there are actual filters to apply
-  // if (initialFilters && Object.keys(initialFilters).length > 0) {
-  //   emitFiltersChanged()
-  // }
-
   window.addEventListener('scroll', handleScroll, true)
 })
 
 onUnmounted(() => {
   window.removeEventListener('scroll', handleScroll, true)
 })
+
+//TODO: evaluate combos of otherFilter and regular filters
+// Watch for changes in otherFilter - if selected, clear regular filters
+// watch(selectedOtherFilter, (newValue) => {
+//   if (newValue !== null) {
+//     dateFilterValue.value = {}
+//     selectedTags.value = []
+//     priceFilterValue.value = {}
+//   }
+// })
+// Watch for changes in regular filters - if any is selected, clear otherFilter
+// watch(
+//   [dateFilterValue, selectedTags, priceFilterValue],
+//   () => {
+//     const hasRegularFilters =
+//       dateFilterValue.value.dateFilter ||
+//       dateFilterValue.value.dateRange ||
+//       selectedTags.value.length > 0 ||
+//       priceFilterValue.value.priceFilter ||
+//       priceFilterValue.value.customPriceRange?.min ||
+//       priceFilterValue.value.customPriceRange?.max
+
+//     if (hasRegularFilters && selectedOtherFilter.value !== null) {
+//       selectedOtherFilter.value = null
+//     }
+//   },
+//   { deep: true }
+// )
 </script>
 
 <template>
