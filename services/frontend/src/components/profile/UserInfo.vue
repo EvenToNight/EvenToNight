@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import type { UserLoadResult } from '@/api/utils/userUtils'
 import type { PaginatedRequest } from '@/api/interfaces/commons'
 import UserList from '../user/UserList.vue'
 import { api } from '@/api'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   user: UserLoadResult
@@ -12,7 +12,7 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const { t } = useI18n()
+const { t } = useTranslation('components.profile.UserInfo')
 
 const showFollowersDialog = ref(false)
 const showFollowingDialog = ref(false)
@@ -36,12 +36,12 @@ const loadFollowingFn = (pagination?: PaginatedRequest) =>
     <div class="network-info-row">
       <div class="stat-item clickable" @click="openFollowers">
         <span class="stat-value">{{ user.interactionsInfo.followers.toString() }}</span>
-        <span class="stat-label">{{ t('userProfile.followers') }}</span>
+        <span class="stat-label">{{ t('followers') }}</span>
       </div>
       <div class="stat-divider"></div>
       <div class="stat-item clickable" @click="openFollowing">
         <span class="stat-value">{{ user.interactionsInfo.following.toString() }}</span>
-        <span class="stat-label">{{ t('userProfile.following') }}</span>
+        <span class="stat-label">{{ t('following') }}</span>
       </div>
     </div>
     <p v-if="user.bio" class="user-bio">{{ user.bio }}</p>
@@ -59,15 +59,15 @@ const loadFollowingFn = (pagination?: PaginatedRequest) =>
     <UserList
       v-model="showFollowersDialog"
       :load-fn="loadFollowersFn"
-      :title="t('userProfile.followers')"
-      :empty-text="t('userProfile.noFollowers', 'Nessun follower')"
+      :title="t('followers')"
+      :empty-text="t('noFollowers')"
       empty-icon="people_outline"
     />
     <UserList
       v-model="showFollowingDialog"
       :load-fn="loadFollowingFn"
-      :title="t('userProfile.following')"
-      :empty-text="t('userProfile.noFollowing', 'Non segui nessuno')"
+      :title="t('following')"
+      :empty-text="t('noFollowing')"
       empty-icon="person_add_alt"
     />
   </div>

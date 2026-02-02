@@ -7,10 +7,12 @@ import { loadLikedEvents, type EventLoadResult } from '@/api/utils/eventUtils'
 import type { UserID } from '@/api/types/users'
 import { defaultLimit } from '@/api/utils/requestUtils'
 import { useAuthStore } from '@/stores/auth'
+import { useTranslation } from '@/composables/useTranslation'
 interface Props {
   userId: UserID
 }
 const props = defineProps<Props>()
+const { t } = useTranslation('components.profile.tabs.MyLikesTab')
 
 const authStore = useAuthStore()
 
@@ -55,7 +57,7 @@ onMounted(() => {
     <EmptyState
       v-else-if="!loading"
       empty-icon-name="favorite_border"
-      :empty-text="'You have not liked any events yet.'"
+      :empty-text="t('noLikedEvents')"
     />
   </div>
 </template>

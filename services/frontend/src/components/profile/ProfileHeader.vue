@@ -6,11 +6,12 @@ import { useQuasar } from 'quasar'
 import UserInfo from './UserInfo.vue'
 import ProfileActions from './ProfileActions.vue'
 import AvatarCropUpload from '@/components/imageUpload/AvatarCropUpload.vue'
-import { useI18n } from 'vue-i18n'
 import { api } from '@/api'
 import type { UserLoadResult } from '@/api/utils/userUtils'
 import { useUserProfile } from '@/composables/useUserProfile'
 import { useBreakpoints } from '@/composables/useBreakpoints'
+import { useTranslation } from '@/composables/useTranslation'
+import { createLogger } from '@/utils/logger'
 
 const user = defineModel<UserLoadResult>({ required: true })
 const emit = defineEmits<{
@@ -18,7 +19,8 @@ const emit = defineEmits<{
 }>()
 
 const $q = useQuasar()
-const { t } = useI18n()
+const { t } = useTranslation('components.profile.ProfileHeader')
+const logger = createLogger(import.meta.url)
 const authStore = useAuthStore()
 const { isOwnProfile, isOrganization, defaultIcon } = useUserProfile(user)
 const { isMobile } = useBreakpoints()
@@ -44,10 +46,10 @@ const handleFollowToggle = async () => {
       user.value.interactionsInfo!.followers += 1
     }
   } catch (error) {
-    console.error('Failed to toggle follow:', error)
+    logger.error('Failed to toggle follow status:', error)
     $q.notify({
       type: 'negative',
-      message: 'Failed to update follow status',
+      message: t('followError'),
     })
   }
 }
@@ -59,9 +61,10 @@ const handleAvatarClick = () => {
 }
 
 const handleAvatarError = (message: string) => {
+  logger.error('Avatar upload error:', message)
   $q.notify({
     color: 'negative',
-    message,
+    message: t('uploadAvatarError'),
   })
 }
 
@@ -99,7 +102,7 @@ const handleAvatarChange = async (file: File | null) => {
         <img
           v-if="user.avatar"
           :src="user.avatar"
-          :alt="t('userProfile.userAvatarAlt')"
+          :alt="t('userAvatarAlt')"
           class="profile-avatar"
         />
         <q-icon v-else :name="defaultIcon" size="100px" class="profile-avatar" />

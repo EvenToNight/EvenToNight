@@ -4,10 +4,10 @@ import type { UserLoadResult } from '@/api/utils/userUtils'
 import { useUserProfile } from '@/composables/useUserProfile'
 import { useUnreadMessagesCount } from '@/composables/useUnreadMessagesCount'
 import { useNavigation } from '@/router/utils'
-import { useI18n } from 'vue-i18n'
+import { useTranslation } from '@/composables/useTranslation'
 import { useAuthStore } from '@/stores/auth'
 
-const { t } = useI18n()
+const { t } = useTranslation('components.profile.ProfileActions')
 const { goToCreateEvent, goToEditProfile, goToSettings, goToChat } = useNavigation()
 
 interface Props {
@@ -61,7 +61,7 @@ const handleOpenChat = () => {
       />
       <q-btn
         v-if="isOrganization"
-        :label="t('userProfile.createEvent')"
+        :label="t('createEvent')"
         icon="add"
         unelevated
         color="primary"
@@ -78,9 +78,7 @@ const handleOpenChat = () => {
         @click="handleOpenChat"
       />
       <q-btn
-        :label="
-          user.interactionsInfo?.isFollowing ? t('userProfile.following') : t('userProfile.follow')
-        "
+        :label="user.interactionsInfo?.isFollowing ? t('following') : t('follow')"
         :unelevated="!user.interactionsInfo?.isFollowing"
         :flat="user.interactionsInfo?.isFollowing"
         :color="!user.interactionsInfo?.isFollowing ? 'primary' : undefined"
