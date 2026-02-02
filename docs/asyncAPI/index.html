@@ -32,24 +32,13 @@
 </head>
 
 <body>
-<div id="asyncapi"></div>
+  <div class="header-container">
+    <h1>EvenToNight - Async API</h1>
+  </div>
 
-<script src="https://unpkg.com/@asyncapi/react-component@1.0.0/browser/standalone/index.js"></script>
-<script>
-    AsyncApiStandalone.render(
-        {
-            schema: {
-                url: "asyncapi.yaml",
-                options: {method: 'GET', mode: 'cors'},
-            },
-            config: {
-                show: {
-                    sidebar: true,
-                },
-            },
-        },
-        document.getElementById('asyncapi')
-    )
-</script>
+  <div class="service-list">
+    <div><a href="asyncapi-viewer.html?url=users.yaml">Users Service</a></div>
+    <div><a href="asyncapi-viewer.html?url=events.yaml">Events Service</a></div>
+</div>
 </body>
 </html>

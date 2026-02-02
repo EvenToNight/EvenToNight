@@ -10,3 +10,4 @@ services:
         dockerfile: ./infrastructure/authentication/Dockerfile-keycloak-provision
       environment:
         USERS_SERVICE_SECRET: "supersecret"
+        ENV_MODE: "dev"

@@ -1,0 +1,244 @@
+asyncapi: "2.5.0"
+
+info:
+  title: Users Service Async API
+  version: "1.0.0"
+  description: >
+    AsyncAPI specification for domain events published by the Users service.
+    The service publishes events to the central RabbitMQ exchange `eventonight`.
+
+servers:
+  rabbitmq:
+    url: amqp://localhost:5672
+    protocol: amqp
+    description: RabbitMQ broker used by the Users Service to publish domain events related to users registered on the website.
+
+channels:
+  eventonight:
+    description: Central exchange for all domain events
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: eventonight
+          type: topic
+          durable: true
+    publish:
+      operationId: publishUserEvent
+      message:
+        oneOf:
+          - $ref: "#/components/messages/UserCreatedMessage"
+          - $ref: "#/components/messages/UserUpdatedMessage"
+          - $ref: "#/components/messages/UserDeletedMessage"
+
+components:
+  messages:
+    UserCreatedMessage:
+      name: UserCreated
+      title: User Created
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: user.created
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/UserCreatedEnvelope"
+
+    UserUpdatedMessage:
+      name: UserUpdated
+      title: User Updated
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: user.updated
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/UserUpdatedEnvelope"
+
+    UserDeletedMessage:
+      name: UserDeleted
+      title: User Deleted
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: user.deleted
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/UserDeletedEnvelope"
+
+  schemas:
+    EventHeaders:
+      type: object
+      description: Headers for user domain events
+      properties:
+        event-type:
+          type: string
+          description: Routing key of the event
+          example: user.created
+        producer:
+          type: string
+          description: Microservice that produced the event
+          example: users-service
+        schema:
+          type: string
+          description: Version of the event schema
+          example: "1"
+      required:
+        - event-type
+        - producer
+        - schema
+
+    UserCreatedPayload:
+      type: object
+      description: Payload for UserCreated event
+      properties:
+        id:
+          type: string
+          example: "12345"
+        username:
+          type: string
+          example: "john_doe"
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          example: "john@example.com"
+        avatar:
+          type: string
+          example: "https://example.com/avatar.jpg"
+        bio:
+          type: string
+          nullable: true
+          example: "Software developer and event enthusiast"
+        interests:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["Dinner", "LiveMusic", "Club"]
+        language:
+          type: string
+          example: "en"
+        role:
+          type: string
+          example: "member"
+      required:
+        - id
+        - username
+        - name
+        - email
+        - avatar
+        - language
+        - role
+
+    UserCreatedEnvelope:
+      type: object
+      description: Envelope for UserCreated event
+      properties:
+        eventType:
+          type: string
+          example: user.created
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T15:30:00Z"
+        payload:
+          $ref: "#/components/schemas/UserCreatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    UserUpdatedPayload:
+      type: object
+      description: Payload for UserUpdated event
+      properties:
+        id:
+          type: string
+          example: "12345"
+        username:
+          type: string
+          example: "john_doe"
+        name:
+          type: string
+          example: "John Doe"
+        email:
+          type: string
+          example: "john@example.com"
+        avatar:
+          type: string
+          example: "https://example.com/avatar.jpg"
+        bio:
+          type: string
+          nullable: true
+          example: "Software engineer and music lover"
+        interests:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["Dinner", "LiveMusic", "Show"]
+        language:
+          type: string
+          example: "en"
+        role:
+          type: string
+          example: "member"
+      required:
+        - id
+        - username
+        - name
+        - email
+        - avatar
+        - language
+        - role
+
+    UserUpdatedEnvelope:
+      type: object
+      description: Envelope for UserUpdated event
+      properties:
+        eventType:
+          type: string
+          example: user.updated
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T16:00:00Z"
+        payload:
+          $ref: "#/components/schemas/UserUpdatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    UserDeletedPayload:
+      type: object
+      description: Payload for UserDeleted event
+      properties:
+        id:
+          type: string
+          example: "12345"
+      required:
+        - id
+
+    UserDeletedEnvelope:
+      type: object
+      description: Envelope for UserDeleted event
+      properties:
+        eventType:
+          type: string
+          example: user.deleted
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T17:00:00Z"
+        payload:
+          $ref: "#/components/schemas/UserDeletedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload

@@ -60,7 +60,43 @@ class KeycloakAdminApiUnitSpec extends AnyFlatSpec with Matchers:
     val result         = kcAdminApi.createUser(testAccessToken, username, email, password)
     result shouldBe Left("User created but could not retrieve ID from Keycloak")
 
-  it should "return Left when user creation fails" in:
+  it should "return Left when password policy is violated" in:
+    val errorJson =
+      """
+        {
+          "error": "invalidPasswordMinSpecialCharsMessage",
+          "error_description": "Invalid password: must contain at least 1 special characters."
+        }
+      """
+    val errorResponse = Response(
+      body = errorJson,
+      code = StatusCode.BadRequest,
+      statusText = "Bad Request"
+    )
+    val connectionStub = stubbedCreateUserConnectionWithResponse(errorResponse)
+    val kcAdminApi     = new KeycloakAdminApi(connectionStub)
+    val result         = kcAdminApi.createUser(testAccessToken, username, email, password)
+    result.left.value should startWith("Password not compliant:")
+
+  it should "return Left for Keycloak errors not related to password policy" in:
+    val errorJson =
+      """
+        {
+          "error": "some_error",
+          "error_description": "Some other Keycloak error"
+        }
+      """
+    val errorResponse = Response(
+      body = errorJson,
+      code = StatusCode.BadRequest,
+      statusText = "Bad Request"
+    )
+    val connectionStub = stubbedCreateUserConnectionWithResponse(errorResponse)
+    val kcAdminApi     = new KeycloakAdminApi(connectionStub)
+    val result         = kcAdminApi.createUser(testAccessToken, username, email, password)
+    result shouldBe Left("User creation rejected: Some other Keycloak error")
+
+  it should "return Left when user creation fails and Keycloak response body is not valid JSON" in:
     val errorResponse = Response(
       body = "Error creating user",
       code = StatusCode.BadRequest,
@@ -69,7 +105,7 @@ class KeycloakAdminApiUnitSpec extends AnyFlatSpec with Matchers:
     val connectionStub = stubbedCreateUserConnectionWithResponse(errorResponse)
     val kcAdminApi     = new KeycloakAdminApi(connectionStub)
     val result         = kcAdminApi.createUser(testAccessToken, username, email, password)
-    result.left.value should include("Failed to create user on Keycloak")
+    result shouldBe Left("Failed to parse Keycloak response: Error creating user")
 
   it should "include the generated userId in the request JSON" in:
     var capturedJsonBody: String = ""

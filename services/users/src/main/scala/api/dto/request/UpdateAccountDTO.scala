@@ -18,13 +18,13 @@ case class UpdateAccountDTO(
 object UpdateAccountDTO:
   import Gender.given
   given instantDecoder: Decoder[Instant] with
-    def apply(c: HCursor): Either[DecodingFailure, Instant] =
+    override def apply(c: HCursor): Either[DecodingFailure, Instant] =
       c.as[String].flatMap(str =>
         try Right(Instant.parse(str))
         catch case _: Exception => Left(DecodingFailure(s"Invalid Instant: $str", c.history))
       )
   given Decoder[UpdateAccountDTO] with
-    def apply(c: HCursor): Either[DecodingFailure, UpdateAccountDTO] =
+    override def apply(c: HCursor): Either[DecodingFailure, UpdateAccountDTO] =
       for
         darkMode <- c.downField("darkMode").as[Option[Boolean]].flatMap {
           case Some(value) => Right(value)
