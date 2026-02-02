@@ -200,7 +200,7 @@ case class MongoEventRepository(
       city: Option[String],
       location_name: Option[String],
       query: Option[String],
-      price: Option[(Double, Double)] = None
+      price: Option[(Double, Double)]
   ): org.bson.conversions.Bson =
     val filters = scala.collection.mutable.ListBuffer.empty[org.bson.conversions.Bson]
 
@@ -388,26 +388,6 @@ case class MongoEventRepository(
       (event, distance)
     }
 
-    val _ = sortBy match
-      case Some(field) =>
-        val sortDirection = sortOrder.getOrElse("asc")
-
-        eventsWithDistance.sortBy { case (event, distance) =>
-          val secondaryValue: String = field.toLowerCase match
-            case "date"    => event.date.map(_.toString).getOrElse("")
-            case "title"   => event.title.getOrElse("")
-            case "instant" => event.instant.toString
-            case _         => event.date.map(_.toString).getOrElse("")
-
-          if sortDirection == "desc" then
-            (distance, secondaryValue)
-          else
-            (distance, secondaryValue)
-        }
-
-      case None =>
-        eventsWithDistance.sortBy(_._2)
-
     val finalSorted = (sortBy, sortOrder) match
       case (Some(field), Some("desc")) =>
         eventsWithDistance
@@ -462,8 +442,11 @@ case class MongoEventRepository(
       .map(updateEventIfPast)
       .toList
 
+    val eventIds  = allEvents.map(_._id)
+    val pricesMap = priceRepository.get.findByEventIds(eventIds)
+
     val eventsWithPrice = allEvents.map { event =>
-      val prices   = priceRepository.get.findByEventId(event._id)
+      val prices   = pricesMap.getOrElse(event._id, List.empty)
       val minPrice = if prices.nonEmpty then prices.map(_.price).min else 0.0
       (event, minPrice)
     }

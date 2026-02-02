@@ -16,7 +16,9 @@ export class ExternalEventMapper {
     }
   }
 
-  private static mapLike(payload: any): CreateNotificationFromEventCommand | null {
+  private static mapLike(
+    payload: any,
+  ): CreateNotificationFromEventCommand | null {
     if (payload.creatorId === payload.userId) {
       return null;
     }

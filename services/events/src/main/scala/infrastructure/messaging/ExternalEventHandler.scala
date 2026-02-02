@@ -92,7 +92,9 @@ class ExternalEventHandler(
                 val updatedPrice = existingPrice.copy(price = event.price)
                 priceRepo.save(updatedPrice)
               case None =>
-                println(s"[HANDLER] ⚠️ Cannot update price: TicketPrice not found for ticketTypeId: ${event.ticketTypeId}")
+                println(
+                  s"[HANDLER] ⚠️ Cannot update price: TicketPrice not found for ticketTypeId: ${event.ticketTypeId}"
+                )
           case Left(error) =>
             println(s"[HANDLER] ❌ Error parsing payload: ${error.getMessage}")
             println(s"[HANDLER]    Raw payload: ${envelope.payload}")
