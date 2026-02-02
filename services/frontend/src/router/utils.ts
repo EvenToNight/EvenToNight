@@ -92,11 +92,20 @@ export const useNavigation = () => {
 
   const goToRedirect = (swap: boolean = true) => {
     const redirectPath = redirect.value
+    const radirectPage = query.redirectPage as string | undefined
     if (redirectPath) {
       if (swap) {
         router.replace(redirectPath)
       } else {
         router.push(redirectPath)
+      }
+      return true
+    }
+    if (radirectPage) {
+      if (swap) {
+        router.replace({ name: radirectPage })
+      } else {
+        router.push({ name: radirectPage })
       }
       return true
     }
