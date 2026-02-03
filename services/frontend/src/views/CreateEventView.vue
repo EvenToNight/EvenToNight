@@ -453,7 +453,7 @@ onMounted(async () => {
 <template>
   <NavigationButtons />
 
-  <div class="create-event-page">
+  <main class="create-event-page">
     <div class="page-content">
       <div class="container">
         <h1 class="text-h3 q-mb-lg">
@@ -557,12 +557,20 @@ onMounted(async () => {
                 icon="delete"
                 color="negative"
                 class="delete-ticket-btn"
+                :aria-label="t('form.ticketTypes.deleteTicketButton')"
                 @click="removeTicketEntry(index)"
               />
             </div>
 
             <div v-if="canAddMoreTickets" class="add-ticket-btn-container">
-              <q-btn flat round icon="add" color="primary" @click="addTicketEntry" />
+              <q-btn
+                flat
+                round
+                icon="add"
+                color="primary"
+                :aria-label="t('form.ticketTypes.addTicketButton')"
+                @click="addTicketEntry"
+              />
             </div>
           </div>
 
@@ -721,7 +729,7 @@ onMounted(async () => {
         </q-form>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style lang="scss" scoped>

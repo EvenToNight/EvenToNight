@@ -62,6 +62,8 @@ export default {
             label: 'Quantity',
             error: 'Please enter a quantity',
           },
+          addTicketButton: 'Add ticket type',
+          deleteTicketButton: 'Delete ticket type',
         },
         tags: {
           label: 'Tags',
