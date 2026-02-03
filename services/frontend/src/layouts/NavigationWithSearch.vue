@@ -67,6 +67,7 @@ provide<(() => void) | undefined>('onSearch', () =>
 }
 
 .page-content {
+  @include flex-column;
   padding: 0;
   flex: 1;
 }

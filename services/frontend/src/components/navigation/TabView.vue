@@ -131,6 +131,7 @@ const getCurrentTabComponent = computed((): Tab => {
 }
 
 .explore-tab-content {
+  @include flex-column;
   flex: 1;
   min-height: 0;
   padding: $spacing-6 $spacing-4;

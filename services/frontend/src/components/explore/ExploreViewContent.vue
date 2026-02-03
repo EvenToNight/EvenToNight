@@ -160,6 +160,7 @@ const tabs = computed<Tab[]>(() => [
 <style lang="scss" scoped>
 .explore-page {
   @include flex-column;
+  flex: 1;
   background-color: $grey-2;
   @include dark-mode {
     background-color: $grey-10;

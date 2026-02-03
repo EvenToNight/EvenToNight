@@ -239,7 +239,7 @@ const goToProfile = () => {
             unelevated
             color="primary"
             icon="add"
-            label="Create Event"
+            :label="t('ariaLabels.createEvent')"
             class="base-button base-button--primary"
             @click="
               () => {

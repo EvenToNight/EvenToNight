@@ -83,7 +83,7 @@ const formatDate = (date: Date): string => {
   padding: $spacing-3;
   cursor: pointer;
   transition: all $transition-fast;
-  color: $color-text-primary;
+  background-color: $color-white;
 
   &:hover {
     background-color: $color-gray-200;

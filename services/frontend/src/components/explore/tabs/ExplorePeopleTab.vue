@@ -83,6 +83,8 @@ watch(
 .tab-content {
   @include flex-column;
   gap: $spacing-4;
+  flex: 1;
+  min-height: 0;
 }
 
 .people-scroll {
@@ -92,6 +94,10 @@ watch(
 .users-list {
   @include flex-column;
   gap: $spacing-3;
+
+  :deep(.suggestion-item) {
+    border-radius: $radius-lg;
+  }
 }
 
 .loading-state {
