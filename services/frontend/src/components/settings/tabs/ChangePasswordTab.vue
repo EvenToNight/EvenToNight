@@ -9,7 +9,7 @@ import { createLogger } from '@/utils/logger'
 
 const authStore = useAuthStore()
 const $q = useQuasar()
-const { t } = useTranslation('components.settings.ChangePasswordTab')
+const { t } = useTranslation('components.settings.tabs.ChangePasswordTab')
 const logger = createLogger(import.meta.url)
 
 const currentPassword = ref('')

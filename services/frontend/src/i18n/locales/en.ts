@@ -787,7 +787,7 @@ export default {
           languageTitle: 'Language Preference',
           languageSubtitle: 'Choose your preferred language for the application',
         },
-        ReviewsTab: {
+        MyReviewsTab: {
           loadReviewsError: 'Failed to load your reviews, please try again',
           searchHint: 'Search your reviews...',
           noReviews: 'You have not submitted any reviews yet',
