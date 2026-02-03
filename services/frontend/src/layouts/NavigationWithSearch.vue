@@ -44,9 +44,9 @@ provide<(() => void) | undefined>('onSearch', () =>
   <div class="navigation-view">
     <div class="scroll-wrapper">
       <NavigationBar :show-search="showSearchInNavbar" />
-      <div class="page-content">
+      <main class="page-content">
         <slot></slot>
-      </div>
+      </main>
       <Footer />
     </div>
   </div>

@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useTranslation } from '@/composables/useTranslation'
+
+const { t } = useTranslation('components.navigation.DrawerMenu')
+
 interface Props {
   isOpen: boolean
 }
@@ -21,6 +25,7 @@ const close = () => {
       class="drawer-body-overlay"
       role="button"
       tabindex="0"
+      :aria-label="t('closeDrawerAriaLabel')"
       @click="close"
       @keydown.enter="close"
     ></div>
@@ -31,6 +36,7 @@ const close = () => {
       class="drawer-overlay"
       role="button"
       tabindex="0"
+      :aria-label="t('closeDrawerAriaLabel')"
       @click="close"
       @keydown.enter="close"
     >

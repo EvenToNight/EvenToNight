@@ -25,6 +25,8 @@ const goToHomeTop = () => {
 </template>
 
 <style lang="scss" scoped>
+@use 'sass:color';
+
 .app-brand {
   @include flex-center;
   gap: $spacing-2;
@@ -40,7 +42,14 @@ const goToHomeTop = () => {
 .brand-text {
   font-size: $font-size-xl;
   font-weight: $font-weight-semibold;
-  color: $color-primary;
   white-space: nowrap;
+
+  @include light-mode {
+    color: $color-primary;
+  }
+
+  @include dark-mode {
+    color: color.scale($color-primary, $lightness: 50%);
+  }
 }
 </style>

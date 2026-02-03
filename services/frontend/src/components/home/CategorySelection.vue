@@ -58,6 +58,7 @@ onMounted(async () => {
           class="category-card row items-center"
           role="button"
           tabindex="0"
+          :aria-label="t('categoryButtonAriaLabel') + ': ' + category.category"
           @click="handleCategoryClick(category)"
           @keydown.enter="handleCategoryClick(category)"
         >

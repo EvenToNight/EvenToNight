@@ -81,7 +81,13 @@ const goToProfile = () => {
         <div class="mobile-search-container">
           <SearchBar />
         </div>
-        <q-btn flat dense icon="close" @mousedown.prevent="toggleMobileSearch" />
+        <q-btn
+          flat
+          dense
+          icon="close"
+          :aria-label="t('ariaLabels.closeSearch')"
+          @mousedown.prevent="toggleMobileSearch"
+        />
       </div>
 
       <template v-else>
@@ -91,17 +97,35 @@ const goToProfile = () => {
           </div>
           <q-space />
           <template v-if="showSearch">
-            <q-btn flat dense icon="search" @click="toggleMobileSearch" />
+            <q-btn
+              flat
+              dense
+              icon="search"
+              :aria-label="t('ariaLabels.search')"
+              @click="toggleMobileSearch"
+            />
           </template>
           <template v-if="authStore.isAuthenticated">
             <NotificationsButton dense />
-            <q-btn flat dense icon="chat" @click="goToChat()">
+            <q-btn
+              flat
+              dense
+              icon="chat"
+              :aria-label="t('ariaLabels.chat')"
+              @click="goToChat()"
+            >
               <q-badge v-if="unreadMessagesCount && unreadMessagesCount > 0" color="red" floating>{{
                 String(unreadMessagesCount)
               }}</q-badge>
             </q-btn>
           </template>
-          <q-btn flat dense icon="menu" @click="toggleMobileMenu" />
+          <q-btn
+            flat
+            dense
+            icon="menu"
+            :aria-label="t('ariaLabels.menu')"
+            @click="toggleMobileMenu"
+          />
         </template>
         <template v-else>
           <div class="brand-title">
@@ -119,6 +143,7 @@ const goToProfile = () => {
                 round
                 class="theme-toggle"
                 :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+                :aria-label="t('ariaLabels.toggleTheme')"
                 @click="useDarkMode().toggle"
               >
               </q-btn>
@@ -128,11 +153,12 @@ const goToProfile = () => {
                 round
                 icon="add"
                 class="create-event-btn"
+                :aria-label="t('ariaLabels.createEvent')"
                 @click="goToCreateEvent()"
               >
               </q-btn>
               <NotificationsButton />
-              <q-btn flat round icon="chat" @click="goToChat()">
+              <q-btn flat round icon="chat" :aria-label="t('ariaLabels.chat')" @click="goToChat()">
                 <q-badge
                   v-if="unreadMessagesCount && unreadMessagesCount > 0"
                   color="red"
@@ -169,6 +195,7 @@ const goToProfile = () => {
                 round
                 class="theme-toggle"
                 :icon="$q.dark.isActive ? 'light_mode' : 'dark_mode'"
+                :aria-label="t('ariaLabels.toggleTheme')"
                 @click="useDarkMode().toggle"
               >
               </q-btn>

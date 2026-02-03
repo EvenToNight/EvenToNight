@@ -149,7 +149,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <q-btn :flat="true" :dense="dense" :round="!dense" icon="notifications">
+  <q-btn :flat="true" :dense="dense" :round="!dense" icon="notifications" :aria-label="t('title')">
     <q-badge v-if="unreadNotificationsCount > 0" color="red" floating>{{
       String(unreadNotificationsCount)
     }}</q-badge>

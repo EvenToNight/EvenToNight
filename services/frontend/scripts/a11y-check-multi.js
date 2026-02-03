@@ -11,10 +11,10 @@ const config = {
   baseUrl: process.env.BASE_URL || 'http://localhost:5173/it',
   pages: [
     { name: 'Home', path: '/' },
-    {
-      name: 'OrgProfileEventsTab',
-      path: '/users/b1e2f3ab-55ef-4cff-b8b2-c8dfe8c12493#publishedEvents',
-    },
+    // {
+    //   name: 'OrgProfileEventsTab',
+    //   path: '/users/b1e2f3ab-55ef-4cff-b8b2-c8dfe8c12493#publishedEvents',
+    // },
     // { name: 'Explore', path: '/explore' },
     // { name: 'Login', path: '/login' },
     // { name: 'Register', path: '/register' },

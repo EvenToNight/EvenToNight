@@ -539,6 +539,7 @@ export default {
       CategorySelection: {
         title: 'Explore by Category',
         subtitle: 'Discover events that match your interests',
+        categoryButtonAriaLabel: 'View category',
       },
       HomeViewContent: {
         title: 'Find the event for you',
@@ -584,6 +585,18 @@ export default {
         profile: 'Profile',
         logout: 'Logout',
         darkMode: 'Dark Mode',
+        ariaLabels: {
+          closeSearch: 'Close search',
+          search: 'Search',
+          chat: 'Chat',
+          menu: 'Menu',
+          toggleTheme: 'Toggle dark mode',
+          createEvent: 'Create event',
+          notifications: 'Notifications',
+        },
+      },
+      DrawerMenu: {
+        closeDrawerAriaLabel: 'Close menu',
       },
       SearchBar: {
         baseHint: 'Search...',
