@@ -107,13 +107,7 @@ const goToProfile = () => {
           </template>
           <template v-if="authStore.isAuthenticated">
             <NotificationsButton dense />
-            <q-btn
-              flat
-              dense
-              icon="chat"
-              :aria-label="t('ariaLabels.chat')"
-              @click="goToChat()"
-            >
+            <q-btn flat dense icon="chat" :aria-label="t('ariaLabels.chat')" @click="goToChat()">
               <q-badge v-if="unreadMessagesCount && unreadMessagesCount > 0" color="red" floating>{{
                 String(unreadMessagesCount)
               }}</q-badge>
