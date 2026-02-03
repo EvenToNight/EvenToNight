@@ -71,7 +71,7 @@ const handleOpenChat = () => {
     </template>
     <template v-else>
       <q-btn
-        v-if="isOrganization != authStore.isOrganization"
+        v-if="authStore.isAuthenticated && isOrganization != authStore.isOrganization"
         icon="send"
         flat
         class="action-btn action-btn--secondary"
