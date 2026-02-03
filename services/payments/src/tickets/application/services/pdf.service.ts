@@ -8,6 +8,7 @@ export interface TicketPdfData {
   eventId: string;
   eventTitle: string;
   attendeeName: string;
+  eventDate: Date | string | undefined;
   purchaseDate: Date | string;
   priceLabel?: string;
 }
@@ -28,6 +29,14 @@ export class PdfService {
 
     doc.fontSize(12).text(`${t.ticketId}: ${ticket.ticketId}`);
     doc.text(`${t.event}: ${ticket.eventId}`);
+    if (ticket.eventDate)
+      doc.text(
+        `${t.eventDate}: ${
+          typeof ticket.eventDate === 'string'
+            ? ticket.eventDate
+            : ticket.eventDate.toLocaleString()
+        }`,
+      );
     // doc.text(`${t.attendee}: ${ticket.attendeeName}`);
     doc.text(
       `${t.purchase}: ${
