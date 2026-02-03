@@ -360,8 +360,13 @@ case class MongoEventRepository(
           .map(updateEventIfPast)
           .toList
 
-        val shuffled = scala.util.Random.shuffle(allEvents)
-        val sorted   = applySortBy(shuffled, sortBy, sortOrder)
+        val shuffled = new scala.util.Random().shuffle(allEvents)
+
+        val sorted = sortBy match
+          case Some(_) =>
+            applySortBy(shuffled, sortBy, sortOrder)
+          case None =>
+            shuffled
 
         val paginated = sorted.drop(offsetValue).take(limitValue + 1)
 
@@ -488,7 +493,7 @@ case class MongoEventRepository(
   ): (List[Event], Boolean) =
     val offsetValue    = offset.getOrElse(0)
     val limitValue     = limit.getOrElse(10)
-    val maxPriceEvents = 2000 // Safety limit for price sorting
+    val maxPriceEvents = 2000
     val batchSize      = 200
 
     val results        = ListBuffer[Event]()
