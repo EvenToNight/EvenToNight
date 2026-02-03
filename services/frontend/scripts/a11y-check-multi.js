@@ -8,6 +8,8 @@ import { dirname, join } from 'path'
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
+const formatScore = (score) => (score % 1 === 0 ? score.toString() : score.toFixed(1))
+
 const config = {
   baseUrl: process.env.BASE_URL || 'http://localhost:5173/it',
   pages: [
@@ -16,7 +18,7 @@ const config = {
     { name: 'Login', path: '/login' },
     { name: 'Register', path: '/register' },
     { name: 'Create Event', path: '/create-event' },
-    { name: 'Event Details', path: '/events/8178c902-c316-4e0b-82b2-cb0c70799875' },
+    { name: 'Event Details', path: '/events/547a3b27-344a-4318-b17e-edf7cd14aee3' },
 
     // {
     //   name: 'OrgProfileEventsTab',
@@ -88,7 +90,7 @@ function generateSummaryReport(results, themeMode) {
 📊 General Statistics:
    • Theme tested: ${themeEmoji} ${themeName}
    • Pages tested: ${totalPages}
-   • Average score: ${avgScore.toFixed(1)}/100
+   • Average score: ${formatScore(avgScore)}/100
    • Date: ${new Date().toLocaleString('en-US')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -158,12 +160,125 @@ function generateSummaryReport(results, themeMode) {
   report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`
 
   if (failedPages === 0) {
-    report += `✅ SUCCESS! All pages pass the minimum score of ${config.minScore} (Average score: ${avgScore.toFixed(1)}/100)\n`
+    report += `✅ SUCCESS! All pages pass the minimum score of ${config.minScore} (Average score: ${formatScore(avgScore)}/100)\n`
   } else {
-    report += `❌ FAILED! ${failedPages}/${totalPages} pages below minimum score of ${config.minScore} (Average score: ${avgScore.toFixed(1)}/100)\n`
+    report += `❌ FAILED! ${failedPages}/${totalPages} pages below minimum score of ${config.minScore} (Average score: ${formatScore(avgScore)}/100)\n`
   }
 
   return { report, passed: failedPages === 0, avgScore }
+}
+
+function generateMarkdownReport(results, themeMode) {
+  const totalPages = results.length
+  const avgScore = results.reduce((sum, r) => sum + r.score, 0) / totalPages
+
+  const themeName =
+    themeMode === 'light' ? 'Light Mode' : themeMode === 'dark' ? 'Dark Mode' : 'Light & Dark Mode'
+
+  const passedPages = results.filter((r) => r.score >= config.minScore).length
+  const failedPages = totalPages - passedPages
+  const statusBadge = failedPages === 0 ? '✅ PASSED' : '❌ FAILED'
+
+  let md = `# Accessibility Report Summary
+
+> **Status:** ${statusBadge}
+> **Date:** ${new Date().toLocaleString('en-US')}
+
+## 📊 General Statistics
+
+| Metric | Value |
+|--------|-------|
+| Theme tested | ${themeName} |
+| Pages tested | ${totalPages} |
+| Average score | ${formatScore(avgScore)}/100 |
+| Minimum required | ${config.minScore}/100 |
+
+---
+
+## 📄 Page Details
+
+| # | Status | Page | Theme | Score | Critical | Warnings |
+|---|--------|------|-------|-------|----------|----------|
+`
+
+  results.forEach((result, index) => {
+    const icon = result.score >= config.minScore ? '✅' : '❌'
+    const violations = result.violations
+    const critical = violations.filter((v) => v.score === 0).length
+    const warnings = violations.filter((v) => v.score > 0 && v.score < 1).length
+
+    md += `| ${index + 1} | ${icon} | ${result.name} | ${result.theme} | ${result.score}/100 | ${critical} | ${warnings} |\n`
+  })
+
+  const pagesWithCritical = results.filter(
+    (r) => r.violations.filter((v) => v.score === 0).length > 0
+  )
+  if (pagesWithCritical.length > 0) {
+    md += `\n### 🔴 Critical Issues by Page\n\n`
+    pagesWithCritical.forEach((result) => {
+      const themeIcon = result.theme === 'light' ? '☀️' : '🌙'
+      const criticalViolations = result.violations.filter((v) => v.score === 0)
+      md += `<details>\n<summary><strong>${result.name}</strong> ${themeIcon} (${criticalViolations.length} critical)</summary>\n\n`
+      criticalViolations.forEach((v) => {
+        md += `- **${v.title}**${v.itemCount ? ` (${v.itemCount} elements)` : ''}\n`
+      })
+      md += `\n</details>\n\n`
+    })
+  }
+
+  const allViolations = results.flatMap((r) => r.violations)
+  const violationCounts = {}
+
+  allViolations.forEach((v) => {
+    const key = v.id
+    if (!violationCounts[key]) {
+      violationCounts[key] = { title: v.title, count: 0, itemCount: 0 }
+    }
+    violationCounts[key].count++
+    violationCounts[key].itemCount += v.itemCount || 1
+  })
+
+  const topIssues = Object.values(violationCounts)
+    .sort((a, b) => b.itemCount - a.itemCount)
+    .slice(0, 5)
+
+  if (topIssues.length > 0) {
+    md += `---\n\n## 🔍 Top 5 Most Frequent Issues\n\n`
+    md += `| # | Issue | Pages | Elements |\n`
+    md += `|---|-------|-------|----------|\n`
+    topIssues.forEach((issue, i) => {
+      md += `| ${i + 1} | ${issue.title} | ${issue.count} | ${issue.itemCount} |\n`
+    })
+  }
+
+  md += `\n---\n\n`
+
+  if (failedPages === 0) {
+    md += `## ✅ Result: SUCCESS\n\nAll pages pass the minimum score of **${config.minScore}** (Average: **${formatScore(avgScore)}/100**)\n`
+  } else {
+    md += `## ❌ Result: FAILED\n\n**${failedPages}/${totalPages}** pages below minimum score of **${config.minScore}** (Average: **${formatScore(avgScore)}/100**)\n`
+  }
+
+  return md
+}
+
+async function checkBaseUrl() {
+  try {
+    const response = await fetch(config.baseUrl, {
+      method: 'HEAD',
+      signal: AbortSignal.timeout(5000),
+    })
+    if (response.ok) {
+      console.log(`\n\x1b[33m  WARNING: BASE_URL (${config.baseUrl}) is reachable.`)
+      console.log(
+        `   Page links with IDs (e.g., /events/:id) should be verified as IDs may vary.\x1b[0m\n`
+      )
+      return true
+    }
+    return false
+  } catch {
+    return false
+  }
 }
 
 async function main() {
@@ -172,6 +287,11 @@ async function main() {
   console.log(
     `🚀 Starting multi-page accessibility analysis (${themeEmoji} ${config.themeMode} mode)\n`
   )
+
+  if (!(await checkBaseUrl())) {
+    console.log('URL is not reachable. Exiting.')
+    return
+  }
 
   let chrome
   let browser
@@ -263,14 +383,18 @@ async function main() {
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
 
     const { report, passed } = generateSummaryReport(results, config.themeMode)
+    const markdownReport = generateMarkdownReport(results, config.themeMode)
 
     console.log(report)
 
     const summaryPath = join(config.outputDir, `${timestamp}_summary.txt`)
+    const markdownPath = join(config.outputDir, `${timestamp}_summary.md`)
     writeFileSync(summaryPath, report)
+    writeFileSync(markdownPath, markdownReport)
 
     console.log(`\n📊 Reports saved in a11y-reports/:`)
     console.log(`   • Summary: ${timestamp}_summary.txt`)
+    console.log(`   • Summary (MD): ${timestamp}_summary.md`)
     results.forEach((r) => {
       if (r.htmlReport) {
         const filename = r.htmlReport.split('/').pop()
