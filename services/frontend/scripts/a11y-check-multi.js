@@ -1,5 +1,6 @@
 import lighthouse from 'lighthouse'
 import * as chromeLauncher from 'chrome-launcher'
+import puppeteer from 'puppeteer-core'
 import { writeFileSync } from 'fs'
 import { fileURLToPath } from 'url'
 import { dirname, join } from 'path'
@@ -14,6 +15,7 @@ const config = {
     { name: 'Explore', path: '/explore' },
     { name: 'Login', path: '/login' },
     { name: 'Register', path: '/register' },
+    { name: 'Create Event', path: '/create-event' },
     { name: 'Event Details', path: '/events/8178c902-c316-4e0b-82b2-cb0c70799875' },
 
     // {
@@ -27,9 +29,34 @@ const config = {
   ],
   minScore: parseInt(process.env.MIN_A11Y_SCORE || '80'),
   outputDir: join(__dirname, '..', 'a11y-reports'),
+  themeMode: process.env.THEME_MODE || 'both', // 'light', 'dark', 'both'
 }
 
-async function runLighthouseOnPage(url, port) {
+async function setTheme(browser, url, targetTheme) {
+  const page = await browser.newPage()
+  try {
+    await page.goto(url, { waitUntil: 'networkidle0', timeout: 10000 })
+    await page.waitForSelector('body', { timeout: 10000 })
+
+    const currentTheme = await page.evaluate(() => {
+      const body = document.querySelector('body')
+      return body.classList.contains('body--dark') ? 'dark' : 'light'
+    })
+
+    if (currentTheme !== targetTheme) {
+      await page.waitForSelector('.theme-toggle', { timeout: 10000 })
+      await page.click('.theme-toggle')
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+
+    await page.close()
+  } catch (error) {
+    await page.close()
+    throw error
+  }
+}
+
+async function runLighthouseOnPage(url, port, themeName) {
   const options = {
     logLevel: 'error',
     output: ['json', 'html'],
@@ -41,32 +68,39 @@ async function runLighthouseOnPage(url, port) {
   return {
     lhr: runnerResult.lhr,
     reportHtml: runnerResult.report[1],
+    theme: themeName,
   }
 }
 
-function generateSummaryReport(results) {
+function generateSummaryReport(results, themeMode) {
   const totalPages = results.length
   const avgScore = results.reduce((sum, r) => sum + r.score, 0) / totalPages
 
+  const themeEmoji = themeMode === 'light' ? '☀️' : themeMode === 'dark' ? '🌙' : '☀️🌙'
+  const themeName =
+    themeMode === 'light' ? 'Light Mode' : themeMode === 'dark' ? 'Dark Mode' : 'Light & Dark Mode'
+
   let report = `
 ╔════════════════════════════════════════════════════════════════╗
-║              REPORT ACCESSIBILITÀ COMPLESSIVO                  ║
+║            ACCESSIBILITY REPORT SUMMARY                        ║
 ╚════════════════════════════════════════════════════════════════╝
 
-📊 Statistiche generali:
-   • Pagine testate: ${totalPages}
-   • Score medio: ${avgScore.toFixed(1)}/100
-   • Data: ${new Date().toLocaleString('it-IT')}
+📊 General Statistics:
+   • Theme tested: ${themeEmoji} ${themeName}
+   • Pages tested: ${totalPages}
+   • Average score: ${avgScore.toFixed(1)}/100
+   • Date: ${new Date().toLocaleString('en-US')}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-📄 Dettaglio per pagina:
+📄 Page Details:
 
 `
 
   results.forEach((result, index) => {
     const icon = result.score >= config.minScore ? '✅' : '❌'
-    report += `${index + 1}. ${icon} ${result.name}\n`
+    const themeIcon = result.theme === 'light' ? '☀️' : '🌙'
+    report += `${index + 1}. ${icon} ${result.name} ${themeIcon}\n`
     report += `   URL: ${result.url}\n`
     report += `   Score: ${result.score}/100\n`
 
@@ -74,17 +108,17 @@ function generateSummaryReport(results) {
     const critical = violations.filter((v) => v.score === 0).length
     const warnings = violations.filter((v) => v.score > 0 && v.score < 1).length
 
-    report += `   Problemi: ${critical} critici, ${warnings} avvisi\n`
+    report += `   Issues: ${critical} critical, ${warnings} warnings\n`
 
     if (critical > 0) {
-      report += `\n   🔴 Top 3 problemi critici:\n`
+      report += `\n   🔴 Top 3 critical issues:\n`
       violations
         .filter((v) => v.score === 0)
         .slice(0, 3)
         .forEach((v, i) => {
           report += `      ${i + 1}. ${v.title}\n`
           if (v.itemCount) {
-            report += `         (${v.itemCount} elementi)\n`
+            report += `         (${v.itemCount} elements)\n`
           }
         })
     }
@@ -111,10 +145,10 @@ function generateSummaryReport(results) {
     .slice(0, 5)
 
   if (topIssues.length > 0) {
-    report += `🔍 Top 5 problemi più frequenti:\n\n`
+    report += `🔍 Top 5 most frequent issues:\n\n`
     topIssues.forEach((issue, i) => {
       report += `   ${i + 1}. ${issue.title}\n`
-      report += `      Presente in ${issue.count} pagine (${issue.itemCount} elementi totali)\n\n`
+      report += `      Found in ${issue.count} pages (${issue.itemCount} total elements)\n\n`
     })
   }
 
@@ -124,85 +158,118 @@ function generateSummaryReport(results) {
   report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`
 
   if (failedPages === 0) {
-    report += `✅ SUCCESSO! Tutte le pagine superano lo score minimo di ${config.minScore} (Score medio: ${avgScore.toFixed(1)}/100)\n`
+    report += `✅ SUCCESS! All pages pass the minimum score of ${config.minScore} (Average score: ${avgScore.toFixed(1)}/100)\n`
   } else {
-    report += `❌ FALLITO! ${failedPages}/${totalPages} pagine sotto lo score minimo di ${config.minScore} (Score medio: ${avgScore.toFixed(1)}/100)\n`
+    report += `❌ FAILED! ${failedPages}/${totalPages} pages below minimum score of ${config.minScore} (Average score: ${avgScore.toFixed(1)}/100)\n`
   }
 
   return { report, passed: failedPages === 0, avgScore }
 }
 
 async function main() {
-  console.log('🚀 Avvio analisi accessibilità multi-pagina\n')
+  const themeEmoji =
+    config.themeMode === 'light' ? '☀️' : config.themeMode === 'dark' ? '🌙' : '☀️🌙'
+  console.log(
+    `🚀 Starting multi-page accessibility analysis (${themeEmoji} ${config.themeMode} mode)\n`
+  )
 
   let chrome
+  let browser
   const results = []
 
   try {
     chrome = await chromeLauncher.launch({
       chromeFlags: ['--headless', '--disable-gpu'],
     })
-    console.log('🌐 Chrome avviato\n')
+    console.log('🌐 Chrome started\n')
 
-    console.log(`📄 Test di ${config.pages.length} pagine...\n`)
+    browser = await puppeteer.connect({
+      browserURL: `http://localhost:${chrome.port}`,
+      defaultViewport: {
+        width: 1920,
+        height: 1080,
+      },
+    })
+
+    const themesToTest = config.themeMode === 'both' ? ['light', 'dark'] : [config.themeMode]
+    const totalTests = config.pages.length * themesToTest.length
+
+    console.log(
+      `📄 Testing ${config.pages.length} pages in ${themesToTest.length} theme(s) (${totalTests} total tests)...\n`
+    )
 
     const { mkdirSync } = await import('fs')
     mkdirSync(config.outputDir, { recursive: true })
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0]
 
-    for (const page of config.pages) {
-      const url = `${config.baseUrl}${page.path}`
-      process.stdout.write(`   • ${page.name}... `)
+    for (const theme of themesToTest) {
+      if (themesToTest.length > 1) {
+        const themeIcon = theme === 'light' ? '☀️' : '🌙'
+        console.log(`\n${themeIcon} Testing in ${theme} mode:\n`)
+      }
 
-      try {
-        const { lhr, reportHtml } = await runLighthouseOnPage(url, chrome.port)
+      // Set theme once on home page
+      const homeUrl = `${config.baseUrl}/`
+      await setTheme(browser, homeUrl, theme)
+      console.log(`   Theme set to ${theme} mode\n`)
 
-        const score = Math.round(lhr.categories.accessibility.score * 100)
-        const audits = Object.values(lhr.audits)
-        const violations = audits.filter((a) => a.score !== null && a.score < 1)
+      for (const page of config.pages) {
+        const url = `${config.baseUrl}${page.path}`
+        process.stdout.write(`   • ${page.name}... `)
 
-        const pageName = page.name.toLowerCase().replace(/\s+/g, '-')
-        const htmlPath = join(config.outputDir, `${timestamp}_${pageName}.html`)
-        writeFileSync(htmlPath, reportHtml)
+        try {
+          const { lhr, reportHtml } = await runLighthouseOnPage(url, chrome.port, theme)
 
-        results.push({
-          name: page.name,
-          url,
-          score,
-          htmlReport: htmlPath,
-          violations: violations.map((v) => ({
-            id: v.id,
-            title: v.title,
-            score: v.score,
-            itemCount: v.details?.items?.length || 0,
-          })),
-        })
+          const score = Math.round(lhr.categories.accessibility.score * 100)
+          const audits = Object.values(lhr.audits)
+          const violations = audits.filter((a) => a.score !== null && a.score < 1)
 
-        const icon = score >= config.minScore ? '✅' : '❌'
-        console.log(`${icon} ${score}/100`)
-      } catch (error) {
-        console.log(`❌ Errore: ${error.message}`)
-        results.push({
-          name: page.name,
-          url,
-          score: 0,
-          violations: [],
-          error: error.message,
-        })
+          const pageName = page.name.toLowerCase().replace(/\s+/g, '-')
+          const themeSuffix = themesToTest.length > 1 ? `_${theme}` : ''
+          const htmlPath = join(config.outputDir, `${timestamp}_${pageName}${themeSuffix}.html`)
+          writeFileSync(htmlPath, reportHtml)
+
+          results.push({
+            name: page.name,
+            url,
+            score,
+            theme,
+            htmlReport: htmlPath,
+            violations: violations.map((v) => ({
+              id: v.id,
+              title: v.title,
+              score: v.score,
+              itemCount: v.details?.items?.length || 0,
+            })),
+          })
+
+          const icon = score >= config.minScore ? '✅' : '❌'
+          console.log(`${icon} ${score}/100`)
+        } catch (error) {
+          console.log(`❌ Error: ${error.message}`)
+          results.push({
+            name: page.name,
+            url,
+            score: 0,
+            theme,
+            violations: [],
+            error: error.message,
+          })
+        }
       }
     }
 
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
 
-    const { report, passed } = generateSummaryReport(results)
+    const { report, passed } = generateSummaryReport(results, config.themeMode)
 
     console.log(report)
 
     const summaryPath = join(config.outputDir, `${timestamp}_summary.txt`)
     writeFileSync(summaryPath, report)
 
-    console.log(`\n📊 Report salvati in a11y-reports/:`)
+    console.log(`\n📊 Reports saved in a11y-reports/:`)
     console.log(`   • Summary: ${timestamp}_summary.txt`)
     results.forEach((r) => {
       if (r.htmlReport) {
@@ -213,9 +280,10 @@ async function main() {
     console.log()
     process.exit(passed ? 0 : 1)
   } catch (error) {
-    console.error('\n❌ Errore fatale:', error.message)
+    console.error('\n❌ Fatal error:', error.message)
     process.exit(1)
   } finally {
+    if (browser) await browser.disconnect()
     if (chrome) await chrome.kill()
   }
 }

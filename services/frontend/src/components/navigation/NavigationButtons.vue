@@ -77,7 +77,7 @@ withDefaults(defineProps<Props>(), {
   top: 0;
   min-width: $app-min-width;
   width: 100%;
-  min-height: v-bind(NAVBAR_HEIGHT_CSS);
+  height: v-bind(NAVBAR_HEIGHT_CSS);
   padding: 0 $spacing-4;
   background: $color-background;
   z-index: $z-index-sticky;
