@@ -10,12 +10,12 @@ const isLoginMode = computed(() => routeName.value === LOGIN_ROUTE_NAME)
 </script>
 
 <template>
-  <div class="auth-page">
+  <main class="auth-page">
     <div class="auth-container">
       <LoginForm v-if="isLoginMode" />
       <RegisterForm v-else />
     </div>
-  </div>
+  </main>
 </template>
 
 <style scoped lang="scss">

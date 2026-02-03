@@ -338,6 +338,20 @@ export default {
       },
     },
     buttons: {
+      actionButtons: {
+        BackHomeButton: {
+          goToHome: 'Go to home',
+        },
+        BackButton: {
+          goBack: 'Go back',
+        },
+        HomeButton: {
+          goToHome: 'Go to home',
+        },
+        CloseButton: {
+          close: 'Close',
+        },
+      },
       basicButtons: {
         SeeAllButton: {
           seeAll: 'See All',

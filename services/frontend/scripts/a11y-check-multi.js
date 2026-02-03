@@ -13,6 +13,7 @@ const config = {
     { name: 'Home', path: '/' },
     { name: 'Explore', path: '/explore' },
     { name: 'Login', path: '/login' },
+    { name: 'Register', path: '/register' },
     { name: 'Event Details', path: '/events/8178c902-c316-4e0b-82b2-cb0c70799875' },
 
     // {
