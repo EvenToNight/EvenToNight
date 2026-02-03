@@ -63,6 +63,8 @@ export default {
             label: 'Cantidad',
             error: 'Por favor ingrese una cantidad',
           },
+          addTicketButton: 'Agregar tipo de boleto',
+          deleteTicketButton: 'Eliminar tipo de billete',
         },
         tags: {
           label: 'Etiquetas',
@@ -343,6 +345,20 @@ export default {
       },
     },
     buttons: {
+      actionButtons: {
+        BackHomeButton: {
+          goToHome: 'ir a casa',
+        },
+        BackButton: {
+          goBack: 'Volver',
+        },
+        HomeButton: {
+          goToHome: 'ir a casa',
+        },
+        CloseButton: {
+          close: 'Cerca',
+        },
+      },
       basicButtons: {
         SeeAllButton: {
           seeAll: 'Ver todo',
@@ -452,6 +468,7 @@ export default {
         noLikes: 'Aún no me gusta',
         participants: 'Participantes',
         noParticipants: 'Aún no hay participantes',
+        likeButton: 'Me gusta el evento',
       },
       EventInfo: {
         freePrice: 'Gratis',
@@ -603,6 +620,10 @@ export default {
       },
       DrawerMenu: {
         closeDrawerAriaLabel: 'Cerrar menú',
+      },
+      NavigationButtons: {
+        backButton: 'Volver',
+        homeButton: 'ir a casa',
       },
       SearchBar: {
         baseHint: 'Buscar...',
