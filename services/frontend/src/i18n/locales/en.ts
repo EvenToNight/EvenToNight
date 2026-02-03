@@ -278,6 +278,7 @@ export default {
         quantityAriaLabel: 'Quantity input for',
         total: 'Total',
         ticket: 'Ticket',
+        tickets: 'Tickets',
         actions: {
           cancel: 'Back',
           continueToPayment: 'Continue to Payment',

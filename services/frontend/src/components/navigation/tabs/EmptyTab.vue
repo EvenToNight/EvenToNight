@@ -28,5 +28,6 @@ defineProps<Props>()
   margin: 0;
   font-size: $font-size-lg;
   line-height: $line-height-relaxed;
+  text-align: center;
 }
 </style>

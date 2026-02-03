@@ -311,7 +311,7 @@ const saveDraft = async () => {
         message: t('form.messages.success.saveEventDraft'),
       })
     }
-    goToUserProfile(partialEventData.creatorId)
+    goToUserProfile(partialEventData.creatorId, '#drafted')
   } catch (error) {
     logger.error('Failed to save draft:', error)
     $q.notify({

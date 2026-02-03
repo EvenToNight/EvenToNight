@@ -164,17 +164,17 @@ const tabs = computed<Tab[]>(() => {
         {
           key: 'PUBLISHED',
           options: {
-            eventStatus: 'PUBLISHED',
+            status: 'PUBLISHED',
             label: t('myParticipationsUpcomingLabel'),
-            order: 'asc',
+            sortOrder: 'asc',
           },
         },
         {
           key: 'COMPLETED',
           options: {
-            eventStatus: 'COMPLETED',
+            status: 'COMPLETED',
             label: t('myParticipationsPastLabel'),
-            order: 'desc',
+            sortOrder: 'desc',
           },
         },
       ],

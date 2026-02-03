@@ -29,8 +29,8 @@ export default {
     },
     CreateEventView: {
       title: {
-        new: 'Crea nuovo evento',
-        edit: 'Modifica evento',
+        new: 'Crea un nuovo evento',
+        edit: "Modifica l'evento",
       },
       form: {
         title: {
@@ -281,6 +281,7 @@ export default {
         quantityAriaLabel: 'Quantità immessa per',
         total: 'Totale',
         ticket: 'Biglietto',
+        tickets: 'Biglietti', //[ignorei18n]
         actions: {
           cancel: 'Indietro',
           continueToPayment: 'Procedi al pagamento',
