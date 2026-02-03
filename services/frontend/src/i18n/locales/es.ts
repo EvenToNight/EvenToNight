@@ -277,6 +277,7 @@ export default {
         title: 'Seleccionar entradas',
         available: 'disponible',
         soldOut: 'Agotado',
+        quantityAriaLabel: 'Entrada de cantidad para',
         total: 'Total',
         ticket: 'Boleto',
         actions: {
@@ -375,9 +376,14 @@ export default {
         },
       },
       SearchResultCard: {
+        eventPosterAlt: 'Cartel del evento',
+        userAvatarAlt: 'Avatar de usuario',
         event: 'Evento',
         organization: 'Organización',
         member: 'Usuario',
+      },
+      UserInfoCard: {
+        avatarAlt: 'Avatar de usuario',
       },
     },
     chat: {
@@ -456,6 +462,7 @@ export default {
         location: 'Ubicación',
         price: 'Precio',
         about: 'Acerca de este evento',
+        openInMaps: 'Abrir en Google Maps',
       },
       EventReviewsPreview: {
         title: 'Reseñas',
@@ -538,6 +545,7 @@ export default {
       CategorySelection: {
         title: 'Explorar por categoría',
         subtitle: 'Descubra eventos que coincidan con sus intereses',
+        categoryButtonAriaLabel: 'Ver categoría',
       },
       HomeViewContent: {
         title: 'Encuentra el evento para ti',
@@ -561,6 +569,7 @@ export default {
         cropError: 'No se pudo recortar la imagen. Por favor inténtalo de nuevo.',
         dialogCancelButton: 'Cerca',
         dialogConfirmButton: 'Ahorrar',
+        uploadAriaLabel: 'Subir imagen',
       },
       PosterCropUpload: {
         label: 'Cartel del evento',
@@ -582,6 +591,18 @@ export default {
         profile: 'Perfil',
         logout: 'Cerrar sesión',
         darkMode: 'Modo oscuro',
+        ariaLabels: {
+          closeSearch: 'Cerrar búsqueda',
+          search: 'Buscar',
+          chat: 'Charlar',
+          menu: 'Menú',
+          toggleTheme: 'Alternar modo oscuro',
+          createEvent: 'Crear evento',
+          notifications: 'Notificaciones',
+        },
+      },
+      DrawerMenu: {
+        closeDrawerAriaLabel: 'Cerrar menú',
       },
       SearchBar: {
         baseHint: 'Buscar...',
@@ -757,6 +778,11 @@ export default {
           noReviewsFound: 'No se encontraron reseñas que coincidan con su búsqueda',
         },
       },
+    },
+  },
+  stores: {
+    auth: {
+      failedRegistration: 'Registro fallido',
     },
   },
 }

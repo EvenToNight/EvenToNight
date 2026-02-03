@@ -277,6 +277,7 @@ export default {
         title: 'Sélectionnez les billets',
         available: 'disponible',
         soldOut: 'Épuisé',
+        quantityAriaLabel: 'Saisie de quantité pour',
         total: 'Total',
         ticket: 'Billet',
         actions: {
@@ -374,9 +375,14 @@ export default {
         },
       },
       SearchResultCard: {
+        eventPosterAlt: "Affiche d'événement",
+        userAvatarAlt: "Avatar de l'utilisateur",
         event: 'Événement',
         organization: 'Organisation',
         member: 'Utilisateur',
+      },
+      UserInfoCard: {
+        avatarAlt: "Avatar de l'utilisateur",
       },
     },
     chat: {
@@ -456,6 +462,7 @@ export default {
         location: 'Emplacement',
         price: 'Prix',
         about: 'À propos de cet événement',
+        openInMaps: 'Ouvrir dans Google Maps',
       },
       EventReviewsPreview: {
         title: 'Avis',
@@ -538,6 +545,7 @@ export default {
       CategorySelection: {
         title: 'Explorer par catégorie',
         subtitle: 'Découvrez des événements qui correspondent à vos intérêts',
+        categoryButtonAriaLabel: 'Voir la catégorie',
       },
       HomeViewContent: {
         title: "Trouvez l'événement pour vous",
@@ -561,6 +569,7 @@ export default {
         cropError: "Échec du recadrage de l'image. Veuillez réessayer.",
         dialogCancelButton: 'Fermer',
         dialogConfirmButton: 'Sauvegarder',
+        uploadAriaLabel: 'Télécharger une image',
       },
       PosterCropUpload: {
         label: "Affiche d'événement",
@@ -582,6 +591,18 @@ export default {
         profile: 'Profil',
         logout: 'Déconnexion',
         darkMode: 'Mode sombre',
+        ariaLabels: {
+          closeSearch: 'Fermer la recherche',
+          search: 'Recherche',
+          chat: 'Chat',
+          menu: 'Menu',
+          toggleTheme: 'Activer le mode sombre',
+          createEvent: 'Créer un événement',
+          notifications: 'Notifications',
+        },
+      },
+      DrawerMenu: {
+        closeDrawerAriaLabel: 'Fermer le menu',
       },
       SearchBar: {
         baseHint: 'Recherche...',
@@ -759,6 +780,11 @@ export default {
           noReviewsFound: 'Aucun avis trouvé correspondant à votre recherche',
         },
       },
+    },
+  },
+  stores: {
+    auth: {
+      failedRegistration: "L'inscription a échoué",
     },
   },
 }

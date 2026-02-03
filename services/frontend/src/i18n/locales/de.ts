@@ -281,6 +281,7 @@ export default {
         title: 'Wählen Sie Tickets aus',
         available: 'verfügbar',
         soldOut: 'Ausverkauft',
+        quantityAriaLabel: 'Mengeneingabe für',
         total: 'Gesamt',
         ticket: 'Ticket',
         actions: {
@@ -379,9 +380,14 @@ export default {
         },
       },
       SearchResultCard: {
+        eventPosterAlt: 'Veranstaltungsplakat',
+        userAvatarAlt: 'Benutzer-Avatar',
         event: 'Ereignis',
         organization: 'Organisation',
         member: 'Benutzer',
+      },
+      UserInfoCard: {
+        avatarAlt: 'Benutzer-Avatar',
       },
     },
     chat: {
@@ -461,6 +467,7 @@ export default {
         location: 'Standort',
         price: 'Preis',
         about: 'Über diese Veranstaltung',
+        openInMaps: 'In Google Maps öffnen',
       },
       EventReviewsPreview: {
         title: 'Rezensionen',
@@ -544,6 +551,7 @@ export default {
       CategorySelection: {
         title: 'Nach Kategorie durchsuchen',
         subtitle: 'Entdecken Sie Veranstaltungen, die Ihren Interessen entsprechen',
+        categoryButtonAriaLabel: 'Kategorie anzeigen',
       },
       HomeViewContent: {
         title: 'Finden Sie die Veranstaltung für Sie',
@@ -567,6 +575,7 @@ export default {
         cropError: 'Das Bild konnte nicht zugeschnitten werden. Bitte versuchen Sie es erneut.',
         dialogCancelButton: 'Schließen',
         dialogConfirmButton: 'Speichern',
+        uploadAriaLabel: 'Bild hochladen',
       },
       PosterCropUpload: {
         label: 'Veranstaltungsplakat',
@@ -588,6 +597,18 @@ export default {
         profile: 'Profil',
         logout: 'Abmelden',
         darkMode: 'Dunkler Modus',
+        ariaLabels: {
+          closeSearch: 'Suche schließen',
+          search: 'Suchen',
+          chat: 'Chatten',
+          menu: 'Speisekarte',
+          toggleTheme: 'Schalten Sie den Dunkelmodus um',
+          createEvent: 'Veranstaltung erstellen',
+          notifications: 'Benachrichtigungen',
+        },
+      },
+      DrawerMenu: {
+        closeDrawerAriaLabel: 'Menü schließen',
       },
       SearchBar: {
         baseHint: 'Suchen...',
@@ -768,6 +789,11 @@ export default {
           noReviewsFound: 'Es wurden keine Bewertungen gefunden, die Ihrer Suche entsprechen',
         },
       },
+    },
+  },
+  stores: {
+    auth: {
+      failedRegistration: 'Die Registrierung ist fehlgeschlagen',
     },
   },
 }

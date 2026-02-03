@@ -276,6 +276,7 @@ export default {
         title: 'Seleziona Biglietti',
         available: 'disponibile',
         soldOut: 'Esaurito',
+        quantityAriaLabel: 'Quantità immessa per',
         total: 'Totale',
         ticket: 'Biglietto',
         actions: {
@@ -374,9 +375,14 @@ export default {
         },
       },
       SearchResultCard: {
+        eventPosterAlt: "Locandina dell'evento",
+        userAvatarAlt: "Avatar dell'utente",
         event: 'Evento',
         organization: 'Organizzazione',
         member: 'Utente',
+      },
+      UserInfoCard: {
+        avatarAlt: "Avatar dell'utente",
       },
     },
     chat: {
@@ -455,6 +461,7 @@ export default {
         location: 'Posizione',
         price: 'Prezzo',
         about: 'Descrizione',
+        openInMaps: 'Apri in Google Maps',
       },
       EventReviewsPreview: {
         title: 'Recensioni',
@@ -537,6 +544,7 @@ export default {
       CategorySelection: {
         title: 'Esplora per categoria',
         subtitle: 'Scopri gli eventi che corrispondono ai tuoi interessi',
+        categoryButtonAriaLabel: 'Visualizza categoria',
       },
       HomeViewContent: {
         title: "Trova l'evento che fa per te",
@@ -560,6 +568,7 @@ export default {
         cropError: "Impossibile ritagliare l'immagine. Per favore riprova.",
         dialogCancelButton: 'Chiudi',
         dialogConfirmButton: 'Salva',
+        uploadAriaLabel: 'Carica immagine',
       },
       PosterCropUpload: {
         label: "Locandina dell'evento",
@@ -581,6 +590,18 @@ export default {
         profile: 'Profilo',
         logout: 'Esci',
         darkMode: 'Modalità scura',
+        ariaLabels: {
+          closeSearch: 'Chiudi la ricerca',
+          search: 'Ricerca',
+          chat: 'Chiacchierata',
+          menu: 'Menu',
+          toggleTheme: 'Attiva/disattiva la modalità oscura',
+          createEvent: 'Crea evento',
+          notifications: 'Notifiche',
+        },
+      },
+      DrawerMenu: {
+        closeDrawerAriaLabel: 'Chiudi menù',
       },
       SearchBar: {
         baseHint: 'Ricerca...',
@@ -757,6 +778,11 @@ export default {
           noReviewsFound: 'Nessuna recensione trovata corrispondente alla tua ricerca',
         },
       },
+    },
+  },
+  stores: {
+    auth: {
+      failedRegistration: 'La registrazione non è riuscita',
     },
   },
 }
