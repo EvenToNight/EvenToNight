@@ -761,4 +761,9 @@ export default {
       },
     },
   },
+  stores: {
+    auth: {
+      failedRegistration: 'Registration failed',
+    },
+  },
 }
