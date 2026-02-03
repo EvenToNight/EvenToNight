@@ -38,7 +38,7 @@ export async function createTicketType(ticketTypeData: TicketTypeToCreate): Prom
 export async function insertEventPrice(ticketType: SeedTicketType): Promise<void> {
     const _id = new ObjectId();
     const DOCKER_CONTAINER = 
-        process.env.EVENTS_MONGO_URI || "eventonight-mongo-events-1";
+        process.env.EVENT_MONGO_URI || "eventonight-mongo-events-1";
     const MONGO_DB = process.env.MONGO_DB || "eventonight";
 
     const eventPriceToCreate = {
