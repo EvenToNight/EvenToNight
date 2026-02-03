@@ -12,6 +12,8 @@ const config = {
   pages: [
     { name: 'Home', path: '/' },
     { name: 'Explore', path: '/explore' },
+    { name: 'Login', path: '/login' },
+    { name: 'Event Details', path: '/events/8178c902-c316-4e0b-82b2-cb0c70799875' },
 
     // {
     //   name: 'OrgProfileEventsTab',
@@ -121,9 +123,9 @@ function generateSummaryReport(results) {
   report += `━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n`
 
   if (failedPages === 0) {
-    report += `✅ SUCCESSO! Tutte le pagine superano lo score minimo di ${config.minScore}\n`
+    report += `✅ SUCCESSO! Tutte le pagine superano lo score minimo di ${config.minScore} (Score medio: ${avgScore.toFixed(1)}/100)\n`
   } else {
-    report += `❌ FALLITO! ${failedPages}/${totalPages} pagine sotto lo score minimo di ${config.minScore}\n`
+    report += `❌ FALLITO! ${failedPages}/${totalPages} pagine sotto lo score minimo di ${config.minScore} (Score medio: ${avgScore.toFixed(1)}/100)\n`
   }
 
   return { report, passed: failedPages === 0, avgScore }

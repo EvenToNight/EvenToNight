@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useNavigation } from '@/router/utils'
+import { useTranslation } from '@/composables/useTranslation'
 import AppBrand from '../common/AppBrand.vue'
 import BackButton from '@/components/buttons/actionButtons/BackButton.vue'
 import HomeButton from '@/components/buttons/actionButtons/HomeButton.vue'
 import { NAVBAR_HEIGHT_CSS } from './NavigationBar.vue'
 
 const { goBack, goToHome } = useNavigation()
+const { t } = useTranslation('components.navigation.NavigationButtons')
 
 interface Props {
   variant?: 'solid' | 'floating'
@@ -27,7 +29,14 @@ withDefaults(defineProps<Props>(), {
   <template v-else>
     <nav class="navigation-bar" :class="{ 'show-custom-content': $slots['left-custom-content'] }">
       <div class="nav-left">
-        <q-btn flat round icon="arrow_back" class="nav-btn" @click="goBack" />
+        <q-btn
+          flat
+          round
+          icon="arrow_back"
+          class="nav-btn"
+          :aria-label="t('backButton')"
+          @click="goBack"
+        />
         <transition name="fade-slide">
           <div v-if="$slots['left-custom-content']" class="custom-content">
             <slot name="left-custom-content" />
@@ -38,7 +47,14 @@ withDefaults(defineProps<Props>(), {
         <AppBrand v-if="!$slots['left-custom-content']" />
       </div>
       <div v-if="showHomeButton" class="nav-right">
-        <q-btn flat round icon="home" class="nav-btn" @click="() => goToHome()" />
+        <q-btn
+          flat
+          round
+          icon="home"
+          class="nav-btn"
+          :aria-label="t('homeButton')"
+          @click="() => goToHome()"
+        />
       </div>
     </nav>
   </template>
@@ -61,7 +77,7 @@ withDefaults(defineProps<Props>(), {
   top: 0;
   min-width: $app-min-width;
   width: 100%;
-  height: v-bind(NAVBAR_HEIGHT_CSS);
+  min-height: v-bind(NAVBAR_HEIGHT_CSS);
   padding: 0 $spacing-4;
   background: $color-background;
   z-index: $z-index-sticky;

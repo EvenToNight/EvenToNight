@@ -97,7 +97,12 @@ onMounted(async () => {
         @click="goToEditEvent(props.event.eventId)"
       />
       <div class="like-container">
-        <button class="like-button" :class="{ liked: isFavorite }" @click="toggleLike">
+        <button
+          class="like-button"
+          :class="{ liked: isFavorite }"
+          :aria-label="t('likeButton')"
+          @click="toggleLike"
+        >
           <q-icon :name="isFavorite ? 'favorite' : 'favorite_border'" size="24px" />
         </button>
         <span
@@ -146,6 +151,8 @@ onMounted(async () => {
 </template>
 
 <style scoped lang="scss">
+@use 'sass:color';
+
 .title-row {
   @include flex-between;
   align-items: flex-start;
@@ -188,8 +195,15 @@ onMounted(async () => {
 
 .event-subtitle {
   font-size: $font-size-xl;
-  color: $color-primary;
   font-weight: $font-weight-medium;
+
+  @include light-mode {
+    color: $color-primary;
+  }
+
+  @include dark-mode {
+    color: color.scale($color-primary, $lightness: 50%);
+  }
 }
 
 .like-container {

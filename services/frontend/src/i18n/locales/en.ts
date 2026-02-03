@@ -446,6 +446,7 @@ export default {
         noLikes: 'No likes yet',
         participants: 'Participants',
         noParticipants: 'No participants yet',
+        likeButton: 'Like event',
       },
       EventInfo: {
         freePrice: 'Free',
@@ -597,6 +598,10 @@ export default {
       },
       DrawerMenu: {
         closeDrawerAriaLabel: 'Close menu',
+      },
+      NavigationButtons: {
+        backButton: 'Go back',
+        homeButton: 'Go to home',
       },
       SearchBar: {
         baseHint: 'Search...',
