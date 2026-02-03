@@ -94,6 +94,8 @@ const openContact = () => {
 </template>
 
 <style lang="scss" scoped>
+@use 'sass:color';
+
 .footer {
   width: 100%;
   margin-top: auto;
@@ -148,7 +150,7 @@ const openContact = () => {
   user-select: none;
 
   @include light-mode {
-    color: $color-text-muted;
+    color: color.scale($color-black, $lightness: 40%);
 
     &:hover {
       color: $color-primary;
@@ -183,7 +185,7 @@ const openContact = () => {
   cursor: pointer;
 
   @include light-mode {
-    color: $color-text-secondary;
+    color: color.scale($color-text-secondary, $lightness: -20%);
 
     &:hover {
       color: $color-primary;
@@ -217,7 +219,7 @@ const openContact = () => {
   font-size: $font-size-sm;
 
   @include light-mode {
-    color: $color-text-muted;
+    color: color.scale($color-black, $lightness: 40%);
   }
 
   @include dark-mode {

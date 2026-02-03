@@ -91,7 +91,10 @@ onMounted(async () => {
 
 .category-subtitle {
   font-size: $font-size-base;
-  color: $color-text-secondary;
+
+  @include light-mode {
+    color: color.scale($color-text-secondary, $lightness: -28%);
+  }
 
   @include dark-mode {
     color: rgba($color-white, 0.7);

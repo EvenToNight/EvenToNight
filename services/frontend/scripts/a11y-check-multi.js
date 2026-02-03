@@ -12,6 +12,7 @@ const config = {
   pages: [
     { name: 'Home', path: '/' },
     { name: 'Explore', path: '/explore' },
+
     // {
     //   name: 'OrgProfileEventsTab',
     //   path: '/users/b1e2f3ab-55ef-4cff-b8b2-c8dfe8c12493#publishedEvents',
