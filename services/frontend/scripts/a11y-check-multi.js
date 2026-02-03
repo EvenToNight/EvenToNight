@@ -19,15 +19,10 @@ const config = {
     { name: 'Register', path: '/register' },
     { name: 'Create Event', path: '/create-event' },
     { name: 'Event Details', path: '/events/547a3b27-344a-4318-b17e-edf7cd14aee3' },
-
-    // {
-    //   name: 'OrgProfileEventsTab',
-    //   path: '/users/b1e2f3ab-55ef-4cff-b8b2-c8dfe8c12493#publishedEvents',
-    // },
-    // { name: 'Explore', path: '/explore' },
-    // { name: 'Login', path: '/login' },
-    // { name: 'Register', path: '/register' },
-    // { name: 'Create Event', path: '/create-event' },
+    {
+      name: 'Organization Profile [Published Events Tab]',
+      path: '/users/7dee946f-3ab9-41b5-92e9-ea6264d9dd35#publishedEvents',
+    },
   ],
   minScore: parseInt(process.env.MIN_A11Y_SCORE || '80'),
   outputDir: join(__dirname, '..', 'a11y-reports'),

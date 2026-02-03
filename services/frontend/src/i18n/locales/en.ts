@@ -372,6 +372,8 @@ export default {
         draftBadge: 'Draft',
         cancelledBadge: 'Cancelled',
         draftMissingTitle: 'Untitled Event',
+        viewEventAriaLabel: 'View event:',
+        editDraftAriaLabel: 'Edit draft:',
       },
       ReviewCard: {
         deleteDialog: {
@@ -539,6 +541,7 @@ export default {
         ExploreEventsTab: {
           emptySearch: 'No events found',
           emptySearchText: 'Search events by name',
+          resultsHeading: 'Search Results',
         },
       },
       ExploreViewContent: {
@@ -658,6 +661,10 @@ export default {
         createEvent: 'Create Event',
         following: 'Following',
         follow: 'Follow',
+        editProfileAriaLabel: 'Edit profile',
+        openChatAriaLabel: 'Open messages',
+        openSettingsAriaLabel: 'Open settings',
+        sendMessageAriaLabel: 'Send message',
       },
       ProfileBody: {
         myEventsExternal: 'Events',
@@ -681,12 +688,17 @@ export default {
         uploadAvatarError: 'Failed to upload avatar image, please try again',
         profileUpdate: 'Profile updated successfully!',
         userAvatarAlt: 'User Avatar',
+        changeAvatarAriaLabel: 'Change profile picture',
+        viewAvatarAriaLabel: 'View profile picture',
+        scrollToTopAriaLabel: 'Scroll to top of profile',
       },
       UserInfo: {
         followers: 'Followers',
         noFollowers: 'No followers yet',
         following: 'Following',
         noFollowing: 'Not following anyone yet',
+        viewFollowersAriaLabel: 'View followers',
+        viewFollowingAriaLabel: 'View following',
       },
     },
     reviews: {

@@ -132,7 +132,11 @@ const loadFollowingFn = (pagination?: PaginatedRequest) =>
 
 .stat-label {
   font-size: $font-size-sm;
-  opacity: 0.6;
+  color: $color-gray-600;
+
+  @include dark-mode {
+    color: $color-gray-400;
+  }
 }
 
 .stat-divider {
@@ -149,15 +153,14 @@ const loadFollowingFn = (pagination?: PaginatedRequest) =>
   font-size: $font-size-base;
   line-height: 1.6;
   margin: 0;
-  opacity: 0.8;
-  color: $color-text-primary;
+  color: $color-gray-700;
 
   @media (max-width: $breakpoint-mobile) {
     text-align: center;
   }
 
   @include dark-mode {
-    color: $color-text-dark;
+    color: $color-gray-300;
   }
 }
 
@@ -169,6 +172,10 @@ const loadFollowingFn = (pagination?: PaginatedRequest) =>
   color: $color-primary;
   text-decoration: none;
   transition: opacity $transition-base;
+
+  @include dark-mode {
+    color: $color-primary-light;
+  }
 
   @media (max-width: $breakpoint-mobile) {
     justify-content: center;

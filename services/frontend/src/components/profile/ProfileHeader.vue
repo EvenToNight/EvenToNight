@@ -103,6 +103,7 @@ const handleAvatarChange = async (file: File | null) => {
         :class="{ clickable: isOwnProfile }"
         role="button"
         tabindex="0"
+        :aria-label="isOwnProfile ? t('changeAvatarAriaLabel') : t('viewAvatarAriaLabel')"
         @click="handleAvatarClick"
         @keydown.enter="handleAvatarClick"
       >

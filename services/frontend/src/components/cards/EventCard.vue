@@ -111,9 +111,9 @@ function onClick() {
       </div>
     </div>
     <div class="event-info q-pa-md">
-      <h2 class="text-h6 text-weight-bold event-title q-ma-none">
+      <h3 class="text-h6 text-weight-bold event-title q-ma-none">
         {{ event.title?.trim() ? event.title : t('draftMissingTitle') }}
-      </h2>
+      </h3>
       <div v-if="!isDraft" class="column q-mt-sm event-details">
         <span class="row items-center text-body2 event-location">
           {{ event.location.name || event.location.city }}
@@ -251,6 +251,10 @@ function onClick() {
 }
 
 .event-location {
-  opacity: 0.7;
+  color: $color-gray-600;
+
+  @include dark-mode {
+    color: $color-gray-400;
+  }
 }
 </style>

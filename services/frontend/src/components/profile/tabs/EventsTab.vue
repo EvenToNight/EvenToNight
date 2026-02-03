@@ -81,9 +81,9 @@ defineExpose({
         :key="section.key"
         class="events-section"
       >
-        <h3 v-if="section.options?.label" class="section-label">
+        <h2 v-if="section.options?.label" class="section-label">
           {{ section.options.label }}
-        </h3>
+        </h2>
         <div class="events-grid">
           <EventCard
             v-for="(event, index) in sectionsData[section.key].items"
