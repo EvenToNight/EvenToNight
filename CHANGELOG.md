@@ -1,3 +1,9 @@
+## [1.27.1](https://github.com/EvenToNight/EvenToNight/compare/v1.27.0...v1.27.1) (2026-02-03)
+
+### Bug Fixes
+
+* **events:** fix bug in get popular ([09e55fa](https://github.com/EvenToNight/EvenToNight/commit/09e55fa9e66405a505e347ab0e8390d7bafb13ee))
+
 ## [1.27.0](https://github.com/EvenToNight/EvenToNight/compare/v1.26.0...v1.27.0) (2026-02-02)
 
 ### Features
