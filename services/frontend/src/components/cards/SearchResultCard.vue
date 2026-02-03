@@ -95,7 +95,7 @@ const formatDate = (date: Date): string => {
 
   @include dark-mode {
     color: $color-text-white;
-
+    background-color: $color-background-dark;
     &:hover {
       background-color: $color-gray-hover;
     }

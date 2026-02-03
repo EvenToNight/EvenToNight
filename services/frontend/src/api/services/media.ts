@@ -4,6 +4,9 @@ const parseUrl = (url: string): string => {
   if (url.startsWith('http://') && import.meta.env.VITE_USE_HTTPS === 'true') {
     return url.replace('http://', 'https://')
   }
+  if (url.startsWith('https://') && import.meta.env.VITE_USE_HTTPS !== 'true') {
+    return url.replace('https://', 'http://')
+  }
   return url
 }
 

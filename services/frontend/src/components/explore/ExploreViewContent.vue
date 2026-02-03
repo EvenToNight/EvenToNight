@@ -64,7 +64,7 @@ watch(
 
 watch(activeTab, (newTab) => {
   if (hash.value !== `#${newTab}`) {
-    replaceRoute({ hash: `#${newTab}` })
+    replaceRoute({ hash: `#${newTab}`, query: route.query })
   }
 })
 

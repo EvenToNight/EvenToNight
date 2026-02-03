@@ -142,17 +142,17 @@ const scrollToTop = (behavior: ScrollBehavior = 'auto') => {
   background: #f5f5f5;
 
   @include dark-mode {
-    background: #121212;
+    background: $grey-10;
   }
 }
 
 .profile-container {
   margin: 0 auto;
-  padding: 0 $spacing-6 $spacing-8;
+  padding: 0 0 $spacing-8;
   position: relative;
   margin-top: $spacing-6;
   @media (max-width: $breakpoint-mobile) {
-    padding: 0 $spacing-4 $spacing-6;
+    padding: 0 0 $spacing-6;
   }
 }
 </style>

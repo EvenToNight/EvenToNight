@@ -160,7 +160,10 @@ const handleBlur = () => {
     </q-input>
 
     <Transition name="fade">
-      <div v-if="showSuggestions && searchResults.length > 0" class="suggestions-dropdown">
+      <div
+        v-if="showSuggestions && !isSearching && searchResults.length > 0"
+        class="suggestions-dropdown"
+      >
         <SearchResultCard
           v-for="(result, index) in searchResults"
           :key="`${result.type}-${result.id}`"

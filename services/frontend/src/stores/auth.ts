@@ -118,7 +118,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : t('auth.loginForm.failedLogin'),
+        error: error instanceof Error ? error.message : t('failedLogin'),
       }
     } finally {
       isLoading.value = false

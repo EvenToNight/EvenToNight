@@ -73,7 +73,7 @@ const getCurrentTabComponent = computed((): Tab => {
   width: 100%;
 
   @include dark-mode {
-    background: rgba(18, 18, 18, 0.95);
+    background: $grey-10;
     border-bottom-color: rgba(255, 255, 255, 0.1);
   }
 }
@@ -104,7 +104,7 @@ const getCurrentTabComponent = computed((): Tab => {
 
 .explore-tab {
   color: $color-heading;
-  opacity: 0.6;
+  opacity: 0.9;
   cursor: pointer;
   padding-bottom: $spacing-2;
   border-bottom: 3px solid transparent;
@@ -117,7 +117,8 @@ const getCurrentTabComponent = computed((): Tab => {
   flex-shrink: 0;
 
   &:hover {
-    opacity: 0.8;
+    opacity: 0.9;
+    transform: scale(1.05);
   }
 
   &.active {

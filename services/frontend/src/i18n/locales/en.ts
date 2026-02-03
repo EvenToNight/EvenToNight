@@ -799,6 +799,7 @@ export default {
   stores: {
     auth: {
       failedRegistration: 'Registration failed',
+      failedLogin: 'Wrong username or password',
     },
   },
 }
