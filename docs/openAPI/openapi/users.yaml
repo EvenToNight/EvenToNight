@@ -34,12 +34,55 @@ paths:
                 $ref: '#/components/schemas/LoginResponseDTO'
         '400':
           description: Bad request
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidJson:
+                  value: Invalid JSON
+                invalidRequest:
+                  value: Invalid login request
         '401':
           description: Invalid credentials
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidCredentials:
+                  value: 'Login failed: invalid credentials'
         '403':
           description: Client not allowed
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                clientNotAllowed:
+                  value: 'Login failed: client not allowed'
+        '404':
+          description: User not found in database
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                userNotFound:
+                  value: User not found
         '500':
-          description: Unexpected keycloak status
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                loginServiceError:
+                  value: Login failed
+                tokenVerificationError:
+                  value: Failed to verify token
+                tokenExtractionError:
+                  value: Failed to extract user identifier
 
   /register:
     post:
@@ -65,13 +108,31 @@ paths:
               schema:
                 $ref: '#/components/schemas/LoginResponseDTO'
         '400':
-          description: Validation error / Bad request
-        '401':
-          description: Invalid credentials 
-        '403':
-          description: Client not allowed 
+          description: Bad request
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidJson:
+                  value: Invalid JSON
+                invalidRequest:
+                  value: Invalid registration request
+                passwordNotCompliant:
+                  value: Password does not meet requirements
+                userCreationRejected:
+                  value: User creation rejected
         '500':
-          description: Unexpected keycloak status
+          description: Internal server error
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                registrationServiceError:
+                  value: Failed to create user
+                loginAfterCreationFailed:
+                  value: User created but login failed
 
   /refresh:
     post:
@@ -96,8 +157,22 @@ paths:
                 $ref: '#/components/schemas/TokensDTO'
         '400':
           description: Bad request
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidJson:
+                  value: Invalid JSON
         '401':
           description: Invalid refresh token
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                tokenRefreshError:
+                  value: Token refresh failed
 
   /logout:
     post:
@@ -116,8 +191,24 @@ paths:
       responses:
         '204':
           description: Logout successful
+        '400':
+          description: Bad request
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                invalidJson:
+                  value: Invalid JSON
         '500':
           description: Logout failed
+          content:
+              text/plain:
+                schema:
+                  type: string
+                examples:
+                  logoutServiceError:
+                    value: Logout failed
 
   /public-keys:
     get:
@@ -138,6 +229,13 @@ paths:
                 $ref: '#/components/schemas/PublicKeysResponse'
         '500':
           description: Failed to refresh public keys
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                refreshError:
+                  value: Failed to refresh public keys
 
   /{userId}:
     get:
@@ -147,8 +245,8 @@ paths:
         Returns the user corresponding to the ID.
 
         - If the request contains a valid token with the user_id claim matching the userId in the path, 
-          the response includes full account and profile.  
-        - Otherwise, only username, role and profile are returned.
+          the response includes id, role, full account and profile.  
+        - Otherwise, only id, role, username and profile are returned.
       servers:
         - url: http://localhost:9000
           description: Users service (local development)
@@ -162,6 +260,7 @@ paths:
           required: true
           schema:
             type: string
+            format: uuid
       responses:
         '200':
           description: User found
@@ -169,13 +268,18 @@ paths:
             application/json:
               schema:
                 oneOf:
-                  - $ref: '#/components/schemas/UserDTO'
+                  # ---------- OWNER ----------
                   - type: object
                     required:
+                      - id
                       - role
                       - account
                       - profile
                     properties:
+                      id:
+                        type: string
+                        format: uuid
+                        example: "123e4567-e89b-12d3-a456-426614174000"
                       role:
                         type: string
                         example: member
@@ -183,8 +287,43 @@ paths:
                         $ref: '#/components/schemas/AccountDTO'
                       profile:
                         $ref: '#/components/schemas/ProfileDTO'
+                  # ---------- NON OWNER ----------
+                  - $ref: '#/components/schemas/UserDTO'
+              examples:
+                ownerExample:
+                  summary: Owner full view
+                  value:
+                    id: "123e4567-e89b-12d3-a456-426614174000"
+                    role: member
+                    account:
+                      username: johndoe
+                      email: johndoe@example.com
+                      darkMode: true
+                      language: en
+                    profile:
+                      name: John Doe
+                      avatar: https://example.com/avatar.png
+                      bio: Software developer and event enthusiast.
+                nonOwnerExample:
+                  summary: Public view
+                  value:
+                    id: "123e4567-e89b-12d3-a456-426614174000"
+                    role: member
+                    account:
+                      username: johndoe
+                    profile:
+                      name: John Doe
+                      avatar: https://example.com/avatar.png
+                      bio: Software developer and event enthusiast.
         '404':
           description: User not found
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                databaseError:
+                  value: User not found
 
     delete:
       tags: [Users]
@@ -209,10 +348,10 @@ paths:
             type: string
             format: uuid
       responses:
-        "204":
+        '204':
           description: User successfully deleted
-        "400":
-          description: Bad request or authorization error
+        '400':
+          description: Bad request, validation or authorization error
           content:
             text/plain:
               schema:
@@ -253,9 +392,9 @@ paths:
             schema:
               $ref: '#/components/schemas/UpdateUserRequestDTO'
       responses:
-        "204":
+        '204':
           description: User successfully updated
-        "400":
+        '400':
           description: Bad request or validation error
           content:
             text/plain:
@@ -265,12 +404,15 @@ paths:
                 invalidPayload:
                   summary: Invalid update payload
                   value: "Invalid update request"
-        "401":
-          description: Unauthorized
-        "403":
-          description: Forbidden (user not authorized to update this resource)
-        "404":
+        '404':
           description: User not found
+          content:
+            text/plain:
+              schema:
+                type: string
+              examples:
+                databaseError:
+                  value: User not found
 
   /{userId}/avatar:
     post:
@@ -346,6 +488,7 @@ paths:
                 notFound:
                   summary: User does not exist
                   value: "User not found"
+    
     delete:
       tags: [Users]
       summary: Delete user avatar by ID
@@ -606,7 +749,7 @@ components:
           items:
             type: string
           nullable: true
-          example: ["Dinner", "LiveMusic", "Club"]
+          example: ["Dinner", "Live Music", "Club"]
 
     ProfileDTO:
       type: object
@@ -628,8 +771,12 @@ components:
           type: array
           items:
             type: string
+            format: uri
+            pattern: "^https?://.*"
           nullable: true
-          example: ["https://twitter.com/johndoe", "https://linkedin.com/in/johndoe"]
+          example:
+            - https://twitter.com/johndoe
+            - https://linkedin.com/in/johndoe
 
     LoginResponseDTO:
       type: object
@@ -645,7 +792,8 @@ components:
       properties:
         id:
           type: string
-          example: user123
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         role:
           type: string
           example: member
@@ -687,7 +835,8 @@ components:
       properties:
         id:
           type: string
-          example: user123
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         role:
           type: string
           example: member
@@ -722,9 +871,7 @@ components:
 
     UpdateUserRequestDTO:
       type: object
-      description: >
-        Partial update request for a user.
-        All fields are optional; only provided fields are updated.
+      description: Update request for a user.
       properties:
         accountDTO:
           $ref: '#/components/schemas/UpdateAccountDTO'
@@ -733,7 +880,7 @@ components:
 
     UpdateAccountDTO:
       type: object
-      description: Partial update of user account settings.
+      description: Update request of user account information.
       properties:
         darkMode:
           type: boolean
@@ -755,11 +902,11 @@ components:
           items:
             type: string
           nullable: true
-          example: ["Dinner", "LiveMusic", "Club"]
+          example: ["Dinner", "Live Music", "Club"]
 
     UpdateProfileDTO:
       type: object
-      description: Partial update of user profile information.
+      description: Update request of user profile information.
       properties:
         name:
           type: string
@@ -772,6 +919,8 @@ components:
           type: array
           items:
             type: string
+            format: uri
+            pattern: "^https?://.*"
           nullable: true
           example:
             - https://twitter.com/johndoe
@@ -785,10 +934,11 @@ components:
       properties:
         userId:
           type: string
-          example: user123
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         avatarUrl:
           type: string
-          example: "https://media.eventonight.site/users/user123/avatar.jpg"
+          example: "https://media.eventonight.site/users/123e4567-e89b-12d3-a456-426614174000/avatar.jpg"
 
     UpdatePasswordRequestDTO:
       type: object
@@ -877,7 +1027,8 @@ components:
         id:
           type: string
           description: The user's unique ID
-          example: user123
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
         role:
           type: string
           description: Role of the user, either "member" or "organization"

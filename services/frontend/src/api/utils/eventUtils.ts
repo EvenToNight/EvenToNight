@@ -22,7 +22,6 @@ export const loadEvents = async (
   )
   const { userId, ...restParams } = params
   const rawResponse = await api.events.searchEvents({
-    sortBy: 'date',
     ...restParams,
   })
   const response = await Promise.all(
