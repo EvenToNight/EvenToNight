@@ -159,38 +159,38 @@ Nel progettare i flussi di navigazione si è sempre tenuto conto della **regola 
 
 L’utente che apre la piattaforma può iniziare ad esplorarla, in particolare può scoprire gli eventi proposti o cercarli direttamente tramite la barra di ricerca. Nel caso in cui voglia visualizzare maggiori risultati può andare in una pagina dedicata all’esplorazione dei contenuti della piattaforma dove è possibile filtrare gli eventi e cercare in maniera più comoda utenti e organizzazioni.
 
-![EvenToNight-Storyboard-Esplora.png](EvenToNight-Storyboard-Esplora.png)
+![EvenToNight-Storyboard-Esplora.png](/EvenToNight-Storyboard-Esplora.png)
 
 
 ### Login e Registrazione
 
 Dopo aver aperto l’applicazione, l’utente per accedere alle funzionalità aggiuntive che la piattaforma offre può accedere o registrarsi.
 
-![EvenToNight-Storyboard-Login.png](EvenToNight-Storyboard-Login.png)
+![EvenToNight-Storyboard-Login.png](/EvenToNight-Storyboard-Login.png)
 
 ### Creare un evento
 
 Un'organizzazione che si è registrata sulla piattaforma ha la possibilità di creare degli eventi, la creazione avviene attraverso un form in cui inserire tutti i vari dati. Inoltre è possibile anche temporaneamente creare una bozza dell’evento e continuare a modificarla successivamente.
 
-![EvenToNight-Storyboard-Crea-Evento.png](EvenToNight-Storyboard-Crea-Evento.png)
+![EvenToNight-Storyboard-Crea-Evento.png](/EvenToNight-Storyboard-Crea-Evento.png)
 
 ### Partecipare ad un evento
 
 Un utente registrato sulla piattaforma ha la possibilità di acquistare i biglietti per i diversi eventi e visualizzarli in seguito, i biglietti conterranno un QR code che può essere usato dalle organizzazioni per verificarli.
 
-![EvenToNight-Storyboard-Buy-Ticket.png](EvenToNight-Storyboard-Buy-Ticket.png)
+![EvenToNight-Storyboard-Buy-Ticket.png](/EvenToNight-Storyboard-Buy-Ticket.png)
 
 ### Recensire un evento
 
 In seguito alla partecipazione ad un evento, un utente può decidere di lasciare una sua recensione. Una volta lasciata non ne può lasciare altre per lo stesso evento ma può modificarla o eliminarla.
 
-![EvenToNight-Storyboard-Reviews.png](EvenToNight-Storyboard-Reviews.png)
+![EvenToNight-Storyboard-Reviews.png](/EvenToNight-Storyboard-Reviews.png)
 
 ### Contattare un’organizzazione
 
 Un utente registrato può avere la necessità di contattare un’organizzazione per chiedere maggiori informazioni o per eventuali problemi.
 
-![EvenToNight-Storyboard-Chat.png](EvenToNight-Storyboard-Chat.png)
+![EvenToNight-Storyboard-Chat.png](/EvenToNight-Storyboard-Chat.png)
 
 ## 3.3 - Dominio
 
@@ -260,11 +260,11 @@ Le API sono state progettate seguendo i principi del REST API Design, con partic
 
 Alcuni esempi di API implementate seguendo i principi citati:
 
-![image.png](image.png)
+![image.png](/image.png)
 
-![image.png](image%201.png)
+![image.png](/image%201.png)
 
-![image.png](image%202.png)
+![image.png](/image%202.png)
 
 Ogni microservizio espone una documentazione **Swagger/OpenAPI**, che descrive endpoint, input e possibili risposte HTTP.
 
@@ -280,32 +280,32 @@ Ogni servizio infatti possiede la propria logica di business, entità comuni a p
 
 Ogni servizio è containerizzato tramite Docker, comunica con gli altri servizi principalmente tramite messaggi asincroni ed espone un insieme coerente di API REST.
 
-![image.png](image%203.png)
+![image.png](/image%203.png)
 
 Le risorse individuate nella fase precedente sono state organizzate e distribuite nei vari servizi, di seguito una breve descizione.
 
-![image.png](image%204.png)
+![image.png](/image%204.png)
 
 Il servizio *users* è responsabile della gestione delle risorse utente e di una parte delle relative sotto-risorse. 
 Per ogni utente, il sistema gestisce l'auenticazione e le informazioni riguardanti l’account (e.g username, email, interessi) e il profilo (e.g. nome, bio).
 
-![image.png](image%205.png)
+![image.png](/image%205.png)
 
 Il servizio *events* è responsabile della gestione delle risorse eventi e delle loro informazioni. Gestisce sia gli aspetti di creazione degli eventi sia il recupero degli eventi filtrati in base a caratteristiche specificate (e.g.popolari, interessi).
 
-![image.png](image%206.png)
+![image.png](/image%206.png)
 
 Il servizio *interactions* è responsabile di alcune sotto-risorse degli utenti e degli eventi. In particolare, gestisce tutte le informazioni riguardanti le interazioni che un utente può avere con un evento o con un altro utente. Tra le interazioni con gli eventi sono stati implementati i likes, le reviews e le partecipazioni, mentre con gli altri utenti è stato implementato un sistema di following.
 
-![image.png](image%207.png)
+![image.png](/image%207.png)
 
 Il servizio *chat* è responsabile di alcune sotto-risorse degli utenti. In particolare, gestisce tutte le informazioni riguardanti le conversazioni che l’utente può avere con altri utenti.
 
-![image.png](image%208.png)
+![image.png](/image%208.png)
 
 Il servizio payments è responsabile di alcune risorse degli utenti e degli eventi, in particolare della gestione dei biglietti che gli utenti possono acquistare per partecipare agli eventi.
 
-![image.png](image%209.png)
+![image.png](/image%209.png)
 
 Il servizio *notifications* è responsabile di alcune sotto-risorse degli utenti, in particolare gestisce tutte le informazioni riguardanti le notifiche che un utente riceve. Le notifiche possono essere di tipi diversi, quali like ricevuto, review ricevuta, nuovo follower o nuovo evento creato da un’organizzazione seguita. Si occupa anche di notificare l’arrivo di un nuovo messaggio, gestito poi dal servizio chat.
 
