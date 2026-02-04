@@ -556,6 +556,11 @@ export default {
         subtitle: 'Find events, organizers, or connect with your friends',
       },
     },
+    forms: {
+      FormSelectorField: {
+        noResultsText: 'No options found',
+      },
+    },
     home: {
       CategorySelection: {
         title: 'Explore by Category',
@@ -655,6 +660,9 @@ export default {
         ReviewsTab: {
           loading: 'Loading reviews...',
           noReviews: 'No reviews for this organization yet',
+        },
+        TicketsTab: {
+          noTickets: 'You have not purchased any tickets yet',
         },
       },
       ProfileActions: {

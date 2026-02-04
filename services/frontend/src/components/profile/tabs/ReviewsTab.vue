@@ -55,7 +55,7 @@ onMounted(() => {
   <template v-if="loading">
     <div class="loading-state">
       <q-spinner color="primary" size="40px" />
-      <span class="loading-text">{{ t('loadingReviews') }}</span>
+      <span class="loading-text">{{ t('loading') }}</span>
     </div>
   </template>
 

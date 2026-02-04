@@ -66,7 +66,7 @@ watch(
 
       <template #loading>
         <div class="loading-state">
-          <q-spinner-dots color="primary" size="50px" />
+          <q-spinner color="primary" size="50px" />
         </div>
       </template>
     </q-infinite-scroll>
@@ -102,6 +102,6 @@ watch(
 
 .loading-state {
   @include flex-center;
-  padding: $spacing-8;
+  flex: 1;
 }
 </style>
