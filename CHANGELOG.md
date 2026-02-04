@@ -1,3 +1,24 @@
+## [2.0.0](https://github.com/EvenToNight/EvenToNight/compare/v1.27.1...v2.0.0) (2026-02-04)
+
+### ⚠ BREAKING CHANGES
+
+* **release:** trigger major release
+
+### Features
+
+* **release:** trigger major release ([1337b74](https://github.com/EvenToNight/EvenToNight/commit/1337b74eb7f182f4c0e6f5f30b629b4456710712))
+* **reviews:** search in user partecipation in submit review dialog ([949a2ea](https://github.com/EvenToNight/EvenToNight/commit/949a2ea6b554ea03503ea63990339eb967b8e5bb))
+
+### Bug Fixes
+
+* **events:** search only orgnization for selecting collaborators ([29cb406](https://github.com/EvenToNight/EvenToNight/commit/29cb4060b9553847caf5eccc4ba7e2eb0123d0fd))
+* **explore:** adjust people tab layout ([70441cc](https://github.com/EvenToNight/EvenToNight/commit/70441cc7d7db59d8c5d50a2e30a330ce8dc9e1ed))
+* **filters:** fix filter update ([8d72003](https://github.com/EvenToNight/EvenToNight/commit/8d72003c16695743c6ea8e432489778ac2041199))
+* **i18n:** update transations key ([ae99e64](https://github.com/EvenToNight/EvenToNight/commit/ae99e641d950640602ffa9d4cc06dc89ce8a1f96))
+* **likes:** had sync like function to sync like information for the same event present in multiple components ([2a90bb4](https://github.com/EvenToNight/EvenToNight/commit/2a90bb4fb624717c8b370d38edfb04db193f1402))
+* **profile:** fix profile avatar editing ([3113610](https://github.com/EvenToNight/EvenToNight/commit/3113610c14b1ebd96056241c6bcaf315354de583))
+* **search:** make hint reactive with language swicth ([02ee0fa](https://github.com/EvenToNight/EvenToNight/commit/02ee0fa8112abf2264a2ae1db02033522f93b288))
+
 ## [1.27.1](https://github.com/EvenToNight/EvenToNight/compare/v1.27.0...v1.27.1) (2026-02-03)
 
 ### Bug Fixes
