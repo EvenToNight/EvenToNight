@@ -286,6 +286,7 @@ export default {
         quantityAriaLabel: 'Mengeneingabe für',
         total: 'Gesamt',
         ticket: 'Ticket',
+        tickets: 'Tickets',
         actions: {
           cancel: 'Zurück',
           continueToPayment: 'Weiter zur Zahlung',
@@ -380,6 +381,8 @@ export default {
         draftBadge: 'Entwurf',
         cancelledBadge: 'Abgesagt',
         draftMissingTitle: 'Veranstaltung ohne Titel',
+        viewEventAriaLabel: 'Veranstaltung ansehen:',
+        editDraftAriaLabel: 'Entwurf bearbeiten:',
       },
       ReviewCard: {
         deleteDialog: {
@@ -549,6 +552,7 @@ export default {
         ExploreEventsTab: {
           emptySearch: 'Keine Veranstaltungen gefunden',
           emptySearchText: 'Suchen Sie nach Ereignissen nach Namen',
+          resultsHeading: 'Suchergebnisse',
         },
       },
       ExploreViewContent: {
@@ -562,6 +566,11 @@ export default {
         title: 'Erkunden',
         subtitle:
           'Finden Sie Veranstaltungen, Organisatoren oder vernetzen Sie sich mit Ihren Freunden',
+      },
+    },
+    forms: {
+      FormSelectorField: {
+        noResultsText: 'Keine Optionen gefunden',
       },
     },
     home: {
@@ -664,11 +673,18 @@ export default {
           loading: 'Bewertungen werden geladen...',
           noReviews: 'Für diese Organisation liegen noch keine Bewertungen vor',
         },
+        TicketsTab: {
+          noTickets: 'Sie haben noch keine Tickets gekauft',
+        },
       },
       ProfileActions: {
         createEvent: 'Ereignis erstellen',
         following: 'Nachfolgend',
         follow: 'Folgen',
+        editProfileAriaLabel: 'Profil bearbeiten',
+        openChatAriaLabel: 'Nachrichten öffnen',
+        openSettingsAriaLabel: 'Einstellungen öffnen',
+        sendMessageAriaLabel: 'Nachricht senden',
       },
       ProfileBody: {
         myEventsExternal: 'Veranstaltungen',
@@ -693,12 +709,17 @@ export default {
           'Das Hochladen des Avatarbildes ist fehlgeschlagen. Bitte versuchen Sie es erneut',
         profileUpdate: 'Profil erfolgreich aktualisiert!',
         userAvatarAlt: 'Benutzer-Avatar',
+        changeAvatarAriaLabel: 'Profilbild ändern',
+        viewAvatarAriaLabel: 'Profilbild ansehen',
+        scrollToTopAriaLabel: 'Scrollen Sie zum Anfang des Profils',
       },
       UserInfo: {
         followers: 'Anhänger',
         noFollowers: 'Noch keine Follower',
         following: 'Nachfolgend',
         noFollowing: 'Ich folge noch niemandem',
+        viewFollowersAriaLabel: 'Follower anzeigen',
+        viewFollowingAriaLabel: 'Nachfolgend ansehen',
       },
     },
     reviews: {
@@ -802,7 +823,7 @@ export default {
           languageTitle: 'Sprachpräferenz',
           languageSubtitle: 'Wählen Sie Ihre bevorzugte Sprache für die Bewerbung',
         },
-        ReviewsTab: {
+        MyReviewsTab: {
           loadReviewsError:
             'Ihre Bewertungen konnten nicht geladen werden. Bitte versuchen Sie es erneut',
           searchHint: 'Durchsuchen Sie Ihre Bewertungen...',
@@ -815,6 +836,7 @@ export default {
   stores: {
     auth: {
       failedRegistration: 'Die Registrierung ist fehlgeschlagen',
+      failedLogin: 'Falscher Benutzername oder Passwort',
     },
   },
 }

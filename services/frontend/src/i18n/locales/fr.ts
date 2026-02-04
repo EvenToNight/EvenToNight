@@ -282,6 +282,7 @@ export default {
         quantityAriaLabel: 'Saisie de quantité pour',
         total: 'Total',
         ticket: 'Billet',
+        tickets: 'Billets',
         actions: {
           cancel: 'Dos',
           continueToPayment: 'Continuer vers le paiement',
@@ -375,6 +376,8 @@ export default {
         draftBadge: 'Brouillon',
         cancelledBadge: 'Annulé',
         draftMissingTitle: 'Événement sans titre',
+        viewEventAriaLabel: "Afficher l'événement :",
+        editDraftAriaLabel: 'Modifier le brouillon :',
       },
       ReviewCard: {
         deleteDialog: {
@@ -544,6 +547,7 @@ export default {
         ExploreEventsTab: {
           emptySearch: 'Aucun événement trouvé',
           emptySearchText: 'Rechercher des événements par nom',
+          resultsHeading: 'Résultats de la recherche',
         },
       },
       ExploreViewContent: {
@@ -556,6 +560,11 @@ export default {
         usersEmptySearchText: 'Rechercher des utilisateurs par nom',
         title: 'Explorer',
         subtitle: 'Trouvez des événements, des organisateurs ou connectez-vous avec vos amis',
+      },
+    },
+    forms: {
+      FormSelectorField: {
+        noResultsText: 'Aucune option trouvée',
       },
     },
     home: {
@@ -658,11 +667,18 @@ export default {
           loading: 'Chargement des avis...',
           noReviews: "Aucun avis pour cette organisation pour l'instant",
         },
+        TicketsTab: {
+          noTickets: "Vous n'avez pas encore acheté de billets",
+        },
       },
       ProfileActions: {
         createEvent: 'Créer un événement',
         following: 'Suivant',
         follow: 'Suivre',
+        editProfileAriaLabel: 'Modifier le profil',
+        openChatAriaLabel: 'Messages ouverts',
+        openSettingsAriaLabel: 'Ouvrir les paramètres',
+        sendMessageAriaLabel: 'Envoyer un message',
       },
       ProfileBody: {
         myEventsExternal: 'Événements',
@@ -686,12 +702,17 @@ export default {
         uploadAvatarError: "Échec du téléchargement de l'image de l'avatar, veuillez réessayer",
         profileUpdate: 'Profil mis à jour avec succès !',
         userAvatarAlt: "Avatar de l'utilisateur",
+        changeAvatarAriaLabel: 'Changer la photo de profil',
+        viewAvatarAriaLabel: 'Voir la photo de profil',
+        scrollToTopAriaLabel: 'Faites défiler vers le haut du profil',
       },
       UserInfo: {
         followers: 'Abonnés',
         noFollowers: "Pas encore d'abonnés",
         following: 'Suivant',
         noFollowing: 'Je ne suis encore personne',
+        viewFollowersAriaLabel: 'Afficher les abonnés',
+        viewFollowingAriaLabel: 'Voir ci-dessous',
       },
     },
     reviews: {
@@ -794,7 +815,7 @@ export default {
           languageTitle: 'Préférence linguistique',
           languageSubtitle: "Choisissez votre langue préférée pour l'application",
         },
-        ReviewsTab: {
+        MyReviewsTab: {
           loadReviewsError: 'Échec du chargement de vos avis, veuillez réessayer',
           searchHint: 'Recherchez vos avis...',
           noReviews: "Vous n'avez pas encore soumis d'avis",
@@ -806,6 +827,7 @@ export default {
   stores: {
     auth: {
       failedRegistration: "L'inscription a échoué",
+      failedLogin: "Nom d'utilisateur ou mot de passe incorrect",
     },
   },
 }
