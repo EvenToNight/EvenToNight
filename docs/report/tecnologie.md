@@ -4,9 +4,9 @@ Durante lo sviluppo del progetto sono state utilizzate molteplici tecnologie, si
 
 Per realizzare il frontend è stato utilizzato il framework Vue.js.
 
-Per la realizzazione del backend invece, sono stati utilizzati diversi framework. Oltre allo stack MEVN infatti abbiamo utilizzato Nest per la gestione di alcuni servizi, Cask per implementare le API in Scala, [Socket.IO](http://Socket.IO) per la comunicazione server-client in modo da implementare un sistema di notifiche real time, RabbitMQ per la comunicazione tra servizi. 
+Per la realizzazione del backend invece, sono stati utilizzati diversi framework. Oltre allo stack MEVN infatti abbiamo utilizzato NestJS per la gestione di alcuni servizi, Cask per implementare le API in Scala, [Socket.IO](http://Socket.IO) per la comunicazione server-client, RabbitMQ per la comunicazione tra servizi. 
 
-Per la gestione dei pagamenti è stato utilizzato Stripe (in modalità SandBox), per il salvataggio delle immagini è stato utilizzato Minio.
+Per la gestione dei pagamenti è stato utilizzato Stripe (in modalità SandBox), per il salvataggio delle immagini è stato utilizzato MinIO.
 
 Per il deploy è stato utilizzato Docker, e tramite i tunnel di CloudFlare è stato esposto in rete.
 
@@ -21,8 +21,8 @@ Per il deploy è stato utilizzato Docker, e tramite i tunnel di CloudFlare è st
 - Docker
 - RabbitMQ
 - Traefik
-- Nest
-- Minio
+- NestJS
+- MinIO
 - Cask
 - Swagger - OpenAPI
 

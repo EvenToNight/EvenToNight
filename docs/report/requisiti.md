@@ -2,14 +2,14 @@
 
 Di seguito sono riportati i principali requisiti che l’applicazione deve soddisfare. 
 
-### 2.1 - Requisiti di Business
+## 2.1 - Requisiti di Business
 
 - La piattaforma consente alle organizzazioni di creare e pubblicare post relativi agli eventi da loro promossi.
 - Gli utenti possono utilizzare la piattaforma come punto di riferimento per scoprire eventi nelle vicinanze, in base alla località e ai propri interessi.
 - Il sistema abilita la vendita online dei biglietti degli eventi fornendo alle organizzazioni uno strumento per monetizzare le proprie attività.
 
 
-### 2.2 - Requisiti Funzionali
+## 2.2 - Requisiti Funzionali
 
 **Tipologie di utenti supportate dal sistema:**
 
@@ -41,7 +41,7 @@ Di seguito sono riportati i principali requisiti che l’applicazione deve soddi
 - Specificare collaboratori durante la creazione degli eventi.
 - Ricevere notifiche su like e recensioni ai propri eventi.
 
-### 2.3 - Requisiti Non Funzionali
+## 2.3 - Requisiti Non Funzionali
 
 - Accessibilità: l'interfaccia grafica deve essere accessibile.
 - Portabilità: l'applicazione risulta responsive per adattarsi a schermi di diverse dimensioni pc/tablet/mobile.

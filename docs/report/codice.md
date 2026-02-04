@@ -1,14 +1,14 @@
 # 5 - Codice
 
-L'architettura del progetto **EvenToNight** si basa su un'applicazione **Single Page Application (SPA)** per il frontend e un layer di **microservizi backend** esposti attraverso **Traefik** come reverse-proxy/API gateway. La comunicazione tra i servizi avviene tramite **RabbitMQ** come message broker, garantendo un'architettura event-driven e disaccoppiata.
+L'architettura del progetto **EvenToNight** si basa su una **Single Page Application (SPA)** per il frontend e un layer di **microservizi backend** esposti attraverso **Traefik** come reverse-proxy/API gateway.
 
-## 5.1 Frontend
+## 5.1 - Frontend
 
 Il frontend è stato sviluppato con **Vue 3** utilizzando la **Composition API** e **TypeScript**, sfruttando il framework **Quasar** per i componenti UI.
 
 L'applicazione fa uso delle principali funzionalità di Vue come `provide/inject`, `props/emit`, `defineModel`, `defineExpose`, `watchers` e in alcune situazioni la direttiva `:key` per innescare il refresh dei componenti.
 
-### 5.1.1 Struttura del Progetto
+### Struttura del Progetto
 
 ```markdown
 /src/
@@ -27,7 +27,7 @@ L'applicazione fa uso delle principali funzionalità di Vue come `provide/inject
 
 ```
 
-### 5.1.2 Gestione dello Stato con Pinia
+### Gestione dello Stato con Pinia
 
 Lo store Pinia gestisce l'autenticazione dell'utente e i token JWT. Il sistema implementa il refresh automatico dei token prima della scadenza:
 
@@ -68,7 +68,7 @@ export const useAuthStore = defineStore('auth', () => {
 })
 ```
 
-### 5.1.3 Layer API e Mocking Strategy
+### Layer API e Mocking Strategy
 
 Un aspetto fondamentale dello sviluppo è stato il **layer di astrazione API**, che ha permesso di prototipare il frontend indipendentemente dalla disponibilità dei microservizi backend.
 
@@ -106,9 +106,9 @@ if (response.status === 401 && !isRetry && onTokenExpired) {
 
 Questo approccio, seguendo il principio **Dependency Inversion (DIP)**, ha permesso di sviluppare componenti UI indipendenti dall'implementazione concreta delle API e ha facilitato il testing.
 
-### 5.1.4 Router e Navigation Guards
+### Router e Navigation Guards
 
-Il sistema di routing utilizza due livelli: un livello root per gestire redirect e rotte speciali, e un livello nested sotto `/:locale` per tutte le rotte localizzate. Questa separazione è stata necessaria perché alcune rotte (come quella del QR code nei biglietti) non richiedono il prefisso della lingua.
+Il sistema di routing utilizza due livelli: un livello root per gestire redirect e rotte speciali, e un livello nested sotto `/:locale` per tutte le rotte localizzate. Questa separazione è stata necessaria perché alcune rotte (come quella codificata nel QR code nei biglietti) non richiedono il prefisso della lingua.
 
 ```tsx
 
@@ -193,7 +193,7 @@ export const requireRole = (role: string) => {
 
 Le guards guidano l'utente nell'utilizzo dell'applicazione, impedendo l'accesso a pagine non autorizzate e reindirizzandolo automaticamente (ad esempio, se un organizzazione vuole creare un evento ma non ha effettuato l'accesso, prima si ha un redirect alla pagina di login).
 
-### 5.1.5 Comunicazione Real-time con WebSocket
+### Comunicazione Real-time con WebSocket
 
 La comunicazione in tempo reale è gestita tramite [**Socket.IO**](http://socket.io/) per le notifiche e i messaggi chat:
 
@@ -219,7 +219,7 @@ Gli eventi gestiti includono:
 - `like-received` / `follow-received` - Notifiche di interazione
 - `new-event-published` - Nuovi eventi pubblicati da utenti seguiti
 
-### 5.1.6 Composables Riutilizzabili
+### Composables Riutilizzabili
 
 I composables incapsulano logiche riutilizzabili tra i componenti. Un esempio significativo è `useInfiniteScroll` per la paginazione:
 
@@ -248,14 +248,14 @@ Altri composables includono:
 - `useDarkMode` - Gestione tema chiaro/scuro con persistenza
 - `useTranslation` - Traduzioni con prefisso automatico
 
-### 5.1.7 Layout Condivisi
+### Layout Condivisi
 
 Sono stati definiti anche layout riutilizzabili per garantire consistenza nell'interfaccia:
 
 - **NavigationWithSearch**: Utilizzato in home ed explore, serve a gestire la comparsa della barra di ricerca nella barra di navigazione dal momento che esce dalla viewport e viceversa.
-- **TwoColumnLayout**: Utilizzato per chat e impostazioni, con supporto mobile che mostra una colonna alla volta
+- **TwoColumnLayout**: Utilizzato in chat e impostazioni, con supporto mobile che mostra una colonna alla volta
 
-### 5.1.8 I18n
+### Internazionalizzazione (i18n)
 
 L'applicazione supporta 5 lingue (en, es, fr, it, de). Le traduzioni sono generate automaticamente in CI a partire dal sorgente inglese:
 
@@ -291,7 +291,7 @@ const getLanguageInfo = (code: string): LanguageOption => {
 }
 ```
 
-L'internazionalizzazione si estende anche al backend: il servizio Ticketing genera i **biglietti PDF nella lingua dell'utente**, con traduzioni dedicate.
+L'internazionalizzazione si estende anche al backend: il servizio Payments genera i **biglietti PDF nella lingua dell'utente**, con traduzioni dedicate.
 
 Il backend predispone inoltre la gestione dei prezzi con le valute e un sistema di conversione con caching, attualmente non utilizzato dal frontend ma pronto per future estensioni:
 
@@ -306,9 +306,9 @@ export class CurrencyConverter {
 }
 ```
 
-**Limiti attuali**: I contenuti user-generated come le descrizioni degli eventi non sono attualmente internazionalizzati e vengono memorizzati nella lingua in cui sono stati inseriti dall'organizzatore. Un'estensione futura potrebbe prevedere la possibilità di inserire descrizioni in più lingue, con fallback alla lingua originale quando la traduzione non è disponibile.
+**Limiti attuali**: I contenuti user-generated come le descrizioni degli eventi non sono attualmente tradotti e vengono memorizzati nella lingua in cui sono stati inseriti dall'organizzazione. Un'estensione futura potrebbe prevedere la possibilità di inserire descrizioni in più lingue, con fallback alla lingua originale quando la traduzione non è disponibile.
 
-### 5.1.9 **Geolocalizzazione degli eventi**
+### Geolocalizzazione degli eventi
 
 Per l'inserimento della posizione durante la creazione di un evento è stata utilizzata l'API pubblica di **Nominatim** (OpenStreetMap) per la ricerca e il geocoding degli indirizzi. La scelta di OpenStreetMap è stata dettata dalla sua natura open-source e dall'assenza di costi di utilizzo.
 
@@ -323,13 +323,13 @@ export const extractLocationMapsLink = (location: LocationData): string => {
 
 ## **5.2 Backend**
 
-Il backend è composto da **7 microservizi**: 2 sviluppati in **Scala 3** con il framework Cask (Users ed Events), 3 in **NestJS** (Interactions, Chat e Payments) e 2 in **Express.js** (Notifications e Media).
+Il backend è composto da **7 microservizi**: 2 sviluppati in **Scala 3** con il framework **Cask** (Users ed Events), 3 in **NestJS** (Interactions, Chat e Payments) e 2 in **Express.js** (Notifications e Media).
 
-Ogni servizio ha la propria istanza **MongoDB** dedicata e comunica con gli altri tramite **RabbitMQ** con topic exchange. Il servizio Notifications gestisce le connessioni WebSocket tramite Socket.IO per le notifiche real-time e il tracciamento dello stato online degli utenti.
+Ogni servizio ha la propria istanza **MongoDB** dedicata e comunica con gli altri tramite **RabbitMQ** con topic exchange. Il servizio Notifications gestisce le connessioni WebSocket tramite **Socket.IO** per le notifiche real-time e il tracciamento dello stato online degli utenti.
 
-### 5.2.1 Struttura del Progetto
+### Struttura del Progetto
 
-Essendo i microservizi eterogenei segue una descrizione di massima rappresentativa della struttura delle varie implementazioni, viene usata la terminologia dello stack MEVN ma alcuni componenti potrebbero avere un nome/implementazione diversa (e.i. in Nest il concetto di router e controller viene unito in un unico componente rispetto ad express)
+Essendo i microservizi eterogenei segue una descrizione di massima rappresentativa della struttura delle varie implementazioni, viene usata la terminologia dello stack MEVN ma alcuni componenti potrebbero avere un nome/implementazione diversa (e.i. in Nest il concetto di router e controller viene unito in un unico componente rispetto ad express).
 
 ```markdown
 /src/
@@ -341,7 +341,7 @@ Essendo i microservizi eterogenei segue una descrizione di massima rappresentati
 
 Più nel dettaglio, nel primo layer di presentazione troviamo i router che definiscono le rotte (path + metodo http) supportate da ciascun servizio. In application sono specificati i diversi DTO usati per validare i dati in ingresso agli endpoint e strutturare i dati di risposta degli stessi e i controller delle varie rotte. Nel dominio sono definiti i modelli delle entità di interesse per il particolare servizio e in infrastructure troviamo le varie dipendenze esterne, tipicamente le implementazioni dei connectors a database e message-broker
 
-### **5.2.2 Autenticazione JWT**
+### Autenticazione JWT
 
 L'autenticazione è basata su **JWT**. Il servizio Users integra **Keycloak** come identity provider per la gestione delle credenziali utente (registrazione, login, gestione delle sessioni). Keycloak genera i token JWT firmati e il servizio Users espone un endpoint `/public-keys` che restituisce le chiavi pubbliche necessarie per la validazione.
 
@@ -349,9 +349,9 @@ Gli altri microservizi recuperano le chiavi pubbliche da questo endpoint e le sa
 
 Oltre alle REST API, l'autenticazione è stata implementata anche per le connessioni WebSocket: il token viene passato durante l'handshake della connessione Socket.IO e validato prima di stabilire il canale. Questo permette di inviare notifiche con dati (oltre che solo segnali) in modo sicuro.
 
-### **5.2.3 Express Middlewares**
+### Express Middlewares
 
-Per gestire le richieste HTTP in **Express** sono stati utilizzati i middleware, in particolare è stato definito un middleware per l’autenticazione 
+Per gestire le richieste HTTP in **Express** sono stati utilizzati i middleware, in particolare è stato definito un middleware per l’autenticazione:
 
 ```tsx
 export function createAuthMiddleware(options: { optional?: boolean } = {}) {
@@ -396,9 +396,9 @@ export function createNotificationRoutes(controller: NotificationController): Ro
 
 A livello applicativo vengono inoltre utilizzati i middleware standard di Express: `cors()` per gestire le richieste cross-origin (necessario per le chiamate dal frontend) e `express.json()` per il parsing automatico del body JSON.
 
-### 5.2.4 Authenticated WebSocket Gateway con Socket.IO
+### Authenticated WebSocket Gateway con Socket.IO
 
-Il gateway **Socket.IO** gestisce l'autenticazione delle connessioni WebSocket e la distribuzione delle notifiche in tempo reale:
+Il gateway **Socket.IO** gestisce l'autenticazione delle connessioni WebSocket e la distribuzione delle notifiche:
 
 ```tsx
 export class SocketIOGateway implements NotificationGateway {
@@ -445,9 +445,9 @@ export class SocketIOGateway implements NotificationGateway {
 }
 ```
 
-### 5.2.5 Endpoint con autenticazione opzionale
+### Endpoint con autenticazione opzionale
 
-Alcuni endpoint utilizzano l'**autenticazione opzionale**: sono accessibili sia da utenti autenticati che non, ma la risposta può variare anche se il formato della risposta rimane consistente. Ad esempio, l'endpoint per ottenere il profilo di un utente restituisce solo i dati pubblici (username, nome, bio, avatar) se la richiesta non è autenticata, mentre include anche i dati privati dell'account (email, preferenze) se l'utente autenticato sta richiedendo il proprio profilo:
+Alcuni endpoint utilizzano l'**autenticazione opzionale**: sono accessibili sia da utenti autenticati che non, in questo caso la risposta può variare pur mantenendo il formato consistente. Ad esempio, l'endpoint per ottenere il profilo di un utente restituisce solo i dati pubblici (username e informazioni del profilo) se la richiesta non è autenticata, mentre include anche i dati privati dell'account (e.g. email, interessi) se l'utente autenticato sta richiedendo le proprie informazioni:
 
 ```scala
 @cask.get("/:userId")

@@ -25,7 +25,7 @@ export default {
                 { text: "Tecnologie" , link: "/tecnologie" },
                 { text: "Codice", link: "/codice" },
                 { text: "Test", link: "/test" },
-                { test: "Deployment", link: "/deployment" },
+                { text: "Deployment", link: "/deployment" },
                 { text: "Conclusioni", link: "/conclusioni" }
               ]
         }

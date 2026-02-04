@@ -110,7 +110,7 @@ async function bootstrap() {
 
     const userController = new UserController(isOnlineHandler);
     const userRoutes = createUserRoutes(userController);
-    
+
     app.use("/", notificationRoutes);
     app.use("/users", userRoutes);
 
