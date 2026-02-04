@@ -333,6 +333,8 @@ export default {
         emailFormatError: 'Please enter a valid email address',
         passwordLabel: 'Password',
         passwordError: 'Password is required',
+        passwordStrengthError:
+          'Password must be at least 8 characters long and contain a lowercase letter, a number, and a special character (!@#$%^&*)',
         confirmPasswordLabel: 'Confirm Password',
         emptyConfirmPasswordError: 'Please confirm your password',
         passwordMismatchError: 'Passwords do not match',

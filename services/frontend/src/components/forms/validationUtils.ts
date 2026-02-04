@@ -5,3 +5,12 @@ export const isEmail = (msg: string) => (val: string) => {
   return emailRegex.test(val) || msg
 }
 export const matching = (target: any, msg: string) => (val: any) => target === val || msg
+
+export const isStrongPassword = (msg: string) => (val: string) => {
+  if (import.meta.env.DEV) return true
+  if (val.length < 8) return msg
+  if (!/[a-z]/.test(val)) return msg
+  if (!/\d/.test(val)) return msg
+  if (!/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/.test(val)) return msg
+  return true
+}
