@@ -202,7 +202,7 @@ tasks.register<ExecTask>("setupStripeWebHooksListener") {
     dependsOn("stopStripeWebHooksListener")
     bashCommands("""
         sed -i '' '/^STRIPE_WEBHOOK_SECRET=/d' .env && \
-        (nohup ./services/payments/scripts/local-webooks.sh > webhook.log 2>&1 &) && \
+        (nohup ./services/payments/scripts/local-webhooks.sh > webhook.log 2>&1 &) && \
         echo '⏳ Waiting for webhook listener...' && \
         until grep -q 'STRIPE_WEBHOOK_SECRET=whsec_' .env 2>/dev/null; do sleep 1; done && \
         echo '✅ Webhook listener ready'

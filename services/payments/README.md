@@ -106,7 +106,7 @@ npm run start:dev   # Production mode with hot-reload
 ```
 In production mode, the service integrates with Stripe for real checkout sessions. Test using:
 - `./test-endpoints.sh` - Tests endpoints creating real checkout sessions link
-- `./local-webhook.sh` - Redirects stripe webhooks to localhost
+- `./local-webhhook.sh` - Redirects stripe webhooks to localhost
 
 ### Development Mode
 ```bash
