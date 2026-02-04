@@ -48,7 +48,6 @@ export const createUsersApi = (usersClient: ApiClient): UsersAPI => ({
     return usersClient.delete<void>(`/${id}`)
   },
 
-  //TODO: check update and removal of all optional fields
   async updateUserById(
     id: UserID,
     data: Partial<User> & { username: string; name: string; avatar: string }

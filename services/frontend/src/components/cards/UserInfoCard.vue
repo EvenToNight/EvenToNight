@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import type { UserInfo } from '@/api/types/users'
+import { useTranslation } from '@/composables/useTranslation'
 import { useNavigation } from '@/router/utils'
 
 interface Props {
   user: UserInfo
 }
 
+const { t } = useTranslation('components.cards.UserInfoCard')
 const props = defineProps<Props>()
 const emit = defineEmits<{
   click: [userId: string]
@@ -20,9 +22,15 @@ const handleClick = () => {
 </script>
 
 <template>
-  <div class="user-card" @click="handleClick">
+  <div
+    class="user-card"
+    role="button"
+    tabindex="0"
+    @click="handleClick"
+    @keydown.enter="handleClick"
+  >
     <q-avatar size="48px" class="user-avatar">
-      <img v-if="user.avatar" :src="user.avatar" />
+      <img v-if="user.avatar" :src="user.avatar" :alt="t('avatarAlt')" />
       <q-icon v-else name="person" size="24px" />
     </q-avatar>
 

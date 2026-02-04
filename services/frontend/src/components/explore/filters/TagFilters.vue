@@ -3,14 +3,14 @@ import { ref, onMounted, watch } from 'vue'
 import { api } from '@/api'
 import type { TagCategory } from '@/api/interfaces/events'
 import type { Tag } from '@/api/types/events'
-import { useI18n } from 'vue-i18n'
 import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   modelValue?: Tag[]
 }
 
-const { t } = useI18n()
+const { t } = useTranslation('components.explore.filters.TagFilters')
 
 const props = defineProps<Props>()
 const logger = createLogger(import.meta.url)

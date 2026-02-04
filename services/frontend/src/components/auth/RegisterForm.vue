@@ -5,7 +5,7 @@ import { useQuasar } from 'quasar'
 import BaseAuthForm from './BaseAuthForm.vue'
 import FormField from '@/components/forms/FormField.vue'
 import { useNavigation } from '@/router/utils'
-import { isEmail, matching, notEmpty } from '@/components/forms/validationUtils'
+import { isEmail, isStrongPassword, matching, notEmpty } from '@/components/forms/validationUtils'
 import { useTranslation } from '@/composables/useTranslation'
 import { createLogger } from '@/utils/logger'
 
@@ -81,14 +81,13 @@ const handleRegister = async () => {
         :rules="[notEmpty(t('emailError')), isEmail(t('emailFormatError'))]"
       />
 
-      <!-- TODO: Add password strength validation -->
       <FormField
         v-model="password"
         type="password"
         :label="t('passwordLabel') + ' *'"
         icon="lock"
         autocomplete="new-password"
-        :rules="[notEmpty(t('passwordError'))]"
+        :rules="[notEmpty(t('passwordError')), isStrongPassword(t('passwordStrengthError'))]"
       />
 
       <FormField

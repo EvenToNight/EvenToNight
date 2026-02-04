@@ -66,7 +66,7 @@ watch(
 
       <template #loading>
         <div class="loading-state">
-          <q-spinner-dots color="primary" size="50px" />
+          <q-spinner color="primary" size="50px" />
         </div>
       </template>
     </q-infinite-scroll>
@@ -83,6 +83,8 @@ watch(
 .tab-content {
   @include flex-column;
   gap: $spacing-4;
+  flex: 1;
+  min-height: 0;
 }
 
 .people-scroll {
@@ -92,10 +94,14 @@ watch(
 .users-list {
   @include flex-column;
   gap: $spacing-3;
+
+  :deep(.suggestion-item) {
+    border-radius: $radius-lg;
+  }
 }
 
 .loading-state {
   @include flex-center;
-  padding: $spacing-8;
+  flex: 1;
 }
 </style>

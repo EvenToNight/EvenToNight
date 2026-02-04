@@ -74,7 +74,7 @@ const onShow = () => {
         :style="$q.screen.lt.md ? '' : 'min-height: 400px'"
       >
         <q-inner-loading :showing="loading && users.length === 0">
-          <q-spinner-dots color="primary" size="50px" />
+          <q-spinner color="primary" size="50px" />
         </q-inner-loading>
 
         <q-infinite-scroll
@@ -95,7 +95,7 @@ const onShow = () => {
 
           <template #loading>
             <div class="flex flex-center q-pa-xl">
-              <q-spinner-dots color="primary" size="50px" />
+              <q-spinner color="primary" size="50px" />
             </div>
           </template>
         </q-infinite-scroll>

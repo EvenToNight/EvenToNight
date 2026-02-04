@@ -167,11 +167,13 @@ const filterCollaborators = (query: string, update: (fn: () => void) => void) =>
     })
     return
   }
-  api.users.searchUsers({ prefix: query, pagination: { limit: 10 } }).then((response) => {
-    update(() => {
-      collaboratorOptions.value = response.items.map(mapCollaborator)
+  api.users
+    .searchUsers({ prefix: query, role: 'organization', pagination: { limit: 10 } })
+    .then((response) => {
+      update(() => {
+        collaboratorOptions.value = response.items.map(mapCollaborator)
+      })
     })
-  })
 }
 
 const filterLocations = async (val: string, update: (fn: () => void) => void) => {
@@ -309,7 +311,7 @@ const saveDraft = async () => {
         message: t('form.messages.success.saveEventDraft'),
       })
     }
-    goToUserProfile(partialEventData.creatorId)
+    goToUserProfile(partialEventData.creatorId, '#drafted')
   } catch (error) {
     logger.error('Failed to save draft:', error)
     $q.notify({
@@ -451,7 +453,7 @@ onMounted(async () => {
 <template>
   <NavigationButtons />
 
-  <div class="create-event-page">
+  <main class="create-event-page">
     <div class="page-content">
       <div class="container">
         <h1 class="text-h3 q-mb-lg">
@@ -555,12 +557,20 @@ onMounted(async () => {
                 icon="delete"
                 color="negative"
                 class="delete-ticket-btn"
+                :aria-label="t('form.ticketTypes.deleteTicketButton')"
                 @click="removeTicketEntry(index)"
               />
             </div>
 
             <div v-if="canAddMoreTickets" class="add-ticket-btn-container">
-              <q-btn flat round icon="add" color="primary" @click="addTicketEntry" />
+              <q-btn
+                flat
+                round
+                icon="add"
+                color="primary"
+                :aria-label="t('form.ticketTypes.addTicketButton')"
+                @click="addTicketEntry"
+              />
             </div>
           </div>
 
@@ -719,7 +729,7 @@ onMounted(async () => {
         </q-form>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style lang="scss" scoped>

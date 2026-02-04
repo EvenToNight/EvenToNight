@@ -17,14 +17,10 @@ export interface ConversationAPIResponse extends Omit<Conversation, 'lastMessage
   }
 }
 
-//TODO: why not full conversation? evaluta also user/:userId/conversations/:conversationId endpoint to return full conversation
 export interface ConversationBaseInfo {
   id: ConversationID
   organization: ChatUser
   member: ChatUser
-  //TODO: needed?
-  // createdAt: Date
-  // updatedAt: Date
 }
 
 export interface MessageAPIResponse {
@@ -46,7 +42,6 @@ export interface ChatAPI {
   //TODO: is user needed?
   getConversation(userId: UserID, conversationId: ConversationID): Promise<Conversation>
   startConversation(userId: UserID, firstMessage: FirstMessage): Promise<SendMessageAPIResponse>
-  //TODO: sync with backend to add search query
   getConversations(
     userId: UserID,
     pagination?: PaginatedRequest

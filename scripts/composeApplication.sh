@@ -92,17 +92,26 @@ for arg in "$@"; do
     fi
 done
 
-if [ "$INIT_DB" = true ]; then
+if [ "$INIT_DB" = true ] && [ "$PULL" != "pull" ]; then
     echo "💬 Database initialization requested. Clean all volumes"
     ./scripts/composeAll.sh --project-name "$PROJECT_NAME" -p ./services -p ./infrastructure -eP ./infrastructure/seed down -v --remove-orphans
     echo "💬 All volumes removed."
 fi
 
-echo "💬 Deploying the application..."
+if [ "$PULL" != "pull" ]; then
+  echo "💬 Building the application..."
+else
+  echo "💬 Pulling the latest images..."
+fi
 ./scripts/composeAll.sh --project-name "$PROJECT_NAME" -p ./services -p ./infrastructure -eP ./infrastructure/seed "${FILTERED_ARGS[@]}"
 
-if [ "$INIT_DB" = true ]; then
+
+if [ "$INIT_DB" = true ] && [ "$PULL" != "pull" ]; then
   echo "💬 Initializing the database..."
   ./scripts/composeAll.sh ${PULL:+$PULL} --project-name $PROJECT_NAME -p ./infrastructure/seed ${DEV:+$DEV} run --rm ${BUILD:+$BUILD} seed
   echo "💬 Database initialized."
+fi
+if [ "$PULL" = "pull" ]; then
+  ./scripts/composeAll.sh -p ./infrastructure/seed pull
+  echo "💬 Latest images pulled successfully."
 fi

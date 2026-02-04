@@ -56,6 +56,7 @@ const formatDate = (date: Date): string => {
       <img
         v-if="result.type === 'event' ? result.imageUrl : result.avatarUrl"
         :src="result.type === 'event' ? result.imageUrl : result.avatarUrl"
+        :alt="result.type === 'event' ? t('eventPosterAlt') : t('userAvatarAlt')"
       />
       <q-icon v-else :name="getResultIcon(result)" size="20px" />
     </q-avatar>
@@ -82,7 +83,7 @@ const formatDate = (date: Date): string => {
   padding: $spacing-3;
   cursor: pointer;
   transition: all $transition-fast;
-  color: $color-text-primary;
+  background-color: $color-white;
 
   &:hover {
     background-color: $color-gray-200;
@@ -94,7 +95,7 @@ const formatDate = (date: Date): string => {
 
   @include dark-mode {
     color: $color-text-white;
-
+    background-color: $color-background-dark;
     &:hover {
       background-color: $color-gray-hover;
     }

@@ -83,7 +83,8 @@ const formattedPrice = computed(() => {
         target="_blank"
         rel="noopener noreferrer"
         class="maps-link"
-        title="Open in Google Maps"
+        :title="t('openInMaps')"
+        :aria-label="t('openInMaps')"
       >
         <q-icon name="open_in_new" size="20px" />
       </a>

@@ -48,6 +48,7 @@ export interface InteractionAPI {
     userId: UserID,
     params?: {
       organizationId?: UserID
+      title?: string
       reviewed?: boolean
       eventStatus?: EventStatus
       order?: SortOrder

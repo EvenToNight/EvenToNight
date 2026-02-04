@@ -11,6 +11,7 @@ import { defaultLimit, emptyPaginatedResponse } from '@/api/utils/requestUtils'
 import type { UserID } from '@/api/types/users'
 import { useTranslation } from '@/composables/useTranslation'
 import { createLogger } from '@/utils/logger'
+import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
 
 const { locale } = useNavigation()
 const { t } = useTranslation('components.chat.ConversationList')
@@ -309,6 +310,7 @@ defineExpose({
   display: flex;
   justify-content: space-between;
   align-items: center;
+  height: v-bind(NAVBAR_HEIGHT_CSS);
   padding: 16px;
   background-color: var(--q-primary);
   color: white;

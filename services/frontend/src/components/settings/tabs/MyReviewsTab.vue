@@ -139,7 +139,7 @@ provide('deleteReview', deleteReview)
 
 .loading-state {
   @include flex-center;
-  padding: $spacing-8;
+  flex: 1;
 }
 
 .empty-state {

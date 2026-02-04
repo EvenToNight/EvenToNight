@@ -37,20 +37,24 @@ const getCurrentTabComponent = computed((): Tab => {
 
 <template>
   <div class="explore-tab-header">
-    <div class="explore-tab-header-inner">
+    <div class="explore-tab-header-inner" role="tablist">
       <div
         v-for="tab in tabs"
         :key="tab.id"
         class="explore-tab"
         :class="{ active: activeTab === tab.id }"
+        role="tab"
+        :aria-selected="activeTab === tab.id"
+        tabindex="0"
         @click="selectTab(tab.id)"
+        @keydown.enter="selectTab(tab.id)"
       >
         {{ tab.label }}
       </div>
     </div>
   </div>
 
-  <div class="explore-tab-content">
+  <div class="explore-tab-content" role="tabpanel">
     <component
       :is="getCurrentTabComponent.component"
       :key="activeTab"
@@ -64,13 +68,14 @@ const getCurrentTabComponent = computed((): Tab => {
   position: sticky;
   top: 64px; // NavigationBar height
   z-index: 10; // Below navbar but above content
+  background: $grey-2;
   backdrop-filter: blur(10px);
   padding: $spacing-4 0;
   border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   width: 100%;
 
   @include dark-mode {
-    background: rgba(18, 18, 18, 0.95);
+    background: $grey-10;
     border-bottom-color: rgba(255, 255, 255, 0.1);
   }
 }
@@ -101,7 +106,6 @@ const getCurrentTabComponent = computed((): Tab => {
 
 .explore-tab {
   color: $color-heading;
-  opacity: 0.6;
   cursor: pointer;
   padding-bottom: $spacing-2;
   border-bottom: 3px solid transparent;
@@ -114,11 +118,10 @@ const getCurrentTabComponent = computed((): Tab => {
   flex-shrink: 0;
 
   &:hover {
-    opacity: 0.8;
+    transform: scale(1.05);
   }
 
   &.active {
-    opacity: 1;
     border-bottom-color: $color-primary;
   }
 
@@ -128,6 +131,7 @@ const getCurrentTabComponent = computed((): Tab => {
 }
 
 .explore-tab-content {
+  @include flex-column;
   flex: 1;
   min-height: 0;
   padding: $spacing-6 $spacing-4;

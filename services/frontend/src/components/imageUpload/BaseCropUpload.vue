@@ -110,6 +110,7 @@ defineExpose({
       ref="fileInput"
       type="file"
       accept="image/*"
+      :aria-label="t('uploadAriaLabel')"
       style="display: none"
       @change="onFileSelect"
     />

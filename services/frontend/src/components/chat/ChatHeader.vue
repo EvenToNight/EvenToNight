@@ -59,7 +59,13 @@ onUnmounted(() => {
       <img :src="selectedChatUser.avatar" :alt="selectedChatUser.name" style="object-fit: cover" />
     </q-avatar>
     <div class="header-info">
-      <div class="user-name cursor-pointer" @click="goToUserProfile(selectedChatUser.id)">
+      <div
+        class="user-name cursor-pointer"
+        role="button"
+        tabindex="0"
+        @click="goToUserProfile(selectedChatUser.id)"
+        @keydown.enter="goToUserProfile(selectedChatUser.id)"
+      >
         {{ selectedChatUser.name }}
       </div>
       <div v-if="isOnline" class="status">{{ t('online') }}</div>

@@ -4,6 +4,7 @@ interface Props {
   variant?: Variant
   icon: string
   onClick: () => void
+  ariaLabel: string
 }
 
 withDefaults(defineProps<Props>(), {
@@ -14,6 +15,7 @@ withDefaults(defineProps<Props>(), {
 <template>
   <q-btn
     :icon="icon"
+    :aria-label="ariaLabel"
     flat
     round
     dense

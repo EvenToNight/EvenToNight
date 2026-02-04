@@ -61,8 +61,6 @@ const rating = ref<Rating>(props.existingReview?.rating ?? 5)
 const reviewTitle = ref(props.existingReview?.title ?? '')
 const reviewDescription = ref(props.existingReview?.comment ?? '')
 
-//TODO: check
-// Reset form when dialog closes (only for new reviews, not edits)
 watch(isOpen, (newValue) => {
   if (!newValue && !props.existingReview) {
     rating.value = 5
@@ -72,7 +70,6 @@ watch(isOpen, (newValue) => {
   }
 })
 
-//TODO: search completed event where user has partecipated
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
   update(() => {
     if (!query) {
@@ -80,11 +77,18 @@ const filterEvents = (query: string, update: (callback: () => void) => void) => 
       hasSearched.value = false
     } else {
       hasSearched.value = true
-      //TODO: search in user partecipations
-      api.events
-        .searchEvents({ organizationId: props.creatorId, status: 'COMPLETED', title: query })
+      api.interactions
+        .userParticipations(authStore.user!.id, {
+          title: query,
+          reviewed: false,
+          eventStatus: 'COMPLETED',
+          organizationId: props.creatorId,
+        })
         .then((response) => {
-          eventOptions.value = response.items
+          return Promise.all(response.items.map((event) => api.events.getEventById(event.eventId)))
+        })
+        .then((response) => {
+          eventOptions.value = response
         })
       const needle = query.toLowerCase()
       eventOptions.value = eventOptions.value.filter(
@@ -182,7 +186,7 @@ const submitReview = async () => {
           </FormSelectorField>
 
           <div class="rating-input">
-            <label>{{ t('ratingLabel') }}</label>
+            <span>{{ t('ratingLabel') }}</span>
             <RatingStars
               v-model:rating="rating"
               :show-number="true"

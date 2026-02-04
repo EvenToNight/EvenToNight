@@ -12,7 +12,9 @@ const { t } = useTranslation('components.reviews.ratings.RatingInfo')
 <template>
   <div class="flex items-center q-gutter-x-md wrap">
     <template v-if="!reviewsStatistics.totalReviews">
-      <span class="text-caption text-grey-7">{{ t('noReviews') }}</span>
+      <span class="text-caption" :class="$q.dark.isActive ? 'text-grey-5' : 'text-grey-7'">{{
+        t('noReviews')
+      }}</span>
     </template>
     <template v-else>
       <RatingStars
@@ -21,7 +23,7 @@ const { t } = useTranslation('components.reviews.ratings.RatingInfo')
         :show-number="true"
         variant="compact"
       />
-      <span class="text-caption text-grey-7"
+      <span class="text-caption" :class="$q.dark.isActive ? 'text-grey-5' : 'text-grey-7'"
         >({{ reviewsStatistics.totalReviews }} {{ t('reviews') }})</span
       >
     </template>

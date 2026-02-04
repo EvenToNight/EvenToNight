@@ -22,7 +22,6 @@ export type User = Account &
     role: UserRole
   }
 
-//TODO: website or contacts?
 export interface Account {
   darkMode?: boolean //only on own profile
   username: string

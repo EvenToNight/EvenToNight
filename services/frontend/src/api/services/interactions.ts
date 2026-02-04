@@ -87,6 +87,7 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
   async userParticipations(
     userId: UserID,
     params?: {
+      title?: string
       organizationId?: UserID
       reviewed?: boolean
       eventStatus?: EventStatus
@@ -97,6 +98,7 @@ export const createInteractionsApi = (interactionsClient: ApiClient): Interactio
     return interactionsClient.get<PaginatedResponseWithTotalCount<UserPartecipation>>(
       `/users/${userId}/participations${buildQueryParams({
         ...evaluatePagination(params?.pagination),
+        title: params?.title,
         organizationId: params?.organizationId,
         reviewed: params?.reviewed,
         eventStatus: params?.eventStatus,

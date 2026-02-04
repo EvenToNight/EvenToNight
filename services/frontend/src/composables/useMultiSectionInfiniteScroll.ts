@@ -71,7 +71,6 @@ export function useMultiSectionInfiniteScroll<K extends PropertyKey, O, T>(
     try {
       const section = currentSection.value
       if (!section) return
-
       const sectionData = sectionsData.value[section.key]
       if (!sectionData || !sectionData.hasMore) {
         if (currentSectionIndex.value < sections.length - 1) {
@@ -80,7 +79,6 @@ export function useMultiSectionInfiniteScroll<K extends PropertyKey, O, T>(
         }
         return
       }
-
       const response = await loadFn(
         section.key,
         sectionData.items.length,
@@ -93,6 +91,7 @@ export function useMultiSectionInfiniteScroll<K extends PropertyKey, O, T>(
 
       if (!response.hasMore && currentSectionIndex.value < sections.length - 1) {
         currentSectionIndex.value++
+        await loadMore(isLoadingMore)
       }
     } catch (error) {
       if (onError) {

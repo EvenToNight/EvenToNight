@@ -34,12 +34,24 @@ const loadFollowingFn = (pagination?: PaginatedRequest) =>
 <template>
   <div v-if="user.interactionsInfo" class="user-info">
     <div class="network-info-row">
-      <div class="stat-item clickable" @click="openFollowers">
+      <div
+        class="stat-item clickable"
+        role="button"
+        tabindex="0"
+        @click="openFollowers"
+        @keydown.enter="openFollowers"
+      >
         <span class="stat-value">{{ user.interactionsInfo.followers.toString() }}</span>
         <span class="stat-label">{{ t('followers') }}</span>
       </div>
       <div class="stat-divider"></div>
-      <div class="stat-item clickable" @click="openFollowing">
+      <div
+        class="stat-item clickable"
+        role="button"
+        tabindex="0"
+        @click="openFollowing"
+        @keydown.enter="openFollowing"
+      >
         <span class="stat-value">{{ user.interactionsInfo.following.toString() }}</span>
         <span class="stat-label">{{ t('following') }}</span>
       </div>
@@ -120,7 +132,11 @@ const loadFollowingFn = (pagination?: PaginatedRequest) =>
 
 .stat-label {
   font-size: $font-size-sm;
-  opacity: 0.6;
+  color: $color-gray-600;
+
+  @include dark-mode {
+    color: $color-gray-400;
+  }
 }
 
 .stat-divider {
@@ -137,15 +153,14 @@ const loadFollowingFn = (pagination?: PaginatedRequest) =>
   font-size: $font-size-base;
   line-height: 1.6;
   margin: 0;
-  opacity: 0.8;
-  color: $color-text-primary;
+  color: $color-gray-700;
 
   @media (max-width: $breakpoint-mobile) {
     text-align: center;
   }
 
   @include dark-mode {
-    color: $color-text-dark;
+    color: $color-gray-300;
   }
 }
 
@@ -157,6 +172,10 @@ const loadFollowingFn = (pagination?: PaginatedRequest) =>
   color: $color-primary;
   text-decoration: none;
   transition: opacity $transition-base;
+
+  @include dark-mode {
+    color: $color-primary-light;
+  }
 
   @media (max-width: $breakpoint-mobile) {
     justify-content: center;

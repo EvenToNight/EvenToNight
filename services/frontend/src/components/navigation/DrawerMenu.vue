@@ -1,4 +1,8 @@
 <script setup lang="ts">
+import { useTranslation } from '@/composables/useTranslation'
+
+const { t } = useTranslation('components.navigation.DrawerMenu')
+
 interface Props {
   isOpen: boolean
 }
@@ -16,10 +20,26 @@ const close = () => {
 
 <template>
   <Transition name="overlay-fade">
-    <div v-if="isOpen" class="drawer-body-overlay" @click="close"></div>
+    <div
+      v-if="isOpen"
+      class="drawer-body-overlay"
+      role="button"
+      tabindex="0"
+      :aria-label="t('closeDrawerAriaLabel')"
+      @click="close"
+      @keydown.enter="close"
+    ></div>
   </Transition>
   <Transition name="drawer">
-    <div v-if="isOpen" class="drawer-overlay" @click="close">
+    <div
+      v-if="isOpen"
+      class="drawer-overlay"
+      role="button"
+      tabindex="0"
+      :aria-label="t('closeDrawerAriaLabel')"
+      @click="close"
+      @keydown.enter="close"
+    >
       <div class="drawer" @click.stop>
         <div class="drawer-header">
           <q-btn flat dense icon="close" @click="close" />

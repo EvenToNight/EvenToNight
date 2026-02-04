@@ -63,6 +63,8 @@ export default {
             label: 'Cantidad',
             error: 'Por favor ingrese una cantidad',
           },
+          addTicketButton: 'Agregar tipo de boleto',
+          deleteTicketButton: 'Eliminar tipo de billete',
         },
         tags: {
           label: 'Etiquetas',
@@ -277,8 +279,10 @@ export default {
         title: 'Seleccionar entradas',
         available: 'disponible',
         soldOut: 'Agotado',
+        quantityAriaLabel: 'Entrada de cantidad para',
         total: 'Total',
         ticket: 'Boleto',
+        tickets: 'Entradas',
         actions: {
           cancel: 'Atrás',
           continueToPayment: 'Continuar con el pago',
@@ -334,6 +338,8 @@ export default {
         emailFormatError: 'Por favor, introduce una dirección de correo electrónico válida',
         passwordLabel: 'Contraseña',
         passwordError: 'Se requiere contraseña',
+        passwordStrengthError:
+          'La contraseña debe tener al menos 8 caracteres y contener una letra minúscula, un número y un carácter especial (!@#$%^&*)',
         confirmPasswordLabel: 'confirmar Contraseña',
         emptyConfirmPasswordError: 'Por favor confirma tu contraseña',
         passwordMismatchError: 'Las contraseñas no coinciden',
@@ -342,6 +348,20 @@ export default {
       },
     },
     buttons: {
+      actionButtons: {
+        BackHomeButton: {
+          goToHome: 'ir a casa',
+        },
+        BackButton: {
+          goBack: 'Volver',
+        },
+        HomeButton: {
+          goToHome: 'ir a casa',
+        },
+        CloseButton: {
+          close: 'Cerca',
+        },
+      },
       basicButtons: {
         SeeAllButton: {
           seeAll: 'Ver todo',
@@ -359,6 +379,8 @@ export default {
         draftBadge: 'Borrador',
         cancelledBadge: 'Cancelado',
         draftMissingTitle: 'Evento sin título',
+        viewEventAriaLabel: 'Ver evento:',
+        editDraftAriaLabel: 'Editar borrador:',
       },
       ReviewCard: {
         deleteDialog: {
@@ -375,9 +397,14 @@ export default {
         },
       },
       SearchResultCard: {
+        eventPosterAlt: 'Cartel del evento',
+        userAvatarAlt: 'Avatar de usuario',
         event: 'Evento',
         organization: 'Organización',
         member: 'Usuario',
+      },
+      UserInfoCard: {
+        avatarAlt: 'Avatar de usuario',
       },
     },
     chat: {
@@ -446,6 +473,7 @@ export default {
         noLikes: 'Aún no me gusta',
         participants: 'Participantes',
         noParticipants: 'Aún no hay participantes',
+        likeButton: 'Me gusta el evento',
       },
       EventInfo: {
         freePrice: 'Gratis',
@@ -456,6 +484,7 @@ export default {
         location: 'Ubicación',
         price: 'Precio',
         about: 'Acerca de este evento',
+        openInMaps: 'Abrir en Google Maps',
       },
       EventReviewsPreview: {
         title: 'Reseñas',
@@ -520,6 +549,7 @@ export default {
         ExploreEventsTab: {
           emptySearch: 'No se encontraron eventos',
           emptySearchText: 'Buscar eventos por nombre',
+          resultsHeading: 'Resultados de la búsqueda',
         },
       },
       ExploreViewContent: {
@@ -531,13 +561,19 @@ export default {
         usersEmptySearch: 'No se encontraron usuarios',
         usersEmptySearchText: 'Buscar usuarios por nombre',
         title: 'Explorar',
-        subtitile: 'Encuentra eventos, organizadores o conéctate con tus amigos',
+        subtitle: 'Encuentra eventos, organizadores o conéctate con tus amigos',
+      },
+    },
+    forms: {
+      FormSelectorField: {
+        noResultsText: 'No se encontraron opciones',
       },
     },
     home: {
       CategorySelection: {
         title: 'Explorar por categoría',
         subtitle: 'Descubra eventos que coincidan con sus intereses',
+        categoryButtonAriaLabel: 'Ver categoría',
       },
       HomeViewContent: {
         title: 'Encuentra el evento para ti',
@@ -561,6 +597,7 @@ export default {
         cropError: 'No se pudo recortar la imagen. Por favor inténtalo de nuevo.',
         dialogCancelButton: 'Cerca',
         dialogConfirmButton: 'Ahorrar',
+        uploadAriaLabel: 'Subir imagen',
       },
       PosterCropUpload: {
         label: 'Cartel del evento',
@@ -582,6 +619,22 @@ export default {
         profile: 'Perfil',
         logout: 'Cerrar sesión',
         darkMode: 'Modo oscuro',
+        ariaLabels: {
+          closeSearch: 'Cerrar búsqueda',
+          search: 'Buscar',
+          chat: 'Charlar',
+          menu: 'Menú',
+          toggleTheme: 'Alternar modo oscuro',
+          createEvent: 'Crear evento',
+          notifications: 'Notificaciones',
+        },
+      },
+      DrawerMenu: {
+        closeDrawerAriaLabel: 'Cerrar menú',
+      },
+      NavigationButtons: {
+        backButton: 'Volver',
+        homeButton: 'ir a casa',
       },
       SearchBar: {
         baseHint: 'Buscar...',
@@ -616,11 +669,18 @@ export default {
           loading: 'Cargando reseñas...',
           noReviews: 'Aún no hay reseñas para esta organización.',
         },
+        TicketsTab: {
+          noTickets: 'Aún no has comprado ninguna entrada',
+        },
       },
       ProfileActions: {
         createEvent: 'Crear evento',
         following: 'Siguiente',
         follow: 'Seguir',
+        editProfileAriaLabel: 'Editar perfil',
+        openChatAriaLabel: 'Mensajes abiertos',
+        openSettingsAriaLabel: 'Abrir configuración',
+        sendMessageAriaLabel: 'enviar mensaje',
       },
       ProfileBody: {
         myEventsExternal: 'Eventos',
@@ -642,13 +702,19 @@ export default {
       ProfileHeader: {
         followError: 'No se pudo actualizar el estado de seguimiento',
         uploadAvatarError: 'No se pudo cargar la imagen de avatar, inténtelo de nuevo',
+        profileUpdate: '¡Perfil actualizado exitosamente!',
         userAvatarAlt: 'Avatar de usuario',
+        changeAvatarAriaLabel: 'Cambiar foto de perfil',
+        viewAvatarAriaLabel: 'Ver foto de perfil',
+        scrollToTopAriaLabel: 'Desplazarse hasta la parte superior del perfil',
       },
       UserInfo: {
         followers: 'Seguidores',
         noFollowers: 'Aún no hay seguidores',
         following: 'Siguiente',
         noFollowing: 'No seguir a nadie todavía',
+        viewFollowersAriaLabel: 'Ver seguidores',
+        viewFollowingAriaLabel: 'Ver siguiente',
       },
     },
     reviews: {
@@ -667,7 +733,7 @@ export default {
           label: 'Filtrar por calificación',
         },
       },
-      rating: {
+      ratings: {
         RatingInfo: {
           noReviews: 'Sin reseñas',
           reviews: 'Reseñas',
@@ -749,13 +815,19 @@ export default {
           languageTitle: 'Preferencia de idioma',
           languageSubtitle: 'Elija su idioma preferido para la aplicación',
         },
-        ReviewsTab: {
+        MyReviewsTab: {
           loadReviewsError: 'No se pudieron cargar tus reseñas, inténtalo de nuevo.',
           searchHint: 'Busca tus reseñas...',
           noReviews: 'Aún no has enviado ninguna reseña',
           noReviewsFound: 'No se encontraron reseñas que coincidan con su búsqueda',
         },
       },
+    },
+  },
+  stores: {
+    auth: {
+      failedRegistration: 'Registro fallido',
+      failedLogin: 'Nombre de usuario o contraseña incorrectos',
     },
   },
 }

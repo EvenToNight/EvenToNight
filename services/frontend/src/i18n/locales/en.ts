@@ -62,6 +62,8 @@ export default {
             label: 'Quantity',
             error: 'Please enter a quantity',
           },
+          addTicketButton: 'Add ticket type',
+          deleteTicketButton: 'Delete ticket type',
         },
         tags: {
           label: 'Tags',
@@ -273,8 +275,10 @@ export default {
         title: 'Select Tickets',
         available: 'available',
         soldOut: 'Sold out',
+        quantityAriaLabel: 'Quantity input for',
         total: 'Total',
         ticket: 'Ticket',
+        tickets: 'Tickets',
         actions: {
           cancel: 'Back',
           continueToPayment: 'Continue to Payment',
@@ -329,6 +333,8 @@ export default {
         emailFormatError: 'Please enter a valid email address',
         passwordLabel: 'Password',
         passwordError: 'Password is required',
+        passwordStrengthError:
+          'Password must be at least 8 characters long and contain a lowercase letter, a number, and a special character (!@#$%^&*)',
         confirmPasswordLabel: 'Confirm Password',
         emptyConfirmPasswordError: 'Please confirm your password',
         passwordMismatchError: 'Passwords do not match',
@@ -337,6 +343,20 @@ export default {
       },
     },
     buttons: {
+      actionButtons: {
+        BackHomeButton: {
+          goToHome: 'Go to home',
+        },
+        BackButton: {
+          goBack: 'Go back',
+        },
+        HomeButton: {
+          goToHome: 'Go to home',
+        },
+        CloseButton: {
+          close: 'Close',
+        },
+      },
       basicButtons: {
         SeeAllButton: {
           seeAll: 'See All',
@@ -354,6 +374,8 @@ export default {
         draftBadge: 'Draft',
         cancelledBadge: 'Cancelled',
         draftMissingTitle: 'Untitled Event',
+        viewEventAriaLabel: 'View event:',
+        editDraftAriaLabel: 'Edit draft:',
       },
       ReviewCard: {
         deleteDialog: {
@@ -369,9 +391,14 @@ export default {
         },
       },
       SearchResultCard: {
+        eventPosterAlt: 'Event Poster',
+        userAvatarAlt: 'User Avatar',
         event: 'Event',
         organization: 'Organization',
         member: 'User',
+      },
+      UserInfoCard: {
+        avatarAlt: 'User Avatar',
       },
     },
     chat: {
@@ -440,6 +467,7 @@ export default {
         noLikes: 'No likes yet',
         participants: 'Participants',
         noParticipants: 'No participants yet',
+        likeButton: 'Like event',
       },
       EventInfo: {
         freePrice: 'Free',
@@ -450,6 +478,7 @@ export default {
         location: 'Location',
         price: 'Price',
         about: 'About this event',
+        openInMaps: 'Open in Google Maps',
       },
       EventReviewsPreview: {
         title: 'Reviews',
@@ -514,6 +543,7 @@ export default {
         ExploreEventsTab: {
           emptySearch: 'No events found',
           emptySearchText: 'Search events by name',
+          resultsHeading: 'Search Results',
         },
       },
       ExploreViewContent: {
@@ -525,13 +555,19 @@ export default {
         usersEmptySearch: 'No users found',
         usersEmptySearchText: 'Search users by name',
         title: 'Explore',
-        subtitile: 'Find events, organizers, or connect with your friends',
+        subtitle: 'Find events, organizers, or connect with your friends',
+      },
+    },
+    forms: {
+      FormSelectorField: {
+        noResultsText: 'No options found',
       },
     },
     home: {
       CategorySelection: {
         title: 'Explore by Category',
         subtitle: 'Discover events that match your interests',
+        categoryButtonAriaLabel: 'View category',
       },
       HomeViewContent: {
         title: 'Find the event for you',
@@ -555,6 +591,7 @@ export default {
         cropError: 'Failed to crop the image. Please try again.',
         dialogCancelButton: 'Close',
         dialogConfirmButton: 'Save',
+        uploadAriaLabel: 'Upload Image',
       },
       PosterCropUpload: {
         label: 'Event Poster',
@@ -576,6 +613,22 @@ export default {
         profile: 'Profile',
         logout: 'Logout',
         darkMode: 'Dark Mode',
+        ariaLabels: {
+          closeSearch: 'Close search',
+          search: 'Search',
+          chat: 'Chat',
+          menu: 'Menu',
+          toggleTheme: 'Toggle dark mode',
+          createEvent: 'Create event',
+          notifications: 'Notifications',
+        },
+      },
+      DrawerMenu: {
+        closeDrawerAriaLabel: 'Close menu',
+      },
+      NavigationButtons: {
+        backButton: 'Go back',
+        homeButton: 'Go to home',
       },
       SearchBar: {
         baseHint: 'Search...',
@@ -610,11 +663,18 @@ export default {
           loading: 'Loading reviews...',
           noReviews: 'No reviews for this organization yet',
         },
+        TicketsTab: {
+          noTickets: 'You have not purchased any tickets yet',
+        },
       },
       ProfileActions: {
         createEvent: 'Create Event',
         following: 'Following',
         follow: 'Follow',
+        editProfileAriaLabel: 'Edit profile',
+        openChatAriaLabel: 'Open messages',
+        openSettingsAriaLabel: 'Open settings',
+        sendMessageAriaLabel: 'Send message',
       },
       ProfileBody: {
         myEventsExternal: 'Events',
@@ -636,13 +696,19 @@ export default {
       ProfileHeader: {
         followError: 'Failed to update follow status',
         uploadAvatarError: 'Failed to upload avatar image, please try again',
+        profileUpdate: 'Profile updated successfully!',
         userAvatarAlt: 'User Avatar',
+        changeAvatarAriaLabel: 'Change profile picture',
+        viewAvatarAriaLabel: 'View profile picture',
+        scrollToTopAriaLabel: 'Scroll to top of profile',
       },
       UserInfo: {
         followers: 'Followers',
         noFollowers: 'No followers yet',
         following: 'Following',
         noFollowing: 'Not following anyone yet',
+        viewFollowersAriaLabel: 'View followers',
+        viewFollowingAriaLabel: 'View following',
       },
     },
     reviews: {
@@ -661,7 +727,7 @@ export default {
           label: 'Filter by Rating',
         },
       },
-      rating: {
+      ratings: {
         RatingInfo: {
           noReviews: 'No reviews',
           reviews: 'Reviews',
@@ -743,13 +809,19 @@ export default {
           languageTitle: 'Language Preference',
           languageSubtitle: 'Choose your preferred language for the application',
         },
-        ReviewsTab: {
+        MyReviewsTab: {
           loadReviewsError: 'Failed to load your reviews, please try again',
           searchHint: 'Search your reviews...',
           noReviews: 'You have not submitted any reviews yet',
           noReviewsFound: 'No reviews found matching your search',
         },
       },
+    },
+  },
+  stores: {
+    auth: {
+      failedRegistration: 'Registration failed',
+      failedLogin: 'Wrong username or password',
     },
   },
 }

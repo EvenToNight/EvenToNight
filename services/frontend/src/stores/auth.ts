@@ -2,7 +2,6 @@ import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import type { User, UserID } from '@/api/types/users'
 import { api } from '@/api'
-import { useI18n } from 'vue-i18n'
 import { useQuasar } from 'quasar'
 import type {
   AccessToken,
@@ -14,6 +13,7 @@ import { useNavigation } from '@/router/utils'
 import { dateReviver } from '@/api/utils/parsingUtils'
 import { useDarkMode } from '@/composables/useDarkMode'
 import { createLogger } from '@/utils/logger'
+import { useTranslation } from '@/composables/useTranslation'
 export const DEFAULT_AVATAR_URL = `http://media.${import.meta.env.VITE_HOST || 'localhost'}/users/default.png`
 
 const ACCESS_TOKEN_SESSION_KEY = 'access_token_session'
@@ -22,14 +22,14 @@ const REFRESH_TOKEN_SESSION_KEY = 'refresh_token_session'
 const REFRESH_TOKEN_EXPIRY_SESSION_KEY = 'refresh_token_expiry_session'
 const USER_SESSION_KEY = 'user_session'
 export const useAuthStore = defineStore('auth', () => {
-  const { t } = useI18n()
+  const { t } = useTranslation('stores.auth')
   const { locale, changeLocale } = useNavigation()
   const $q = useQuasar()
   const user = ref<User | null>(null)
   const isLoading = ref(false)
   const isAuthenticated = computed(() => {
-    if (!expiredAt.value) return false
-    return expiredAt.value > Date.now()
+    if (!refreshExpiredAt.value || !user.value) return false
+    return refreshExpiredAt.value > Date.now()
   })
   const isOrganization = computed(() => user.value?.role === 'organization')
   const isMember = computed(() => user.value?.role === 'member')
@@ -99,7 +99,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : t('auth.registerForm.failedRegistration'),
+        error: error instanceof Error ? error.message : t('failedRegistration'),
       }
     } finally {
       isLoading.value = false
@@ -118,7 +118,7 @@ export const useAuthStore = defineStore('auth', () => {
     } catch (error) {
       return {
         success: false,
-        error: error instanceof Error ? error.message : t('auth.loginForm.failedLogin'),
+        error: error instanceof Error ? error.message : t('failedLogin'),
       }
     } finally {
       isLoading.value = false
@@ -156,7 +156,6 @@ export const useAuthStore = defineStore('auth', () => {
   const updateUser = async (data: Partial<User> & { avatarFile?: File | null }): Promise<User> => {
     if (user.value?.id) {
       const { avatarFile, ...userData } = data
-      //TODO: check if it works properly
       const updatedUser = { ...user.value, ...userData }
 
       if (avatarFile !== undefined) {
@@ -173,7 +172,6 @@ export const useAuthStore = defineStore('auth', () => {
       if (userData.language) {
         await changeLocale(userData.language)
       }
-      //TODO: sync last logged user settings? seems great
       localStorage.setItem('darkMode', String($q.dark.isActive))
       localStorage.setItem('user-locale', userData.language!)
       setUser(updatedUser)

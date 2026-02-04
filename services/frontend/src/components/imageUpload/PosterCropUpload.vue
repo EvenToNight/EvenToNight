@@ -75,7 +75,7 @@ const removeImage = () => {
 
 <template>
   <div class="image-crop-upload">
-    <label v-if="label" class="field-label">{{ label }}</label>
+    <span v-if="label" class="field-label">{{ label }}</span>
 
     <BaseCropUpload
       ref="baseCropUploadRef"

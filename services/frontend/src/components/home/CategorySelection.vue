@@ -56,7 +56,11 @@ onMounted(async () => {
           v-for="category in categories"
           :key="category.category"
           class="category-card row items-center"
+          role="button"
+          tabindex="0"
+          :aria-label="t('categoryButtonAriaLabel') + ': ' + category.category"
           @click="handleCategoryClick(category)"
+          @keydown.enter="handleCategoryClick(category)"
         >
           <div class="category-icon-wrapper flex items-center justify-center">
             <q-icon :name="getCategoryIcon(category.category)" size="36px" />
@@ -87,7 +91,10 @@ onMounted(async () => {
 
 .category-subtitle {
   font-size: $font-size-base;
-  color: $color-text-secondary;
+
+  @include light-mode {
+    color: color.scale($color-text-secondary, $lightness: -28%);
+  }
 
   @include dark-mode {
     color: rgba($color-white, 0.7);

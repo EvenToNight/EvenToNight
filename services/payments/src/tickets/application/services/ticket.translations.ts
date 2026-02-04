@@ -5,6 +5,7 @@ export interface TicketTranslations {
   ticket: string;
   ticketId: string;
   event: string;
+  eventDate: string;
   attendee: string;
   purchase: string;
   price: string;
@@ -16,40 +17,45 @@ export const TICKET_TRANSLATIONS: Record<SupportedLocale, TicketTranslations> =
       ticket: 'Biglietto',
       ticketId: 'ID Biglietto',
       event: 'Evento',
+      eventDate: "Data dell'evento",
       attendee: 'Partecipante',
-      purchase: 'Acquisto',
+      purchase: 'Acquistato il',
       price: 'Prezzo',
     },
     en: {
       ticket: 'Ticket',
       ticketId: 'Ticket ID',
       event: 'Event',
+      eventDate: 'Event Date',
       attendee: 'Attendee',
-      purchase: 'Purchase',
+      purchase: 'Purchased on',
       price: 'Price',
     },
     es: {
       ticket: 'Entrada',
       ticketId: 'ID de Entrada',
       event: 'Evento',
+      eventDate: 'Fecha del Evento',
       attendee: 'Asistente',
-      purchase: 'Compra',
+      purchase: 'Comprado el',
       price: 'Precio',
     },
     fr: {
       ticket: 'Billet',
       ticketId: 'ID du Billet',
       event: 'Événement',
+      eventDate: "Date de l'événement",
       attendee: 'Participant',
-      purchase: 'Achat',
+      purchase: 'Acheté le',
       price: 'Prix',
     },
     de: {
       ticket: 'Ticket',
       ticketId: 'Ticket-ID',
       event: 'Veranstaltung',
+      eventDate: 'Veranstaltungsdatum',
       attendee: 'Teilnehmer',
-      purchase: 'Kauf',
+      purchase: 'Gekauft am',
       price: 'Preis',
     },
   };

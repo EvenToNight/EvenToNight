@@ -130,8 +130,6 @@ const handleMenuOpen = () => {
 }
 
 onMounted(async () => {
-  //TODO: check if return string or number
-  // await loadItems()
   const initialCount = await api.notifications.getUnreadNotificationsCount()
   unreadNotificationsCount.value = Number(initialCount) || 0
   api.notifications.onLikeReceived(incrementUnreadCountCallback)
@@ -149,7 +147,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <q-btn :flat="true" :dense="dense" :round="!dense" icon="notifications">
+  <q-btn :flat="true" :dense="dense" :round="!dense" icon="notifications" :aria-label="t('title')">
     <q-badge v-if="unreadNotificationsCount > 0" color="red" floating>{{
       String(unreadNotificationsCount)
     }}</q-badge>
@@ -185,7 +183,7 @@ onUnmounted(() => {
             </template>
             <template #loading>
               <div class="row justify-center q-my-md">
-                <q-spinner-dots color="primary" size="40px" />
+                <q-spinner color="primary" size="40px" />
               </div>
             </template>
           </q-infinite-scroll>

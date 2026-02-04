@@ -1,16 +1,16 @@
 <script setup lang="ts">
 import { onMounted, computed } from 'vue'
-import { useI18n } from 'vue-i18n'
 import TicketCard from '@/components/cards/TicketCard.vue'
 import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { useAuthStore } from '@/stores/auth'
 import type { Event } from '@/api/types/events'
 import { loadUserEventParticipations } from '@/api/utils/paymentsUtils'
+import { useTranslation } from '@/composables/useTranslation'
 
 const ITEMS_PER_PAGE = 20
 
-const { t } = useI18n()
+const { t } = useTranslation('components.profile.tabs.TicketsTab')
 const authStore = useAuthStore()
 
 const userId = computed(() => authStore.user!.id)
@@ -42,8 +42,12 @@ onMounted(() => {
 
 <template>
   <div class="tickets-tab">
+    <div v-if="loading && events.length === 0" class="initial-loading">
+      <q-spinner color="primary" size="50px" />
+    </div>
+
     <q-infinite-scroll
-      v-if="!loading && events.length > 0"
+      v-else-if="events.length > 0"
       :offset="250"
       class="tickets-scroll"
       :disable="loadingMore"
@@ -54,8 +58,8 @@ onMounted(() => {
       </div>
 
       <template #loading>
-        <div class="row justify-center q-my-md">
-          <q-spinner-dots color="primary" size="40px" />
+        <div class="loading-state">
+          <q-spinner color="primary" size="50px" />
         </div>
       </template>
     </q-infinite-scroll>
@@ -63,7 +67,7 @@ onMounted(() => {
     <EmptyState
       v-else-if="!loading"
       empty-icon-name="confirmation_number"
-      :empty-text="t('userProfile.noTickets')"
+      :empty-text="t('noTickets')"
     />
   </div>
 </template>
@@ -74,6 +78,10 @@ onMounted(() => {
   height: 100%;
 }
 
+.initial-loading {
+  @include flex-center;
+}
+
 .tickets-scroll {
   height: 100%;
 }
@@ -82,5 +90,10 @@ onMounted(() => {
   @include flex-column;
   gap: $spacing-4;
   padding: $spacing-3;
+}
+
+.loading-state {
+  @include flex-center;
+  flex: 1;
 }
 </style>
