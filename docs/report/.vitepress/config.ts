@@ -8,7 +8,11 @@ export default {
         nav: [
         { text: "Introduzione", link: "/" },
         { text: "Requisiti", link: "/requisiti" },
-        { text: "Architettura", link: "/architettura" },
+        { text: "Design", link: "/design" },
+        { text: "Tecnologie", link: "/tecnologie" },
+        { text: "Codice", link: "/codice" },
+        { text: "Test", link: "/test" },
+        { text: "Deployment", link: "/deployment" },
         { text: "Conclusioni", link: "/conclusioni" }
         ],
         sidebar: [
@@ -17,7 +21,11 @@ export default {
             items: [
                 { text: "Introduzione", link: "/" },
                 { text: "Requisiti", link: "/requisiti" },
-                { text: "Architettura", link: "/architettura" },
+                { text: "Design", link: "/design" },
+                { text: "Tecnologie" , link: "/tecnologie" },
+                { text: "Codice", link: "/codice" },
+                { text: "Test", link: "/test" },
+                { text: "Deployment", link: "/deployment" },
                 { text: "Conclusioni", link: "/conclusioni" }
               ]
         }

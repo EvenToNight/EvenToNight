@@ -68,7 +68,6 @@ export class RabbitMQConsumer {
     console.log(`Listening for messages on queue: ${queue}`);
   }
 
-  //eslint-disable-next-line @typescript-eslint/require-await
   private async processMessage(
     channel: ConfirmChannel,
     msg: ConsumeMessage,

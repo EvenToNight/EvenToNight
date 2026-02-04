@@ -94,7 +94,7 @@ async function bootstrap() {
     );
     const notificationRoutes = createNotificationRoutes(notificationController);
 
-    const app = createApp(notificationRoutes);
+    const app = createApp();
     const httpServer = createServer(app);
 
     const io = new Server(httpServer, {
@@ -110,6 +110,8 @@ async function bootstrap() {
 
     const userController = new UserController(isOnlineHandler);
     const userRoutes = createUserRoutes(userController);
+
+    app.use("/", notificationRoutes);
     app.use("/users", userRoutes);
 
     app.use((req, res) => {

@@ -339,7 +339,7 @@ export default {
         passwordLabel: 'Contraseña',
         passwordError: 'Se requiere contraseña',
         passwordStrengthError:
-          'La contraseña debe tener al menos 8 caracteres y contener una letra minúscula, un número y un carácter especial (!@#$%^&*)',
+          'La contraseña debe tener al menos 8 caracteres y contener una letra minúscula, un número y un carácter especial.', //[ignorei18n]
         confirmPasswordLabel: 'confirmar Contraseña',
         emptyConfirmPasswordError: 'Por favor confirma tu contraseña',
         passwordMismatchError: 'Las contraseñas no coinciden',

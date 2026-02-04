@@ -232,12 +232,12 @@ Use Gradle to set up the entire environment with seeding and Stripe listener:
 
 **Stop application:**
 ```bash
-./scripts/composeApplication.sh down --wait
+./scripts/composeApplication.sh down
 ```
 
 **Stop and remove volumes:**
 ```bash
-./scripts/composeApplication.sh down -v --wait
+./scripts/composeApplication.sh down -v
 ```
 
 ## Usage

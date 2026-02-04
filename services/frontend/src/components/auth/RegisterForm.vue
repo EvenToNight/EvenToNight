@@ -87,7 +87,10 @@ const handleRegister = async () => {
         :label="t('passwordLabel') + ' *'"
         icon="lock"
         autocomplete="new-password"
-        :rules="[notEmpty(t('passwordError')), isStrongPassword(t('passwordStrengthError'))]"
+        :rules="[
+          notEmpty(t('passwordError')),
+          isStrongPassword(t('passwordStrengthError') + '(!@#$%^&*)'),
+        ]"
       />
 
       <FormField

@@ -343,7 +343,7 @@ export default {
         passwordLabel: 'Passwort',
         passwordError: 'Passwort ist erforderlich',
         passwordStrengthError:
-          'Das Passwort muss mindestens 8 Zeichen lang sein und einen Kleinbuchstaben, eine Zahl und ein Sonderzeichen (!@#$%^&*) enthalten.',
+          'Das Passwort muss mindestens 8 Zeichen lang sein und einen Kleinbuchstaben, eine Zahl und ein Sonderzeichen enthalten.', //[ignorei18n]
         confirmPasswordLabel: 'Passwort bestätigen',
         emptyConfirmPasswordError: 'Bitte bestätigen Sie Ihr Passwort',
         passwordMismatchError: 'Passwörter stimmen nicht überein',
