@@ -338,7 +338,7 @@ export default {
         passwordLabel: 'Password',
         passwordError: 'La password è obbligatoria',
         passwordStrengthError:
-          'La password deve essere lunga almeno 8 caratteri e contenere una lettera minuscola, un numero e un carattere speciale (!@#$%^&*)', //[ignorei18n]
+          'La password deve essere lunga almeno 8 caratteri e contenere una lettera minuscola, un numero e un carattere speciale (!@#$%^&*)',
         confirmPasswordLabel: 'Conferma password',
         emptyConfirmPasswordError: 'Per favore conferma la tua password',
         passwordMismatchError: 'Le password non corrispondono',

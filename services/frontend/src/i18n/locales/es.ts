@@ -338,6 +338,8 @@ export default {
         emailFormatError: 'Por favor, introduce una dirección de correo electrónico válida',
         passwordLabel: 'Contraseña',
         passwordError: 'Se requiere contraseña',
+        passwordStrengthError:
+          'La contraseña debe tener al menos 8 caracteres y contener una letra minúscula, un número y un carácter especial (!@#$%^&*)',
         confirmPasswordLabel: 'confirmar Contraseña',
         emptyConfirmPasswordError: 'Por favor confirma tu contraseña',
         passwordMismatchError: 'Las contraseñas no coinciden',
