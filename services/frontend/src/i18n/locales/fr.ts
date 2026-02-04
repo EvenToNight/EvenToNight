@@ -338,7 +338,7 @@ export default {
         passwordLabel: 'Mot de passe',
         passwordError: 'Le mot de passe est requis',
         passwordStrengthError:
-          'Le mot de passe doit comporter au moins 8 caractères et contenir une lettre minuscule, un chiffre et un caractère spécial (!@#$%^&*).',
+          'Le mot de passe doit comporter au moins 8 caractères et contenir une lettre minuscule, un chiffre et un caractère spécial.', //[ignorei18n]
         confirmPasswordLabel: 'Confirmez le mot de passe',
         emptyConfirmPasswordError: 'Veuillez confirmer votre mot de passe',
         passwordMismatchError: 'Les mots de passe ne correspondent pas',
