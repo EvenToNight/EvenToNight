@@ -156,7 +156,6 @@ export const useAuthStore = defineStore('auth', () => {
   const updateUser = async (data: Partial<User> & { avatarFile?: File | null }): Promise<User> => {
     if (user.value?.id) {
       const { avatarFile, ...userData } = data
-      //TODO: check if it works properly
       const updatedUser = { ...user.value, ...userData }
 
       if (avatarFile !== undefined) {
@@ -173,7 +172,6 @@ export const useAuthStore = defineStore('auth', () => {
       if (userData.language) {
         await changeLocale(userData.language)
       }
-      //TODO: sync last logged user settings? seems great
       localStorage.setItem('darkMode', String($q.dark.isActive))
       localStorage.setItem('user-locale', userData.language!)
       setUser(updatedUser)

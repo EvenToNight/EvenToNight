@@ -5,7 +5,6 @@ import type {
 } from '@/api/types/chat'
 
 export const Message = {
-  //TODO: evaluate to leave chatUser in sender field
   fromApi(dto: MessageAPIResponse): AdaptedMessage {
     return {
       id: dto.id,

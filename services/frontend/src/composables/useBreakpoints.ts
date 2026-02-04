@@ -11,7 +11,6 @@ export interface UseBreakpointsReturn {
 export function useBreakpoints(): UseBreakpointsReturn {
   const $q = useQuasar()
 
-  //TODO: check if is possible to set $q.sreen.lt.mobile
   const isMobile = computed(() => $q.screen.width <= MOBILE_BREAKPOINT)
 
   return {

@@ -16,9 +16,6 @@ interface Props {
 const props = defineProps<Props>()
 const { goToEventReviews } = useNavigation()
 const { t } = useTranslation('components.profile.tabs.ReviewsTab')
-// TODO: when no reviews are present, show leave a review button if: user is Logged in (bait if user is not logged? mh sus) and is NOT own profile
-// AND user has participated in at least one event of the organization
-// const isOwnProfile = useIsOwnProfile(computed(() => props.organizationId))
 
 const reviews = ref<EventReview[]>([])
 const loading = ref(true)

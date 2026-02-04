@@ -30,7 +30,6 @@ const defaultIcon = computed(() => {
 })
 
 onMounted(() => {
-  //TODO: check redirection to login if not authenticated
   if (authStore.user) {
     name.value = authStore.user.name || ''
     bio.value = authStore.user.bio || ''

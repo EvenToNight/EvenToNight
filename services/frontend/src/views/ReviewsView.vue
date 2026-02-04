@@ -24,7 +24,6 @@ const authStore = useAuthStore()
 const organization = ref<User>()
 const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 
-//TODO: when to put as query param?
 const getRatingFromQuery = (): Rating | null => {
   if (typeof query.rating !== 'string') return null
   const num = Number(query.rating)
@@ -37,11 +36,7 @@ const selectedRatingFilter = ref<Rating | null>(getRatingFromQuery())
 
 const canUserLeaveReview = ref(false)
 const userHasReviews = ref(false)
-// const tempEventIdForDialog = ref<EventID | null>(null)
-// const tempReview = ref<EventReview | null>(null)
 
-// TODO: show leave a review button if: user is Logged in (bait if user is not logged? mh sus) and is NOT own profile
-// AND user has participated in at least one event of the organization
 const showReviewDialog = ref(false)
 
 const loadReviewsStatistics = async () => {

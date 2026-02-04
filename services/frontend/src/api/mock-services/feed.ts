@@ -16,7 +16,6 @@ export const mockFeedApi: FeedAPI = {
     _userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<EventID>> {
-    //TODO token for auth userId
     return getPaginatedItems(mockFeed, pagination)
   },
   async getNewestEvents(pagination?: PaginatedRequest): Promise<PaginatedResponse<EventID>> {
@@ -42,7 +41,6 @@ export const mockFeedApi: FeedAPI = {
     _userId: UserID,
     pagination?: PaginatedRequest
   ): Promise<PaginatedResponse<EventID>> {
-    //TODO token for auth userId
     return getPaginatedItems(mockFeed, pagination)
   },
 }

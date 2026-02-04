@@ -61,8 +61,6 @@ const rating = ref<Rating>(props.existingReview?.rating ?? 5)
 const reviewTitle = ref(props.existingReview?.title ?? '')
 const reviewDescription = ref(props.existingReview?.comment ?? '')
 
-//TODO: check
-// Reset form when dialog closes (only for new reviews, not edits)
 watch(isOpen, (newValue) => {
   if (!newValue && !props.existingReview) {
     rating.value = 5
@@ -72,7 +70,6 @@ watch(isOpen, (newValue) => {
   }
 })
 
-//TODO: search completed event where user has partecipated
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
   update(() => {
     if (!query) {

@@ -32,7 +32,7 @@ const authStore = useAuthStore()
 const { goToHome, goToUserProfile, goToCreateEvent, goToChat } = useNavigation()
 const { unreadMessagesCount } = useUnreadMessagesCount()
 
-const mobileSearchOpen = ref(false) //TODO evaluate usage
+const mobileSearchOpen = ref(false)
 const mobileMenuOpen = ref(false)
 
 watch(

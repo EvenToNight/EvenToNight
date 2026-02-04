@@ -130,8 +130,6 @@ const handleMenuOpen = () => {
 }
 
 onMounted(async () => {
-  //TODO: check if return string or number
-  // await loadItems()
   const initialCount = await api.notifications.getUnreadNotificationsCount()
   unreadNotificationsCount.value = Number(initialCount) || 0
   api.notifications.onLikeReceived(incrementUnreadCountCallback)
