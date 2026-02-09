@@ -1,3 +1,10 @@
+## [2.0.1](https://github.com/EvenToNight/EvenToNight/compare/v2.0.0...v2.0.1) (2026-02-09)
+
+### Bug Fixes
+
+* **i18n:** fix verify view i18n translations path ([72897ab](https://github.com/EvenToNight/EvenToNight/commit/72897ab3aec06ea16a5ac256b9cdbccaead5a31a))
+* **infinite-scroll:** avoid duplicate loading in multi section infinite scroll composable ([49d32db](https://github.com/EvenToNight/EvenToNight/commit/49d32dbc597cf8ff2b95127c237cb5867de3f6fb))
+
 ## [2.0.0](https://github.com/EvenToNight/EvenToNight/compare/v1.27.1...v2.0.0) (2026-02-04)
 
 ### ⚠ BREAKING CHANGES
