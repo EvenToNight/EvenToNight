@@ -79,7 +79,7 @@ Il report generato include:
 
 
 <div align="center" style="display: flex; justify-content: center; gap: 10px;">
-  <img src="./public/image 10.png" alt="Accessibility report" width="85%" />
+  <img src="/test/a11y-report-summary.png" alt="Report di accessibilità eseguito con Lighthouse" width="85%" />
 </div>
 
 

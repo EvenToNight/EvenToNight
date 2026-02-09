@@ -108,15 +108,15 @@ Ad ogni modo il design è stato pensato e realizzato anche per essere responsive
 Di seguito è riportato il mockup per la schermata home. Questa è la schermata iniziale proposta all’utente, da cui potrà da subito cercare degli eventi o semplicemente vedere gli eventi proposti in vetrina. Da questa schermata l’utente potrà anche accedere o registrarsi alla piattaforma.
 
 <div align="center" style="display: flex; justify-content: center; gap: 10px;">
-  <img src="./public/iPhone_16_-_Home_(1).jpg" alt="iPhone 16 - Home (1)" width="32%" />
-  <img src="./public/iPhone_16_-_Home_(3).jpg" alt="iPhone 16 - Home (2)" width="32%" />
-  <img src="./public/iPhone_16_-_Home_(4).jpg" alt="iPhone 16 - Home (3)" width="32%" />
+  <img src="/mockup/Mockup-iPhone_16-Home_1.jpg" alt="Mockup iPhone16 Home 1" width="32%" />
+  <img src="/mockup/Mockup-iPhone_16-Home_2.jpg" alt="Mockup iPhone16 Home 2" width="32%" />
+  <img src="/mockup/Mockup-iPhone_16-Home_3.jpg" alt="Mockup iPhone16 Home 3" width="32%" />
 </div>
 
 Inizialmente era stata anche proposta una versione alternativa con un diverso sistema di navigazione, che però è stata successivamente scartata vista la scarsa integrazione con il design dell’applicazione, in particolare in combinazione con la schermata **Esplora**.
 
 <p align="center">
-    <img src="./public/iPhone_16_-_Base.jpg" alt="iPhone 16 - Base" width="32%" />
+    <img src="/mockup/Mockup-iPhone_16-Home-Alternative.jpg" alt="Mockup iPhone16 Home Alternative" width="32%" />
     <br />
 </p>
 
@@ -125,9 +125,9 @@ Inizialmente era stata anche proposta una versione alternativa con un diverso si
 Di seguito è riportato il design della sezione esplora. In questa sezione è possibile andare a visualizzare tutti gli eventi presenti sulla piattaforma e cercare anche tutti gli utenti per visualizzarne il profilo, seguirli e contattare le organizzazioni.
 
 <div align="center" style="display: flex; justify-content: center; gap: 10px;">
-  <img src="./public/iPhone_16_-_Explore.jpg" alt="iPhone 16 - Explore.jpg" width="32%" />
-  <img src="./public/iPhone_16_-_ExploreEvents.jpg" alt="iPhone 16 - ExploreEvents.jpg" width="32%" />
-  <img src="./public/iPhone_16_-_ExploreOrganization.jpg" alt="iPhone 16 - ExploreOrganization.jpg" width="32%" />
+  <img src="/mockup/Mockup-iPhone_16-Explore.jpg" alt="Mockup iPhone16 Explore" width="32%" />
+  <img src="/mockup/Mockup-iPhone_16-Explore_Events.jpg" alt="Mockup iPhone16 Explore Events" width="32%" />
+  <img src="/mockup/Mockup-iPhone_16-Explore_Organizations.jpg" alt="Mockup iPhone16 Explore Organizations" width="32%" />
 </div>
 
 #### Profilo
@@ -135,7 +135,7 @@ Di seguito è riportato il design della sezione esplora. In questa sezione è po
 Da questa schermata l’utente avrà accesso alle sue informazioni, potrà modificare il suo profilo e le sue preferenze.
 
 <div align="center" style="display: flex; justify-content: center; gap: 10px;">
-  <img src="./public/iPhone_16_-_ExploreUsers_(1).jpg" alt="iPhone 16 - ExploreUsers (1).jpg" width="32%"/>
+  <img src="/mockup/Mockup-iPhone_16-User_Profile.jpg" alt="Mockup iPhone16 User Profile" width="32%"/>
 </div>
 
 ### Storyboard
@@ -159,38 +159,38 @@ Nel progettare i flussi di navigazione si è sempre tenuto conto della **regola 
 
 L’utente che apre la piattaforma può iniziare ad esplorarla, in particolare può scoprire gli eventi proposti o cercarli direttamente tramite la barra di ricerca. Nel caso in cui voglia visualizzare maggiori risultati può andare in una pagina dedicata all’esplorazione dei contenuti della piattaforma dove è possibile filtrare gli eventi e cercare in maniera più comoda utenti e organizzazioni.
 
-![EvenToNight-Storyboard-Esplora.png](/EvenToNight-Storyboard-Esplora.png)
+![Storyboard Esplora](/storyboard/Storyboard-Explore.png)
 
 
 ### Login e Registrazione
 
 Dopo aver aperto l’applicazione, l’utente per accedere alle funzionalità aggiuntive che la piattaforma offre può accedere o registrarsi.
 
-![EvenToNight-Storyboard-Login.png](/EvenToNight-Storyboard-Login.png)
+![Storyboard Login](/storyboard/Storyboard-Login.png)
 
 ### Creare un evento
 
 Un'organizzazione che si è registrata sulla piattaforma ha la possibilità di creare degli eventi, la creazione avviene attraverso un form in cui inserire tutti i vari dati. Inoltre è possibile anche temporaneamente creare una bozza dell’evento e continuare a modificarla successivamente.
 
-![EvenToNight-Storyboard-Crea-Evento.png](/EvenToNight-Storyboard-Crea-Evento.png)
+![Storyboard Crea Evento](/storyboard/Storyboard-Create-Event.png)
 
 ### Partecipare ad un evento
 
 Un utente registrato sulla piattaforma ha la possibilità di acquistare i biglietti per i diversi eventi e visualizzarli in seguito, i biglietti conterranno un QR code che può essere usato dalle organizzazioni per verificarli.
 
-![EvenToNight-Storyboard-Buy-Ticket.png](/EvenToNight-Storyboard-Buy-Ticket.png)
+![Storyboard Compra Biglietto](/storyboard/Storyboard-Buy-Ticket.png)
 
 ### Recensire un evento
 
 In seguito alla partecipazione ad un evento, un utente può decidere di lasciare una sua recensione. Una volta lasciata non ne può lasciare altre per lo stesso evento ma può modificarla o eliminarla.
 
-![EvenToNight-Storyboard-Reviews.png](/EvenToNight-Storyboard-Reviews.png)
+![Storyboard Recensione](/storyboard/Storyboard-Reviews.png)
 
 ### Contattare un’organizzazione
 
 Un utente registrato può avere la necessità di contattare un’organizzazione per chiedere maggiori informazioni o per eventuali problemi.
 
-![EvenToNight-Storyboard-Chat.png](/EvenToNight-Storyboard-Chat.png)
+![Storyboard Chat](/storyboard/Storyboard-Chat.png)
 
 ## 3.3 - Dominio
 
@@ -260,11 +260,11 @@ Le API sono state progettate seguendo i principi del REST API Design, con partic
 
 Alcuni esempi di API implementate seguendo i principi citati:
 
-![image.png](/image.png)
+![Alcune API per la collection Users](/api/user-api.png)
 
-![image.png](/image%201.png)
+![Alcune API per la collection Events](/api/events-api.png)
 
-![image.png](/image%202.png)
+![Alcune API per la collection Ticket-Types](/api/ticket_types-api.png)
 
 Ogni microservizio espone una documentazione **Swagger/OpenAPI**, che descrive endpoint, input e possibili risposte HTTP.
 
@@ -280,32 +280,32 @@ Ogni servizio infatti possiede la propria logica di business, entità comuni a p
 
 Ogni servizio è containerizzato tramite Docker, comunica con gli altri servizi principalmente tramite messaggi asincroni ed espone un insieme coerente di API REST.
 
-![image.png](/image%203.png)
+![Panoramica dell' architectura](/architecture/architecture-overview.png)
 
 Le risorse individuate nella fase precedente sono state organizzate e distribuite nei vari servizi, di seguito una breve descizione.
 
-![image.png](/image%204.png)
+![Archiettura del servizio Users](/architecture/users-service.png)
 
 Il servizio *users* è responsabile della gestione delle risorse utente e di una parte delle relative sotto-risorse. 
 Per ogni utente, il sistema gestisce l'auenticazione e le informazioni riguardanti l’account (e.g username, email, interessi) e il profilo (e.g. nome, bio).
 
-![image.png](/image%205.png)
+![Archiettura del servizio Events](/architecture/events-service.png)
 
 Il servizio *events* è responsabile della gestione delle risorse eventi e delle loro informazioni. Gestisce sia gli aspetti di creazione degli eventi sia il recupero degli eventi filtrati in base a caratteristiche specificate (e.g.popolari, interessi).
 
-![image.png](/image%206.png)
+![Archiettura del servizio Interactions](/architecture/interactions-service.png)
 
 Il servizio *interactions* è responsabile di alcune sotto-risorse degli utenti e degli eventi. In particolare, gestisce tutte le informazioni riguardanti le interazioni che un utente può avere con un evento o con un altro utente. Tra le interazioni con gli eventi sono stati implementati i likes, le reviews e le partecipazioni, mentre con gli altri utenti è stato implementato un sistema di following.
 
-![image.png](/image%207.png)
+![Archiettura del servizio Chat](/architecture/chat-service.png)
 
 Il servizio *chat* è responsabile di alcune sotto-risorse degli utenti. In particolare, gestisce tutte le informazioni riguardanti le conversazioni che l’utente può avere con altri utenti.
 
-![image.png](/image%208.png)
+![Archiettura del servizio Payments](/architecture/payments-service.png)
 
 Il servizio payments è responsabile di alcune risorse degli utenti e degli eventi, in particolare della gestione dei biglietti che gli utenti possono acquistare per partecipare agli eventi.
 
-![image.png](/image%209.png)
+![Archiettura del servizio Notifications](/architecture/notifications-service.png)
 
 Il servizio *notifications* è responsabile di alcune sotto-risorse degli utenti, in particolare gestisce tutte le informazioni riguardanti le notifiche che un utente riceve. Le notifiche possono essere di tipi diversi, quali like ricevuto, review ricevuta, nuovo follower o nuovo evento creato da un’organizzazione seguita. Si occupa anche di notificare l’arrivo di un nuovo messaggio, gestito poi dal servizio chat.
 
