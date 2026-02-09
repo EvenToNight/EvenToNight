@@ -84,11 +84,6 @@ const router = createRouter({
           beforeEnter: requireGuest,
         },
         {
-          path: 'location',
-          name: 'location',
-          component: () => import('../views/LocationTestView.vue'),
-        },
-        {
           path: 'about',
           name: ABOUT_ROUTE_NAME,
           component: () => import('../views/AboutView.vue'),
