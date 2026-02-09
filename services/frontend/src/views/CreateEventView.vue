@@ -229,12 +229,12 @@ const handleDelete = async () => {
     message: t('form.dialog.delete.message'),
     cancel: {
       flat: true,
-      textColor: 'black',
+      color: 'grey-7',
       label: t('form.dialog.delete.cancelButton'),
     },
     ok: {
+      flat: true,
       color: 'negative',
-      textColor: 'black',
       label: t('form.dialog.delete.confirmButton'),
     },
     focus: 'none',
