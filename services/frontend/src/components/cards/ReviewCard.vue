@@ -75,13 +75,13 @@ const handleDelete = () => {
     message: t('deleteDialog.message'),
     cancel: {
       flat: true,
-      textColor: 'black',
+      color: 'grey-7',
       label: t('deleteDialog.cancelLabel'),
     },
     ok: {
       color: 'negative',
-      textColor: 'black',
       label: t('deleteDialog.confirmLabel'),
+      flat: true,
     },
     focus: 'none',
   }).onOk(async () => {

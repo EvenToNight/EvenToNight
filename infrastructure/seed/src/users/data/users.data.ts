@@ -311,7 +311,7 @@ export const usersSeedData: UserSeedInput[] = [
     darkMode: false,
     language: "it",
     interests: ["Concert", "Live Music"],
-    name: "Event On Night",
+    name: "Event To Night",
     avatar: "eventonight.png",
     bio: "Full Stack Developers",
     contacts: ["https://github.com/eventonight"],
