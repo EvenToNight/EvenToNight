@@ -8,7 +8,7 @@ import { createLogger } from '@/utils/logger'
 import { useTranslation } from '@/composables/useTranslation'
 
 const logger = createLogger(import.meta.url)
-const { t } = useTranslation('views.verifyTicketView')
+const { t } = useTranslation('views.VerifyTicketView')
 
 const { params, goToRoute } = useNavigation()
 const ticketId = ref<string>(params.ticketId as string)
