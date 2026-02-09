@@ -91,7 +91,6 @@ export function useMultiSectionInfiniteScroll<K extends PropertyKey, O, T>(
 
       if (!response.hasMore && currentSectionIndex.value < sections.length - 1) {
         currentSectionIndex.value++
-        await loadMore(isLoadingMore)
       }
     } catch (error) {
       if (onError) {
