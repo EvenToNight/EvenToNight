@@ -148,7 +148,7 @@ body.body--dark .outline-btn-fix.q-btn.q-btn--outline {
   &.q-hoverable:hover,
   &.q-focusable:focus {
     color: $color-primary-light !important;
-    background: color.adjust($color-primary-light, $alpha: 0.1) !important;
+    background: rgba($color-primary-light, 0.1) !important;
 
     .q-btn__content,
     .q-btn__content span,
