@@ -746,7 +746,6 @@ export default {
         selectEventError: 'Please select an event',
         eventPosterAlt: 'Event Poster',
         noEventsFound: 'No event found',
-        searchEventsHint: 'Start typing to search for events',
         ratingLabel: 'Rating',
         reviewTitle: 'Title',
         reviewTitlePlaceholder: 'Give your review a title...',

@@ -55,7 +55,6 @@ watch(
   { immediate: true }
 )
 const eventOptions = ref<Event[]>([])
-const hasSearched = ref(false)
 
 const rating = ref<Rating>(props.existingReview?.rating ?? 5)
 const reviewTitle = ref(props.existingReview?.title ?? '')
@@ -72,29 +71,19 @@ watch(isOpen, (newValue) => {
 
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
   update(() => {
-    if (!query) {
-      eventOptions.value = []
-      hasSearched.value = false
-    } else {
-      hasSearched.value = true
-      api.interactions
-        .userParticipations(authStore.user!.id, {
-          title: query,
-          reviewed: false,
-          eventStatus: 'COMPLETED',
-          organizationId: props.creatorId,
-        })
-        .then((response) => {
-          return Promise.all(response.items.map((event) => api.events.getEventById(event.eventId)))
-        })
-        .then((response) => {
-          eventOptions.value = response
-        })
-      const needle = query.toLowerCase()
-      eventOptions.value = eventOptions.value.filter(
-        (event) => event.title.toLowerCase().indexOf(needle) > -1
-      )
-    }
+    api.interactions
+      .userParticipations(authStore.user!.id, {
+        title: query,
+        reviewed: false,
+        eventStatus: 'COMPLETED',
+        organizationId: props.creatorId,
+      })
+      .then((response) => {
+        return Promise.all(response.items.map((event) => api.events.getEventById(event.eventId)))
+      })
+      .then((response) => {
+        eventOptions.value = response
+      })
   })
 }
 
@@ -179,7 +168,7 @@ const submitReview = async () => {
             <template #no-option>
               <q-item>
                 <q-item-section class="text-grey">
-                  {{ hasSearched ? t('noEventsFound') : t('searchEventsHint') }}
+                  {{ t('noEventsFound') }}
                 </q-item-section>
               </q-item>
             </template>
