@@ -752,7 +752,6 @@ export default {
         selectEventError: 'Veuillez sélectionner un événement',
         eventPosterAlt: "Affiche d'événement",
         noEventsFound: 'Aucun événement trouvé',
-        searchEventsHint: 'Commencez à taper pour rechercher des événements',
         ratingLabel: 'Notation',
         reviewTitle: 'Titre',
         reviewTitlePlaceholder: 'Donnez un titre à votre avis...',

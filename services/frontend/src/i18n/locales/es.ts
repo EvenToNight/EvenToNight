@@ -752,7 +752,6 @@ export default {
         selectEventError: 'Por favor seleccione un evento',
         eventPosterAlt: 'Cartel del evento',
         noEventsFound: 'No se encontró ningún evento',
-        searchEventsHint: 'Empiece a escribir para buscar eventos',
         ratingLabel: 'Clasificación',
         reviewTitle: 'Título',
         reviewTitlePlaceholder: 'Ponle un título a tu reseña...',

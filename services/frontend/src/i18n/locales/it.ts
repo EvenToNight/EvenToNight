@@ -751,7 +751,6 @@ export default {
         selectEventError: 'Seleziona un evento',
         eventPosterAlt: "Locandina dell'evento",
         noEventsFound: 'Nessun evento trovato',
-        searchEventsHint: 'Inizia a digitare per cercare eventi',
         ratingLabel: 'Valutazione',
         reviewTitle: 'Titolo',
         reviewTitlePlaceholder: 'Dai un titolo alla tua recensione...',

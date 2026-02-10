@@ -759,7 +759,6 @@ export default {
         selectEventError: 'Bitte wählen Sie eine Veranstaltung aus',
         eventPosterAlt: 'Veranstaltungsplakat',
         noEventsFound: 'Keine Veranstaltung gefunden',
-        searchEventsHint: 'Beginnen Sie mit der Eingabe, um nach Ereignissen zu suchen',
         ratingLabel: 'Bewertung',
         reviewTitle: 'Titel',
         reviewTitlePlaceholder: 'Geben Sie Ihrer Rezension einen Titel...',
