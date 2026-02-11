@@ -610,8 +610,6 @@ export default {
         label: 'Veranstaltungsplakat',
         title: 'Veranstaltungsplakat hochladen und zuschneiden',
         uploadButtonLabel: 'Poster hochladen',
-        dialogCancelButton: 'Schließen',
-        dialogConfirmButton: 'Speichern',
       },
     },
     navigation: {

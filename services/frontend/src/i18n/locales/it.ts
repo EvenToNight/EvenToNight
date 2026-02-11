@@ -603,8 +603,6 @@ export default {
         label: "Locandina dell'evento",
         title: "Carica e ritaglia la locandina dell'evento",
         uploadButtonLabel: 'Carica locandina',
-        dialogCancelButton: 'Chiudi',
-        dialogConfirmButton: 'Salva',
       },
     },
     navigation: {

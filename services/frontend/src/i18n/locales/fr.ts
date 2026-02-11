@@ -604,8 +604,6 @@ export default {
         label: "Affiche d'événement",
         title: "Télécharger et recadrer l'affiche de l'événement",
         uploadButtonLabel: "Télécharger l'affiche",
-        dialogCancelButton: 'Fermer',
-        dialogConfirmButton: 'Sauvegarder',
       },
     },
     navigation: {
