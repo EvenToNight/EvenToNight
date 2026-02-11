@@ -149,7 +149,10 @@ watch(
   display: flex;
   justify-content: space-between;
   font-size: $font-size-xs;
-  color: $color-text-secondary;
+  color: $color-heading;
   margin-top: $spacing-1;
+  @include dark-mode {
+    color: $color-white;
+  }
 }
 </style>
