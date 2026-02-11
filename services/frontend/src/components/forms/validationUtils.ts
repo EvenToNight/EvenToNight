@@ -6,6 +6,11 @@ export const isEmail = (msg: string) => (val: string) => {
 }
 export const matching = (target: any, msg: string) => (val: any) => target === val || msg
 
+export const isFutureDate = (msg: string) => (val: string | Date) => {
+  const date = val instanceof Date ? val : new Date(val)
+  return date > new Date() || msg
+}
+
 export const isStrongPassword = (msg: string) => (val: string) => {
   if (import.meta.env.DEV) return true
   if (val.length < 8) return msg

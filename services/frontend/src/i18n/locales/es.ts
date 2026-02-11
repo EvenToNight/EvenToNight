@@ -40,6 +40,7 @@ export default {
         date: {
           label: 'Fecha',
           error: 'Se requiere fecha',
+          futureError: 'La fecha debe ser en el futuro', //[ignorei18n]
         },
         time: {
           label: 'Tiempo',

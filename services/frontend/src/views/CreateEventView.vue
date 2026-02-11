@@ -13,7 +13,7 @@ import FormField from '@/components/forms/FormField.vue'
 import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import type { Tag } from '@/api/types/events'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
-import { notEmpty, required } from '@/components/forms/validationUtils'
+import { notEmpty, required, isFutureDate } from '@/components/forms/validationUtils'
 import { useTranslation } from '@/composables/useTranslation'
 import { createLogger } from '@/utils/logger'
 import { SERVER_ERROR_ROUTE_NAME } from '@/router'
@@ -472,7 +472,10 @@ onMounted(async () => {
             v-model="date"
             type="date"
             :label="t('form.date.label') + ' *'"
-            :rules="[notEmpty(t('form.date.error'))]"
+            :rules="[
+              notEmpty(t('form.date.error')),
+              () => !time || isFutureDate(t('form.date.futureError'))(`${date}T${time}`),
+            ]"
           >
             <template #prepend>
               <q-icon

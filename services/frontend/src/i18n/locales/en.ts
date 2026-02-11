@@ -39,6 +39,7 @@ export default {
         date: {
           label: 'Date',
           error: 'Date is required',
+          futureError: 'Date must be in the future',
         },
         time: {
           label: 'Time',
