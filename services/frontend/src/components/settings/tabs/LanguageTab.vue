@@ -49,7 +49,7 @@ const getLanguageInfo = (code: string): LanguageOption => {
   return {
     code,
     name: englishNames.of(code) || code.toUpperCase(),
-    nativeName: nativeNames.of(code) || code.toUpperCase(),
+    nativeName: (nativeNames.of(code) || code).replace(/^./, (c) => c.toUpperCase()),
     flag: getFlagEmoji(code),
   }
 }
