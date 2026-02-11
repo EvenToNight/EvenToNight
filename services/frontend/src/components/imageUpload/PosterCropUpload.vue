@@ -112,13 +112,6 @@ const removeImage = () => {
           />
         </div>
       </template>
-
-      <template #actions="{ cropImage, closeCropper }">
-        <q-card-actions align="right" class="dialog-actions">
-          <q-btn flat :label="t('dialogCancelButton')" @click="closeCropper" />
-          <q-btn color="primary" :label="t('dialogConfirmButton')" @click="cropImage" />
-        </q-card-actions>
-      </template>
     </BaseCropUpload>
   </div>
 </template>
@@ -176,12 +169,5 @@ const removeImage = () => {
   top: $spacing-2;
   right: $spacing-2;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.dialog-actions {
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-  @include dark-mode {
-    border-top-color: rgba(255, 255, 255, 0.12);
-  }
 }
 </style>

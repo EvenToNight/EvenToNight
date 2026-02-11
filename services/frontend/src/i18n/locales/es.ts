@@ -604,8 +604,6 @@ export default {
         label: 'Cartel del evento',
         title: 'Cargar y recortar póster del evento',
         uploadButtonLabel: 'Subir cartel',
-        dialogCancelButton: 'Cerca',
-        dialogConfirmButton: 'Ahorrar',
       },
     },
     navigation: {

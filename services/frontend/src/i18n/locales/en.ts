@@ -598,8 +598,6 @@ export default {
         label: 'Event Poster',
         title: 'Upload and Crop Event Poster',
         uploadButtonLabel: 'Upload Poster',
-        dialogCancelButton: 'Close',
-        dialogConfirmButton: 'Save',
       },
     },
     navigation: {
