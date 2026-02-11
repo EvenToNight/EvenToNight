@@ -43,9 +43,11 @@ const loadReviews = async () => {
         props.eventId
       )
       logger.debug('User participation response:', response)
-      canUserLeaveReview.value = !(
-        await api.interactions.userParticipatedToEvent(authStore.user.id, props.eventId)
-      ).hasReviewed
+      const partecipationInfo = await api.interactions.userParticipatedToEvent(
+        authStore.user.id,
+        props.eventId
+      )
+      canUserLeaveReview.value = partecipationInfo.hasParticipated && !partecipationInfo.hasReviewed
     }
   } catch (error) {
     logger.error('Failed to load reviews:', error)
