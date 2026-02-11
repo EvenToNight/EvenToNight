@@ -1,3 +1,9 @@
+## [2.0.2](https://github.com/EvenToNight/EvenToNight/compare/v2.0.1...v2.0.2) (2026-02-11)
+
+### Bug Fixes
+
+* **eventDetails:** submit review button showing condition ([22c121a](https://github.com/EvenToNight/EvenToNight/commit/22c121a5b61fd9fd54b1269f3c266eecc79cc326))
+
 ## [2.0.1](https://github.com/EvenToNight/EvenToNight/compare/v2.0.0...v2.0.1) (2026-02-09)
 
 ### Bug Fixes
