@@ -46,11 +46,14 @@ const onShow = () => {
 <template>
   <q-dialog v-model="show" :maximized="$q.screen.lt.md" @show="onShow">
     <q-card
-      class="followers-following-dialog"
+      class="column no-wrap"
       :class="{ 'mobile-dialog': $q.screen.lt.md }"
       :style="$q.screen.lt.md ? '' : 'width: 600px; max-width: 90vw; max-height: 80vh'"
     >
-      <q-card-section class="row items-center justify-between no-wrap q-px-lg q-py-md">
+      <q-card-section
+        class="row items-center justify-between no-wrap q-px-lg q-py-md"
+        style="flex-shrink: 0"
+      >
         <q-btn
           v-if="$q.screen.lt.md"
           flat
@@ -70,7 +73,7 @@ const onShow = () => {
       <q-separator />
 
       <q-card-section
-        class="col overflow-hidden relative-position q-pa-none"
+        class="col overflow-auto relative-position q-pa-none"
         :style="$q.screen.lt.md ? '' : 'min-height: 400px'"
       >
         <q-inner-loading :showing="loading && users.length === 0">
@@ -81,7 +84,6 @@ const onShow = () => {
           v-if="!loading && users.length > 0"
           :offset="250"
           :disable="loadingMore || !hasMore"
-          class="full-height overflow-auto"
           @load="onLoad"
         >
           <div class="column q-pa-sm q-gutter-sm">
