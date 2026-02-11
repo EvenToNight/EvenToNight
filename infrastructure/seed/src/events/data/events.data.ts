@@ -19,7 +19,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/2P7nH94qwfimF1yq8"
     },
     status: "DRAFT",
     date: new Date("2026-05-30T21:00:00").toISOString().slice(0, -1),
@@ -44,7 +44,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "PUBLISHED",
     date: new Date("2026-03-02T20:30:00").toISOString().slice(0, -1),
@@ -69,7 +69,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "PUBLISHED",
     date: new Date("2026-06-20T18:00:00").toISOString().slice(0, -1),
@@ -94,7 +94,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "CANCELLED",
     date: new Date("2026-10-31T21:00:00").toISOString().slice(0, -1),
@@ -119,7 +119,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "COMPLETED",
     date: new Date("2025-06-15T19:00:00").toISOString().slice(0, -1),
@@ -144,7 +144,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "PUBLISHED",
     date: new Date("2026-04-18T21:00:00").toISOString().slice(0, -1),
@@ -169,7 +169,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "PUBLISHED",
     date: new Date("2026-07-10T16:00:00").toISOString().slice(0, -1),
@@ -194,7 +194,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "PUBLISHED",
     date: new Date("2026-02-13T21:30:00").toISOString().slice(0, -1),
@@ -219,7 +219,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "PUBLISHED",
     date: new Date("2026-11-22T20:00:00").toISOString().slice(0, -1),
@@ -244,7 +244,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "PUBLISHED",
     date: new Date("2026-09-18T21:00:00").toISOString().slice(0, -1),
@@ -269,7 +269,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "PUBLISHED",
     date: new Date("2026-06-06T18:00:00").toISOString().slice(0, -1),
@@ -294,7 +294,7 @@ export const eventsSeedData: EventSeedInput[] = [
       house_number: "1",
       lat: 40.785091,
       lon: -73.968285,
-      link: "https://www.google.com/maps/search/?api=1&query=central+park"
+      link: "https://maps.app.goo.gl/66dHZLq7thLAMLmW9"
     },
     status: "DRAFT",
     date: new Date("2026-07-04T18:00:00").toISOString().slice(0, -1),
