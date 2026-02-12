@@ -89,6 +89,7 @@ const handleUpdateReview = async (eventId: string, userId: string) => {
   logger.info('review modified or deleted', eventId, userId)
   reviewsListRef.value?.reload()
   await loadCurrentUserReviewInfo()
+  await loadReviewsStatistics()
   logger.info('reviews reloaded')
 }
 
