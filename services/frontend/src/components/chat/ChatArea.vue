@@ -121,12 +121,20 @@ function onScroll(info: { verticalPercentage: number }) {
   if (scrollTarget) {
     const hasScroll = scrollTarget.scrollHeight > scrollTarget.clientHeight
     const atBottom = !hasScroll || info.verticalPercentage >= 0.98
+    if (!autoScroll.value && atBottom) {
+      unreadScrollCount.value = 0
+      emit('read')
+    }
     autoScroll.value = atBottom
   }
 }
 
+const pendingScroll = ref(false)
+
 async function handleSendMessage(content: string) {
   if (!content.trim()) return
+
+  pendingScroll.value = true
 
   if (!selectedConversationId.value) {
     const response = await api.chat.startConversation(authStore.user!.id, {
@@ -155,7 +163,11 @@ const newMessageHandler = (event: NewMessageReceivedEvent) => {
     isRead: false,
   })
 
-  if (autoScroll.value) {
+  if (pendingScroll.value) {
+    pendingScroll.value = false
+    scrollToBottom()
+    api.chat.readConversationMessages(conversationId, authStore.user!.id)
+  } else if (autoScroll.value) {
     api.chat.readConversationMessages(conversationId, authStore.user!.id)
   } else {
     unreadScrollCount.value += 1
@@ -262,7 +274,7 @@ watch(
         class="scroll-to-bottom-btn"
         @click="scrollToBottom(true)"
       >
-        <q-badge v-if="unreadScrollCount > 0" color="primary" floating>
+        <q-badge v-if="unreadScrollCount > 0" color="primary" text-color="white" floating>
           {{ unreadScrollCount }}
         </q-badge>
       </q-btn>
