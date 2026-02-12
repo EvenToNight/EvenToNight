@@ -76,12 +76,8 @@ const loadCurrentUserReviewInfo = async () => {
         limit: 1,
       },
     })
-    if (userHasLeavedReview.totalItems > 0) {
-      userHasReviews.value = true
-    }
-    if (userHasUnreviewedParticipations.totalItems > 0) {
-      canUserLeaveReview.value = true
-    }
+    userHasReviews.value = userHasLeavedReview.totalItems > 0
+    canUserLeaveReview.value = userHasUnreviewedParticipations.totalItems > 0
   } catch (error) {
     logger.error('Failed to load current user review info:', error)
     goToRoute(SERVER_ERROR_ROUTE_NAME)

@@ -117,6 +117,7 @@ const submitReview = async () => {
     } else {
       // Create new review
       await api.interactions.createEventReview(selectedEvent.value!.eventId, reviewData)
+      updateReview?.(selectedEvent.value!.eventId, authStore.user!.id)
     }
 
     isOpen.value = false
@@ -202,7 +203,7 @@ const submitReview = async () => {
           />
 
           <q-card-actions align="right" class="q-px-none q-pb-none">
-            <q-btn v-close-popup flat :label="t('cancel')" color="black" />
+            <q-btn v-close-popup flat :label="t('cancel')" color="grey-7" />
             <q-btn
               type="submit"
               flat
