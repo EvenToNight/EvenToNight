@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - docs/*
   workflow_dispatch:
 
 permissions:
@@ -43,14 +44,16 @@ jobs:
           mkdir -p ${{ env.SITE }}/openapi
           cp -R ./docs/openAPI ${{ env.SITE }}/
           cp -R ./docs/asyncAPI ${{ env.SITE }}/
+          mkdir -p ${{ env.SITE }}/report
+          cp ./docs/report/index.html ${{ env.SITE }}/report/index.html
       
-      - name: Install dependencies
+      - name: Install dependencies for ASW Report
         run: npm install
-        working-directory: ./docs/report
+        working-directory: ./docs/report/ASW
 
-      - name: Build with VitePress
-        run: npm run docs:build -- --base /EvenToNight/report/ --outDir ../../site/report
-        working-directory: ./docs/report
+      - name: Build ASW Report with VitePress
+        run: npm run docs:build -- --base /EvenToNight/report/ASW/ --outDir ../../../site/report/ASW
+        working-directory: ./docs/report/ASW
         
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
