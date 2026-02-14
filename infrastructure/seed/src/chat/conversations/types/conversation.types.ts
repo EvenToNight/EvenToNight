@@ -1,7 +1,7 @@
 import { ObjectId } from "mongodb";
 
 export interface ConversationToCreate {
-    memberId: string;
+    userId: string;
     organizationId: string;
 }
 

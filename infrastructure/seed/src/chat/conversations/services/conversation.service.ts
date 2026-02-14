@@ -20,7 +20,7 @@ export async function createConversation(conversation: ConversationToCreate): Pr
 
     const insertCommand = `db.conversations.insertOne({
         _id: ObjectId('${_id.toString()}'),
-        memberId: '${conversation.memberId}',
+        userId: '${conversation.userId}',
         organizationId: '${conversation.organizationId}',
         createdAt: ISODate('${now}'),
         updatedAt: ISODate('${now}'),
