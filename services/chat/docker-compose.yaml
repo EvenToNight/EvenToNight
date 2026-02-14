@@ -31,6 +31,7 @@ services:
     restart: unless-stopped
     networks:
       - chat-network
+    command: ["--replSet", "rs0", "--bind_ip_all"]
     healthcheck:
       test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
       interval: 2s
