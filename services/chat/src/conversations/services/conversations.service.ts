@@ -173,11 +173,11 @@ export class ConversationsService {
 
   async getConversationByUsers(
     organizationId: string,
-    memberId: string,
+    userId: string,
   ): Promise<ConversationDetailDTO> {
     const conversation = await this.conversationModel.findOne({
       organizationId,
-      memberId,
+      userId,
     });
 
     if (!conversation) {
@@ -189,19 +189,19 @@ export class ConversationsService {
 
   async getConversationWithMessagesByUsers(
     organizationId: string,
-    memberId: string,
+    userId: string,
     query: GetMessagesQueryDto,
   ): Promise<MessageListResponse> {
     const conversation = await this.conversationModel.findOne({
       organizationId,
-      memberId,
+      userId,
     });
 
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
     }
 
-    return this.getMessages(conversation._id, memberId, query);
+    return this.getMessages(conversation._id, userId, query);
   }
 
   async searchConversationWithFilters(

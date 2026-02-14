@@ -49,7 +49,7 @@ describe('ParticipantSchema', () => {
     beforeEach(async () => {
       const conversation = new conversationModel({
         organizationId: 'org123',
-        memberId: 'member456',
+        userId: 'member456',
       });
       const saved = await conversation.save();
       conversationId = saved._id;
@@ -231,7 +231,7 @@ describe('ParticipantSchema', () => {
     it('should prevent duplicate participants in same conversation', async () => {
       const conversation = new conversationModel({
         organizationId: 'org123',
-        memberId: 'member456',
+        userId: 'member456',
       });
       const saved = await conversation.save();
 
@@ -258,7 +258,7 @@ describe('ParticipantSchema', () => {
     it('should populate conversationId reference', async () => {
       const conversation = new conversationModel({
         organizationId: 'org123',
-        memberId: 'member456',
+        userId: 'member456',
       });
       const savedConversation = await conversation.save();
 
@@ -277,7 +277,7 @@ describe('ParticipantSchema', () => {
 
       expect(populated.conversationId).toBeDefined();
       expect(populated.conversationId.organizationId).toBe('org123');
-      expect(populated.conversationId.memberId).toBe('member456');
+      expect(populated.conversationId.userId).toBe('member456');
     });
   });
 });

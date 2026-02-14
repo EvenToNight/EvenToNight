@@ -23,18 +23,18 @@ export class ConversationManagerService {
     userId1: string,
     userId2: string,
   ): Promise<any> {
-    const { organizationId, memberId } = await this.determineRoles(
+    const { organizationId, userId } = await this.determineRoles(
       userId1,
       userId2,
     );
 
     let conversation = await this.findConversationBetweenUsers(
       organizationId,
-      memberId,
+      userId,
     );
 
     if (!conversation) {
-      conversation = await this.createNewConversation(organizationId, memberId);
+      conversation = await this.createNewConversation(organizationId, userId);
     }
 
     return conversation;
@@ -42,24 +42,24 @@ export class ConversationManagerService {
 
   async findConversationBetweenUsers(
     organizationId: string,
-    memberId: string,
+    userId: string,
   ): Promise<Conversation | null> {
-    return this.conversationModel.findOne({ organizationId, memberId });
+    return this.conversationModel.findOne({ organizationId, userId });
   }
 
   private async createNewConversation(
     organizationId: string,
-    memberId: string,
+    userId: string,
   ): Promise<any> {
     const conversation = await new this.conversationModel({
       organizationId,
-      memberId,
+      userId,
     }).save();
 
     await this.createParticipantsForConversation(
       conversation._id,
       organizationId,
-      memberId,
+      userId,
     );
 
     return conversation;
@@ -68,32 +68,43 @@ export class ConversationManagerService {
   private async createParticipantsForConversation(
     conversationId: Types.ObjectId,
     organizationId: string,
-    memberId: string,
+    userId: string,
   ): Promise<void> {
-    const [orgName, memberName] = await Promise.all([
+    const [orgName, userName] = await Promise.all([
       this.usersService.getUsername(organizationId),
-      this.usersService.getUsername(memberId),
+      this.usersService.getUsername(userId),
     ]);
+
+    const [orgInfo, userInfo] = await this.dataMapperService.fetchUsersInfo(
+      organizationId,
+      userId,
+    );
 
     const orgParticipant = new this.participantModel({
       conversationId,
       userId: organizationId,
       userName: orgName || 'Unknown User',
-      role: ParticipantRole.ORGANIZATION,
+      role:
+        orgInfo?.role === UserRole.ORGANIZATION
+          ? ParticipantRole.ORGANIZATION
+          : ParticipantRole.MEMBER,
       unreadCount: 0,
       lastReadAt: new Date(),
     });
 
-    const memberParticipant = new this.participantModel({
+    const userParticipant = new this.participantModel({
       conversationId,
-      userId: memberId,
-      userName: memberName || 'Unknown User',
-      role: ParticipantRole.MEMBER,
+      userId: userId,
+      userName: userName || 'Unknown User',
+      role:
+        userInfo?.role === UserRole.ORGANIZATION
+          ? ParticipantRole.ORGANIZATION
+          : ParticipantRole.MEMBER,
       unreadCount: 0,
       lastReadAt: new Date(),
     });
 
-    await Promise.all([orgParticipant.save(), memberParticipant.save()]);
+    await Promise.all([orgParticipant.save(), userParticipant.save()]);
   }
 
   async validateConversationExists(conversationId: string): Promise<any> {
@@ -137,7 +148,7 @@ export class ConversationManagerService {
   private async determineRoles(
     userId1: UserID,
     userId2: UserID,
-  ): Promise<{ organizationId: string; memberId: string }> {
+  ): Promise<{ organizationId: string; userId: string }> {
     const [user1Info, user2Info] = await this.dataMapperService.fetchUsersInfo(
       userId1,
       userId2,
@@ -155,17 +166,29 @@ export class ConversationManagerService {
     const isUser1Member = user1Info.role === UserRole.MEMBER;
     const isUser2Member = user2Info.role === UserRole.MEMBER;
 
+    if (isUser1Member && isUser2Member) {
+      throw new BadRequestException(
+        'Conversations between two members are not allowed',
+      );
+    }
+
+    if (isUser1Org && isUser2Org) {
+      if (userId1 < userId2) {
+        return { organizationId: userId1, userId: userId2 };
+      } else {
+        return { organizationId: userId2, userId: userId1 };
+      }
+    }
+
     if (isUser1Org && isUser2Member) {
-      return { organizationId: userId1, memberId: userId2 };
+      return { organizationId: userId1, userId: userId2 };
     }
 
     if (isUser1Member && isUser2Org) {
-      return { organizationId: userId2, memberId: userId1 };
+      return { organizationId: userId2, userId: userId1 };
     }
 
-    throw new BadRequestException(
-      'Conversation must be between an organization and a member',
-    );
+    throw new BadRequestException('Invalid user roles for conversation');
   }
 
   async validateUserExists(userId: string): Promise<void> {
