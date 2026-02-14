@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, ClientSession } from 'mongoose';
 import { Conversation } from '../schemas/conversation.schema';
 import { ParticipantRole } from '../schemas/participant.schema';
 import { UsersService } from 'src/users/services/users.service';
@@ -22,6 +22,7 @@ export class ConversationManagerService {
   async findOrCreateConversation(
     userId1: string,
     userId2: string,
+    session?: ClientSession,
   ): Promise<any> {
     const { organizationId, userId } = await this.determineRoles(
       userId1,
@@ -31,10 +32,15 @@ export class ConversationManagerService {
     let conversation = await this.findConversationBetweenUsers(
       organizationId,
       userId,
+      session,
     );
 
     if (!conversation) {
-      conversation = await this.createNewConversation(organizationId, userId);
+      conversation = await this.createNewConversation(
+        organizationId,
+        userId,
+        session,
+      );
     }
 
     return conversation;
@@ -43,23 +49,28 @@ export class ConversationManagerService {
   async findConversationBetweenUsers(
     organizationId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<Conversation | null> {
-    return this.conversationModel.findOne({ organizationId, userId });
+    return this.conversationModel
+      .findOne({ organizationId, userId })
+      .session(session || null);
   }
 
   private async createNewConversation(
     organizationId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<any> {
     const conversation = await new this.conversationModel({
       organizationId,
       userId,
-    }).save();
+    }).save({ session });
 
     await this.createParticipantsForConversation(
       conversation._id,
       organizationId,
       userId,
+      session,
     );
 
     return conversation;
@@ -69,6 +80,7 @@ export class ConversationManagerService {
     conversationId: Types.ObjectId,
     organizationId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<void> {
     const [orgName, userName] = await Promise.all([
       this.usersService.getUsername(organizationId),
@@ -104,7 +116,10 @@ export class ConversationManagerService {
       lastReadAt: new Date(),
     });
 
-    await Promise.all([orgParticipant.save(), userParticipant.save()]);
+    await Promise.all([
+      orgParticipant.save({ session }),
+      userParticipant.save({ session }),
+    ]);
   }
 
   async validateConversationExists(conversationId: string): Promise<any> {
@@ -229,10 +244,12 @@ export class ConversationManagerService {
   async ensureConversationDoesNotExist(
     recipientId: string,
     senderId: string,
+    session?: ClientSession,
   ): Promise<void> {
     const existing = await this.findConversationBetweenUsers(
       recipientId,
       senderId,
+      session,
     );
     if (existing) {
       throw new BadRequestException(

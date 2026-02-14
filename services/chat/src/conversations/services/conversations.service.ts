@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 
 import { Conversation } from '../schemas/conversation.schema';
 import { Message, MessageDocument } from '../schemas/message.schema';
+import { DatabaseTransactionService } from '../../common/database';
 
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
 import { SendMessageDto } from '../dto/send-message.dto';
@@ -31,6 +32,7 @@ export class ConversationsService {
     private readonly conversationModel: Model<any>,
     @InjectModel('Participant') private readonly participantModel: Model<any>,
     @InjectModel(Message.name) private readonly messageModel: Model<any>,
+    private readonly databaseTransaction: DatabaseTransactionService,
     private readonly dataMapperService: DataMapperService,
     private readonly messageManagerService: MessageManagerService,
     private readonly userSuggestionService: UserSuggestionService,
@@ -42,22 +44,27 @@ export class ConversationsService {
     senderId: string,
     dto: CreateConversationMessageDto,
   ): Promise<MessageDocument> {
-    await this.conversationManagerService.ensureConversationDoesNotExist(
-      dto.recipientId,
-      senderId,
-    );
-
-    const conversation =
-      await this.conversationManagerService.findOrCreateConversation(
-        senderId,
+    return this.databaseTransaction.executeInTransaction(async (session) => {
+      await this.conversationManagerService.ensureConversationDoesNotExist(
         dto.recipientId,
+        senderId,
+        session,
       );
 
-    return this.messageManagerService.createMessage(
-      conversation._id.toString(),
-      senderId,
-      dto.content,
-    );
+      const conversation =
+        await this.conversationManagerService.findOrCreateConversation(
+          senderId,
+          dto.recipientId,
+          session,
+        );
+
+      return this.messageManagerService.createMessage(
+        conversation._id.toString(),
+        senderId,
+        dto.content,
+        session,
+      );
+    });
   }
 
   async sendMessageToConversation(
