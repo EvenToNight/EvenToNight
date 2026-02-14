@@ -122,9 +122,14 @@ export class ConversationManagerService {
     ]);
   }
 
-  async validateConversationExists(conversationId: string): Promise<any> {
+  async validateConversationExists(
+    conversationId: string,
+    session?: ClientSession,
+  ): Promise<any> {
     this.validateObjectId(conversationId);
-    const conversation = await this.conversationModel.findById(conversationId);
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .session(session || null);
 
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
@@ -136,10 +141,12 @@ export class ConversationManagerService {
   async validateUserIsParticipant(
     conversationId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<void> {
     const isParticipant = await this.verifyUserInConversation(
       conversationId,
       userId,
+      session,
     );
     if (!isParticipant) {
       throw new BadRequestException(
@@ -151,12 +158,15 @@ export class ConversationManagerService {
   async verifyUserInConversation(
     conversationId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<boolean> {
     await this.validateUserExists(userId);
-    const participant = await this.participantModel.findOne({
-      conversationId: new Types.ObjectId(conversationId),
-      userId,
-    });
+    const participant = await this.participantModel
+      .findOne({
+        conversationId: new Types.ObjectId(conversationId),
+        userId,
+      })
+      .session(session || null);
     return !!participant;
   }
 

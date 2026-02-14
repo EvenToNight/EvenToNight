@@ -72,18 +72,23 @@ export class ConversationsService {
     conversationId: string,
     dto: SendMessageDto,
   ): Promise<MessageDocument> {
-    await this.conversationManagerService.validateConversationExists(
-      conversationId,
-    );
-    await this.conversationManagerService.validateUserIsParticipant(
-      conversationId,
-      senderId,
-    );
-    return this.messageManagerService.createMessage(
-      conversationId,
-      senderId,
-      dto.content,
-    );
+    return this.databaseTransaction.executeInTransaction(async (session) => {
+      await this.conversationManagerService.validateConversationExists(
+        conversationId,
+        session,
+      );
+      await this.conversationManagerService.validateUserIsParticipant(
+        conversationId,
+        senderId,
+        session,
+      );
+      return this.messageManagerService.createMessage(
+        conversationId,
+        senderId,
+        dto.content,
+        session,
+      );
+    });
   }
 
   async getUserConversations(
