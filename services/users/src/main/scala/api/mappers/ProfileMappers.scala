@@ -1,8 +1,8 @@
 package api.mappers
 
 import api.dto.response.ProfileDTO
-import model.member.MemberProfile
-import model.organization.OrganizationProfile
+import domain.valueobjects.member.MemberProfile
+import domain.valueobjects.organization.OrganizationProfile
 
 object ProfileMappers:
   extension (profile: MemberProfile)

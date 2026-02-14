@@ -3,10 +3,10 @@ package api.mappers
 import api.dto.response.LoginResponseDTO
 import api.dto.response.UserDTO
 import api.dto.response.UsernameDTO
-import model.Member
-import model.Organization
-import model.RegisteredUser
-import model.UserTokens
+import domain.UserTokens
+import domain.aggregates.Member
+import domain.aggregates.Organization
+import domain.aggregates.RegisteredUser
 
 import AccountMappers.toAccountDTO
 import ProfileMappers.toProfileDTO

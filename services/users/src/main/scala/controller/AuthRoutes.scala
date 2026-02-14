@@ -4,20 +4,20 @@ import api.mappers.TokenMappers.toTokensDTO
 import api.mappers.UserMappers.toLoginDTO
 import cask.Request
 import cask.Response
+import domain.LoginValidation._
+import domain.LogoutRequestParser.parseLogoutRequest
+import domain.TokenRefresh.parseRefreshRequest
+import domain.aggregates.Member
+import domain.aggregates.Organization
+import domain.events.UserCreated
+import domain.registration.UserRegistration._
+import domain.service.AuthenticationService
+import domain.service.UserService
 import infrastructure.keycloak.KeycloakJwtVerifier.extractUserId
 import infrastructure.keycloak.KeycloakJwtVerifier.refreshPublicKeys
 import infrastructure.keycloak.KeycloakJwtVerifier.verifyToken
 import infrastructure.rabbitmq.EventPublisher
 import io.circe.syntax._
-import model.LoginValidation._
-import model.LogoutRequestParser.parseLogoutRequest
-import model.Member
-import model.Organization
-import model.TokenRefresh.parseRefreshRequest
-import model.events.UserCreated
-import model.registration.UserRegistration._
-import service.AuthenticationService
-import service.UserService
 
 class AuthRoutes(authService: AuthenticationService, userService: UserService, eventPublisher: EventPublisher)
     extends cask.Routes {

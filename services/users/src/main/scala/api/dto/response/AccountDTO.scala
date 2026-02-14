@@ -1,8 +1,8 @@
 package api.dto.response
 
+import domain.valueobjects.member.Gender
 import io.circe.Encoder
 import io.circe.generic.semiauto._
-import model.member.Gender
 
 import java.time.Instant
 

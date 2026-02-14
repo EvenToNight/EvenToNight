@@ -1,6 +1,6 @@
 package infrastructure.keycloak
 
-import model.UserTokens
+import domain.UserTokens
 
 import JsonUtils.parseJson
 import TokenParser._

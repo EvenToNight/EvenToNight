@@ -1,8 +1,8 @@
 package api.mappers
 
 import api.dto.response.AccountDTO
-import model.member.MemberAccount
-import model.organization.OrganizationAccount
+import domain.valueobjects.member.MemberAccount
+import domain.valueobjects.organization.OrganizationAccount
 
 object AccountMappers:
   extension (account: MemberAccount)

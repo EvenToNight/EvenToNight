@@ -1,8 +1,8 @@
 package api.dto.response
 
+import domain.valueobjects.organization.UrlString
 import io.circe.Encoder
 import io.circe.generic.semiauto._
-import model.organization.UrlString
 
 case class ProfileDTO(
     name: String,

@@ -1,20 +1,25 @@
 package infrastructure
 
 import com.mongodb.client.MongoCollection
-import model.UserReferences
-import model.member.MemberAccount
-import model.member.MemberProfile
-import model.organization.OrganizationAccount
-import model.organization.OrganizationProfile
-import repository.AccountProfileRepository
-import repository.MemberRepository
-import repository.MongoAccountProfileRepository
-import repository.MongoMemberRepository
-import repository.MongoOrganizationRepository
-import repository.OrganizationRepository
-import service.AuthenticationService
-import service.UserQueryService
-import service.UserService
+import domain.UserReferences
+import domain.repository.AccountProfileRepository
+import domain.repository.MemberRepository
+import domain.repository.OrganizationRepository
+import domain.service.AuthenticationService
+import domain.service.MediaService
+import domain.service.UserQueryService
+import domain.service.UserService
+import domain.valueobjects.member.MemberAccount
+import domain.valueobjects.member.MemberProfile
+import domain.valueobjects.organization.OrganizationAccount
+import domain.valueobjects.organization.OrganizationProfile
+import infrastructure.media.MediaServiceClient
+import infrastructure.persistence.repositories.MemberRepositoryImpl
+import infrastructure.persistence.repositories.MongoAccountProfileRepository
+import infrastructure.persistence.repositories.OrganizationRepositoryImpl
+import infrastructure.services.KeycloakAuthenticationService
+import infrastructure.services.UserQueryServiceImpl
+import infrastructure.services.UserServiceImpl
 import sttp.client3.HttpURLConnectionBackend
 
 import java.security.PublicKey
@@ -22,7 +27,7 @@ import scala.collection.concurrent.TrieMap
 
 import keycloak._
 import Secret.usersServiceSecret
-import mongo.MongoConnection._
+import persistence.mongo.MongoConnection._
 
 object Wiring:
   val mediaHost: String    = sys.env.getOrElse("MEDIA_HOST", "localhost") + ":9020"
@@ -42,14 +47,14 @@ object Wiring:
 
   val memberAccountProfileRepository: AccountProfileRepository[MemberAccount, MemberProfile] =
     new MongoAccountProfileRepository(memberReferencesColl, memberAccountsColl, memberProfilesColl)
-  val memberRepository: MemberRepository = new MongoMemberRepository(memberAccountProfileRepository)
+  val memberRepository: MemberRepository = new MemberRepositoryImpl(memberAccountProfileRepository)
   val organizationAccountProfileRepository: AccountProfileRepository[OrganizationAccount, OrganizationProfile] =
     new MongoAccountProfileRepository(organizationReferencesColl, organizationAccountsColl, organizationProfilesColl)
   val organizationRepository: OrganizationRepository =
-    new MongoOrganizationRepository(organizationAccountProfileRepository)
+    new OrganizationRepositoryImpl(organizationAccountProfileRepository)
 
-  val userService: UserService           = new UserService(memberRepository, organizationRepository)
-  val userQueryService: UserQueryService = new UserQueryService(memberRepository, organizationRepository)
+  val userService: UserService           = new UserServiceImpl(memberRepository, organizationRepository)
+  val userQueryService: UserQueryService = new UserQueryServiceImpl(memberRepository, organizationRepository)
 
   private val kcConnection: KeycloakConnection     = new KeycloakConnection(HttpURLConnectionBackend())
   private val kcTokenService: KeycloakTokenService = new KeycloakTokenService(kcConnection)
@@ -66,6 +71,8 @@ object Wiring:
     case Right(ids) =>
       println("Retrieve member and organization roles from Keycloak successfully.")
       ids
-  val authService: AuthenticationService = new AuthenticationService(kcTokenClient, kcAdminApi, roleIds)
+  val authService: AuthenticationService = new KeycloakAuthenticationService(kcTokenClient, kcAdminApi, roleIds)
+
+  val mediaService: MediaService = new MediaServiceClient()
 
   val publicKeysCache: TrieMap[String, PublicKey] = TrieMap.empty

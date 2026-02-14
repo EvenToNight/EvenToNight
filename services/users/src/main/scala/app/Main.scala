@@ -2,7 +2,7 @@ package app
 
 import controller._
 import infrastructure.Wiring._
-import infrastructure.mongo.MongoConnection.client
+import infrastructure.persistence.mongo.MongoConnection.client
 import infrastructure.rabbitmq.RabbitConnection._
 import io.undertow.server.HttpHandler
 import middleware.CorsHandler
@@ -15,7 +15,7 @@ object Main extends cask.MainRoutes {
 
     Seq(
       new AuthRoutes(authService, userService, eventPublisher),
-      new UserRoutes(authService, userService, userQueryService, eventPublisher),
+      new UserRoutes(authService, userService, userQueryService, mediaService, eventPublisher),
       new AppRoutes()
     )
 

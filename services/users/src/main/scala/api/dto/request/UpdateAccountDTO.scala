@@ -1,9 +1,9 @@
 package api.dto.request
 
+import domain.valueobjects.member.Gender
 import io.circe.Decoder
 import io.circe.DecodingFailure
 import io.circe.HCursor
-import model.member.Gender
 
 import java.time.Instant
 

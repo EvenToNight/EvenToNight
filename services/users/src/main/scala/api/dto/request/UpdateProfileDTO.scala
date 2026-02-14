@@ -1,9 +1,9 @@
 package api.dto.request
 
+import domain.valueobjects.organization.UrlString
 import io.circe.Decoder
 import io.circe.DecodingFailure
 import io.circe.HCursor
-import model.organization.UrlString
 
 case class UpdateProfileDTO(
     name: String,

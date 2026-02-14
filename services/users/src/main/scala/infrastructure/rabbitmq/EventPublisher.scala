@@ -1,14 +1,14 @@
 package infrastructure.rabbitmq
 
 import com.rabbitmq.client.AMQP
+import domain.events.DomainEvent
+import domain.events.EventEnvelope
+import domain.events.UserCreated
+import domain.events.UserDeleted
+import domain.events.UserUpdated
 import io.circe.Encoder
 import io.circe.generic.semiauto._
 import io.circe.syntax._
-import model.events.DomainEvent
-import model.events.EventEnvelope
-import model.events.UserCreated
-import model.events.UserDeleted
-import model.events.UserUpdated
 given eventEnvelopeEncoder[T <: DomainEvent](using enc: Encoder[T]): Encoder[EventEnvelope[T]] =
   deriveEncoder[EventEnvelope[T]]
 

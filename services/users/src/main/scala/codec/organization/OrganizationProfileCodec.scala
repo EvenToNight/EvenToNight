@@ -1,9 +1,9 @@
 package codec.organization
 
+import domain.valueobjects.organization.OrganizationProfile
+import domain.valueobjects.organization.UrlString
+import domain.valueobjects.organization.UrlString.validateUrl
 import infrastructure.Wiring.mediaBaseUrl
-import model.organization.OrganizationProfile
-import model.organization.UrlString
-import model.organization.UrlString.validateUrl
 import org.bson.BsonReader
 import org.bson.BsonType
 import org.bson.BsonWriter

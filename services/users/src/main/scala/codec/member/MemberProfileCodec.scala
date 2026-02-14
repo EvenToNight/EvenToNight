@@ -1,7 +1,7 @@
 package codec.member
 
+import domain.valueobjects.member.MemberProfile
 import infrastructure.Wiring.mediaBaseUrl
-import model.member.MemberProfile
 import org.bson.BsonReader
 import org.bson.BsonType
 import org.bson.BsonWriter

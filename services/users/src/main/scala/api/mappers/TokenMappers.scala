@@ -1,7 +1,7 @@
 package api.mappers
 
 import api.dto.response.TokensDTO
-import model.UserTokens
+import domain.UserTokens
 
 object TokenMappers:
   extension (tokens: UserTokens)

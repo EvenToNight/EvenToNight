@@ -11,30 +11,30 @@ import api.utils.UserQueryParser
 import cask.FormFile
 import cask.Request
 import cask.Response
+import domain.aggregates.Member
+import domain.aggregates.Organization
+import domain.aggregates.RegisteredUser
+import domain.events.UserDeleted
+import domain.events.UserUpdated
+import domain.service.AuthenticationService
+import domain.service.MediaService
+import domain.service.UserQueryService
+import domain.service.UserService
+import domain.valueobjects.member.MemberUpdate
+import domain.valueobjects.organization.OrganizationUpdate
 import http.HttpSecurity.authenticateAndAuthorize
 import infrastructure.Wiring.mediaBaseUrl
 import infrastructure.keycloak.KeycloakJwtVerifier.extractSub
-import infrastructure.media.MediaServiceClient.deleteAvatarFromMediaService
-import infrastructure.media.MediaServiceClient.uploadAvatarToMediaService
 import infrastructure.rabbitmq.EventPublisher
 import io.circe.Json
 import io.circe.generic.auto._
 import io.circe.syntax._
-import model.Member
-import model.Organization
-import model.RegisteredUser
-import model.events.UserDeleted
-import model.events.UserUpdated
-import model.member.MemberUpdate
-import model.organization.OrganizationUpdate
-import service.AuthenticationService
-import service.UserQueryService
-import service.UserService
 
 class UserRoutes(
     authService: AuthenticationService,
     userService: UserService,
     userQueryService: UserQueryService,
+    mediaService: MediaService,
     eventPublisher: EventPublisher
 ) extends cask.Routes {
   @cask.get("/:userId")
@@ -133,7 +133,7 @@ class UserRoutes(
         userService.getUserById(userId) match
           case Left(err) => Response(err, 404)
           case Right((_, user)) =>
-            val avatarUrl = uploadAvatarToMediaService(userId, avatarOpt)
+            val avatarUrl = mediaService.uploadAvatar(userId, avatarOpt)
 
             val updatedUser = user match
               case m: Member =>
@@ -181,7 +181,7 @@ class UserRoutes(
     (
       for
         _           <- authenticateAndAuthorize(req, userId)
-        _           <- deleteAvatarFromMediaService(userId)
+        _           <- mediaService.deleteAvatar(userId)
         updatedUser <- userService.updateAvatar(userId, defaultAvatar)
       yield updatedUser
     ) match

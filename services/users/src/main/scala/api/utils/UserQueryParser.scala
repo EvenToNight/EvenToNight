@@ -1,8 +1,8 @@
 package api.utils
 
 import api.dto.request.query.SearchUsersQueryDTO
-import model.UserRole
-import model.query.SearchUsersQuery
+import domain.UserRole
+import domain.query.SearchUsersQuery
 
 import scala.collection.mutable.ListBuffer
 

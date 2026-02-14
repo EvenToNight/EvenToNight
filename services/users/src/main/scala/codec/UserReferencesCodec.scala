@@ -1,6 +1,6 @@
 package codec
 
-import model.UserReferences
+import domain.UserReferences
 import org.bson.BsonReader
 import org.bson.BsonWriter
 import org.bson.codecs.Codec

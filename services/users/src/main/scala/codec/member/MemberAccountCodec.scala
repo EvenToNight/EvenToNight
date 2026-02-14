@@ -1,7 +1,7 @@
 package codec.member
 
-import model.member.Gender
-import model.member.MemberAccount
+import domain.valueobjects.member.Gender
+import domain.valueobjects.member.MemberAccount
 import org.bson.BsonReader
 import org.bson.BsonType
 import org.bson.BsonWriter

@@ -1,8 +1,8 @@
 package unit.infrastructure.keycloak
 
+import domain.UserTokens
 import fixtures.TokenFixtures._
 import infrastructure.keycloak.KeycloakTokenService
-import model.UserTokens
 import org.scalatest.EitherValues._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

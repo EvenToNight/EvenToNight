@@ -1,6 +1,6 @@
 package codec.organization
 
-import model.organization.OrganizationAccount
+import domain.valueobjects.organization.OrganizationAccount
 import org.bson.BsonReader
 import org.bson.BsonType
 import org.bson.BsonWriter
