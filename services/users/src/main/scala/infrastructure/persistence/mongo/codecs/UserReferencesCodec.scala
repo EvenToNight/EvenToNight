@@ -1,6 +1,6 @@
-package codec
+package infrastructure.persistence.mongo.codecs
 
-import domain.UserReferences
+import infrastructure.persistence.mongo.models.UserReferences
 import org.bson.BsonReader
 import org.bson.BsonWriter
 import org.bson.codecs.Codec

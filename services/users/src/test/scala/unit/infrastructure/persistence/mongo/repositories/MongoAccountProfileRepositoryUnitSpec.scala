@@ -1,8 +1,7 @@
-package unit.infrastructure.persistence.repositories
+package unit.infrastructure.persistence.mongo.repositories
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.result.InsertOneResult
-import domain.UserReferences
 import domain.repository.AccountProfileRepository
 import domain.valueobjects.member.MemberAccount
 import domain.valueobjects.member.MemberProfile
@@ -12,7 +11,8 @@ import fixtures.MemberFixtures.member
 import fixtures.MemberFixtures.memberUserId
 import fixtures.OrganizationFixtures.organization
 import fixtures.OrganizationFixtures.organizationUserId
-import infrastructure.persistence.repositories.MongoAccountProfileRepository
+import infrastructure.persistence.mongo.models.UserReferences
+import infrastructure.persistence.mongo.repositories.MongoAccountProfileRepository
 import org.bson.BsonObjectId
 import org.bson.types.ObjectId
 import org.mockito.ArgumentCaptor

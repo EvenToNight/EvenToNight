@@ -1,14 +1,14 @@
 package infrastructure.persistence.mongo
 
-import codec.UserReferencesCodec
-import codec.member.MemberAccountCodec
-import codec.member.MemberProfileCodec
-import codec.organization.OrganizationAccountCodec
-import codec.organization.OrganizationProfileCodec
 import com.mongodb.MongoClientSettings
 import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
 import com.mongodb.client.MongoDatabase
+import infrastructure.persistence.mongo.codecs.UserReferencesCodec
+import infrastructure.persistence.mongo.codecs.member.MemberAccountCodec
+import infrastructure.persistence.mongo.codecs.member.MemberProfileCodec
+import infrastructure.persistence.mongo.codecs.organization.OrganizationAccountCodec
+import infrastructure.persistence.mongo.codecs.organization.OrganizationProfileCodec
 import org.bson.codecs.configuration.CodecRegistries.fromCodecs
 import org.bson.codecs.configuration.CodecRegistries.fromRegistries
 

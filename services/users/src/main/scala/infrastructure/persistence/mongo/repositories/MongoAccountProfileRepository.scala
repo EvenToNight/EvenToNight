@@ -1,12 +1,12 @@
-package infrastructure.persistence.repositories
+package infrastructure.persistence.mongo.repositories
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.FindOneAndUpdateOptions
 import com.mongodb.client.model.ReturnDocument
 import com.mongodb.client.model.Updates
-import domain.UserReferences
 import domain.repository.AccountProfileRepository
+import infrastructure.persistence.mongo.models.UserReferences
 import org.bson.types.ObjectId
 
 import java.util.ArrayList

@@ -1,7 +1,6 @@
-package codec.member
+package infrastructure.persistence.mongo.codecs.organization
 
-import domain.valueobjects.member.Gender
-import domain.valueobjects.member.MemberAccount
+import domain.valueobjects.organization.OrganizationAccount
 import org.bson.BsonReader
 import org.bson.BsonType
 import org.bson.BsonWriter
@@ -9,25 +8,15 @@ import org.bson.codecs.Codec
 import org.bson.codecs.DecoderContext
 import org.bson.codecs.EncoderContext
 
-import java.time.Instant
 import scala.collection.mutable.ListBuffer
 
-class MemberAccountCodec extends Codec[MemberAccount]:
-  override def encode(writer: BsonWriter, value: MemberAccount, encoderContext: EncoderContext): Unit =
+class OrganizationAccountCodec extends Codec[OrganizationAccount]:
+  override def encode(writer: BsonWriter, value: OrganizationAccount, encoderContext: EncoderContext): Unit =
     writer.writeStartDocument()
     writer.writeString("username", value.username)
     writer.writeString("email", value.email)
     writer.writeBoolean("darkMode", value.darkMode)
     writer.writeString("language", value.language)
-    value.gender.foreach(g =>
-      val genderStr = g match
-        case Gender.Male   => "male"
-        case Gender.Female => "female"
-      writer.writeString("gender", genderStr)
-    )
-    value.birthDate.foreach(bd =>
-      writer.writeDateTime("birthDate", bd.toEpochMilli)
-    )
     value.interests.foreach(list =>
       writer.writeStartArray("interests")
       list.foreach(writer.writeString)
@@ -35,13 +24,11 @@ class MemberAccountCodec extends Codec[MemberAccount]:
     )
     writer.writeEndDocument()
 
-  override def decode(reader: BsonReader, decoderContext: DecoderContext): MemberAccount =
+  override def decode(reader: BsonReader, decoderContext: DecoderContext): OrganizationAccount =
     var username: String                = null
     var email: String                   = null
     var darkMode: Boolean               = false
     var language: String                = "en"
-    var gender: Option[Gender]          = None
-    var birthDate: Option[Instant]      = None
     var interests: Option[List[String]] = None
 
     reader.readStartDocument()
@@ -57,14 +44,6 @@ class MemberAccountCodec extends Codec[MemberAccount]:
           darkMode = reader.readBoolean()
         case "language" =>
           language = reader.readString()
-        case "gender" =>
-          gender = Option(reader.readString()).flatMap {
-            case "male"   => Some(Gender.Male)
-            case "female" => Some(Gender.Female)
-            case _        => None
-          }
-        case "birthDate" =>
-          birthDate = Some(Instant.ofEpochMilli(reader.readDateTime()))
         case "interests" =>
           val buffer = ListBuffer.empty[String]
           reader.readStartArray()
@@ -76,16 +55,15 @@ class MemberAccountCodec extends Codec[MemberAccount]:
         case _ =>
           reader.skipValue()
     }
+
     reader.readEndDocument()
 
-    MemberAccount(
+    OrganizationAccount(
       username = username,
       email = email,
       darkMode = darkMode,
       language = language,
-      gender = gender,
-      birthDate = birthDate,
       interests = interests
     )
 
-  override def getEncoderClass: Class[MemberAccount] = classOf[MemberAccount]
+  override def getEncoderClass: Class[OrganizationAccount] = classOf[OrganizationAccount]

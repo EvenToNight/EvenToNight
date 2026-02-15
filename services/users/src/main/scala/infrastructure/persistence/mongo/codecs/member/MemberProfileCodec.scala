@@ -1,4 +1,4 @@
-package codec.member
+package infrastructure.persistence.mongo.codecs.member
 
 import domain.valueobjects.member.MemberProfile
 import infrastructure.Wiring.mediaBaseUrl

@@ -1,7 +1,6 @@
 package infrastructure
 
 import com.mongodb.client.MongoCollection
-import domain.UserReferences
 import domain.repository.AccountProfileRepository
 import domain.repository.MemberRepository
 import domain.repository.OrganizationRepository
@@ -14,8 +13,9 @@ import domain.valueobjects.member.MemberProfile
 import domain.valueobjects.organization.OrganizationAccount
 import domain.valueobjects.organization.OrganizationProfile
 import infrastructure.media.MediaServiceClient
+import infrastructure.persistence.mongo.models.UserReferences
+import infrastructure.persistence.mongo.repositories.MongoAccountProfileRepository
 import infrastructure.persistence.repositories.MemberRepositoryImpl
-import infrastructure.persistence.repositories.MongoAccountProfileRepository
 import infrastructure.persistence.repositories.OrganizationRepositoryImpl
 import infrastructure.services.KeycloakAuthenticationService
 import infrastructure.services.UserQueryServiceImpl

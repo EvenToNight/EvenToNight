@@ -4,7 +4,6 @@ import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
 import com.mongodb.client.model.Filters
 import com.mongodb.client.model.Filters.{eq => eqFilter}
-import domain.UserReferences
 import domain.repository.AccountProfileRepository
 import domain.repository.MemberRepository
 import domain.repository.OrganizationRepository
@@ -18,8 +17,9 @@ import fixtures.MemberFixtures.memberUserId
 import fixtures.OrganizationFixtures.organization
 import fixtures.OrganizationFixtures.organizationUserId
 import infrastructure.persistence.mongo.MongoConnection.client
+import infrastructure.persistence.mongo.models.UserReferences
+import infrastructure.persistence.mongo.repositories.MongoAccountProfileRepository
 import infrastructure.persistence.repositories.MemberRepositoryImpl
-import infrastructure.persistence.repositories.MongoAccountProfileRepository
 import infrastructure.persistence.repositories.OrganizationRepositoryImpl
 import infrastructure.services.UserServiceImpl
 import org.bson.types.ObjectId

@@ -1,4 +1,4 @@
-package codec.organization
+package infrastructure.persistence.mongo.codecs.organization
 
 import domain.valueobjects.organization.OrganizationProfile
 import domain.valueobjects.organization.UrlString
