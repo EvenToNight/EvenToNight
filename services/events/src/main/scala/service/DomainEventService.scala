@@ -3,7 +3,7 @@ package service
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventCommand}
 import domain.events.{EventCancelled, EventCreated, EventDeleted, EventPublished, EventUpdated}
 import domain.models.{Event, EventStatus, EventStatusTransitions}
-import infrastructure.db.{EventRepository, MongoUserMetadataRepository}
+import infrastructure.db.{EventRepository, MongoUserMetadataRepository, TransactionManager}
 import infrastructure.messaging.EventPublisher
 import utils.Utils
 
@@ -14,116 +14,135 @@ class DomainEventService(
     eventRepository: EventRepository,
     userMetadataRepository: MongoUserMetadataRepository,
     publisher: EventPublisher,
+    transactionManager: TransactionManager,
     paymentsServiceUrl: String
 ):
 
   def execCommand(cmd: CreateEventCommand): Either[String, String] =
-    if !Utils.checkUserIsOrganization(cmd.creatorId, userMetadataRepository) then
-      Left(s"Only organizations can create events. ${cmd.creatorId} is not an organization.")
-    else
-      cmd.collaboratorIds.getOrElse(List()).find(collaboratorId =>
-        !Utils.checkUserIsOrganization(collaboratorId, userMetadataRepository)
-      ) match
-        case Some(collaboratorId) =>
-          Left(s"Only organizations can be collaborators. $collaboratorId is not an organization.")
-        case None =>
-          val newEvent =
-            Event.create(
-              title = cmd.title,
-              description = cmd.description,
-              poster = cmd.poster,
-              tags = cmd.tags,
-              location = cmd.location,
-              date = cmd.date,
-              status = cmd.status,
+
+    val eventCreationResult = transactionManager.executeInTransaction { session =>
+      val creatorValid = userMetadataRepository.findById(cmd.creatorId, session) match
+        case Some(userMetadata) if userMetadata.role == "organization" =>
+          true
+        case _ =>
+          false
+
+      if !creatorValid then
+        Left(s"Only organizations can create events. ${cmd.creatorId} is not an organization.")
+      else
+        val invalidCollaborator = cmd.collaboratorIds.getOrElse(List()).find { collaboratorId =>
+          userMetadataRepository.findById(collaboratorId, session) match
+            case Some(userMetadata) if userMetadata.role == "organization" => false
+            case _                                                         => true
+        }
+
+        invalidCollaborator match
+          case Some(collaboratorId) =>
+            Left(s"Only organizations can be collaborators. $collaboratorId is not an organization.")
+          case None =>
+            val newEvent =
+              Event.create(
+                title = cmd.title,
+                description = cmd.description,
+                poster = cmd.poster,
+                tags = cmd.tags,
+                location = cmd.location,
+                date = cmd.date,
+                status = cmd.status,
+                creatorId = cmd.creatorId,
+                collaboratorIds = cmd.collaboratorIds
+              )
+
+            eventRepository.save(newEvent, session) match
+              case Left(_) =>
+                Left("Failed to save new event")
+              case Right(_) =>
+                Right(newEvent)
+    }
+    eventCreationResult match
+      case Left(error) =>
+        Left(error)
+      case Right(newEvent) =>
+        if paymentsServiceUrl == "mock" then
+          publisher.publish(
+            EventCreated(
+              eventId = newEvent._id,
               creatorId = cmd.creatorId,
-              collaboratorIds = cmd.collaboratorIds
+              collaboratorIds = cmd.collaboratorIds,
+              name = cmd.title,
+              date = cmd.date,
+              status = cmd.status.asString
             )
-          eventRepository.save(newEvent) match
-            case Left(_) =>
-              Left("Failed to save new event")
-            case Right(_) =>
-              if paymentsServiceUrl == "mock" then
+          )
+          if cmd.status == EventStatus.PUBLISHED then
+            val creatorName = userMetadataRepository.findById(cmd.creatorId) match
+              case Some(userMeta) => userMeta.name
+              case None           => ""
+            publisher.publish(
+              EventPublished(
+                eventId = newEvent._id,
+                name = newEvent.title.getOrElse(""),
+                creatorId = newEvent.creatorId,
+                creatorName = creatorName
+              )
+            )
+          Right(newEvent._id)
+        else
+          val basePayload = Map(
+            "creatorId" -> ujson.Str(cmd.creatorId),
+            "status"    -> ujson.Str(cmd.status.asString)
+          )
+          cmd.date.foreach(d => basePayload("date") = ujson.Str(s"${d}Z"))
+          cmd.title.foreach(t => basePayload("title") = ujson.Str(t))
+
+          val payload     = ujson.Obj.from(basePayload)
+          val payloadJson = ujson.write(payload)
+          println(s"Registering event ${newEvent._id} with payload: $payloadJson")
+
+          val postResult = Try {
+            requests.post(
+              s"$paymentsServiceUrl/internal/events/${newEvent._id}",
+              data = payloadJson,
+              headers = Map("Content-Type" -> "application/json")
+            )
+          }
+
+          postResult match
+            case Failure(exception) =>
+              eventRepository.delete(newEvent._id)
+              Left(
+                s"Failed to register event in payments service: ${Option(exception.getMessage).getOrElse(exception.toString)}"
+              )
+            case Success(response) if response.statusCode < 200 || response.statusCode >= 300 =>
+              eventRepository.delete(newEvent._id)
+              Left(s"Payments service error: ${response.statusCode}")
+            case Success(_) =>
+              publisher.publish(
+                EventCreated(
+                  eventId = newEvent._id,
+                  creatorId = cmd.creatorId,
+                  collaboratorIds = cmd.collaboratorIds,
+                  name = cmd.title,
+                  date = cmd.date,
+                  status = cmd.status.asString,
+                  tags = cmd.tags.map(_.map(_.displayName)),
+                  instant = Some(newEvent.instant.toEpochMilli),
+                  locationName = cmd.location.flatMap(l => l.name.orElse(l.city))
+                )
+              )
+              if cmd.status == EventStatus.PUBLISHED then
+                val creatorName = userMetadataRepository.findById(cmd.creatorId) match
+                  case Some(userMeta) => userMeta.name
+                  case None           => ""
                 publisher.publish(
-                  EventCreated(
+                  EventPublished(
                     eventId = newEvent._id,
-                    creatorId = cmd.creatorId,
-                    collaboratorIds = cmd.collaboratorIds,
-                    name = cmd.title,
-                    date = cmd.date,
-                    status = cmd.status.asString
+                    name = newEvent.title.getOrElse(""),
+                    creatorId = newEvent.creatorId,
+                    creatorName = creatorName
                   )
                 )
-                if cmd.status == EventStatus.PUBLISHED then
-                  val creatorName = userMetadataRepository.findById(cmd.creatorId) match
-                    case Some(userMeta) => userMeta.name
-                    case None           => ""
-                  publisher.publish(
-                    EventPublished(
-                      eventId = newEvent._id,
-                      name = newEvent.title.getOrElse(""),
-                      creatorId = newEvent.creatorId,
-                      creatorName = creatorName
-                    )
-                  )
-                Right(newEvent._id)
-              else
-                val basePayload = Map(
-                  "creatorId" -> ujson.Str(cmd.creatorId),
-                  "status"    -> ujson.Str(cmd.status.asString)
-                )
-                cmd.date.foreach(d => basePayload("date") = ujson.Str(s"${d}Z"))
-
-                cmd.title.foreach(t => basePayload("title") = ujson.Str(t))
-
-                val payload     = ujson.Obj.from(basePayload)
-                val payloadJson = ujson.write(payload)
-                println(s"Registering event ${newEvent._id} with payload: $payloadJson")
-
-                val postResult = Try {
-                  requests.post(
-                    s"$paymentsServiceUrl/internal/events/${newEvent._id}",
-                    data = payloadJson,
-                    headers = Map("Content-Type" -> "application/json")
-                  )
-                }
-
-                postResult match
-                  case Failure(exception) =>
-                    eventRepository.delete(newEvent._id)
-                    Left(
-                      s"Failed to register event in payments service: ${Option(exception.getMessage).getOrElse(exception.toString)}"
-                    )
-                  case Success(response) if response.statusCode < 200 || response.statusCode >= 300 =>
-                    eventRepository.delete(newEvent._id)
-                    Left(s"Payments service error: ${response.statusCode}")
-                  case Success(_) =>
-                    publisher.publish(
-                      EventCreated(
-                        eventId = newEvent._id,
-                        creatorId = cmd.creatorId,
-                        collaboratorIds = cmd.collaboratorIds,
-                        name = cmd.title,
-                        date = cmd.date,
-                        status = cmd.status.asString,
-                        tags = cmd.tags.map(_.map(_.displayName)),
-                        instant = Some(newEvent.instant.toEpochMilli),
-                        locationName = cmd.location.flatMap(l => l.name.orElse(l.city))
-                      )
-                    )
-                    if cmd.status == EventStatus.PUBLISHED then
-                      val creatorName = userMetadataRepository.findById(cmd.creatorId) match
-                        case Some(userMeta) => userMeta.name
-                        case None           => ""
-                      publisher.publish(
-                        EventPublished(
-                          eventId = newEvent._id,
-                          name = newEvent.title.getOrElse(""),
-                          creatorId = newEvent.creatorId,
-                          creatorName = creatorName
-                        )
-                      )
-                    Right(newEvent._id)
+              Right(newEvent._id)
 
   def execCommand(cmd: UpdateEventCommand): Either[String, Unit] =
     cmd.collaboratorIds.getOrElse(List()).find(collaboratorId =>
