@@ -288,11 +288,12 @@ export class MetadataService {
   async validateParticipationAllowed(
     eventId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<void> {
     await Promise.all([
-      this.validateEventExistence(eventId),
-      this.validateUserExistence(userId),
-      this.validateEventPublished(eventId),
+      this.validateEventExistence(eventId, session),
+      this.validateUserExistence(userId, session),
+      this.validateEventPublished(eventId, session),
     ]);
   }
 
@@ -374,8 +375,13 @@ export class MetadataService {
     }
   }
 
-  async validateEventPublished(eventId: string): Promise<void> {
-    const event = await this.eventModel.findOne({ eventId });
+  async validateEventPublished(
+    eventId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const event = await this.eventModel
+      .findOne({ eventId })
+      .session(session || null);
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
