@@ -1,7 +1,7 @@
 package app
 
 import controller.Controller
-import infrastructure.db.{MongoEventRepository, MongoPriceRepository, MongoUserMetadataRepository}
+import infrastructure.db.{MongoEventRepository, MongoPriceRepository, MongoUserMetadataRepository, TransactionManager}
 import infrastructure.messaging.{ExternalEventHandler, RabbitEventConsumer, RabbitEventPublisher}
 import middleware.auth.JwtService
 import service.EventService
@@ -47,7 +47,9 @@ object Main extends App:
     messageBroker
   )
 
-  val eventService: EventService = new EventService(eventDatabase, userDatabase, messageBroker)
+  val transactionManager: TransactionManager = new TransactionManager(eventDatabase.mongoClient)
+
+  val eventService: EventService = new EventService(eventDatabase, userDatabase, messageBroker, transactionManager)
 
   val externalEventHandler: ExternalEventHandler = new ExternalEventHandler(userDatabase, priceDatabase, eventDatabase)
   val messageConsumer: RabbitEventConsumer = new RabbitEventConsumer(

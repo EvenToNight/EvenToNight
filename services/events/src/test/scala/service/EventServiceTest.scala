@@ -1,5 +1,6 @@
 package service
 
+import com.mongodb.client.ClientSession
 import domain.commands.{
   CreateEventCommand,
   DeleteEventCommand,
@@ -10,7 +11,7 @@ import domain.commands.{
   UpdateEventPosterCommand
 }
 import domain.models.{EventStatus, EventTag, Location}
-import infrastructure.db.{EventRepository, MongoEventRepository, MongoUserMetadataRepository}
+import infrastructure.db.{EventRepository, MongoEventRepository, MongoUserMetadataRepository, TransactionManager}
 import infrastructure.messaging.{EventPublisher, MockEventPublisher}
 import org.scalatest.BeforeAndAfterEach
 import org.scalatest.flatspec.AnyFlatSpec
@@ -19,12 +20,18 @@ import org.scalatest.matchers.should.Matchers
 import java.time.LocalDateTime
 import scala.compiletime.uninitialized
 
+class MockTransactionManagerForEventService extends TransactionManager(null):
+  override def executeInTransaction[T](operation: ClientSession => Either[String, T]): Either[String, T] =
+    // Execute operation without a real session for testing
+    operation(null)
+
 class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach:
 
-  var repo: EventRepository                 = uninitialized
-  var userRepo: MongoUserMetadataRepository = uninitialized
-  var publisher: EventPublisher             = uninitialized
-  var service: EventService                 = uninitialized
+  var repo: EventRepository                  = uninitialized
+  var userRepo: MongoUserMetadataRepository  = uninitialized
+  var publisher: EventPublisher              = uninitialized
+  var transactionManager: TransactionManager = uninitialized
+  var service: EventService                  = uninitialized
 
   override def beforeEach(): Unit =
     super.beforeEach()
@@ -39,7 +46,8 @@ class EventServiceTest extends AnyFlatSpec with Matchers with BeforeAndAfterEach
       messageBroker = new MockEventPublisher()
     )
     publisher = new MockEventPublisher
-    service = new EventService(repo, userRepo, publisher, "mock")
+    transactionManager = new MockTransactionManagerForEventService()
+    service = new EventService(repo, userRepo, publisher, transactionManager, paymentsServiceUrl = "mock")
 
   private def validCreateEventCommand(
       title: Option[String] = Some("Test Event"),

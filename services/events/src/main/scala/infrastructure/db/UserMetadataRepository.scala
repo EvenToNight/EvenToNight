@@ -1,6 +1,6 @@
 package infrastructure.db
 
-import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
+import com.mongodb.client.{ClientSession, MongoClient, MongoClients, MongoCollection, MongoDatabase}
 import com.mongodb.client.model.{Filters, ReplaceOptions}
 import domain.models.UserMetadata
 import infrastructure.messaging.EventPublisher
@@ -11,6 +11,7 @@ import scala.util.{Failure, Success, Try}
 trait UserMetadataRepository:
   def save(user: UserMetadata): Either[Throwable, Unit]
   def findById(id: String): Option[UserMetadata]
+  def findById(id: String, session: ClientSession): Option[UserMetadata]
   def delete(id: String): Either[Throwable, Unit]
 
 case class MongoUserMetadataRepository(
@@ -39,6 +40,13 @@ case class MongoUserMetadataRepository(
   def findById(id: String): Option[UserMetadata] =
     val docOption = Option(collection.find(Filters.eq("_id", id)).first())
     docOption.map(UserMetadata.fromDocument)
+
+  def findById(id: String, session: ClientSession): Option[UserMetadata] =
+    println(s"[UserMetadataRepository] Finding user $id with session")
+    val docOption = Option(collection.find(session, Filters.eq("_id", id)).first())
+    val result    = docOption.map(UserMetadata.fromDocument)
+    println(s"[UserMetadataRepository] User found: ${result.isDefined}")
+    result
 
   def delete(id: String): Either[Throwable, Unit] =
     Try {

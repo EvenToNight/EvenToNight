@@ -1,6 +1,6 @@
 package infrastructure.db
 
-import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
+import com.mongodb.client.{ClientSession, MongoClient, MongoClients, MongoCollection, MongoDatabase}
 import com.mongodb.client.model.{Filters, ReplaceOptions, Sorts}
 import domain.events.EventCompleted
 import domain.models.{Event, EventStatus, Location}
@@ -16,6 +16,7 @@ import scala.util.{Failure, Success, Try}
 trait EventRepository:
 
   def save(event: Event): Either[Throwable, Unit]
+  def save(event: Event, session: ClientSession): Either[Throwable, Unit]
   def findById(eventId: String): Option[Event]
   def update(event: Event): Either[Throwable, Unit]
   def findAllPublished(): Either[Throwable, List[Event]]
@@ -47,7 +48,7 @@ case class MongoEventRepository(
     priceRepository: Option[PriceRepository] = None
 ) extends EventRepository:
 
-  private val mongoClient: MongoClient              = MongoClients.create(connectionString)
+  val mongoClient: MongoClient                      = MongoClients.create(connectionString)
   private val database: MongoDatabase               = mongoClient.getDatabase(databaseName)
   private val collection: MongoCollection[Document] = database.getCollection(collectionName)
 
@@ -56,6 +57,19 @@ case class MongoEventRepository(
 
     Try {
       collection.replaceOne(Filters.eq("_id", event._id), event.toDocument, replaceOptions)
+      println(s"[MongoDB] Saved Event ID: ${event._id} with status: ${event.status}")
+    } match
+      case Success(_) => Right(())
+      case Failure(ex) =>
+        println(s"[MongoDB][Error] Failed to save Event ID: ${event._id} - ${ex.getMessage}")
+        Left(ex)
+
+  override def save(event: Event, session: ClientSession): Either[Throwable, Unit] =
+    val replaceOptions = new ReplaceOptions().upsert(true)
+
+    Try {
+      println(s"[MongoDB] Saving Event ID: ${event._id} with session")
+      collection.replaceOne(session, Filters.eq("_id", event._id), event.toDocument, replaceOptions)
       println(s"[MongoDB] Saved Event ID: ${event._id} with status: ${event.status}")
     } match
       case Success(_) => Right(())
