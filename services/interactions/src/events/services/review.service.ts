@@ -6,7 +6,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, ClientSession } from 'mongoose';
 import { Review } from '../schemas/review.schema';
 import { CreateReviewDto } from '../dto/create-review.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
@@ -14,6 +14,7 @@ import { UpdateReviewDto } from '../dto/update-review.dto';
 import { PaginatedResponseDto } from 'src/commons/dto/paginated-response.dto';
 import { ReviewStatsDto } from '../dto/review-stats.dto';
 import { RabbitMqPublisherService } from 'src/rabbitmq/rabbitmq-publisher.service';
+import { TransactionManagerService } from 'src/commons/database/transaction-manager.service';
 
 @Injectable()
 export class ReviewService {
@@ -22,44 +23,53 @@ export class ReviewService {
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
     private readonly rabbitMqPublisher: RabbitMqPublisherService,
+    private readonly transactionManager: TransactionManagerService,
   ) {}
 
   async createReview(
     eventId: string,
     createReviewDto: CreateReviewDto,
   ): Promise<Review> {
-    await this.metadataService.validateReviewAllowed(eventId, createReviewDto);
-    const existing = await this.reviewModel.findOne({
-      eventId,
-      userId: createReviewDto.userId,
+    return this.transactionManager.executeInTransaction(async (session) => {
+      await this.metadataService.validateReviewAllowed(
+        eventId,
+        createReviewDto,
+        session,
+      );
+      const existing = await this.reviewModel
+        .findOne({
+          eventId,
+          userId: createReviewDto.userId,
+        })
+        .session(session);
+      if (existing) {
+        throw new ConflictException('You have already reviewed this event');
+      }
+      const { creatorId, collaboratorIds } =
+        await this.metadataService.getEventInfo(eventId, session);
+      const review = new this.reviewModel({
+        eventId,
+        ...createReviewDto,
+        creatorId,
+        collaboratorIds,
+      });
+
+      await review.save({ session });
+
+      const userInfo = await this.metadataService.getUserInfo(
+        createReviewDto.userId,
+      );
+
+      await this.rabbitMqPublisher.publishReviewCreated({
+        creatorId: review.creatorId,
+        eventId: review.eventId,
+        userId: review.userId,
+        userName: userInfo.name,
+        userAvatar: userInfo.avatar,
+      });
+
+      return review;
     });
-    if (existing) {
-      throw new ConflictException('You have already reviewed this event');
-    }
-    const { creatorId, collaboratorIds } =
-      await this.metadataService.getEventInfo(eventId);
-    const review = new this.reviewModel({
-      eventId,
-      ...createReviewDto,
-      creatorId,
-      collaboratorIds,
-    });
-
-    review.save();
-
-    const userInfo = await this.metadataService.getUserInfo(
-      createReviewDto.userId,
-    );
-
-    await this.rabbitMqPublisher.publishReviewCreated({
-      creatorId: review.creatorId,
-      eventId: review.eventId,
-      userId: review.userId,
-      userName: userInfo.name,
-      userAvatar: userInfo.avatar,
-    });
-
-    return review;
   }
 
   async deleteReview(eventId: string, userId: string): Promise<void> {

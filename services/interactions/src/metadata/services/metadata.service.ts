@@ -320,12 +320,13 @@ export class MetadataService {
   async validateReviewAllowed(
     eventId: string,
     createReviewDto: CreateReviewDto,
+    session?: ClientSession,
   ): Promise<void> {
     await Promise.all([
-      this.validateUserExistence(createReviewDto.userId),
-      this.validateEventCompleted(eventId),
-      this.validateUserNotCreator(eventId, createReviewDto.userId),
-      this.hasParticipated(eventId, createReviewDto.userId),
+      this.validateUserExistence(createReviewDto.userId, session),
+      this.validateEventCompleted(eventId, session),
+      this.validateUserNotCreator(eventId, createReviewDto.userId, session),
+      this.hasParticipated(eventId, createReviewDto.userId, session),
     ]);
   }
 
@@ -407,8 +408,13 @@ export class MetadataService {
     }
   }
 
-  private async validateEventCompleted(eventId: string): Promise<void> {
-    const event = await this.eventModel.findOne({ eventId });
+  private async validateEventCompleted(
+    eventId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const event = await this.eventModel
+      .findOne({ eventId })
+      .session(session || null);
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
@@ -423,10 +429,12 @@ export class MetadataService {
   private async hasParticipated(
     eventId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<void> {
     const hasParticipated = await this.participationService.hasUserParticipated(
       userId,
       eventId,
+      session,
     );
     if (!hasParticipated) {
       throw new NotFoundException(
@@ -435,8 +443,15 @@ export class MetadataService {
     }
   }
 
-  async validateUserNotCreator(eventId: string, userId: string): Promise<void> {
-    const { creatorId, collaboratorIds } = await this.getEventInfo(eventId);
+  async validateUserNotCreator(
+    eventId: string,
+    userId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const { creatorId, collaboratorIds } = await this.getEventInfo(
+      eventId,
+      session,
+    );
     if (creatorId === userId || collaboratorIds.includes(userId)) {
       throw new BadRequestException('User cannot review their own event');
     }
@@ -444,8 +459,12 @@ export class MetadataService {
 
   async getEventInfo(
     eventId: string,
+    session?: ClientSession,
   ): Promise<{ creatorId: string; collaboratorIds: string[]; name: string }> {
-    const event = await this.eventModel.findOne({ eventId }).lean();
+    const event = await this.eventModel
+      .findOne({ eventId })
+      .session(session || null)
+      .lean();
 
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);

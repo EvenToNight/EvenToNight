@@ -5,7 +5,7 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, ClientSession } from 'mongoose';
 import { Participation } from '../schemas/participation.schema';
 import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { MetadataService } from '../../metadata/services/metadata.service';
@@ -186,13 +186,19 @@ export class ParticipationService {
     );
   }
 
-  async hasUserParticipated(userId: string, eventId: string): Promise<boolean> {
-    await this.metadataService.validateUserExistence(userId);
-    await this.metadataService.validateEventExistence(eventId);
-    const participation = await this.participationModel.findOne({
-      userId,
-      eventId,
-    });
+  async hasUserParticipated(
+    userId: string,
+    eventId: string,
+    session?: ClientSession,
+  ): Promise<boolean> {
+    await this.metadataService.validateUserExistence(userId, session);
+    await this.metadataService.validateEventExistence(eventId, session);
+    const participation = await this.participationModel
+      .findOne({
+        userId,
+        eventId,
+      })
+      .session(session || null);
     return !!participation;
   }
 
