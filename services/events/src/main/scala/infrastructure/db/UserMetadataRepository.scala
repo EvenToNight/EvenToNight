@@ -18,10 +18,11 @@ case class MongoUserMetadataRepository(
     connectionString: String,
     databaseName: String,
     collectionName: String = "users",
-    messageBroker: EventPublisher
+    messageBroker: EventPublisher,
+    sharedMongoClient: Option[MongoClient] = None
 ) extends UserMetadataRepository:
 
-  private val mongoClient: MongoClient              = MongoClients.create(connectionString)
+  private val mongoClient: MongoClient              = sharedMongoClient.getOrElse(MongoClients.create(connectionString))
   private val database: MongoDatabase               = mongoClient.getDatabase(databaseName)
   private val collection: MongoCollection[Document] = database.getCollection(collectionName)
 

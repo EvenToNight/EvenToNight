@@ -47,7 +47,7 @@ services:
           if (e.codeName === 'NotYetInitialized') {
             rs.initiate({
               _id: 'rs0',
-              members: [{ _id: 0, host: 'mongo-chat:27017' }]
+              members: [{ _id: 0, host: 'mongo-events:27017' }]
             });
           }
           quit(1);

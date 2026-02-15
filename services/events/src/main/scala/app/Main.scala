@@ -44,7 +44,8 @@ object Main extends App:
     mongoUri,
     "eventonight",
     "users",
-    messageBroker
+    messageBroker,
+    sharedMongoClient = Some(eventDatabase.mongoClient)
   )
 
   val transactionManager: TransactionManager = new TransactionManager(eventDatabase.mongoClient)
