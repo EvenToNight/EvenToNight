@@ -267,11 +267,17 @@ export class MetadataService {
     userId: string,
     session?: ClientSession,
   ): Promise<void> {
-    await Promise.all([
-      this.validateEventExistence(eventId, session),
-      this.validateUserExistence(userId, session),
-      this.validateEventIsNotDraft(eventId, session),
-    ]);
+    if (session) {
+      await this.validateEventExistence(eventId, session);
+      await this.validateUserExistence(userId, session);
+      await this.validateEventIsNotDraft(eventId, session);
+    } else {
+      await Promise.all([
+        this.validateEventExistence(eventId, session),
+        this.validateUserExistence(userId, session),
+        this.validateEventIsNotDraft(eventId, session),
+      ]);
+    }
   }
 
   async validateUnlikeAllowed(
@@ -279,10 +285,15 @@ export class MetadataService {
     userId: string,
     session?: ClientSession,
   ): Promise<void> {
-    await Promise.all([
-      this.validateEventExistence(eventId, session),
-      this.validateUserExistence(userId, session),
-    ]);
+    if (session) {
+      await this.validateEventExistence(eventId, session);
+      await this.validateUserExistence(userId, session);
+    } else {
+      await Promise.all([
+        this.validateEventExistence(eventId, session),
+        this.validateUserExistence(userId, session),
+      ]);
+    }
   }
 
   async validateParticipationAllowed(
@@ -290,11 +301,17 @@ export class MetadataService {
     userId: string,
     session?: ClientSession,
   ): Promise<void> {
-    await Promise.all([
-      this.validateEventExistence(eventId, session),
-      this.validateUserExistence(userId, session),
-      this.validateEventPublished(eventId, session),
-    ]);
+    if (session) {
+      await this.validateEventExistence(eventId, session);
+      await this.validateUserExistence(userId, session);
+      await this.validateEventPublished(eventId, session);
+    } else {
+      await Promise.all([
+        this.validateEventExistence(eventId, session),
+        this.validateUserExistence(userId, session),
+        this.validateEventPublished(eventId, session),
+      ]);
+    }
   }
 
   async validateFollowAllowed(
@@ -302,10 +319,15 @@ export class MetadataService {
     followeeId: string,
     session?: ClientSession,
   ): Promise<void> {
-    await Promise.all([
-      this.validateUserExistence(followerId, session),
-      this.validateUserExistence(followeeId, session),
-    ]);
+    if (session) {
+      await this.validateUserExistence(followerId, session);
+      await this.validateUserExistence(followeeId, session);
+    } else {
+      await Promise.all([
+        this.validateUserExistence(followerId, session),
+        this.validateUserExistence(followeeId, session),
+      ]);
+    }
   }
 
   async validateUnfollowAllowed(
@@ -313,10 +335,15 @@ export class MetadataService {
     followeeId: string,
     session?: ClientSession,
   ): Promise<void> {
-    await Promise.all([
-      this.validateUserExistence(followerId, session),
-      this.validateUserExistence(followeeId, session),
-    ]);
+    if (session) {
+      await this.validateUserExistence(followerId, session);
+      await this.validateUserExistence(followeeId, session);
+    } else {
+      await Promise.all([
+        this.validateUserExistence(followerId, session),
+        this.validateUserExistence(followeeId, session),
+      ]);
+    }
   }
 
   async validateReviewAllowed(
@@ -324,12 +351,23 @@ export class MetadataService {
     createReviewDto: CreateReviewDto,
     session?: ClientSession,
   ): Promise<void> {
-    await Promise.all([
-      this.validateUserExistence(createReviewDto.userId, session),
-      this.validateEventCompleted(eventId, session),
-      this.validateUserNotCreator(eventId, createReviewDto.userId, session),
-      this.hasParticipated(eventId, createReviewDto.userId, session),
-    ]);
+    if (session) {
+      await this.validateUserExistence(createReviewDto.userId, session);
+      await this.validateEventCompleted(eventId, session);
+      await this.validateUserNotCreator(
+        eventId,
+        createReviewDto.userId,
+        session,
+      );
+      await this.hasParticipated(eventId, createReviewDto.userId, session);
+    } else {
+      await Promise.all([
+        this.validateUserExistence(createReviewDto.userId, session),
+        this.validateEventCompleted(eventId, session),
+        this.validateUserNotCreator(eventId, createReviewDto.userId, session),
+        this.hasParticipated(eventId, createReviewDto.userId, session),
+      ]);
+    }
   }
 
   async validateReviewDeletionAllowed(

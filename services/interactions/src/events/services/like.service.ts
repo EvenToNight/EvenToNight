@@ -25,35 +25,39 @@ export class LikeService {
   ) {}
 
   async likeEvent(eventId: string, userId: string): Promise<Like> {
-    return this.transactionManager.executeInTransaction(async (session) => {
-      await this.metadataService.validateLikeAllowed(eventId, userId, session);
+    const like = await this.transactionManager.executeInTransaction(
+      async (session) => {
+        await this.metadataService.validateLikeAllowed(
+          eventId,
+          userId,
+          session,
+        );
+        const existing = await this.likeModel
+          .findOne({ eventId, userId })
+          .session(session);
+        if (existing) {
+          throw new ConflictException('Already liked this event');
+        }
+        const newLike = new this.likeModel({ eventId, userId });
+        await newLike.save({ session });
+        return newLike;
+      },
+    );
 
-      const existing = await this.likeModel
-        .findOne({ eventId, userId })
-        .session(session);
-      if (existing) {
-        throw new ConflictException('Already liked this event');
-      }
+    const [eventInfo, userInfo] = await Promise.all([
+      this.metadataService.getEventInfo(eventId),
+      this.metadataService.getUserInfo(userId),
+    ]);
 
-      const like = new this.likeModel({ eventId, userId });
-      await like.save({ session });
-
-      const [eventInfo, userInfo] = await Promise.all([
-        this.metadataService.getEventInfo(eventId),
-        this.metadataService.getUserInfo(userId),
-      ]);
-
-      await this.rabbitMqPublisher.publishLikeCreated({
-        creatorId: eventInfo.creatorId,
-        eventId,
-        eventName: eventInfo.name,
-        userId,
-        userName: userInfo.name,
-        userAvatar: userInfo.avatar,
-      });
-
-      return like;
+    await this.rabbitMqPublisher.publishLikeCreated({
+      creatorId: eventInfo.creatorId,
+      eventId,
+      eventName: eventInfo.name,
+      userId,
+      userName: userInfo.name,
+      userAvatar: userInfo.avatar,
     });
+    return like;
   }
 
   async unlikeEvent(eventId: string, userId: string): Promise<void> {
