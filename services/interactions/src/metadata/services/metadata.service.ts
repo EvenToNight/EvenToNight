@@ -300,20 +300,22 @@ export class MetadataService {
   async validateFollowAllowed(
     followerId: string,
     followeeId: string,
+    session?: ClientSession,
   ): Promise<void> {
     await Promise.all([
-      this.validateUserExistence(followerId),
-      this.validateUserExistence(followeeId),
+      this.validateUserExistence(followerId, session),
+      this.validateUserExistence(followeeId, session),
     ]);
   }
 
   async validateUnfollowAllowed(
     followerId: string,
     followeeId: string,
+    session?: ClientSession,
   ): Promise<void> {
     await Promise.all([
-      this.validateUserExistence(followerId),
-      this.validateUserExistence(followeeId),
+      this.validateUserExistence(followerId, session),
+      this.validateUserExistence(followeeId, session),
     ]);
   }
 
