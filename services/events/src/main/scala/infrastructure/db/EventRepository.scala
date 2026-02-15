@@ -65,17 +65,21 @@ case class MongoEventRepository(
         Left(ex)
 
   override def save(event: Event, session: ClientSession): Either[Throwable, Unit] =
-    val replaceOptions = new ReplaceOptions().upsert(true)
+    println(s"[MongoDB] Saving Event ID: ${event._id} with session: ${session != null}")
+    if session == null then
+      // Fallback to non-transactional save when session is null (e.g., in tests)
+      save(event)
+    else
+      val replaceOptions = new ReplaceOptions().upsert(true)
 
-    Try {
-      println(s"[MongoDB] Saving Event ID: ${event._id} with session")
-      collection.replaceOne(session, Filters.eq("_id", event._id), event.toDocument, replaceOptions)
-      println(s"[MongoDB] Saved Event ID: ${event._id} with status: ${event.status}")
-    } match
-      case Success(_) => Right(())
-      case Failure(ex) =>
-        println(s"[MongoDB][Error] Failed to save Event ID: ${event._id} - ${ex.getMessage}")
-        Left(ex)
+      Try {
+        collection.replaceOne(session, Filters.eq("_id", event._id), event.toDocument, replaceOptions)
+        println(s"[MongoDB] Saved Event ID: ${event._id} with status: ${event.status}")
+      } match
+        case Success(_) => Right(())
+        case Failure(ex) =>
+          println(s"[MongoDB][Error] Failed to save Event ID: ${event._id} - ${ex.getMessage}")
+          Left(ex)
 
   override def findById(eventId: String): Option[Event] =
     val doc = collection.find(Filters.eq("_id", eventId)).first()

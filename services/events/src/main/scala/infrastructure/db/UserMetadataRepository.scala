@@ -43,11 +43,15 @@ case class MongoUserMetadataRepository(
     docOption.map(UserMetadata.fromDocument)
 
   def findById(id: String, session: ClientSession): Option[UserMetadata] =
-    println(s"[UserMetadataRepository] Finding user $id with session")
-    val docOption = Option(collection.find(session, Filters.eq("_id", id)).first())
-    val result    = docOption.map(UserMetadata.fromDocument)
-    println(s"[UserMetadataRepository] User found: ${result.isDefined}")
-    result
+    println(s"[UserMetadataRepository] Finding user $id with session: ${session != null}")
+    if session == null then
+      // Fallback to non-transactional query when session is null (e.g., in tests)
+      findById(id)
+    else
+      val docOption = Option(collection.find(session, Filters.eq("_id", id)).first())
+      val result    = docOption.map(UserMetadata.fromDocument)
+      println(s"[UserMetadataRepository] User found: ${result.isDefined}")
+      result
 
   def delete(id: String): Either[Throwable, Unit] =
     Try {
