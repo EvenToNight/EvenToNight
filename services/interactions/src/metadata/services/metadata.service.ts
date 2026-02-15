@@ -7,7 +7,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, ClientSession } from 'mongoose';
 import { Event, EventStatus } from '../schemas/event.schema';
 import { User } from '../schemas/user.schema';
 import { LikeService } from '../../events/services/like.service';
@@ -262,18 +262,26 @@ export class MetadataService {
     }
   }
 
-  async validateLikeAllowed(eventId: string, userId: string): Promise<void> {
+  async validateLikeAllowed(
+    eventId: string,
+    userId: string,
+    session?: ClientSession,
+  ): Promise<void> {
     await Promise.all([
-      this.validateEventExistence(eventId),
-      this.validateUserExistence(userId),
-      this.validateEventIsNotDraft(eventId),
+      this.validateEventExistence(eventId, session),
+      this.validateUserExistence(userId, session),
+      this.validateEventIsNotDraft(eventId, session),
     ]);
   }
 
-  async validateUnlikeAllowed(eventId: string, userId: string): Promise<void> {
+  async validateUnlikeAllowed(
+    eventId: string,
+    userId: string,
+    session?: ClientSession,
+  ): Promise<void> {
     await Promise.all([
-      this.validateEventExistence(eventId),
-      this.validateUserExistence(userId),
+      this.validateEventExistence(eventId, session),
+      this.validateUserExistence(userId, session),
     ]);
   }
 
@@ -342,15 +350,25 @@ export class MetadataService {
     ]);
   }
 
-  async validateEventExistence(eventId: string): Promise<void> {
-    const event = await this.eventModel.findOne({ eventId });
+  async validateEventExistence(
+    eventId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const event = await this.eventModel
+      .findOne({ eventId })
+      .session(session || null);
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
   }
 
-  async validateUserExistence(userId: string): Promise<void> {
-    const user = await this.userModel.findOne({ userId });
+  async validateUserExistence(
+    userId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const user = await this.userModel
+      .findOne({ userId })
+      .session(session || null);
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
@@ -368,8 +386,13 @@ export class MetadataService {
     }
   }
 
-  async validateEventIsNotDraft(eventId: string): Promise<void> {
-    const event = await this.eventModel.findOne({ eventId });
+  async validateEventIsNotDraft(
+    eventId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const event = await this.eventModel
+      .findOne({ eventId })
+      .session(session || null);
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
