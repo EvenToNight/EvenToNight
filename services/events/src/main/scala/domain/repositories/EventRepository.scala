@@ -1,7 +1,7 @@
 package domain.repositories
 
 import domain.aggregates.Event
-import domain.models.EventStatus
+import domain.enums.EventStatus
 import domain.valueobjects.{EventId, OrganizationId}
 
 import java.time.LocalDateTime

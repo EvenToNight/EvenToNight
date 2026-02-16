@@ -1,7 +1,7 @@
 package infrastructure.adapters
 
 import domain.aggregates.Event as EventAggregate
-import domain.models.EventStatus
+import domain.enums.EventStatus
 import domain.repositories.{EventRepository as DomainEventRepository, TransactionContext}
 import domain.valueobjects.{EventId, OrganizationId}
 import infrastructure.adapters.converters.EventAggregateConverter

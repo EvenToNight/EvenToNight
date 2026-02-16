@@ -1,7 +1,7 @@
 package domain.aggregates
 
+import domain.enums.{EventStatus, EventStatusTransitions, EventTag}
 import domain.events.*
-import domain.models.{EventStatus, EventStatusTransitions, EventTag}
 import domain.valueobjects.{EventDescription, EventId, EventTitle, Location, OrganizationId}
 
 import java.time.{Instant, LocalDateTime}

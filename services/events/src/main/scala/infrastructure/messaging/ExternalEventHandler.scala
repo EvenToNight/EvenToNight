@@ -25,7 +25,7 @@ case class TicketTypeDeletedPayload(ticketTypeId: String)
 class ExternalEventHandler(
     userMetadataRepo: MongoUserMetadataRepository,
     priceRepo: MongoPriceRepository,
-    eventRepo: infrastructure.db.EventRepository
+    eventRepo: infrastructure.db.MongoEventRepository
 ) extends MessageHandler:
 
   override def handle(routingKey: String, message: String): Unit =

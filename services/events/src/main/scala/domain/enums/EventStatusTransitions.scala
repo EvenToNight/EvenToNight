@@ -1,4 +1,4 @@
-package domain.models
+package domain.enums
 
 object EventStatusTransitions:
 

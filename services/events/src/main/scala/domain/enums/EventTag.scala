@@ -1,4 +1,4 @@
-package domain.models
+package domain.enums
 
 sealed trait EventTag:
   val displayName: String

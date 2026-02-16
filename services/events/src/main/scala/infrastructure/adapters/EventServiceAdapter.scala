@@ -1,10 +1,10 @@
 package infrastructure.adapters
 
 import application.EventApplicationService
-import application.dto.EventConverter
 import application.ports.EventServicePort
 import domain.commands.*
 import domain.valueobjects.EventId
+import infrastructure.adapters.converters.EventAggregateConverter
 import infrastructure.dto.Event
 
 /** Adapter that bridges the Application Service with Controllers
@@ -18,13 +18,13 @@ class EventServiceAdapter(
     applicationService.handleCommand(cmd).map { result =>
       result match
         case aggregate: domain.aggregates.Event =>
-          EventConverter.toDTO(aggregate)
+          EventAggregateConverter.toModel(aggregate)
 
         case aggregates: List[?] =>
-          aggregates.collect { case e: domain.aggregates.Event => EventConverter.toDTO(e) }
+          aggregates.collect { case e: domain.aggregates.Event => EventAggregateConverter.toModel(e) }
 
         case (aggregates: List[?], hasMore: Boolean) =>
-          val dtos = aggregates.collect { case e: domain.aggregates.Event => EventConverter.toDTO(e) }
+          val dtos = aggregates.collect { case e: domain.aggregates.Event => EventAggregateConverter.toModel(e) }
           (dtos, hasMore)
 
         case other => other
@@ -37,6 +37,6 @@ class EventServiceAdapter(
         applicationService.handleCommand(GetEventCommand(eventId)) match
           case Left(error) => Left(error)
           case Right(aggregate: domain.aggregates.Event) =>
-            Right(EventConverter.toDTO(aggregate))
+            Right(EventAggregateConverter.toModel(aggregate))
           case Right(other) =>
             Left(s"Unexpected result type from GetEventCommand: ${other.getClass.getSimpleName}")

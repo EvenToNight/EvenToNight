@@ -3,7 +3,7 @@ package controller.routes
 import application.ports.EventServicePort
 import cask.Routes
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventPosterCommand}
-import domain.models.EventStatus
+import domain.enums.EventStatus
 import middleware.auth.JwtService
 import ujson.Obj
 import utils.Utils

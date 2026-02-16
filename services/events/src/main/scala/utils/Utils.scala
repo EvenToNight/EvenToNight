@@ -1,7 +1,7 @@
 package utils
 import domain.commands.{CreateEventCommand, GetFilteredEventsCommand, UpdateEventCommand}
-import domain.models.{EventStatus, EventTag}
-import domain.models.EventTag.validateTagList
+import domain.enums.{EventStatus, EventTag}
+import domain.enums.EventTag.validateTagList
 import infrastructure.converters.EventConversions.*
 import infrastructure.db.MongoUserMetadataRepository
 import infrastructure.dto.{Event, Location}

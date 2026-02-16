@@ -1,6 +1,6 @@
 package infrastructure.dto
 
-import domain.models.{EventStatus, EventTag}
+import domain.enums.{EventStatus, EventTag}
 
 import java.time.LocalDateTime
 import java.util.UUID

@@ -2,7 +2,7 @@ package application.usecases
 
 import domain.aggregates.Event
 import domain.commands.CreateEventCommand
-import domain.models.EventStatus
+import domain.enums.EventStatus
 import domain.repositories.{
   DomainEventPublisher,
   EventRepository,
