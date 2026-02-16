@@ -63,6 +63,7 @@ class MongoEventRepositoryAdapter(
       sortOrder: Option[String] = None,
       query: Option[String] = None,
       near: Option[(Double, Double)] = None,
+      other: Option[String] = None,
       priceRange: Option[(Double, Double)] = None
   ): Either[String, (List[EventAggregate], Boolean)] =
     infraRepository.findByFilters(
@@ -80,7 +81,7 @@ class MongoEventRepositoryAdapter(
       sortOrder = sortOrder,
       query = query,
       near = near,
-      other = None,
+      other = other,
       price = priceRange
     ) match
       case Right((models, hasMore)) =>

@@ -35,5 +35,6 @@ trait EventRepository:
       sortOrder: Option[String] = None,
       query: Option[String] = None,
       near: Option[(Double, Double)] = None,
+      other: Option[String] = None,
       priceRange: Option[(Double, Double)] = None
   ): Either[String, (List[Event], Boolean)]

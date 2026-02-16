@@ -37,5 +37,6 @@ class GetFilteredEventsQuery(eventRepository: EventRepository):
       sortOrder = command.sortOrder,
       query = command.query,
       near = command.near,
+      other = command.other,
       priceRange = command.price
     )
