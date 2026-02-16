@@ -31,7 +31,7 @@ L'applicazione fa uso delle principali funzionalità di Vue come `provide/inject
 
 Lo store Pinia gestisce l'autenticazione dell'utente e i token JWT. Il sistema implementa il refresh automatico dei token prima della scadenza:
 
-```tsx
+```typescript
 interface Tokens {
   accesToken: AccessToken,
   refreshToken: RefreshToken,
@@ -44,7 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   const isAuthenticated = computed(() => {
     if (!tokens.value || !user.value) return false
-    return tokens.refreshExpiresAt.value > Date.now()
+    return tokens.value.refreshExpiresAt > Date.now()
   })
 
   // Set data to local storage to avoid data loss on page refresh
@@ -60,7 +60,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // Auto-refresh 5 minutes before expiration
   const setupAutoRefresh = () => {
-    const refreshTime = refreshExpiredAt.value - Date.now() - 5 * 60 * 1000 
+    const refreshTime = tokens.value.refreshExpiresAt - Date.now() - 5 * 60 * 1000
     if (refreshTime > 0) {
       setTimeout(() => refreshAccessToken(), refreshTime)
     }
@@ -74,7 +74,7 @@ Un aspetto fondamentale dello sviluppo è stato il **layer di astrazione API**, 
 
 Il sistema utilizza una variabile d'ambiente per utilizzare API reali o mock:
 
-```tsx
+```typescript
 const useRealApi: boolean = import.meta.env.VITE_USE_MOCK_API === 'false'
 
 export const api = {
@@ -89,7 +89,7 @@ export const api = {
 
 Il client HTTP gestisce centralmente l'injection del token JWT e il refresh automatico in caso di 401:
 
-```tsx
+```typescript
 const token = tokenProvider?.()
 if (token) {
   headers['Authorization'] = `Bearer ${token}`
@@ -110,7 +110,7 @@ Questo approccio, seguendo il principio **Dependency Inversion (DIP)**, ha perme
 
 Il sistema di routing utilizza due livelli: un livello root per gestire redirect e rotte speciali, e un livello nested sotto `/:locale` per tutte le rotte localizzate. Questa separazione è stata necessaria perché alcune rotte (come quella codificata nel QR code nei biglietti) non richiedono il prefisso della lingua.
 
-```tsx
+```typescript
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -169,7 +169,7 @@ router.beforeEach((to, _from, next) => {
 
 Le **navigation guards** proteggono le rotte in base all'autenticazione e ai ruoli:
 
-```tsx
+```typescript
 export const requireAuth = (to, _from, next) => {
   const authStore = useAuthStore()
   if (!authStore.isAuthenticated) {
@@ -197,7 +197,7 @@ Le guards guidano l'utente nell'utilizzo dell'applicazione, impedendo l'accesso 
 
 La comunicazione in tempo reale è gestita tramite [**Socket.IO**](http://socket.io/) per le notifiche e i messaggi chat:
 
-```tsx
+```typescript
 socket = io(url, {
   auth: { token, userId },
   reconnection: true,
@@ -223,7 +223,7 @@ Gli eventi gestiti includono:
 
 I composables incapsulano logiche riutilizzabili tra i componenti. Un esempio significativo è `useInfiniteScroll` per la paginazione:
 
-```tsx
+```typescript
 export function useInfiniteScroll<R>(config: InfiniteScrollConfiguration<R>) {
   const items: Ref<R[]> = ref([])
   const hasMore = ref(true)
@@ -259,7 +259,7 @@ Sono stati definiti anche layout riutilizzabili per garantire consistenza nell'i
 
 L'applicazione supporta 5 lingue (en, es, fr, it, de). Le traduzioni sono generate automaticamente in CI a partire dal sorgente inglese:
 
-```tsx
+```typescript
 const localeModules = import.meta.glob('./locales/*.ts', { eager: true })
 
 const i18n = createI18n({
@@ -272,7 +272,7 @@ const i18n = createI18n({
 
 L'utilizzo nei componenti avviene tramite il composable useTranslation:
 
-```tsx
+```typescript
 
 const { t } = useTranslation('components.cards.EventCard')
 
@@ -280,7 +280,7 @@ const { t } = useTranslation('components.cards.EventCard')
 
 Inoltre il selettore delle lingue nelle impostazioni del profilo utilizza l'API nativa `Intl.DisplayNames` per mostrare ogni lingua nel proprio nome nativo (es. "Italiano", "Français", "Deutsch"), migliorando l'accessibilità per gli utenti:
 
-```tsx
+```typescript
 const getLanguageInfo = (code: string): LanguageOption => {
   const nativeNames = new Intl.DisplayNames([code], { type: 'language' })
   return {
@@ -295,7 +295,7 @@ L'internazionalizzazione si estende anche al backend: il servizio Payments gener
 
 Il backend predispone inoltre la gestione dei prezzi con le valute e un sistema di conversione con caching, attualmente non utilizzato dal frontend ma pronto per future estensioni:
 
-```tsx
+```typescript
 export class CurrencyConverter {
   private static readonly CACHE_DURATION = 24 * 60 * 60 * 1000 // 24 hours
 
@@ -314,7 +314,7 @@ Per l'inserimento della posizione durante la creazione di un evento è stata uti
 
 Poiché la maggior parte degli utenti utilizza Google Maps per la navigazione, i dati ricevuti da Nominatim vengono elaborati per generare link compatibili con Google Maps, permettendo all'utente di cliccare sulla posizione dell'evento e aprirla direttamente nell'applicazione di navigazione.
 
-```tsx
+```typescript
 export const extractLocationMapsLink = (location: LocationData): string => {
   const query = `${location.name},${location.road},${location.city},${location.country}`
   return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`
@@ -353,7 +353,7 @@ Oltre alle REST API, l'autenticazione è stata implementata anche per le conness
 
 Per gestire le richieste HTTP in **Express** sono stati utilizzati i middleware, in particolare è stato definito un middleware per l’autenticazione:
 
-```tsx
+```typescript
 export function createAuthMiddleware(options: { optional?: boolean } = {}) {
   return (req: Request, res: Response, next: NextFunction): void => {
     const token = req.headers.authorization?.replace("Bearer ", "")
@@ -379,7 +379,7 @@ export const optionalAuthMiddleware = createAuthMiddleware({ optional: true })
 
 Le routes utilizzano poi questo middleware per proteggere gli endpoint:
 
-```tsx
+```typescript
 export function createNotificationRoutes(controller: NotificationController): Router {
   const router = Router()
   router.use(authMiddleware)
@@ -400,7 +400,7 @@ A livello applicativo vengono inoltre utilizzati i middleware standard di Expres
 
 Il gateway **Socket.IO** gestisce l'autenticazione delle connessioni WebSocket e la distribuzione delle notifiche:
 
-```tsx
+```typescript
 export class SocketIOGateway implements NotificationGateway {
   private userSockets: Map<string, Set<string>> = new Map()
 

@@ -10,7 +10,7 @@ Per garantire l'accessibilità dell'interfaccia sono stati adottati due approcci
 
 Il progetto integra **eslint-plugin-vuejs-accessibility** nella configurazione ESLint, identificando potenziali violazioni delle linee guida WCAG direttamente durante lo sviluppo:
 
-```tsx
+```typescript
 import vuejsAccessibility from 'eslint-plugin-vuejs-accessibility'
 
 export default defineConfig([
@@ -25,7 +25,7 @@ Il plugin verifica automaticamente la presenza di attributi `alt` nelle immagini
 
 Oltre all'analisi statica, il sistema implementa test di accessibilità dinamici tramite **Puppeteer** e **Lighthouse**. Lo script `a11y-check-multi.js` esegue un audit automatizzato sulle pagine specificate in fase di configurazione:
 
-```tsx
+```typescript
 const config = {
   baseUrl: process.env.BASE_URL || 'http://localhost:5173/it',
   pages: [
@@ -53,7 +53,7 @@ Lo script:
 4. **Testa entrambi i temi** (light e dark mode) per garantire l'accessibilità in tutte le condizioni
 5. **Genera report dettagliati** in formato HTML e un summary testuale
 
-```tsx
+```typescript
 async function runLighthouseOnPage(url, port, themeName) {
   const options = {
     logLevel: 'error',

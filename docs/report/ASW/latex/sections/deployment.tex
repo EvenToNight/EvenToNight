@@ -1,0 +1,159 @@
+\section{7~--- Deployment}\label{deployment}
+
+Il deploy dell'applicazione è stato automatizzato tramite Docker e
+Docker Compose: tutti i servizi vengono eseguiti come container
+indipendenti e lanciati tramite uno script centralizzato.
+
+\subsection{7.1~--- Installazione}\label{installazione}
+
+\subsubsection{1. Clonare il repository}\label{clonare-il-repository}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{git}\NormalTok{ clone https://github.com/EvenToNight/EvenToNight.git}
+\BuiltInTok{cd}\NormalTok{ EvenToNight}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{2. Configurare le variabili
+d'ambiente}\label{configurare-le-variabili-dambiente}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\FunctionTok{cp}\NormalTok{ .env.template .env}
+\CommentTok{\# Modificare .env e compilare tutti i campi richiesti}
+\CommentTok{\# Nota: Se si utilizza il flag {-}{-}no{-}deps, le chiavi Stripe possono contenere valori arbitrari. Tutti i valori devono essere compilati.}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{3. Avviare l'applicazione}\label{avviare-lapplicazione}
+
+\paragraph{Opzione A:\@ Utilizzo di immagini pre-compilate da ghcr.io
+(Consigliato)}\label{opzione-a-utilizzo-di-immagini-pre-compilate-da-ghcr.io-consigliato}
+
+\textbf{Download delle immagini:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{./scripts/composeApplication.sh}\NormalTok{ pull}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Download delle immagini con seeding del database:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{./scripts/composeApplication.sh} \AttributeTok{{-}{-}init{-}db}\NormalTok{ pull}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Deploy dell'applicazione:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{./scripts/composeApplication.sh}\NormalTok{ up }\AttributeTok{{-}d} \AttributeTok{{-}{-}wait}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Deploy con seeding del database:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{./scripts/composeApplication.sh} \AttributeTok{{-}{-}init{-}db}\NormalTok{ up }\AttributeTok{{-}d} \AttributeTok{{-}{-}wait}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Deploy in modalità sviluppo} (con porte mappate sull'host e
+dashboard per database/RabbitMQ/Traefik):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{./scripts/composeApplication.sh} \AttributeTok{{-}{-}init{-}db} \AttributeTok{{-}{-}dev}\NormalTok{ up }\AttributeTok{{-}d} \AttributeTok{{-}{-}wait}
+\end{Highlighting}
+\end{Shaded}
+
+\paragraph{Opzione B:\@ Build locale}\label{opzione-b-build-locale}
+
+Aggiungere il flag \texttt{-\/-build} per compilare i servizi localmente
+invece di utilizzare le immagini pre-compilate:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Build e deploy}
+\ExtensionTok{./scripts/composeApplication.sh}\NormalTok{ up }\AttributeTok{{-}{-}build} \AttributeTok{{-}d} \AttributeTok{{-}{-}wait}
+
+\CommentTok{\# Build e deploy con seeding}
+\ExtensionTok{./scripts/composeApplication.sh} \AttributeTok{{-}{-}init{-}db}\NormalTok{ up }\AttributeTok{{-}{-}build} \AttributeTok{{-}d} \AttributeTok{{-}{-}wait}
+\end{Highlighting}
+\end{Shaded}
+
+\paragraph{Flag aggiuntivi}\label{flag-aggiuntivi}
+
+\textbf{\texttt{-\/-no-deps}}: Esclude le dipendenze esterne (Stripe)
+
+È possibile aggiungere \texttt{-\/-no-deps} a qualsiasi comando di
+deploy per escludere i servizi esterni:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\CommentTok{\# Deploy senza dipendenze esterne}
+\ExtensionTok{./scripts/composeApplication.sh} \AttributeTok{{-}{-}no{-}deps}\NormalTok{ up }\AttributeTok{{-}d} \AttributeTok{{-}{-}wait}
+
+\CommentTok{\# Deploy con seeding ma senza dipendenze esterne}
+\ExtensionTok{./scripts/composeApplication.sh} \AttributeTok{{-}{-}init{-}db} \AttributeTok{{-}{-}no{-}deps}\NormalTok{ up }\AttributeTok{{-}d} \AttributeTok{{-}{-}wait}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Nota:} Quando si utilizza \texttt{-\/-no-deps}, le chiavi Stripe \textbf{(STRIPE\_SECRET\_KEY, STRIPE\_PUBLISHABLE\_KEY, STRIPE\_WEBHOOK\_SECRET)} in \texttt{.env} possono contenere valori arbitrari.
+
+\paragraph{Configurazione Stripe}\label{configurazione-stripe}
+
+\textbf{Per i pagamenti Stripe in ambiente locale} (richiesto solo se
+NON si utilizza \texttt{-\/-no-deps}):
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{./services/payments/scripts/local{-}webhooks.sh}
+\end{Highlighting}
+\end{Shaded}
+
+Questo script deve essere eseguito per inoltrare i webhook di Stripe
+all'ambiente locale.
+
+Per maggiori informazioni sull'utilizzo della modalità sandbox,
+consultare la \href{https://docs.stripe.com/testing}{documentazione
+Stripe}.
+
+\subsubsection{Setup alternativo}\label{setup-alternativo}
+
+Utilizzare Gradle per configurare l'intero ambiente con seeding e
+listener Stripe:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{./gradlew}\NormalTok{ setupApplicationEnvironment}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Teardown}\label{teardown}
+
+\textbf{Arresto dell'applicazione:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{./scripts/composeApplication.sh}\NormalTok{ down}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Arresto e rimozione dei volumi:}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ExtensionTok{./scripts/composeApplication.sh}\NormalTok{ down }\AttributeTok{{-}v}
+\end{Highlighting}
+\end{Shaded}
+
+\begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}
+
+Come ulteriore alternativa, è possibile visualizzare il sito già in
+produzione al link \url{https://eventonight.site/it}
