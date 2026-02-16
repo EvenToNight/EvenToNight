@@ -1,10 +1,11 @@
 <script setup>
 import { onMounted } from 'vue'
-import { useRouter } from 'vitepress'
-
-const router = useRouter()
+import { withBase } from 'vitepress'
 
 onMounted(() => {
-  router.go('/introduzione')
+  window.location.href = withBase('/introduzione')
 })
 </script>
+<template>
+<div/>
+</template>
