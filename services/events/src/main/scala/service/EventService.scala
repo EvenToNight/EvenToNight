@@ -1,5 +1,6 @@
 package service
 
+import application.ports.EventServicePort
 import domain.commands.{
   Commands,
   CreateEventCommand,
@@ -21,7 +22,7 @@ class EventService(
     publisher: EventPublisher,
     transactionManager: TransactionManager,
     paymentsServiceUrl: String = sys.env.getOrElse("PAYMENTS_SERVICE_URL", "http://localhost:9050")
-):
+) extends EventServicePort:
   val eventQueryService: EventQueryService = EventQueryService(eventRepository)
   val eventCommandService: DomainEventService =
     DomainEventService(eventRepository, userMetadataRepository, publisher, transactionManager, paymentsServiceUrl)
@@ -43,7 +44,7 @@ class EventService(
       case Left(errors) => Left(errors.mkString(", "))
       case Right(_)     => f(cmd)
 
-  def getEventInfo(eventId: String): Either[String, domain.models.Event] =
+  override def getEventInfo(eventId: String): Either[String, domain.models.Event] =
     eventRepository.findById(eventId) match
       case Some(event) => Right(event)
       case None        => Left(s"Event with id $eventId not found")
