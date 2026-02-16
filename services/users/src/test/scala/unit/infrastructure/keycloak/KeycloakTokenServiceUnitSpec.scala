@@ -1,6 +1,6 @@
 package unit.infrastructure.keycloak
 
-import domain.UserTokens
+import application.dto.UserTokens
 import fixtures.TokenFixtures._
 import infrastructure.keycloak.KeycloakTokenService
 import org.scalatest.EitherValues._
