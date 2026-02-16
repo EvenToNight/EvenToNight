@@ -1,6 +1,6 @@
 package infrastructure.keycloak
 
-import domain.UserTokens
+import application.dto.UserTokens
 
 class KeycloakTokenClient(tokenService: KeycloakTokenService, clientId: String, clientSecret: String):
   private def passwordGrantParams(username: String, password: String): Map[String, String] =

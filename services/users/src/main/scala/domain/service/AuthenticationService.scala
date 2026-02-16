@@ -1,7 +1,7 @@
 package domain.service
 
-import domain.UserTokens
-import domain.ValidRegistration
+import application.dto.UserTokens
+import application.registration.ValidRegistration
 
 trait AuthenticationService:
   def createUserWithRole(registration: ValidRegistration): Either[String, String]

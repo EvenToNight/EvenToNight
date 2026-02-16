@@ -1,6 +1,6 @@
 package infrastructure.services
 
-import domain.ValidRegistration
+import application.registration.ValidRegistration
 import domain.service.AuthenticationService
 import infrastructure.keycloak._
 

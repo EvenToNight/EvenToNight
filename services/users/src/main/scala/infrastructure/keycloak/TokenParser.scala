@@ -1,6 +1,6 @@
 package infrastructure.keycloak
 
-import domain.UserTokens
+import application.dto.UserTokens
 import io.circe.Json
 
 object TokenParser:

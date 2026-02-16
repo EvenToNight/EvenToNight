@@ -1,16 +1,16 @@
 package infrastructure.services
 
-import domain.UserRole._
+import application.user.SearchUsersQuery
 import domain.aggregates.Member
 import domain.aggregates.Organization
 import domain.aggregates.RegisteredUser
-import domain.query.SearchUsersQuery
-import domain.query.UserSearchAccountResult
-import domain.query.UserSearchProfileResult
-import domain.query.UserSearchResult
 import domain.repository.MemberRepository
 import domain.repository.OrganizationRepository
 import domain.service.UserQueryService
+import domain.valueobjects.UserRole._
+import presentation.http.dto.response.query.UserSearchAccountResultDTO
+import presentation.http.dto.response.query.UserSearchProfileResultDTO
+import presentation.http.dto.response.query.UserSearchResultDTO
 
 class UserQueryServiceImpl(memberRepo: MemberRepository, orgRepo: OrganizationRepository) extends UserQueryService:
   override def searchUsers(query: SearchUsersQuery) =
@@ -28,13 +28,13 @@ class UserQueryServiceImpl(memberRepo: MemberRepository, orgRepo: OrganizationRe
       val results = pagedUsers.map { case (userId, user) =>
         user match
           case m: Member =>
-            val memberAccount = UserSearchAccountResult(m.account.username)
-            val memberProfile = UserSearchProfileResult(m.profile.name, m.profile.avatar, m.profile.bio)
-            UserSearchResult(userId, MemberRole, memberAccount, memberProfile)
+            val memberAccount = UserSearchAccountResultDTO(m.account.username)
+            val memberProfile = UserSearchProfileResultDTO(m.profile.name, m.profile.avatar, m.profile.bio)
+            UserSearchResultDTO(userId, MemberRole, memberAccount, memberProfile)
           case o: Organization =>
-            val organizationAccount = UserSearchAccountResult(o.account.username)
-            val organizationProfile = UserSearchProfileResult(o.profile.name, o.profile.avatar, o.profile.bio)
-            UserSearchResult(userId, OrganizationRole, organizationAccount, organizationProfile)
+            val organizationAccount = UserSearchAccountResultDTO(o.account.username)
+            val organizationProfile = UserSearchProfileResultDTO(o.profile.name, o.profile.avatar, o.profile.bio)
+            UserSearchResultDTO(userId, OrganizationRole, organizationAccount, organizationProfile)
       }
 
       val hasMore = allUsers.size > query.limit + query.offset

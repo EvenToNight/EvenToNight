@@ -1,7 +1,7 @@
 package domain.service
 
-import domain.query.SearchUsersQuery
-import domain.query.UserSearchResult
+import application.user.SearchUsersQuery
+import presentation.http.dto.response.query.UserSearchResultDTO
 
 trait UserQueryService:
-  def searchUsers(query: SearchUsersQuery): Either[String, (Seq[UserSearchResult], Boolean)]
+  def searchUsers(query: SearchUsersQuery): Either[String, (Seq[UserSearchResultDTO], Boolean)]
