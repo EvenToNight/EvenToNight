@@ -12,7 +12,20 @@ class LegacyEventServiceAdapter(
 ) extends EventServicePort:
 
   override def handleCommand(cmd: Commands): Either[String, Any] =
-    applicationService.handleCommand(cmd)
+    applicationService.handleCommand(cmd).map { result =>
+      result match
+        case aggregate: domain.aggregates.Event =>
+          EventConverter.toDTO(aggregate)
+
+        case aggregates: List[?] =>
+          aggregates.collect { case e: domain.aggregates.Event => EventConverter.toDTO(e) }
+
+        case (aggregates: List[?], hasMore: Boolean) =>
+          val dtos = aggregates.collect { case e: domain.aggregates.Event => EventConverter.toDTO(e) }
+          (dtos, hasMore)
+
+        case other => other
+    }
 
   override def getEventInfo(eventId: String): Either[String, Event] =
     EventId(eventId) match

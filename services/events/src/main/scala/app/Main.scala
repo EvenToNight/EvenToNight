@@ -1,11 +1,21 @@
 package app
 
 import controller.Controller
-import infrastructure.db.{MongoEventRepository, MongoPriceRepository, MongoUserMetadataRepository, TransactionManager}
+import infrastructure.adapters.LegacyEventServiceAdapter
+import infrastructure.configuration.DependencyFactory
+import infrastructure.db.{MongoEventRepository, MongoPriceRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.{ExternalEventHandler, RabbitEventConsumer, RabbitEventPublisher}
 import middleware.auth.JwtService
-import service.EventService
 
+/** Main application entry point
+  * Now using Clean Architecture with DDD patterns
+  *
+  * Previous implementation used EventService directly - this has been refactored to use:
+  * - Domain Layer: Aggregates, Value Objects, Repository Ports
+  * - Application Layer: Use Cases, Application Service
+  * - Infrastructure Layer: Adapters for MongoDB, RabbitMQ
+  * - Presentation Layer: Controllers unchanged
+  */
 object Main extends App:
 
   val mongoHost: String = sys.env.getOrElse("MONGO_HOST", "localhost")
@@ -40,6 +50,22 @@ object Main extends App:
     Some(priceDatabase)
   )
 
+  // ============================================================
+  // Event Service - Clean Architecture Implementation
+  // ============================================================
+
+  val eventService: LegacyEventServiceAdapter = DependencyFactory.createLegacyEventService(
+    mongoClient = eventDatabase.mongoClient,
+    connectionString = mongoUri,
+    databaseName = "eventonight",
+    eventPublisher = messageBroker,
+    priceRepository = Some(priceDatabase)
+  )
+
+  // ============================================================
+  // External Event Handling (unchanged)
+  // ============================================================
+
   val userDatabase: MongoUserMetadataRepository = new MongoUserMetadataRepository(
     mongoUri,
     "eventonight",
@@ -48,11 +74,9 @@ object Main extends App:
     sharedMongoClient = Some(eventDatabase.mongoClient)
   )
 
-  val transactionManager: TransactionManager = new TransactionManager(eventDatabase.mongoClient)
+  val externalEventHandler: ExternalEventHandler =
+    new ExternalEventHandler(userDatabase, priceDatabase, eventDatabase)
 
-  val eventService: EventService = new EventService(eventDatabase, userDatabase, messageBroker, transactionManager)
-
-  val externalEventHandler: ExternalEventHandler = new ExternalEventHandler(userDatabase, priceDatabase, eventDatabase)
   val messageConsumer: RabbitEventConsumer = new RabbitEventConsumer(
     host = rabbitHost,
     port = rabbitPort,
@@ -60,11 +84,20 @@ object Main extends App:
     password = rabbitPass,
     exchangeName = "eventonight",
     queueName = "events-service-queue",
-    routingKeys =
-      List("user.created", "user.deleted", "ticket-type.created", "ticket-type.updated", "ticket-type.deleted"),
+    routingKeys = List(
+      "user.created",
+      "user.deleted",
+      "ticket-type.created",
+      "ticket-type.updated",
+      "ticket-type.deleted"
+    ),
     handler = externalEventHandler
   )
   messageConsumer.start()
+
+  // ============================================================
+  // JWT and Server Start
+  // ============================================================
 
   JwtService.initialize()
 

@@ -16,6 +16,13 @@ import domain.commands.validators.ValidatorsInstances.given
 import infrastructure.db.{EventRepository, MongoUserMetadataRepository, TransactionManager}
 import infrastructure.messaging.EventPublisher
 
+/** Legacy EventService implementation
+  *
+  * @deprecated This implementation is kept for backward compatibility with existing tests.
+  *             Production code now uses the Clean Architecture implementation via LegacyEventServiceAdapter.
+  *             Consider migrating tests to use the new architecture.
+  */
+@deprecated("Use LegacyEventServiceAdapter with EventApplicationService instead", "2.0.0")
 class EventService(
     eventRepository: EventRepository,
     userMetadataRepository: MongoUserMetadataRepository,
