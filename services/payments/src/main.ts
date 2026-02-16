@@ -2,9 +2,9 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { RabbitMqSetupService } from './rabbitmq-setup.service';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
+import { RabbitMqService } from './libs/ts-common/src/rabbitmq/rabbitmq.service';
 
 const envFromRoot: Record<string, string> = {};
 dotenv.config({
@@ -65,14 +65,28 @@ async function bootstrap() {
   const rabbitmqPass = process.env.RABBITMQ_PASS || 'guest';
   const rabbitmqUrl = `amqp://${rabbitmqUser}:${rabbitmqPass}@${rabbitmqHost}:5672`;
 
-  const setupService = new RabbitMqSetupService();
-  await setupService.setup(rabbitmqUrl);
+  const service_queue = 'payments_queue';
+
+  await RabbitMqService.setup({
+    url: rabbitmqUrl,
+    queue: service_queue,
+    routingKeys: [
+      'user.created',
+      'user.updated',
+      'user.deleted',
+      'event.updated',
+      'event.published',
+      'event.completed',
+      'event.cancelled',
+      'event.deleted',
+    ],
+  });
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
     options: {
       urls: [rabbitmqUrl],
-      queue: 'payments_queue',
+      queue: service_queue,
       noAck: false,
       prefetchCount: 1,
       queueOptions: {
