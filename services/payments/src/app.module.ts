@@ -4,21 +4,24 @@ import { AppController } from './app.controller';
 import { TicketsModule } from './tickets/tickets.module';
 import { MessagingModule } from './commons/intrastructure/messaging/messaging.module';
 import { AuthModule } from './commons/infrastructure/auth';
+import { buildMongoUrl } from './libs/ts-common/src/mongodb/mongodb.utils';
+
+const replicaSetNodes = parseInt(process.env.REPLICA_SET_NODES_NUMBER || '0');
 
 @Module({
   imports: [
     MongooseModule.forRoot(
-      // Single-node (development): mongodb://localhost:27017/eventonight-payments?replicaSet=rs0
-      // Multi-node (production): mongodb://mongo-payments:27017,mongo-payments-2:27017,mongo-payments-3:27017/eventonight-payments?replicaSet=rs0
-      process.env.MONGO_HOST
-        ? `mongodb://${process.env.MONGO_HOST}:27017/eventonight-payments?replicaSet=rs0`
-        : `mongodb://localhost:27017/eventonight-payments`,
+      buildMongoUrl({
+        mongoHost: process.env.MONGO_HOST,
+        replicaSetNodes: replicaSetNodes,
+        dbName: 'eventonight-payments',
+        replicaSetName: process.env.REPLICA_SET_NAME,
+      }),
       {
         retryWrites: true,
         w: 'majority',
-        readPreference: 'primaryPreferred', // Read from primary, fallback to secondary
-        directConnection: true,
-        // !process.env.MONGO_REPLICA_SET_HOSTS,
+        readPreference: 'primaryPreferred',
+        directConnection: replicaSetNodes <= 1,
       },
     ),
     MessagingModule,

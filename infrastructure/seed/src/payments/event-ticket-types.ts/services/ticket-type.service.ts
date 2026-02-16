@@ -1,6 +1,7 @@
 import { TicketTypeToCreate, SeedTicketType } from "../types/tickets-type.types.js";
 import { ObjectId } from "mongodb";
 import { execSync } from "child_process";
+import { buildMongoConnectionString } from "../../../utils/mongo-connection.utils";
 
 export async function createTicketType(ticketTypeData: TicketTypeToCreate): Promise<SeedTicketType> {
     const _id = new ObjectId();
@@ -20,8 +21,10 @@ export async function createTicketType(ticketTypeData: TicketTypeToCreate): Prom
     const insertCommand = `db.event_ticket_types.insertOne(${JSON.stringify(ticketTypeToCreate)})`;
 
     try {
+        const connectionString = buildMongoConnectionString(DOCKER_CONTAINER, MONGO_DB);
+
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval '${insertCommand}'`,
+            `docker exec ${DOCKER_CONTAINER} mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Ticket Type inserted: ${_id}`);
@@ -50,8 +53,10 @@ export async function insertEventPrice(ticketType: SeedTicketType): Promise<void
 
     const insertCommand = `db.prices.insertOne(${JSON.stringify(eventPriceToCreate)})`;
     try {
+        const connectionString = buildMongoConnectionString(DOCKER_CONTAINER, MONGO_DB);
+
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval '${insertCommand}'`,
+            `docker exec ${DOCKER_CONTAINER} mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Event Price inserted for events: ${ticketType.eventId}`);

@@ -2,6 +2,7 @@ import { execSync } from "child_process";
 import { SeedOrder } from "../types/order.types";
 import { OrderToCreate } from "../types/order.types";
 import crypto from "crypto";
+import { buildMongoConnectionString } from "../../../utils/mongo-connection.utils";
 
 export async function createOrder(orderData: OrderToCreate): Promise<SeedOrder> {
     const _id = crypto.randomUUID();
@@ -27,8 +28,10 @@ export async function createOrder(orderData: OrderToCreate): Promise<SeedOrder> 
     const insertCommand = `db.orders.insertOne(${jsonDoc})`;
 
     try {
+        const connectionString = buildMongoConnectionString(DOCKER_CONTAINER, MONGO_DB);
+
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval '${insertCommand}'`,
+            `docker exec ${DOCKER_CONTAINER} mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Order inserted: ${_id}`);

@@ -1,6 +1,7 @@
 import { SeedTicket, TicketToCreate } from "../types/ticket.types";
 import { ObjectId } from "mongodb";
 import { execSync } from "child_process";
+import { buildMongoConnectionString } from "../../../utils/mongo-connection.utils";
 
 export async function createTicket(ticketData: TicketToCreate): Promise<SeedTicket> {
     const _id = new ObjectId();
@@ -30,8 +31,10 @@ export async function createTicket(ticketData: TicketToCreate): Promise<SeedTick
     const insertCommand = `db.tickets.insertOne(${jsonDoc})`;
 
     try {
+        const connectionString = buildMongoConnectionString(DOCKER_CONTAINER, MONGO_DB);
+
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval '${insertCommand}'`,
+            `docker exec ${DOCKER_CONTAINER} mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Ticket inserted: ${_id}`);
