@@ -72,17 +72,16 @@ object DependencyFactory:
       unitOfWork = unitOfWork
     )
 
-  /** Creates a legacy EventService that wraps EventApplicationService
-    * This maintains backward compatibility with existing Controllers
-    * Use this during the migration phase
+  /** Creates EventServiceAdapter that wraps EventApplicationService
+    * This adapter converts between domain aggregates and DTOs for controllers
     */
-  def createLegacyEventService(
+  def createEventService(
       mongoClient: MongoClient,
       connectionString: String,
       databaseName: String,
       eventPublisher: EventPublisher,
       priceRepository: Option[PriceRepository] = None
-  ): LegacyEventServiceAdapter =
+  ): EventServiceAdapter =
     val applicationService = createEventApplicationService(
       mongoClient,
       connectionString,
@@ -91,7 +90,7 @@ object DependencyFactory:
       priceRepository
     )
 
-    LegacyEventServiceAdapter(applicationService)
+    EventServiceAdapter(applicationService)
 
   /** Creates a simplified version for testing with mock implementations
     * Useful for unit tests and development

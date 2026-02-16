@@ -2,7 +2,7 @@ package infrastructure.db
 
 import com.mongodb.client.{ClientSession, MongoClient, MongoClients, MongoCollection, MongoDatabase}
 import com.mongodb.client.model.{Filters, ReplaceOptions}
-import domain.models.UserMetadata
+import infrastructure.dto.UserMetadata
 import infrastructure.messaging.EventPublisher
 import org.bson.Document
 

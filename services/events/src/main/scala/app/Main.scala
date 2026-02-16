@@ -1,7 +1,7 @@
 package app
 
 import controller.Controller
-import infrastructure.adapters.LegacyEventServiceAdapter
+import infrastructure.adapters.EventServiceAdapter
 import infrastructure.configuration.DependencyFactory
 import infrastructure.db.{MongoEventRepository, MongoPriceRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.{ExternalEventHandler, RabbitEventConsumer, RabbitEventPublisher}
@@ -41,7 +41,7 @@ object Main extends App:
     Some(priceDatabase)
   )
 
-  val eventService: LegacyEventServiceAdapter = DependencyFactory.createLegacyEventService(
+  val eventService: EventServiceAdapter = DependencyFactory.createEventService(
     mongoClient = eventDatabase.mongoClient,
     connectionString = mongoUri,
     databaseName = "eventonight",

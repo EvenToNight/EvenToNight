@@ -3,8 +3,9 @@ package infrastructure.db
 import com.mongodb.client.{ClientSession, MongoClient, MongoClients, MongoCollection, MongoDatabase}
 import com.mongodb.client.model.{Filters, ReplaceOptions, Sorts}
 import domain.events.EventCompleted
-import domain.models.{Event, EventStatus, Location}
-import domain.models.EventConversions.{fromDocument, toDocument}
+import domain.models.EventStatus
+import infrastructure.converters.EventConversions.{fromDocument, toDocument}
+import infrastructure.dto.{Event, Location}
 import infrastructure.messaging.EventPublisher
 import org.bson.Document
 import utils.Utils

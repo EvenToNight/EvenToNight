@@ -7,7 +7,8 @@ import domain.commands.{
   UpdateEventCommand,
   UpdateEventPosterCommand
 }
-import domain.models.{EventStatus, Location}
+import domain.models.EventStatus
+import infrastructure.dto.Location
 
 import java.time.LocalDateTime
 

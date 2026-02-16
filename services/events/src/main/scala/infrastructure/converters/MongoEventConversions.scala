@@ -1,6 +1,8 @@
-package domain.models
+package infrastructure.converters
 
+import domain.models.{EventStatus, EventTag}
 import domain.models.EventTag.validateTagList
+import infrastructure.dto.{Event, Location}
 import org.bson.Document
 
 import java.time.{Instant, LocalDateTime}

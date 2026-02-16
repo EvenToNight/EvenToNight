@@ -1,8 +1,8 @@
 package infrastructure.adapters.converters
 
 import domain.aggregates.Event as EventAggregate
-import domain.models.{Event as EventModel, Location as LocationModel}
 import domain.valueobjects.{EventDescription, EventId, EventTitle, Location, OrganizationId}
+import infrastructure.dto.{Event as EventModel, Location as LocationModel}
 
 object EventAggregateConverter:
 

@@ -1,8 +1,8 @@
 package application.dto
 
 import domain.aggregates.Event as EventAggregate
-import domain.models.{Event as EventDTO, Location as LocationDTO}
 import domain.valueobjects.Location
+import infrastructure.dto.{Event as EventDTO, Location as LocationDTO}
 
 object EventConverter:
 

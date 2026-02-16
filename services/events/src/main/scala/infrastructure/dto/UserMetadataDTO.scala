@@ -1,4 +1,4 @@
-package domain.models
+package infrastructure.dto
 
 case class UserMetadata(
     id: String,

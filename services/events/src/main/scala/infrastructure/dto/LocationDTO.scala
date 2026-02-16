@@ -1,4 +1,4 @@
-package domain.models
+package infrastructure.dto
 
 case class Location(
     name: Option[String],

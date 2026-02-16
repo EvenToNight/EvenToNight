@@ -4,10 +4,13 @@ import application.EventApplicationService
 import application.dto.EventConverter
 import application.ports.EventServicePort
 import domain.commands.*
-import domain.models.Event
 import domain.valueobjects.EventId
+import infrastructure.dto.Event
 
-class LegacyEventServiceAdapter(
+/** Adapter that bridges the Application Service with Controllers
+  * Converts domain aggregates to DTOs for presentation layer compatibility
+  */
+class EventServiceAdapter(
     private val applicationService: EventApplicationService
 ) extends EventServicePort:
 

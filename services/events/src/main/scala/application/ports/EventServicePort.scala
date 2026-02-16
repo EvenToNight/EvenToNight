@@ -1,7 +1,7 @@
 package application.ports
 
 import domain.commands.Commands
-import domain.models.Event
+import infrastructure.dto.Event
 
 trait EventServicePort:
 

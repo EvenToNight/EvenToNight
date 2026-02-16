@@ -1,4 +1,6 @@
-package domain.models
+package infrastructure.dto
+
+import domain.models.{EventStatus, EventTag}
 
 import java.time.LocalDateTime
 import java.util.UUID

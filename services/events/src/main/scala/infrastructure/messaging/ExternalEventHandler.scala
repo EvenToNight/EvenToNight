@@ -1,7 +1,7 @@
 package infrastructure.messaging
 
-import domain.models.{TicketPrice, UserMetadata}
 import infrastructure.db.{MongoPriceRepository, MongoUserMetadataRepository}
+import infrastructure.dto.{TicketPrice, UserMetadata}
 import infrastructure.messaging.MessageHandler
 import io.circe.generic.auto.*
 import io.circe.parser.*
