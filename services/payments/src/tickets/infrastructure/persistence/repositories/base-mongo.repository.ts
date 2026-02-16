@@ -1,4 +1,11 @@
+import { ClientSession } from 'mongoose';
+import { MongoTransactionManager } from 'src/libs/ts-common/src/database/mongodb/mongo-transaction.manager';
+
 export class BaseMongoRepository {
+  protected getSession(): ClientSession | undefined {
+    return MongoTransactionManager.getCurrentSession();
+  }
+
   isDuplicateError(error: unknown): boolean {
     return (
       typeof error === 'object' &&

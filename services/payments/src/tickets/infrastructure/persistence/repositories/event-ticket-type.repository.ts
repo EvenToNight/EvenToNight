@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, ClientSession } from 'mongoose';
+import { Model } from 'mongoose';
 import { EventTicketType } from '../../../domain/aggregates/event-ticket-type.aggregate';
 import { EventTicketTypeRepository } from '../../../domain/repositories/event-ticket-type.repository.interface';
 import { EventTicketTypeMapper } from '../mappers/event-ticket-type.mapper';
@@ -27,30 +27,42 @@ export class EventTicketTypeRepositoryImpl
   }
 
   async save(ticketType: EventTicketType): Promise<EventTicketType> {
+    const session = this.getSession();
+
     const document = EventTicketTypeMapper.toPersistence(ticketType);
     // Passa esplicitamente l'_id per evitare che Mongoose generi un ObjectId
     const created = new this.model({
       ...document,
       _id: ticketType.getId(),
     });
-    const saved = await created.save();
+    const saved = await created.save({ session: session || undefined });
     return EventTicketTypeMapper.toDomain(saved);
   }
 
   async findById(id: string): Promise<EventTicketType | null> {
-    const document = await this.model.findById(id).exec();
+    const session = this.getSession();
+    const document = await this.model
+      .findById(id)
+      .session(session || null)
+      .exec();
     return document ? EventTicketTypeMapper.toDomain(document) : null;
   }
 
   async findByEventId(eventId: string): Promise<EventTicketType[]> {
-    const documents = await this.model.find({ eventId }).exec();
+    const session = this.getSession();
+    const documents = await this.model
+      .find({ eventId })
+      .session(session || null)
+      .exec();
     return documents.map((doc) => EventTicketTypeMapper.toDomain(doc));
   }
 
   async update(ticketType: EventTicketType): Promise<EventTicketType> {
+    const session = this.getSession();
     const document = EventTicketTypeMapper.toPersistence(ticketType);
     const updated = await this.model
       .findByIdAndUpdate(ticketType.getId(), document, { new: true })
+      .session(session || null)
       .exec();
 
     if (!updated) {
@@ -63,49 +75,21 @@ export class EventTicketTypeRepositoryImpl
   }
 
   async delete(id: string): Promise<void> {
-    await this.model.findByIdAndDelete(id).exec();
+    const session = this.getSession();
+
+    await this.model
+      .findByIdAndDelete(id)
+      .session(session || null)
+      .exec();
   }
 
   async deleteAll(): Promise<void> {
-    await this.model.deleteMany({}).exec();
-  }
+    const session = this.getSession();
 
-  /**
-   * Pessimistic locking: Finds a ticket type within a transaction session.
-   * MongoDB will acquire a lock on the document for the duration of the transaction.
-   */
-  async findByIdWithLock(
-    id: string,
-    session: ClientSession,
-  ): Promise<EventTicketType | null> {
-    const document = await this.model.findById(id).session(session).exec();
-
-    return document ? EventTicketTypeMapper.toDomain(document) : null;
-  }
-
-  async findByEventIdWithLock(
-    eventId: string,
-    session: ClientSession,
-  ): Promise<EventTicketType[]> {
-    const documents = await this.model
-      .find({ eventId })
-      .session(session)
+    await this.model
+      .deleteMany({})
+      .session(session || null)
       .exec();
-    return documents.map((doc) => EventTicketTypeMapper.toDomain(doc));
-  }
-
-  async saveWithLock(
-    ticketType: EventTicketType,
-    session: ClientSession,
-  ): Promise<EventTicketType> {
-    const document = EventTicketTypeMapper.toPersistence(ticketType);
-    // Passa esplicitamente l'_id per evitare che Mongoose generi un ObjectId
-    const created = new this.model({
-      ...document,
-      _id: ticketType.getId(),
-    });
-    const saved = await created.save({ session });
-    return EventTicketTypeMapper.toDomain(saved);
   }
 
   async findEventIds(params?: {
@@ -115,7 +99,12 @@ export class EventTicketTypeRepositoryImpl
     sortOrder?: 'asc' | 'desc';
     pagination?: PaginationParams;
   }): Promise<PaginatedResult<EventId>> {
-    const allTicketTypes = await this.model.find().exec();
+    const session = this.getSession();
+
+    const allTicketTypes = await this.model
+      .find()
+      .session(session || null)
+      .exec();
     const pagination = Pagination.parse(
       params?.pagination?.limit,
       params?.pagination?.offset,

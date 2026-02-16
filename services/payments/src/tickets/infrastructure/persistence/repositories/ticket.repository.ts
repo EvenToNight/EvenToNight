@@ -26,14 +26,21 @@ export class TicketRepositoryImpl
     super();
   }
   async save(ticket: Ticket): Promise<Ticket> {
+    const session = this.getSession();
+
     const document = TicketMapper.toPersistence(ticket);
     const created = new this.ticketModel(document);
-    const saved = await created.save();
+    const saved = await created.save({ session: session || undefined });
     return TicketMapper.toDomain(saved);
   }
 
   async findById(id: string): Promise<Ticket | null> {
-    const document = await this.ticketModel.findById(id).exec();
+    const session = this.getSession();
+
+    const document = await this.ticketModel
+      .findById(id)
+      .session(session || null)
+      .exec();
     return document ? TicketMapper.toDomain(document) : null;
   }
 
@@ -41,6 +48,8 @@ export class TicketRepositoryImpl
     userId: string,
     pagination?: PaginationParams,
   ): Promise<PaginatedResult<Ticket>> {
+    const session = this.getSession();
+
     const totalItems = await this.ticketModel.countDocuments({ userId }).exec();
     pagination = Pagination.parse(pagination?.limit, pagination?.offset);
     const documents = await this.ticketModel
@@ -48,6 +57,7 @@ export class TicketRepositoryImpl
       .sort({ purchaseDate: -1 })
       .limit(pagination.limit)
       .skip(pagination.offset)
+      .session(session || null)
       .exec();
     const items = documents.map((doc) => TicketMapper.toDomain(doc));
     return Pagination.createResult(items, totalItems, pagination);
@@ -58,6 +68,8 @@ export class TicketRepositoryImpl
     eventId: string,
     status?: TicketStatus,
   ): Promise<Ticket[]> {
+    const session = this.getSession();
+
     const filter: Record<string, string> = { userId, eventId };
     if (status) {
       filter.status = status.toString();
@@ -65,6 +77,7 @@ export class TicketRepositoryImpl
     const documents = await this.ticketModel
       .find(filter)
       .sort({ purchaseDate: -1 })
+      .session(session || null)
       .exec();
     return documents.map((doc) => TicketMapper.toDomain(doc));
   }
@@ -75,6 +88,8 @@ export class TicketRepositoryImpl
     status?: string,
     order?: 'asc' | 'desc',
   ): Promise<PaginatedResult<EventId>> {
+    const session = this.getSession();
+
     pagination = Pagination.parse(pagination?.limit, pagination?.offset);
     const pipeline: PipelineStage[] = [
       { $match: { userId } },
@@ -109,6 +124,7 @@ export class TicketRepositoryImpl
     const countPipeline: PipelineStage[] = [...pipeline, { $count: 'total' }];
     const countResult = await this.ticketModel
       .aggregate<{ total: number }>(countPipeline)
+      .session(session || null)
       .exec();
     const totalItems = countResult.length > 0 ? countResult[0].total : 0;
 
@@ -117,6 +133,7 @@ export class TicketRepositoryImpl
 
     const results = await this.ticketModel
       .aggregate<{ _id: string; eventDate: Date }>(pipeline)
+      .session(session || null)
       .exec();
     const paginatedEventIds = results.map((result) =>
       EventId.fromString(result._id),
@@ -129,8 +146,11 @@ export class TicketRepositoryImpl
     eventId: string,
     pagination?: PaginationParams,
   ): Promise<PaginatedResult<Ticket>> {
+    const session = this.getSession();
+
     const totalItems = await this.ticketModel
       .countDocuments({ eventId })
+      .session(session || null)
       .exec();
     pagination = Pagination.parse(pagination?.limit, pagination?.offset);
     const documents = await this.ticketModel
@@ -138,20 +158,29 @@ export class TicketRepositoryImpl
       .sort({ purchaseDate: -1 })
       .limit(pagination.limit)
       .skip(pagination.offset)
+      .session(session || null)
       .exec();
     const items = documents.map((doc) => TicketMapper.toDomain(doc));
     return Pagination.createResult(items, totalItems, pagination);
   }
 
   async findByTicketTypeId(ticketTypeId: string): Promise<Ticket[]> {
-    const documents = await this.ticketModel.find({ ticketTypeId }).exec();
+    const session = this.getSession();
+
+    const documents = await this.ticketModel
+      .find({ ticketTypeId })
+      .session(session || null)
+      .exec();
     return documents.map((doc) => TicketMapper.toDomain(doc));
   }
 
   async update(ticket: Ticket): Promise<Ticket> {
+    const session = this.getSession();
+
     const document = TicketMapper.toPersistence(ticket);
     const updated = await this.ticketModel
       .findByIdAndUpdate(ticket.getId(), document, { new: true })
+      .session(session || null)
       .exec();
 
     if (!updated) {
@@ -162,10 +191,20 @@ export class TicketRepositoryImpl
   }
 
   async delete(id: string): Promise<void> {
-    await this.ticketModel.findByIdAndDelete(id).exec();
+    const session = this.getSession();
+
+    await this.ticketModel
+      .findByIdAndDelete(id)
+      .session(session || null)
+      .exec();
   }
 
   async deleteAll(): Promise<void> {
-    await this.ticketModel.deleteMany({}).exec();
+    const session = this.getSession();
+
+    await this.ticketModel
+      .deleteMany({})
+      .session(session || null)
+      .exec();
   }
 }

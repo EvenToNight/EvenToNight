@@ -1,12 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { InjectConnection } from '@nestjs/mongoose';
 import { Connection, ClientSession } from 'mongoose';
-
-interface TransactionOptions {
-  maxRetries?: number;
-  baseDelay?: number;
-  maxDelay?: number;
-}
+import { AsyncLocalStorage } from 'async_hooks';
+import {
+  TransactionManager,
+  TransactionOptions,
+} from '../interfaces/transaction-manager.interface';
 
 interface RetryMetrics {
   attempt: number;
@@ -14,23 +11,31 @@ interface RetryMetrics {
   willRetry: boolean;
 }
 
-@Injectable()
-export class TransactionManager {
-  private readonly logger = new Logger(TransactionManager.name);
+export class MongoTransactionManager implements TransactionManager {
   private readonly useTransactions = !!process.env.MONGO_HOST;
 
-  constructor(@InjectConnection() private readonly connection: Connection) {
+  private static readonly sessionStorage =
+    new AsyncLocalStorage<ClientSession>();
+
+  constructor(
+    private readonly connection: Connection,
+    private readonly logger: Console = console,
+  ) {
     if (!this.useTransactions) {
       this.logger.warn('⚠️ Transactions are DISABLED.');
     }
   }
 
+  static getCurrentSession(): ClientSession | undefined {
+    return MongoTransactionManager.sessionStorage.getStore();
+  }
+
   async executeInTransaction<T>(
-    operation: (session: ClientSession) => Promise<T>,
+    operation: () => Promise<T>,
     options: TransactionOptions = {},
   ): Promise<T> {
     if (!this.useTransactions) {
-      return this.withSession(operation);
+      return operation();
     }
 
     const maxRetries = options.maxRetries ?? 3;
@@ -47,7 +52,12 @@ export class TransactionManager {
           readPreference: 'primary',
         });
 
-        const result = await operation(session);
+        const result = await MongoTransactionManager.sessionStorage.run(
+          session,
+          async () => {
+            return await operation();
+          },
+        );
 
         await session.commitTransaction();
 
@@ -74,22 +84,25 @@ export class TransactionManager {
           await this.sleep(delay);
           continue;
         }
+
+        throw error;
       } finally {
         await session.endSession();
       }
     }
+
     const errorMsg = `Transaction failed after ${maxRetries} retries.`;
     this.logger.error(errorMsg);
     throw new Error(errorMsg);
   }
 
-  async withSession<T>(
-    operation: (session: ClientSession) => Promise<T>,
-  ): Promise<T> {
+  async withSession<T>(operation: () => Promise<T>): Promise<T> {
     const session = await this.connection.startSession();
 
     try {
-      return await operation(session);
+      return await MongoTransactionManager.sessionStorage.run(session, () =>
+        operation(),
+      );
     } finally {
       await session.endSession();
     }

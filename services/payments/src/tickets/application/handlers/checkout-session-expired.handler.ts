@@ -1,10 +1,13 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { TransactionManager } from '../../infrastructure/database/transaction.manager';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { TicketService } from '../services/ticket.service';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { OrderService } from '../services/order.service';
 import { OrderRejectedEvent } from 'src/tickets/domain/events/order-rejected.event';
 import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import {
+  TRANSACTION_MANAGER,
+  type TransactionManager,
+} from 'src/libs/ts-common/src/database/interfaces/transaction-manager.interface';
 
 /**
  * Handler for Checkout Session Expired Event (Saga Compensation)
@@ -26,6 +29,7 @@ export class CheckoutSessionExpiredHandler {
     private readonly ticketService: TicketService,
     private readonly eventTicketTypeService: EventTicketTypeService,
     private readonly orderService: OrderService,
+    @Inject(TRANSACTION_MANAGER)
     private readonly transactionManager: TransactionManager,
     private readonly eventPublisher: EventPublisher,
   ) {}

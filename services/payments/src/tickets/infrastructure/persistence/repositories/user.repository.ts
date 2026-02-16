@@ -20,21 +20,31 @@ export class UserRepositoryImpl
   }
 
   async save(user: User): Promise<User> {
+    const session = this.getSession();
+
     const document = UserMapper.toPersistence(user);
     const created = new this.userModel(document);
-    const saved = await created.save();
+    const saved = await created.save({ session: session || undefined });
     return UserMapper.toDomain(saved);
   }
 
   async findById(id: string): Promise<User | null> {
-    const document = await this.userModel.findById(id).exec();
+    const session = this.getSession();
+
+    const document = await this.userModel
+      .findById(id)
+      .session(session || null)
+      .exec();
     return document ? UserMapper.toDomain(document) : null;
   }
 
   async update(user: User): Promise<User> {
+    const session = this.getSession();
+
     const document = UserMapper.toPersistence(user);
     const updated = await this.userModel
       .findByIdAndUpdate(user.getId(), document, { new: true })
+      .session(session || null)
       .exec();
 
     if (!updated) {
@@ -45,6 +55,11 @@ export class UserRepositoryImpl
   }
 
   async delete(id: string): Promise<void> {
-    await this.userModel.findByIdAndDelete(id).exec();
+    const session = this.getSession();
+
+    await this.userModel
+      .findByIdAndDelete(id)
+      .session(session || null)
+      .exec();
   }
 }

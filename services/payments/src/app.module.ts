@@ -4,7 +4,7 @@ import { AppController } from './app.controller';
 import { TicketsModule } from './tickets/tickets.module';
 import { MessagingModule } from './commons/intrastructure/messaging/messaging.module';
 import { AuthModule } from './commons/infrastructure/auth';
-import { buildMongoUrl } from './libs/ts-common/src/mongodb/mongodb.utils';
+import { buildMongoUrl } from './libs/ts-common/src/database/mongodb/mongodb.utils';
 
 const replicaSetNodes = parseInt(process.env.REPLICA_SET_NODES_NUMBER || '0');
 

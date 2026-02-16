@@ -51,7 +51,8 @@ import { UpdateTicketTypeHandler } from './application/handlers/update-ticket-ty
 import { VerifyTicketHandler } from './application/handlers/verify-ticket.handler';
 
 // Infrastructure
-import { TransactionManager } from './infrastructure/database/transaction.manager';
+import { TRANSACTION_MANAGER } from 'src/libs/ts-common/src/database/interfaces/transaction-manager.interface';
+import { MongoTransactionManager } from 'src/libs/ts-common/src/database/mongodb/mongo-transaction.manager';
 
 // Controllers
 import { EventTicketTypesController } from './presentation/controllers/event-ticket-types.controller';
@@ -140,7 +141,10 @@ import { UserService } from './application/services/user.service';
     VerifyTicketHandler,
 
     // Infrastructure
-    TransactionManager,
+    {
+      provide: TRANSACTION_MANAGER,
+      useClass: MongoTransactionManager,
+    },
 
     // Services
     PdfService,

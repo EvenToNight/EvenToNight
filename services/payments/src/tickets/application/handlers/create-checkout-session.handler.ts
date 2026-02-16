@@ -7,14 +7,12 @@ import {
 } from '@nestjs/common';
 import { Ticket } from '../../domain/aggregates/ticket.aggregate';
 import { UserId } from '../../domain/value-objects/user-id.vo';
-import { TransactionManager } from '../../infrastructure/database/transaction.manager';
 import {
   CreateCheckoutSessionDto,
   CheckoutSessionResponseDto,
 } from '../dto/create-checkout-session.dto';
 import { EventTicketTypeNotFoundException } from '../../domain/exceptions/event-ticket-type-not-found.exception';
 import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
-import { ClientSession } from 'mongoose';
 import {
   type PaymentService,
   PAYMENT_SERVICE,
@@ -29,6 +27,11 @@ import { EventService } from '../services/event.service';
 import { CheckoutSessionExpiredHandler } from './checkout-session-expired.handler';
 import { UserService } from '../services/user.service';
 import { CheckoutSessionCompletedHandler } from './checkout-session-completed.handler';
+import {
+  TRANSACTION_MANAGER,
+  type TransactionManager,
+} from 'src/libs/ts-common/src/database/interfaces/transaction-manager.interface';
+import { Transactional } from 'src/libs/ts-common/src/database/decorators/transactional.decorator';
 
 type LineItem = {
   ticketType: EventTicketType;
@@ -44,6 +47,7 @@ export class CreateCheckoutSessionHandler {
   private readonly isTest = process.env.TEST_DEPLOYMENT === 'true';
   private readonly logger = new Logger(CreateCheckoutSessionHandler.name);
   constructor(
+    @Inject(TRANSACTION_MANAGER)
     private readonly transactionManager: TransactionManager,
     @Inject(PAYMENT_SERVICE)
     private readonly paymentService: PaymentService,
@@ -59,12 +63,8 @@ export class CreateCheckoutSessionHandler {
 
   private async getTicketTypeWithLock(
     ticketTypeId: string,
-    session: ClientSession,
   ): Promise<EventTicketType> {
-    const ticketType = await this.ticketTypeService.findTicketTypeByIdWithLock(
-      ticketTypeId,
-      session,
-    );
+    const ticketType = await this.ticketTypeService.findById(ticketTypeId);
 
     if (!ticketType) {
       throw new EventTicketTypeNotFoundException(ticketTypeId);
@@ -72,71 +72,67 @@ export class CreateCheckoutSessionHandler {
     return ticketType;
   }
 
+  @Transactional()
   private async reserveTickets(
     dto: CreateCheckoutSessionDto,
   ): Promise<LineItemsMap> {
-    return this.transactionManager.executeInTransaction<LineItemsMap>(
-      async (session) => {
-        const tickets: Ticket[] = [];
-        const ticketTypeMap = new Map<string, EventTicketType>(); // cache for ticket types
+    const tickets: Ticket[] = [];
+    const ticketTypeMap = new Map<string, EventTicketType>(); // cache for ticket types
 
-        for (const item of dto.items) {
-          if (!ticketTypeMap.get(item.ticketTypeId)) {
-            ticketTypeMap.set(
-              item.ticketTypeId,
-              await this.getTicketTypeWithLock(item.ticketTypeId, session),
-            );
-          }
-          ticketTypeMap.get(item.ticketTypeId)!.reserveTicket();
-        }
-
-        for (const item of ticketTypeMap.values()) {
-          const res = await this.eventService.findByIdWithLock(
-            item.getEventId(),
-            session,
-          );
-          if (!res) {
-            throw new NotFoundException(
-              `Event with id ${item.getEventId().toString()} not found`,
-            );
-          }
-          if (res.getStatus().toString() !== 'PUBLISHED') {
-            throw new BadRequestException(
-              `Cannot reserve tickets for event with id ${item
-                .getEventId()
-                .toString()} because it is not published`,
-            );
-          }
-        }
-
-        for (const item of dto.items) {
-          const ticketType = ticketTypeMap.get(item.ticketTypeId)!;
-          const ticket = Ticket.createPending({
-            eventId: ticketType.getEventId(),
-            userId: UserId.fromString(dto.userId),
-            attendeeName: item.attendeeName,
-            ticketTypeId: ticketType.getId(),
-            price: ticketType.getPrice(),
-            purchaseDate: new Date(),
-          });
-          tickets.push(ticket);
-        }
-
-        for (const ticketType of ticketTypeMap.values()) {
-          await this.ticketTypeService.update(ticketType);
-        }
-
-        const savedTickets: Ticket[] = [];
-        for (const ticket of tickets) {
-          const saved = await this.ticketService.save(ticket);
-          savedTickets.push(saved);
-        }
-
-        return this.groupTicketsByType(
-          savedTickets,
-          Array.from(ticketTypeMap.values()),
+    for (const item of dto.items) {
+      if (!ticketTypeMap.get(item.ticketTypeId)) {
+        ticketTypeMap.set(
+          item.ticketTypeId,
+          await this.getTicketTypeWithLock(item.ticketTypeId),
         );
-      },
+      }
+      ticketTypeMap.get(item.ticketTypeId)!.reserveTicket();
+    }
+
+    for (const item of ticketTypeMap.values()) {
+      const res = await this.eventService.findById(
+        item.getEventId().toString(),
+      );
+      if (!res) {
+        throw new NotFoundException(
+          `Event with id ${item.getEventId().toString()} not found`,
+        );
+      }
+      if (res.getStatus().toString() !== 'PUBLISHED') {
+        throw new BadRequestException(
+          `Cannot reserve tickets for event with id ${item
+            .getEventId()
+            .toString()} because it is not published`,
+        );
+      }
+    }
+
+    for (const item of dto.items) {
+      const ticketType = ticketTypeMap.get(item.ticketTypeId)!;
+      const ticket = Ticket.createPending({
+        eventId: ticketType.getEventId(),
+        userId: UserId.fromString(dto.userId),
+        attendeeName: item.attendeeName,
+        ticketTypeId: ticketType.getId(),
+        price: ticketType.getPrice(),
+        purchaseDate: new Date(),
+      });
+      tickets.push(ticket);
+    }
+
+    for (const ticketType of ticketTypeMap.values()) {
+      await this.ticketTypeService.update(ticketType);
+    }
+
+    const savedTickets: Ticket[] = [];
+    for (const ticket of tickets) {
+      const saved = await this.ticketService.save(ticket);
+      savedTickets.push(saved);
+    }
+
+    return this.groupTicketsByType(
+      savedTickets,
+      Array.from(ticketTypeMap.values()),
     );
   }
 

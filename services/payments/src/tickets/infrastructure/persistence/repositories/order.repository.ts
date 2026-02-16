@@ -19,29 +19,42 @@ export class OrderRepositoryImpl
     super();
   }
   async save(order: Order): Promise<Order> {
+    const session = this.getSession();
+
     const document = OrderMapper.toPersistence(order);
     const created = new this.orderModel(document);
-    const saved = await created.save();
+    const saved = await created.save({ session: session || undefined });
     return OrderMapper.toDomain(saved);
   }
 
   async findById(id: string): Promise<Order | null> {
-    const document = await this.orderModel.findById(id).exec();
+    const session = this.getSession();
+
+    const document = await this.orderModel
+      .findById(id)
+      .session(session || null)
+      .exec();
     return document ? OrderMapper.toDomain(document) : null;
   }
 
   async findByUserId(userId: string): Promise<Order[]> {
+    const session = this.getSession();
+
     const documents = await this.orderModel
       .find({ userId })
       .sort({ createdAt: -1 })
+      .session(session || null)
       .exec();
     return documents.map((doc) => OrderMapper.toDomain(doc));
   }
 
   async update(order: Order): Promise<Order> {
+    const session = this.getSession();
+
     const document = OrderMapper.toPersistence(order);
     const updated = await this.orderModel
       .findByIdAndUpdate(order.getId(), document, { new: true })
+      .session(session || null)
       .exec();
 
     if (!updated) {
@@ -52,10 +65,20 @@ export class OrderRepositoryImpl
   }
 
   async delete(id: string): Promise<void> {
-    await this.orderModel.findByIdAndDelete(id).exec();
+    const session = this.getSession();
+
+    await this.orderModel
+      .findByIdAndDelete(id)
+      .session(session || null)
+      .exec();
   }
 
   async deleteAll(): Promise<void> {
-    await this.orderModel.deleteMany({}).exec();
+    const session = this.getSession();
+
+    await this.orderModel
+      .deleteMany({})
+      .session(session || null)
+      .exec();
   }
 }
