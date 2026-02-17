@@ -22,12 +22,12 @@ import {
   CurrentUser,
   JwtAuthGuard,
   OptionalJwtAuthGuard,
-} from 'src/commons/infrastructure/auth';
+} from '@libs/nestjs-common/src/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 import { GetEventsByPriceQueryDto } from '../../application/dto/get-events-by-price-query.dto';
-import { PaginatedResult } from 'src/commons/domain/types/pagination.types';
+import { PaginatedResult } from '@libs/ts-common/src/pagination/pagination.types';
 
 @Controller('events')
 export class EventsController {

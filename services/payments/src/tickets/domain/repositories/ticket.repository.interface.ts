@@ -2,7 +2,7 @@ import { Ticket } from '../aggregates/ticket.aggregate';
 import {
   PaginatedResult,
   PaginationParams,
-} from '../../../commons/domain/types/pagination.types';
+} from '@libs/ts-common/src/pagination/pagination.types';
 import { EventId } from '../value-objects/event-id.vo';
 import { TicketStatus } from '../value-objects/ticket-status.vo';
 

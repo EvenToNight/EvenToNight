@@ -12,7 +12,7 @@ import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import {
   PaginatedResult,
   PaginationParams,
-} from 'src/commons/domain/types/pagination.types';
+} from '@libs/ts-common/src/pagination/pagination.types';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import {
   TRANSACTION_MANAGER,

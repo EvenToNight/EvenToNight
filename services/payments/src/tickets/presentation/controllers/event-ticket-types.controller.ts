@@ -17,9 +17,9 @@ import { DeleteTicketTypeHandler } from 'src/tickets/application/handlers/delete
 import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
 import { UpdateEventTicketTypeDto } from 'src/tickets/application/dto/update-event-ticket-type.dto';
 import { UpdateTicketTypeHandler } from 'src/tickets/application/handlers/update-ticket-type.handler';
-import { JwtAuthGuard } from 'src/commons/infrastructure/auth/jwt-auth.guard';
-import { OptionalJwtAuthGuard } from 'src/commons/infrastructure/auth/optional-jwt-auth.guard';
-import { CurrentUser } from 'src/commons/infrastructure/auth';
+import { JwtAuthGuard } from '@libs/nestjs-common/src/auth/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '@libs/nestjs-common/src/auth/optional-jwt-auth.guard';
+import { CurrentUser } from '@libs/nestjs-common/src/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 

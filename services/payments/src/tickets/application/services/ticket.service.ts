@@ -9,7 +9,7 @@ import {
 import {
   PaginatedResult,
   PaginationParams,
-} from 'src/commons/domain/types/pagination.types';
+} from '@libs/ts-common/src/pagination/pagination.types';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 

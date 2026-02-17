@@ -8,8 +8,8 @@ import { TicketDocument } from '../schemas/ticket.schema';
 import {
   PaginatedResult,
   PaginationParams,
-} from 'src/commons/domain/types/pagination.types';
-import { Pagination } from 'src/commons/utils/pagination.utils';
+} from '@libs/ts-common/src/pagination/pagination.types';
+import { Pagination } from '@libs/ts-common/src/pagination/pagination.utils';
 import { EventId } from '../../../domain/value-objects/event-id.vo';
 import { BaseMongoRepository } from './base-mongo.repository';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';

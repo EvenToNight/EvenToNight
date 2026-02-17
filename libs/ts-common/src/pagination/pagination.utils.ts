@@ -1,7 +1,7 @@
 import {
   PaginatedResult,
   PaginationParams,
-} from 'src/commons/domain/types/pagination.types';
+} from './pagination.types';
 
 export class Pagination {
   static readonly DEFAULT_MAX_LIMIT = 100;

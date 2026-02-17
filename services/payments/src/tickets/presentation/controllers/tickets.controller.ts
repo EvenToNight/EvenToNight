@@ -18,7 +18,7 @@ import {
   JwtAuthGuard,
   CurrentUser,
   type AuthUser,
-} from 'src/commons/infrastructure/auth';
+} from '@libs/nestjs-common/src/auth';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { UserService } from 'src/tickets/application/services/user.service';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';

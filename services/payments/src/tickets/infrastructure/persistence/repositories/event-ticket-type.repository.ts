@@ -8,9 +8,9 @@ import { EventTicketTypeDocument } from '../schemas/event-ticket-type.schema';
 import {
   PaginatedResult,
   PaginationParams,
-} from 'src/commons/domain/types/pagination.types';
-import { Pagination } from 'src/commons/utils/pagination.utils';
-import { CurrencyConverter } from 'src/commons/utils/currency-converter.utils';
+} from '@libs/ts-common/src/pagination/pagination.types';
+import { Pagination } from '@libs/ts-common/src/pagination/pagination.utils';
+import { CurrencyConverter } from '@libs/ts-common/src/currency/currency-converter.utils';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { BaseMongoRepository } from './base-mongo.repository';
 

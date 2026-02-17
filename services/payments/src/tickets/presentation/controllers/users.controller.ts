@@ -12,12 +12,12 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
-import { PaginatedQueryDto } from 'src/commons/application/dto/paginated-query.dto';
+import { PaginatedQueryDto } from '@libs/nestjs-common/src/pagination/paginated-query.dto';
 import { UserEventsQueryDto } from 'src/tickets/application/dto/user-events-query.dto';
-import { Pagination } from 'src/commons/utils/pagination.utils';
+import { Pagination } from '@libs/ts-common/src/pagination/pagination.utils';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
-import { PaginatedResponseDto } from 'src/commons/application/dto/paginated-response.dto';
-import { CurrentUser, JwtAuthGuard } from 'src/commons/infrastructure/auth';
+import { PaginatedResponseDto } from '@libs/nestjs-common/src/pagination/paginated-response.dto';
+import { CurrentUser, JwtAuthGuard } from '@libs/nestjs-common/src/auth';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { PdfService } from 'src/tickets/application/services/pdf.service';
 import { UserService } from 'src/tickets/application/services/user.service';
