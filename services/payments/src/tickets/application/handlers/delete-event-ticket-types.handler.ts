@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { TicketService } from '../services/ticket.service';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher } from '@libs/nestjs-common/src/messaging/event-publisher.service';
 import { TicketTypeDeletedEvent } from 'src/tickets/domain/events/ticket-type-deleted.event';
 // import { EventService } from '../services/event.service';
 

@@ -4,7 +4,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
-import { RabbitMqService } from './libs/ts-common/src/messaging/rabbitmq/rabbitmq.service';
+import { RabbitMqService } from '@libs/ts-common/src/messaging/rabbitmq/rabbitmq.service';
 
 const envFromRoot: Record<string, string> = {};
 dotenv.config({

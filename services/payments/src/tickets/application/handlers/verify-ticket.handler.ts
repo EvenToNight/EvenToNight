@@ -3,7 +3,7 @@ import { TicketService } from '../services/ticket.service';
 import {
   TRANSACTION_MANAGER,
   type TransactionManager,
-} from 'src/libs/ts-common/src/database/interfaces/transaction-manager.interface';
+} from '@libs/ts-common/src/database/interfaces/transaction-manager.interface';
 
 @Injectable()
 export class VerifyTicketHandler {

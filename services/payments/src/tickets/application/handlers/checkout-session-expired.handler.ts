@@ -3,11 +3,11 @@ import { TicketService } from '../services/ticket.service';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { OrderService } from '../services/order.service';
 import { OrderRejectedEvent } from 'src/tickets/domain/events/order-rejected.event';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher } from '@libs/nestjs-common/src/messaging/event-publisher.service';
 import {
   TRANSACTION_MANAGER,
   type TransactionManager,
-} from 'src/libs/ts-common/src/database/interfaces/transaction-manager.interface';
+} from '@libs/ts-common/src/database/interfaces/transaction-manager.interface';
 
 /**
  * Handler for Checkout Session Expired Event (Saga Compensation)

@@ -30,8 +30,8 @@ import { CheckoutSessionCompletedHandler } from './checkout-session-completed.ha
 import {
   TRANSACTION_MANAGER,
   type TransactionManager,
-} from 'src/libs/ts-common/src/database/interfaces/transaction-manager.interface';
-import { Transactional } from 'src/libs/ts-common/src/database/decorators/transactional.decorator';
+} from '@libs/ts-common/src/database/interfaces/transaction-manager.interface';
+import { Transactional } from '@libs/ts-common/src/database/decorators/transactional.decorator';
 
 type LineItem = {
   ticketType: EventTicketType;

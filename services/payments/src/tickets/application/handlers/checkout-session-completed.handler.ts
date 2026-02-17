@@ -2,12 +2,12 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher } from '@libs/nestjs-common/src/messaging/event-publisher.service';
 import { OrderConfirmedEvent } from 'src/tickets/domain/events/order-confirmed.event';
 import {
   TRANSACTION_MANAGER,
   type TransactionManager,
-} from 'src/libs/ts-common/src/database/interfaces/transaction-manager.interface';
+} from '@libs/ts-common/src/database/interfaces/transaction-manager.interface';
 
 /**
  * Handler for Checkout Session Completed Event (Saga Phase 2)

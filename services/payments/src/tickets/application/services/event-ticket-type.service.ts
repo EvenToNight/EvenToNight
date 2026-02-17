@@ -17,8 +17,8 @@ import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import {
   TRANSACTION_MANAGER,
   type TransactionManager,
-} from 'src/libs/ts-common/src/database/interfaces/transaction-manager.interface';
-import { Transactional } from 'src/libs/ts-common/src/database/decorators/transactional.decorator';
+} from '@libs/ts-common/src/database/interfaces/transaction-manager.interface';
+import { Transactional } from '@libs/ts-common/src/database/decorators/transactional.decorator';
 
 @Injectable()
 export class EventTicketTypeService {

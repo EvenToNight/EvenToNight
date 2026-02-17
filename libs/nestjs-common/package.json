@@ -1,0 +1,8 @@
+{
+  "name": "@libs/nestjs-common",
+  "version": "1.0.0",
+  "main": "src/index.ts",
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0"
+  }
+}

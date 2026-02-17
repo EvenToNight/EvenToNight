@@ -2,7 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { UpdateEventTicketTypeDto } from '../dto/update-event-ticket-type.dto';
 import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher } from '@libs/nestjs-common/src/messaging/event-publisher.service';
 import { TicketTypeUpdatedEvent } from 'src/tickets/domain/events/ticket-type-updated.event';
 
 @Injectable()
