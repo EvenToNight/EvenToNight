@@ -1,6 +1,6 @@
 package controller.routes
 import cask.Routes
-import domain.models.EventTag
+import domain.enums.EventTag
 import ujson.*
 
 class EventTagRoutes extends Routes:

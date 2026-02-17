@@ -1,7 +1,7 @@
 package infrastructure.messaging
 
-import domain.models.{TicketPrice, UserMetadata}
 import infrastructure.db.{MongoPriceRepository, MongoUserMetadataRepository}
+import infrastructure.dto.{TicketPrice, UserMetadata}
 import infrastructure.messaging.MessageHandler
 import io.circe.generic.auto.*
 import io.circe.parser.*
@@ -25,7 +25,7 @@ case class TicketTypeDeletedPayload(ticketTypeId: String)
 class ExternalEventHandler(
     userMetadataRepo: MongoUserMetadataRepository,
     priceRepo: MongoPriceRepository,
-    eventRepo: infrastructure.db.EventRepository
+    eventRepo: infrastructure.db.MongoEventRepository
 ) extends MessageHandler:
 
   override def handle(routingKey: String, message: String): Unit =

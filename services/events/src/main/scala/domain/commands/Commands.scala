@@ -1,5 +1,6 @@
 package domain.commands
-import domain.models.{EventStatus, EventTag, Location}
+import domain.enums.{EventStatus, EventTag}
+import infrastructure.dto.Location
 
 import java.time.LocalDateTime
 

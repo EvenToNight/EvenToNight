@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import { Model, Types, ClientSession } from 'mongoose';
 import { Conversation } from '../schemas/conversation.schema';
 import { ParticipantRole } from '../schemas/participant.schema';
 import { UsersService } from 'src/users/services/users.service';
@@ -22,19 +22,25 @@ export class ConversationManagerService {
   async findOrCreateConversation(
     userId1: string,
     userId2: string,
+    session?: ClientSession,
   ): Promise<any> {
-    const { organizationId, memberId } = await this.determineRoles(
+    const { organizationId, userId } = await this.determineRoles(
       userId1,
       userId2,
     );
 
     let conversation = await this.findConversationBetweenUsers(
       organizationId,
-      memberId,
+      userId,
+      session,
     );
 
     if (!conversation) {
-      conversation = await this.createNewConversation(organizationId, memberId);
+      conversation = await this.createNewConversation(
+        organizationId,
+        userId,
+        session,
+      );
     }
 
     return conversation;
@@ -42,24 +48,29 @@ export class ConversationManagerService {
 
   async findConversationBetweenUsers(
     organizationId: string,
-    memberId: string,
+    userId: string,
+    session?: ClientSession,
   ): Promise<Conversation | null> {
-    return this.conversationModel.findOne({ organizationId, memberId });
+    return this.conversationModel
+      .findOne({ organizationId, userId })
+      .session(session || null);
   }
 
   private async createNewConversation(
     organizationId: string,
-    memberId: string,
+    userId: string,
+    session?: ClientSession,
   ): Promise<any> {
     const conversation = await new this.conversationModel({
       organizationId,
-      memberId,
-    }).save();
+      userId,
+    }).save({ session });
 
     await this.createParticipantsForConversation(
       conversation._id,
       organizationId,
-      memberId,
+      userId,
+      session,
     );
 
     return conversation;
@@ -68,37 +79,57 @@ export class ConversationManagerService {
   private async createParticipantsForConversation(
     conversationId: Types.ObjectId,
     organizationId: string,
-    memberId: string,
+    userId: string,
+    session?: ClientSession,
   ): Promise<void> {
-    const [orgName, memberName] = await Promise.all([
+    const [orgName, userName] = await Promise.all([
       this.usersService.getUsername(organizationId),
-      this.usersService.getUsername(memberId),
+      this.usersService.getUsername(userId),
     ]);
+
+    const [orgInfo, userInfo] = await this.dataMapperService.fetchUsersInfo(
+      organizationId,
+      userId,
+    );
 
     const orgParticipant = new this.participantModel({
       conversationId,
       userId: organizationId,
       userName: orgName || 'Unknown User',
-      role: ParticipantRole.ORGANIZATION,
+      role:
+        orgInfo?.role === UserRole.ORGANIZATION
+          ? ParticipantRole.ORGANIZATION
+          : ParticipantRole.MEMBER,
       unreadCount: 0,
       lastReadAt: new Date(),
     });
 
-    const memberParticipant = new this.participantModel({
+    const userParticipant = new this.participantModel({
       conversationId,
-      userId: memberId,
-      userName: memberName || 'Unknown User',
-      role: ParticipantRole.MEMBER,
+      userId: userId,
+      userName: userName || 'Unknown User',
+      role:
+        userInfo?.role === UserRole.ORGANIZATION
+          ? ParticipantRole.ORGANIZATION
+          : ParticipantRole.MEMBER,
       unreadCount: 0,
       lastReadAt: new Date(),
     });
 
-    await Promise.all([orgParticipant.save(), memberParticipant.save()]);
+    await Promise.all([
+      orgParticipant.save({ session }),
+      userParticipant.save({ session }),
+    ]);
   }
 
-  async validateConversationExists(conversationId: string): Promise<any> {
+  async validateConversationExists(
+    conversationId: string,
+    session?: ClientSession,
+  ): Promise<any> {
     this.validateObjectId(conversationId);
-    const conversation = await this.conversationModel.findById(conversationId);
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .session(session || null);
 
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
@@ -110,10 +141,12 @@ export class ConversationManagerService {
   async validateUserIsParticipant(
     conversationId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<void> {
     const isParticipant = await this.verifyUserInConversation(
       conversationId,
       userId,
+      session,
     );
     if (!isParticipant) {
       throw new BadRequestException(
@@ -125,19 +158,22 @@ export class ConversationManagerService {
   async verifyUserInConversation(
     conversationId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<boolean> {
     await this.validateUserExists(userId);
-    const participant = await this.participantModel.findOne({
-      conversationId: new Types.ObjectId(conversationId),
-      userId,
-    });
+    const participant = await this.participantModel
+      .findOne({
+        conversationId: new Types.ObjectId(conversationId),
+        userId,
+      })
+      .session(session || null);
     return !!participant;
   }
 
   private async determineRoles(
     userId1: UserID,
     userId2: UserID,
-  ): Promise<{ organizationId: string; memberId: string }> {
+  ): Promise<{ organizationId: string; userId: string }> {
     const [user1Info, user2Info] = await this.dataMapperService.fetchUsersInfo(
       userId1,
       userId2,
@@ -155,17 +191,29 @@ export class ConversationManagerService {
     const isUser1Member = user1Info.role === UserRole.MEMBER;
     const isUser2Member = user2Info.role === UserRole.MEMBER;
 
+    if (isUser1Member && isUser2Member) {
+      throw new BadRequestException(
+        'Conversations between two members are not allowed',
+      );
+    }
+
+    if (isUser1Org && isUser2Org) {
+      if (userId1 < userId2) {
+        return { organizationId: userId1, userId: userId2 };
+      } else {
+        return { organizationId: userId2, userId: userId1 };
+      }
+    }
+
     if (isUser1Org && isUser2Member) {
-      return { organizationId: userId1, memberId: userId2 };
+      return { organizationId: userId1, userId: userId2 };
     }
 
     if (isUser1Member && isUser2Org) {
-      return { organizationId: userId2, memberId: userId1 };
+      return { organizationId: userId2, userId: userId1 };
     }
 
-    throw new BadRequestException(
-      'Conversation must be between an organization and a member',
-    );
+    throw new BadRequestException('Invalid user roles for conversation');
   }
 
   async validateUserExists(userId: string): Promise<void> {
@@ -206,10 +254,12 @@ export class ConversationManagerService {
   async ensureConversationDoesNotExist(
     recipientId: string,
     senderId: string,
+    session?: ClientSession,
   ): Promise<void> {
     const existing = await this.findConversationBetweenUsers(
       recipientId,
       senderId,
+      session,
     );
     if (existing) {
       throw new BadRequestException(

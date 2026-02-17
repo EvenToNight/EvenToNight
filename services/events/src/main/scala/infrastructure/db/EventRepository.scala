@@ -1,10 +1,11 @@
 package infrastructure.db
 
-import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
+import com.mongodb.client.{ClientSession, MongoClient, MongoClients, MongoCollection, MongoDatabase}
 import com.mongodb.client.model.{Filters, ReplaceOptions, Sorts}
+import domain.enums.EventStatus
 import domain.events.EventCompleted
-import domain.models.{Event, EventStatus, Location}
-import domain.models.EventConversions.{fromDocument, toDocument}
+import infrastructure.converters.EventConversions.{fromDocument, toDocument}
+import infrastructure.dto.{Event, Location}
 import infrastructure.messaging.EventPublisher
 import org.bson.Document
 import utils.Utils
@@ -13,45 +14,19 @@ import scala.collection.mutable.ListBuffer
 import scala.jdk.CollectionConverters.*
 import scala.util.{Failure, Success, Try}
 
-trait EventRepository:
-
-  def save(event: Event): Either[Throwable, Unit]
-  def findById(eventId: String): Option[Event]
-  def update(event: Event): Either[Throwable, Unit]
-  def findAllPublished(): Either[Throwable, List[Event]]
-  def delete(eventId: String): Either[Throwable, Unit]
-  def findByFilters(
-      limit: Option[Int] = None,
-      offset: Option[Int] = None,
-      status: Option[List[EventStatus]] = None,
-      title: Option[String] = None,
-      tags: Option[List[String]] = None,
-      startDate: Option[String] = None,
-      endDate: Option[String] = None,
-      organizationId: Option[String] = None,
-      city: Option[String] = None,
-      location_name: Option[String] = None,
-      sortBy: Option[String] = None,
-      sortOrder: Option[String] = None,
-      query: Option[String] = None,
-      near: Option[(Double, Double)] = None,
-      other: Option[String] = None,
-      price: Option[(Double, Double)] = None
-  ): Either[Throwable, (List[Event], Boolean)]
-
 case class MongoEventRepository(
     connectionString: String,
     databaseName: String,
     collectionName: String = "events",
     messageBroker: EventPublisher,
     priceRepository: Option[PriceRepository] = None
-) extends EventRepository:
+):
 
-  private val mongoClient: MongoClient              = MongoClients.create(connectionString)
+  val mongoClient: MongoClient                      = MongoClients.create(connectionString)
   private val database: MongoDatabase               = mongoClient.getDatabase(databaseName)
   private val collection: MongoCollection[Document] = database.getCollection(collectionName)
 
-  override def save(event: Event): Either[Throwable, Unit] =
+  def save(event: Event): Either[Throwable, Unit] =
     val replaceOptions = new ReplaceOptions().upsert(true)
 
     Try {
@@ -63,7 +38,24 @@ case class MongoEventRepository(
         println(s"[MongoDB][Error] Failed to save Event ID: ${event._id} - ${ex.getMessage}")
         Left(ex)
 
-  override def findById(eventId: String): Option[Event] =
+  def save(event: Event, session: ClientSession): Either[Throwable, Unit] =
+    println(s"[MongoDB] Saving Event ID: ${event._id} with session: ${session != null}")
+    if session == null then
+      // Fallback to non-transactional save when session is null (e.g., in tests)
+      save(event)
+    else
+      val replaceOptions = new ReplaceOptions().upsert(true)
+
+      Try {
+        collection.replaceOne(session, Filters.eq("_id", event._id), event.toDocument, replaceOptions)
+        println(s"[MongoDB] Saved Event ID: ${event._id} with status: ${event.status}")
+      } match
+        case Success(_) => Right(())
+        case Failure(ex) =>
+          println(s"[MongoDB][Error] Failed to save Event ID: ${event._id} - ${ex.getMessage}")
+          Left(ex)
+
+  def findById(eventId: String): Option[Event] =
     val doc = collection.find(Filters.eq("_id", eventId)).first()
     if doc != null then
       val event        = fromDocument(doc)
@@ -76,7 +68,7 @@ case class MongoEventRepository(
       Some(updatedEvent)
     else None
 
-  override def update(event: Event): Either[Throwable, Unit] =
+  def update(event: Event): Either[Throwable, Unit] =
     Try {
       val replaceOptions = new ReplaceOptions().upsert(false)
       collection.replaceOne(Filters.eq("_id", event._id), event.toDocument, replaceOptions)
@@ -86,7 +78,7 @@ case class MongoEventRepository(
         println(s"[MongoDB][Error] Failed to update Event ID: ${event._id} - ${ex.getMessage}")
         Left(ex)
 
-  override def findAllPublished(): Either[Throwable, List[Event]] =
+  def findAllPublished(): Either[Throwable, List[Event]] =
     Try {
       collection
         .find(Filters.eq("status", EventStatus.PUBLISHED.toString))
@@ -109,7 +101,7 @@ case class MongoEventRepository(
       ex
     }
 
-  override def delete(eventId: String): Either[Throwable, Unit] =
+  def delete(eventId: String): Either[Throwable, Unit] =
     Try {
       collection.deleteOne(Filters.eq("_id", eventId))
       println(s"[MongoDB] Deleted Event ID: $eventId")
@@ -119,7 +111,7 @@ case class MongoEventRepository(
         println(s"[MongoDB][Error] Failed to delete Event ID: $eventId -" + s" ${ex.getMessage}")
         Left(ex)
 
-  override def findByFilters(
+  def findByFilters(
       limit: Option[Int] = None,
       offset: Option[Int] = None,
       status: Option[List[EventStatus]] = None,

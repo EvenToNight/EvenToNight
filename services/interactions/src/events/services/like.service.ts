@@ -12,6 +12,7 @@ import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
 import { UserInfoDto } from '../../commons/dto/user-info-dto';
 import { RabbitMqPublisherService } from 'src/rabbitmq/rabbitmq-publisher.service';
+import { TransactionManagerService } from 'src/commons/database/transaction-manager.service';
 
 @Injectable()
 export class LikeService {
@@ -20,18 +21,28 @@ export class LikeService {
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
     private readonly rabbitMqPublisher: RabbitMqPublisherService,
+    private readonly transactionManager: TransactionManagerService,
   ) {}
 
   async likeEvent(eventId: string, userId: string): Promise<Like> {
-    await this.metadataService.validateLikeAllowed(eventId, userId);
-
-    const existing = await this.likeModel.findOne({ eventId, userId });
-    if (existing) {
-      throw new ConflictException('Already liked this event');
-    }
-
-    const like = new this.likeModel({ eventId, userId });
-    await like.save();
+    const like = await this.transactionManager.executeInTransaction(
+      async (session) => {
+        await this.metadataService.validateLikeAllowed(
+          eventId,
+          userId,
+          session,
+        );
+        const existing = await this.likeModel
+          .findOne({ eventId, userId })
+          .session(session);
+        if (existing) {
+          throw new ConflictException('Already liked this event');
+        }
+        const newLike = new this.likeModel({ eventId, userId });
+        await newLike.save({ session });
+        return newLike;
+      },
+    );
 
     const [eventInfo, userInfo] = await Promise.all([
       this.metadataService.getEventInfo(eventId),
@@ -46,17 +57,24 @@ export class LikeService {
       userName: userInfo.name,
       userAvatar: userInfo.avatar,
     });
-
     return like;
   }
 
   async unlikeEvent(eventId: string, userId: string): Promise<void> {
-    await this.metadataService.validateUnlikeAllowed(eventId, userId);
-    const result = await this.likeModel.deleteOne({ eventId, userId });
+    await this.transactionManager.executeInTransaction(async (session) => {
+      await this.metadataService.validateUnlikeAllowed(
+        eventId,
+        userId,
+        session,
+      );
+      const result = await this.likeModel
+        .deleteOne({ eventId, userId })
+        .session(session);
 
-    if (result.deletedCount === 0) {
-      throw new NotFoundException('Like not found');
-    }
+      if (result.deletedCount === 0) {
+        throw new NotFoundException('Like not found');
+      }
+    });
   }
 
   async getEventLikes(
