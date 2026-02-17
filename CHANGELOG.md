@@ -1,3 +1,13 @@
+## [2.1.0](https://github.com/EvenToNight/EvenToNight/compare/v2.0.2...v2.1.0) (2026-02-17)
+
+### Features
+
+* **chat:** allow conversations between orgs ([c56060b](https://github.com/EvenToNight/EvenToNight/commit/c56060bba14dbaf9c1aff46a589f3baebe318e58))
+
+### Bug Fixes
+
+* **interactions:** fix bug in transactions interactions ([6515f04](https://github.com/EvenToNight/EvenToNight/commit/6515f04f0a91794ccfd37dfd53664cc7561c75d4))
+
 ## [2.0.2](https://github.com/EvenToNight/EvenToNight/compare/v2.0.1...v2.0.2) (2026-02-11)
 
 ### Bug Fixes
