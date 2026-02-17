@@ -1,9 +1,0 @@
-# 8 - Conclusioni
-
-Siamo soddisfatti della piattaforma realizzata, nata da una nostra idea di business. La presentazione della piattaforma a potenziali utenti ha dimostrato che l’interfaccia è intuitiva e di facile utilizzo, confermando l’efficacia dell’approccio user-centered e le best practice di HCI utilizzate.
-
-Lo sviluppo del progetto ha richiesto l’impiego di diverse tecnologie orientate alla realizzazione di applicazioni e servizi web moderni e distribuiti. In particolare, l'utilizzo dello stack MEVN ma soprattutto il framework NestJS, sperimentato in alternativa a express, hanno permesso di sviluppare in modo efficace API modulari e manutenibli. L’architettura modulare ha favorito il lavoro in parallelo su diverse funzionalità, mentre la specifica Swagger/OpenAPI usata per documentare le API ha favorito il testing e l'integrazione con il frontend.
-
-Il sistema implementa le principali funzionalità previste e risulta facilmente estendibile. Tra le possibili evoluzioni future si evidenziano: la possibilità per le organizzazioni di rispondere alle recensioni, l'introduzione di notifiche aggiuntive (biglietti in esaurimento, suggerimenti di amicizia, aggiornamenti sugli eventi seguiti), insight e statistiche sul profilo, gestione dei rimborsi e supporto di più valute per l'internazionalizzazione.
-
-Complessivamente, il progetto ha permesso di realizzare una piattaforma web moderna, modulare, scalabile e accessibile, con un’interfaccia intuitiva e pronta per l’uso da parte di utenti reali. Ha rappresentato al contempo un’importante occasione di apprendimento, consolidando competenze nello sviluppo full-stack, dalla progettazione e realizzazione di un'interfaccia utente efficace alla progettazione e deploy di un sistema backend a microservizi.

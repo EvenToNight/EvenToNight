@@ -1,0 +1,134 @@
+\section{2~--- Requisiti}\label{requisiti}
+
+Di seguito sono riportati i principali requisiti che l'applicazione deve
+soddisfare.
+
+\subsection{2.1~--- Requisiti di Business}\label{requisiti-di-business}
+
+\begin{itemize}
+\tightlist{}
+\item
+  La piattaforma consente alle organizzazioni di creare e pubblicare
+  post relativi agli eventi da loro promossi.
+\item
+  Gli utenti possono utilizzare la piattaforma come punto di riferimento
+  per scoprire eventi nelle vicinanze, in base alla località e ai propri
+  interessi.
+\item
+  Il sistema abilita la vendita online dei biglietti degli eventi
+  fornendo alle organizzazioni uno strumento per monetizzare le proprie
+  attività.
+\end{itemize}
+
+\subsection{2.2~--- Requisiti Funzionali}\label{requisiti-funzionali}
+
+\textbf{Tipologie di utenti supportate dal sistema:}
+
+\begin{itemize}
+\tightlist{}
+\item
+  Utenti non registrati.
+\item
+  Utenti registrati, che possono fruire dei contenuti della piattaforma.
+\item
+  Utenti registrati come organizzazioni, che possono creare eventi,
+  vendere biglietti e fruire dei contenuti della piattaforma.
+\end{itemize}
+
+\textbf{Per tutti gli utenti:}
+
+\begin{itemize}
+\tightlist{}
+\item
+  Visualizzare la schermata Home con le modalità di interazione: ricerca
+  eventi, visualizzazione eventi popolari, prossimi eventi e nuove
+  aggiunte.
+\item
+  Visualizzare dalla schermata Esplora tutti gli eventi pubblicati sulla
+  piattaforma, tutti gli utenti registrati e applicare filtri di
+  ricerca.
+\end{itemize}
+
+\textbf{Per utenti registrati:}
+
+\begin{itemize}
+\tightlist{}
+\item
+  Ricevere un feed di eventi personalizzato, basato sugli interessi
+  specificati.
+\item
+  Mettere e togliere like a un evento.
+\item
+  Mettere e togliere follow a un membro e a un'organizzazione.
+\item
+  Acquistare biglietti per gli eventi.
+\item
+  Lasciare una recensione dopo la partecipazione a un evento.
+\item
+  Contattare direttamente le organizzazioni all'interno della
+  piattaforma per richiedere supporto.
+\item
+  Ricevere notifiche su:
+
+  \begin{itemize}
+  \tightlist{}
+  \item
+    nuovo follower.
+  \item
+    pubblicazione di nuovo evento da parte di organizzazione seguita.
+  \item
+    nuovo messaggio.
+  \end{itemize}
+\end{itemize}
+
+\textbf{Per utenti registrati come organizzazioni:}
+
+\begin{itemize}
+\tightlist{}
+\item
+  Creare eventi, scegliendo se renderli pubblici o salvarli come bozza.
+\item
+  Specificare collaboratori durante la creazione degli eventi.
+\item
+  Ricevere notifiche su like e recensioni ai propri eventi.
+\end{itemize}
+
+\subsection{2.3~--- Requisiti Non
+Funzionali}\label{requisiti-non-funzionali}
+
+\begin{itemize}
+\tightlist{}
+\item
+  Accessibilità: l'interfaccia grafica deve essere accessibile.
+\item
+  Portabilità: l'applicazione risulta responsive per adattarsi a schermi
+  di diverse dimensioni pc/tablet/mobile.
+\item
+  Deployability: il sistema in automatico deve aggiornarsi alla versione
+  dell'ultima release.
+\item
+  Availability: il sistema deve essere tollerante ai guasti per
+  garantire la disponibilità, deve poter effettuare un recupero
+  automatico in caso di errore e prevedere la ridondanza dei componenti
+  critici per assicurare la continuità del servizio.
+\item
+  Sicurezza: gli utenti del sistema devono autenticarsi per verificare
+  la loro identità e saranno poi autorizzati ad accedere alle risorse in
+  base alle regole definite. Inoltre per assicurare la confidenzialità
+  delle password queste saranno salvate in modo cifrato.
+\item
+  Robustezza: l'applicazione deve gestire input errati e generare errori
+  coerenti.
+\item
+  Affidabilità: l'applicazione deve essere stabile, evitando crash.
+\item
+  Manutenibilità: il codice deve essere ben strutturato e ben
+  documentato.
+\item
+  Estendibilità: il progetto deve favorire la personalizzazione e
+  l'aggiunta di funzionalità.
+\end{itemize}
+
+Inoltre si è scelto, anche per esigenze didattiche, di aggiungere come
+requisito architetturale lo sviluppo del sistema con un'architettura a
+microservizi.
