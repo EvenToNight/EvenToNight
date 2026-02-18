@@ -7,6 +7,12 @@ services:
         delay: 10s
         order: start-first
         failure_action: rollback
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.notifications.rule=Host(`notifications.${HOST}`)"
+        - "traefik.http.routers.notifications.entrypoints=web"
+        - "traefik.http.services.notifications.loadbalancer.server.port=${NOTIFICATIONS_SERVICE_PORT}"
+        - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     depends_on: []
 
 networks:

@@ -23,9 +23,16 @@ OPTIONS
     --dev
         Include docker-compose-dev.yaml files in the search.
 
+    --local
+        Use local images instead of pulling from the registry (--resolve-image never).
+        Useful for testing with locally built images.
+
 EXAMPLES:
     ./swarmDeploy.sh
         Deploy the stack.
+
+    ./swarmDeploy.sh --local
+        Deploy the stack using local images.
 
     ./swarmDeploy.sh --stop
         Remove the stack.
@@ -50,6 +57,7 @@ STACK_NAME="eventonight-production"
 USE_DEV=false
 STOP=false
 REMOVE_VOLUMES=false
+LOCAL=false
 SKIP_NEXT=false
 
 for arg in "$@"; do
@@ -65,6 +73,8 @@ for arg in "$@"; do
         REMOVE_VOLUMES=true
     elif [[ "$arg" == "--dev" ]]; then
         USE_DEV=true
+    elif [[ "$arg" == "--local" ]]; then
+        LOCAL=true
     elif [[ "$arg" == "--stack-name" ]]; then
         SKIP_NEXT=true
     fi
@@ -113,10 +123,16 @@ COMPOSE_CONFIG=$(docker compose \
     ${COMPOSE_ARGS[@]+"${COMPOSE_ARGS[@]}"} \
     config)
 echo "$COMPOSE_CONFIG"
+RESOLVE_IMAGE="always"
+$LOCAL && RESOLVE_IMAGE="never" || true
+
+export COMPOSE_PROJECT_NAME="$STACK_NAME"
 echo "$COMPOSE_CONFIG" \
     | sed '/^name:/d; s/published: "\([0-9]*\)"/published: \1/g' \
     | awk '/^    depends_on:/{skip=1;next} skip && /^      /{next} {skip=0;print}' \
     | docker stack deploy \
+        --resolve-image "$RESOLVE_IMAGE" \
+        --detach=true \
         --compose-file - \
         "$STACK_NAME"
 echo "💬 Stack '$STACK_NAME' deployed successfully."

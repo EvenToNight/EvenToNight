@@ -7,6 +7,12 @@ services:
           delay: 10s
           order: start-first
           failure_action: rollback
+        labels:
+          - "traefik.enable=true"
+          - "traefik.http.routers.chat.rule=Host(`chat.${HOST}`)"
+          - "traefik.http.routers.chat.entrypoints=web"
+          - "traefik.http.services.chat.loadbalancer.server.port=${CHAT_SERVICE_PORT}"
+          - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     depends_on: []
 
 networks:

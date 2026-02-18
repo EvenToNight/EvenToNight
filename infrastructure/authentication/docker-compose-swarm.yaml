@@ -1,8 +1,17 @@
 services:
   keycloak:
     depends_on: []
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.auth.rule=Host(`auth.${HOST}`)"
+        - "traefik.http.routers.auth.entrypoints=web"
+        - "traefik.http.services.auth.loadbalancer.server.port=8080"
   keycloak-provision:
     depends_on: []
+    deploy:
+      restart_policy:
+        condition: on-failure
 
 networks:
   eventonight-network:

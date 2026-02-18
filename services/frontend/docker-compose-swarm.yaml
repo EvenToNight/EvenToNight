@@ -7,6 +7,12 @@ services:
         delay: 10s
         order: start-first
         failure_action: rollback
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.frontend.rule=Host(`${HOST}`)"
+        - "traefik.http.routers.frontend.entrypoints=web"
+        - "traefik.http.services.frontend.loadbalancer.server.port=${FRONTEND_SERVICE_PORT}"
+        - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
 networks:
   eventonight-network:
     driver: overlay

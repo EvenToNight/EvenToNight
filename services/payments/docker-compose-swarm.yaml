@@ -7,6 +7,12 @@ services:
         delay: 10s
         order: start-first
         failure_action: rollback
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.payments.rule=Host(`payments.${HOST}`) && !PathPrefix(`/internal`)"
+        - "traefik.http.routers.payments.entrypoints=web"
+        - "traefik.http.services.payments.loadbalancer.server.port=${PAYMENTS_SERVICE_PORT}"
+        - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     depends_on: []
   mongo-payments:
     depends_on: []
