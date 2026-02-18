@@ -1,0 +1,623 @@
+\section{5~--- Codice}\label{codice}
+
+L'architettura del progetto \textbf{EvenToNight} si basa su una
+\textbf{Single Page Application (SPA)} per il frontend e un layer di
+\textbf{microservizi backend} esposti attraverso \textbf{Traefik} come
+reverse-proxy/API gateway.
+
+\subsection{5.1~--- Frontend}\label{frontend}
+
+Il frontend è stato sviluppato con \textbf{Vue 3} utilizzando la
+\textbf{Composition API} e \textbf{TypeScript}, sfruttando il framework
+\textbf{Quasar} per i componenti UI\@.
+
+L'applicazione fa uso delle principali funzionalità di Vue come
+\texttt{provide/\allowbreak{} inject}, \texttt{props/\allowbreak{} emit}, \texttt{defineModel},
+\texttt{defineExpose}, \texttt{watchers} e in alcune situazioni la
+direttiva \texttt{:key} per innescare il refresh dei componenti.
+
+\subsubsection{Struttura del Progetto}\label{struttura-del-progetto}
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{/src/}
+\NormalTok{├── api/                 \# Layer di astrazione API con supporto mock}
+\NormalTok{│   ├── adapters/        \# Adapter per allinare i dati ricevuti dalle API}
+\NormalTok{│   ├── mock{-}services/   \# Implementazioni mock per sviluppo}
+\NormalTok{│   ├── services/        \# Implementazioni API dei servizi}
+\NormalTok{│   └── client.ts        \# Client HTTP con gestione JWT}
+\NormalTok{├── components/          \# Componenti Vue riutilizzabili}
+\NormalTok{├── composables/         \# Funzionalità riutilizzabili dai vari componenti}
+\NormalTok{├── i18n/                \# File di lingua}
+\NormalTok{├── layouts/             \# Layout condivisi}
+\NormalTok{├── router/              \# Configurazione routing e guards}
+\NormalTok{├── stores/              \# Pinia store}
+\NormalTok{└── views/               \# Pagine dell\textquotesingle{}applicazione}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Gestione dello Stato con
+Pinia}\label{gestione-dello-stato-con-pinia}
+
+Lo store Pinia gestisce l'autenticazione dell'utente e i token JWT\@. Il
+sistema implementa il refresh automatico dei token prima della scadenza:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{interface}\NormalTok{ Tokens \{}
+\NormalTok{  accesToken}\OperatorTok{:}\NormalTok{ AccessToken}\OperatorTok{,}
+\NormalTok{  refreshToken}\OperatorTok{:}\NormalTok{ RefreshToken}\OperatorTok{,}
+\NormalTok{  refreshExpiresAt}\OperatorTok{:} \DataTypeTok{number}\OperatorTok{,}
+\NormalTok{\}}
+
+\ImportTok{export} \KeywordTok{const}\NormalTok{ useAuthStore }\OperatorTok{=} \FunctionTok{defineStore}\NormalTok{(}\StringTok{\textquotesingle{}auth\textquotesingle{}}\OperatorTok{,}\NormalTok{ () }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+  \KeywordTok{const}\NormalTok{ user }\OperatorTok{=} \FunctionTok{ref}\OperatorTok{\textless{}}\NormalTok{User }\OperatorTok{|} \DataTypeTok{null}\OperatorTok{\textgreater{}}\NormalTok{(}\KeywordTok{null}\NormalTok{)}
+  \KeywordTok{const}\NormalTok{ tokens }\OperatorTok{=}\NormalTok{ ref}\OperatorTok{\textless{}}\NormalTok{Tokens }\OperatorTok{|} \DataTypeTok{null}\OperatorTok{\textgreater{}}\NormalTok{ (}\KeywordTok{null}\NormalTok{)}
+
+  \KeywordTok{const}\NormalTok{ isAuthenticated }\OperatorTok{=} \FunctionTok{computed}\NormalTok{(() }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+    \ControlFlowTok{if}\NormalTok{ (}\OperatorTok{!}\NormalTok{tokens}\OperatorTok{.}\AttributeTok{value} \OperatorTok{||} \OperatorTok{!}\NormalTok{user}\OperatorTok{.}\AttributeTok{value}\NormalTok{) }\ControlFlowTok{return} \KeywordTok{false}
+    \ControlFlowTok{return}\NormalTok{ tokens}\OperatorTok{.}\AttributeTok{refreshExpiresAt}\OperatorTok{.}\AttributeTok{value} \OperatorTok{\textgreater{}} \BuiltInTok{Date}\OperatorTok{.}\FunctionTok{now}\NormalTok{()}
+\NormalTok{  \})}
+
+  \CommentTok{// Set data to local storage to avoid data loss on page refresh}
+  \KeywordTok{const}\NormalTok{ setAuthData }\OperatorTok{=} \KeywordTok{async}\NormalTok{ (authData}\OperatorTok{:}\NormalTok{ LoginResponse) }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+    \FunctionTok{setTokens}\NormalTok{(authData)}
+    \FunctionTok{setUser}\NormalTok{(authData}\OperatorTok{.}\AttributeTok{user}\NormalTok{)}
+    \FunctionTok{setupAutoRefresh}\NormalTok{()}
+    \ControlFlowTok{await}\NormalTok{ api}\OperatorTok{.}\AttributeTok{notifications}\OperatorTok{.}\FunctionTok{connect}\NormalTok{(authData}\OperatorTok{.}\AttributeTok{user}\OperatorTok{.}\AttributeTok{id}\OperatorTok{,}\NormalTok{ authData}\OperatorTok{.}\AttributeTok{accessToken}\NormalTok{) }\CommentTok{//Connect to Socket}
+\NormalTok{  \}}
+
+  \CommentTok{// Restores auth data from session storage (if any)}
+  \KeywordTok{const}\NormalTok{ refreshCurrentSessionUserData }\OperatorTok{=}\NormalTok{ () }\KeywordTok{=\textgreater{}}\NormalTok{ \{\}}
+
+  \CommentTok{// Auto{-}refresh 5 minutes before expiration}
+  \KeywordTok{const}\NormalTok{ setupAutoRefresh }\OperatorTok{=}\NormalTok{ () }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+    \KeywordTok{const}\NormalTok{ refreshTime }\OperatorTok{=}\NormalTok{ tokens}\OperatorTok{.}\AttributeTok{value}\OperatorTok{.}\AttributeTok{refreshExpiresAt} \OperatorTok{{-}} \BuiltInTok{Date}\OperatorTok{.}\FunctionTok{now}\NormalTok{() }\OperatorTok{{-}} \DecValTok{5} \OperatorTok{*} \DecValTok{60} \OperatorTok{*} \DecValTok{1000}
+    \ControlFlowTok{if}\NormalTok{ (refreshTime }\OperatorTok{\textgreater{}} \DecValTok{0}\NormalTok{) \{}
+      \PreprocessorTok{setTimeout}\NormalTok{(() }\KeywordTok{=\textgreater{}} \FunctionTok{refreshAccessToken}\NormalTok{()}\OperatorTok{,}\NormalTok{ refreshTime)}
+\NormalTok{    \}}
+\NormalTok{  \}}
+\NormalTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Layer API e Mocking
+Strategy}\label{layer-api-e-mocking-strategy}
+
+Un aspetto fondamentale dello sviluppo è stato il \textbf{layer di
+astrazione API}, che ha permesso di prototipare il frontend
+indipendentemente dalla disponibilità dei microservizi backend.
+
+Il sistema utilizza una variabile d'ambiente per utilizzare API reali o
+mock:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{const}\NormalTok{ useRealApi}\OperatorTok{:} \DataTypeTok{boolean} \OperatorTok{=}\NormalTok{ import}\OperatorTok{.}\AttributeTok{meta}\OperatorTok{.}\AttributeTok{env}\OperatorTok{.}\AttributeTok{VITE\_USE\_MOCK\_API} \OperatorTok{===} \StringTok{\textquotesingle{}false\textquotesingle{}}
+
+\ImportTok{export} \KeywordTok{const}\NormalTok{ api }\OperatorTok{=}\NormalTok{ \{}
+\NormalTok{  events}\OperatorTok{:}\NormalTok{ useRealApi }\OperatorTok{?} \FunctionTok{createEventsApi}\NormalTok{(}\FunctionTok{createEventsClient}\NormalTok{()) }\OperatorTok{:}\NormalTok{ mockEventsApi}\OperatorTok{,}
+\NormalTok{  chat}\OperatorTok{:}\NormalTok{ useRealApi }\OperatorTok{?} \FunctionTok{createChatApi}\NormalTok{(}\FunctionTok{createChatClient}\NormalTok{()) }\OperatorTok{:}\NormalTok{ mockChatApi}\OperatorTok{,}
+\NormalTok{  notifications}\OperatorTok{:}\NormalTok{ useRealApi}
+    \OperatorTok{?} \FunctionTok{createNotificationsApi}\NormalTok{(}\FunctionTok{createNotificationsClient}\NormalTok{())}
+    \OperatorTok{:}\NormalTok{ mockNotificationsApi}\OperatorTok{,}
+  \CommentTok{// other services}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Il client HTTP gestisce centralmente l'injection del token JWT e il refresh automatico in caso di 401:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{const}\NormalTok{ token }\OperatorTok{=}\NormalTok{ tokenProvider}\OperatorTok{?.}\NormalTok{()}
+\ControlFlowTok{if}\NormalTok{ (token) \{}
+\NormalTok{  headers[}\StringTok{\textquotesingle{}Authorization\textquotesingle{}}\NormalTok{] }\OperatorTok{=} \VerbatimStringTok{\textasciigrave{}Bearer }\SpecialCharTok{$\{}\NormalTok{token}\SpecialCharTok{\}}\VerbatimStringTok{\textasciigrave{}}
+\NormalTok{\}}
+
+\CommentTok{// Refresh after receiving 401}
+\ControlFlowTok{if}\NormalTok{ (response}\OperatorTok{.}\AttributeTok{status} \OperatorTok{===} \DecValTok{401} \OperatorTok{\&\&} \OperatorTok{!}\NormalTok{isRetry }\OperatorTok{\&\&}\NormalTok{ onTokenExpired) \{}
+  \KeywordTok{const}\NormalTok{ refreshed }\OperatorTok{=} \ControlFlowTok{await} \FunctionTok{onTokenExpired}\NormalTok{()}
+  \ControlFlowTok{if}\NormalTok{ (refreshed) \{}
+    \ControlFlowTok{return} \KeywordTok{this}\OperatorTok{.}\FunctionTok{request}\NormalTok{(endpoint}\OperatorTok{,}\NormalTok{ options}\OperatorTok{,} \KeywordTok{true}\NormalTok{)}
+\NormalTok{  \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Questo approccio, seguendo il principio \textbf{Dependency Inversion
+(DIP)}, ha permesso di sviluppare componenti UI indipendenti
+dall'implementazione concreta delle API e ha facilitato il testing.
+
+\subsubsection{Router e Navigation
+Guards}\label{router-e-navigation-guards}
+
+Il sistema di routing utilizza due livelli: un livello root per gestire
+redirect e rotte speciali, e un livello nested sotto \texttt{/:locale}
+per tutte le rotte localizzate. Questa separazione è stata necessaria
+perché alcune rotte (come quella codificata nel QR code nei biglietti)
+non richiedono il prefisso della lingua.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\KeywordTok{const}\NormalTok{ router }\OperatorTok{=} \FunctionTok{createRouter}\NormalTok{(\{}
+\NormalTok{  history}\OperatorTok{:} \FunctionTok{createWebHistory}\NormalTok{(import}\OperatorTok{.}\AttributeTok{meta}\OperatorTok{.}\AttributeTok{env}\OperatorTok{.}\AttributeTok{BASE\_URL}\NormalTok{)}\OperatorTok{,}
+\NormalTok{  routes}\OperatorTok{:}\NormalTok{ [}
+\NormalTok{    \{}
+\NormalTok{      path}\OperatorTok{:} \StringTok{\textquotesingle{}/\textquotesingle{}}\OperatorTok{,}
+\NormalTok{      redirect}\OperatorTok{:}\NormalTok{ () }\KeywordTok{=\textgreater{}} \VerbatimStringTok{\textasciigrave{}/}\SpecialCharTok{$\{}\FunctionTok{getInitialLocale}\NormalTok{()}\SpecialCharTok{\}}\VerbatimStringTok{\textasciigrave{}}\OperatorTok{,}
+\NormalTok{    \}}\OperatorTok{,}
+\NormalTok{    \{}
+\NormalTok{      path}\OperatorTok{:} \StringTok{\textquotesingle{}/verify/:ticketId\textquotesingle{}}\OperatorTok{,}
+\NormalTok{      redirect}\OperatorTok{:}\NormalTok{ (to) }\KeywordTok{=\textgreater{}} \VerbatimStringTok{\textasciigrave{}/}\SpecialCharTok{$\{}\FunctionTok{getInitialLocale}\NormalTok{()}\SpecialCharTok{\}}\VerbatimStringTok{/verify/}\SpecialCharTok{$\{}\NormalTok{to}\OperatorTok{.}\AttributeTok{params}\OperatorTok{.}\AttributeTok{ticketId}\SpecialCharTok{\}}\VerbatimStringTok{\textasciigrave{}}\OperatorTok{,}
+\NormalTok{    \}}\OperatorTok{,}
+\NormalTok{    \{}
+\NormalTok{      path}\OperatorTok{:} \StringTok{\textquotesingle{}/:locale\textquotesingle{}}\OperatorTok{,}
+\NormalTok{      component}\OperatorTok{:}\NormalTok{ LocaleWrapper}\OperatorTok{,}
+\NormalTok{      children}\OperatorTok{:}\NormalTok{ [}
+\NormalTok{        \{ path}\OperatorTok{:} \StringTok{\textquotesingle{}\textquotesingle{}}\OperatorTok{,}\NormalTok{ name}\OperatorTok{:} \StringTok{\textquotesingle{}home\textquotesingle{}}\OperatorTok{,}\NormalTok{ component}\OperatorTok{:}\NormalTok{ Home \}}\OperatorTok{,}
+\NormalTok{        \{ path}\OperatorTok{:} \StringTok{\textquotesingle{}login\textquotesingle{}}\OperatorTok{,}\NormalTok{ name}\OperatorTok{:} \StringTok{\textquotesingle{}login\textquotesingle{}}\OperatorTok{,}\NormalTok{ component}\OperatorTok{:}\NormalTok{ () }\KeywordTok{=\textgreater{}} \ImportTok{import}\NormalTok{(}\StringTok{\textquotesingle{}../views/AuthView.vue\textquotesingle{}}\NormalTok{)}\OperatorTok{,}\NormalTok{ beforeEnter}\OperatorTok{:}\NormalTok{ requireGuest \}}\OperatorTok{,}
+\NormalTok{        \{ path}\OperatorTok{:} \StringTok{\textquotesingle{}events/:id\textquotesingle{}}\OperatorTok{,}\NormalTok{ name}\OperatorTok{:} \StringTok{\textquotesingle{}event{-}details\textquotesingle{}}\OperatorTok{,}\NormalTok{ component}\OperatorTok{:}\NormalTok{ () }\KeywordTok{=\textgreater{}} \ImportTok{import}\NormalTok{(}\StringTok{\textquotesingle{}../views/EventDetailsView.vue\textquotesingle{}}\NormalTok{)}\OperatorTok{,}\NormalTok{ beforeEnter}\OperatorTok{:}\NormalTok{ requireNotDraft \}}\OperatorTok{,}
+\NormalTok{        \{ path}\OperatorTok{:} \StringTok{\textquotesingle{}create{-}event\textquotesingle{}}\OperatorTok{,}\NormalTok{ name}\OperatorTok{:} \StringTok{\textquotesingle{}create{-}event\textquotesingle{}}\OperatorTok{,}\NormalTok{ component}\OperatorTok{:}\NormalTok{ () }\KeywordTok{=\textgreater{}} \ImportTok{import}\NormalTok{(}\StringTok{\textquotesingle{}../views/CreateEventView.vue\textquotesingle{}}\NormalTok{)}\OperatorTok{,}\NormalTok{ beforeEnter}\OperatorTok{:} \FunctionTok{requireRole}\NormalTok{(}\StringTok{\textquotesingle{}organization\textquotesingle{}}\NormalTok{) \}}\OperatorTok{,}
+        \CommentTok{// ... other routes}
+\NormalTok{      ]}\OperatorTok{,}
+\NormalTok{    \}}\OperatorTok{,}
+\NormalTok{  ]}\OperatorTok{,}
+\NormalTok{\})}
+
+\CommentTok{// Global guard for i18n synchronization}
+\NormalTok{router}\OperatorTok{.}\FunctionTok{beforeEach}\NormalTok{((to}\OperatorTok{,}\NormalTok{ \_from}\OperatorTok{,}\NormalTok{ next) }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+  \KeywordTok{const}\NormalTok{ locale }\OperatorTok{=}\NormalTok{ to}\OperatorTok{.}\AttributeTok{params}\OperatorTok{.}\AttributeTok{locale} \ImportTok{as} \DataTypeTok{string}
+
+  \CommentTok{// Redirect if locale is not supported}
+  \ControlFlowTok{if}\NormalTok{ (locale }\OperatorTok{\&\&} \OperatorTok{!}\NormalTok{SUPPORTED\_LOCALES}\OperatorTok{.}\FunctionTok{includes}\NormalTok{(locale)) \{}
+    \ControlFlowTok{return} \FunctionTok{next}\NormalTok{(}\VerbatimStringTok{\textasciigrave{}/}\SpecialCharTok{$\{}\NormalTok{DEFAULT\_LOCALE}\SpecialCharTok{\}$\{}\NormalTok{to}\OperatorTok{.}\AttributeTok{path}\OperatorTok{.}\FunctionTok{substring}\NormalTok{(locale}\OperatorTok{.}\AttributeTok{length} \OperatorTok{+} \DecValTok{1}\NormalTok{)}\SpecialCharTok{\}}\VerbatimStringTok{\textasciigrave{}}\NormalTok{)}
+\NormalTok{  \}}
+
+  \CommentTok{// Restore saved locale preference on navigation}
+  \KeywordTok{const}\NormalTok{ savedLocale }\OperatorTok{=}\NormalTok{ localStorage}\OperatorTok{.}\FunctionTok{getItem}\NormalTok{(}\StringTok{\textquotesingle{}user{-}locale\textquotesingle{}}\NormalTok{)}
+  \ControlFlowTok{if}\NormalTok{ (savedLocale }\OperatorTok{\&\&}\NormalTok{ locale }\OperatorTok{\&\&}\NormalTok{ locale }\OperatorTok{!==}\NormalTok{ savedLocale }\OperatorTok{\&\&}\NormalTok{ SUPPORTED\_LOCALES}\OperatorTok{.}\FunctionTok{includes}\NormalTok{(savedLocale)) \{}
+    \ControlFlowTok{return} \FunctionTok{next}\NormalTok{(\{}
+\NormalTok{      name}\OperatorTok{:}\NormalTok{ to}\OperatorTok{.}\AttributeTok{name} \ImportTok{as} \DataTypeTok{string}\OperatorTok{,}
+\NormalTok{      params}\OperatorTok{:}\NormalTok{ \{ }\OperatorTok{...}\NormalTok{to}\OperatorTok{.}\AttributeTok{params}\OperatorTok{,}\NormalTok{ locale}\OperatorTok{:}\NormalTok{ savedLocale \}}\OperatorTok{,}
+\NormalTok{      query}\OperatorTok{:}\NormalTok{ to}\OperatorTok{.}\AttributeTok{query}\OperatorTok{,}
+\NormalTok{      replace}\OperatorTok{:} \KeywordTok{true}\OperatorTok{,}
+\NormalTok{    \})}
+\NormalTok{  \}}
+
+  \CommentTok{// Sync i18n with URL locale}
+  \ControlFlowTok{if}\NormalTok{ (locale }\OperatorTok{\&\&}\NormalTok{ i18n}\OperatorTok{.}\AttributeTok{global}\OperatorTok{.}\AttributeTok{locale}\OperatorTok{.}\AttributeTok{value} \OperatorTok{!==}\NormalTok{ locale) \{}
+\NormalTok{    i18n}\OperatorTok{.}\AttributeTok{global}\OperatorTok{.}\AttributeTok{locale}\OperatorTok{.}\AttributeTok{value} \OperatorTok{=}\NormalTok{ locale }\ImportTok{as}\NormalTok{ Locale}
+\NormalTok{    localStorage}\OperatorTok{.}\FunctionTok{setItem}\NormalTok{(}\StringTok{\textquotesingle{}user{-}locale\textquotesingle{}}\OperatorTok{,}\NormalTok{ locale)}
+\NormalTok{  \}}
+
+  \FunctionTok{next}\NormalTok{()}
+\NormalTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Le \textbf{navigation guards} proteggono le rotte in base
+all'autenticazione e ai ruoli:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{export} \KeywordTok{const}\NormalTok{ requireAuth }\OperatorTok{=}\NormalTok{ (to}\OperatorTok{,}\NormalTok{ \_from}\OperatorTok{,}\NormalTok{ next) }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+  \KeywordTok{const}\NormalTok{ authStore }\OperatorTok{=} \FunctionTok{useAuthStore}\NormalTok{()}
+  \ControlFlowTok{if}\NormalTok{ (}\OperatorTok{!}\NormalTok{authStore}\OperatorTok{.}\AttributeTok{isAuthenticated}\NormalTok{) \{}
+    \FunctionTok{next}\NormalTok{(\{ name}\OperatorTok{:}\NormalTok{ LOGIN\_ROUTE\_NAME}\OperatorTok{,}\NormalTok{ query}\OperatorTok{:}\NormalTok{ \{ redirect}\OperatorTok{:}\NormalTok{ to}\OperatorTok{.}\AttributeTok{fullPath}\NormalTok{ \} \})}
+\NormalTok{  \} }\ControlFlowTok{else}\NormalTok{ \{}
+    \FunctionTok{next}\NormalTok{()}
+\NormalTok{  \}}
+\NormalTok{\}}
+
+\ImportTok{export} \KeywordTok{const}\NormalTok{ requireRole }\OperatorTok{=}\NormalTok{ (role}\OperatorTok{:} \DataTypeTok{string}\NormalTok{) }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+  \ControlFlowTok{return}\NormalTok{ (to}\OperatorTok{,} \ImportTok{from}\OperatorTok{,}\NormalTok{ next) }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+    \KeywordTok{const}\NormalTok{ authStore }\OperatorTok{=} \FunctionTok{useAuthStore}\NormalTok{()}
+    \ControlFlowTok{if}\NormalTok{ (authStore}\OperatorTok{.}\AttributeTok{user}\OperatorTok{?.}\AttributeTok{role} \OperatorTok{!==}\NormalTok{ role) \{}
+      \FunctionTok{next}\NormalTok{(\{ name}\OperatorTok{:}\NormalTok{ FORBIDDEN\_ROUTE\_NAME \})}
+\NormalTok{    \} }\ControlFlowTok{else}\NormalTok{ \{}
+      \FunctionTok{next}\NormalTok{()}
+\NormalTok{    \}}
+\NormalTok{  \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Le guards guidano l'utente nell'utilizzo dell'applicazione, impedendo
+l'accesso a pagine non autorizzate e reindirizzandolo automaticamente
+(ad esempio, se un organizzazione vuole creare un evento ma non ha
+effettuato l'accesso, prima si ha un redirect alla pagina di login).
+
+\subsubsection{Comunicazione Real-time con
+WebSocket}\label{comunicazione-real-time-con-websocket}
+
+La comunicazione in tempo reale è gestita tramite
+\href{http://socket.io/}{\textbf{Socket.IO}} per le notifiche e i
+messaggi chat:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{socket }\OperatorTok{=} \FunctionTok{io}\NormalTok{(url}\OperatorTok{,}\NormalTok{ \{}
+\NormalTok{  auth}\OperatorTok{:}\NormalTok{ \{ token}\OperatorTok{,}\NormalTok{ userId \}}\OperatorTok{,}
+\NormalTok{  reconnection}\OperatorTok{:} \KeywordTok{true}\OperatorTok{,}
+\NormalTok{  reconnectionAttempts}\OperatorTok{:} \DecValTok{5}\OperatorTok{,}
+\NormalTok{  transports}\OperatorTok{:}\NormalTok{ [}\StringTok{\textquotesingle{}websocket\textquotesingle{}}\OperatorTok{,} \StringTok{\textquotesingle{}polling\textquotesingle{}}\NormalTok{]}\OperatorTok{,}
+\NormalTok{\})}
+
+\NormalTok{socket}\OperatorTok{.}\FunctionTok{on}\NormalTok{(}\StringTok{\textquotesingle{}connect\textquotesingle{}}\OperatorTok{,}\NormalTok{ () }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+\NormalTok{  handlers}\OperatorTok{.}\FunctionTok{forEach}\NormalTok{((\{ handler}\OperatorTok{,}\NormalTok{ eventType \}) }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+\NormalTok{    socket}\OperatorTok{?.}\FunctionTok{on}\NormalTok{(eventType}\OperatorTok{,}\NormalTok{ handler)}
+\NormalTok{  \})}
+\NormalTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+Gli eventi gestiti includono:
+
+\begin{itemize}
+\tightlist{}
+\item
+  \texttt{user-online} / \texttt{user-offline}~--- Stato online degli
+  utenti
+\item
+  \texttt{new-message}~--- Nuovi messaggi in chat
+\item
+  \texttt{like-received} / \texttt{follow-received}~--- Notifiche di
+  interazione
+\item
+  \texttt{new-event-published}~--- Nuovi eventi pubblicati da utenti
+  seguiti
+\end{itemize}
+
+\subsubsection{Composables
+Riutilizzabili}\label{composables-riutilizzabili}
+
+I composables incapsulano logiche riutilizzabili tra i componenti. Un
+esempio significativo è \texttt{useInfiniteScroll} per la paginazione:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{export} \KeywordTok{function} \FunctionTok{useInfiniteScroll}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{(config}\OperatorTok{:}\NormalTok{ InfiniteScrollConfiguration}\OperatorTok{\textless{}}\NormalTok{R}\OperatorTok{\textgreater{}}\NormalTok{) \{}
+  \KeywordTok{const}\NormalTok{ items}\OperatorTok{:}\NormalTok{ Ref}\OperatorTok{\textless{}}\NormalTok{R[]}\OperatorTok{\textgreater{}} \OperatorTok{=} \FunctionTok{ref}\NormalTok{([])}
+  \KeywordTok{const}\NormalTok{ hasMore }\OperatorTok{=} \FunctionTok{ref}\NormalTok{(}\KeywordTok{true}\NormalTok{)}
+  \KeywordTok{const}\NormalTok{ loading }\OperatorTok{=} \FunctionTok{ref}\NormalTok{(}\KeywordTok{true}\NormalTok{)}
+
+  \KeywordTok{const}\NormalTok{ onLoad }\OperatorTok{=} \KeywordTok{async}\NormalTok{ (\_index}\OperatorTok{:} \DataTypeTok{number}\OperatorTok{,}\NormalTok{ done}\OperatorTok{:}\NormalTok{ (stop}\OperatorTok{?:} \DataTypeTok{boolean}\NormalTok{) }\KeywordTok{=\textgreater{}} \DataTypeTok{void}\NormalTok{) }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+    \ControlFlowTok{if}\NormalTok{ (}\OperatorTok{!}\NormalTok{hasMore}\OperatorTok{.}\AttributeTok{value}\NormalTok{) \{}
+      \FunctionTok{done}\NormalTok{(}\KeywordTok{true}\NormalTok{)}
+      \ControlFlowTok{return}
+\NormalTok{    \}}
+    \ControlFlowTok{await} \FunctionTok{loadItems}\NormalTok{(}\KeywordTok{true}\NormalTok{)}
+    \FunctionTok{done}\NormalTok{(}\OperatorTok{!}\NormalTok{hasMore}\OperatorTok{.}\AttributeTok{value}\NormalTok{)}
+\NormalTok{  \}}
+
+  \ControlFlowTok{return}\NormalTok{ \{ items}\OperatorTok{,}\NormalTok{ hasMore}\OperatorTok{,}\NormalTok{ loading}\OperatorTok{,}\NormalTok{ onLoad}\OperatorTok{,}\NormalTok{ reload \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+Altri composables includono:
+
+\begin{itemize}
+\tightlist{}
+\item
+  \texttt{useUserProfile}~--- Logica profilo utente (isOwnProfile,
+  isOrganization)
+\item
+  \texttt{useDarkMode}~--- Gestione tema chiaro/scuro con persistenza
+\item
+  \texttt{useTranslation}~--- Traduzioni con prefisso automatico
+\end{itemize}
+
+\subsubsection{Layout Condivisi}\label{layout-condivisi}
+
+Sono stati definiti anche layout riutilizzabili per garantire
+consistenza nell'interfaccia:
+
+\begin{itemize}
+\tightlist{}
+\item
+  \textbf{NavigationWithSearch}: Utilizzato in home ed explore, serve a
+  gestire la comparsa della barra di ricerca nella barra di navigazione
+  dal momento che esce dalla viewport e viceversa.
+\item
+  \textbf{TwoColumnLayout}: Utilizzato in chat e impostazioni, con
+  supporto mobile che mostra una colonna alla volta
+\end{itemize}
+
+\subsubsection{Internazionalizzazione
+(i18n)}\label{internazionalizzazione-i18n}
+
+L'applicazione supporta 5 lingue (en, es, fr, it, de). Le traduzioni
+sono generate automaticamente in CI a partire dal sorgente inglese:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{const}\NormalTok{ localeModules }\OperatorTok{=}\NormalTok{ import}\OperatorTok{.}\AttributeTok{meta}\OperatorTok{.}\FunctionTok{glob}\NormalTok{(}\StringTok{\textquotesingle{}./locales/*.ts\textquotesingle{}}\OperatorTok{,}\NormalTok{ \{ eager}\OperatorTok{:} \KeywordTok{true}\NormalTok{ \})}
+
+\KeywordTok{const}\NormalTok{ i18n }\OperatorTok{=} \FunctionTok{createI18n}\NormalTok{(\{}
+\NormalTok{  legacy}\OperatorTok{:} \KeywordTok{false}\OperatorTok{,}
+\NormalTok{  locale}\OperatorTok{:}\NormalTok{ DEFAULT\_LOCALE}\OperatorTok{,}
+\NormalTok{  fallbackLocale}\OperatorTok{:}\NormalTok{ DEFAULT\_LOCALE}\OperatorTok{,}
+\NormalTok{  messages}\OperatorTok{,}
+\NormalTok{\})}
+\end{Highlighting}
+\end{Shaded}
+
+L'utilizzo nei componenti avviene tramite il composable useTranslation:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+
+\KeywordTok{const}\NormalTok{ \{ t \} }\OperatorTok{=} \FunctionTok{useTranslation}\NormalTok{(}\StringTok{\textquotesingle{}components.cards.EventCard\textquotesingle{}}\NormalTok{)}
+\end{Highlighting}
+\end{Shaded}
+
+Inoltre il selettore delle lingue nelle impostazioni del profilo
+utilizza l'API nativa \texttt{Intl.DisplayNames} per mostrare ogni
+lingua nel proprio nome nativo (es. ``Italiano'', ``Français'',
+``Deutsch''), migliorando l'accessibilità per gli utenti:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\KeywordTok{const}\NormalTok{ getLanguageInfo }\OperatorTok{=}\NormalTok{ (code}\OperatorTok{:} \DataTypeTok{string}\NormalTok{)}\OperatorTok{:}\NormalTok{ LanguageOption }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+  \KeywordTok{const}\NormalTok{ nativeNames }\OperatorTok{=} \KeywordTok{new} \BuiltInTok{Intl}\OperatorTok{.}\FunctionTok{DisplayNames}\NormalTok{([code]}\OperatorTok{,}\NormalTok{ \{ type}\OperatorTok{:} \StringTok{\textquotesingle{}language\textquotesingle{}}\NormalTok{ \})}
+  \ControlFlowTok{return}\NormalTok{ \{}
+\NormalTok{    code}\OperatorTok{,}
+\NormalTok{    nativeName}\OperatorTok{:}\NormalTok{ nativeNames}\OperatorTok{.}\FunctionTok{of}\NormalTok{(code) }\OperatorTok{||}\NormalTok{ code}\OperatorTok{.}\FunctionTok{toUpperCase}\NormalTok{()}\OperatorTok{,}
+\NormalTok{    flag}\OperatorTok{:} \FunctionTok{getFlagEmoji}\NormalTok{(code)}\OperatorTok{,}
+\NormalTok{  \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+L'internazionalizzazione si estende anche al backend: il servizio
+Payments genera i \textbf{biglietti PDF nella lingua dell'utente}, con
+traduzioni dedicate.
+
+Il backend predispone inoltre la gestione dei prezzi con le valute e un
+sistema di conversione con caching, attualmente non utilizzato dal
+frontend ma pronto per future estensioni:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{export} \KeywordTok{class}\NormalTok{ CurrencyConverter \{}
+  \KeywordTok{private} \KeywordTok{static} \KeywordTok{readonly}\NormalTok{ CACHE\_DURATION }\OperatorTok{=} \DecValTok{24} \OperatorTok{*} \DecValTok{60} \OperatorTok{*} \DecValTok{60} \OperatorTok{*} \DecValTok{1000} \CommentTok{// 24 hours}
+
+  \KeywordTok{static} \KeywordTok{async} \FunctionTok{convertAmount}\NormalTok{(amount}\OperatorTok{:} \DataTypeTok{number}\OperatorTok{,}\NormalTok{ fromCurrency}\OperatorTok{:} \DataTypeTok{string}\OperatorTok{,}\NormalTok{ toCurrency}\OperatorTok{:} \DataTypeTok{string}\NormalTok{)}\OperatorTok{:} \BuiltInTok{Promise}\OperatorTok{\textless{}}\DataTypeTok{number}\OperatorTok{\textgreater{}}\NormalTok{ \{}
+    \KeywordTok{const}\NormalTok{ fromRates }\OperatorTok{=} \ControlFlowTok{await} \KeywordTok{this}\OperatorTok{.}\FunctionTok{fetchRatesForCurrency}\NormalTok{(}\ImportTok{from}\NormalTok{)}
+    \ControlFlowTok{return} \KeywordTok{this}\OperatorTok{.}\AttributeTok{converter}\OperatorTok{.}\FunctionTok{convert}\NormalTok{(amount}\OperatorTok{,} \ImportTok{from}\OperatorTok{,}\NormalTok{ to}\OperatorTok{,}\NormalTok{ fromRates)}
+\NormalTok{  \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\textbf{Limiti attuali}: I contenuti user-generated come le descrizioni
+degli eventi non sono attualmente tradotti e vengono memorizzati nella
+lingua in cui sono stati inseriti dall'organizzazione. Un'estensione
+futura potrebbe prevedere la possibilità di inserire descrizioni in più
+lingue, con fallback alla lingua originale quando la traduzione non è
+disponibile.
+
+\subsubsection{Geolocalizzazione degli
+eventi}\label{geolocalizzazione-degli-eventi}
+
+Per l'inserimento della posizione durante la creazione di un evento è
+stata utilizzata l'API pubblica di \textbf{Nominatim} (OpenStreetMap)
+per la ricerca e il geocoding degli indirizzi. La scelta di
+OpenStreetMap è stata dettata dalla sua natura open-source e
+dall'assenza di costi di utilizzo.
+
+Poiché la maggior parte degli utenti utilizza Google Maps per la
+navigazione, i dati ricevuti da Nominatim vengono elaborati per generare
+link compatibili con Google Maps, permettendo all'utente di cliccare
+sulla posizione dell'evento e aprirla direttamente nell'applicazione di
+navigazione.
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{export} \KeywordTok{const}\NormalTok{ extractLocationMapsLink }\OperatorTok{=}\NormalTok{ (location}\OperatorTok{:}\NormalTok{ LocationData)}\OperatorTok{:} \DataTypeTok{string} \KeywordTok{=\textgreater{}}\NormalTok{ \{}
+  \KeywordTok{const}\NormalTok{ query }\OperatorTok{=} \VerbatimStringTok{\textasciigrave{}}\SpecialCharTok{$\{}\NormalTok{location}\OperatorTok{.}\AttributeTok{name}\SpecialCharTok{\}}\VerbatimStringTok{,}\SpecialCharTok{$\{}\NormalTok{location}\OperatorTok{.}\AttributeTok{road}\SpecialCharTok{\}}\VerbatimStringTok{,}\SpecialCharTok{$\{}\NormalTok{location}\OperatorTok{.}\AttributeTok{city}\SpecialCharTok{\}}\VerbatimStringTok{,}\SpecialCharTok{$\{}\NormalTok{location}\OperatorTok{.}\AttributeTok{country}\SpecialCharTok{\}}\VerbatimStringTok{\textasciigrave{}}
+  \ControlFlowTok{return} \VerbatimStringTok{\textasciigrave{}https://www.google.com/maps/search/?api=1\&query=}\SpecialCharTok{$\{}\PreprocessorTok{encodeURIComponent}\NormalTok{(query)}\SpecialCharTok{\}}\VerbatimStringTok{\textasciigrave{}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsection{\texorpdfstring{\textbf{5.2
+Backend}}{5.2 Backend}}\label{backend}
+
+Il backend è composto da \textbf{7 microservizi}: 2 sviluppati in
+\textbf{Scala 3} con il framework \textbf{Cask} (Users ed Events), 3 in
+\textbf{NestJS} (Interactions, Chat e Payments) e 2 in
+\textbf{Express.js} (Notifications e Media).
+
+Ogni servizio ha la propria istanza \textbf{MongoDB} dedicata e comunica
+con gli altri tramite \textbf{RabbitMQ} con topic exchange. Il servizio
+Notifications gestisce le connessioni WebSocket tramite
+\textbf{Socket.IO} per le notifiche real-time e il tracciamento dello
+stato online degli utenti.
+
+\subsubsection{Struttura del Progetto}\label{struttura-del-progetto-1}
+
+Essendo i microservizi eterogenei segue una descrizione di massima
+rappresentativa della struttura delle varie implementazioni, viene usata
+la terminologia dello stack MEVN ma alcuni componenti potrebbero avere
+un nome/implementazione diversa (e.i. in Nest il concetto di router e
+controller viene unito in un unico componente rispetto ad express).
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{/src/}
+\NormalTok{├── presentation/        \# Layer di ingresso al servizio}
+\NormalTok{├── application/         \# Layer contenenti le logiche applicative}
+\NormalTok{├── domain/              \# Modello dei dati}
+\NormalTok{└── infrastructure/      \# Dipendenze del dominio}
+\end{Highlighting}
+\end{Shaded}
+
+Più nel dettaglio, nel primo layer di presentazione troviamo i router
+che definiscono le rotte (path + metodo http) supportate da ciascun
+servizio. In application sono specificati i diversi DTO usati per
+validare i dati in ingresso agli endpoint e strutturare i dati di
+risposta degli stessi e i controller delle varie rotte. Nel dominio sono
+definiti i modelli delle entità di interesse per il particolare servizio
+e in infrastructure troviamo le varie dipendenze esterne, tipicamente le
+implementazioni dei connectors a database e message-broker
+
+\subsubsection{Autenticazione JWT}\label{autenticazione-jwt}
+
+L'autenticazione è basata su \textbf{JWT}. Il servizio Users integra
+\textbf{Keycloak} come identity provider per la gestione delle
+credenziali utente (registrazione, login, gestione delle sessioni).
+Keycloak genera i token JWT firmati e il servizio Users espone un
+endpoint \texttt{/public-keys} che restituisce le chiavi pubbliche
+necessarie per la validazione.
+
+Gli altri microservizi recuperano le chiavi pubbliche da questo endpoint
+e le salvano in cache localmente. Quando ricevono una richiesta
+autenticata, estraggono il token dall'header \texttt{Authorization}, ne
+verificano la firma e decodificano i claim.
+
+Oltre alle REST API, l'autenticazione è stata implementata anche per le
+connessioni WebSocket: il token viene passato durante l'handshake della
+connessione Socket.IO e validato prima di stabilire il canale. Questo
+permette di inviare notifiche con dati (oltre che solo segnali) in modo
+sicuro.
+
+\subsubsection{Express Middlewares}\label{express-middlewares}
+
+Per gestire le richieste HTTP in \textbf{Express} sono stati utilizzati
+i middleware, in particolare è stato definito un middleware per
+l'autenticazione:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{export} \KeywordTok{function} \FunctionTok{createAuthMiddleware}\NormalTok{(options}\OperatorTok{:}\NormalTok{ \{ optional}\OperatorTok{?:} \DataTypeTok{boolean}\NormalTok{ \} }\OperatorTok{=}\NormalTok{ \{\}) \{}
+  \ControlFlowTok{return}\NormalTok{ (req}\OperatorTok{:}\NormalTok{ Request}\OperatorTok{,}\NormalTok{ res}\OperatorTok{:}\NormalTok{ Response}\OperatorTok{,}\NormalTok{ next}\OperatorTok{:}\NormalTok{ NextFunction)}\OperatorTok{:} \DataTypeTok{void} \KeywordTok{=\textgreater{}}\NormalTok{ \{}
+    \KeywordTok{const}\NormalTok{ token }\OperatorTok{=}\NormalTok{ req}\OperatorTok{.}\AttributeTok{headers}\OperatorTok{.}\AttributeTok{authorization}\OperatorTok{?.}\FunctionTok{replace}\NormalTok{(}\StringTok{"Bearer "}\OperatorTok{,} \StringTok{""}\NormalTok{)}
+
+    \ControlFlowTok{if}\NormalTok{ (}\OperatorTok{!}\NormalTok{token) \{}
+      \ControlFlowTok{if}\NormalTok{ (options}\OperatorTok{.}\AttributeTok{optional}\NormalTok{) }\ControlFlowTok{return} \FunctionTok{next}\NormalTok{()}
+      \ControlFlowTok{return}\NormalTok{ res}\OperatorTok{.}\FunctionTok{status}\NormalTok{(}\DecValTok{401}\NormalTok{)}\OperatorTok{.}\FunctionTok{json}\NormalTok{(\{ error}\OperatorTok{:} \StringTok{"No token provided"}\NormalTok{ \})}
+\NormalTok{    \}}
+
+    \ControlFlowTok{try}\NormalTok{ \{}
+      \KeywordTok{const}\NormalTok{ payload }\OperatorTok{=} \ControlFlowTok{await}\NormalTok{ JwtService}\OperatorTok{.}\FunctionTok{verifyToken}\NormalTok{(token)}
+\NormalTok{      req}\OperatorTok{.}\AttributeTok{userId} \OperatorTok{=}\NormalTok{ payload}\OperatorTok{.}\AttributeTok{user\_id}
+      \FunctionTok{next}\NormalTok{()}
+\NormalTok{    \} }\ControlFlowTok{catch}\NormalTok{ (error) \{}
+\NormalTok{      res}\OperatorTok{.}\FunctionTok{status}\NormalTok{(}\DecValTok{401}\NormalTok{)}\OperatorTok{.}\FunctionTok{json}\NormalTok{(\{ error}\OperatorTok{:} \StringTok{"Authentication failed"}\NormalTok{ \})}
+\NormalTok{    \}}
+\NormalTok{  \}}
+\NormalTok{\}}
+
+\ImportTok{export} \KeywordTok{const}\NormalTok{ authMiddleware }\OperatorTok{=} \FunctionTok{createAuthMiddleware}\NormalTok{()}
+\ImportTok{export} \KeywordTok{const}\NormalTok{ optionalAuthMiddleware }\OperatorTok{=} \FunctionTok{createAuthMiddleware}\NormalTok{(\{ optional}\OperatorTok{:} \KeywordTok{true}\NormalTok{ \})}
+\end{Highlighting}
+\end{Shaded}
+
+Le routes utilizzano poi questo middleware per proteggere gli endpoint:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{export} \KeywordTok{function} \FunctionTok{createNotificationRoutes}\NormalTok{(controller}\OperatorTok{:}\NormalTok{ NotificationController)}\OperatorTok{:}\NormalTok{ Router \{}
+  \KeywordTok{const}\NormalTok{ router }\OperatorTok{=} \FunctionTok{Router}\NormalTok{()}
+\NormalTok{  router}\OperatorTok{.}\FunctionTok{use}\NormalTok{(authMiddleware)}
+
+\NormalTok{  router}\OperatorTok{.}\FunctionTok{get}\NormalTok{(}\StringTok{"/"}\OperatorTok{,}\NormalTok{ (req}\OperatorTok{,}\NormalTok{ res}\OperatorTok{,}\NormalTok{ next) }\KeywordTok{=\textgreater{}}
+\NormalTok{    controller}\OperatorTok{.}\FunctionTok{getNotificationsByUserId}\NormalTok{(req}\OperatorTok{,}\NormalTok{ res}\OperatorTok{,}\NormalTok{ next))}
+\NormalTok{  router}\OperatorTok{.}\FunctionTok{get}\NormalTok{(}\StringTok{"/unread{-}count"}\OperatorTok{,}\NormalTok{ (req}\OperatorTok{,}\NormalTok{ res}\OperatorTok{,}\NormalTok{ next) }\KeywordTok{=\textgreater{}}
+\NormalTok{    controller}\OperatorTok{.}\FunctionTok{getUnreadCount}\NormalTok{(req}\OperatorTok{,}\NormalTok{ res}\OperatorTok{,}\NormalTok{ next))}
+    \CommentTok{//other routes...}
+
+  \ControlFlowTok{return}\NormalTok{ router}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+A livello applicativo vengono inoltre utilizzati i middleware standard
+di Express:~\texttt{cors()}~per gestire le richieste cross-origin
+(necessario per le chiamate dal frontend) e~\texttt{express.json()}~per
+il parsing automatico del body JSON.
+
+\subsubsection{Authenticated WebSocket Gateway con
+Socket.IO}\label{authenticated-websocket-gateway-con-socket.io}
+
+Il gateway \textbf{Socket.IO} gestisce l'autenticazione delle
+connessioni WebSocket e la distribuzione delle notifiche:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\ImportTok{export} \KeywordTok{class}\NormalTok{ SocketIOGateway }\KeywordTok{implements}\NormalTok{ NotificationGateway \{}
+  \KeywordTok{private}\NormalTok{ userSockets}\OperatorTok{:} \BuiltInTok{Map}\OperatorTok{\textless{}}\DataTypeTok{string}\OperatorTok{,} \BuiltInTok{Set}\OperatorTok{\textless{}}\DataTypeTok{string}\OperatorTok{\textgreater{}\textgreater{}} \OperatorTok{=} \KeywordTok{new} \BuiltInTok{Map}\NormalTok{()}
+
+  \KeywordTok{private} \FunctionTok{setupAuthMiddleware}\NormalTok{()}\OperatorTok{:} \DataTypeTok{void}\NormalTok{ \{}
+    \KeywordTok{this}\OperatorTok{.}\AttributeTok{io}\OperatorTok{.}\FunctionTok{use}\NormalTok{(}\KeywordTok{async}\NormalTok{ (socket}\OperatorTok{:} \BuiltInTok{Socket}\OperatorTok{,}\NormalTok{ next) }\KeywordTok{=\textgreater{}}\NormalTok{ \{}
+      \KeywordTok{const}\NormalTok{ token }\OperatorTok{=}\NormalTok{ socket}\OperatorTok{.}\AttributeTok{handshake}\OperatorTok{.}\AttributeTok{auth}\OperatorTok{.}\AttributeTok{token} \OperatorTok{||}
+\NormalTok{                    socket}\OperatorTok{.}\AttributeTok{handshake}\OperatorTok{.}\AttributeTok{headers}\OperatorTok{.}\AttributeTok{authorization}\OperatorTok{?.}\FunctionTok{replace}\NormalTok{(}\StringTok{"Bearer "}\OperatorTok{,} \StringTok{""}\NormalTok{)}
+
+      \ControlFlowTok{if}\NormalTok{ (}\OperatorTok{!}\NormalTok{token) \{}
+        \ControlFlowTok{return} \FunctionTok{next}\NormalTok{(}\KeywordTok{new} \BuiltInTok{Error}\NormalTok{(}\StringTok{"Authentication error: No token provided"}\NormalTok{))}
+\NormalTok{      \}}
+
+      \ControlFlowTok{try}\NormalTok{ \{}
+        \KeywordTok{const}\NormalTok{ payload }\OperatorTok{=} \ControlFlowTok{await}\NormalTok{ JwtService}\OperatorTok{.}\FunctionTok{verifyToken}\NormalTok{(token)}
+\NormalTok{        socket}\OperatorTok{.}\AttributeTok{data}\OperatorTok{.}\AttributeTok{userId} \OperatorTok{=}\NormalTok{ payload}\OperatorTok{.}\AttributeTok{user\_id}
+        \FunctionTok{next}\NormalTok{()}
+\NormalTok{      \} }\ControlFlowTok{catch}\NormalTok{ (err) \{}
+        \FunctionTok{next}\NormalTok{(}\KeywordTok{new} \BuiltInTok{Error}\NormalTok{(}\StringTok{"Authentication error: Invalid token"}\NormalTok{))}
+\NormalTok{      \}}
+\NormalTok{    \})}
+\NormalTok{  \}}
+
+  \FunctionTok{sendNotificationToUser}\NormalTok{(userId}\OperatorTok{:} \DataTypeTok{string}\OperatorTok{,}\NormalTok{ notification}\OperatorTok{:} \DataTypeTok{any}\NormalTok{)}\OperatorTok{:} \BuiltInTok{Promise}\OperatorTok{\textless{}}\DataTypeTok{void}\OperatorTok{\textgreater{}}\NormalTok{ \{}
+    \KeywordTok{const}\NormalTok{ topic }\OperatorTok{=} \KeywordTok{this}\OperatorTok{.}\FunctionTok{getTopicFromNotificationType}\NormalTok{(notification}\OperatorTok{.}\AttributeTok{type}\NormalTok{)}
+    \KeywordTok{this}\OperatorTok{.}\AttributeTok{io}\OperatorTok{.}\FunctionTok{to}\NormalTok{(}\VerbatimStringTok{\textasciigrave{}user:}\SpecialCharTok{$\{}\NormalTok{userId}\SpecialCharTok{\}}\VerbatimStringTok{\textasciigrave{}}\NormalTok{)}\OperatorTok{.}\FunctionTok{emit}\NormalTok{(topic}\OperatorTok{,}\NormalTok{ notification)}
+    \ControlFlowTok{return} \BuiltInTok{Promise}\OperatorTok{.}\FunctionTok{resolve}\NormalTok{()}
+\NormalTok{  \}}
+
+  \FunctionTok{broadcastUserOnline}\NormalTok{(userId}\OperatorTok{:} \DataTypeTok{string}\NormalTok{)}\OperatorTok{:} \DataTypeTok{void}\NormalTok{ \{}
+    \KeywordTok{this}\OperatorTok{.}\AttributeTok{io}\OperatorTok{.}\FunctionTok{except}\NormalTok{(}\VerbatimStringTok{\textasciigrave{}user:}\SpecialCharTok{$\{}\NormalTok{userId}\SpecialCharTok{\}}\VerbatimStringTok{\textasciigrave{}}\NormalTok{)}\OperatorTok{.}\FunctionTok{emit}\NormalTok{(}\StringTok{"user{-}online"}\OperatorTok{,}\NormalTok{ \{}
+\NormalTok{      userId}\OperatorTok{,}
+\NormalTok{      timestamp}\OperatorTok{:} \KeywordTok{new} \BuiltInTok{Date}\NormalTok{()}
+\NormalTok{    \})}
+\NormalTok{  \}}
+
+  \FunctionTok{broadcastUserOffline}\NormalTok{(userId}\OperatorTok{:} \DataTypeTok{string}\NormalTok{)}\OperatorTok{:} \DataTypeTok{void}\NormalTok{ \{}
+    \KeywordTok{this}\OperatorTok{.}\AttributeTok{io}\OperatorTok{.}\FunctionTok{emit}\NormalTok{(}\StringTok{"user{-}offline"}\OperatorTok{,}\NormalTok{ \{}
+\NormalTok{      userId}\OperatorTok{,}
+\NormalTok{      timestamp}\OperatorTok{:} \KeywordTok{new} \BuiltInTok{Date}\NormalTok{()}
+\NormalTok{    \})}
+\NormalTok{  \}}
+\NormalTok{\}}
+\end{Highlighting}
+\end{Shaded}
+
+\subsubsection{Endpoint con autenticazione
+opzionale}\label{endpoint-con-autenticazione-opzionale}
+
+Alcuni endpoint utilizzano l'\textbf{autenticazione opzionale}: sono
+accessibili sia da utenti autenticati che non, in questo caso la
+risposta può variare pur mantenendo il formato consistente. Ad esempio,
+l'endpoint per ottenere il profilo di un utente restituisce solo i dati
+pubblici (username e informazioni del profilo) se la richiesta non è
+autenticata, mentre include anche i dati privati dell'account
+(e.g.~email, interessi) se l'utente autenticato sta richiedendo le
+proprie informazioni:
+
+\begin{Shaded}
+\begin{Highlighting}[]
+\NormalTok{@cask}\OperatorTok{.}\FunctionTok{get}\OperatorTok{(}\StringTok{"/:userId"}\OperatorTok{)}
+  \KeywordTok{def} \FunctionTok{getUser}\OperatorTok{(}\NormalTok{userId}\OperatorTok{:} \ExtensionTok{String}\OperatorTok{,}\NormalTok{ req}\OperatorTok{:} \ExtensionTok{Request}\OperatorTok{):} \ExtensionTok{Response}\OperatorTok{[}\ExtensionTok{String}\OperatorTok{]} \OperatorTok{=}
+\NormalTok{    userService}\OperatorTok{.}\FunctionTok{getUserById}\OperatorTok{(}\NormalTok{userId}\OperatorTok{)} \ControlFlowTok{match}
+      \ControlFlowTok{case} \FunctionTok{Left}\OperatorTok{(}\NormalTok{err}\OperatorTok{)} \OperatorTok{=\textgreater{}} \ExtensionTok{Response}\OperatorTok{(}\NormalTok{err}\OperatorTok{,} \DecValTok{404}\OperatorTok{)}
+      \ControlFlowTok{case} \FunctionTok{Right}\OperatorTok{(}\NormalTok{role}\OperatorTok{,}\NormalTok{ user}\OperatorTok{)} \OperatorTok{=\textgreater{}}
+        \KeywordTok{val}\NormalTok{ isOwner}\OperatorTok{:} \ExtensionTok{Boolean} \OperatorTok{=} \FunctionTok{authenticateAndAuthorize}\OperatorTok{(}\NormalTok{req}\OperatorTok{,}\NormalTok{ userId}\OperatorTok{).}\NormalTok{isRight}
+        \KeywordTok{val}\NormalTok{ json }\OperatorTok{=} \ControlFlowTok{if}\NormalTok{ isOwner then}
+\NormalTok{            user}\OperatorTok{.}\FunctionTok{toOwnedUserDTO}\OperatorTok{(}\NormalTok{userId}\OperatorTok{,}\NormalTok{ role}\OperatorTok{).}\NormalTok{asJson}
+        \ControlFlowTok{else}
+\NormalTok{          user}\OperatorTok{.}\FunctionTok{toUserDTO}\OperatorTok{(}\NormalTok{userId}\OperatorTok{,}\NormalTok{ role}\OperatorTok{).}\NormalTok{asJson}
+        \ExtensionTok{Response}\OperatorTok{(}\NormalTok{json}\OperatorTok{.}\NormalTok{spaces2}\OperatorTok{,} \DecValTok{200}\OperatorTok{,} \BuiltInTok{Seq}\OperatorTok{(}\StringTok{"Content{-}Type"} \OperatorTok{{-}\textgreater{}} \StringTok{"application/json"}\OperatorTok{))}
+\end{Highlighting}
+\end{Shaded}

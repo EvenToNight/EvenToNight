@@ -5,7 +5,8 @@ info:
 paths:
   /users/{userId}/conversations:
     post:
-      summary: Send first message and create a new conversation with an organization
+      summary: Send first message and create a new conversation
+      description: Create a conversation between two users. Conversations are allowed between organization-to-organization and organization-to-member.
       servers:
         - url: http://localhost:9040
       security:
@@ -504,24 +505,24 @@ paths:
       tags:
         - Users  
 
-  /conversations/{organizationId}/{memberId}:
+  /conversations/{organizationId}/{userId}:
     get:
-      summary: Get conversation between organization and member
-      description: Retrieves the conversation details between a specific organization and member.
+      summary: Get conversation between two users
+      description: Retrieves the conversation details between two users (identified by organizationId and userId). The organizationId field always contains an organization user.
       servers:
         - url: http://localhost:9040
       parameters:
         - name: organizationId
           in: path
           required: true
-          description: The ID of the organization
+          description: The ID of the first user (always an organization)
           schema:
             type: string
             example: "org456"
-        - name: memberId
+        - name: userId
           in: path
           required: true
-          description: The ID of the member
+          description: The ID of the second user (can be an organization or a member)
           schema:
             type: string
             example: "user123"
@@ -573,7 +574,7 @@ paths:
       tags:
         - Conversations
 
-  /conversations/{organizationId}/{memberId}/messages:
+  /conversations/{organizationId}/{userId}/messages:
     get:
       summary: Get messages in a conversation, and mark them as read
       servers:
@@ -582,15 +583,17 @@ paths:
         - name: organizationId
           in: path
           required: true
+          description: The ID of the first user (always an organization)
           schema:
             type: string
             example: "org123"
-        - name: memberId
+        - name: userId
           in: path
           required: true
+          description: The ID of the second user (can be an organization or a member)
           schema:
             type: string
-            example: "member123"
+            example: "user123"
         - name: limit
           in: query
           required: false
@@ -672,7 +675,7 @@ components:
       properties:
         recipientId:
           type: string
-          description: The ID of the organization to start a conversation with
+          description: The ID of the user to start a conversation with (organization or member, but member-to-member conversations are not allowed)
           example: "org456"
         content:
           type: string

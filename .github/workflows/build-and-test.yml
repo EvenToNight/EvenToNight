@@ -2,7 +2,7 @@ name: Build and Test
 
 on:
   push:
-    branches: [ main, feature/**, ci/**]
+    branches: [ main, feature/**, ci/**, refactor/** ]
   pull_request:
 
 jobs:

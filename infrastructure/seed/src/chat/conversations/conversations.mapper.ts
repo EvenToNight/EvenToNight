@@ -11,7 +11,7 @@ export function filterConversations(users: SeedUser[]): ConversationToCreate[] {
     const conversationsToCreate: ConversationToCreate[] = conversationsSeedData
         .filter(conversation => conversation.member in UserIdMap)
         .map(conversation => ({
-            memberId: UserIdMap[conversation.member],
+            userId: UserIdMap[conversation.member],
             organizationId: UserIdMap[conversation.organization],
         }));
 

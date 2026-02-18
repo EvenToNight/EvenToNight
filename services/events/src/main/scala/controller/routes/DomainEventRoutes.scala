@@ -1,14 +1,14 @@
 package controller.routes
 
+import application.ports.EventServicePort
 import cask.Routes
 import domain.commands.{CreateEventCommand, DeleteEventCommand, UpdateEventPosterCommand}
-import domain.models.EventStatus
+import domain.enums.EventStatus
 import middleware.auth.JwtService
-import service.EventService
 import ujson.Obj
 import utils.Utils
 
-class DomainEventRoutes(eventService: EventService) extends Routes:
+class DomainEventRoutes(eventService: EventServicePort) extends Routes:
 
   private val mediaServiceUrl = "http://media:9020"
   private val host            = sys.env.getOrElse("HOST", "localhost")

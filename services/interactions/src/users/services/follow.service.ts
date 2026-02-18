@@ -8,6 +8,7 @@ import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { PaginatedUserResponseDto } from '../dto/paginated-user-response.dto';
 import { MetadataService } from 'src/metadata/services/metadata.service';
 import { RabbitMqPublisherService } from 'src/rabbitmq/rabbitmq-publisher.service';
+import { TransactionManagerService } from 'src/commons/database/transaction-manager.service';
 
 @Injectable()
 export class FollowService {
@@ -16,45 +17,62 @@ export class FollowService {
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
     private readonly rabbitMqPublisher: RabbitMqPublisherService,
+    private readonly transactionManager: TransactionManagerService,
   ) {}
 
   async follow(followerId: string, followedId: string): Promise<Follow> {
-    await this.metadataService.validateFollowAllowed(followerId, followedId);
+    return this.transactionManager.executeInTransaction(async (session) => {
+      await this.metadataService.validateFollowAllowed(
+        followerId,
+        followedId,
+        session,
+      );
 
-    if (followerId === followedId) {
-      throw new ConflictException('Cannot follow yourself');
-    }
+      if (followerId === followedId) {
+        throw new ConflictException('Cannot follow yourself');
+      }
 
-    const existing = await this.followModel.findOne({ followerId, followedId });
-    if (existing) {
-      throw new ConflictException('Already following this user');
-    }
+      const existing = await this.followModel
+        .findOne({ followerId, followedId })
+        .session(session);
+      if (existing) {
+        throw new ConflictException('Already following this user');
+      }
 
-    const follow = new this.followModel({ followerId, followedId });
+      const follow = new this.followModel({ followerId, followedId });
 
-    follow.save();
+      await follow.save({ session });
 
-    const followerInfo = await this.metadataService.getUserInfo(followerId);
+      const followerInfo = await this.metadataService.getUserInfo(followerId);
 
-    await this.rabbitMqPublisher.publishFollowCreated({
-      followedId,
-      followerId,
-      followerName: followerInfo.name,
-      followerAvatar: followerInfo.avatar,
+      await this.rabbitMqPublisher.publishFollowCreated({
+        followedId,
+        followerId,
+        followerName: followerInfo.name,
+        followerAvatar: followerInfo.avatar,
+      });
+
+      return follow;
     });
-
-    return follow;
   }
 
   async unfollow(followerId: string, followedId: string) {
-    await this.metadataService.validateUnfollowAllowed(followerId, followedId);
-    const result = await this.followModel.deleteOne({ followerId, followedId });
-    if (result.deletedCount === 0) {
-      throw new NotFoundException('Follow relationship not found');
-    }
-    await this.rabbitMqPublisher.publishFollowDeleted({
-      followedId,
-      followerId,
+    await this.transactionManager.executeInTransaction(async (session) => {
+      await this.metadataService.validateUnfollowAllowed(
+        followerId,
+        followedId,
+        session,
+      );
+      const result = await this.followModel
+        .deleteOne({ followerId, followedId })
+        .session(session);
+      if (result.deletedCount === 0) {
+        throw new NotFoundException('Follow relationship not found');
+      }
+      await this.rabbitMqPublisher.publishFollowDeleted({
+        followedId,
+        followerId,
+      });
     });
   }
 
