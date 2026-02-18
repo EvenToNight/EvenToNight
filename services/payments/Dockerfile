@@ -1,8 +1,8 @@
 FROM node:20-slim AS ts-common-builder
 WORKDIR /home/app/libs/ts-common
 
-COPY ./libs/ts-common/package.json ./
-RUN npm install
+COPY ./libs/ts-common/package*.json ./
+RUN npm ci
 
 COPY ./libs/ts-common/tsconfig.json ./
 COPY ./libs/ts-common/src ./src
@@ -14,8 +14,8 @@ WORKDIR /home/app
 COPY --from=ts-common-builder /home/app/libs/ts-common ./libs/ts-common
 
 WORKDIR /home/app/libs/nestjs-common
-COPY ./libs/nestjs-common/package.json ./
-RUN npm install
+COPY ./libs/nestjs-common/package*.json ./
+RUN npm ci
 
 COPY ./libs/nestjs-common/tsconfig*.json ./
 COPY ./libs/nestjs-common/src ./src
@@ -29,9 +29,9 @@ COPY --from=nestjs-common-builder /home/app/libs/nestjs-common ./libs/nestjs-com
 
 WORKDIR /home/app/services/payments
 
-COPY ./services/payments/package.json ./services/payments/package-lock.json ./
+COPY ./services/payments/package*.json ./
 
-RUN npm install 
+RUN npm ci
 
 COPY ./services/payments/tsconfig*.json ./services/payments/nest-cli.json ./
 COPY ./services/payments/src ./src

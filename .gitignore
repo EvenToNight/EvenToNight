@@ -24,7 +24,7 @@ docs/.vitepress/dist/
 dist/
 
 # Lock files (se non vuoi committarli)
-package-lock.json
+#package-lock.json
 pnpm-lock.yaml
 yarn.lock
 infrastructure/seed/seed-output/

@@ -3,8 +3,8 @@ WORKDIR /app
 
 RUN apk add --no-cache docker-cli
 
-COPY ./infrastructure/seed/package.json ./
-RUN npm install
+COPY ./infrastructure/seed/package*.json ./
+RUN npm ci
 
 COPY ./infrastructure/seed/tsconfig.json ./
 COPY ./infrastructure/seed/src ./src
