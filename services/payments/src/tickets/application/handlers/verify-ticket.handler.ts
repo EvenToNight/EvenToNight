@@ -1,9 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { TicketService } from '../services/ticket.service';
-import {
-  TRANSACTION_MANAGER,
-  type TransactionManager,
-} from '@libs/ts-common/src/database/interfaces/transaction-manager.interface';
+import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
 
 @Injectable()
 export class VerifyTicketHandler {

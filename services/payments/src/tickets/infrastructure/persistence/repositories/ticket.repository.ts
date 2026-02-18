@@ -5,11 +5,8 @@ import { Ticket } from '../../../domain/aggregates/ticket.aggregate';
 import { TicketRepository } from '../../../domain/repositories/ticket.repository.interface';
 import { TicketMapper } from '../mappers/ticket.mapper';
 import { TicketDocument } from '../schemas/ticket.schema';
-import {
-  PaginatedResult,
-  PaginationParams,
-} from '@libs/ts-common/src/pagination/pagination.types';
-import { Pagination } from '@libs/ts-common/src/pagination/pagination.utils';
+import { PaginatedResult, PaginationParams } from '@libs/ts-common';
+import { Pagination } from '@libs/ts-common';
 import { EventId } from '../../../domain/value-objects/event-id.vo';
 import { BaseMongoRepository } from './base-mongo.repository';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';

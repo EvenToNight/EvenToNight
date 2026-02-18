@@ -7,11 +7,12 @@
   "license": "GPL-3.0",
   "scripts": {
     "build": "nest build",
+    "build:libs": "npm --prefix ../../libs/ts-common run build && npm --prefix ../../libs/nestjs-common run build",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "sh ./scripts/clean-db.sh && nest start",
     "start:dev": "sh ./scripts/clean-db.sh && nest start --watch",
-    "start-dev": "NODE_ENV=development npm run start",
-    "start-dev:dev": "NODE_ENV=development npm run start:dev",
+    "start-dev": "NODE_ENV=development npm run build:libs && npm run start",
+    "start-dev:dev": "NODE_ENV=development npm run build:libs && npm run start:dev",
     "start-with-dev-env": "NODE_ENV=development ENV=development npm run start",
     "start-with-dev-env:dev": "NODE_ENV=development ENV=development npm run start:dev",
     "start-debug": "nest start --debug",
@@ -26,6 +27,8 @@
     "test:e2e": "jest --config ./test/e2e/jest-e2e.json"
   },
   "dependencies": {
+    "@libs/nestjs-common": "file:../../libs/nestjs-common",
+    "@libs/ts-common": "file:../../libs/ts-common",
     "@nestjs/common": "^11.0.1",
     "@nestjs/core": "^11.0.1",
     "@nestjs/microservices": "^11.1.11",

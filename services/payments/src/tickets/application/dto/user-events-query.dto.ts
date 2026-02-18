@@ -1,5 +1,5 @@
 import { IsOptional, IsEnum, IsIn } from 'class-validator';
-import { PaginatedQueryDto } from '@libs/nestjs-common/src/pagination/paginated-query.dto';
+import { PaginatedQueryDto } from '@libs/nestjs-common';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 
 export class UserEventsQueryDto extends PaginatedQueryDto {

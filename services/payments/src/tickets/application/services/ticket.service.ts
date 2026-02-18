@@ -6,10 +6,7 @@ import {
   Ticket,
   TicketCreateParams,
 } from 'src/tickets/domain/aggregates/ticket.aggregate';
-import {
-  PaginatedResult,
-  PaginationParams,
-} from '@libs/ts-common/src/pagination/pagination.types';
+import { PaginatedResult, PaginationParams } from '@libs/ts-common';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 

@@ -27,11 +27,8 @@ import { EventService } from '../services/event.service';
 import { CheckoutSessionExpiredHandler } from './checkout-session-expired.handler';
 import { UserService } from '../services/user.service';
 import { CheckoutSessionCompletedHandler } from './checkout-session-completed.handler';
-import {
-  TRANSACTION_MANAGER,
-  type TransactionManager,
-} from '@libs/ts-common/src/database/interfaces/transaction-manager.interface';
-import { Transactional } from '@libs/ts-common/src/database/decorators/transactional.decorator';
+import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
+import { Transactional } from '@libs/ts-common';
 
 type LineItem = {
   ticketType: EventTicketType;

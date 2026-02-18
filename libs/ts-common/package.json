@@ -1,9 +1,24 @@
 {
   "name": "@libs/ts-common",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "easy-currencies": "^1.8.3",
+    "jsonwebtoken": "^9.0.3"
+  },
   "peerDependencies": {
     "amqplib": "^0.10.0",
     "mongoose": "^8.0.0"
+  },
+  "devDependencies": {
+    "@types/amqplib": "^0.10.8",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/node": "^22.10.7",
+    "typescript": "^5.7.3"
   }
 }

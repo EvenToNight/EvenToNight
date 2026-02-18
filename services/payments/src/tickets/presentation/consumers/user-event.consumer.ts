@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { RmqContext } from '@nestjs/microservices';
-import type { EventEnvelope } from '@libs/ts-common/src/events/event-envelope';
+import type { EventEnvelope } from '@libs/ts-common';
 import {
   USER_REPOSITORY,
   type UserRepository,

@@ -1,4 +1,4 @@
-import { EventEnvelope } from '@libs/ts-common/src/events/event-envelope';
+import { EventEnvelope } from '@libs/ts-common';
 export interface OrderRejectedPayload {
   orderId: string;
   userId: string;

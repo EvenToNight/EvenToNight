@@ -5,7 +5,7 @@ import {
   Ctx,
   RmqContext,
 } from '@nestjs/microservices';
-import type { EventEnvelope } from '@libs/ts-common/src/events/event-envelope';
+import type { EventEnvelope } from '@libs/ts-common';
 import { Channel } from 'amqp-connection-manager';
 import { Message } from 'amqplib';
 import { UserEventConsumer } from './user-event.consumer';

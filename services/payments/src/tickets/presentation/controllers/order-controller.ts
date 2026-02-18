@@ -13,8 +13,8 @@ import type { Response } from 'express';
 import { PdfService } from '../../application/services/pdf.service';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { OrderService } from 'src/tickets/application/services/order.service';
-import { JwtAuthGuard } from '@libs/nestjs-common/src/auth/jwt-auth.guard';
-import { CurrentUser } from '@libs/nestjs-common/src/auth/current-user.decorator';
+import { JwtAuthGuard } from '@libs/nestjs-common';
+import { CurrentUser } from '@libs/nestjs-common';
 import { UserService } from 'src/tickets/application/services/user.service';
 import { EventService } from 'src/tickets/application/services/event.service';
 

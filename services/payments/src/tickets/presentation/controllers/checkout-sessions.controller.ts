@@ -23,7 +23,7 @@ import type { PaymentService } from '../../domain/services/payment.service.inter
 import { PAYMENT_SERVICE } from '../..//domain/services/payment.service.interface';
 import type { Response } from 'express';
 import { CheckoutSessionExpiredHandler } from 'src/tickets/application/handlers/checkout-session-expired.handler';
-import { CurrentUser, JwtAuthGuard } from '@libs/nestjs-common/src/auth';
+import { CurrentUser, JwtAuthGuard } from '@libs/nestjs-common';
 
 @Controller('checkout-sessions')
 export class CheckoutSessionsController {

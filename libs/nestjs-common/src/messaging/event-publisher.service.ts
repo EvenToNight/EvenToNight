@@ -1,6 +1,5 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
-import { RabbitMQPublisher } from '../../../ts-common/src/messaging/rabbitmq-publisher';
-import { MessagePublisher } from '../../../ts-common/src/messaging/interfaces/message-publisher.interface';
+import { RabbitMQPublisher, MessagePublisher } from '@libs/ts-common';
 
 @Injectable()
 export class EventPublisher implements MessagePublisher, OnModuleInit, OnModuleDestroy {

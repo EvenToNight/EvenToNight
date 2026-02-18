@@ -1,5 +1,5 @@
 import { ClientSession } from 'mongoose';
-import { MongoTransactionManager } from '@libs/ts-common/src/database/mongodb/mongo-transaction.manager';
+import { MongoTransactionManager } from '@libs/ts-common';
 
 export class BaseMongoRepository {
   protected getSession(): ClientSession | undefined {

@@ -14,11 +14,7 @@ import type { Response } from 'express';
 import { PdfService } from '../../application/services/pdf.service';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { VerifyTicketHandler } from 'src/tickets/application/handlers/verify-ticket.handler';
-import {
-  JwtAuthGuard,
-  CurrentUser,
-  type AuthUser,
-} from '@libs/nestjs-common/src/auth';
+import { JwtAuthGuard, CurrentUser, type AuthUser } from '@libs/nestjs-common';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { UserService } from 'src/tickets/application/services/user.service';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';

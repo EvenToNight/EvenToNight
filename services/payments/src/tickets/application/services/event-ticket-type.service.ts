@@ -9,16 +9,10 @@ import {
 import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
 import { UpdateEventTicketTypeDto } from '../dto/update-event-ticket-type.dto';
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
-import {
-  PaginatedResult,
-  PaginationParams,
-} from '@libs/ts-common/src/pagination/pagination.types';
+import { PaginatedResult, PaginationParams } from '@libs/ts-common';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
-import {
-  TRANSACTION_MANAGER,
-  type TransactionManager,
-} from '@libs/ts-common/src/database/interfaces/transaction-manager.interface';
-import { Transactional } from '@libs/ts-common/src/database/decorators/transactional.decorator';
+import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
+import { Transactional } from '@libs/ts-common';
 
 @Injectable()
 export class EventTicketTypeService {

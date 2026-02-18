@@ -5,12 +5,9 @@ import { EventTicketType } from '../../../domain/aggregates/event-ticket-type.ag
 import { EventTicketTypeRepository } from '../../../domain/repositories/event-ticket-type.repository.interface';
 import { EventTicketTypeMapper } from '../mappers/event-ticket-type.mapper';
 import { EventTicketTypeDocument } from '../schemas/event-ticket-type.schema';
-import {
-  PaginatedResult,
-  PaginationParams,
-} from '@libs/ts-common/src/pagination/pagination.types';
-import { Pagination } from '@libs/ts-common/src/pagination/pagination.utils';
-import { CurrencyConverter } from '@libs/ts-common/src/currency/currency-converter.utils';
+import { PaginatedResult, PaginationParams } from '@libs/ts-common';
+import { Pagination } from '@libs/ts-common';
+import { CurrencyConverter } from '@libs/ts-common';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { BaseMongoRepository } from './base-mongo.repository';
 

@@ -6,10 +6,10 @@ plugins {
 }
 
 node {
-    version.set("20.11.1")
+    version.set("20.19.0")
     download.set(true)
-    workDir.set(file("${project.buildDir}/nodejs"))
-    npmWorkDir.set(file("${project.buildDir}/npm"))
+    workDir.set(layout.buildDirectory.dir("nodejs").get().asFile)
+    npmWorkDir.set(layout.buildDirectory.dir("npm").get().asFile)
     nodeProjectDir.set(file(project.projectDir))
 }
 

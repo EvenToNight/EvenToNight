@@ -1,4 +1,3 @@
-import { PaginatedResult } from '@libs/ts-common/src/pagination/pagination.types';
-
+import { PaginatedResult } from '@libs/ts-common';
 //TODO: validation only on input DTO?
 export type PaginatedResponseDto<T> = PaginatedResult<T>;

@@ -1,8 +1,5 @@
 import { EventTicketType } from '../aggregates/event-ticket-type.aggregate';
-import {
-  PaginatedResult,
-  PaginationParams,
-} from '@libs/ts-common/src/pagination/pagination.types';
+import { PaginatedResult, PaginationParams } from '@libs/ts-common';
 import { EventId } from '../value-objects/event-id.vo';
 
 export interface EventTicketTypeRepository {

@@ -1,6 +1,6 @@
 import { IsNumber, IsOptional, IsString, Min } from 'class-validator';
 import { Type } from 'class-transformer';
-import { PaginatedQueryDto } from '@libs/nestjs-common/src/pagination/paginated-query.dto';
+import { PaginatedQueryDto } from '@libs/nestjs-common';
 
 export class GetEventsByPriceQueryDto extends PaginatedQueryDto {
   @Type(() => Number)

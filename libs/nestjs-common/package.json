@@ -1,8 +1,28 @@
 {
   "name": "@libs/nestjs-common",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.14.3"
+  },
   "peerDependencies": {
-    "@nestjs/common": "^11.0.0"
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/passport": "^11.0.0",
+    "passport-jwt": "^4.0.0",
+    "rxjs": "^7.0.0",
+    "@libs/ts-common": "*"
+  },
+  "devDependencies": {
+    "@libs/ts-common": "file:../ts-common",
+    "@nestjs/passport": "^11.0.5",
+    "@types/passport-jwt": "^4.0.1",
+    "passport-jwt": "^4.0.1",
+    "typescript": "^5.7.3"
   }
 }

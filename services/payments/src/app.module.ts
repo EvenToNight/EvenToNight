@@ -2,9 +2,9 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { AppController } from './app.controller';
 import { TicketsModule } from './tickets/tickets.module';
-import { MessagingModule } from '@libs/nestjs-common/src/messaging/messaging.module';
-import { AuthModule } from '@libs/nestjs-common/src/auth';
-import { buildMongoUrl } from '@libs/ts-common/src/database/mongodb/mongodb.utils';
+import { MessagingModule } from '@libs/nestjs-common';
+import { AuthModule } from '@libs/nestjs-common';
+import { buildMongoUrl } from '@libs/ts-common';
 
 const replicaSetNodes = parseInt(process.env.REPLICA_SET_NODES_NUMBER || '0');
 

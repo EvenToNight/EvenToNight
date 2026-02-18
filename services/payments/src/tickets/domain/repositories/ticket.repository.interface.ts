@@ -1,8 +1,5 @@
 import { Ticket } from '../aggregates/ticket.aggregate';
-import {
-  PaginatedResult,
-  PaginationParams,
-} from '@libs/ts-common/src/pagination/pagination.types';
+import { PaginatedResult, PaginationParams } from '@libs/ts-common';
 import { EventId } from '../value-objects/event-id.vo';
 import { TicketStatus } from '../value-objects/ticket-status.vo';
 

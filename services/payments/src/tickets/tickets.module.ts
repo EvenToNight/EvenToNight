@@ -51,8 +51,8 @@ import { UpdateTicketTypeHandler } from './application/handlers/update-ticket-ty
 import { VerifyTicketHandler } from './application/handlers/verify-ticket.handler';
 
 // Infrastructure
-import { TRANSACTION_MANAGER } from '@libs/ts-common/src/database/interfaces/transaction-manager.interface';
-import { MongoTransactionManager } from '@libs/ts-common/src/database/mongodb/mongo-transaction.manager';
+import { TRANSACTION_MANAGER } from '@libs/ts-common';
+import { MongoTransactionManager } from '@libs/ts-common';
 import { getConnectionToken } from '@nestjs/mongoose';
 import { Connection } from 'mongoose';
 

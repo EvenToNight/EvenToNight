@@ -12,7 +12,7 @@ import { EVENT_TICKET_TYPE_REPOSITORY } from '../../domain/repositories/event-ti
 import { CreateEventTicketTypeDto } from '../dto/create-event-ticket-type.dto';
 import { EventService } from '../services/event.service';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
-import { EventPublisher } from '@libs/nestjs-common/src/messaging/event-publisher.service';
+import { EventPublisher } from '@libs/nestjs-common';
 import { TicketTypeCreatedEvent } from 'src/tickets/domain/events/ticket-type-created.event';
 
 @Injectable()
