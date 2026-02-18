@@ -1,0 +1,15 @@
+name: Check Commit Convention
+on:
+  pull_request:
+      branches:
+        - main
+
+jobs:
+  check-commits:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: check-conventional-commits
+        uses: webiny/action-conventional-commits@v1.3.0
+        with:
+            allowed-commit-types: "fix,feat,build,chore,ci,docs,perf,refactor,revert,style,test"
