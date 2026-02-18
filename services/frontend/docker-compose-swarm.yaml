@@ -1,0 +1,12 @@
+services:
+  frontend:
+    deploy:
+      replicas: ${FRONTEND_SERVICE_REPLICAS:-1}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+networks:
+  eventonight-network:
+    driver: overlay

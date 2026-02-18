@@ -15,6 +15,7 @@ services:
       - "traefik.http.routers.media.entrypoints=web"
       - "traefik.http.services.media.loadbalancer.server.port=9020"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+    restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:9020/health"]
       interval: 2s
@@ -26,6 +27,7 @@ services:
 
   minio:
     image: minio/minio
+    restart: unless-stopped
     command: server /data
     ports:
       - "9021:9000"

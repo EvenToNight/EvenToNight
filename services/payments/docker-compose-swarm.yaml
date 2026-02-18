@@ -1,0 +1,18 @@
+services:
+  payments:
+    deploy:
+      replicas: ${PAYMENTS_SERVICE_REPLICAS:-1}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+    depends_on: []
+  mongo-payments:
+    depends_on: []
+
+networks:
+  eventonight-network:
+    driver: overlay
+  payments-network:
+    driver: overlay

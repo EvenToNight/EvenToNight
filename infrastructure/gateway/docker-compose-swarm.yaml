@@ -1,0 +1,3 @@
+networks:
+  eventonight-network:
+    driver: overlay

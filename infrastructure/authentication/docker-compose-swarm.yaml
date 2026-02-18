@@ -1,0 +1,11 @@
+services:
+  keycloak:
+    depends_on: []
+  keycloak-provision:
+    depends_on: []
+
+networks:
+  eventonight-network:
+    driver: overlay
+  keycloak-network:
+    driver: overlay

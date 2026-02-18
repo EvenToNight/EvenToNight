@@ -23,6 +23,7 @@ services:
       - "traefik.http.routers.payments.entrypoints=web"
       - "traefik.http.services.payments.loadbalancer.server.port=${PAYMENTS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+    restart: unless-stopped
     depends_on:
       mongo-payments:
         condition: service_healthy

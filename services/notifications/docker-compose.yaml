@@ -18,6 +18,7 @@ services:
       - "traefik.http.routers.notifications.entrypoints=web"
       - "traefik.http.services.notifications.loadbalancer.server.port=${NOTIFICATIONS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+    restart: unless-stopped
     depends_on:
       mongo-notifications:
         condition: service_healthy
