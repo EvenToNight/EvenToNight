@@ -12,6 +12,12 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./infrastructure/gateway/config/config.yaml:/etc/traefik/traefik.yaml:ro
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
 
 networks:
   eventonight-network:

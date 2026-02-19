@@ -53,7 +53,7 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   exit 0
 fi
 
-STACK_NAME="eventonight-production"
+STACK_NAME="cccc"
 USE_DEV=false
 STOP=false
 REMOVE_VOLUMES=false
@@ -82,7 +82,19 @@ done
 
 if [[ "$STOP" == true ]]; then
     echo "💬 Removing stack '$STACK_NAME'..."
-    docker stack rm "$STACK_NAME"
+    docker stack rm "$STACK_NAME" || true
+    echo "💬 Waiting for stack '$STACK_NAME' to be fully removed..."
+    while docker stack ls --format "{{.Name}}" | grep -q "^${STACK_NAME}$"; do
+        sleep 2
+    done
+    echo "💬 Waiting for stack containers to be fully removed..."
+    while docker ps -a -q --filter "label=com.docker.stack.namespace=$STACK_NAME" | grep -q .; do
+        sleep 2
+    done
+    echo "💬 Removing leftover networks..."
+    docker network ls --format "{{.Name}}" \
+        | grep "^${STACK_NAME}_" \
+        | xargs -r docker network rm 2>/dev/null || true
     echo "💬 Stack '$STACK_NAME' removed."
 fi
 
@@ -115,6 +127,9 @@ set -o allexport
 source ./.env
 set +o allexport
 
+FIRST_DEPLOY=false
+docker stack ls --format "{{.Name}}" | grep -q "^${STACK_NAME}$" || FIRST_DEPLOY=true
+
 echo "💬 Deploying stack '$STACK_NAME'..."
 COMPOSE_CONFIG=$(docker compose \
     --project-name "$STACK_NAME" \
@@ -123,16 +138,25 @@ COMPOSE_CONFIG=$(docker compose \
     ${COMPOSE_ARGS[@]+"${COMPOSE_ARGS[@]}"} \
     config)
 echo "$COMPOSE_CONFIG"
+echo "-----------------"
 RESOLVE_IMAGE="always"
 $LOCAL && RESOLVE_IMAGE="never" || true
 
+echo "💬 Using image resolution strategy: $RESOLVE_IMAGE"
 export COMPOSE_PROJECT_NAME="$STACK_NAME"
-echo "$COMPOSE_CONFIG" \
-    | sed '/^name:/d; s/published: "\([0-9]*\)"/published: \1/g' \
-    | awk '/^    depends_on:/{skip=1;next} skip && /^      /{next} {skip=0;print}' \
-    | docker stack deploy \
-        --resolve-image "$RESOLVE_IMAGE" \
-        --detach=true \
+STACK_CONFIG=$(echo "$COMPOSE_CONFIG" \
+    | sed '/^name:/d; s/published: "\([0-9]*\)"/published: \1/g; s|@sha256:[a-f0-9]*||g' \
+    | awk '/^    depends_on:/{skip=1;next} skip && /^      /{next} {skip=0;print}')
+echo "$STACK_CONFIG"
+echo "$STACK_CONFIG" | docker stack deploy \
+        --resolve-image never \
+        --detach=false \
         --compose-file - \
         "$STACK_NAME"
 echo "💬 Stack '$STACK_NAME' deployed successfully."
+
+if [[ "$FIRST_DEPLOY" == true ]]; then
+    echo "💬 First deploy detected, initializing the database..."
+    ./scripts/composeAll.sh --project-name "$STACK_NAME" -p ./infrastructure/seed --swarm run --rm seed
+    echo "💬 Database initialized."
+fi

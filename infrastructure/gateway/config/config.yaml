@@ -3,6 +3,7 @@ global:
   sendAnonymousUsage: false
 log:
   level: "DEBUG" #ERROR default
+ping: {}
 api:
   dashboard: true
   insecure: true

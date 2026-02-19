@@ -9,7 +9,10 @@ import { RabbitMqModule } from './rabbitmq/rabbitmq.module';
 @Module({
   imports: [
     MongooseModule.forRoot(
-      `mongodb://${process.env.MONGO_HOST}:27017/eventonight`,
+      `mongodb://${process.env.MONGO_HOST}:27017/eventonight?replicaSet=rs0`,
+      {
+        directConnection: true,
+      },
     ),
     AuthModule,
     DatabaseModule,

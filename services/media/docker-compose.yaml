@@ -28,6 +28,12 @@ services:
   minio:
     image: minio/minio
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
     command: server /data
     ports:
       - "9021:9000"

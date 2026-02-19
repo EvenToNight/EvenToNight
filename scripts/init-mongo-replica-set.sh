@@ -61,7 +61,13 @@ HOSTNAME="${MONGO_HOST}"
 MEMBERS="["
 for i in $(seq 0 $((NUMBER_OF_NODES-1))); do
   if [ $i -eq 0 ]; then
-    HOST="${HOSTNAME}:27017"
+    # Single-node: use localhost to avoid DNS chicken-and-egg in Swarm
+    # (VIP needs healthy backend, but healthcheck needs DNS to resolve)
+    if [ "$NUMBER_OF_NODES" -eq 1 ]; then
+      HOST="localhost:27017"
+    else
+      HOST="${HOSTNAME}:27017"
+    fi
     PRIORITY=2
   else
     HOST="${HOSTNAME}-$((i+1)):27017"

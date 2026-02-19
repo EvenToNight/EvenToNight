@@ -1,0 +1,4 @@
+networks:
+  eventonight-network:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_eventonight-network
