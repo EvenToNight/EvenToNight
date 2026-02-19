@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import * as PDFKit from 'pdfkit';
 import { toDataURL } from 'qrcode';
-import { SupportedLocale, TICKET_TRANSLATIONS } from './ticket.translations';
+import { type SupportedLanguage } from 'src/tickets/domain/value-objects/language.vo';
+import { TICKET_TRANSLATIONS } from './ticket.translations';
 
 export interface TicketPdfData {
   ticketId: string;
@@ -18,7 +19,7 @@ export class PdfService {
   private async addTicketToDocument(
     doc: PDFKit.PDFDocument,
     ticket: TicketPdfData,
-    locale: SupportedLocale,
+    locale: SupportedLanguage,
   ): Promise<void> {
     const t = TICKET_TRANSLATIONS[locale];
 
@@ -63,7 +64,7 @@ export class PdfService {
 
   async generateTicketPdf(
     ticket: TicketPdfData,
-    locale: SupportedLocale = 'en',
+    locale: SupportedLanguage = 'en',
   ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const doc = new PDFKit.default({ size: 'A4', margin: 50 });
@@ -83,7 +84,7 @@ export class PdfService {
 
   async generateTicketsPdf(
     tickets: TicketPdfData[],
-    locale: SupportedLocale = 'en',
+    locale: SupportedLanguage = 'en',
   ): Promise<Buffer> {
     return new Promise((resolve, reject) => {
       const doc = new PDFKit.default({ size: 'A4', margin: 50 });

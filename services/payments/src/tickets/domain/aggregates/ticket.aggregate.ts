@@ -1,16 +1,19 @@
 import { randomUUID } from 'crypto';
 import { EventId } from '../value-objects/event-id.vo';
+import { EventTicketTypeId } from '../value-objects/event-ticket-type-id.vo';
+import { TicketId } from '../value-objects/ticket-id.vo';
 import { UserId } from '../value-objects/user-id.vo';
 import { Money } from '../value-objects/money.vo';
 import { TicketStatus } from '../value-objects/ticket-status.vo';
+import { EmptyAttendeeNameException } from '../exceptions/empty-attendee-name.exception';
 import { InvalidTicketStatusException } from '../exceptions/invalid-ticket-status.exception';
 
 export interface TicketCreateParams {
-  id?: string;
+  id?: TicketId;
   eventId: EventId;
   userId: UserId;
   attendeeName: string;
-  ticketTypeId: string;
+  ticketTypeId: EventTicketTypeId;
   price: Money;
   purchaseDate?: Date;
   status?: TicketStatus;
@@ -18,11 +21,11 @@ export interface TicketCreateParams {
 
 export class Ticket {
   private constructor(
-    private readonly id: string,
+    private readonly id: TicketId,
     private readonly eventId: EventId,
     private readonly userId: UserId,
     private attendeeName: string,
-    private readonly ticketTypeId: string,
+    private readonly ticketTypeId: EventTicketTypeId,
     private readonly price: Money,
     private readonly purchaseDate: Date,
     private status: TicketStatus,
@@ -32,7 +35,7 @@ export class Ticket {
 
   static create(params: TicketCreateParams): Ticket {
     return new Ticket(
-      params.id || this.generateId(),
+      params.id || TicketId.fromString(this.generateId()),
       params.eventId,
       params.userId,
       params.attendeeName,
@@ -49,7 +52,7 @@ export class Ticket {
    */
   static createPending(params: TicketCreateParams): Ticket {
     return new Ticket(
-      params.id || this.generateId(),
+      params.id || TicketId.fromString(this.generateId()),
       params.eventId,
       params.userId,
       params.attendeeName,
@@ -113,7 +116,6 @@ export class Ticket {
     this.status = TicketStatus.PAYMENT_FAILED;
   }
 
-  //TODO: evaluate ownership transefer
   transferTo(newAttendeeName: string): void {
     if (!this.isActive()) {
       throw new InvalidTicketStatusException(
@@ -122,22 +124,18 @@ export class Ticket {
       );
     }
     if (!newAttendeeName || newAttendeeName.trim().length === 0) {
-      throw new Error('Attendee name cannot be empty');
+      throw new EmptyAttendeeNameException();
     }
     this.attendeeName = newAttendeeName;
   }
 
   private validateInvariants(): void {
     if (!this.attendeeName || this.attendeeName.trim().length === 0) {
-      throw new Error('Attendee name cannot be empty');
-    }
-    if (!this.ticketTypeId || this.ticketTypeId.trim().length === 0) {
-      throw new Error('Ticket type ID cannot be empty');
+      throw new EmptyAttendeeNameException();
     }
   }
 
-  // Getters
-  getId(): string {
+  getId(): TicketId {
     return this.id;
   }
 
@@ -153,7 +151,7 @@ export class Ticket {
     return this.attendeeName;
   }
 
-  getTicketTypeId(): string {
+  getTicketTypeId(): EventTicketTypeId {
     return this.ticketTypeId;
   }
 

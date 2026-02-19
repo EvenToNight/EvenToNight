@@ -13,7 +13,7 @@ export class EventTicketTypeResponseDto {
 
   static fromDomain(ticketType: EventTicketType): EventTicketTypeResponseDto {
     return {
-      id: ticketType.getId(),
+      id: ticketType.getId().toString(),
       eventId: ticketType.getEventId().toString(),
       type: ticketType.getType().toString(),
       description: ticketType.getDescription(),

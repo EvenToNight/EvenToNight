@@ -1,25 +1,12 @@
 import { EmptyEventIdException } from '../exceptions/empty-event-id.exception';
+import { EntityId } from './entity-id.vo';
 
-export class EventId {
-  private constructor(private readonly value: string) {
-    if (!value || value.trim().length === 0) {
-      throw new EmptyEventIdException();
-    }
+export class EventId extends EntityId<EventId> {
+  private constructor(value: string) {
+    super(value, () => new EmptyEventIdException());
   }
 
   static fromString(value: string): EventId {
     return new EventId(value);
-  }
-
-  equals(other: EventId): boolean {
-    return this.value === other.value;
-  }
-
-  toString(): string {
-    return this.value;
-  }
-
-  getValue(): string {
-    return this.value;
   }
 }

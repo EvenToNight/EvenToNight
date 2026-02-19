@@ -1,12 +1,15 @@
 import { randomUUID } from 'crypto';
 import { EventId } from '../value-objects/event-id.vo';
+import { EventTicketTypeId } from '../value-objects/event-ticket-type-id.vo';
 import { Money } from '../value-objects/money.vo';
 import { TicketType } from '../value-objects/ticket-type.vo';
+import { InsufficientTotalQuantityException } from '../exceptions/insufficient-total-quantity.exception';
+import { NegativeAvailableQuantityException } from '../exceptions/negative-available-quantity.exception';
+import { NegativeSoldQuantityException } from '../exceptions/negative-sold-quantity.exception';
 import { SoldOutException } from '../exceptions/sold-out.exception';
 
-//TODO: evaluate if total quantity is needed as a separate field
 export interface EventTicketTypeCreateParams {
-  id?: string;
+  id?: EventTicketTypeId;
   eventId: EventId;
   type: TicketType;
   description?: string;
@@ -17,7 +20,7 @@ export interface EventTicketTypeCreateParams {
 
 export class EventTicketType {
   private constructor(
-    private readonly id: string,
+    private readonly id: EventTicketTypeId,
     private readonly eventId: EventId,
     private readonly type: TicketType,
     private price: Money,
@@ -30,7 +33,7 @@ export class EventTicketType {
 
   static create(params: EventTicketTypeCreateParams): EventTicketType {
     return new EventTicketType(
-      params.id || this.generateId(),
+      params.id || EventTicketTypeId.fromString(this.generateId()),
       params.eventId,
       params.type,
       params.price,
@@ -66,15 +69,14 @@ export class EventTicketType {
 
   private validateInvariants(): void {
     if (this.soldQuantity < 0) {
-      throw new Error('Sold quantity cannot be negative');
+      throw new NegativeSoldQuantityException();
     }
     if (this.availableQuantity < 0) {
-      throw new Error('Available quantity cannot be negative');
+      throw new NegativeAvailableQuantityException();
     }
   }
 
-  // Getters
-  getId(): string {
+  getId(): EventTicketTypeId {
     return this.id;
   }
 
@@ -116,7 +118,7 @@ export class EventTicketType {
 
   setTotalQuantity(quantity: number): void {
     if (quantity < this.soldQuantity) {
-      throw new Error('Total quantity cannot be less than sold quantity');
+      throw new InsufficientTotalQuantityException();
     }
     this.availableQuantity = quantity - this.soldQuantity;
   }

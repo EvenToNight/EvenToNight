@@ -47,14 +47,14 @@ export class CheckoutSessionExpiredHandler {
       this.logger.warn(`Order ${orderId} not found`);
       throw new Error(`Order ${orderId} not found`);
     }
-    const ticketIds = order.getTicketIds();
+    const ticketIds = order.getTicketIds().map((id) => id.toString());
 
     try {
       await this.cancelTicketPayment(ticketIds);
       order.cancel();
       await this.orderService.update(order);
       const orderRejectedEvent = new OrderRejectedEvent({
-        orderId: order.getId(),
+        orderId: order.getId().toString(),
         userId: order.getUserId().toString(),
         eventId: order.getEventId().toString(),
       });
@@ -80,7 +80,7 @@ export class CheckoutSessionExpiredHandler {
         if (ticket && ticket.isPendingPayment()) {
           ticket.markPaymentFailed();
           await this.ticketService.update(ticket);
-          const typeId = ticket.getTicketTypeId();
+          const typeId = ticket.getTicketTypeId().toString();
           ticketTypeMap.set(typeId, (ticketTypeMap.get(typeId) || 0) + 1);
         }
       }

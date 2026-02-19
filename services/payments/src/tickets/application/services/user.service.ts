@@ -4,7 +4,7 @@ import {
   USER_REPOSITORY,
   type UserRepository,
 } from 'src/tickets/domain/repositories/user.repository.interface';
-import { SUPPORTED_LOCALES, SupportedLocale } from './ticket.translations';
+import { type SupportedLanguage } from 'src/tickets/domain/value-objects/language.vo';
 
 @Injectable()
 export class UserService {
@@ -13,15 +13,11 @@ export class UserService {
     private readonly userRepository: UserRepository,
   ) {}
 
-  async getUserLanguage(userId: string): Promise<SupportedLocale> {
+  async getUserLanguage(userId: string): Promise<SupportedLanguage> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
       throw new NotFoundException(`User with id ${userId} not found`);
     }
-    if (SUPPORTED_LOCALES.includes(user.getLanguage() as SupportedLocale)) {
-      return user.getLanguage() as SupportedLocale;
-    } else {
-      return 'en';
-    }
+    return user.getLanguage().getCode();
   }
 }

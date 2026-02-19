@@ -1,8 +1,12 @@
-import { EventTicketType } from '../../../../../src/tickets/domain/aggregates/event-ticket-type.aggregate';
-import { EventId } from '../../../../../src/tickets/domain/value-objects/event-id.vo';
-import { Money } from '../../../../../src/tickets/domain/value-objects/money.vo';
-import { TicketType } from '../../../../../src/tickets/domain/value-objects/ticket-type.vo';
-import { SoldOutException } from '../../../../../src/tickets/domain/exceptions/sold-out.exception';
+import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
+import { EventTicketTypeId } from 'src/tickets/domain/value-objects/event-ticket-type-id.vo';
+import { Money } from 'src/tickets/domain/value-objects/money.vo';
+import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
+import { SoldOutException } from 'src/tickets/domain/exceptions/sold-out.exception';
+import { NegativeSoldQuantityException } from 'src/tickets/domain/exceptions/negative-sold-quantity.exception';
+import { NegativeAvailableQuantityException } from 'src/tickets/domain/exceptions/negative-available-quantity.exception';
+import { InsufficientTotalQuantityException } from 'src/tickets/domain/exceptions/insufficient-total-quantity.exception';
 
 describe('EventTicketType Aggregate', () => {
   const DEFAULT_AVAILABLE_QUANTITY = 10;
@@ -23,7 +27,7 @@ describe('EventTicketType Aggregate', () => {
     soldQuantity = DEFAULT_SOLD_QUANTITY,
   ) => {
     return EventTicketType.create({
-      id: 'ett_123',
+      id: EventTicketTypeId.fromString('ett_123'),
       eventId: EventId.fromString('event-123'),
       type: TicketType.VIP,
       description: 'VIP Access',
@@ -50,7 +54,7 @@ describe('EventTicketType Aggregate', () => {
 
     it('should create a ticket type with specified id and sold quantity', () => {
       const ticketType = createDefaultTicketType();
-      expect(ticketType.getId()).toBe('ett_123');
+      expect(ticketType.getId().toString()).toBe('ett_123');
       expect(ticketType.getSoldQuantity()).toBe(DEFAULT_SOLD_QUANTITY);
     });
   });
@@ -140,9 +144,52 @@ describe('EventTicketType Aggregate', () => {
   });
 
   describe('invariants', () => {
-    it('should maintain non-negative quantities', () => {
-      expect(() => createDefaultTicketType(-1)).toThrow(Error);
-      expect(() => createDefaultTicketType(0, -1)).toThrow(Error);
+    it('should throw NegativeAvailableQuantityException for negative available quantity', () => {
+      expect(() => createDefaultTicketType(-1)).toThrow(
+        NegativeAvailableQuantityException,
+      );
+    });
+
+    it('should throw NegativeSoldQuantityException for negative sold quantity', () => {
+      expect(() => createDefaultTicketType(0, -1)).toThrow(
+        NegativeSoldQuantityException,
+      );
+    });
+  });
+
+  describe('setTotalQuantity', () => {
+    it('should update available quantity', () => {
+      const ticketType = createDefaultTicketType(10, 5);
+      ticketType.setTotalQuantity(20);
+      expect(ticketType.getAvailableQuantity()).toBe(15);
+    });
+
+    it('should throw InsufficientTotalQuantityException when less than sold', () => {
+      const ticketType = createDefaultTicketType(10, 5);
+      expect(() => ticketType.setTotalQuantity(3)).toThrow(
+        InsufficientTotalQuantityException,
+      );
+    });
+  });
+
+  describe('setters', () => {
+    it('should set description', () => {
+      const ticketType = createDefaultTicketType();
+      ticketType.setDescription('New description');
+      expect(ticketType.getDescription()).toBe('New description');
+    });
+
+    it('should set description to undefined', () => {
+      const ticketType = createDefaultTicketType();
+      ticketType.setDescription(undefined);
+      expect(ticketType.getDescription()).toBeUndefined();
+    });
+
+    it('should set price', () => {
+      const ticketType = createDefaultTicketType();
+      const newPrice = Money.fromAmount(200, 'EUR');
+      ticketType.setPrice(newPrice);
+      expect(ticketType.getPrice()).toBe(newPrice);
     });
   });
 });

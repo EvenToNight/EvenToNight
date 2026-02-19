@@ -19,6 +19,7 @@ export class StripeWebhookHandler {
   async handle(event: WebhookEvent): Promise<{ received: boolean }> {
     this.logger.log(`Processing Stripe webhook: ${event.type}`);
 
+    //TODO handle intent created
     switch (event.type) {
       case 'checkout.session.completed':
         await this.checkoutCompletedHandler.handle(

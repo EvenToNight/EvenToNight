@@ -73,7 +73,7 @@ export class OrderController {
       );
     }
     const userLanguage = await this.userService.getUserLanguage(userId);
-    const ticketIds = order.getTicketIds();
+    const ticketIds = order.getTicketIds().map((id) => id.toString());
     const tickets = await this.ticketService.findByIds(ticketIds);
     const event = await this.eventService.findById(
       tickets[0].getEventId().toString(),
@@ -85,7 +85,7 @@ export class OrderController {
     }
 
     const ticketPdfData = tickets.map((ticket) => ({
-      ticketId: ticket.getId(),
+      ticketId: ticket.getId().toString(),
       eventId: ticket.getEventId().toString(),
       attendeeName: ticket.getAttendeeName(),
       purchaseDate: ticket.getPurchaseDate(),

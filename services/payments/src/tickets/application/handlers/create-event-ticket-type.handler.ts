@@ -56,7 +56,7 @@ export class CreateEventTicketTypeHandler {
     this.eventPublisher.publish(
       new TicketTypeCreatedEvent({
         eventId: eventId,
-        ticketTypeId: ticketType.getId(),
+        ticketTypeId: ticketType.getId().toString(),
         price: dto.price,
       }),
       'ticket-type.created',

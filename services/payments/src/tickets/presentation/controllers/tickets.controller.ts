@@ -113,7 +113,7 @@ export class TicketsController {
     const buffer = await this.pdfService.generateTicketsPdf(
       [
         {
-          ticketId: ticket.getId(),
+          ticketId: ticket.getId().toString(),
           eventId: ticket.getEventId().toString(),
           attendeeName: ticket.getAttendeeName(),
           purchaseDate: ticket.getPurchaseDate(),

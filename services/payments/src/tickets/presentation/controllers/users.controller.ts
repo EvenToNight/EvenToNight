@@ -140,7 +140,7 @@ export class UsersController {
     const userLanguage = await this.userService.getUserLanguage(userId);
 
     const ticketPdfData = result.map((ticket) => ({
-      ticketId: ticket.getId(),
+      ticketId: ticket.getId().toString(),
       eventId: ticket.getEventId().toString(),
       attendeeName: ticket.getAttendeeName(),
       purchaseDate: ticket.getPurchaseDate(),

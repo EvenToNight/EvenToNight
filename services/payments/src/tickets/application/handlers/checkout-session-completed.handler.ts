@@ -41,7 +41,7 @@ export class CheckoutSessionCompletedHandler {
     }
     try {
       const confirmedTickets = await this.confirmTicketPayment(
-        order.getTicketIds(),
+        order.getTicketIds().map((id) => id.toString()),
       );
       order.complete();
       await this.orderService.update(order);
@@ -52,7 +52,7 @@ export class CheckoutSessionCompletedHandler {
       //TODO: publish some TicketPurchasedEvent here?
       // ticketId, eventId, userId, attendeeName, ticketTypeId, price, currency, purchaseDate
       const orderConfirmedEvent = new OrderConfirmedEvent({
-        orderId: order.getId(),
+        orderId: order.getId().toString(),
         userId: order.getUserId().toString(),
         eventId: order.getEventId().toString(),
       });

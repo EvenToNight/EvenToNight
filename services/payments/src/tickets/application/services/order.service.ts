@@ -5,6 +5,7 @@ import { ORDER_REPOSITORY } from 'src/tickets/domain/repositories/order.reposito
 import { Order } from 'src/tickets/domain/aggregates/order.aggregate';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
+import { TicketId } from 'src/tickets/domain/value-objects/ticket-id.vo';
 
 @Injectable()
 export class OrderService {
@@ -18,7 +19,11 @@ export class OrderService {
     eventId: EventId,
     ticketIds: string[],
   ): Promise<Order> {
-    const order = Order.createPending({ userId, eventId, ticketIds });
+    const order = Order.createPending({
+      userId,
+      eventId,
+      ticketIds: ticketIds.map((id) => TicketId.fromString(id)),
+    });
     await this.orderRepository.save(order);
     return order;
   }

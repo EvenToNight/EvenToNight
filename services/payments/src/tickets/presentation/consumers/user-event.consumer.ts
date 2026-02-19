@@ -7,6 +7,7 @@ import {
 } from 'src/tickets/domain/repositories/user.repository.interface';
 import { User } from 'src/tickets/domain/aggregates/user.aggregate';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
+import { Language } from 'src/tickets/domain/value-objects/language.vo';
 import { Channel } from 'amqp-connection-manager';
 import { Message } from 'amqplib';
 
@@ -71,7 +72,7 @@ export class UserEventConsumer {
       await this.userRepository.save(
         User.create(
           UserId.fromString(envelope.payload.id),
-          envelope.payload.language,
+          Language.fromStringOrDefault(envelope.payload.language),
         ),
       );
 
@@ -93,7 +94,7 @@ export class UserEventConsumer {
     await this.userRepository.update(
       User.create(
         UserId.fromString(envelope.payload.id),
-        envelope.payload.language,
+        Language.fromStringOrDefault(envelope.payload.language),
       ),
     );
 

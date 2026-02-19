@@ -1,4 +1,4 @@
-import { SupportedLocale } from 'src/tickets/application/services/ticket.translations';
+import { type SupportedLanguage } from '../value-objects/language.vo';
 import { Money } from '../value-objects/money.vo';
 export type PaymentStatus = 'open' | 'complete' | 'expired';
 
@@ -24,7 +24,7 @@ export interface CreateCheckoutSessionParams {
   ticketTypeIds: Set<string>[];
   eventId: string;
   eventTitle?: string;
-  language: SupportedLocale;
+  language: SupportedLanguage;
   lineItems: CheckoutLineItem[];
   successUrl: string;
   cancelUrl: string;

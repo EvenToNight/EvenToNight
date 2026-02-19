@@ -9,7 +9,7 @@ import {
   CreateCheckoutSessionParams,
   WebhookEvent,
 } from 'src/tickets/domain/types/payment-service.types';
-import type { SupportedLocale } from 'src/tickets/application/services/ticket.translations';
+import type { SupportedLanguage } from 'src/tickets/domain/value-objects/language.vo';
 
 @Injectable()
 export class StripeService implements PaymentService {
@@ -17,7 +17,7 @@ export class StripeService implements PaymentService {
   private readonly webhookSecret: string;
   private readonly logger = new Logger(StripeService.name);
 
-  private readonly checkoutMessages: Record<SupportedLocale, string> = {
+  private readonly checkoutMessages: Record<SupportedLanguage, string> = {
     it: 'Acquisto biglietti per:',
     en: 'Purchasing tickets for:',
     es: 'Compra de entradas para:',

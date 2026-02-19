@@ -140,8 +140,10 @@ export class CreateCheckoutSessionHandler {
     const lineItemsMap: LineItemsMap = new Map();
     for (let i = 0; i < tickets.length; i++) {
       const ticket = tickets[i];
-      const key = ticket.getTicketTypeId();
-      const ticketType = ticketTypes.find((tt) => tt.getId() === key);
+      const key = ticket.getTicketTypeId().toString();
+      const ticketType = ticketTypes.find(
+        (tt) => tt.getId().toString() === key,
+      );
       if (!ticketType) {
         throw new EventTicketTypeNotFoundException(key);
       }
@@ -178,10 +180,11 @@ export class CreateCheckoutSessionHandler {
     });
 
     const ticketIds = Array.from(reservedTickets.values()).flatMap((lineItem) =>
-      lineItem.tickets.map((t) => t.getId()),
+      lineItem.tickets.map((t) => t.getId().toString()),
     );
     const ticketTypeIds = Array.from(reservedTickets.values()).flatMap(
-      (lineItem) => new Set(lineItem.tickets.map((t) => t.getTicketTypeId())),
+      (lineItem) =>
+        new Set(lineItem.tickets.map((t) => t.getTicketTypeId().toString())),
     );
 
     const eventId = Array.from(reservedTickets.values())[0]
@@ -203,21 +206,21 @@ export class CreateCheckoutSessionHandler {
       // const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/webhooks/stripe/`;
       await this.checkoutCompletedHandler.handle(
         'cs_test_dev_session',
-        order.getId(),
+        order.getId().toString(),
       );
       this.logger.log('Mock checkout session created');
       return {
         sessionId: 'cs_test_dev_session',
         redirectUrl: dto.successUrl,
         expiresAt: Date.now() + 3600,
-        orderId: order.getId(),
+        orderId: order.getId().toString(),
       };
     }
 
     try {
       const session = await this.paymentService.createCheckoutSessionWithItems({
         userId: dto.userId,
-        orderId: order.getId(),
+        orderId: order.getId().toString(),
         lineItems,
         ticketIds: ticketIds,
         ticketTypeIds: ticketTypeIds,
@@ -232,12 +235,12 @@ export class CreateCheckoutSessionHandler {
         sessionId: session.id,
         redirectUrl: session.redirectUrl!,
         expiresAt: session.expiresAt,
-        orderId: order.getId(),
+        orderId: order.getId().toString(),
       };
     } catch (error) {
       await this.checkoutSessionExpiredHandler.handle(
         'NO_SESSION_CREATED',
-        order.getId(),
+        order.getId().toString(),
         'Failed to create checkout session',
       );
       throw error;

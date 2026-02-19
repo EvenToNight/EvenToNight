@@ -1,9 +1,12 @@
-import { Ticket } from '../../../../../src/tickets/domain/aggregates/ticket.aggregate';
-import { EventId } from '../../../../../src/tickets/domain/value-objects/event-id.vo';
-import { UserId } from '../../../../../src/tickets/domain/value-objects/user-id.vo';
-import { Money } from '../../../../../src/tickets/domain/value-objects/money.vo';
-import { InvalidTicketStatusException } from '../../../../../src/tickets/domain/exceptions/invalid-ticket-status.exception';
-import { TicketStatus } from '../../../../../src/tickets/domain/value-objects/ticket-status.vo';
+import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
+import { EventTicketTypeId } from 'src/tickets/domain/value-objects/event-ticket-type-id.vo';
+import { TicketId } from 'src/tickets/domain/value-objects/ticket-id.vo';
+import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
+import { Money } from 'src/tickets/domain/value-objects/money.vo';
+import { InvalidTicketStatusException } from 'src/tickets/domain/exceptions/invalid-ticket-status.exception';
+import { EmptyAttendeeNameException } from 'src/tickets/domain/exceptions/empty-attendee-name.exception';
+import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 
 describe('Ticket Aggregate', () => {
   const createTicket = () => {
@@ -11,7 +14,7 @@ describe('Ticket Aggregate', () => {
       eventId: EventId.fromString('event-123'),
       userId: UserId.fromString('user-456'),
       attendeeName: 'John Doe',
-      ticketTypeId: 'type-789',
+      ticketTypeId: EventTicketTypeId.fromString('type-789'),
       price: Money.fromAmount(50, 'USD'),
     });
   };
@@ -21,18 +24,18 @@ describe('Ticket Aggregate', () => {
       eventId: EventId.fromString('event-123'),
       userId: UserId.fromString('user-456'),
       attendeeName: 'John Doe',
-      ticketTypeId: 'type-789',
+      ticketTypeId: EventTicketTypeId.fromString('type-789'),
       price: Money.fromAmount(50, 'USD'),
     });
   };
 
   const createDefaultTicket = () => {
     return Ticket.create({
-      id: 'ticket_123',
+      id: TicketId.fromString('ticket_123'),
       eventId: EventId.fromString('event-123'),
       userId: UserId.fromString('user-456'),
       attendeeName: 'John Doe',
-      ticketTypeId: 'type-789',
+      ticketTypeId: EventTicketTypeId.fromString('type-789'),
       price: Money.fromAmount(50, 'USD'),
       purchaseDate: new Date('2024-01-01T00:00:00Z'),
       status: TicketStatus.ACTIVE,
@@ -43,11 +46,11 @@ describe('Ticket Aggregate', () => {
     it('should create a new ticket with provided parameters', () => {
       const ticket = createDefaultTicket();
 
-      expect(ticket.getId()).toBe('ticket_123');
+      expect(ticket.getId().toString()).toBe('ticket_123');
       expect(ticket.getEventId().toString()).toBe('event-123');
       expect(ticket.getUserId().toString()).toBe('user-456');
       expect(ticket.getAttendeeName()).toBe('John Doe');
-      expect(ticket.getTicketTypeId()).toBe('type-789');
+      expect(ticket.getTicketTypeId().toString()).toBe('type-789');
       expect(ticket.getPrice().getAmount()).toBe(50);
       expect(ticket.getPrice().getCurrency()).toBe('USD');
       expect(ticket.getPurchaseDate().toISOString()).toBe(
@@ -80,22 +83,10 @@ describe('Ticket Aggregate', () => {
           eventId: EventId.fromString('event-123'),
           userId: UserId.fromString('user-456'),
           attendeeName: '        ',
-          ticketTypeId: 'type-789',
+          ticketTypeId: EventTicketTypeId.fromString('type-789'),
           price: Money.fromAmount(50, 'USD'),
         }),
-      ).toThrow('Attendee name cannot be empty');
-    });
-
-    it('should throw error if ticket type ID is empty', () => {
-      expect(() =>
-        Ticket.create({
-          eventId: EventId.fromString('event-123'),
-          userId: UserId.fromString('user-456'),
-          attendeeName: 'John Doe',
-          ticketTypeId: '        ',
-          price: Money.fromAmount(50, 'USD'),
-        }),
-      ).toThrow('Ticket type ID cannot be empty');
+      ).toThrow(EmptyAttendeeNameException);
     });
   });
 
@@ -167,9 +158,7 @@ describe('Ticket Aggregate', () => {
     it('should throw error when new attendee name is empty', () => {
       const ticket = createTicket();
 
-      expect(() => ticket.transferTo(' ')).toThrow(
-        'Attendee name cannot be empty',
-      );
+      expect(() => ticket.transferTo(' ')).toThrow(EmptyAttendeeNameException);
     });
   });
 
@@ -208,6 +197,24 @@ describe('Ticket Aggregate', () => {
       expect(() => ticket.markPaymentFailed()).toThrow(
         InvalidTicketStatusException,
       );
+    });
+  });
+
+  describe('use', () => {
+    it('should use an active ticket', () => {
+      const ticket = createTicket();
+
+      ticket.use();
+
+      expect(ticket.getStatus()).toBe(TicketStatus.USED);
+      expect(ticket.isUsed()).toBe(true);
+    });
+
+    it('should throw error when using a cancelled ticket', () => {
+      const ticket = createTicket();
+      ticket.cancel();
+
+      expect(() => ticket.use()).toThrow(InvalidTicketStatusException);
     });
   });
 });

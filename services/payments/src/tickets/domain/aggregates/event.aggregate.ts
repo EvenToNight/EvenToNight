@@ -29,7 +29,6 @@ export class Event {
     );
   }
 
-  // Getters
   getId(): EventId {
     return this.id;
   }

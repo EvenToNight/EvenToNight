@@ -12,11 +12,11 @@ export class TicketResponseDto {
 
   static fromDomain(ticket: Ticket): TicketResponseDto {
     return {
-      id: ticket.getId(),
+      id: ticket.getId().toString(),
       eventId: ticket.getEventId().toString(),
       userId: ticket.getUserId().toString(),
       attendeeName: ticket.getAttendeeName(),
-      ticketTypeId: ticket.getTicketTypeId(),
+      ticketTypeId: ticket.getTicketTypeId().toString(),
       price: ticket.getPrice().getAmount(),
       purchaseDate: ticket.getPurchaseDate(),
       status: ticket.getStatus().toString(),
