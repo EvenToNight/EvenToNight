@@ -1,3 +1,5 @@
+import { InvalidOrderStatusException } from '../exceptions/invalid-order-status.exception';
+
 export class OrderStatus {
   static readonly PENDING = new OrderStatus('PENDING');
   static readonly COMPLETED = new OrderStatus('COMPLETED');
@@ -6,6 +8,7 @@ export class OrderStatus {
   private constructor(private readonly value: string) {}
 
   static fromString(value: string): OrderStatus {
+    value = value.toUpperCase();
     switch (value) {
       case 'PENDING':
         return OrderStatus.PENDING;
@@ -14,12 +17,16 @@ export class OrderStatus {
       case 'CANCELLED':
         return OrderStatus.CANCELLED;
       default:
-        throw new Error(`Invalid order status: ${value}`);
+        throw new InvalidOrderStatusException(value);
     }
   }
 
   static getAllValues(): string[] {
     return ['PENDING', 'COMPLETED', 'CANCELLED'];
+  }
+
+  static getAllStatuses(): OrderStatus[] {
+    return [OrderStatus.PENDING, OrderStatus.COMPLETED, OrderStatus.CANCELLED];
   }
 
   toString(): string {
