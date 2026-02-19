@@ -1,4 +1,5 @@
 import { EventId } from '../../../../../src/tickets/domain/value-objects/event-id.vo';
+import { EmptyEventIdException } from '../../../../../src/tickets/domain/exceptions/empty-event-id.exception';
 
 describe('EventId', () => {
   describe('fromString', () => {
@@ -9,13 +10,11 @@ describe('EventId', () => {
     });
 
     it('should throw error for empty string', () => {
-      expect(() => EventId.fromString('')).toThrow('EventId cannot be empty');
+      expect(() => EventId.fromString('')).toThrow(EmptyEventIdException);
     });
 
     it('should throw error for string with only spaces', () => {
-      expect(() => EventId.fromString('   ')).toThrow(
-        'EventId cannot be empty',
-      );
+      expect(() => EventId.fromString('   ')).toThrow(EmptyEventIdException);
     });
   });
 

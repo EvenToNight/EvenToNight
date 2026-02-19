@@ -1,7 +1,9 @@
+import { EmptyEventIdException } from '../exceptions/empty-event-id.exception';
+
 export class EventId {
   private constructor(private readonly value: string) {
     if (!value || value.trim().length === 0) {
-      throw new Error('EventId cannot be empty');
+      throw new EmptyEventIdException();
     }
   }
 
