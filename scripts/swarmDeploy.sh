@@ -147,9 +147,32 @@ export COMPOSE_PROJECT_NAME="$STACK_NAME"
 STACK_CONFIG=$(echo "$COMPOSE_CONFIG" \
     | sed '/^name:/d; s/published: "\([0-9]*\)"/published: \1/g; s|@sha256:[a-f0-9]*||g' \
     | awk '/^    depends_on:/{skip=1;next} skip && /^      /{next} {skip=0;print}')
-echo "$STACK_CONFIG"
+
+if [[ "$LOCAL" == true ]]; then
+    echo "💬 Pinning images to local IDs..."
+    PINNED=""
+    while IFS= read -r line; do
+        if [[ "$line" =~ ^([[:space:]]*)image:[[:space:]]*(ghcr\.io/[^[:space:]]+)$ ]]; then
+            INDENT="${BASH_REMATCH[1]}"
+            IMAGE_REF="${BASH_REMATCH[2]}"
+            LOCAL_ID=$(docker image inspect --format '{{.Id}}' "$IMAGE_REF" 2>/dev/null || true)
+            if [[ -n "$LOCAL_ID" ]]; then
+                PINNED+="${INDENT}image: ${LOCAL_ID}"$'\n'
+                echo "  ✓ $IMAGE_REF → ${LOCAL_ID:7:12}"
+            else
+                PINNED+="$line"$'\n'
+                echo "  ⚠ $IMAGE_REF → not found locally, keeping tag"
+            fi
+        else
+            PINNED+="$line"$'\n'
+        fi
+    done <<< "$STACK_CONFIG"
+    STACK_CONFIG="$PINNED"
+fi
+
+# Throubleshoot why --resolve-image never is not working
 echo "$STACK_CONFIG" | docker stack deploy \
-        --resolve-image never \
+        --resolve-image "$RESOLVE_IMAGE" \
         --detach=false \
         --compose-file - \
         "$STACK_NAME"
@@ -157,6 +180,17 @@ echo "💬 Stack '$STACK_NAME' deployed successfully."
 
 if [[ "$FIRST_DEPLOY" == true ]]; then
     echo "💬 First deploy detected, initializing the database..."
-    ./scripts/composeAll.sh --project-name "$STACK_NAME" -p ./infrastructure/seed --swarm run --rm seed
+    EVENT_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-events" --format "{{.Names}}" | head -1)
+    INTERACTION_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-interactions" --format "{{.Names}}" | head -1)
+    CHAT_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-chat" --format "{{.Names}}" | head -1)
+    PAYMENT_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-payments" --format "{{.Names}}" | head -1)
+    NOTIFICATION_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-notifications" --format "{{.Names}}" | head -1)
+    ./scripts/composeAll.sh --project-name "$STACK_NAME" -p ./infrastructure/seed --swarm run --rm \
+        -e "EVENT_MONGO_URI=${EVENT_CONTAINER}" \
+        -e "INTERACTION_MONGO_URI=${INTERACTION_CONTAINER}" \
+        -e "CHAT_MONGO_URI=${CHAT_CONTAINER}" \
+        -e "PAYMENT_MONGO_URI=${PAYMENT_CONTAINER}" \
+        -e "NOTIFICATION_MONGO_URI=${NOTIFICATION_CONTAINER}" \
+        seed
     echo "💬 Database initialized."
 fi
