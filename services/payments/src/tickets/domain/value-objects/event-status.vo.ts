@@ -1,3 +1,5 @@
+import { InvalidEventStatusException } from '../exceptions/invalid-event-status.exception';
+
 export class EventStatus {
   private constructor(private readonly value: string) {}
 
@@ -17,7 +19,7 @@ export class EventStatus {
       case 'CANCELLED':
         return EventStatus.CANCELLED;
       default:
-        throw new Error(`Invalid EventStatus: ${value}`);
+        throw new InvalidEventStatusException(value);
     }
   }
 

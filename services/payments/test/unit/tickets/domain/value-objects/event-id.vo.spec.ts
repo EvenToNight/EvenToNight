@@ -1,5 +1,5 @@
-import { EventId } from '../../../../../src/tickets/domain/value-objects/event-id.vo';
-import { EmptyEventIdException } from '../../../../../src/tickets/domain/exceptions/empty-event-id.exception';
+import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
+import { EmptyEventIdException } from 'src/tickets/domain/exceptions/empty-event-id.exception';
 
 describe('EventId', () => {
   describe('fromString', () => {
