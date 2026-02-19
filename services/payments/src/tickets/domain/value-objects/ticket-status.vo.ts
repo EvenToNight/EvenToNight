@@ -1,3 +1,5 @@
+import { InvalidTicketStatusValueException } from '../exceptions/invalid-ticket-status-value.exception';
+
 export class TicketStatus {
   private constructor(private readonly value: string) {}
 
@@ -10,7 +12,7 @@ export class TicketStatus {
   static readonly USED = new TicketStatus('USED');
 
   static fromString(value: string): TicketStatus {
-    switch (value) {
+    switch (value.toUpperCase()) {
       case 'PENDING_PAYMENT':
         return TicketStatus.PENDING_PAYMENT;
       case 'ACTIVE':
@@ -24,7 +26,7 @@ export class TicketStatus {
       case 'USED':
         return TicketStatus.USED;
       default:
-        throw new Error(`Invalid TicketStatus: ${value}`);
+        throw new InvalidTicketStatusValueException(value);
     }
   }
 

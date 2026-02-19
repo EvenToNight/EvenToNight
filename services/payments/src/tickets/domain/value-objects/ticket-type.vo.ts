@@ -1,21 +1,19 @@
+import { InvalidTicketTypeException } from '../exceptions/invalid-ticket-type.exception';
+
 export class TicketType {
   private constructor(private readonly value: string) {}
 
-  //TODO: evaluate ticket type values needed
   static readonly STANDARD = new TicketType('STANDARD');
   static readonly VIP = new TicketType('VIP');
 
   static fromString(value: string): TicketType {
-    //TODO: make case insensitive? [also for other vo]
-    switch (value) {
+    switch (value.toUpperCase()) {
       case 'STANDARD':
         return TicketType.STANDARD;
       case 'VIP':
         return TicketType.VIP;
       default:
-        throw new Error(
-          `Invalid TicketType: ${value}. Must be one of: STANDARD, VIP, EARLY_BIRD, STUDENT, GROUP`,
-        );
+        throw new InvalidTicketTypeException(value);
     }
   }
 

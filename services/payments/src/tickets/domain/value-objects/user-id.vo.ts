@@ -1,7 +1,9 @@
+import { EmptyUserIdException } from '../exceptions/empty-user-id.exception';
+
 export class UserId {
   private constructor(private readonly value: string) {
     if (!value || value.trim().length === 0) {
-      throw new Error('UserId cannot be empty');
+      throw new EmptyUserIdException();
     }
   }
 

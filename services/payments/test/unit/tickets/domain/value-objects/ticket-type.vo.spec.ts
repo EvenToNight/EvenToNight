@@ -1,4 +1,5 @@
-import { TicketType } from '../../../../../src/tickets/domain/value-objects/ticket-type.vo';
+import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
+import { InvalidTicketTypeException } from 'src/tickets/domain/exceptions/invalid-ticket-type.exception';
 
 describe('TicketType', () => {
   describe('fromString', () => {
@@ -7,6 +8,9 @@ describe('TicketType', () => {
 
       expect(type).toBe(TicketType.STANDARD);
       expect(type.toString()).toBe('STANDARD');
+
+      const typeRandom = TicketType.fromString('sTaNdArD');
+      expect(typeRandom).toBe(TicketType.STANDARD);
     });
 
     it('should create VIP type from string', () => {
@@ -14,11 +18,14 @@ describe('TicketType', () => {
 
       expect(type).toBe(TicketType.VIP);
       expect(type.toString()).toBe('VIP');
+
+      const typeRandom = TicketType.fromString('vIp');
+      expect(typeRandom).toBe(TicketType.VIP);
     });
 
     it('should throw error for invalid type', () => {
       expect(() => TicketType.fromString('INVALID')).toThrow(
-        'Invalid TicketType: INVALID',
+        InvalidTicketTypeException,
       );
     });
   });

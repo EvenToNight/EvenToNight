@@ -1,4 +1,5 @@
-import { TicketStatus } from '../../../../../src/tickets/domain/value-objects/ticket-status.vo';
+import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
+import { InvalidTicketStatusValueException } from 'src/tickets/domain/exceptions/invalid-ticket-status-value.exception';
 
 describe('TicketStatus', () => {
   describe('fromString', () => {
@@ -7,6 +8,9 @@ describe('TicketStatus', () => {
 
       expect(status).toBe(TicketStatus.ACTIVE);
       expect(status.toString()).toBe('ACTIVE');
+
+      const statusRandom = TicketStatus.fromString('aCtIvE');
+      expect(statusRandom).toBe(TicketStatus.ACTIVE);
     });
 
     it('should create CANCELLED status from string', () => {
@@ -14,6 +18,9 @@ describe('TicketStatus', () => {
 
       expect(status).toBe(TicketStatus.CANCELLED);
       expect(status.toString()).toBe('CANCELLED');
+
+      const statusRandom = TicketStatus.fromString('cAnCeLLeD');
+      expect(statusRandom).toBe(TicketStatus.CANCELLED);
     });
 
     it('should create REFUNDED status from string', () => {
@@ -21,6 +28,9 @@ describe('TicketStatus', () => {
 
       expect(status).toBe(TicketStatus.REFUNDED);
       expect(status.toString()).toBe('REFUNDED');
+
+      const statusRandom = TicketStatus.fromString('rEfUnDeD');
+      expect(statusRandom).toBe(TicketStatus.REFUNDED);
     });
 
     it('should create PENDING_PAYMENT status from string', () => {
@@ -28,6 +38,9 @@ describe('TicketStatus', () => {
 
       expect(status).toBe(TicketStatus.PENDING_PAYMENT);
       expect(status.toString()).toBe('PENDING_PAYMENT');
+
+      const statusRandom = TicketStatus.fromString('pEnDiNg_pAyMeNt');
+      expect(statusRandom).toBe(TicketStatus.PENDING_PAYMENT);
     });
 
     it('should create PAYMENT_FAILED status from string', () => {
@@ -35,11 +48,24 @@ describe('TicketStatus', () => {
 
       expect(status).toBe(TicketStatus.PAYMENT_FAILED);
       expect(status.toString()).toBe('PAYMENT_FAILED');
+
+      const statusRandom = TicketStatus.fromString('pAyMeNt_fAiLeD');
+      expect(statusRandom).toBe(TicketStatus.PAYMENT_FAILED);
+    });
+
+    it('should create USED status from string', () => {
+      const status = TicketStatus.fromString('USED');
+
+      expect(status).toBe(TicketStatus.USED);
+      expect(status.toString()).toBe('USED');
+
+      const statusRandom = TicketStatus.fromString('uSeD');
+      expect(statusRandom).toBe(TicketStatus.USED);
     });
 
     it('should throw error for invalid status', () => {
       expect(() => TicketStatus.fromString('INVALID')).toThrow(
-        'Invalid TicketStatus: INVALID',
+        InvalidTicketStatusValueException,
       );
     });
   });
@@ -93,6 +119,11 @@ describe('TicketStatus', () => {
     it('should check if status is payment failed', () => {
       expect(TicketStatus.PAYMENT_FAILED.isPaymentFailed()).toBe(true);
       expect(TicketStatus.ACTIVE.isPaymentFailed()).toBe(false);
+    });
+
+    it('should check if status is used', () => {
+      expect(TicketStatus.USED.isUsed()).toBe(true);
+      expect(TicketStatus.ACTIVE.isUsed()).toBe(false);
     });
   });
 

@@ -8,8 +8,7 @@ export class OrderStatus {
   private constructor(private readonly value: string) {}
 
   static fromString(value: string): OrderStatus {
-    value = value.toUpperCase();
-    switch (value) {
+    switch (value.toUpperCase()) {
       case 'PENDING':
         return OrderStatus.PENDING;
       case 'COMPLETED':

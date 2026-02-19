@@ -1,23 +1,22 @@
+import { NegativeAmountException } from '../exceptions/negative-amount.exception';
+import { Currency } from './currency.vo';
+
 export class Money {
   private constructor(
     private readonly amount: number,
-    private readonly currency: string = 'USD',
+    private readonly currency: Currency,
   ) {
     if (amount < 0) {
-      throw new Error('Amount cannot be negative');
-    }
-    if (!currency || currency.length !== 3) {
-      throw new Error('Currency must be a valid 3-letter code');
+      throw new NegativeAmountException();
     }
   }
 
-  //TODO: to uppercase currency code
   static fromAmount(amount: number, currency: string = 'USD'): Money {
-    return new Money(amount, currency);
+    return new Money(amount, Currency.fromString(currency));
   }
 
   equals(other: Money): boolean {
-    return this.amount === other.amount && this.currency === other.currency;
+    return this.amount === other.amount && this.currency.equals(other.currency);
   }
 
   getAmount(): number {
@@ -25,14 +24,14 @@ export class Money {
   }
 
   getCurrency(): string {
-    return this.currency;
+    return this.currency.getCode();
   }
 
   toJSON(): { amount: number; currency: string } {
-    return { amount: this.amount, currency: this.currency };
+    return { amount: this.amount, currency: this.currency.getCode() };
   }
 
   toString(): string {
-    return `${this.amount} ${this.currency}`;
+    return `${this.amount} ${this.currency.toString()}`;
   }
 }

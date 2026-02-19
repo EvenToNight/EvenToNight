@@ -1,4 +1,5 @@
-import { UserId } from '../../../../../src/tickets/domain/value-objects/user-id.vo';
+import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
+import { EmptyUserIdException } from 'src/tickets/domain/exceptions/empty-user-id.exception';
 
 describe('UserId', () => {
   describe('fromString', () => {
@@ -9,11 +10,11 @@ describe('UserId', () => {
     });
 
     it('should throw error for empty string', () => {
-      expect(() => UserId.fromString('')).toThrow('UserId cannot be empty');
+      expect(() => UserId.fromString('')).toThrow(EmptyUserIdException);
     });
 
     it('should throw error for string with only spaces', () => {
-      expect(() => UserId.fromString('   ')).toThrow('UserId cannot be empty');
+      expect(() => UserId.fromString('   ')).toThrow(EmptyUserIdException);
     });
   });
 

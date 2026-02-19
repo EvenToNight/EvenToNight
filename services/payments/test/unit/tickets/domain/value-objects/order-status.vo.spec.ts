@@ -67,6 +67,12 @@ describe('OrderStatus', () => {
     });
   });
 
+  describe('toString', () => {
+    it('should return string representation', () => {
+      expect(OrderStatus.PENDING.toString()).toBe('PENDING');
+    });
+  });
+
   describe('getAllStatuses', () => {
     it('should return all statuses', () => {
       const statuses = OrderStatus.getAllStatuses();

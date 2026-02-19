@@ -80,6 +80,12 @@ describe('EventStatus', () => {
     });
   });
 
+  describe('toString', () => {
+    it('should return string representation', () => {
+      expect(EventStatus.DRAFT.toString()).toBe('DRAFT');
+    });
+  });
+
   describe('getAllStatuses', () => {
     it('should return all statuses', () => {
       const statuses = EventStatus.getAllStatuses();

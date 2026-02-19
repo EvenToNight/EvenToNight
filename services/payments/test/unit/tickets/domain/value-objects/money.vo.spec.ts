@@ -1,4 +1,6 @@
-import { Money } from '../../../../../src/tickets/domain/value-objects/money.vo';
+import { Money } from 'src/tickets/domain/value-objects/money.vo';
+import { InvalidCurrencyException } from 'src/tickets/domain/exceptions/invalid-currency.exception';
+import { NegativeAmountException } from 'src/tickets/domain/exceptions/negative-amount.exception';
 
 describe('Money Value Object', () => {
   describe('fromAmount', () => {
@@ -15,15 +17,21 @@ describe('Money Value Object', () => {
       expect(money.getCurrency()).toBe('USD');
     });
 
+    it('should normalize currency to uppercase', () => {
+      const money = Money.fromAmount(50, 'eur');
+
+      expect(money.getCurrency()).toBe('EUR');
+    });
+
     it('should throw error for negative amount', () => {
       expect(() => Money.fromAmount(-10, 'USD')).toThrow(
-        'Amount cannot be negative',
+        NegativeAmountException,
       );
     });
 
     it('should throw error for invalid currency', () => {
-      expect(() => Money.fromAmount(50, 'U')).toThrow(
-        'Currency must be a valid 3-letter code',
+      expect(() => Money.fromAmount(50, 'INVALID')).toThrow(
+        InvalidCurrencyException,
       );
     });
 
