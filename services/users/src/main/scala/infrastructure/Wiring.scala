@@ -1,22 +1,17 @@
 package infrastructure
 
 import com.mongodb.client.MongoCollection
-import domain.repository.AccountProfileRepository
 import domain.repository.MemberRepository
 import domain.repository.OrganizationRepository
 import domain.service.AuthenticationService
 import domain.service.MediaService
 import domain.service.UserQueryService
 import domain.service.UserService
-import domain.valueobjects.member.MemberAccount
-import domain.valueobjects.member.MemberProfile
-import domain.valueobjects.organization.OrganizationAccount
-import domain.valueobjects.organization.OrganizationProfile
 import infrastructure.media.MediaServiceClient
-import infrastructure.persistence.mongo.models.UserReferences
-import infrastructure.persistence.mongo.repositories.MongoAccountProfileRepository
-import infrastructure.persistence.repositories.MemberRepositoryImpl
-import infrastructure.persistence.repositories.OrganizationRepositoryImpl
+import infrastructure.persistence.mongo.models.member.MemberDocument
+import infrastructure.persistence.mongo.models.organization.OrganizationDocument
+import infrastructure.persistence.mongo.repositories.MongoMemberRepository
+import infrastructure.persistence.mongo.repositories.MongoOrganizationRepository
 import infrastructure.services.KeycloakAuthenticationService
 import infrastructure.services.UserQueryServiceImpl
 import infrastructure.services.UserServiceImpl
@@ -32,26 +27,13 @@ import persistence.mongo.MongoConnection._
 object Wiring:
   val mediaHost: String    = sys.env.getOrElse("MEDIA_HOST", "localhost") + ":9020"
   val mediaBaseUrl: String = sys.env.getOrElse("MEDIA_BASE_URL", "localhost:9020")
-  val memberReferencesColl: MongoCollection[UserReferences] =
-    membersDB.getCollection("member_references", classOf[UserReferences])
-  val organizationReferencesColl: MongoCollection[UserReferences] =
-    organizationsDB.getCollection("organization_references", classOf[UserReferences])
-  val memberAccountsColl: MongoCollection[MemberAccount] =
-    membersDB.getCollection("member_accounts", classOf[MemberAccount])
-  val memberProfilesColl: MongoCollection[MemberProfile] =
-    membersDB.getCollection("member_profiles", classOf[MemberProfile])
-  val organizationAccountsColl: MongoCollection[OrganizationAccount] =
-    organizationsDB.getCollection("organization_accounts", classOf[OrganizationAccount])
-  val organizationProfilesColl: MongoCollection[OrganizationProfile] =
-    organizationsDB.getCollection("organization_profiles", classOf[OrganizationProfile])
+  val membersColl: MongoCollection[MemberDocument] =
+    usersDB.getCollection("members", classOf[MemberDocument])
+  val organizationsColl: MongoCollection[OrganizationDocument] =
+    usersDB.getCollection("organizations", classOf[OrganizationDocument])
 
-  val memberAccountProfileRepository: AccountProfileRepository[MemberAccount, MemberProfile] =
-    new MongoAccountProfileRepository(memberReferencesColl, memberAccountsColl, memberProfilesColl)
-  val memberRepository: MemberRepository = new MemberRepositoryImpl(memberAccountProfileRepository)
-  val organizationAccountProfileRepository: AccountProfileRepository[OrganizationAccount, OrganizationProfile] =
-    new MongoAccountProfileRepository(organizationReferencesColl, organizationAccountsColl, organizationProfilesColl)
-  val organizationRepository: OrganizationRepository =
-    new OrganizationRepositoryImpl(organizationAccountProfileRepository)
+  val memberRepository: MemberRepository             = new MongoMemberRepository(membersColl)
+  val organizationRepository: OrganizationRepository = new MongoOrganizationRepository(organizationsColl)
 
   val userService: UserService           = new UserServiceImpl(memberRepository, organizationRepository)
   val userQueryService: UserQueryService = new UserQueryServiceImpl(memberRepository, organizationRepository)

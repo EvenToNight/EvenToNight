@@ -4,25 +4,29 @@ import com.mongodb.MongoClientSettings
 import com.mongodb.client.MongoClient
 import com.mongodb.client.MongoClients
 import com.mongodb.client.MongoDatabase
-import infrastructure.persistence.mongo.codecs.UserReferencesCodec
 import infrastructure.persistence.mongo.codecs.member.MemberAccountCodec
+import infrastructure.persistence.mongo.codecs.member.MemberDocumentCodec
 import infrastructure.persistence.mongo.codecs.member.MemberProfileCodec
 import infrastructure.persistence.mongo.codecs.organization.OrganizationAccountCodec
+import infrastructure.persistence.mongo.codecs.organization.OrganizationDocumentCodec
 import infrastructure.persistence.mongo.codecs.organization.OrganizationProfileCodec
 import org.bson.codecs.configuration.CodecRegistries.fromCodecs
 import org.bson.codecs.configuration.CodecRegistries.fromRegistries
 
 object MongoConnection:
-  private val pojoCodecRegistry = fromRegistries(
+  private val baseRegistry = fromRegistries(
     MongoClientSettings.getDefaultCodecRegistry(),
     fromCodecs(
       new MemberAccountCodec,
       new MemberProfileCodec,
       new OrganizationAccountCodec,
-      new OrganizationProfileCodec,
-      new UserReferencesCodec
+      new OrganizationProfileCodec
     )
   )
+  private val memberDocumentCodec       = new MemberDocumentCodec(baseRegistry)
+  private val organizationDocumentCodec = new OrganizationDocumentCodec(baseRegistry)
+  private val pojoCodecRegistry =
+    fromRegistries(baseRegistry, fromCodecs(memberDocumentCodec, organizationDocumentCodec))
 
   val mongoHost: String = sys.env.getOrElse("MONGO_HOST", "localhost")
   val mongoPort: String = "27017"
@@ -33,5 +37,4 @@ object MongoConnection:
   ).build()
   val client: MongoClient = MongoClients.create(settings)
 
-  def membersDB: MongoDatabase       = client.getDatabase("members_db")
-  def organizationsDB: MongoDatabase = client.getDatabase("organizations_db")
+  def usersDB: MongoDatabase = client.getDatabase("users_db")

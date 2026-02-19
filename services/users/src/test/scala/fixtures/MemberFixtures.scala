@@ -9,4 +9,5 @@ object MemberFixtures:
   private val username: String = "bobo"
   private val email: String    = "bobsmith@test.com"
   private val name: String     = "Bob Smith"
-  val member: Member           = Member(MemberAccount(username, email), MemberProfile(name))
+  private val avatar: String   = "default.jpg"
+  val member: Member           = Member(MemberAccount(username, email), MemberProfile(name, avatar))
