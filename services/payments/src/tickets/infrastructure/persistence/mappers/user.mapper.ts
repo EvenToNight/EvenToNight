@@ -13,7 +13,7 @@ export class UserMapper {
 
   static toPersistence(user: User): Partial<UserDocument> {
     return {
-      _id: user.getId() as any,
+      _id: user.getId().toString(),
       language: user.getLanguage().getCode(),
     };
   }

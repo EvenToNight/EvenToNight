@@ -17,7 +17,7 @@ export class EventMapper {
 
   static toPersistence(event: Event): Partial<EventDocument> {
     return {
-      _id: event.getId() as any,
+      _id: event.getId().toString(),
       creatorId: event.getCreatorId().toString(),
       date: event.getDate(),
       status: event.getStatus().toString(),

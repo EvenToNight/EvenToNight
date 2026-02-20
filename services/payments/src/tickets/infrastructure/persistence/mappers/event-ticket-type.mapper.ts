@@ -22,7 +22,7 @@ export class EventTicketTypeMapper {
     ticketType: EventTicketType,
   ): Partial<EventTicketTypeDocument> {
     return {
-      _id: ticketType.getId().toString() as any,
+      _id: ticketType.getId().toString(),
       eventId: ticketType.getEventId().toString(),
       type: ticketType.getType().toString(),
       description: ticketType.getDescription(),

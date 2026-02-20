@@ -10,6 +10,7 @@ import { Pagination } from '@libs/ts-common';
 import { EventId } from '../../../domain/value-objects/event-id.vo';
 import { BaseMongoRepository } from '@libs/ts-common';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
+import { TicketNotFoundException } from 'src/tickets/domain/exceptions/ticket-not-found-exception';
 
 @Injectable()
 export class TicketRepositoryImpl
@@ -181,7 +182,7 @@ export class TicketRepositoryImpl
       .exec();
 
     if (!updated) {
-      throw new Error(`Ticket with id ${ticket.getId().toString()} not found`);
+      throw new TicketNotFoundException(ticket.getId().toString());
     }
 
     return TicketMapper.toDomain(updated);

@@ -23,7 +23,7 @@ export class TicketMapper {
 
   static toPersistence(ticket: Ticket): TicketDocument {
     return {
-      _id: ticket.getId().toString() as any,
+      _id: ticket.getId().toString(),
       eventId: ticket.getEventId().toString(),
       userId: ticket.getUserId().toString(),
       attendeeName: ticket.getAttendeeName(),

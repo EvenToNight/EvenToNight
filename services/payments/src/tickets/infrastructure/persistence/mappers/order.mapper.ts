@@ -20,7 +20,7 @@ export class OrderMapper {
 
   static toPersistence(order: Order): Partial<OrderDocument> {
     return {
-      _id: order.getId().toString() as any,
+      _id: order.getId().toString(),
       userId: order.getUserId().toString(),
       eventId: order.getEventId().toString(),
       ticketIds: order.getTicketIds().map((id) => id.toString()),

@@ -10,6 +10,7 @@ import { Pagination } from '@libs/ts-common';
 import { CurrencyConverter } from '@libs/ts-common';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { BaseMongoRepository } from '@libs/ts-common';
+import { EventTicketTypeNotFoundException } from 'src/tickets/domain/exceptions/event-ticket-type-not-found.exception';
 
 @Injectable()
 export class EventTicketTypeRepositoryImpl
@@ -27,11 +28,7 @@ export class EventTicketTypeRepositoryImpl
     const session = this.getSession();
 
     const document = EventTicketTypeMapper.toPersistence(ticketType);
-    // Passa esplicitamente l'_id per evitare che Mongoose generi un ObjectId
-    const created = new this.model({
-      ...document,
-      _id: ticketType.getId(),
-    });
+    const created = new this.model(document);
     const saved = await created.save({ session: session || undefined });
     return EventTicketTypeMapper.toDomain(saved);
   }
@@ -63,9 +60,7 @@ export class EventTicketTypeRepositoryImpl
       .exec();
 
     if (!updated) {
-      throw new Error(
-        `EventTicketType with id ${ticketType.getId().toString()} not found`,
-      );
+      throw new EventTicketTypeNotFoundException(ticketType.getId().toString());
     }
 
     return EventTicketTypeMapper.toDomain(updated);
@@ -130,7 +125,11 @@ export class EventTicketTypeRepositoryImpl
       EventId.fromString(id),
     );
     const totalItems = allEventIds.length;
+    const paginatedEventIds = allEventIds.slice(
+      pagination.offset,
+      pagination.offset + pagination.limit,
+    );
 
-    return Pagination.createResult(allEventIds, totalItems, pagination);
+    return Pagination.createResult(paginatedEventIds, totalItems, pagination);
   }
 }

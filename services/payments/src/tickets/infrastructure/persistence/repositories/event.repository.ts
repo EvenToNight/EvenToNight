@@ -8,6 +8,7 @@ import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { BaseMongoRepository } from '@libs/ts-common';
+import { EventNotFoundException } from 'src/tickets/domain/exceptions/event-not-found.exception';
 
 @Injectable()
 export class EventRepositoryImpl
@@ -63,7 +64,7 @@ export class EventRepositoryImpl
       .session(session || null)
       .exec();
     if (!updated) {
-      throw new Error(`Event with id ${event.eventId.toString()} not found`);
+      throw new EventNotFoundException(event.eventId.toString());
     }
     return EventMapper.toDomain(updated);
   }
@@ -84,7 +85,7 @@ export class EventRepositoryImpl
       .session(session || null)
       .exec();
     if (!updated) {
-      throw new Error(`Event with id ${eventId.toString()} not found`);
+      throw new EventNotFoundException(eventId.toString());
     }
     return EventMapper.toDomain(updated);
   }

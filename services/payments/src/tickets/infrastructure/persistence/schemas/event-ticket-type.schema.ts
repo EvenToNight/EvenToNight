@@ -27,7 +27,7 @@ export class EventTicketTypeDocument extends Document<string> {
   @Prop({
     required: true,
     type: {
-      amount: { type: Number, required: true },
+      amount: { type: Number, required: true, min: 0 },
       currency: { type: String, required: true, default: 'USD' },
     },
   })

@@ -6,6 +6,7 @@ import { OrderRepository } from '../../../domain/repositories/order.repository.i
 import { OrderMapper } from '../mappers/order.mapper';
 import { OrderDocument } from '../schemas/order.schema';
 import { BaseMongoRepository } from '@libs/ts-common';
+import { OrderNotFoundException } from 'src/tickets/domain/exceptions/order-not-found-exception';
 
 @Injectable()
 export class OrderRepositoryImpl
@@ -58,7 +59,7 @@ export class OrderRepositoryImpl
       .exec();
 
     if (!updated) {
-      throw new Error(`Order with id ${order.getId().toString()} not found`);
+      throw new OrderNotFoundException(order.getId().toString());
     }
 
     return OrderMapper.toDomain(updated);

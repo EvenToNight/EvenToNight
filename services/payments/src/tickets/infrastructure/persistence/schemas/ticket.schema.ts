@@ -52,8 +52,6 @@ export type TicketDocumentType = HydratedDocument<TicketDocument>;
 
 export const TicketSchema = SchemaFactory.createForClass(TicketDocument);
 
-// TODO: evaluate indexes based on query patterns
-// Composite indexes for common queries, A composite index performs best when both indexed fields are used in the query.
 TicketSchema.index({ userId: 1, status: 1 });
 TicketSchema.index({ eventId: 1, status: 1 });
 TicketSchema.index({ purchaseDate: -1 });

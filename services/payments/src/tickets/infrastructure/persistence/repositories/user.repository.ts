@@ -6,6 +6,7 @@ import { UserDocument } from '../schemas/user.schema';
 import { UserMapper } from '../mappers/user.mapper';
 import { User } from 'src/tickets/domain/aggregates/user.aggregate';
 import { BaseMongoRepository } from '@libs/ts-common';
+import { UserNotFoundException } from 'src/tickets/domain/exceptions/user-not-found.exception';
 
 @Injectable()
 export class UserRepositoryImpl
@@ -48,7 +49,7 @@ export class UserRepositoryImpl
       .exec();
 
     if (!updated) {
-      throw new Error(`User with id ${user.getId().toString()} not found`);
+      throw new UserNotFoundException(user.getId().toString());
     }
 
     return UserMapper.toDomain(updated);
