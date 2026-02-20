@@ -194,7 +194,7 @@ const handleDeleteProfile = () => {
 
     <template v-if="!loading">
       <div class="settings-sections">
-        <section class="settings-section">
+        <section v-if="authStore.isMember" class="settings-section">
           <h3 class="section-title">{{ t('informationSectionTitle') }}</h3>
 
           <FormField
