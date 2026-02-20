@@ -12,7 +12,6 @@ import {
   Inject,
   Logger,
   UseGuards,
-  ForbiddenException,
 } from '@nestjs/common';
 import { CreateCheckoutSessionHandler } from '../../application/handlers/create-checkout-session.handler';
 import {
@@ -23,7 +22,7 @@ import type { PaymentService } from '../../domain/services/payment.service.inter
 import { PAYMENT_SERVICE } from '../..//domain/services/payment.service.interface';
 import type { Response } from 'express';
 import { CheckoutSessionExpiredHandler } from 'src/tickets/application/handlers/checkout-session-expired.handler';
-import { CurrentUser, JwtAuthGuard } from '@libs/nestjs-common';
+import { JwtAuthGuard, SameUserGuard } from '@libs/nestjs-common';
 
 @Controller('checkout-sessions')
 export class CheckoutSessionsController {
@@ -41,16 +40,13 @@ export class CheckoutSessionsController {
    */
   @Post()
   @HttpCode(HttpStatus.CREATED)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(
+    JwtAuthGuard,
+    SameUserGuard((req) => (req.body as CreateCheckoutSessionDto).userId),
+  )
   async createCheckoutSession(
     @Body(ValidationPipe) dto: CreateCheckoutSessionDto,
-    @CurrentUser('userId') userId: string,
   ): Promise<CheckoutSessionResponseDto> {
-    if (dto.userId !== userId) {
-      throw new ForbiddenException(
-        'User ID in token does not match user ID in request body',
-      );
-    }
     return this.createCheckoutSessionHandler.handle(dto);
   }
 
@@ -58,7 +54,6 @@ export class CheckoutSessionsController {
    * GET /checkout-sessions/:sessionId/cancel
    * Handles the cancellation of a checkout session.
    */
-  //TODO: how works auth there?
   @Get(':sessionId/cancel')
   @HttpCode(HttpStatus.OK)
   async handleCancel(
@@ -88,8 +83,6 @@ export class CheckoutSessionsController {
         `Failed to handle cancel for session ${sessionId}`,
         error,
       );
-
-      // TODO: Redirect anyway to avoid user stuck on error page?
       return res.redirect(redirectTo);
     }
   }

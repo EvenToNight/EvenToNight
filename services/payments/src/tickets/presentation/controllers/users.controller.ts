@@ -6,9 +6,7 @@ import {
   Param,
   Query,
   UseGuards,
-  ForbiddenException,
   Res,
-  NotFoundException,
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
@@ -17,20 +15,16 @@ import { UserEventsQueryDto } from 'src/tickets/application/dto/user-events-quer
 import { Pagination } from '@libs/ts-common';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { PaginatedResponseDto } from '@libs/nestjs-common';
-import { CurrentUser, JwtAuthGuard } from '@libs/nestjs-common';
+import { JwtAuthGuard, SameUserGuard } from '@libs/nestjs-common';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
-import { PdfService } from 'src/tickets/application/services/pdf.service';
-import { UserService } from 'src/tickets/application/services/user.service';
-import { EventService } from 'src/tickets/application/services/event.service';
-import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
+import { GetUserEventTicketsPdfHandler } from 'src/tickets/application/handlers/get-user-event-tickets-pdf.handler';
 
 @Controller('users/:userId')
+@UseGuards(JwtAuthGuard, SameUserGuard())
 export class UsersController {
   constructor(
     private readonly ticketService: TicketService,
-    private readonly pdfService: PdfService,
-    private readonly userService: UserService,
-    private readonly eventService: EventService,
+    private readonly getUserEventTicketsPdfHandler: GetUserEventTicketsPdfHandler,
   ) {}
 
   /**
@@ -40,23 +34,11 @@ export class UsersController {
    */
   @Get('tickets/')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
   async getUserTickets(
     @Param('userId') userId: string,
     @Query() query: PaginatedQueryDto,
     @Query('eventId') eventId: string | undefined,
-    @CurrentUser('userId') currentUserId: string,
   ): Promise<PaginatedResponseDto<Ticket>> {
-    console.log(
-      `Fetching tickets for user ${userId} with eventId filter: ${eventId}`,
-      'UsersController.getUserTickets',
-    );
-    if (userId !== currentUserId) {
-      throw new ForbiddenException(
-        'Forbidden: Cannot access tickets of other users',
-      );
-    }
-
     if (eventId) {
       const result = await this.ticketService.findByUserIdAndEventId(
         userId,
@@ -69,7 +51,7 @@ export class UsersController {
       );
     }
 
-    return await this.ticketService.findByUserId(
+    return this.ticketService.findByUserId(
       userId,
       Pagination.parse(query.limit, query.offset),
     );
@@ -82,17 +64,10 @@ export class UsersController {
    */
   @Get('events/')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
   async getUserEvents(
     @Param('userId') userId: string,
     @Query() query: UserEventsQueryDto,
-    @CurrentUser('userId') currentUserId: string,
   ): Promise<PaginatedResponseDto<string>> {
-    if (userId !== currentUserId) {
-      throw new ForbiddenException(
-        'Forbidden: Cannot access tickets of other users',
-      );
-    }
     const response = await this.ticketService.findEventsByUserId(
       userId,
       Pagination.parse(query.limit, query.offset),
@@ -114,55 +89,16 @@ export class UsersController {
    */
   @Get('events/:eventId/pdf')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
   async getUserEventTicketsPdf(
     @Param('userId') userId: string,
     @Param('eventId') eventId: string,
-    @CurrentUser('userId') currentUserId: string,
     @Res() res: Response,
   ) {
-    if (userId !== currentUserId) {
-      throw new ForbiddenException(
-        'Forbidden: Cannot access tickets of other users',
-      );
-    }
-
-    const result = await this.ticketService.findByUserIdAndEventId(
-      userId,
-      eventId,
-      TicketStatus.ACTIVE,
-    );
-
-    if (result.length === 0) {
-      throw new NotFoundException('No tickets found for this event');
-    }
-
-    const event = await this.eventService.findById(eventId);
-    if (!event) {
-      throw new NotFoundException(`Event with id ${eventId} not found`);
-    }
-    const userLanguage = await this.userService.getUserLanguage(userId);
-
-    const ticketPdfData = result.map((ticket) => ({
-      ticketId: ticket.getId().toString(),
-      eventId: ticket.getEventId().toString(),
-      attendeeName: ticket.getAttendeeName(),
-      purchaseDate: ticket.getPurchaseDate(),
-      eventDate: event.getDate(),
-      priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
-      eventTitle: event.getTitle() || 'EventoNight',
-    }));
-
-    const buffer = await this.pdfService.generateTicketsPdf(
-      ticketPdfData,
-      userLanguage,
-    );
+    const { buffer, filename } =
+      await this.getUserEventTicketsPdfHandler.handle(userId, eventId);
 
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader(
-      'Content-Disposition',
-      `inline; filename="tickets-${userId}-${eventId}.pdf"`,
-    );
+    res.setHeader('Content-Disposition', `inline; filename="${filename}"`);
     return res.send(buffer);
   }
 }

@@ -103,7 +103,7 @@ export class UserEventConsumer {
 
   private async handleUserDeleted(envelope: EventEnvelope<UserDeletedPayload>) {
     this.logger.log(`Processing user.deleted: ${envelope.payload.id}`);
-
+    //TODO remove user related data
     await this.userRepository.delete(envelope.payload.id);
 
     this.logger.log(`User deleted: ${envelope.payload.id}`);

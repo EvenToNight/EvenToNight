@@ -51,12 +51,14 @@ import { PAYMENT_SERVICE } from './domain/services/payment.service.interface';
 import { CreateEventTicketTypeHandler } from './application/handlers/create-event-ticket-type.handler';
 import { CreateCheckoutSessionHandler } from './application/handlers/create-checkout-session.handler';
 import { DeleteEventTicketTypesHandler } from './application/handlers/delete-event-ticket-types.handler';
+import { DeleteEventHandler } from './application/handlers/delete-event.handler';
 import { DeleteTicketTypeHandler } from './application/handlers/delete-ticket-type.handler';
 import { StripeWebhookHandler } from './application/handlers/stripe-webhook.handler';
 import { CheckoutSessionCompletedHandler } from './application/handlers/checkout-session-completed.handler';
 import { CheckoutSessionExpiredHandler } from './application/handlers/checkout-session-expired.handler';
 import { UpdateTicketTypeHandler } from './application/handlers/update-ticket-type.handler';
 import { VerifyTicketHandler } from './application/handlers/verify-ticket.handler';
+import { GetUserEventTicketsPdfHandler } from './application/handlers/get-user-event-tickets-pdf.handler';
 
 // Infrastructure
 import { TRANSACTION_MANAGER } from '@libs/ts-common';
@@ -148,12 +150,14 @@ import { UserService } from './application/services/user.service';
     CreateEventTicketTypeHandler,
     CreateCheckoutSessionHandler,
     DeleteEventTicketTypesHandler,
+    DeleteEventHandler,
     DeleteTicketTypeHandler,
     StripeWebhookHandler,
     CheckoutSessionCompletedHandler,
     CheckoutSessionExpiredHandler,
     UpdateTicketTypeHandler,
     VerifyTicketHandler,
+    GetUserEventTicketsPdfHandler,
 
     // Infrastructure
     {

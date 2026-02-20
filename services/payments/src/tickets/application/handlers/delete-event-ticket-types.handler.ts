@@ -4,7 +4,6 @@ import { TicketService } from '../services/ticket.service';
 import { OutboxService } from '@libs/nestjs-common';
 import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
 import { TicketTypeDeletedEvent } from 'src/tickets/domain/events/ticket-type-deleted.event';
-// import { EventService } from '../services/event.service';
 
 @Injectable()
 export class DeleteEventTicketTypesHandler {
@@ -14,7 +13,6 @@ export class DeleteEventTicketTypesHandler {
     private readonly outboxService: OutboxService,
     @Inject(TRANSACTION_MANAGER)
     private readonly transactionManager: TransactionManager,
-    // private readonly eventService: EventService,
   ) {}
 
   async handle(eventId: string): Promise<void> {
@@ -29,8 +27,6 @@ export class DeleteEventTicketTypesHandler {
           'ticket-type.deleted',
         );
       }
-      //TODO: delete also event?
-      //await this.eventService.delete(eventId);
       await this.ticketService.revokeTickets(deletedEventTicketTypesIds);
     });
   }

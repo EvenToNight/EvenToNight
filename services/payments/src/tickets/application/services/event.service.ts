@@ -53,6 +53,27 @@ export class EventService {
     return this.eventRepository.deleteAll();
   }
 
+  async update(params: {
+    eventId: string;
+    date?: Date;
+    title?: string;
+    status: string;
+  }): Promise<void> {
+    await this.eventRepository.update({
+      eventId: EventId.fromString(params.eventId),
+      date: params.date,
+      title: params.title,
+      status: EventStatus.fromString(params.status),
+    });
+  }
+
+  async updateStatus(eventId: string, status: EventStatus): Promise<void> {
+    await this.eventRepository.updateStatus(
+      EventId.fromString(eventId),
+      status,
+    );
+  }
+
   isDuplicateError(error: unknown): boolean {
     return this.eventRepository.isDuplicateError(error);
   }

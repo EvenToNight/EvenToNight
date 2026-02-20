@@ -13,6 +13,7 @@ import { PaginatedResult, PaginationParams } from '@libs/ts-common';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
 import { Transactional } from '@libs/ts-common';
+import { EventTicketTypeNotFoundException } from 'src/tickets/domain/exceptions/event-ticket-type-not-found.exception';
 
 @Injectable()
 export class EventTicketTypeService {
@@ -41,38 +42,36 @@ export class EventTicketTypeService {
     return this.eventTicketTypeRepository.deleteAll();
   }
 
+  @Transactional()
   async updateTicket(
     id: string,
     dto: UpdateEventTicketTypeDto,
   ): Promise<EventTicketType> {
-    return this.transactionManager.executeInTransaction(async () => {
-      const ticketType = await this.findById(id);
-      if (!ticketType) {
-        throw new Error(`EventTicketType with id ${id} not found`);
-      }
-      if (dto.description) ticketType.setDescription(dto.description);
+    const ticketType = await this.findById(id);
+    if (!ticketType) {
+      throw new EventTicketTypeNotFoundException(id);
+    }
+    if (dto.description) ticketType.setDescription(dto.description);
 
-      ticketType.setPrice(Money.fromAmount(dto.price, 'USD'));
-      ticketType.setTotalQuantity(dto.quantity);
-      return this.eventTicketTypeRepository.update(ticketType);
-    });
+    ticketType.setPrice(Money.fromAmount(dto.price, 'USD'));
+    ticketType.setTotalQuantity(dto.quantity);
+    return this.eventTicketTypeRepository.update(ticketType);
   }
 
+  @Transactional()
   async updateTicketAndMakeSoldOut(
     id: string,
     dto: UpdateEventTicketTypeDto,
   ): Promise<EventTicketType> {
-    return this.transactionManager.executeInTransaction(async () => {
-      const ticketType = await this.findById(id);
-      if (!ticketType) {
-        throw new Error(`EventTicketType with id ${id} not found`);
-      }
-      dto.quantity = ticketType.getSoldQuantity();
-      if (dto.description) ticketType.setDescription(dto.description);
-      if (dto.price) ticketType.setPrice(Money.fromAmount(dto.price, 'USD'));
-      if (dto.quantity) ticketType.setTotalQuantity(dto.quantity);
-      return this.eventTicketTypeRepository.update(ticketType);
-    });
+    const ticketType = await this.findById(id);
+    if (!ticketType) {
+      throw new EventTicketTypeNotFoundException(id);
+    }
+    dto.quantity = ticketType.getSoldQuantity();
+    if (dto.description) ticketType.setDescription(dto.description);
+    if (dto.price) ticketType.setPrice(Money.fromAmount(dto.price, 'USD'));
+    if (dto.quantity) ticketType.setTotalQuantity(dto.quantity);
+    return this.eventTicketTypeRepository.update(ticketType);
   }
 
   findById(id: string): Promise<EventTicketType | null> {

@@ -24,10 +24,12 @@ export class OutboxMongoRepository
   }
 
   async findUnprocessed(limit: number): Promise<OutboxEntry[]> {
+    const session = this.getSession();
     const documents = await this.outboxModel
       .find({ processedAt: null })
       .sort({ occurredAt: 1 })
       .limit(limit)
+      .session(session || null)
       .exec();
     return documents.map((doc) => ({
       id: doc._id,
@@ -39,14 +41,18 @@ export class OutboxMongoRepository
   }
 
   async markProcessed(id: string): Promise<void> {
+    const session = this.getSession();
     await this.outboxModel
       .findByIdAndUpdate(id, { processedAt: new Date() })
+      .session(session || null)
       .exec();
   }
 
   async deleteProcessedBefore(date: Date): Promise<number> {
+    const session = this.getSession();
     const result = await this.outboxModel
       .deleteMany({ processedAt: { $ne: null, $lt: date } })
+      .session(session || null)
       .exec();
     return result.deletedCount;
   }

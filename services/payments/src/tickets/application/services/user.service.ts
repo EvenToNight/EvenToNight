@@ -1,10 +1,11 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Inject } from '@nestjs/common';
 import {
   USER_REPOSITORY,
   type UserRepository,
 } from 'src/tickets/domain/repositories/user.repository.interface';
 import { type SupportedLanguage } from 'src/tickets/domain/value-objects/language.vo';
+import { UserNotFoundException } from 'src/tickets/domain/exceptions/user-not-found.exception';
 
 @Injectable()
 export class UserService {
@@ -16,7 +17,7 @@ export class UserService {
   async getUserLanguage(userId: string): Promise<SupportedLanguage> {
     const user = await this.userRepository.findById(userId);
     if (!user) {
-      throw new NotFoundException(`User with id ${userId} not found`);
+      throw new UserNotFoundException(userId);
     }
     return user.getLanguage().getCode();
   }

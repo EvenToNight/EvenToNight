@@ -1,15 +1,11 @@
-import { Inject, Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { RmqContext } from '@nestjs/microservices';
 import type { EventEnvelope } from '@libs/ts-common';
 import { Channel } from 'amqp-connection-manager';
 import { Message } from 'amqplib';
-import {
-  EVENT_REPOSITORY,
-  type EventRepository,
-} from 'src/tickets/domain/repositories/event.repository.interface';
-import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
-import { DeleteEventTicketTypesHandler } from 'src/tickets/application/handlers/delete-event-ticket-types.handler';
+import { DeleteEventHandler } from 'src/tickets/application/handlers/delete-event.handler';
+import { EventService } from 'src/tickets/application/services/event.service';
 
 interface EventUpdatedPayload {
   eventId: string;
@@ -39,9 +35,8 @@ export class EventEventConsumer {
   private readonly logger = new Logger(EventEventConsumer.name);
 
   constructor(
-    @Inject(EVENT_REPOSITORY)
-    private readonly eventRepository: EventRepository,
-    private readonly deleteHandler: DeleteEventTicketTypesHandler,
+    private readonly eventService: EventService,
+    private readonly deleteHandler: DeleteEventHandler,
   ) {}
 
   async handleAllEvents(envelope: EventEnvelope<any>, context: RmqContext) {
@@ -99,14 +94,12 @@ export class EventEventConsumer {
     this.logger.log(
       `Processing event.updated: ${JSON.stringify(envelope.payload)}`,
     );
-
-    await this.eventRepository.update({
-      eventId: EventId.fromString(envelope.payload.eventId),
+    await this.eventService.update({
+      eventId: envelope.payload.eventId,
       date: envelope.payload.date,
       title: envelope.payload.name,
-      status: EventStatus.fromString(envelope.payload.status),
+      status: envelope.payload.status,
     });
-
     this.logger.log(`Event updated: ${envelope.payload.eventId}`);
   }
 
@@ -114,8 +107,8 @@ export class EventEventConsumer {
     envelope: EventEnvelope<EventPublishedPayload>,
   ) {
     this.logger.log(`Processing event.published: ${envelope.payload.eventId}`);
-    await this.eventRepository.updateStatus(
-      EventId.fromString(envelope.payload.eventId),
+    await this.eventService.updateStatus(
+      envelope.payload.eventId,
       EventStatus.PUBLISHED,
     );
     this.logger.log(`Event published: ${envelope.payload.eventId}`);
@@ -125,8 +118,8 @@ export class EventEventConsumer {
     envelope: EventEnvelope<EventCompletedPayload>,
   ) {
     this.logger.log(`Processing event.completed: ${envelope.payload.eventId}`);
-    await this.eventRepository.updateStatus(
-      EventId.fromString(envelope.payload.eventId),
+    await this.eventService.updateStatus(
+      envelope.payload.eventId,
       EventStatus.COMPLETED,
     );
     this.logger.log(`Event completed: ${envelope.payload.eventId}`);
@@ -136,11 +129,11 @@ export class EventEventConsumer {
     envelope: EventEnvelope<EventCancelledPayload>,
   ) {
     this.logger.log(`Processing event.cancelled: ${envelope.payload.eventId}`);
-    await this.eventRepository.updateStatus(
-      EventId.fromString(envelope.payload.eventId),
+    await this.eventService.updateStatus(
+      envelope.payload.eventId,
       EventStatus.CANCELLED,
     );
-    this.logger.log(`Event deleted: ${envelope.payload.eventId}`);
+    this.logger.log(`Event cancelled: ${envelope.payload.eventId}`);
   }
 
   private async handleEventDeleted(
@@ -148,7 +141,6 @@ export class EventEventConsumer {
   ) {
     this.logger.log(`Processing event.deleted: ${envelope.payload.eventId}`);
     await this.deleteHandler.handle(envelope.payload.eventId);
-    await this.eventRepository.delete(envelope.payload.eventId);
     this.logger.log(`Event deleted: ${envelope.payload.eventId}`);
   }
 }
