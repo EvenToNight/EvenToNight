@@ -1,8 +1,9 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
+import { Order } from 'src/tickets/domain/aggregates/order.aggregate';
 import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
-import { EventPublisher } from '@libs/nestjs-common';
+import { OutboxService } from '@libs/nestjs-common';
 import { OrderConfirmedEvent } from 'src/tickets/domain/events/order-confirmed.event';
 import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
 
@@ -27,7 +28,7 @@ export class CheckoutSessionCompletedHandler {
     private readonly orderService: OrderService,
     @Inject(TRANSACTION_MANAGER)
     private readonly transactionManager: TransactionManager,
-    private readonly eventPublisher: EventPublisher,
+    private readonly outboxService: OutboxService,
   ) {}
 
   async handle(sessionId: string, orderId: string): Promise<void> {
@@ -40,25 +41,9 @@ export class CheckoutSessionCompletedHandler {
       throw new Error(`Order ${orderId} not found`);
     }
     try {
-      const confirmedTickets = await this.confirmTicketPayment(
+      const confirmedTickets = await this.confirmTicketPaymentAndPublish(
         order.getTicketIds().map((id) => id.toString()),
-      );
-      order.complete();
-      await this.orderService.update(order);
-      this.logger.log(
-        `Successfully confirmed ${confirmedTickets.length} tickets for session ${sessionId}`,
-      );
-
-      //TODO: publish some TicketPurchasedEvent here?
-      // ticketId, eventId, userId, attendeeName, ticketTypeId, price, currency, purchaseDate
-      const orderConfirmedEvent = new OrderConfirmedEvent({
-        orderId: order.getId().toString(),
-        userId: order.getUserId().toString(),
-        eventId: order.getEventId().toString(),
-      });
-      this.eventPublisher.publish(
-        orderConfirmedEvent,
-        orderConfirmedEvent.eventType,
+        order,
       );
       this.logger.log(
         `Successfully confirmed ${confirmedTickets.length} tickets for session ${sessionId}`,
@@ -72,7 +57,10 @@ export class CheckoutSessionCompletedHandler {
     }
   }
 
-  private async confirmTicketPayment(ticketIds: string[]): Promise<Ticket[]> {
+  private async confirmTicketPaymentAndPublish(
+    ticketIds: string[],
+    order: Order,
+  ): Promise<Ticket[]> {
     return this.transactionManager.executeInTransaction(async () => {
       const confirmed: Ticket[] = [];
 
@@ -92,6 +80,20 @@ export class CheckoutSessionCompletedHandler {
         const updated = await this.ticketService.update(ticket);
         confirmed.push(updated);
       }
+
+      order.complete();
+      await this.orderService.update(order);
+
+      const orderConfirmedEvent = new OrderConfirmedEvent({
+        orderId: order.getId().toString(),
+        userId: order.getUserId().toString(),
+        eventId: order.getEventId().toString(),
+      });
+      await this.outboxService.addEvent(
+        orderConfirmedEvent,
+        orderConfirmedEvent.eventType,
+      );
+
       return confirmed;
     });
   }

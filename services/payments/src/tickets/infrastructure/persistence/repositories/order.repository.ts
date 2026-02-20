@@ -5,7 +5,7 @@ import { Order } from '../../../domain/aggregates/order.aggregate';
 import { OrderRepository } from '../../../domain/repositories/order.repository.interface';
 import { OrderMapper } from '../mappers/order.mapper';
 import { OrderDocument } from '../schemas/order.schema';
-import { BaseMongoRepository } from './base-mongo.repository';
+import { BaseMongoRepository } from '@libs/ts-common';
 
 @Injectable()
 export class OrderRepositoryImpl
@@ -58,7 +58,7 @@ export class OrderRepositoryImpl
       .exec();
 
     if (!updated) {
-      throw new Error(`Order with id ${order.getId()} not found`);
+      throw new Error(`Order with id ${order.getId().toString()} not found`);
     }
 
     return OrderMapper.toDomain(updated);

@@ -1,5 +1,13 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import {
+  OutboxDocument,
+  OutboxSchema,
+  OutboxRepositoryImpl,
+  OutboxRelayService,
+  OutboxService,
+} from '@libs/nestjs-common';
+import { OUTBOX_REPOSITORY } from '@libs/ts-common';
 
 // Schemas
 import {
@@ -88,6 +96,7 @@ import { UserService } from './application/services/user.service';
       { name: OrderDocument.name, schema: OrderSchema },
       { name: UserDocument.name, schema: UserSchema },
       { name: EventDocument.name, schema: EventSchema },
+      { name: OutboxDocument.name, schema: OutboxSchema },
     ]),
   ],
   controllers: [
@@ -124,6 +133,10 @@ import { UserService } from './application/services/user.service';
       provide: EVENT_REPOSITORY,
       useClass: EventRepositoryImpl,
     },
+    {
+      provide: OUTBOX_REPOSITORY,
+      useClass: OutboxRepositoryImpl,
+    },
 
     // Domain Services
     {
@@ -150,6 +163,10 @@ import { UserService } from './application/services/user.service';
       },
       inject: [getConnectionToken()],
     },
+
+    // Outbox
+    OutboxService,
+    OutboxRelayService,
 
     // Services
     PdfService,

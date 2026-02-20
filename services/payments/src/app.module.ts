@@ -6,24 +6,29 @@ import { MessagingModule } from '@libs/nestjs-common';
 import { AuthModule } from '@libs/nestjs-common';
 import { buildMongoUrl } from '@libs/ts-common';
 
-const replicaSetNodes = parseInt(process.env.REPLICA_SET_NODES_NUMBER || '0');
-
 @Module({
   imports: [
-    MongooseModule.forRoot(
-      buildMongoUrl({
-        mongoHost: process.env.MONGO_HOST,
-        replicaSetNodes: replicaSetNodes,
-        dbName: 'eventonight-payments',
-        replicaSetName: process.env.REPLICA_SET_NAME,
-      }),
-      {
-        retryWrites: true,
-        w: 'majority',
-        readPreference: 'primaryPreferred',
-        directConnection: replicaSetNodes <= 1,
+    MongooseModule.forRootAsync({
+      useFactory: () => {
+        const replicaSetNodes = parseInt(
+          process.env.REPLICA_SET_NODES_NUMBER || '0',
+        );
+        return {
+          uri:
+            process.env.MONGO_URI ||
+            buildMongoUrl({
+              mongoHost: process.env.MONGO_HOST,
+              replicaSetNodes,
+              dbName: 'eventonight-payments',
+              replicaSetName: process.env.REPLICA_SET_NAME,
+            }),
+          retryWrites: true,
+          w: 'majority',
+          readPreference: 'primaryPreferred',
+          directConnection: replicaSetNodes <= 1,
+        };
       },
-    ),
+    }),
     MessagingModule,
     TicketsModule,
     AuthModule,

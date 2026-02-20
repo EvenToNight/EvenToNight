@@ -7,7 +7,7 @@ import { EventDocument } from '../schemas/event.schema';
 import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
-import { BaseMongoRepository } from './base-mongo.repository';
+import { BaseMongoRepository } from '@libs/ts-common';
 
 @Injectable()
 export class EventRepositoryImpl

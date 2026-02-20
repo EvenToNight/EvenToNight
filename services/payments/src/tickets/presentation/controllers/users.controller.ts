@@ -47,6 +47,10 @@ export class UsersController {
     @Query('eventId') eventId: string | undefined,
     @CurrentUser('userId') currentUserId: string,
   ): Promise<PaginatedResponseDto<Ticket>> {
+    console.log(
+      `Fetching tickets for user ${userId} with eventId filter: ${eventId}`,
+      'UsersController.getUserTickets',
+    );
     if (userId !== currentUserId) {
       throw new ForbiddenException(
         'Forbidden: Cannot access tickets of other users',

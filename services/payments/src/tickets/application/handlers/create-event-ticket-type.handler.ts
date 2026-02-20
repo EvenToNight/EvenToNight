@@ -12,7 +12,8 @@ import { EVENT_TICKET_TYPE_REPOSITORY } from '../../domain/repositories/event-ti
 import { CreateEventTicketTypeDto } from '../dto/create-event-ticket-type.dto';
 import { EventService } from '../services/event.service';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
-import { EventPublisher } from '@libs/nestjs-common';
+import { OutboxService } from '@libs/nestjs-common';
+import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
 import { TicketTypeCreatedEvent } from 'src/tickets/domain/events/ticket-type-created.event';
 
 @Injectable()
@@ -21,7 +22,9 @@ export class CreateEventTicketTypeHandler {
     @Inject(EVENT_TICKET_TYPE_REPOSITORY)
     private readonly eventTicketTypeService: EventTicketTypeService,
     private readonly eventService: EventService,
-    private readonly eventPublisher: EventPublisher,
+    private readonly outboxService: OutboxService,
+    @Inject(TRANSACTION_MANAGER)
+    private readonly transactionManager: TransactionManager,
   ) {}
 
   async handle(
@@ -53,14 +56,17 @@ export class CreateEventTicketTypeHandler {
       soldQuantity: 0,
     });
 
-    this.eventPublisher.publish(
-      new TicketTypeCreatedEvent({
-        eventId: eventId,
-        ticketTypeId: ticketType.getId().toString(),
-        price: dto.price,
-      }),
-      'ticket-type.created',
-    );
-    return this.eventTicketTypeService.save(ticketType);
+    return this.transactionManager.executeInTransaction(async () => {
+      const saved = await this.eventTicketTypeService.save(ticketType);
+      await this.outboxService.addEvent(
+        new TicketTypeCreatedEvent({
+          eventId: eventId,
+          ticketTypeId: ticketType.getId().toString(),
+          price: dto.price,
+        }),
+        'ticket-type.created',
+      );
+      return saved;
+    });
   }
 }

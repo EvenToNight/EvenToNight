@@ -2,8 +2,9 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { TicketService } from '../services/ticket.service';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { OrderService } from '../services/order.service';
+import { Order } from 'src/tickets/domain/aggregates/order.aggregate';
 import { OrderRejectedEvent } from 'src/tickets/domain/events/order-rejected.event';
-import { EventPublisher } from '@libs/nestjs-common';
+import { OutboxService } from '@libs/nestjs-common';
 import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
 
 /**
@@ -28,7 +29,7 @@ export class CheckoutSessionExpiredHandler {
     private readonly orderService: OrderService,
     @Inject(TRANSACTION_MANAGER)
     private readonly transactionManager: TransactionManager,
-    private readonly eventPublisher: EventPublisher,
+    private readonly outboxService: OutboxService,
   ) {}
 
   async handle(
@@ -50,18 +51,7 @@ export class CheckoutSessionExpiredHandler {
     const ticketIds = order.getTicketIds().map((id) => id.toString());
 
     try {
-      await this.cancelTicketPayment(ticketIds);
-      order.cancel();
-      await this.orderService.update(order);
-      const orderRejectedEvent = new OrderRejectedEvent({
-        orderId: order.getId().toString(),
-        userId: order.getUserId().toString(),
-        eventId: order.getEventId().toString(),
-      });
-      this.eventPublisher.publish(
-        orderRejectedEvent,
-        orderRejectedEvent.eventType,
-      );
+      await this.cancelTicketPaymentAndPublish(ticketIds, order);
       this.logger.log(
         `Successfully handled expired session ${sessionId}: ` +
           `${ticketIds.length} tickets marked as PAYMENT_FAILED and inventory released`,
@@ -72,7 +62,10 @@ export class CheckoutSessionExpiredHandler {
     }
   }
 
-  private async cancelTicketPayment(ticketIds: string[]): Promise<void> {
+  private async cancelTicketPaymentAndPublish(
+    ticketIds: string[],
+    order: Order,
+  ): Promise<void> {
     return this.transactionManager.executeInTransaction(async () => {
       const ticketTypeMap = new Map<string, number>();
       for (const ticketId of ticketIds) {
@@ -95,6 +88,19 @@ export class CheckoutSessionExpiredHandler {
           await this.eventTicketTypeService.update(ticketType);
         }
       }
+
+      order.cancel();
+      await this.orderService.update(order);
+
+      const orderRejectedEvent = new OrderRejectedEvent({
+        orderId: order.getId().toString(),
+        userId: order.getUserId().toString(),
+        eventId: order.getEventId().toString(),
+      });
+      await this.outboxService.addEvent(
+        orderRejectedEvent,
+        orderRejectedEvent.eventType,
+      );
     });
   }
 }

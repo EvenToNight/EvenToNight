@@ -5,7 +5,7 @@ import { UserRepository } from 'src/tickets/domain/repositories/user.repository.
 import { UserDocument } from '../schemas/user.schema';
 import { UserMapper } from '../mappers/user.mapper';
 import { User } from 'src/tickets/domain/aggregates/user.aggregate';
-import { BaseMongoRepository } from './base-mongo.repository';
+import { BaseMongoRepository } from '@libs/ts-common';
 
 @Injectable()
 export class UserRepositoryImpl

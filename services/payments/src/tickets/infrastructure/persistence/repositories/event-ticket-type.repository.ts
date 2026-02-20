@@ -9,7 +9,7 @@ import { PaginatedResult, PaginationParams } from '@libs/ts-common';
 import { Pagination } from '@libs/ts-common';
 import { CurrencyConverter } from '@libs/ts-common';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
-import { BaseMongoRepository } from './base-mongo.repository';
+import { BaseMongoRepository } from '@libs/ts-common';
 
 @Injectable()
 export class EventTicketTypeRepositoryImpl
@@ -64,7 +64,7 @@ export class EventTicketTypeRepositoryImpl
 
     if (!updated) {
       throw new Error(
-        `EventTicketType with id ${ticketType.getId()} not found`,
+        `EventTicketType with id ${ticketType.getId().toString()} not found`,
       );
     }
 
