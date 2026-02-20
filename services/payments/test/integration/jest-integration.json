@@ -1,22 +1,30 @@
 {
   "moduleFileExtensions": ["js", "json", "ts"],
-  "rootDir": ".",
+  "rootDir": "../../",
+  "roots": ["<rootDir>/test/integration"],
   "testEnvironment": "node",
   "testRegex": ".integration.spec.ts$",
   "transform": {
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
-    "^reflect-metadata$": "<rootDir>/../../node_modules/reflect-metadata",
-    "^@nestjs/common(.*)$": "<rootDir>/../../node_modules/@nestjs/common$1",
-    "^@nestjs/core(.*)$": "<rootDir>/../../node_modules/@nestjs/core$1",
-    "^mongoose(.*)$": "<rootDir>/../../node_modules/mongoose$1",
-    "^class-transformer(.*)$": "<rootDir>/../../node_modules/class-transformer$1",
-    "^class-validator(.*)$": "<rootDir>/../../node_modules/class-validator$1",
-    "^@libs/nestjs-common(.*)$": "<rootDir>/../../../../libs/nestjs-common/src$1",
-    "^@libs/ts-common(.*)$": "<rootDir>/../../../../libs/ts-common/src$1",
-    "^src/(.*)$": "<rootDir>/../../src/$1"
+    "^reflect-metadata$": "<rootDir>/node_modules/reflect-metadata",
+    "^@nestjs/common(.*)$": "<rootDir>/node_modules/@nestjs/common$1",
+    "^@nestjs/core(.*)$": "<rootDir>/node_modules/@nestjs/core$1",
+    "^mongoose(.*)$": "<rootDir>/node_modules/mongoose$1",
+    "^class-transformer(.*)$": "<rootDir>/node_modules/class-transformer$1",
+    "^class-validator(.*)$": "<rootDir>/node_modules/class-validator$1",
+    "^@libs/nestjs-common(.*)$": "<rootDir>/../../libs/nestjs-common/src$1",
+    "^@libs/ts-common(.*)$": "<rootDir>/../../libs/ts-common/src$1",
+    "^src/(.*)$": "<rootDir>/src/$1"
   },
+  "collectCoverageFrom": [
+    "<rootDir>/src/**/*.ts",
+    "!<rootDir>/src/**/*.module.ts",
+    "!<rootDir>/src/main.ts",
+    "!<rootDir>/src/**/*.d.ts"
+  ],
+  "coverageDirectory": "<rootDir>/coverage",
   "maxWorkers": 1,
   "testTimeout": 30000
 }
