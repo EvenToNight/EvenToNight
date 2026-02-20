@@ -1,6 +1,7 @@
-export class InvalidTicketStatusValueException extends Error {
+import { DomainValidationException } from './domain-validation.exception';
+
+export class InvalidTicketStatusValueException extends DomainValidationException {
   constructor(value: string) {
     super(`Invalid TicketStatus: ${value}`);
-    this.name = 'InvalidTicketStatusValueException';
   }
 }

@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
+import { DomainExceptionFilter } from './tickets/presentation/filters/domain-exception.filter';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
@@ -50,6 +51,7 @@ async function bootstrap() {
   });
   app.enableCors();
 
+  app.useGlobalFilters(new DomainExceptionFilter());
   app.useGlobalPipes(
     new ValidationPipe({
       transform: true,

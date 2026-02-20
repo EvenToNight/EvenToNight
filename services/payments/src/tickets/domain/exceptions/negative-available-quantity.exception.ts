@@ -1,6 +1,7 @@
-export class NegativeAvailableQuantityException extends Error {
+import { DomainValidationException } from './domain-validation.exception';
+
+export class NegativeAvailableQuantityException extends DomainValidationException {
   constructor() {
     super('Available quantity cannot be negative');
-    this.name = 'NegativeAvailableQuantityException';
   }
 }
