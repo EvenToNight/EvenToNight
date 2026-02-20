@@ -45,6 +45,27 @@ if (
   process.env.RABBITMQ_PASS = envFromRoot['RABBITMQ_PASS'];
 }
 
+async function waitForRabbitMQ(
+  fn: () => Promise<void>,
+  maxRetries?: number,
+): Promise<void> {
+  let attempt = 0;
+  while (maxRetries === undefined || attempt < maxRetries) {
+    try {
+      await fn();
+      return;
+    } catch (err) {
+      if (maxRetries !== undefined && attempt === maxRetries - 1) throw err;
+      const delayMs = Math.min(1000 * Math.pow(2, attempt), 30000);
+      console.warn(
+        `RabbitMQ not ready, retrying in ${delayMs / 1000}s... (attempt ${attempt + 1})`,
+      );
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      attempt++;
+    }
+  }
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
@@ -69,20 +90,22 @@ async function bootstrap() {
 
   const service_queue = 'payments_queue';
 
-  await RabbitMqService.setup({
-    url: rabbitmqUrl,
-    queue: service_queue,
-    routingKeys: [
-      'user.created',
-      'user.updated',
-      'user.deleted',
-      'event.updated',
-      'event.published',
-      'event.completed',
-      'event.cancelled',
-      'event.deleted',
-    ],
-  });
+  await waitForRabbitMQ(() =>
+    RabbitMqService.setup({
+      url: rabbitmqUrl,
+      queue: service_queue,
+      routingKeys: [
+        'user.created',
+        'user.updated',
+        'user.deleted',
+        'event.updated',
+        'event.published',
+        'event.completed',
+        'event.cancelled',
+        'event.deleted',
+      ],
+    }),
+  );
 
   app.connectMicroservice<MicroserviceOptions>({
     transport: Transport.RMQ,
@@ -93,6 +116,10 @@ async function bootstrap() {
       prefetchCount: 1,
       queueOptions: {
         durable: true,
+      },
+      socketOptions: {
+        heartbeatIntervalInSeconds: 10,
+        reconnectTimeInSeconds: 5,
       },
     },
   });

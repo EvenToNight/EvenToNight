@@ -4,27 +4,94 @@ import { RabbitMQConfig } from './types/messaging.types';
 
 export class RabbitMQPublisher implements MessagePublisher {
   private connection: Awaited<ReturnType<typeof amqp.connect>> | undefined;
-  private channel: Awaited<ReturnType<Awaited<ReturnType<typeof amqp.connect>>['createChannel']>> | undefined;
+  private channel:
+    | Awaited<
+        ReturnType<
+          Awaited<ReturnType<typeof amqp.connect>>['createChannel']
+        >
+      >
+    | undefined;
   private readonly exchangeName: string;
+  private savedConfig: RabbitMQConfig = {};
+  private isReconnecting = false;
+  private isStopped = false;
 
   constructor(exchangeName: string = 'eventonight') {
     this.exchangeName = exchangeName;
   }
 
   async connect(config: RabbitMQConfig = {}): Promise<void> {
-    const user = config.user || process.env.RABBITMQ_USER || 'guest';
-    const password = config.password || process.env.RABBITMQ_PASS || 'guest';
-    const host = config.host || process.env.RABBITMQ_HOST || 'localhost';
-    const port = config.port || process.env.RABBITMQ_PORT || '5672';
+    this.savedConfig = config;
+    await this.createConnection();
+  }
 
-    const rabbitUrl = `amqp://${user}:${password}@${host}:${port}`;
+  private buildUrl(): string {
+    const user = this.savedConfig.user || process.env.RABBITMQ_USER || 'guest';
+    const password =
+      this.savedConfig.password || process.env.RABBITMQ_PASS || 'guest';
+    const host =
+      this.savedConfig.host || process.env.RABBITMQ_HOST || 'localhost';
+    const port = this.savedConfig.port || process.env.RABBITMQ_PORT || '5672';
+    return `amqp://${user}:${password}@${host}:${port}`;
+  }
 
-    this.connection = await amqp.connect(rabbitUrl);
+  private async createConnection(): Promise<void> {
+    this.connection = await amqp.connect(this.buildUrl());
+
+    this.connection.on('close', () => {
+      this.connection = undefined;
+      this.channel = undefined;
+      if (!this.isStopped) {
+        this.scheduleReconnect(0);
+      }
+    });
+
+    this.connection.on('error', () => {
+      // 'close' will follow, handled there
+    });
+
+    await this.setupChannel();
+  }
+
+  private async setupChannel(): Promise<void> {
+    if (!this.connection) return;
+
     this.channel = await this.connection.createChannel();
+
+    this.channel.on('close', () => {
+      this.channel = undefined;
+      if (this.connection && !this.isStopped && !this.isReconnecting) {
+        void this.setupChannel().catch(() => {
+          // Connection is also closing; connection.on('close') will handle reconnect
+        });
+      }
+    });
+
+    this.channel.on('error', () => {
+      // 'close' will follow, handled there
+    });
 
     await this.channel.assertExchange(this.exchangeName, 'topic', {
       durable: true,
     });
+  }
+
+  private scheduleReconnect(attempt: number): void {
+    if (this.isReconnecting || this.isStopped) return;
+    this.isReconnecting = true;
+
+    const delayMs = Math.min(1000 * Math.pow(2, attempt), 30000);
+
+    setTimeout(() => {
+      void this.createConnection()
+        .then(() => {
+          this.isReconnecting = false;
+        })
+        .catch(() => {
+          this.isReconnecting = false;
+          this.scheduleReconnect(attempt + 1);
+        });
+    }, delayMs);
   }
 
   publish(event: any, routingKey: string): void {
@@ -43,6 +110,7 @@ export class RabbitMQPublisher implements MessagePublisher {
   }
 
   async disconnect(): Promise<void> {
+    this.isStopped = true;
     await this.channel?.close();
     await this.connection?.close();
   }
