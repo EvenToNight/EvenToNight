@@ -20,11 +20,18 @@
     "start:prod": "node dist/main",
     "lint": "eslint \"{src,apps,libs,test}/**/*.ts\"",
     "lint:fix": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:cov": "jest --coverage",
-    "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
-    "test:e2e": "jest --config ./test/e2e/jest-e2e.json"
+    "pretest": "npm run build:libs",
+    "test": "npm run pretest && jest",
+    "test:cov": "npm run pretest && jest --coverage",
+    "test:unit": "npm run pretest && jest --config ./test/unit/jest-unit.json",
+    "test:unit:watch": "npm run pretest && jest --config ./test/unit/jest-unit.json --watch",
+    "test:unit:cov": "npm run pretest && jest --config ./test/unit/jest-unit.json --coverage",
+    "test:integration": "npm run pretest && jest --config ./test/integration/jest-integration.json",
+    "test:integration:watch": "npm run pretest && jest --config ./test/integration/jest-integration.json --watch",
+    "test:integration:cov": "npm run pretest && jest --config ./test/integration/jest-integration.json --coverage",
+    "test:e2e": "npm run pretest && jest --config ./test/e2e/jest-e2e.json",
+    "test:e2e:watch": "npm run pretest && jest --config ./test/e2e/jest-e2e.json --watch",
+    "test:e2e:cov": "npm run pretest && jest --config ./test/e2e/jest-e2e.json --coverage"
   },
   "dependencies": {
     "@libs/nestjs-common": "file:../../libs/nestjs-common",
@@ -83,35 +90,5 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.7.3",
     "typescript-eslint": "^8.20.0"
-  },
-  "jest": {
-    "moduleFileExtensions": [
-      "js",
-      "json",
-      "ts"
-    ],
-    "rootDir": ".",
-    "testRegex": ".*\\.spec\\.ts$",
-    "transform": {
-      "^.+\\.(t|j)s$": "ts-jest"
-    },
-    "collectCoverageFrom": [
-      "src/**/*.ts",
-      "!src/**/*.module.ts",
-      "!src/main.ts",
-      "!src/**/*.d.ts",
-      "!src/**/*.controller.ts",
-      "!src/**/*.service.ts"
-    ],
-    "coveragePathIgnorePatterns": [
-      "/node_modules/",
-      "/dist/",
-      "/coverage/"
-    ],
-    "coverageDirectory": "./coverage",
-    "testEnvironment": "node",
-    "moduleNameMapper": {
-      "^src/(.*)$": "<rootDir>/src/$1"
-    }
   }
 }
