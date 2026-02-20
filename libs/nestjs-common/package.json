@@ -14,12 +14,14 @@
   "peerDependencies": {
     "@nestjs/common": "^11.0.0",
     "@nestjs/passport": "^11.0.0",
+    "@nestjs/mongoose": "^11.0.0",
     "passport-jwt": "^4.0.0",
     "rxjs": "^7.0.0",
     "@libs/ts-common": "*"
   },
   "devDependencies": {
     "@libs/ts-common": "file:../ts-common",
+    "@nestjs/mongoose": "^11.0.0",
     "@nestjs/passport": "^11.0.5",
     "@types/passport-jwt": "^4.0.1",
     "passport-jwt": "^4.0.1",

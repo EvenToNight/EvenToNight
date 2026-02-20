@@ -2,6 +2,7 @@
 export * from './database/decorators/transactional.decorator';
 export * from './database/mongodb/mongo-transaction.manager';
 export * from './database/mongodb/mongodb.utils';
+export * from './database/mongodb/base-mongo.repository';
 export * from './database/interfaces/transaction-manager.interface';
 
 // Pagination
@@ -23,3 +24,13 @@ export * from './messaging/interfaces/message-publisher.interface';
 
 // Currency
 export * from './currency/currency-converter.utils';
+
+// Outbox
+export * from './outbox/outbox.types';
+export * from './outbox/outbox.repository.interface';
+export * from './outbox/outbox.service.interface';
+export * from './outbox/outbox-relay.service.interface';
+export * from './outbox/outbox-mongo.repository';
+export * from './outbox/outbox.service';
+export * from './outbox/outbox-relay.service';
+export * from './outbox/outbox-change-stream-relay.service';
