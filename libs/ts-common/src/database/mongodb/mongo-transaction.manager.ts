@@ -38,6 +38,11 @@ export class MongoTransactionManager implements TransactionManager {
       return operation();
     }
 
+    // If already inside a transaction, join it (propagation required)
+    if (MongoTransactionManager.getCurrentSession()) {
+      return operation();
+    }
+
     const maxRetries = options.maxRetries ?? 3;
     const baseDelay = options.baseDelay ?? 100;
     const maxDelay = options.maxDelay ?? 5000;
