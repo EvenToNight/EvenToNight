@@ -159,6 +159,7 @@ export class StripeService implements PaymentService {
         sessionId: session.id,
         type: event.type,
         orderId: session.metadata?.orderId || '',
+        paymentIntentId: (session.payment_intent as string) || '',
       };
     } catch (error) {
       this.logger.error('Failed to construct webhook event', error);

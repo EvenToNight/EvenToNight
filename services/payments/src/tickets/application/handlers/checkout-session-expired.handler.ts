@@ -5,7 +5,12 @@ import { OrderService } from '../services/order.service';
 import { Order } from 'src/tickets/domain/aggregates/order.aggregate';
 import { OrderRejectedEvent } from 'src/tickets/domain/events/order-rejected.event';
 import { OutboxService } from '@libs/nestjs-common';
-import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
+import {
+  TRANSACTION_MANAGER,
+  Transactional,
+  type TransactionManager,
+} from '@libs/ts-common';
+import { OrderNotFoundException } from 'src/tickets/domain/exceptions/order-not-found-exception';
 
 /**
  * Handler for Checkout Session Expired Event (Saga Compensation)
@@ -32,21 +37,19 @@ export class CheckoutSessionExpiredHandler {
     private readonly outboxService: OutboxService,
   ) {}
 
+  @Transactional()
   async handle(
     sessionId: string,
     orderId: string,
     reason?: string,
   ): Promise<void> {
     this.logger.log(`Handling checkout session expired: ${sessionId}`);
-    const order = await this.orderService.findById(orderId);
-    //TODO: publish some events? reason is needed?
     if (reason) {
-      this.logger.log(`Reason for expiration: ${reason}`);
+      this.logger.warn(`Session expired due to: ${reason}`);
     }
-    //TODO handle order not found and update order status
+    const order = await this.orderService.findById(orderId);
     if (!order) {
-      this.logger.warn(`Order ${orderId} not found`);
-      throw new Error(`Order ${orderId} not found`);
+      throw new OrderNotFoundException(orderId);
     }
     const ticketIds = order.getTicketIds().map((id) => id.toString());
 

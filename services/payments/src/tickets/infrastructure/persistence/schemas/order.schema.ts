@@ -30,6 +30,9 @@ export class OrderDocument {
 
   @Prop({ required: true })
   createdAt: Date;
+
+  @Prop()
+  paymentIntentId: string;
 }
 
 export type OrderDocumentType = HydratedDocument<OrderDocument>;

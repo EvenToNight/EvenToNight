@@ -5,7 +5,12 @@ import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
 import { OutboxService } from '@libs/nestjs-common';
 import { OrderConfirmedEvent } from 'src/tickets/domain/events/order-confirmed.event';
-import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
+import {
+  TRANSACTION_MANAGER,
+  Transactional,
+  type TransactionManager,
+} from '@libs/ts-common';
+import { OrderNotFoundException } from 'src/tickets/domain/exceptions/order-not-found-exception';
 
 /**
  * Handler for Checkout Session Completed Event (Saga Phase 2)
@@ -31,15 +36,20 @@ export class CheckoutSessionCompletedHandler {
     private readonly outboxService: OutboxService,
   ) {}
 
-  async handle(sessionId: string, orderId: string): Promise<void> {
+  @Transactional()
+  async handle(
+    sessionId: string,
+    orderId: string,
+    paymentIntentId: string,
+  ): Promise<void> {
     this.logger.log(`Handling checkout session completed: ${sessionId}`);
 
     const order = await this.orderService.findById(orderId);
-    //TODO handle order not found and update order status
     if (!order) {
-      this.logger.warn(`Order ${orderId} not found`);
-      throw new Error(`Order ${orderId} not found`);
+      throw new OrderNotFoundException(orderId);
     }
+    order.setPaymentIntentId(paymentIntentId);
+    await this.orderService.update(order);
     try {
       const confirmedTickets = await this.confirmTicketPaymentAndPublish(
         order.getTicketIds().map((id) => id.toString()),

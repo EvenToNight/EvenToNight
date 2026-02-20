@@ -34,4 +34,5 @@ export interface WebhookEvent {
   sessionId: string;
   type: string;
   orderId: string;
+  paymentIntentId: string;
 }

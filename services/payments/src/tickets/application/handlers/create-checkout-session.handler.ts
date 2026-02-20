@@ -207,6 +207,7 @@ export class CreateCheckoutSessionHandler {
       await this.checkoutCompletedHandler.handle(
         'cs_test_dev_session',
         order.getId().toString(),
+        'pi_test_dev_payment_intent',
       );
       this.logger.log('Mock checkout session created');
       return {

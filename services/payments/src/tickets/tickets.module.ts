@@ -69,7 +69,6 @@ import { Connection } from 'mongoose';
 // Controllers
 import { EventTicketTypesController } from './presentation/controllers/event-ticket-types.controller';
 import { CheckoutSessionsController } from './presentation/controllers/checkout-sessions.controller';
-import { MockedStripeWebhookController } from './presentation/controllers/mocked-stripe-webhook.controller';
 import { StripeWebhookController } from './presentation/controllers/stripe-webhook.controller';
 import { TicketsController } from './presentation/controllers/tickets.controller';
 import { OrderController } from './presentation/controllers/order-controller';
@@ -104,7 +103,6 @@ import { UserService } from './application/services/user.service';
   controllers: [
     EventTicketTypesController,
     CheckoutSessionsController,
-    MockedStripeWebhookController,
     StripeWebhookController,
     TicketsController,
     OrderController,

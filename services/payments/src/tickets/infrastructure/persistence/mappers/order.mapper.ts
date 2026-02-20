@@ -15,6 +15,7 @@ export class OrderMapper {
       ticketIds: document.ticketIds.map((id) => TicketId.fromString(id)),
       status: OrderStatus.fromString(document.status),
       createdAt: document.createdAt,
+      paymentIntentId: document.paymentIntentId,
     });
   }
 
@@ -26,6 +27,7 @@ export class OrderMapper {
       ticketIds: order.getTicketIds().map((id) => id.toString()),
       status: order.getStatus().toString(),
       createdAt: order.getCreatedAt(),
+      paymentIntentId: order.getPaymentIntentId(),
     };
   }
 }
