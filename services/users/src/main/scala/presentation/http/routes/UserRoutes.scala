@@ -17,7 +17,7 @@ import domain.service.UserQueryService
 import domain.service.UserService
 import infrastructure.Wiring.mediaBaseUrl
 import infrastructure.keycloak.KeycloakJwtVerifier.extractSub
-import infrastructure.rabbitmq.EventPublisher
+import infrastructure.messaging.EventPublisher
 import io.circe.Json
 import io.circe.generic.auto._
 import io.circe.syntax._

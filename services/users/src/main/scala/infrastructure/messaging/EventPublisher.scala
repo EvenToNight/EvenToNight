@@ -1,4 +1,4 @@
-package infrastructure.rabbitmq
+package infrastructure.messaging
 
 import com.rabbitmq.client.AMQP
 import domain.events.DomainEvent
@@ -14,22 +14,24 @@ given eventEnvelopeEncoder[T <: DomainEvent](using enc: Encoder[T]): Encoder[Eve
 
 import java.time.Instant
 import scala.jdk.CollectionConverters._
+import commons.rabbitmq.RabbitClient
 
 trait EventPublisher:
   def publish(event: DomainEvent): Unit
 
 object EventPublisher:
-  def apply(mock: Boolean = false): EventPublisher =
-    if mock then new MockEventPublisher()
-    else new RabbitEventPublisher()
+  def apply(client: RabbitClient, exchangeName: String): EventPublisher =
+    new RabbitEventPublisher(client, exchangeName)
+  def mock(): EventPublisher =
+    new MockEventPublisher()
 
 class MockEventPublisher extends EventPublisher:
-  override def publish(event: DomainEvent): Unit =
+  override def publish(event: DomainEvent) =
     println(s"[RABBITMQ MOCK] Published domain event: ${event.getClass.getSimpleName}")
 
-class RabbitEventPublisher() extends EventPublisher:
-  val exchangeName: String = RabbitConnection.exchangeName
+class RabbitEventPublisher(client: RabbitClient, exchangeName: String) extends EventPublisher:
   override def publish(event: DomainEvent): Unit =
+    val channel = client.createChannel()
     try
       val key = routingKey(event)
       val envelope = EventEnvelope(
@@ -52,7 +54,7 @@ class RabbitEventPublisher() extends EventPublisher:
         )
         .build()
 
-      RabbitConnection.channel.basicPublish(
+      channel.basicPublish(
         exchangeName,
         key,
         props,
@@ -65,21 +67,10 @@ class RabbitEventPublisher() extends EventPublisher:
       case e: Exception =>
         println(s"[RABBITMQ] Error publishing event: ${e.getMessage}")
 
+    finally
+      if channel != null && channel.isOpen then channel.close()
+
   private def routingKey(event: DomainEvent): String = event match
     case _: UserCreated => "user.created"
     case _: UserUpdated => "user.updated"
     case _: UserDeleted => "user.deleted"
-
-  def close(): Unit =
-    try
-      if RabbitConnection.channel != null && RabbitConnection.channel.isOpen then RabbitConnection.channel.close()
-      if RabbitConnection.connection != null && RabbitConnection.connection.isOpen then
-        RabbitConnection.connection.close()
-      println("[RABBITMQ] Connection closed")
-    catch
-      case e: Exception =>
-        println(s"[RABBITMQ] Error closing connection: ${e.getMessage}")
-
-  sys.addShutdownHook {
-    close()
-  }

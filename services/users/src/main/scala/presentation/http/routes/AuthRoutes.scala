@@ -12,7 +12,7 @@ import domain.service.UserService
 import infrastructure.keycloak.KeycloakJwtVerifier.extractUserId
 import infrastructure.keycloak.KeycloakJwtVerifier.refreshPublicKeys
 import infrastructure.keycloak.KeycloakJwtVerifier.verifyToken
-import infrastructure.rabbitmq.EventPublisher
+import infrastructure.messaging.EventPublisher
 import io.circe.syntax._
 import presentation.http.dto.request.auth.LoginRequestDTO
 import presentation.http.dto.request.auth.LogoutRequestDTO
