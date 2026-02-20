@@ -7,7 +7,12 @@
     "^.+\\.(t|j)s$": "ts-jest"
   },
   "moduleNameMapper": {
+    "^@nestjs/common(.*)$": "<rootDir>/../../node_modules/@nestjs/common$1",
+    "^mongoose(.*)$": "<rootDir>/../../node_modules/mongoose$1",
+    "^class-transformer(.*)$": "<rootDir>/../../node_modules/class-transformer$1",
+    "^class-validator(.*)$": "<rootDir>/../../node_modules/class-validator$1",
     "^src/(.*)$": "<rootDir>/../../src/$1"
   },
-  "maxWorkers": 1
+  "maxWorkers": 1,
+  "testTimeout": 30000
 }

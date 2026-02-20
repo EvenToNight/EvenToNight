@@ -1,21 +1,21 @@
 process.env.NODE_ENV = 'development';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MongooseModule } from '@nestjs/mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PAYMENT_SERVICE } from 'src/tickets/domain/services/payment.service.interface';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher, OutboxRelayService } from '@libs/nestjs-common';
 import { AppModule } from 'src/app.module';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { PaginatedResponseDto } from 'src/commons/application/dto/paginated-response.dto';
+import { PaginatedResponseDto } from '@libs/nestjs-common';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
+import { EventTicketTypeId } from 'src/tickets/domain/value-objects/event-ticket-type-id.vo';
 import { TicketDocument } from 'src/tickets/infrastructure/persistence/schemas/ticket.schema';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
-import { generateFakeToken, ONE_HOUR } from 'src/commons/utils/authUtils';
+import { generateFakeToken, ONE_HOUR } from '@libs/ts-common';
 
 describe('UserController (e2e)', () => {
   let app: INestApplication<App>;
@@ -27,16 +27,11 @@ describe('UserController (e2e)', () => {
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
+    process.env.MONGO_URI = mongoUri;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideModule(MongooseModule)
-      .useModule(
-        MongooseModule.forRoot(mongoUri, {
-          dbName: 'test',
-        }),
-      )
       .overrideProvider(PAYMENT_SERVICE)
       .useValue({
         createCheckoutSession: jest.fn(),
@@ -48,6 +43,8 @@ describe('UserController (e2e)', () => {
         onModuleDestroy: jest.fn(),
         publish: jest.fn(),
       })
+      .overrideProvider(OutboxRelayService)
+      .useValue({})
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -125,7 +122,7 @@ describe('UserController (e2e)', () => {
               eventId: EventId.fromString(`event-${i}`),
               userId: UserId.fromString(userId),
               attendeeName: `Attendee ${i}`,
-              ticketTypeId: `type-${i}`,
+              ticketTypeId: EventTicketTypeId.fromString(`type-${i}`),
               price: Money.fromAmount(i, 'USD'),
             }),
           );

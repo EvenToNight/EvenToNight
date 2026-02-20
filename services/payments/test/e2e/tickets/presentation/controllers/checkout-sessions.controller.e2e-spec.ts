@@ -1,23 +1,26 @@
 process.env.NODE_ENV = 'development';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MongooseModule } from '@nestjs/mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import {
   PAYMENT_SERVICE,
   PaymentService,
 } from 'src/tickets/domain/services/payment.service.interface';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher, OutboxRelayService } from '@libs/nestjs-common';
 import { AppModule } from 'src/app.module';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { EventTicketTypeService } from 'src/tickets/application/services/event-ticket-type.service';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { OrderService } from 'src/tickets/application/services/order.service';
+import { EventService } from 'src/tickets/application/services/event.service';
+import { getModelToken } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { UserDocument } from 'src/tickets/infrastructure/persistence/schemas/user.schema';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
-import { generateFakeToken, ONE_YEAR } from 'src/commons/utils/authUtils';
+import { generateFakeToken, ONE_YEAR } from '@libs/ts-common';
 import { CreateCheckoutSessionDto } from 'src/tickets/application/dto/create-checkout-session.dto';
 import { CheckoutSession } from 'src/tickets/domain/types/payment-service.types';
 
@@ -27,6 +30,8 @@ describe('CheckoutSessionsController (e2e)', () => {
   let eventTicketTypeService: EventTicketTypeService;
   let ticketService: TicketService;
   let orderService: OrderService;
+  let eventService: EventService;
+  let userModel: Model<UserDocument>;
   let mockPaymentService: jest.Mocked<PaymentService>;
 
   const userId = 'test-user-id';
@@ -37,6 +42,7 @@ describe('CheckoutSessionsController (e2e)', () => {
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
+    process.env.MONGO_URI = mongoUri;
 
     mockPaymentService = {
       createCheckoutSessionWithItems: jest.fn(),
@@ -48,12 +54,6 @@ describe('CheckoutSessionsController (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideModule(MongooseModule)
-      .useModule(
-        MongooseModule.forRoot(mongoUri, {
-          dbName: 'test',
-        }),
-      )
       .overrideProvider(PAYMENT_SERVICE)
       .useValue(mockPaymentService)
       .overrideProvider(EventPublisher)
@@ -62,6 +62,8 @@ describe('CheckoutSessionsController (e2e)', () => {
         onModuleDestroy: jest.fn(),
         publish: jest.fn(),
       })
+      .overrideProvider(OutboxRelayService)
+      .useValue({})
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -79,6 +81,10 @@ describe('CheckoutSessionsController (e2e)', () => {
     );
     ticketService = moduleFixture.get<TicketService>(TicketService);
     orderService = moduleFixture.get<OrderService>(OrderService);
+    eventService = moduleFixture.get<EventService>(EventService);
+    userModel = moduleFixture.get<Model<UserDocument>>(
+      getModelToken(UserDocument.name),
+    );
   });
 
   afterAll(async () => {
@@ -90,7 +96,16 @@ describe('CheckoutSessionsController (e2e)', () => {
     await ticketService.deleteAll();
     await orderService.deleteAll();
     await eventTicketTypeService.deleteAll();
+    await eventService.deleteAll();
+    await userModel.deleteMany({});
     jest.clearAllMocks();
+    await eventService.createOrUpdate(
+      eventId,
+      'creator-id',
+      'PUBLISHED',
+      new Date(),
+    );
+    await userModel.create({ _id: userId, language: 'en' });
 
     const ticketType = await eventTicketTypeService.create({
       eventId: EventId.fromString(eventId),
@@ -100,7 +115,7 @@ describe('CheckoutSessionsController (e2e)', () => {
       availableQuantity: 100,
       soldQuantity: 0,
     });
-    ticketTypeId = ticketType.getId();
+    ticketTypeId = ticketType.getId().toString();
     dto = {
       userId,
       items: [
@@ -148,7 +163,9 @@ describe('CheckoutSessionsController (e2e)', () => {
         const order = await orderService.findById(orderId);
         expect(order).not.toBeNull();
         expect(order?.getTicketIds()).toHaveLength(2);
-        const tickets = await ticketService.findByIds(order!.getTicketIds());
+        const tickets = await ticketService.findByIds(
+          order!.getTicketIds().map((id) => id.toString()),
+        );
         expect(tickets).toHaveLength(2);
         for (const ticket of tickets) {
           expect(ticket.isPendingPayment()).toBe(true);
@@ -199,7 +216,9 @@ describe('CheckoutSessionsController (e2e)', () => {
 
           const order = await orderService.findById(orderId);
           expect(order?.isCancelled()).toBe(true);
-          const tickets = await ticketService.findByIds(order!.getTicketIds());
+          const tickets = await ticketService.findByIds(
+            order!.getTicketIds().map((id) => id.toString()),
+          );
           for (const ticket of tickets) {
             expect(ticket.isPaymentFailed()).toBe(true);
           }

@@ -1,10 +1,9 @@
 process.env.NODE_ENV = 'development';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MongooseModule } from '@nestjs/mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PAYMENT_SERVICE } from 'src/tickets/domain/services/payment.service.interface';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher, OutboxRelayService } from '@libs/nestjs-common';
 import { AppModule } from 'src/app.module';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -17,7 +16,7 @@ import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 import { EventService } from 'src/tickets/application/services/event.service';
-import { generateFakeToken, ONE_YEAR } from 'src/commons/utils/authUtils';
+import { generateFakeToken, ONE_YEAR } from '@libs/ts-common';
 
 describe('EventController (e2e)', () => {
   let app: INestApplication<App>;
@@ -34,16 +33,11 @@ describe('EventController (e2e)', () => {
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
+    process.env.MONGO_URI = mongoUri;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideModule(MongooseModule)
-      .useModule(
-        MongooseModule.forRoot(mongoUri, {
-          dbName: 'test',
-        }),
-      )
       .overrideProvider(PAYMENT_SERVICE)
       .useValue({
         createCheckoutSessionWithItems: jest.fn(),
@@ -57,6 +51,8 @@ describe('EventController (e2e)', () => {
         onModuleDestroy: jest.fn(),
         publish: jest.fn(),
       })
+      .overrideProvider(OutboxRelayService)
+      .useValue({})
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -124,7 +120,7 @@ describe('EventController (e2e)', () => {
       price: Money.fromAmount(1, 'USD'),
       status: TicketStatus.ACTIVE,
     });
-    soldTicketsIds.push(soldTicket.getId());
+    soldTicketsIds.push(soldTicket.getId().toString());
   });
   describe('GET /events/:eventId/ticket-types', () => {
     describe('Given no ticket types for the event', () => {

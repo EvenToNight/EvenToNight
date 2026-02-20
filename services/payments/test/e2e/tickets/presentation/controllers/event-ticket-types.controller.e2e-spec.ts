@@ -1,10 +1,9 @@
 process.env.NODE_ENV = 'development';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MongooseModule } from '@nestjs/mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PAYMENT_SERVICE } from 'src/tickets/domain/services/payment.service.interface';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher, OutboxRelayService } from '@libs/nestjs-common';
 import { AppModule } from 'src/app.module';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -15,8 +14,9 @@ import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
+import { EventTicketTypeId } from 'src/tickets/domain/value-objects/event-ticket-type-id.vo';
 import { EventService } from 'src/tickets/application/services/event.service';
-import { generateFakeToken, ONE_YEAR } from 'src/commons/utils/authUtils';
+import { generateFakeToken, ONE_YEAR } from '@libs/ts-common';
 
 describe('EventTicketTypesController (e2e)', () => {
   let app: INestApplication<App>;
@@ -33,16 +33,11 @@ describe('EventTicketTypesController (e2e)', () => {
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
+    process.env.MONGO_URI = mongoUri;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideModule(MongooseModule)
-      .useModule(
-        MongooseModule.forRoot(mongoUri, {
-          dbName: 'test',
-        }),
-      )
       .overrideProvider(PAYMENT_SERVICE)
       .useValue({
         createCheckoutSessionWithItems: jest.fn(),
@@ -56,6 +51,8 @@ describe('EventTicketTypesController (e2e)', () => {
         onModuleDestroy: jest.fn(),
         publish: jest.fn(),
       })
+      .overrideProvider(OutboxRelayService)
+      .useValue({})
       .compile();
 
     app = moduleFixture.createNestApplication();
@@ -100,16 +97,16 @@ describe('EventTicketTypesController (e2e)', () => {
       availableQuantity: 100,
       soldQuantity: 5,
     });
-    ticketTypeId = ticketType.getId();
+    ticketTypeId = ticketType.getId().toString();
     const soldTicket = await ticketService.create({
       eventId: EventId.fromString(eventId),
       userId: UserId.fromString('user-1'),
       attendeeName: `Attendee 1`,
-      ticketTypeId: ticketTypeId,
+      ticketTypeId: EventTicketTypeId.fromString(ticketTypeId),
       price: Money.fromAmount(1, 'USD'),
       status: TicketStatus.ACTIVE,
     });
-    soldTicketsIds.push(soldTicket.getId());
+    soldTicketsIds.push(soldTicket.getId().toString());
   });
 
   describe('GET /ticket-types/values', () => {

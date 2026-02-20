@@ -5,22 +5,21 @@ import {
   ValidationPipe,
 } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MongooseModule } from '@nestjs/mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { PAYMENT_SERVICE } from 'src/tickets/domain/services/payment.service.interface';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher, OutboxRelayService } from '@libs/nestjs-common';
 import { AppModule } from 'src/app.module';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
-import { JwtAuthGuard } from 'src/commons/infrastructure/auth/jwt-auth.guard';
-import { generateFakeToken, ONE_HOUR } from 'src/commons/utils/authUtils';
+import { JwtAuthGuard } from '@libs/nestjs-common';
+import { generateFakeToken, ONE_HOUR } from '@libs/ts-common';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
+import { EventTicketTypeId } from 'src/tickets/domain/value-objects/event-ticket-type-id.vo';
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import { EventService } from 'src/tickets/application/services/event.service';
-import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 
 const createMockGuard = (mockUserId: string) => ({
@@ -48,16 +47,11 @@ describe('TicketsController (e2e)', () => {
     beforeAll(async () => {
       mongod = await MongoMemoryServer.create();
       const mongoUri = mongod.getUri();
+      process.env.MONGO_URI = mongoUri;
 
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [AppModule],
       })
-        .overrideModule(MongooseModule)
-        .useModule(
-          MongooseModule.forRoot(mongoUri, {
-            dbName: 'test',
-          }),
-        )
         .overrideProvider(PAYMENT_SERVICE)
         .useValue({
           createCheckoutSession: jest.fn(),
@@ -69,6 +63,8 @@ describe('TicketsController (e2e)', () => {
           onModuleDestroy: jest.fn(),
           publish: jest.fn(),
         })
+        .overrideProvider(OutboxRelayService)
+        .useValue({})
         .compile();
 
       app = moduleFixture.createNestApplication();
@@ -123,7 +119,7 @@ describe('TicketsController (e2e)', () => {
             eventId: EventId.fromString(eventId),
             userId: UserId.fromString(userId),
             attendeeName: `Attendee 1`,
-            ticketTypeId: `type-1`,
+            ticketTypeId: EventTicketTypeId.fromString('type-1'),
             price: Money.fromAmount(1, 'USD'),
             status: TicketStatus.ACTIVE,
           });
@@ -137,7 +133,7 @@ describe('TicketsController (e2e)', () => {
         describe('When the user owner requests the ticket details', () => {
           it('Then returns the ticket details', async () => {
             const res = await request(app.getHttpServer())
-              .get(`/tickets/${ticket.getId()}`)
+              .get(`/tickets/${ticket.getId().toString()}`)
               .set(
                 'Authorization',
                 `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
@@ -145,11 +141,11 @@ describe('TicketsController (e2e)', () => {
               .expect(200);
 
             expect(res.body).toMatchObject({
-              id: ticket.getId(),
-              userId: ticket.getUserId(),
-              eventId: ticket.getEventId(),
+              id: ticket.getId().toString(),
+              userId: ticket.getUserId().toString(),
+              eventId: ticket.getEventId().toString(),
               attendeeName: ticket.getAttendeeName(),
-              ticketTypeId: ticket.getTicketTypeId(),
+              ticketTypeId: ticket.getTicketTypeId().toString(),
               price: ticket.getPrice(),
               status: ticket.getStatus(),
             });
@@ -158,7 +154,7 @@ describe('TicketsController (e2e)', () => {
         describe('When a different user requests the ticket details', () => {
           it('Then returns 403 Forbidden', async () => {
             await request(app.getHttpServer())
-              .get(`/tickets/${ticket.getId()}`)
+              .get(`/tickets/${ticket.getId().toString()}`)
               .set(
                 'Authorization',
                 `Bearer ${generateFakeToken(anotherUserId, ONE_HOUR)}`,
@@ -171,7 +167,7 @@ describe('TicketsController (e2e)', () => {
             it('Then update ticket status to USED', async () => {
               expect(ticket.isActive()).toBe(true);
               const response = await request(app.getHttpServer())
-                .patch(`/tickets/${ticket.getId()}`)
+                .patch(`/tickets/${ticket.getId().toString()}`)
                 .set(
                   'Authorization',
                   `Bearer ${generateFakeToken(eventCreatorId, ONE_HOUR)}`,
@@ -188,7 +184,7 @@ describe('TicketsController (e2e)', () => {
             it('Then update ticket status to USED', async () => {
               expect(ticket.isActive()).toBe(true);
               const response = await request(app.getHttpServer())
-                .patch(`/tickets/${ticket.getId()}`)
+                .patch(`/tickets/${ticket.getId().toString()}`)
                 .set(
                   'Authorization',
                   `Bearer ${generateFakeToken(eventCreatorId, ONE_HOUR)}`,
@@ -204,7 +200,7 @@ describe('TicketsController (e2e)', () => {
           describe('When a body with other values is provided', () => {
             it('Then returns 400 Bad Request', async () => {
               await request(app.getHttpServer())
-                .patch(`/tickets/${ticket.getId()}`)
+                .patch(`/tickets/${ticket.getId().toString()}`)
                 .set(
                   'Authorization',
                   `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
@@ -217,7 +213,7 @@ describe('TicketsController (e2e)', () => {
         describe('When the user owner modifies the ticket', () => {
           it('Then returns 403 Forbidden', async () => {
             await request(app.getHttpServer())
-              .patch(`/tickets/${ticket.getId()}`)
+              .patch(`/tickets/${ticket.getId().toString()}`)
               .set(
                 'Authorization',
                 `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
@@ -229,7 +225,7 @@ describe('TicketsController (e2e)', () => {
         describe('When another user modifies the ticket', () => {
           it('Then returns 403 Forbidden', async () => {
             await request(app.getHttpServer())
-              .patch(`/tickets/${ticket.getId()}`)
+              .patch(`/tickets/${ticket.getId().toString()}`)
               .set(
                 'Authorization',
                 `Bearer ${generateFakeToken(anotherUserId, ONE_HOUR)}`,
@@ -253,7 +249,7 @@ describe('TicketsController (e2e)', () => {
         describe('When modifying the ticket without token', () => {
           it('returns 401 Unauthorized', async () => {
             await request(app.getHttpServer())
-              .patch(`/tickets/${ticket.getId()}`)
+              .patch(`/tickets/${ticket.getId().toString()}`)
               .send()
               .expect(401);
           });
@@ -265,16 +261,11 @@ describe('TicketsController (e2e)', () => {
     beforeAll(async () => {
       mongod = await MongoMemoryServer.create();
       const mongoUri = mongod.getUri();
+      process.env.MONGO_URI = mongoUri;
 
       const moduleFixture: TestingModule = await Test.createTestingModule({
         imports: [AppModule],
       })
-        .overrideModule(MongooseModule)
-        .useModule(
-          MongooseModule.forRoot(mongoUri, {
-            dbName: 'test',
-          }),
-        )
         .overrideProvider(PAYMENT_SERVICE)
         .useValue({
           createCheckoutSession: jest.fn(),
@@ -288,6 +279,8 @@ describe('TicketsController (e2e)', () => {
         })
         .overrideGuard(JwtAuthGuard)
         .useValue(createMockGuard(userId))
+        .overrideProvider(OutboxRelayService)
+        .useValue({})
         .compile();
 
       // .useValue({ canActivate: () => true })

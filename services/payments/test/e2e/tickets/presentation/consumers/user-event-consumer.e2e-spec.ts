@@ -1,10 +1,10 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MongooseModule, getModelToken } from '@nestjs/mongoose';
+import { getModelToken } from '@nestjs/mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { Model } from 'mongoose';
 import { PAYMENT_SERVICE } from 'src/tickets/domain/services/payment.service.interface';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher, OutboxRelayService } from '@libs/nestjs-common';
 import { UserEventConsumer } from 'src/tickets/presentation/consumers/user-event.consumer';
 import { UserDocument } from 'src/tickets/infrastructure/persistence/schemas/user.schema';
 import type { RmqContext } from '@nestjs/microservices';
@@ -30,16 +30,11 @@ describe('UserEventConsumer (e2e)', () => {
 
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
+    process.env.MONGO_URI = mongoUri;
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideModule(MongooseModule)
-      .useModule(
-        MongooseModule.forRoot(mongoUri, {
-          dbName: 'test',
-        }),
-      )
       .overrideProvider(PAYMENT_SERVICE)
       .useValue({
         createCheckoutSession: jest.fn(),
@@ -51,6 +46,8 @@ describe('UserEventConsumer (e2e)', () => {
         onModuleDestroy: jest.fn(),
         publish: jest.fn(),
       })
+      .overrideProvider(OutboxRelayService)
+      .useValue({})
       .compile();
 
     app = moduleFixture.createNestApplication();

@@ -1,13 +1,12 @@
 process.env.NODE_ENV = 'development';
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
-import { MongooseModule } from '@nestjs/mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import {
   PAYMENT_SERVICE,
   PaymentService,
 } from 'src/tickets/domain/services/payment.service.interface';
-import { EventPublisher } from 'src/commons/intrastructure/messaging/event-publisher';
+import { EventPublisher, OutboxRelayService } from '@libs/nestjs-common';
 import { AppModule } from 'src/app.module';
 import request from 'supertest';
 import { App } from 'supertest/types';
@@ -20,6 +19,8 @@ import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import { WebhookEvent } from 'src/tickets/domain/types/payment-service.types';
 import { Order } from 'src/tickets/domain/aggregates/order.aggregate';
 import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
+import { TicketId } from 'src/tickets/domain/value-objects/ticket-id.vo';
+import { EventTicketTypeId } from 'src/tickets/domain/value-objects/event-ticket-type-id.vo';
 
 describe('StripeWebhookController (e2e)', () => {
   let app: INestApplication<App>;
@@ -36,6 +37,7 @@ describe('StripeWebhookController (e2e)', () => {
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
+    process.env.MONGO_URI = mongoUri;
 
     mockPaymentService = {
       createCheckoutSessionWithItems: jest.fn(),
@@ -47,12 +49,6 @@ describe('StripeWebhookController (e2e)', () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
       imports: [AppModule],
     })
-      .overrideModule(MongooseModule)
-      .useModule(
-        MongooseModule.forRoot(mongoUri, {
-          dbName: 'test',
-        }),
-      )
       .overrideProvider(PAYMENT_SERVICE)
       .useValue(mockPaymentService)
       .overrideProvider(EventPublisher)
@@ -61,6 +57,8 @@ describe('StripeWebhookController (e2e)', () => {
         onModuleDestroy: jest.fn(),
         publish: jest.fn(),
       })
+      .overrideProvider(OutboxRelayService)
+      .useValue({})
       .compile();
 
     app = moduleFixture.createNestApplication({
@@ -143,30 +141,33 @@ describe('StripeWebhookController (e2e)', () => {
           availableQuantity: availableQuantity,
           soldQuantity: soldQuantity,
         });
-        ticketTypeId = ticketType.getId();
+        ticketTypeId = ticketType.getId().toString();
 
         const ticket1 = await ticketService.create({
           eventId: EventId.fromString(eventId),
           userId: UserId.fromString(userId),
           attendeeName: 'John Doe',
-          ticketTypeId: ticketTypeId,
+          ticketTypeId: EventTicketTypeId.fromString(ticketTypeId),
           price: Money.fromAmount(50, 'USD'),
         });
-        ticket1Id = ticket1.getId();
+        ticket1Id = ticket1.getId().toString();
 
         const ticket2 = await ticketService.create({
           eventId: EventId.fromString(eventId),
           userId: UserId.fromString(userId),
           attendeeName: 'Jane Doe',
-          ticketTypeId: ticketTypeId,
+          ticketTypeId: EventTicketTypeId.fromString(ticketTypeId),
           price: Money.fromAmount(50, 'USD'),
         });
-        ticket2Id = ticket2.getId();
+        ticket2Id = ticket2.getId().toString();
 
         order = Order.createPending({
           userId: UserId.fromString(userId),
           eventId: EventId.fromString(eventId),
-          ticketIds: [ticket1Id, ticket2Id],
+          ticketIds: [
+            TicketId.fromString(ticket1Id),
+            TicketId.fromString(ticket2Id),
+          ],
         });
         await orderService.save(order);
       });
@@ -175,7 +176,7 @@ describe('StripeWebhookController (e2e)', () => {
           const webhookEvent: WebhookEvent = {
             sessionId,
             type: 'checkout.session.completed',
-            orderId: order.getId(),
+            orderId: order.getId().toString(),
           };
 
           mockPaymentService.constructWebhookEvent.mockReturnValue(
@@ -190,7 +191,9 @@ describe('StripeWebhookController (e2e)', () => {
 
           expect(res.body).toEqual({ received: true });
 
-          const updatedOrder = await orderService.findById(order.getId());
+          const updatedOrder = await orderService.findById(
+            order.getId().toString(),
+          );
           expect(updatedOrder?.isCompleted()).toBe(true);
           const updatedTicket1 = await ticketService.findById(ticket1Id);
           expect(updatedTicket1?.isActive()).toBe(true);
@@ -204,7 +207,7 @@ describe('StripeWebhookController (e2e)', () => {
           const webhookEvent: WebhookEvent = {
             sessionId,
             type: 'checkout.session.expired',
-            orderId: order.getId(),
+            orderId: order.getId().toString(),
           };
 
           mockPaymentService.constructWebhookEvent.mockReturnValue(
@@ -219,7 +222,9 @@ describe('StripeWebhookController (e2e)', () => {
 
           expect(res.body).toEqual({ received: true });
 
-          const updatedOrder = await orderService.findById(order.getId());
+          const updatedOrder = await orderService.findById(
+            order.getId().toString(),
+          );
           expect(updatedOrder?.isCancelled()).toBe(true);
           const updatedTicket1 = await ticketService.findById(ticket1Id);
           expect(updatedTicket1?.isPaymentFailed()).toBe(true);
@@ -239,7 +244,7 @@ describe('StripeWebhookController (e2e)', () => {
           const webhookEvent: WebhookEvent = {
             sessionId,
             type: 'payment_intent.succeeded',
-            orderId: order.getId(),
+            orderId: order.getId().toString(),
           };
 
           mockPaymentService.constructWebhookEvent.mockReturnValue(
