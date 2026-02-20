@@ -35,6 +35,9 @@ describe('StripeWebhookController (e2e)', () => {
   const sessionId = 'test-session-id';
 
   beforeAll(async () => {
+    jest.spyOn(console, 'warn').mockImplementation();
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
     process.env.MONGO_URI = mongoUri;
@@ -64,6 +67,7 @@ describe('StripeWebhookController (e2e)', () => {
     app = moduleFixture.createNestApplication({
       rawBody: true,
     });
+    app.useLogger(false);
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
@@ -177,6 +181,7 @@ describe('StripeWebhookController (e2e)', () => {
             sessionId,
             type: 'checkout.session.completed',
             orderId: order.getId().toString(),
+            paymentIntentId: 'pi_test_123',
           };
 
           mockPaymentService.constructWebhookEvent.mockReturnValue(
@@ -208,6 +213,7 @@ describe('StripeWebhookController (e2e)', () => {
             sessionId,
             type: 'checkout.session.expired',
             orderId: order.getId().toString(),
+            paymentIntentId: 'pi_test_123',
           };
 
           mockPaymentService.constructWebhookEvent.mockReturnValue(
@@ -245,6 +251,7 @@ describe('StripeWebhookController (e2e)', () => {
             sessionId,
             type: 'payment_intent.succeeded',
             orderId: order.getId().toString(),
+            paymentIntentId: 'pi_test_123',
           };
 
           mockPaymentService.constructWebhookEvent.mockReturnValue(

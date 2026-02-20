@@ -45,6 +45,7 @@ describe('TicketsController (e2e)', () => {
 
   describe('With real auth guard', () => {
     beforeAll(async () => {
+      jest.spyOn(console, 'warn').mockImplementation();
       mongod = await MongoMemoryServer.create();
       const mongoUri = mongod.getUri();
       process.env.MONGO_URI = mongoUri;
@@ -146,8 +147,8 @@ describe('TicketsController (e2e)', () => {
               eventId: ticket.getEventId().toString(),
               attendeeName: ticket.getAttendeeName(),
               ticketTypeId: ticket.getTicketTypeId().toString(),
-              price: ticket.getPrice(),
-              status: ticket.getStatus(),
+              price: ticket.getPrice().toJSON(),
+              status: { value: ticket.getStatus().toString() },
             });
           });
         });
@@ -162,12 +163,12 @@ describe('TicketsController (e2e)', () => {
               .expect(403);
           });
         });
-        describe('When the event creator modifies the ticket', () => {
+        describe('When the event creator verifies the ticket', () => {
           describe('When no body is provided', () => {
-            it('Then update ticket status to USED', async () => {
+            it('Then marks ticket as USED and returns 200', async () => {
               expect(ticket.isActive()).toBe(true);
-              const response = await request(app.getHttpServer())
-                .patch(`/tickets/${ticket.getId().toString()}`)
+              await request(app.getHttpServer())
+                .put(`/tickets/${ticket.getId().toString()}/verify`)
                 .set(
                   'Authorization',
                   `Bearer ${generateFakeToken(eventCreatorId, ONE_HOUR)}`,
@@ -175,45 +176,43 @@ describe('TicketsController (e2e)', () => {
                 .send()
                 .expect(200);
 
-              expect(
-                (response.body as { status: { value: string } }).status.value,
-              ).toBe('USED');
+              const updated = await ticketService.findById(
+                ticket.getId().toString(),
+              );
+              expect(updated?.isUsed()).toBe(true);
             });
           });
-          describe("When a body with { status: 'USED' } is provided", () => {
-            it('Then update ticket status to USED', async () => {
-              expect(ticket.isActive()).toBe(true);
-              const response = await request(app.getHttpServer())
-                .patch(`/tickets/${ticket.getId().toString()}`)
+          describe('When ticket was already verified', () => {
+            it('Then returns 200 and ticket remains USED', async () => {
+              await request(app.getHttpServer())
+                .put(`/tickets/${ticket.getId().toString()}/verify`)
                 .set(
                   'Authorization',
                   `Bearer ${generateFakeToken(eventCreatorId, ONE_HOUR)}`,
                 )
-                .send({ status: 'USED' })
+                .send()
                 .expect(200);
 
-              expect(
-                (response.body as { status: { value: string } }).status.value,
-              ).toBe('USED');
-            });
-          });
-          describe('When a body with other values is provided', () => {
-            it('Then returns 400 Bad Request', async () => {
               await request(app.getHttpServer())
-                .patch(`/tickets/${ticket.getId().toString()}`)
+                .put(`/tickets/${ticket.getId().toString()}/verify`)
                 .set(
                   'Authorization',
-                  `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
+                  `Bearer ${generateFakeToken(eventCreatorId, ONE_HOUR)}`,
                 )
-                .send({ status: 'ACTIVE' })
-                .expect(400);
+                .send()
+                .expect(200);
+
+              const updated = await ticketService.findById(
+                ticket.getId().toString(),
+              );
+              expect(updated?.isUsed()).toBe(true);
             });
           });
         });
-        describe('When the user owner modifies the ticket', () => {
+        describe('When the user owner tries to verify the ticket', () => {
           it('Then returns 403 Forbidden', async () => {
             await request(app.getHttpServer())
-              .patch(`/tickets/${ticket.getId().toString()}`)
+              .put(`/tickets/${ticket.getId().toString()}/verify`)
               .set(
                 'Authorization',
                 `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
@@ -222,10 +221,10 @@ describe('TicketsController (e2e)', () => {
               .expect(403);
           });
         });
-        describe('When another user modifies the ticket', () => {
+        describe('When another user tries to verify the ticket', () => {
           it('Then returns 403 Forbidden', async () => {
             await request(app.getHttpServer())
-              .patch(`/tickets/${ticket.getId().toString()}`)
+              .put(`/tickets/${ticket.getId().toString()}/verify`)
               .set(
                 'Authorization',
                 `Bearer ${generateFakeToken(anotherUserId, ONE_HOUR)}`,
@@ -234,10 +233,10 @@ describe('TicketsController (e2e)', () => {
               .expect(403);
           });
         });
-        describe('When modifying a non existing ticketId', () => {
+        describe('When verifying a non existing ticketId', () => {
           it('Then returns 404 Not Found', async () => {
             await request(app.getHttpServer())
-              .patch(`/tickets/non-existing-ticket`)
+              .put(`/tickets/non-existing-ticket/verify`)
               .set(
                 'Authorization',
                 `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
@@ -246,10 +245,10 @@ describe('TicketsController (e2e)', () => {
               .expect(404);
           });
         });
-        describe('When modifying the ticket without token', () => {
+        describe('When verifying without token', () => {
           it('returns 401 Unauthorized', async () => {
             await request(app.getHttpServer())
-              .patch(`/tickets/${ticket.getId().toString()}`)
+              .put(`/tickets/${ticket.getId().toString()}/verify`)
               .send()
               .expect(401);
           });
@@ -259,6 +258,7 @@ describe('TicketsController (e2e)', () => {
   });
   describe('With mocked auth guard (bypass)', () => {
     beforeAll(async () => {
+      jest.spyOn(console, 'warn').mockImplementation();
       mongod = await MongoMemoryServer.create();
       const mongoUri = mongod.getUri();
       process.env.MONGO_URI = mongoUri;

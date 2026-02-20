@@ -31,6 +31,9 @@ describe('EventTicketTypesController (e2e)', () => {
   let soldTicketsIds: string[] = [];
 
   beforeAll(async () => {
+    jest.spyOn(console, 'warn').mockImplementation();
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
     process.env.MONGO_URI = mongoUri;
@@ -159,6 +162,8 @@ describe('EventTicketTypesController (e2e)', () => {
       it('Then returns 200 and updates description', async () => {
         const dto = {
           description: 'Updated description',
+          price: 50,
+          quantity: 100,
         };
 
         const res = await request(app.getHttpServer())
@@ -179,6 +184,7 @@ describe('EventTicketTypesController (e2e)', () => {
       it('Then returns 200 and updates quantity', async () => {
         const dto = {
           quantity: 200,
+          price: 50,
         };
 
         const res = await request(app.getHttpServer())
@@ -200,10 +206,8 @@ describe('EventTicketTypesController (e2e)', () => {
 
       it('Then returns 200 and updates price', async () => {
         const dto = {
-          price: {
-            amount: 75,
-            currency: 'USD',
-          },
+          price: 75,
+          quantity: 100,
         };
 
         const res = await request(app.getHttpServer())
@@ -217,7 +221,7 @@ describe('EventTicketTypesController (e2e)', () => {
 
         expect(res.body).toMatchObject({
           id: ticketTypeId,
-          price: { amount: 75, currency: 'USD' },
+          price: 75,
         });
       });
     });
@@ -243,6 +247,8 @@ describe('EventTicketTypesController (e2e)', () => {
       it('Then returns 404 Not Found', async () => {
         const dto = {
           description: 'New description',
+          price: 50,
+          quantity: 100,
         };
 
         await request(app.getHttpServer())

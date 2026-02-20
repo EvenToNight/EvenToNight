@@ -26,6 +26,9 @@ describe('EventEventConsumer (e2e)', () => {
   let eventModel: Model<EventDocument>;
 
   beforeAll(async () => {
+    jest.spyOn(console, 'warn').mockImplementation();
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
     process.env.NODE_ENV = 'test';
 
     mongod = await MongoMemoryServer.create();
@@ -50,6 +53,7 @@ describe('EventEventConsumer (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useLogger(false);
     await app.init();
 
     consumer = moduleFixture.get<EventEventConsumer>(EventEventConsumer);

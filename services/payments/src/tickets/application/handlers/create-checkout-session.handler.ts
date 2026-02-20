@@ -204,11 +204,13 @@ export class CreateCheckoutSessionHandler {
       this.logger.log('DEV/TEST ENVIRONMENT - MOCK CHECKOUT SESSION');
       //TODO evaluate to uniform the redirectUrl, normally a GET has to be performed not a POST
       // const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/webhooks/stripe/`;
-      await this.checkoutCompletedHandler.handle(
-        'cs_test_dev_session',
-        order.getId().toString(),
-        'pi_test_dev_payment_intent',
-      );
+      if (this.isTest) {
+        await this.checkoutCompletedHandler.handle(
+          'cs_test_dev_session',
+          order.getId().toString(),
+          'pi_test_dev_payment_intent',
+        );
+      }
       this.logger.log('Mock checkout session created');
       return {
         sessionId: 'cs_test_dev_session',

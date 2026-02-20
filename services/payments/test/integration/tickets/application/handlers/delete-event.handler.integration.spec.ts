@@ -93,9 +93,6 @@ describe('DeleteEventHandler - transaction atomicity', () => {
     jest
       .spyOn(eventService, 'delete')
       .mockRejectedValue(new Error('DB failure'));
-    jest
-      .spyOn(txManager as unknown as { sleep: () => Promise<void> }, 'sleep')
-      .mockResolvedValue(undefined);
 
     jest.spyOn(txManager['logger'], 'warn').mockImplementation(() => undefined);
     jest

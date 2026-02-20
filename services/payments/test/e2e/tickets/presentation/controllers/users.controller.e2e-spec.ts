@@ -35,6 +35,9 @@ describe('UserController (e2e)', () => {
   const eventId = 'test-event-id';
 
   beforeAll(async () => {
+    jest.spyOn(console, 'warn').mockImplementation();
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
     mongod = await MongoMemoryServer.create();
     process.env.MONGO_URI = mongod.getUri();
 

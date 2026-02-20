@@ -31,6 +31,9 @@ describe('EventController (e2e)', () => {
   let soldTicketsIds: string[] = [];
 
   beforeAll(async () => {
+    jest.spyOn(console, 'warn').mockImplementation();
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
     process.env.MONGO_URI = mongoUri;
@@ -88,6 +91,12 @@ describe('EventController (e2e)', () => {
     );
     await eventService.createOrUpdate(
       'no-ticket-event',
+      creatorId,
+      'PUBLISHED',
+      new Date(),
+    );
+    await eventService.createOrUpdate(
+      'another-event-id',
       creatorId,
       'PUBLISHED',
       new Date(),
@@ -170,9 +179,7 @@ describe('EventController (e2e)', () => {
             type: 'VIP',
             description: 'VIP entry ticket',
             price: 59.99,
-            currency: 'USD',
             quantity: 100,
-            creatorId,
           };
 
           const res = await request(app.getHttpServer())
@@ -267,10 +274,8 @@ describe('EventController (e2e)', () => {
           const dto = {
             type: ticketType1.getType().toString(),
             description: 'another ticket',
-            price: 1500,
-            currency: 'USD',
+            price: 50,
             quantity: 30,
-            creatorId,
           };
 
           await request(app.getHttpServer())

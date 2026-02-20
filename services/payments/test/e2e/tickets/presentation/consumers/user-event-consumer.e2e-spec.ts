@@ -26,6 +26,9 @@ describe('UserEventConsumer (e2e)', () => {
   let userModel: Model<UserDocument>;
 
   beforeAll(async () => {
+    jest.spyOn(console, 'warn').mockImplementation();
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
     process.env.NODE_ENV = 'test';
 
     mongod = await MongoMemoryServer.create();

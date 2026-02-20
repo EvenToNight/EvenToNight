@@ -13,6 +13,9 @@ describe('AppController (e2e)', () => {
   let mongod: MongoMemoryServer;
 
   beforeAll(async () => {
+    jest.spyOn(console, 'warn').mockImplementation();
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
     process.env.NODE_ENV = 'test';
 
     mongod = await MongoMemoryServer.create();

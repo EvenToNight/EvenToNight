@@ -40,6 +40,9 @@ describe('CheckoutSessionsController (e2e)', () => {
   let dto: CreateCheckoutSessionDto;
 
   beforeAll(async () => {
+    jest.spyOn(console, 'warn').mockImplementation();
+    jest.spyOn(console, 'log').mockImplementation();
+    jest.spyOn(console, 'error').mockImplementation();
     mongod = await MongoMemoryServer.create();
     const mongoUri = mongod.getUri();
     process.env.MONGO_URI = mongoUri;
@@ -67,6 +70,7 @@ describe('CheckoutSessionsController (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useLogger(false);
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,

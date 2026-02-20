@@ -16,6 +16,10 @@ export abstract class EntityId<T extends EntityId<T>> {
     return this.value;
   }
 
+  toJSON(): string {
+    return this.value;
+  }
+
   getValue(): string {
     return this.value;
   }
