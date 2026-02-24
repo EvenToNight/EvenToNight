@@ -1,3 +1,9 @@
+## [2.1.1](https://github.com/EvenToNight/EvenToNight/compare/v2.1.0...v2.1.1) (2026-02-24)
+
+### Bug Fixes
+
+* **tests:** correct imports after refactor ([5882f6c](https://github.com/EvenToNight/EvenToNight/commit/5882f6c78fe89a0118fe22c2ef0ce695bca5de13))
+
 ## [2.1.0](https://github.com/EvenToNight/EvenToNight/compare/v2.0.2...v2.1.0) (2026-02-17)
 
 ### Features
