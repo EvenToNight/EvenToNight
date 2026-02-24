@@ -7,7 +7,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 export default defineConfig({
     base: process.env.NODE_ENV === 'production' ? "/EvenToNight/report/DS/" : "/",
     srcDir: "./markdown",
-    title: "Report Progetto DS",
+    title: "DS Project Report",
     head: [
         ["link", { rel: "icon", type: "image/png", href: "./logo.png" }]
     ],
@@ -16,13 +16,29 @@ export default defineConfig({
     },
     themeConfig: {
         nav: [
-        { text: "Introduzione", link: "/introduzione" }
+        { text: "Goal/s of the project", link: "/goals" },
+        { text: "Background and link to the theory", link: "/background" },
+        { text: "Requirements Analysis", link: "/requirements" },
+        { text: "Design", link: "/design" },
+        { text: "Salient implementation details", link: "/implementation" },
+        { text: "Validation", link: "/validation" },
+        { text: "Deployment Instructions", link: "/deployment" },
+        { text: "Usage Examples", link: "/usage" },
+        { text: "Conclusion", link: "/conclusion" }
         ],
         sidebar: [
         {
             text: "Report",
             items: [
-                { text: "Introduzione", link: "/introduzione" }
+                { text: "Goal/s of the project", link: "/goals" },
+                { text: "Background and link to the theory", link: "/background" },
+                { text: "Requirements Analysis", link: "/requirements" },
+                { text: "Design", link: "/design" },
+                { text: "Salient implementation details", link: "/implementation" },
+                { text: "Validation", link: "/validation" },
+                { text: "Deployment Instructions", link: "/deployment" },
+                { text: "Usage Examples", link: "/usage" },
+                { text: "Conclusion", link: "/conclusion" }
               ]
         }
         ]
