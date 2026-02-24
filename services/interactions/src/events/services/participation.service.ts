@@ -5,13 +5,14 @@ import {
   forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, ClientSession } from 'mongoose';
 import { Participation } from '../schemas/participation.schema';
 import { PaginatedResponseDto } from '../../commons/dto/paginated-response.dto';
 import { MetadataService } from '../../metadata/services/metadata.service';
 import { UserInfoDto } from 'src/commons/dto/user-info-dto';
 import { ReviewService } from './review.service';
 import { UserParticipationDto } from '../dto/user-participation.dto';
+import { TransactionManagerService } from 'src/commons/database/transaction-manager.service';
 
 @Injectable()
 export class ParticipationService {
@@ -21,16 +22,25 @@ export class ParticipationService {
     @Inject(forwardRef(() => MetadataService))
     private readonly metadataService: MetadataService,
     private readonly reviewService: ReviewService,
+    private readonly transactionManager: TransactionManagerService,
   ) {}
 
   async participate(eventId: string, userId: string): Promise<Participation> {
-    await this.metadataService.validateParticipationAllowed(eventId, userId);
-    const existing = await this.participationModel.findOne({ eventId, userId });
-    if (existing) {
-      throw new ConflictException('Already purchased ticket for this event');
-    }
-    const participation = new this.participationModel({ eventId, userId });
-    return participation.save();
+    return this.transactionManager.executeInTransaction(async (session) => {
+      await this.metadataService.validateParticipationAllowed(
+        eventId,
+        userId,
+        session,
+      );
+      const existing = await this.participationModel
+        .findOne({ eventId, userId })
+        .session(session);
+      if (existing) {
+        throw new ConflictException('Already purchased ticket for this event');
+      }
+      const participation = new this.participationModel({ eventId, userId });
+      return participation.save({ session });
+    });
   }
 
   async getEventParticipants(
@@ -176,13 +186,19 @@ export class ParticipationService {
     );
   }
 
-  async hasUserParticipated(userId: string, eventId: string): Promise<boolean> {
-    await this.metadataService.validateUserExistence(userId);
-    await this.metadataService.validateEventExistence(eventId);
-    const participation = await this.participationModel.findOne({
-      userId,
-      eventId,
-    });
+  async hasUserParticipated(
+    userId: string,
+    eventId: string,
+    session?: ClientSession,
+  ): Promise<boolean> {
+    await this.metadataService.validateUserExistence(userId, session);
+    await this.metadataService.validateEventExistence(eventId, session);
+    const participation = await this.participationModel
+      .findOne({
+        userId,
+        eventId,
+      })
+      .session(session || null);
     return !!participation;
   }
 

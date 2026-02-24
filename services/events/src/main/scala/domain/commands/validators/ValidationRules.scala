@@ -1,6 +1,6 @@
 package domain.commands.validators
 
-import domain.models.Location
+import infrastructure.dto.Location
 
 import java.time.LocalDateTime
 

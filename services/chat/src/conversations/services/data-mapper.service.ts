@@ -26,7 +26,7 @@ export class DataMapperService {
     const userIdsSet = new Set<string>();
     participants.forEach((p) => {
       userIdsSet.add(p.conversationId.organizationId);
-      userIdsSet.add(p.conversationId.memberId);
+      userIdsSet.add(p.conversationId.userId);
     });
     const userIds = Array.from(userIdsSet);
 
@@ -53,11 +53,11 @@ export class DataMapperService {
       const conversation = participant.conversationId;
       const lastMessage = lastMessageMap.get(String(conversation._id));
       const orgInfo = usersInfoMap.get(conversation.organizationId);
-      const memberInfo = usersInfoMap.get(conversation.memberId);
+      const userInfo = usersInfoMap.get(conversation.userId);
       return {
         id: conversation._id.toString(),
         organization: this.buildUserInfo(conversation.organizationId, orgInfo),
-        member: this.buildUserInfo(conversation.memberId, memberInfo),
+        member: this.buildUserInfo(conversation.userId, userInfo),
         lastMessage: this.buildLastMessageInfo(lastMessage),
         unreadCount: participant.unreadCount,
       };
@@ -67,15 +67,15 @@ export class DataMapperService {
   async buildConversationDetail(
     conversation: any,
   ): Promise<ConversationDetailDTO> {
-    const [orgInfo, memberInfo] = await this.fetchUsersInfo(
+    const [orgInfo, userInfo] = await this.fetchUsersInfo(
       conversation.organizationId,
-      conversation.memberId,
+      conversation.userId,
     );
 
     return {
       id: conversation._id.toString(),
       organization: this.buildUserInfo(conversation.organizationId, orgInfo),
-      member: this.buildUserInfo(conversation.memberId, memberInfo),
+      member: this.buildUserInfo(conversation.userId, userInfo),
       createdAt: conversation.createdAt,
       updatedAt: conversation.updatedAt,
     };
@@ -85,9 +85,9 @@ export class DataMapperService {
     conversation: any,
     participant: any,
   ): Promise<ConversationListItemDTO> {
-    const [orgInfo, memberInfo] = await this.fetchUsersInfo(
+    const [orgInfo, userInfo] = await this.fetchUsersInfo(
       conversation.organizationId,
-      conversation.memberId,
+      conversation.userId,
     );
 
     const lastMessage = await this.findLastMessage(conversation._id);
@@ -95,7 +95,7 @@ export class DataMapperService {
     return {
       id: conversation._id.toString(),
       organization: this.buildUserInfo(conversation.organizationId, orgInfo),
-      member: this.buildUserInfo(conversation.memberId, memberInfo),
+      member: this.buildUserInfo(conversation.userId, userInfo),
       lastMessage: lastMessage
         ? {
             content: lastMessage.content,

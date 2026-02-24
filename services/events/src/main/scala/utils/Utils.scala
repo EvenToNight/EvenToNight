@@ -1,9 +1,10 @@
 package utils
 import domain.commands.{CreateEventCommand, GetFilteredEventsCommand, UpdateEventCommand}
-import domain.models.{Event, EventStatus, EventTag, Location}
-import domain.models.EventConversions.*
-import domain.models.EventTag.validateTagList
+import domain.enums.{EventStatus, EventTag}
+import domain.enums.EventTag.validateTagList
+import infrastructure.converters.EventConversions.*
 import infrastructure.db.MongoUserMetadataRepository
+import infrastructure.dto.{Event, Location}
 
 import java.nio.file.Files
 import java.time.LocalDateTime

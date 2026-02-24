@@ -4,6 +4,7 @@ import { InteractionsModule } from './interactions/interactions.module';
 import { MetadataModule } from './metadata/metadata.module';
 import { AuthModule } from './commons/auth';
 import { RabbitMqModule } from './rabbitmq/rabbitmq.module';
+import { TransactionManagerModule } from './commons/database/database.module';
 
 @Module({
   imports: [
@@ -14,6 +15,7 @@ import { RabbitMqModule } from './rabbitmq/rabbitmq.module';
     InteractionsModule,
     MetadataModule,
     AuthModule,
+    TransactionManagerModule,
   ],
 })
 export class AppModule {}

@@ -7,7 +7,7 @@ export function filterMessages(conversations: SeedConversation[]): MessageToInse
     for (const conversation of conversations) {
         messageInserts.push({
             conversationId: conversation._id,
-            senderId: conversation.memberId,
+            senderId: conversation.userId,
             content: `Hello`,
         });
     }
@@ -15,7 +15,7 @@ export function filterMessages(conversations: SeedConversation[]): MessageToInse
     for (const m of messagesSeedData) {
         messageInserts.push({
             conversationId: conversations[0]._id,
-            senderId: turn ? conversations[0].memberId : conversations[0].organizationId,
+            senderId: turn ? conversations[0].userId : conversations[0].organizationId,
             content: m.content,
         });
         turn = !turn;

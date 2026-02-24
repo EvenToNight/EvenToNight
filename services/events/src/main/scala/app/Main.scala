@@ -1,10 +1,11 @@
 package app
 
 import controller.Controller
+import infrastructure.adapters.EventServiceAdapter
+import infrastructure.configuration.DependencyFactory
 import infrastructure.db.{MongoEventRepository, MongoPriceRepository, MongoUserMetadataRepository}
 import infrastructure.messaging.{ExternalEventHandler, RabbitEventConsumer, RabbitEventPublisher}
 import middleware.auth.JwtService
-import service.EventService
 
 object Main extends App:
 
@@ -40,16 +41,25 @@ object Main extends App:
     Some(priceDatabase)
   )
 
+  val eventService: EventServiceAdapter = DependencyFactory.createEventService(
+    mongoClient = eventDatabase.mongoClient,
+    connectionString = mongoUri,
+    databaseName = "eventonight",
+    eventPublisher = messageBroker,
+    priceRepository = Some(priceDatabase)
+  )
+
   val userDatabase: MongoUserMetadataRepository = new MongoUserMetadataRepository(
     mongoUri,
     "eventonight",
     "users",
-    messageBroker
+    messageBroker,
+    sharedMongoClient = Some(eventDatabase.mongoClient)
   )
 
-  val eventService: EventService = new EventService(eventDatabase, userDatabase, messageBroker)
+  val externalEventHandler: ExternalEventHandler =
+    new ExternalEventHandler(userDatabase, priceDatabase, eventDatabase)
 
-  val externalEventHandler: ExternalEventHandler = new ExternalEventHandler(userDatabase, priceDatabase, eventDatabase)
   val messageConsumer: RabbitEventConsumer = new RabbitEventConsumer(
     host = rabbitHost,
     port = rabbitPort,
@@ -57,8 +67,13 @@ object Main extends App:
     password = rabbitPass,
     exchangeName = "eventonight",
     queueName = "events-service-queue",
-    routingKeys =
-      List("user.created", "user.deleted", "ticket-type.created", "ticket-type.updated", "ticket-type.deleted"),
+    routingKeys = List(
+      "user.created",
+      "user.deleted",
+      "ticket-type.created",
+      "ticket-type.updated",
+      "ticket-type.deleted"
+    ),
     handler = externalEventHandler
   )
   messageConsumer.start()

@@ -7,7 +7,7 @@ import {
   BadRequestException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, ClientSession } from 'mongoose';
 import { Event, EventStatus } from '../schemas/event.schema';
 import { User } from '../schemas/user.schema';
 import { LikeService } from '../../events/services/like.service';
@@ -262,62 +262,112 @@ export class MetadataService {
     }
   }
 
-  async validateLikeAllowed(eventId: string, userId: string): Promise<void> {
-    await Promise.all([
-      this.validateEventExistence(eventId),
-      this.validateUserExistence(userId),
-      this.validateEventIsNotDraft(eventId),
-    ]);
+  async validateLikeAllowed(
+    eventId: string,
+    userId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    if (session) {
+      await this.validateEventExistence(eventId, session);
+      await this.validateUserExistence(userId, session);
+      await this.validateEventIsNotDraft(eventId, session);
+    } else {
+      await Promise.all([
+        this.validateEventExistence(eventId, session),
+        this.validateUserExistence(userId, session),
+        this.validateEventIsNotDraft(eventId, session),
+      ]);
+    }
   }
 
-  async validateUnlikeAllowed(eventId: string, userId: string): Promise<void> {
-    await Promise.all([
-      this.validateEventExistence(eventId),
-      this.validateUserExistence(userId),
-    ]);
+  async validateUnlikeAllowed(
+    eventId: string,
+    userId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    if (session) {
+      await this.validateEventExistence(eventId, session);
+      await this.validateUserExistence(userId, session);
+    } else {
+      await Promise.all([
+        this.validateEventExistence(eventId, session),
+        this.validateUserExistence(userId, session),
+      ]);
+    }
   }
 
   async validateParticipationAllowed(
     eventId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<void> {
-    await Promise.all([
-      this.validateEventExistence(eventId),
-      this.validateUserExistence(userId),
-      this.validateEventPublished(eventId),
-    ]);
+    if (session) {
+      await this.validateEventExistence(eventId, session);
+      await this.validateUserExistence(userId, session);
+      await this.validateEventPublished(eventId, session);
+    } else {
+      await Promise.all([
+        this.validateEventExistence(eventId, session),
+        this.validateUserExistence(userId, session),
+        this.validateEventPublished(eventId, session),
+      ]);
+    }
   }
 
   async validateFollowAllowed(
     followerId: string,
     followeeId: string,
+    session?: ClientSession,
   ): Promise<void> {
-    await Promise.all([
-      this.validateUserExistence(followerId),
-      this.validateUserExistence(followeeId),
-    ]);
+    if (session) {
+      await this.validateUserExistence(followerId, session);
+      await this.validateUserExistence(followeeId, session);
+    } else {
+      await Promise.all([
+        this.validateUserExistence(followerId, session),
+        this.validateUserExistence(followeeId, session),
+      ]);
+    }
   }
 
   async validateUnfollowAllowed(
     followerId: string,
     followeeId: string,
+    session?: ClientSession,
   ): Promise<void> {
-    await Promise.all([
-      this.validateUserExistence(followerId),
-      this.validateUserExistence(followeeId),
-    ]);
+    if (session) {
+      await this.validateUserExistence(followerId, session);
+      await this.validateUserExistence(followeeId, session);
+    } else {
+      await Promise.all([
+        this.validateUserExistence(followerId, session),
+        this.validateUserExistence(followeeId, session),
+      ]);
+    }
   }
 
   async validateReviewAllowed(
     eventId: string,
     createReviewDto: CreateReviewDto,
+    session?: ClientSession,
   ): Promise<void> {
-    await Promise.all([
-      this.validateUserExistence(createReviewDto.userId),
-      this.validateEventCompleted(eventId),
-      this.validateUserNotCreator(eventId, createReviewDto.userId),
-      this.hasParticipated(eventId, createReviewDto.userId),
-    ]);
+    if (session) {
+      await this.validateUserExistence(createReviewDto.userId, session);
+      await this.validateEventCompleted(eventId, session);
+      await this.validateUserNotCreator(
+        eventId,
+        createReviewDto.userId,
+        session,
+      );
+      await this.hasParticipated(eventId, createReviewDto.userId, session);
+    } else {
+      await Promise.all([
+        this.validateUserExistence(createReviewDto.userId, session),
+        this.validateEventCompleted(eventId, session),
+        this.validateUserNotCreator(eventId, createReviewDto.userId, session),
+        this.hasParticipated(eventId, createReviewDto.userId, session),
+      ]);
+    }
   }
 
   async validateReviewDeletionAllowed(
@@ -342,22 +392,37 @@ export class MetadataService {
     ]);
   }
 
-  async validateEventExistence(eventId: string): Promise<void> {
-    const event = await this.eventModel.findOne({ eventId });
+  async validateEventExistence(
+    eventId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const event = await this.eventModel
+      .findOne({ eventId })
+      .session(session || null);
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
   }
 
-  async validateUserExistence(userId: string): Promise<void> {
-    const user = await this.userModel.findOne({ userId });
+  async validateUserExistence(
+    userId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const user = await this.userModel
+      .findOne({ userId })
+      .session(session || null);
     if (!user) {
       throw new NotFoundException(`User with ID ${userId} not found`);
     }
   }
 
-  async validateEventPublished(eventId: string): Promise<void> {
-    const event = await this.eventModel.findOne({ eventId });
+  async validateEventPublished(
+    eventId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const event = await this.eventModel
+      .findOne({ eventId })
+      .session(session || null);
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
@@ -368,8 +433,13 @@ export class MetadataService {
     }
   }
 
-  async validateEventIsNotDraft(eventId: string): Promise<void> {
-    const event = await this.eventModel.findOne({ eventId });
+  async validateEventIsNotDraft(
+    eventId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const event = await this.eventModel
+      .findOne({ eventId })
+      .session(session || null);
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
@@ -378,8 +448,13 @@ export class MetadataService {
     }
   }
 
-  private async validateEventCompleted(eventId: string): Promise<void> {
-    const event = await this.eventModel.findOne({ eventId });
+  private async validateEventCompleted(
+    eventId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const event = await this.eventModel
+      .findOne({ eventId })
+      .session(session || null);
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);
     }
@@ -394,10 +469,12 @@ export class MetadataService {
   private async hasParticipated(
     eventId: string,
     userId: string,
+    session?: ClientSession,
   ): Promise<void> {
     const hasParticipated = await this.participationService.hasUserParticipated(
       userId,
       eventId,
+      session,
     );
     if (!hasParticipated) {
       throw new NotFoundException(
@@ -406,8 +483,15 @@ export class MetadataService {
     }
   }
 
-  async validateUserNotCreator(eventId: string, userId: string): Promise<void> {
-    const { creatorId, collaboratorIds } = await this.getEventInfo(eventId);
+  async validateUserNotCreator(
+    eventId: string,
+    userId: string,
+    session?: ClientSession,
+  ): Promise<void> {
+    const { creatorId, collaboratorIds } = await this.getEventInfo(
+      eventId,
+      session,
+    );
     if (creatorId === userId || collaboratorIds.includes(userId)) {
       throw new BadRequestException('User cannot review their own event');
     }
@@ -415,8 +499,12 @@ export class MetadataService {
 
   async getEventInfo(
     eventId: string,
+    session?: ClientSession,
   ): Promise<{ creatorId: string; collaboratorIds: string[]; name: string }> {
-    const event = await this.eventModel.findOne({ eventId }).lean();
+    const event = await this.eventModel
+      .findOne({ eventId })
+      .session(session || null)
+      .lean();
 
     if (!event) {
       throw new NotFoundException(`Event with ID ${eventId} not found`);

@@ -8,28 +8,28 @@ import { GetMessagesQueryDto } from '../dto/get-messages-query.dto';
 export class ConversationsLookupController {
   constructor(private readonly conversationsService: ConversationsService) {}
 
-  @Get(':organizationId/:memberId')
+  @Get(':organizationId/:userId')
   async getConversationByUsers(
     @Param('organizationId') organizationId: string,
-    @Param('memberId') memberId: string,
+    @Param('userId') userId: string,
   ): Promise<ConversationDetailDTO> {
     const conversation = await this.conversationsService.getConversationByUsers(
       organizationId,
-      memberId,
+      userId,
     );
 
     return conversation;
   }
 
-  @Get(':organizationId/:memberId/messages')
+  @Get(':organizationId/:userId/messages')
   async getMessages(
     @Param('organizationId') organizationId: string,
-    @Param('memberId') memberId: string,
+    @Param('userId') userId: string,
     @Query() query: GetMessagesQueryDto,
   ): Promise<MessageListResponse> {
     return this.conversationsService.getConversationWithMessagesByUsers(
       organizationId,
-      memberId,
+      userId,
       query,
     );
   }

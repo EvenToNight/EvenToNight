@@ -2,7 +2,7 @@ package infrastructure.db
 
 import com.mongodb.client.{MongoClient, MongoClients, MongoCollection, MongoDatabase}
 import com.mongodb.client.model.{Filters, ReplaceOptions}
-import domain.models.TicketPrice
+import infrastructure.dto.TicketPrice
 import infrastructure.messaging.EventPublisher
 import org.bson.Document
 
