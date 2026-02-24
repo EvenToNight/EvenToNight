@@ -24,7 +24,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ValidLogin'
+              $ref: '#/components/schemas/LoginRequestDTO'
       responses:
         '200':
           description: Login successful
@@ -32,6 +32,55 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponseDTO'
+              examples:
+
+                member:
+                  value:
+                    id: "123e4567-e89b-12d3-a456-426614174000"
+                    role: member
+                    account:
+                      username: johndoe
+                      email: johndoe@example
+                      darkMode: false
+                      language: en
+                      gender: male
+                      birthDate: "1990-01-01T00:00:00Z"
+                      interests:
+                        - Dinner
+                        - Live Music
+                        - Club
+                    profile:
+                      name: John Doe
+                      avatar: https://example.com/avatar.jpg
+                      bio: Software developer and event enthusiast.
+                    accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    expiresIn: 300
+                    refreshToken: "dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4="
+                    refreshExpiresIn: 1800
+
+                organization:
+                  value:
+                    id: "987e6543-e21b-12d3-a456-426614174999"
+                    role: organization
+                    account:
+                      username: cocorico
+                      email: cocco@example.com
+                      darkMode: false
+                      language: en
+                      interests:
+                        - DJ Set
+                        - Commercial
+                    profile:
+                      name: Cocoricò
+                      avatar: https://example.com/avatar.jpg
+                      bio: Disco and nightlife
+                      contacts:
+                        - https://twitter.com/cocorico
+                        - https://linkedin.com/cocorico
+                    accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    expiresIn: 300
+                    refreshToken: "dGhpcy1pcz1hLXJlZnJlc2gtdG9yZWFuLg=="
+                    refreshExpiresIn: 1800
         '400':
           description: Bad request
           content:
@@ -99,7 +148,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ValidRegistration'
+              $ref: '#/components/schemas/RegistrationRequestDTO'
+            examples:
+              member:
+                value:
+                  username: johndoe
+                  email: johndoe@example.com
+                  password: StrongP@ssw0rd!
+                  role: member
+              organization:
+                value:
+                  username: cocorico
+                  email: cocco@example.com
+                  password: StrongP@ss1
+                  role: organization
       responses:
         '201':
           description: User created and logged in
@@ -107,6 +169,40 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/LoginResponseDTO'
+              examples:
+                member:
+                  value:
+                    id: "123e4567-e89b-12d3-a456-426614174000"
+                    role: member
+                    account:
+                      username: johndoe
+                      email: johndoe@example.com
+                      darkMode: false
+                      language: en
+                    profile:
+                      name: johndoe
+                      avatar: https://example.com/avatar.jpg
+                    accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    expiresIn: 300
+                    refreshToken: "dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4="
+                    refreshExpiresIn: 1800
+                organization:
+                  value:
+                    id: "987e6543-e21b-12d3-a456-426614174999"
+                    role: organization
+                    account:
+                      username: cocorico
+                      email: cocco@example.com
+                      darkMode: false
+                      language: en
+                    profile:
+                      name: cocorico
+                      avatar: https://example.com/avatar.jpg
+                    accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                    expiresIn: 300
+                    refreshToken: "dGhpcy1pcz1hLXJlZnJlc2gtdG9yZWFuLg=="
+                    refreshExpiresIn: 1800
+              
         '400':
           description: Bad request
           content:
@@ -147,7 +243,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/RefreshRequest'
+              $ref: '#/components/schemas/RefreshRequestDTO'
       responses:
         '200':
           description: Tokens refreshed
@@ -187,7 +283,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/LogoutRequest'
+              $ref: '#/components/schemas/LogoutRequestDTO'
       responses:
         '204':
           description: Logout successful
@@ -226,7 +322,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PublicKeysResponse'
+                $ref: '#/components/schemas/PublicKeysResponseDTO'
         '500':
           description: Failed to refresh public keys
           content:
@@ -269,7 +365,8 @@ paths:
               schema:
                 oneOf:
                   # ---------- OWNER ----------
-                  - type: object
+                  - title: OwnerUserDTO
+                    type: object
                     required:
                       - id
                       - role
@@ -431,7 +528,7 @@ paths:
         - name: userId
           in: path
           required: true
-          description: ID of the user whose avatar will be updated
+          description: ID of the user whose avatar you want to update
           schema:
             type: string
             format: uuid
@@ -453,11 +550,6 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/AvatarResponseDTO'
-              examples:
-                success:
-                  summary: Avatar URL returned
-                  value:
-                    avatarUrl: "https://media.eventonight.site/users/1234/avatar.jpg"
         '400':
           description: Failed to update user avatar
           content:
@@ -466,7 +558,7 @@ paths:
                 type: string
               examples:
                 updateFailed:
-                  summary: Update failed
+                  summary: Avatar update failed
                   value: "Failed to update user avatar"
         '401':
           description: Unauthorized
@@ -508,7 +600,7 @@ paths:
         - name: userId
           in: path
           required: true
-          description: ID of the user whose avatar will be deleted
+          description: ID of the user whose avatar you want to delete
           schema:
             type: string
             format: uuid
@@ -523,8 +615,8 @@ paths:
                 type: string
               examples:
                 updateFailed:
-                  summary: Avatar update failed
-                  value: "Failed to update user avatar"
+                  summary: Avatar deletion failed
+                  value: "Failed to delete user avatar"
 
   /{userId}/password:
     put:
@@ -547,7 +639,7 @@ paths:
         - name: userId
           in: path
           required: true
-          description: ID of the user whose password will be updated
+          description: ID of the user whose password you want to update
           schema:
             type: string
             format: uuid
@@ -607,7 +699,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PaginatedUserSearchResponse'
+                $ref: '#/components/schemas/PaginatedUserSearchResponseDTO'
         '400':
           description: Invalid query parameters
           content:
@@ -637,8 +729,8 @@ paths:
 
 components:
   schemas:
-
-    ValidLogin:
+    # -------- Request DTO --------
+    LoginRequestDTO:
       type: object
       required:
         - username
@@ -652,7 +744,7 @@ components:
           format: password
           example: StrongP@ssw0rd!
 
-    ValidRegistration:
+    RegistrationRequestDTO:
       type: object
       required:
         - username
@@ -672,9 +764,10 @@ components:
           example: StrongP@ssw0rd!
         role:
           type: string
+          enum: [member, organization]
           example: member
 
-    RefreshRequest:
+    RefreshRequestDTO:
       type: object
       required:
         - refreshToken
@@ -683,7 +776,7 @@ components:
           type: string
           example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
 
-    LogoutRequest:
+    LogoutRequestDTO:
       type: object
       required:
         - refreshToken
@@ -691,196 +784,10 @@ components:
         refreshToken:
           type: string
           example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
-
-    TokensDTO:
-      type: object
-      required:
-        - accessToken
-        - expiresIn
-        - refreshToken
-        - refreshExpiresIn
-      properties:
-        accessToken:
-          type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        expiresIn:
-          type: integer
-          format: int64
-          example: 300
-        refreshToken:
-          type: string
-          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
-        refreshExpiresIn:
-          type: integer
-          format: int64
-          example: 1800
-
-    AccountDTO:
-      type: object
-      required:
-        - username
-        - email
-        - darkMode
-        - language
-      properties:
-        username:
-          type: string
-          example: johndoe
-        email:
-          type: string
-          example: johndoe@example
-        darkMode:
-          type: boolean
-          example: false
-        language:
-          type: string
-          example: en
-        gender:
-          type: string
-          nullable: true
-          example: male
-        birthDate:
-          type: string
-          format: date-time
-          nullable: true
-          example: 1990-01-01T00:00:00Z
-        interests:
-          type: array
-          items:
-            type: string
-          nullable: true
-          example: ["Dinner", "Live Music", "Club"]
-
-    ProfileDTO:
-      type: object
-      required:
-        - name
-        - avatar
-      properties:
-        name:
-          type: string
-          example: John Doe
-        avatar:
-          type: string
-          example: https://example.com/avatar.jpg
-        bio:
-          type: string
-          nullable: true
-          example: Software developer and event enthusiast.
-        contacts:
-          type: array
-          items:
-            type: string
-            format: uri
-            pattern: "^https?://.*"
-          nullable: true
-          example:
-            - https://twitter.com/johndoe
-            - https://linkedin.com/in/johndoe
-
-    LoginResponseDTO:
-      type: object
-      required:
-        - id
-        - role
-        - account
-        - profile
-        - accessToken
-        - expiresIn
-        - refreshToken
-        - refreshExpiresIn
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-        role:
-          type: string
-          example: member
-        account:
-          $ref: '#/components/schemas/AccountDTO'
-        profile:
-          $ref: '#/components/schemas/ProfileDTO'
-        accessToken:
-          type: string
-          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-        expiresIn:
-          type: integer
-          format: int64
-          example: 300
-        refreshToken:
-          type: string
-          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
-        refreshExpiresIn:
-          type: integer
-          format: int64
-          example: 1800
-
-    UsernameDTO:
-      type: object
-      required:
-        - username
-      properties:
-        username:
-          type: string
-          example: johndoe
-
-    UserDTO:
-      type: object
-      required:
-        - id
-        - role
-        - account
-        - profile
-      properties:
-        id:
-          type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-        role:
-          type: string
-          example: member
-        account:
-          $ref: '#/components/schemas/UsernameDTO'        
-        profile:
-          $ref: '#/components/schemas/ProfileDTO'
-    
-    PublicKeyEntry:
-      type: object
-      required:
-        - kid
-        - publicKey
-      properties:
-        kid:
-          type: string
-          example: key-id-12345
-        publicKey:
-          type: string
-          description: Base64-encoded public key
-          example: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS1cbk1J...
-
-    PublicKeysResponse:
-      type: object
-      required:
-        - keys
-      properties:
-        keys:
-          type: array
-          items:
-            $ref: '#/components/schemas/PublicKeyEntry'
-
-    UpdateUserRequestDTO:
-      type: object
-      description: Update request for a user.
-      properties:
-        accountDTO:
-          $ref: '#/components/schemas/UpdateAccountDTO'
-        profileDTO:
-          $ref: '#/components/schemas/UpdateProfileDTO'
 
     UpdateAccountDTO:
       type: object
-      description: Update request of user account information.
+      description: Update request of user account information
       properties:
         darkMode:
           type: boolean
@@ -906,7 +813,7 @@ components:
 
     UpdateProfileDTO:
       type: object
-      description: Update request of user profile information.
+      description: Update request of user profile information
       properties:
         name:
           type: string
@@ -924,21 +831,16 @@ components:
           nullable: true
           example:
             - https://twitter.com/johndoe
-            - https://linkedin.com/in/johndoe
+            - https://linkedin.com/johndoe
 
-    AvatarResponseDTO:
+    UpdateUserRequestDTO:
       type: object
-      required:
-        - userId
-        - avatarUrl
+      description: Update request for a user
       properties:
-        userId:
-          type: string
-          format: uuid
-          example: "123e4567-e89b-12d3-a456-426614174000"
-        avatarUrl:
-          type: string
-          example: "https://media.eventonight.site/users/123e4567-e89b-12d3-a456-426614174000/avatar.jpg"
+        accountDTO:
+          $ref: '#/components/schemas/UpdateAccountDTO'
+        profileDTO:
+          $ref: '#/components/schemas/UpdateProfileDTO'
 
     UpdatePasswordRequestDTO:
       type: object
@@ -981,8 +883,203 @@ components:
           default: 0
           minimum: 0
           description: Number of users to skip for pagination (default 0)
+
+    # -------- Response DTO --------
+    AccountDTO:
+      type: object
+      required:
+        - username
+        - email
+        - darkMode
+        - language
+      properties:
+        username:
+          type: string
+          example: johndoe
+        email:
+          type: string
+          example: johndoe@example
+        darkMode:
+          type: boolean
+          example: false
+        language:
+          type: string
+          example: en
+        gender:
+          type: string
+          nullable: true
+          description: Available only for member accounts
+          example: male
+        birthDate:
+          type: string
+          format: date-time
+          nullable: true
+          description: Available only for member accounts
+          example: 1990-01-01T00:00:00Z
+        interests:
+          type: array
+          items:
+            type: string
+          nullable: true
+          example: ["Dinner", "Live Music", "Club"]
+
+    ProfileDTO:
+      type: object
+      required:
+        - name
+        - avatar
+      properties:
+        name:
+          type: string
+          example: John Doe
+        avatar:
+          type: string
+          example: https://example.com/avatar.jpg
+        bio:
+          type: string
+          nullable: true
+          example: Software developer and event enthusiast.
+        contacts:
+          type: array
+          items:
+            type: string
+            format: uri
+            pattern: "^https?://.*"
+          nullable: true
+          description: Available only for organization profiles
+          example:
+            - https://twitter.com/johndoe
+            - https://linkedin.com/in/johndoe
+
+    LoginResponseDTO:
+      type: object
+      required:
+        - id
+        - role
+        - account
+        - profile
+        - accessToken
+        - expiresIn
+        - refreshToken
+        - refreshExpiresIn
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        role:
+          type: string
+          example: member
+        account:
+          $ref: '#/components/schemas/AccountDTO'
+        profile:
+          $ref: '#/components/schemas/ProfileDTO'
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expiresIn:
+          type: integer
+          format: int64
+          example: 300
+        refreshToken:
+          type: string
+          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
+        refreshExpiresIn:
+          type: integer
+          format: int64
+          example: 1800
+
+    TokensDTO:
+      type: object
+      required:
+        - accessToken
+        - expiresIn
+        - refreshToken
+        - refreshExpiresIn
+      properties:
+        accessToken:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        expiresIn:
+          type: integer
+          format: int64
+          example: 300
+        refreshToken:
+          type: string
+          example: dGhpcy1pcz1hLXJlZnJlc2gtdG9rZW4uLi4=
+        refreshExpiresIn:
+          type: integer
+          format: int64
+          example: 1800
+    
+    PublicKeyEntryDTO:
+      type: object
+      required:
+        - kid
+        - publicKey
+      properties:
+        kid:
+          type: string
+          example: key-id-12345
+        publicKey:
+          type: string
+          description: Base64-encoded public key
+          example: LS0tLS1CRUdJTiBQVUJMSUMgS0VZLS0tLS1cbk1J...
+
+    PublicKeysResponseDTO:
+      type: object
+      required:
+        - keys
+      properties:
+        keys:
+          type: array
+          items:
+            $ref: '#/components/schemas/PublicKeyEntryDTO'
+
+    UsernameDTO:
+      type: object
+      required:
+        - username
+      properties:
+        username:
+          type: string
+          example: johndoe
+
+    UserDTO:
+      type: object
+      required:
+        - id
+        - role
+        - account
+        - profile
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        role:
+          type: string
+          example: member
+        account:
+          $ref: '#/components/schemas/UsernameDTO'
+        profile:
+          $ref: '#/components/schemas/ProfileDTO'
+
+    AvatarResponseDTO:
+      type: object
+      required:
+        - userId
+        - avatarUrl
+      properties:
+        userId:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        avatarUrl:
+          type: string
+          example: "https://media.eventonight.site/users/123e4567-e89b-12d3-a456-426614174000/avatar.jpg"
           
-    UserSearchAccountResult:
+    UserSearchAccountResultDTO:
       type: object
       description: Account-related data returned in user search results
       required:
@@ -993,7 +1090,7 @@ components:
           description: The user's unique username
           example: johndoe
 
-    UserSearchProfileResult:
+    UserSearchProfileResultDTO:
       type: object
       description: Profile-related data returned in user search results
       required:
@@ -1015,7 +1112,7 @@ components:
           nullable: true
           example: Software developer and event enthusiast.
 
-    UserSearchResult:
+    UserSearchResultDTO:
       type: object
       description: Represents a single user returned in search results
       required:
@@ -1035,11 +1132,11 @@ components:
           enum: [member, organization]
           example: member
         account:
-          $ref: '#/components/schemas/UserSearchAccountResult'
+          $ref: '#/components/schemas/UserSearchAccountResultDTO'
         profile:
-          $ref: '#/components/schemas/UserSearchProfileResult'
+          $ref: '#/components/schemas/UserSearchProfileResultDTO'
 
-    PaginatedUserSearchResponse:
+    PaginatedUserSearchResponseDTO:
       type: object
       description: Paginated response for user search
       required:
@@ -1051,7 +1148,7 @@ components:
         data:
           type: array
           items:
-            $ref: '#/components/schemas/UserSearchResult'
+            $ref: '#/components/schemas/UserSearchResultDTO'
         limit:
           type: integer
           example: 20
