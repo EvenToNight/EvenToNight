@@ -49,7 +49,7 @@ jobs:
           cp ./docs/logo.png ${{ env.SITE }}/report/logo.png
       
       - name: Install dependencies for ASW Report
-        run: npm install
+        run: npm ci
         working-directory: ./docs/report/ASW
 
       - name: Build ASW Report with VitePress
@@ -60,6 +60,14 @@ jobs:
         run: |
           mkdir -p ${{ env.SITE }}/report/ASW/latex
           cp ./docs/report/ASW/latex/ASW-Report.pdf ${{ env.SITE }}/report/ASW/latex/ASW-Report.pdf
+
+      - name: Install dependencies for DS Report
+        run: npm ci
+        working-directory: ./docs/report/DS
+
+      - name: Build DS Report with VitePress
+        run: npm run docs:build -- --base /EvenToNight/report/DS/ --outDir ../../../site/report/DS
+        working-directory: ./docs/report/DS
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
