@@ -66,6 +66,7 @@ tasks.register<ExecTask>("teardownDevEnvironment") {
 tasks.register<ExecTask>("teardownApplicationEnvironment") {
     description = "Tear down the Docker application environment."
     group = "docker"
+    dependsOn("stopStripeWebHooksListener")
     bashCommands(DockerCommands.TEARDOWN_APPLICATION_ENVIRONMENT)
 }
 
@@ -138,6 +139,7 @@ tasks.register<ExecTask>("setupDevEnvironment") {
 tasks.register<ExecTask>("setupApplicationEnvironment") {
     description = "Set up the Docker application environment."
     group = "docker"
+    dependsOn("setupStripeWebHooksListener")
     bashCommands(DockerCommands.TEARDOWN_APPLICATION_ENVIRONMENT).onFailure { code ->
         println("${RED}Teardown failed with exit code ${code}.${RESET}")
     }
