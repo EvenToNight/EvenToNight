@@ -34,3 +34,10 @@ export * from './outbox/outbox-mongo.repository';
 export * from './outbox/outbox.service';
 export * from './outbox/outbox-relay.service';
 export * from './outbox/outbox-change-stream-relay.service';
+
+// Inbox
+export * from './inbox/inbox.types';
+export * from './inbox/inbox.repository.interface';
+export * from './inbox/inbox.service.interface';
+export * from './inbox/inbox-mongo.repository';
+export * from './inbox/inbox.service';

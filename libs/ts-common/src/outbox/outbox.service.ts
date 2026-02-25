@@ -1,9 +1,9 @@
 import { randomUUID } from 'crypto';
 import type { OutboxRepository } from './outbox.repository.interface';
-import type { OutboxServiceInterface } from './outbox.service.interface';
+import type { OutboxService} from './outbox.service.interface';
 import type { EventEnvelope } from '../events/event-envelope';
 
-export class OutboxServiceBase implements OutboxServiceInterface {
+export class OutboxServiceImpl implements OutboxService {
   constructor(protected readonly outboxRepository: OutboxRepository) {}
 
   async addEvent(

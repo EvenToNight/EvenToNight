@@ -1,7 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import {
   OUTBOX_REPOSITORY,
-  OutboxServiceBase,
+  OutboxServiceImpl as OutboxServiceBase,
   type OutboxRepository,
 } from '@libs/ts-common';
 

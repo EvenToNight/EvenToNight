@@ -1,6 +1,6 @@
 import { EventEnvelope } from "../events/event-envelope";
 
-export interface OutboxServiceInterface {
+export interface OutboxService {
   addEvent(event: EventEnvelope<unknown>, routingKey: string): Promise<void>;
 }
 
