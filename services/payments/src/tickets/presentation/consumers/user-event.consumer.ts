@@ -2,6 +2,11 @@ import { Inject, Injectable, Logger } from '@nestjs/common';
 import { RmqContext } from '@nestjs/microservices';
 import type { EventEnvelope } from '@libs/ts-common';
 import {
+  TRANSACTION_MANAGER,
+  Transactional,
+  TransactionManager,
+} from '@libs/ts-common';
+import {
   USER_REPOSITORY,
   type UserRepository,
 } from 'src/tickets/domain/repositories/user.repository.interface';
@@ -10,6 +15,7 @@ import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { Language } from 'src/tickets/domain/value-objects/language.vo';
 import { Channel } from 'amqp-connection-manager';
 import { Message } from 'amqplib';
+import { InboxService } from '@libs/nestjs-common';
 
 interface UserPayload {
   id: string;
@@ -27,6 +33,9 @@ export class UserEventConsumer {
   constructor(
     @Inject(USER_REPOSITORY)
     private readonly userRepository: UserRepository,
+    private readonly idempotencyService: InboxService,
+    @Inject(TRANSACTION_MANAGER)
+    private readonly transactionManager: TransactionManager,
   ) {}
 
   async handleAllEvents(envelope: EventEnvelope<any>, context: RmqContext) {
@@ -38,24 +47,7 @@ export class UserEventConsumer {
     const channel = context.getChannelRef() as Channel;
 
     try {
-      this.logger.log(
-        `Processing event with ID ${messageId} and routing key: ${routingKey}`,
-      );
-      switch (routingKey) {
-        case 'user.created':
-          await this.handleUserCreated(envelope as EventEnvelope<UserPayload>);
-          break;
-        case 'user.updated':
-          await this.handleUserUpdated(envelope as EventEnvelope<UserPayload>);
-          break;
-        case 'user.deleted':
-          await this.handleUserDeleted(
-            envelope as EventEnvelope<UserDeletedPayload>,
-          );
-          break;
-        default:
-          this.logger.warn(`Unknown routing key: ${routingKey}`);
-      }
+      await this.processEvent(envelope, routingKey, messageId);
       channel.ack(message);
     } catch (error) {
       if (error instanceof Error) {
@@ -65,6 +57,39 @@ export class UserEventConsumer {
         );
       }
       channel.nack(message, false, false);
+    }
+  }
+
+  @Transactional()
+  private async processEvent(
+    envelope: EventEnvelope<any>,
+    routingKey: string,
+    messageId: string | undefined,
+  ): Promise<void> {
+    if (messageId && (await this.idempotencyService.isProcessed(messageId))) {
+      this.logger.log(`Duplicate message ignored: ${messageId}`);
+      return;
+    }
+    this.logger.log(
+      `Processing event with ID ${messageId} and routing key: ${routingKey}`,
+    );
+    switch (routingKey) {
+      case 'user.created':
+        await this.handleUserCreated(envelope as EventEnvelope<UserPayload>);
+        break;
+      case 'user.updated':
+        await this.handleUserUpdated(envelope as EventEnvelope<UserPayload>);
+        break;
+      case 'user.deleted':
+        await this.handleUserDeleted(
+          envelope as EventEnvelope<UserDeletedPayload>,
+        );
+        break;
+      default:
+        this.logger.warn(`Unknown routing key: ${routingKey}`);
+    }
+    if (messageId) {
+      await this.idempotencyService.markAsProcessed(messageId);
     }
   }
 

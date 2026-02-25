@@ -1,6 +1,12 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { RmqContext } from '@nestjs/microservices';
 import type { EventEnvelope } from '@libs/ts-common';
+import {
+  TRANSACTION_MANAGER,
+  Transactional,
+  TransactionManager,
+} from '@libs/ts-common';
+import { InboxService } from '@libs/nestjs-common';
 import { Channel } from 'amqp-connection-manager';
 import { Message } from 'amqplib';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
@@ -37,6 +43,9 @@ export class EventEventConsumer {
   constructor(
     private readonly eventService: EventService,
     private readonly deleteHandler: DeleteEventHandler,
+    private readonly idempotencyService: InboxService,
+    @Inject(TRANSACTION_MANAGER)
+    private readonly transactionManager: TransactionManager,
   ) {}
 
   async handleAllEvents(envelope: EventEnvelope<any>, context: RmqContext) {
@@ -47,40 +56,8 @@ export class EventEventConsumer {
     this.logger.debug(`Payload: ${JSON.stringify(envelope?.payload)}`);
     const channel = context.getChannelRef() as Channel;
     //TODO: listen to create event for resiliency on failure
-    //TODO: check message are idempotent
     try {
-      this.logger.log(
-        `Processing event with ID ${messageId} and routing key: ${routingKey}`,
-      );
-      switch (routingKey) {
-        case 'event.updated':
-          await this.handleEventUpdated(
-            envelope as EventEnvelope<EventUpdatedPayload>,
-          );
-          break;
-        case 'event.published':
-          await this.handleEventPublished(
-            envelope as EventEnvelope<EventPublishedPayload>,
-          );
-          break;
-        case 'event.completed':
-          await this.handleEventCompleted(
-            envelope as EventEnvelope<EventCompletedPayload>,
-          );
-          break;
-        case 'event.cancelled':
-          await this.handleEventCancelled(
-            envelope as EventEnvelope<EventCancelledPayload>,
-          );
-          break;
-        case 'event.deleted':
-          await this.handleEventDeleted(
-            envelope as EventEnvelope<EventDeletedPayload>,
-          );
-          break;
-        default:
-          this.logger.warn(`Unknown routing key: ${routingKey}`);
-      }
+      await this.processEvent(envelope, routingKey, messageId);
       channel.ack(message);
     } catch (error) {
       if (error instanceof Error) {
@@ -90,6 +67,53 @@ export class EventEventConsumer {
         );
       }
       channel.nack(message, false, false);
+    }
+  }
+
+  @Transactional()
+  private async processEvent(
+    envelope: EventEnvelope<any>,
+    routingKey: string,
+    messageId: string | undefined,
+  ): Promise<void> {
+    if (messageId && (await this.idempotencyService.isProcessed(messageId))) {
+      this.logger.log(`Duplicate message ignored: ${messageId}`);
+      return;
+    }
+    this.logger.log(
+      `Processing event with ID ${messageId} and routing key: ${routingKey}`,
+    );
+    switch (routingKey) {
+      case 'event.updated':
+        await this.handleEventUpdated(
+          envelope as EventEnvelope<EventUpdatedPayload>,
+        );
+        break;
+      case 'event.published':
+        await this.handleEventPublished(
+          envelope as EventEnvelope<EventPublishedPayload>,
+        );
+        break;
+      case 'event.completed':
+        await this.handleEventCompleted(
+          envelope as EventEnvelope<EventCompletedPayload>,
+        );
+        break;
+      case 'event.cancelled':
+        await this.handleEventCancelled(
+          envelope as EventEnvelope<EventCancelledPayload>,
+        );
+        break;
+      case 'event.deleted':
+        await this.handleEventDeleted(
+          envelope as EventEnvelope<EventDeletedPayload>,
+        );
+        break;
+      default:
+        this.logger.warn(`Unknown routing key: ${routingKey}`);
+    }
+    if (messageId) {
+      await this.idempotencyService.markAsProcessed(messageId);
     }
   }
 

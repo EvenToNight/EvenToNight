@@ -1,7 +1,7 @@
 import { INestApplication } from '@nestjs/common';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { MongoMemoryServer } from 'mongodb-memory-server';
+import { MongoMemoryReplSet } from 'mongodb-memory-server';
 import { Model } from 'mongoose';
 import { PAYMENT_SERVICE } from 'src/tickets/domain/services/payment.service.interface';
 import { EventPublisher, OutboxRelayService } from '@libs/nestjs-common';
@@ -21,7 +21,7 @@ interface MockRmqContext extends RmqContext {
 
 describe('EventEventConsumer (e2e)', () => {
   let app: INestApplication;
-  let mongod: MongoMemoryServer;
+  let mongod: MongoMemoryReplSet;
   let consumer: EventEventConsumer;
   let eventModel: Model<EventDocument>;
 
@@ -31,7 +31,7 @@ describe('EventEventConsumer (e2e)', () => {
     jest.spyOn(console, 'error').mockImplementation();
     process.env.NODE_ENV = 'test';
 
-    mongod = await MongoMemoryServer.create();
+    mongod = await MongoMemoryReplSet.create({ replSet: { count: 1 } });
     process.env.MONGO_URI = mongod.getUri();
 
     const moduleFixture: TestingModule = await Test.createTestingModule({
