@@ -6,7 +6,6 @@ import {
   HttpCode,
   HttpStatus,
   ValidationPipe,
-  ConflictException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { EventService } from 'src/tickets/application/services/event.service';
@@ -30,12 +29,12 @@ export class InternalEventsController {
     @Param('eventId') eventId: string,
     @Body(ValidationPipe) dto: CreateEventDto,
   ): Promise<void> {
-    //TODO: handle possible interleaving of this endpoint and the event.created consumer for the same eventId
     try {
       await this.createEventHandler.handle(eventId, dto);
     } catch (error) {
       if (this.eventService.isDuplicateError(error)) {
-        throw new ConflictException(`Event with id ${eventId} already exists`);
+        // event.created consumer may have already created the event — treat as success
+        return;
       }
       throw new InternalServerErrorException(
         `Failed to create or update event: ${error}`,
