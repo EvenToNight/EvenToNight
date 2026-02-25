@@ -4,13 +4,7 @@ import { RabbitMQConfig } from './types/messaging.types';
 
 export class RabbitMQPublisher implements MessagePublisher {
   private connection: Awaited<ReturnType<typeof amqp.connect>> | undefined;
-  private channel:
-    | Awaited<
-        ReturnType<
-          Awaited<ReturnType<typeof amqp.connect>>['createChannel']
-        >
-      >
-    | undefined;
+  private channel: amqp.ConfirmChannel | undefined;
   private readonly exchangeName: string;
   private savedConfig: RabbitMQConfig = {};
   private isReconnecting = false;
@@ -56,7 +50,7 @@ export class RabbitMQPublisher implements MessagePublisher {
   private async setupChannel(): Promise<void> {
     if (!this.connection) return;
 
-    this.channel = await this.connection.createChannel();
+    this.channel = await this.connection.createConfirmChannel();
 
     this.channel.on('close', () => {
       this.channel = undefined;
@@ -94,19 +88,22 @@ export class RabbitMQPublisher implements MessagePublisher {
     }, delayMs);
   }
 
-  publish(event: any, routingKey: string): void {
+  publish(event: any, routingKey: string, messageId?: string): Promise<void> {
     if (!this.channel) {
-      throw new Error(
-        'RabbitMQ channel not initialized. Call connect() first.',
+      return Promise.reject(
+        new Error('RabbitMQ channel not initialized. Call connect() first.'),
       );
     }
 
-    this.channel.publish(
-      this.exchangeName,
-      routingKey,
-      Buffer.from(JSON.stringify(event)),
-      { persistent: true },
-    );
+    return new Promise<void>((resolve, reject) => {
+      this.channel!.publish(
+        this.exchangeName,
+        routingKey,
+        Buffer.from(JSON.stringify(event)),
+        { persistent: true, ...(messageId ? { messageId } : {}) },
+        (err) => (err ? reject(err) : resolve()),
+      );
+    });
   }
 
   async disconnect(): Promise<void> {

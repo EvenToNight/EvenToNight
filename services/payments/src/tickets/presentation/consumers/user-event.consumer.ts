@@ -32,11 +32,15 @@ export class UserEventConsumer {
   async handleAllEvents(envelope: EventEnvelope<any>, context: RmqContext) {
     const message = context.getMessage() as Message;
     const routingKey = message.fields.routingKey;
+    const messageId = message.properties.messageId as string | undefined;
     this.logger.log(`📨 Received event: ${routingKey}`);
     this.logger.debug(`Payload: ${JSON.stringify(envelope?.payload)}`);
     const channel = context.getChannelRef() as Channel;
 
     try {
+      this.logger.log(
+        `Processing event with ID ${messageId} and routing key: ${routingKey}`,
+      );
       switch (routingKey) {
         case 'user.created':
           await this.handleUserCreated(envelope as EventEnvelope<UserPayload>);

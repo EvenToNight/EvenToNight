@@ -42,11 +42,16 @@ export class EventEventConsumer {
   async handleAllEvents(envelope: EventEnvelope<any>, context: RmqContext) {
     const message = context.getMessage() as Message;
     const routingKey = message.fields.routingKey;
+    const messageId = message.properties.messageId as string | undefined;
     this.logger.log(`📨 Received event: ${routingKey}`);
     this.logger.debug(`Payload: ${JSON.stringify(envelope?.payload)}`);
     const channel = context.getChannelRef() as Channel;
-
+    //TODO: listen to create event for resiliency on failure
+    //TODO: check message are idempotent
     try {
+      this.logger.log(
+        `Processing event with ID ${messageId} and routing key: ${routingKey}`,
+      );
       switch (routingKey) {
         case 'event.updated':
           await this.handleEventUpdated(

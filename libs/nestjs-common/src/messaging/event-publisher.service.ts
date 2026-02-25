@@ -13,8 +13,8 @@ export class EventPublisher implements MessagePublisher, OnModuleInit, OnModuleD
     await this.publisher.connect();
   }
 
-  publish(event: any, routingKey: string): void {
-    this.publisher.publish(event, routingKey);
+  async publish(event: any, routingKey: string, messageId?: string): Promise<void> {
+    await this.publisher.publish(event, routingKey, messageId);
   }
 
   async onModuleDestroy(): Promise<void> {

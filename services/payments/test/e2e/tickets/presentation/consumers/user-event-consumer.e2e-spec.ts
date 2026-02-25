@@ -71,18 +71,19 @@ describe('UserEventConsumer (e2e)', () => {
     await userModel.deleteMany({});
   });
 
-  const createMockRmqContext = (routingKey: string): MockRmqContext => {
+  const createMockRmqContext = (
+    routingKey: string,
+    messageId?: string,
+  ): MockRmqContext => {
     const mockChannel: MockChannel = {
       ack: jest.fn(),
       nack: jest.fn(),
     };
 
     const mockMessage = {
-      fields: {
-        routingKey,
-      },
+      fields: { routingKey },
       content: Buffer.from('{}'),
-      properties: {},
+      properties: messageId ? { messageId } : {},
     };
 
     return {
@@ -174,5 +175,29 @@ describe('UserEventConsumer (e2e)', () => {
 
     const mockChannel = context.getChannelRef();
     expect(mockChannel.ack).toHaveBeenCalled();
+  });
+
+  it('should skip duplicate messages with the same messageId', async () => {
+    const msgId = 'user-msg-001';
+    const envelope = {
+      eventType: 'user.created',
+      occurredAt: new Date(),
+      payload: { id: 'user-dup', language: 'it' },
+    };
+
+    const ctx1 = createMockRmqContext('user.created', msgId);
+    await userEventConsumer.handleAllEvents(envelope, ctx1);
+    expect(ctx1.getChannelRef().ack).toHaveBeenCalled();
+    expect(await userModel.findOne({ _id: 'user-dup' })).toBeDefined();
+
+    // Delete user to verify second call does not re-create
+    await userModel.deleteOne({ _id: 'user-dup' });
+
+    const ctx2 = createMockRmqContext('user.created', msgId);
+    await userEventConsumer.handleAllEvents(envelope, ctx2);
+    expect(ctx2.getChannelRef().ack).toHaveBeenCalled();
+
+    // User should not have been re-created — duplicate was skipped
+    expect(await userModel.findOne({ _id: 'user-dup' })).toBeNull();
   });
 });

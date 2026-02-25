@@ -73,12 +73,15 @@ describe('EventEventConsumer (e2e)', () => {
 
   // ─── helpers ────────────────────────────────────────────────────────────────
 
-  const createMockRmqContext = (routingKey: string): MockRmqContext => {
+  const createMockRmqContext = (
+    routingKey: string,
+    messageId?: string,
+  ): MockRmqContext => {
     const mockChannel: MockChannel = { ack: jest.fn(), nack: jest.fn() };
     const mockMessage = {
       fields: { routingKey },
       content: Buffer.from('{}'),
-      properties: {},
+      properties: messageId ? { messageId } : {},
     };
     return {
       getMessage: () => mockMessage,
@@ -265,5 +268,32 @@ describe('EventEventConsumer (e2e)', () => {
 
     expect(ctx.getChannelRef().ack).toHaveBeenCalled();
     expect(ctx.getChannelRef().nack).not.toHaveBeenCalled();
+  });
+
+  // ─── idempotency ─────────────────────────────────────────────────────────
+
+  describe('idempotency', () => {
+    it('processes first delivery and skips duplicate', async () => {
+      await seedEvent('ev-idem', 'DRAFT');
+      const msgId = 'msg-unique-001';
+
+      const ctx1 = createMockRmqContext('event.published', msgId);
+      await consumer.handleAllEvents(envelope({ eventId: 'ev-idem' }), ctx1);
+      expect(ctx1.getChannelRef().ack).toHaveBeenCalled();
+
+      const doc1 = await eventModel.findById('ev-idem');
+      expect(doc1?.status).toBe('PUBLISHED');
+
+      // Reset status to DRAFT to verify second call does not re-process
+      await eventModel.updateOne({ _id: 'ev-idem' }, { status: 'DRAFT' });
+
+      const ctx2 = createMockRmqContext('event.published', msgId);
+      await consumer.handleAllEvents(envelope({ eventId: 'ev-idem' }), ctx2);
+      expect(ctx2.getChannelRef().ack).toHaveBeenCalled();
+
+      // Status should still be DRAFT — duplicate was skipped
+      const doc2 = await eventModel.findById('ev-idem');
+      expect(doc2?.status).toBe('DRAFT');
+    });
   });
 });

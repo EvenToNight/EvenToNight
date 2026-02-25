@@ -57,7 +57,7 @@ export class OutboxRelayServiceBase implements OutboxRelayServiceInterface {
   }): Promise<void> {
     try {
       const event = JSON.parse(entry.payload);
-      this.eventPublisher.publish(event, entry.eventType);
+      await this.eventPublisher.publish(event, entry.eventType, entry.id);
       await this.outboxRepository.markProcessed(entry.id);
     } catch (error) {
       this.logger.error(`Failed to process outbox entry ${entry.id}`, error);
