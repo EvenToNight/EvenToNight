@@ -10,6 +10,7 @@ import { InboxService } from '@libs/nestjs-common';
 import { Channel } from 'amqp-connection-manager';
 import { Message } from 'amqplib';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
+import { CreateEventHandler } from 'src/tickets/application/handlers/create-event.handler';
 import { DeleteEventHandler } from 'src/tickets/application/handlers/delete-event.handler';
 import { EventService } from 'src/tickets/application/services/event.service';
 
@@ -36,12 +37,21 @@ interface EventDeletedPayload {
   eventId: string;
 }
 
+interface EventCreatedPayload {
+  eventId: string;
+  creatorId: string;
+  date?: Date;
+  name?: string;
+  status: string;
+}
+
 @Injectable()
 export class EventEventConsumer {
   private readonly logger = new Logger(EventEventConsumer.name);
 
   constructor(
     private readonly eventService: EventService,
+    private readonly createHandler: CreateEventHandler,
     private readonly deleteHandler: DeleteEventHandler,
     private readonly idempotencyService: InboxService,
     @Inject(TRANSACTION_MANAGER)
@@ -55,7 +65,6 @@ export class EventEventConsumer {
     this.logger.log(`📨 Received event: ${routingKey}`);
     this.logger.debug(`Payload: ${JSON.stringify(envelope?.payload)}`);
     const channel = context.getChannelRef() as Channel;
-    //TODO: listen to create event for resiliency on failure
     try {
       await this.processEvent(envelope, routingKey, messageId);
       channel.ack(message);
@@ -84,6 +93,11 @@ export class EventEventConsumer {
       `Processing event with ID ${messageId} and routing key: ${routingKey}`,
     );
     switch (routingKey) {
+      case 'event.created':
+        await this.handleEventCreated(
+          envelope as EventEnvelope<EventCreatedPayload>,
+        );
+        break;
       case 'event.updated':
         await this.handleEventUpdated(
           envelope as EventEnvelope<EventUpdatedPayload>,
@@ -114,6 +128,31 @@ export class EventEventConsumer {
     }
     if (messageId) {
       await this.idempotencyService.markAsProcessed(messageId);
+    }
+  }
+
+  private async handleEventCreated(
+    envelope: EventEnvelope<EventCreatedPayload>,
+  ) {
+    try {
+      this.logger.log(
+        `Processing event.created: ${JSON.stringify(envelope.payload)}`,
+      );
+      await this.createHandler.handle(envelope.payload.eventId, {
+        creatorId: envelope.payload.creatorId,
+        date: envelope.payload.date,
+        title: envelope.payload.name,
+        status: envelope.payload.status,
+      });
+      this.logger.log(`Event created: ${envelope.payload.eventId}`);
+    } catch (err: unknown) {
+      if (this.eventService.isDuplicateError(err)) {
+        this.logger.warn(
+          `Event with id ${envelope.payload.eventId} already exists. Skipping creation)`,
+        );
+        return;
+      }
+      throw err;
     }
   }
 

@@ -52,6 +52,7 @@ import { StripeService } from './infrastructure/payment/stripe.service';
 import { PAYMENT_SERVICE } from './domain/services/payment.service.interface';
 
 // Handlers
+import { CreateEventHandler } from './application/handlers/create-event.handler';
 import { CreateEventTicketTypeHandler } from './application/handlers/create-event-ticket-type.handler';
 import { CreateCheckoutSessionHandler } from './application/handlers/create-checkout-session.handler';
 import { DeleteEventTicketTypesHandler } from './application/handlers/delete-event-ticket-types.handler';
@@ -157,6 +158,7 @@ import { UserService } from './application/services/user.service';
     },
 
     // Use Case Handlers
+    CreateEventHandler,
     CreateEventTicketTypeHandler,
     CreateCheckoutSessionHandler,
     DeleteEventTicketTypesHandler,

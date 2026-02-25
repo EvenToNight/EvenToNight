@@ -11,14 +11,14 @@ import {
 } from '@nestjs/common';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { CreateEventDto } from '../../application/dto/create-event.dto';
-import { Event } from 'src/tickets/domain/aggregates/event.aggregate';
-import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
-import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
-import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
+import { CreateEventHandler } from '../../application/handlers/create-event.handler';
 
 @Controller('internal/events')
 export class InternalEventsController {
-  constructor(private readonly eventService: EventService) {}
+  constructor(
+    private readonly createEventHandler: CreateEventHandler,
+    private readonly eventService: EventService,
+  ) {}
 
   /**
    * POST /internal/events/:eventId
@@ -30,16 +30,9 @@ export class InternalEventsController {
     @Param('eventId') eventId: string,
     @Body(ValidationPipe) dto: CreateEventDto,
   ): Promise<void> {
+    //TODO: handle possible interleaving of this endpoint and the event.created consumer for the same eventId
     try {
-      await this.eventService.save(
-        Event.create({
-          id: EventId.fromString(eventId),
-          creatorId: UserId.fromString(dto.creatorId),
-          date: dto.date,
-          title: dto.title,
-          status: EventStatus.fromString(dto.status),
-        }),
-      );
+      await this.createEventHandler.handle(eventId, dto);
     } catch (error) {
       if (this.eventService.isDuplicateError(error)) {
         throw new ConflictException(`Event with id ${eventId} already exists`);
