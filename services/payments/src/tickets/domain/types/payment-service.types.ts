@@ -31,6 +31,7 @@ export interface CreateCheckoutSessionParams {
 }
 
 export interface WebhookEvent {
+  webhookEventId: string;
   sessionId: string;
   type: string;
   orderId: string;

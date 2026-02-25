@@ -156,6 +156,7 @@ export class StripeService implements PaymentService {
       const session = event.data.object as Stripe.Checkout.Session;
       //TODO evaluate to parametrize webhook event data
       return {
+        webhookEventId: event.id,
         sessionId: session.id,
         type: event.type,
         orderId: session.metadata?.orderId || '',
