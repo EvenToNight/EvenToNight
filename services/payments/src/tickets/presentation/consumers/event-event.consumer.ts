@@ -13,6 +13,7 @@ import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 import { CreateEventHandler } from 'src/tickets/application/handlers/create-event.handler';
 import { DeleteEventHandler } from 'src/tickets/application/handlers/delete-event.handler';
 import { EventService } from 'src/tickets/application/services/event.service';
+import { EventAlreadyExistsException } from 'src/tickets/domain/exceptions/event-already-exists.exception';
 
 interface EventUpdatedPayload {
   eventId: string;
@@ -146,10 +147,8 @@ export class EventEventConsumer {
       });
       this.logger.log(`Event created: ${envelope.payload.eventId}`);
     } catch (err: unknown) {
-      if (this.eventService.isDuplicateError(err)) {
-        this.logger.warn(
-          `Event with id ${envelope.payload.eventId} already exists. Skipping creation)`,
-        );
+      if (err instanceof EventAlreadyExistsException) {
+        this.logger.warn(err.message);
         return;
       }
       throw err;

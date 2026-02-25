@@ -8,16 +8,13 @@ import {
   ValidationPipe,
   InternalServerErrorException,
 } from '@nestjs/common';
-import { EventService } from 'src/tickets/application/services/event.service';
 import { CreateEventDto } from '../../application/dto/create-event.dto';
 import { CreateEventHandler } from '../../application/handlers/create-event.handler';
+import { EventAlreadyExistsException } from '../../domain/exceptions/event-already-exists.exception';
 
 @Controller('internal/events')
 export class InternalEventsController {
-  constructor(
-    private readonly createEventHandler: CreateEventHandler,
-    private readonly eventService: EventService,
-  ) {}
+  constructor(private readonly createEventHandler: CreateEventHandler) {}
 
   /**
    * POST /internal/events/:eventId
@@ -32,7 +29,7 @@ export class InternalEventsController {
     try {
       await this.createEventHandler.handle(eventId, dto);
     } catch (error) {
-      if (this.eventService.isDuplicateError(error)) {
+      if (error instanceof EventAlreadyExistsException) {
         // event.created consumer may have already created the event — treat as success
         return;
       }

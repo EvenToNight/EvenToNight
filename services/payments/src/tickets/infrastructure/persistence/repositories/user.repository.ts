@@ -7,6 +7,7 @@ import { UserMapper } from '../mappers/user.mapper';
 import { User } from 'src/tickets/domain/aggregates/user.aggregate';
 import { BaseMongoRepository } from '@libs/ts-common';
 import { UserNotFoundException } from 'src/tickets/domain/exceptions/user-not-found.exception';
+import { UserAlreadyExistsException } from 'src/tickets/domain/exceptions/user-already-exists.exception';
 
 @Injectable()
 export class UserRepositoryImpl
@@ -25,8 +26,15 @@ export class UserRepositoryImpl
 
     const document = UserMapper.toPersistence(user);
     const created = new this.userModel(document);
-    const saved = await created.save({ session: session || undefined });
-    return UserMapper.toDomain(saved);
+    try {
+      const saved = await created.save({ session: session || undefined });
+      return UserMapper.toDomain(saved);
+    } catch (err) {
+      if (this.isDuplicateError(err)) {
+        throw new UserAlreadyExistsException(user.getId().toString());
+      }
+      throw err;
+    }
   }
 
   async findById(id: string): Promise<User | null> {

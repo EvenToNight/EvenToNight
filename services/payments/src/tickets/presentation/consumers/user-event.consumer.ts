@@ -6,16 +6,14 @@ import {
   Transactional,
   TransactionManager,
 } from '@libs/ts-common';
-import {
-  USER_REPOSITORY,
-  type UserRepository,
-} from 'src/tickets/domain/repositories/user.repository.interface';
 import { User } from 'src/tickets/domain/aggregates/user.aggregate';
 import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { Language } from 'src/tickets/domain/value-objects/language.vo';
 import { Channel } from 'amqp-connection-manager';
 import { Message } from 'amqplib';
 import { InboxService } from '@libs/nestjs-common';
+import { UserService } from 'src/tickets/application/services/user.service';
+import { UserAlreadyExistsException } from 'src/tickets/domain/exceptions/user-already-exists.exception';
 
 interface UserPayload {
   id: string;
@@ -31,8 +29,7 @@ export class UserEventConsumer {
   private readonly logger = new Logger(UserEventConsumer.name);
 
   constructor(
-    @Inject(USER_REPOSITORY)
-    private readonly userRepository: UserRepository,
+    private readonly userService: UserService,
     private readonly idempotencyService: InboxService,
     @Inject(TRANSACTION_MANAGER)
     private readonly transactionManager: TransactionManager,
@@ -98,19 +95,16 @@ export class UserEventConsumer {
       `Processing user.created: ${JSON.stringify(envelope.payload)}`,
     );
     try {
-      await this.userRepository.save(
+      await this.userService.save(
         User.create(
           UserId.fromString(envelope.payload.id),
           Language.fromStringOrDefault(envelope.payload.language),
         ),
       );
-
       this.logger.log(`User created: ${envelope.payload.id}`);
     } catch (err: unknown) {
-      if (this.userRepository.isDuplicateError(err)) {
-        this.logger.warn(
-          `User with id ${envelope.payload.id} already exists. Skipping creation.`,
-        );
+      if (err instanceof UserAlreadyExistsException) {
+        this.logger.warn(err.message);
         return;
       }
       throw err;
@@ -119,22 +113,19 @@ export class UserEventConsumer {
 
   private async handleUserUpdated(envelope: EventEnvelope<UserPayload>) {
     this.logger.log(`Processing user.updated: ${envelope.payload.id}`);
-
-    await this.userRepository.update(
+    await this.userService.update(
       User.create(
         UserId.fromString(envelope.payload.id),
         Language.fromStringOrDefault(envelope.payload.language),
       ),
     );
-
     this.logger.log(`User updated: ${envelope.payload.id}`);
   }
 
   private async handleUserDeleted(envelope: EventEnvelope<UserDeletedPayload>) {
     this.logger.log(`Processing user.deleted: ${envelope.payload.id}`);
     //TODO remove user related data
-    await this.userRepository.delete(envelope.payload.id);
-
+    await this.userService.delete(envelope.payload.id);
     this.logger.log(`User deleted: ${envelope.payload.id}`);
   }
 }

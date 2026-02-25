@@ -73,8 +73,4 @@ export class EventService {
       status,
     );
   }
-
-  isDuplicateError(error: unknown): boolean {
-    return this.eventRepository.isDuplicateError(error);
-  }
 }

@@ -9,6 +9,7 @@ import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { BaseMongoRepository } from '@libs/ts-common';
 import { EventNotFoundException } from 'src/tickets/domain/exceptions/event-not-found.exception';
+import { EventAlreadyExistsException } from 'src/tickets/domain/exceptions/event-already-exists.exception';
 
 @Injectable()
 export class EventRepositoryImpl
@@ -27,8 +28,15 @@ export class EventRepositoryImpl
 
     const document = EventMapper.toPersistence(event);
     const created = new this.eventModel(document);
-    const saved = await created.save({ session: session || undefined });
-    return EventMapper.toDomain(saved);
+    try {
+      const saved = await created.save({ session: session || undefined });
+      return EventMapper.toDomain(saved);
+    } catch (err) {
+      if (this.isDuplicateError(err)) {
+        throw new EventAlreadyExistsException(event.getId().toString());
+      }
+      throw err;
+    }
   }
 
   async findById(id: string): Promise<Event | null> {

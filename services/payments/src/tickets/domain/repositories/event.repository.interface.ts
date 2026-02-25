@@ -11,10 +11,9 @@ export interface EventRepository {
     title?: string;
     status: EventStatus;
   }): Promise<Event>;
-  updateStatus(eventId: EventId, status: EventStatus);
+  updateStatus(eventId: EventId, status: EventStatus): Promise<Event>;
   delete(id: string): Promise<void>;
   deleteAll(): Promise<void>;
-  isDuplicateError(error: unknown): boolean;
 }
 
 export const EVENT_REPOSITORY = Symbol('EVENT_REPOSITORY');
