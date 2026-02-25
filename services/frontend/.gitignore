@@ -15,6 +15,9 @@ dist-ssr
 coverage
 *.local
 
+# Accessibility reports
+a11y-reports
+
 /cypress/videos/
 /cypress/screenshots/
 

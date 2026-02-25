@@ -12,13 +12,21 @@ const goToHomeTop = () => {
 </script>
 
 <template>
-  <div class="app-brand" @click="goToHomeTop">
+  <div
+    class="app-brand"
+    role="button"
+    tabindex="0"
+    @click="goToHomeTop"
+    @keydown.enter="goToHomeTop"
+  >
     <img src="/logo.png" :alt="t('altText')" class="brand-logo" />
     <span class="brand-text">{{ t('appName') }}</span>
   </div>
 </template>
 
 <style lang="scss" scoped>
+@use 'sass:color';
+
 .app-brand {
   @include flex-center;
   gap: $spacing-2;
@@ -34,7 +42,14 @@ const goToHomeTop = () => {
 .brand-text {
   font-size: $font-size-xl;
   font-weight: $font-weight-semibold;
-  color: $color-primary;
   white-space: nowrap;
+
+  @include light-mode {
+    color: $color-primary;
+  }
+
+  @include dark-mode {
+    color: color.scale($color-primary, $lightness: 50%);
+  }
 }
 </style>

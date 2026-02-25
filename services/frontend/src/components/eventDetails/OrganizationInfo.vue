@@ -55,7 +55,13 @@ onMounted(async () => {
 <template>
   <div v-if="organizer" class="organizer-section">
     <h3 class="section-subtitle">{{ t('organizedBy') }}</h3>
-    <div class="organizer-card" @click="goToUserProfile(event.creatorId)">
+    <div
+      class="organizer-card"
+      role="button"
+      tabindex="0"
+      @click="goToUserProfile(event.creatorId)"
+      @keydown.enter="goToUserProfile(event.creatorId)"
+    >
       <img
         v-if="organizer.avatar"
         :src="organizer.avatar"
@@ -78,7 +84,10 @@ onMounted(async () => {
         v-for="collab in collaborators"
         :key="collab.id"
         class="collaborator-card"
+        role="button"
+        tabindex="0"
         @click="goToUserProfile(collab.id)"
+        @keydown.enter="goToUserProfile(collab.id)"
       >
         <img
           v-if="collab.avatar"

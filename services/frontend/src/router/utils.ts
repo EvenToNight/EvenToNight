@@ -150,7 +150,7 @@ export const useNavigation = () => {
   const goToEventReviews = (
     organizationId: string,
     eventId?: string,
-    openDialog: boolean = true,
+    openDialog: boolean = false,
     swap: boolean = false
   ) => {
     if (swap) {

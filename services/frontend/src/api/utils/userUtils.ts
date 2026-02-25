@@ -22,7 +22,6 @@ export const loadUserWithInfo = async (userId: UserID): Promise<UserLoadResult> 
     }
     return user
   } catch (error) {
-    // TODO: maybe return empty user?
     logger.error('Failed to load user:', error)
     throw error
   }

@@ -88,7 +88,11 @@ defineExpose({
   gap: $spacing-4;
 }
 
-.loading-state,
+.loading-state {
+  @include flex-center;
+  flex: 1;
+}
+
 .empty-state {
   @include flex-center;
   flex-direction: column;

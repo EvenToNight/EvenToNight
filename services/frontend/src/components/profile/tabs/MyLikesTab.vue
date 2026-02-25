@@ -36,8 +36,12 @@ onMounted(() => {
 
 <template>
   <div class="my-likes-tab">
+    <div v-if="loading && events.length === 0" class="initial-loading">
+      <q-spinner color="primary" size="50px" />
+    </div>
+
     <q-infinite-scroll
-      v-if="!loading && events.length > 0"
+      v-else-if="events.length > 0"
       :offset="250"
       class="events-scroll"
       :disable="loadingMore"
@@ -48,8 +52,8 @@ onMounted(() => {
       </div>
 
       <template #loading>
-        <div class="row justify-center q-my-md">
-          <q-spinner-dots color="primary" size="40px" />
+        <div class="loading-state">
+          <q-spinner color="primary" size="50px" />
         </div>
       </template>
     </q-infinite-scroll>
@@ -68,6 +72,10 @@ onMounted(() => {
   height: 100%;
 }
 
+.initial-loading {
+  @include flex-center;
+}
+
 .events-scroll {
   height: 100%;
 }
@@ -82,5 +90,10 @@ onMounted(() => {
     grid-template-columns: 1fr;
     gap: $spacing-4;
   }
+}
+
+.loading-state {
+  @include flex-center;
+  flex: 1;
 }
 </style>

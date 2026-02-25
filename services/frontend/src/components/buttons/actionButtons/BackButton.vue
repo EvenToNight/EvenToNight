@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import { useNavigation } from '@/router/utils'
+import { useTranslation } from '@/composables/useTranslation'
 import ActionButton, { type Variant } from './ActionButton.vue'
 
 const { goBack } = useNavigation()
+const { t } = useTranslation('components.buttons.actionButtons.BackButton')
 
 interface Props {
   variant?: Variant
@@ -14,7 +16,13 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <ActionButton icon="arrow_back" class="back-button" :variant="variant" :onClick="goBack" />
+  <ActionButton
+    icon="arrow_back"
+    class="back-button"
+    :variant="variant"
+    :onClick="goBack"
+    :ariaLabel="t('goBack')"
+  />
 </template>
 
 <style lang="scss" scoped>

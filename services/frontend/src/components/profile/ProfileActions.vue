@@ -47,8 +47,20 @@ const handleOpenChat = () => {
 <template>
   <div class="profile-actions">
     <template v-if="isOwnProfile">
-      <q-btn icon="edit" flat class="action-btn action-btn--secondary" @click="handleEditProfile" />
-      <q-btn icon="chat" flat class="action-btn action-btn--secondary" @click="handleOpenChat">
+      <q-btn
+        icon="edit"
+        flat
+        class="action-btn action-btn--secondary"
+        :aria-label="t('editProfileAriaLabel')"
+        @click="handleEditProfile"
+      />
+      <q-btn
+        icon="chat"
+        flat
+        class="action-btn action-btn--secondary"
+        :aria-label="t('openChatAriaLabel')"
+        @click="handleOpenChat"
+      >
         <q-badge v-if="unreadMessagesCount && unreadMessagesCount > 0" color="red" floating>{{
           String(unreadMessagesCount)
         }}</q-badge>
@@ -57,6 +69,7 @@ const handleOpenChat = () => {
         icon="settings"
         flat
         class="action-btn action-btn--secondary"
+        :aria-label="t('openSettingsAriaLabel')"
         @click="handleOpenSettings"
       />
       <q-btn
@@ -71,10 +84,11 @@ const handleOpenChat = () => {
     </template>
     <template v-else>
       <q-btn
-        v-if="isOrganization != authStore.isOrganization"
+        v-if="authStore.isAuthenticated && isOrganization != authStore.isOrganization"
         icon="send"
         flat
         class="action-btn action-btn--secondary"
+        :aria-label="t('sendMessageAriaLabel')"
         @click="handleOpenChat"
       />
       <q-btn

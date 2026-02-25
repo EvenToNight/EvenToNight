@@ -43,9 +43,11 @@ const loadReviews = async () => {
         props.eventId
       )
       logger.debug('User participation response:', response)
-      canUserLeaveReview.value = !(
-        await api.interactions.userParticipatedToEvent(authStore.user.id, props.eventId)
-      ).hasReviewed
+      const partecipationInfo = await api.interactions.userParticipatedToEvent(
+        authStore.user.id,
+        props.eventId
+      )
+      canUserLeaveReview.value = partecipationInfo.hasParticipated && !partecipationInfo.hasReviewed
     }
   } catch (error) {
     logger.error('Failed to load reviews:', error)
@@ -97,7 +99,10 @@ onMounted(() => {
     <div
       v-if="canUserLeaveReview"
       class="event-info"
+      role="button"
+      tabindex="0"
       @click="goToEventReviews(props.organizationId, props.eventId, true)"
+      @keydown.enter="goToEventReviews(props.organizationId, props.eventId, true)"
     >
       <q-icon name="rate_review" class="event-icon" />
       <span class="event-title">{{ t('leaveReview') }}</span>
@@ -270,6 +275,9 @@ onMounted(() => {
   .event-title {
     font-size: $font-size-base;
     font-weight: 600;
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 </style>

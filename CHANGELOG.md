@@ -1,3 +1,59 @@
+## [2.1.1](https://github.com/EvenToNight/EvenToNight/compare/v2.1.0...v2.1.1) (2026-02-24)
+
+### Bug Fixes
+
+* **tests:** correct imports after refactor ([5882f6c](https://github.com/EvenToNight/EvenToNight/commit/5882f6c78fe89a0118fe22c2ef0ce695bca5de13))
+
+## [2.1.0](https://github.com/EvenToNight/EvenToNight/compare/v2.0.2...v2.1.0) (2026-02-17)
+
+### Features
+
+* **chat:** allow conversations between orgs ([c56060b](https://github.com/EvenToNight/EvenToNight/commit/c56060bba14dbaf9c1aff46a589f3baebe318e58))
+
+### Bug Fixes
+
+* **interactions:** fix bug in transactions interactions ([6515f04](https://github.com/EvenToNight/EvenToNight/commit/6515f04f0a91794ccfd37dfd53664cc7561c75d4))
+
+## [2.0.2](https://github.com/EvenToNight/EvenToNight/compare/v2.0.1...v2.0.2) (2026-02-11)
+
+### Bug Fixes
+
+* **eventDetails:** submit review button showing condition ([22c121a](https://github.com/EvenToNight/EvenToNight/commit/22c121a5b61fd9fd54b1269f3c266eecc79cc326))
+
+## [2.0.1](https://github.com/EvenToNight/EvenToNight/compare/v2.0.0...v2.0.1) (2026-02-09)
+
+### Bug Fixes
+
+* **i18n:** fix verify view i18n translations path ([72897ab](https://github.com/EvenToNight/EvenToNight/commit/72897ab3aec06ea16a5ac256b9cdbccaead5a31a))
+* **infinite-scroll:** avoid duplicate loading in multi section infinite scroll composable ([49d32db](https://github.com/EvenToNight/EvenToNight/commit/49d32dbc597cf8ff2b95127c237cb5867de3f6fb))
+
+## [2.0.0](https://github.com/EvenToNight/EvenToNight/compare/v1.27.1...v2.0.0) (2026-02-04)
+
+### ⚠ BREAKING CHANGES
+
+* **release:** trigger major release
+
+### Features
+
+* **release:** trigger major release ([1337b74](https://github.com/EvenToNight/EvenToNight/commit/1337b74eb7f182f4c0e6f5f30b629b4456710712))
+* **reviews:** search in user partecipation in submit review dialog ([949a2ea](https://github.com/EvenToNight/EvenToNight/commit/949a2ea6b554ea03503ea63990339eb967b8e5bb))
+
+### Bug Fixes
+
+* **events:** search only orgnization for selecting collaborators ([29cb406](https://github.com/EvenToNight/EvenToNight/commit/29cb4060b9553847caf5eccc4ba7e2eb0123d0fd))
+* **explore:** adjust people tab layout ([70441cc](https://github.com/EvenToNight/EvenToNight/commit/70441cc7d7db59d8c5d50a2e30a330ce8dc9e1ed))
+* **filters:** fix filter update ([8d72003](https://github.com/EvenToNight/EvenToNight/commit/8d72003c16695743c6ea8e432489778ac2041199))
+* **i18n:** update transations key ([ae99e64](https://github.com/EvenToNight/EvenToNight/commit/ae99e641d950640602ffa9d4cc06dc89ce8a1f96))
+* **likes:** had sync like function to sync like information for the same event present in multiple components ([2a90bb4](https://github.com/EvenToNight/EvenToNight/commit/2a90bb4fb624717c8b370d38edfb04db193f1402))
+* **profile:** fix profile avatar editing ([3113610](https://github.com/EvenToNight/EvenToNight/commit/3113610c14b1ebd96056241c6bcaf315354de583))
+* **search:** make hint reactive with language swicth ([02ee0fa](https://github.com/EvenToNight/EvenToNight/commit/02ee0fa8112abf2264a2ae1db02033522f93b288))
+
+## [1.27.1](https://github.com/EvenToNight/EvenToNight/compare/v1.27.0...v1.27.1) (2026-02-03)
+
+### Bug Fixes
+
+* **events:** fix bug in get popular ([09e55fa](https://github.com/EvenToNight/EvenToNight/commit/09e55fa9e66405a505e347ab0e8390d7bafb13ee))
+
 ## [1.27.0](https://github.com/EvenToNight/EvenToNight/compare/v1.26.0...v1.27.0) (2026-02-02)
 
 ### Features

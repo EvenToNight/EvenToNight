@@ -75,7 +75,7 @@ const removeImage = () => {
 
 <template>
   <div class="image-crop-upload">
-    <label v-if="label" class="field-label">{{ label }}</label>
+    <span v-if="label" class="field-label">{{ label }}</span>
 
     <BaseCropUpload
       ref="baseCropUploadRef"
@@ -111,13 +111,6 @@ const removeImage = () => {
             @click="trigger"
           />
         </div>
-      </template>
-
-      <template #actions="{ cropImage, closeCropper }">
-        <q-card-actions align="right" class="dialog-actions">
-          <q-btn flat :label="t('dialogCancelButton')" @click="closeCropper" />
-          <q-btn color="primary" :label="t('dialogConfirmButton')" @click="cropImage" />
-        </q-card-actions>
       </template>
     </BaseCropUpload>
   </div>
@@ -176,12 +169,5 @@ const removeImage = () => {
   top: $spacing-2;
   right: $spacing-2;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-}
-
-.dialog-actions {
-  border-top: 1px solid rgba(0, 0, 0, 0.12);
-  @include dark-mode {
-    border-top-color: rgba(255, 255, 255, 0.12);
-  }
 }
 </style>

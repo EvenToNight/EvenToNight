@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import { useSlots, computed } from 'vue'
+import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {
   modelValue: any
@@ -8,7 +8,7 @@ interface Props {
 }
 
 defineProps<Props>()
-const { t } = useI18n()
+const { t } = useTranslation('components.forms.FormSelectorField')
 const slots = useSlots()
 
 const hasOptionSlot = computed(() => !!slots.option)
@@ -32,7 +32,7 @@ const hasOptionSlot = computed(() => !!slots.option)
     <template #no-option>
       <slot name="no-option">
         <q-item>
-          <q-item-section class="text-grey"> {{ t('search.noResultsText') }} </q-item-section>
+          <q-item-section class="text-grey"> {{ t('noResultsText') }} </q-item-section>
         </q-item>
       </slot>
     </template>

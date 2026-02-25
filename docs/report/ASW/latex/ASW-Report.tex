@@ -1,0 +1,181 @@
+\documentclass{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[italian]{babel}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{fancyvrb}
+\usepackage{fvextra}
+\usepackage{framed}
+\usepackage{newunicodechar}
+\usepackage{float}
+\usepackage[export]{adjustbox}
+\usepackage{mdframed}
+
+% Definizione caratteri Unicode per box-drawing
+\newunicodechar{├}{\texttt{|--}}
+\newunicodechar{─}{\texttt{-}}
+\newunicodechar{└}{\texttt{`--}}
+\newunicodechar{│}{\texttt{|}}
+
+% Definizione comandi pandoc
+\providecommand{\tightlist}{\setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\newcommand{\pandocbounded}[1]{\resizebox{\ifdim\width>\textwidth\textwidth\else\width\fi}{!}{#1}}
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{commandchars=\\\{\},fontsize=\small,breaklines,breakanywhere}
+\definecolor{shadecolor}{RGB}{248,248,250}
+\definecolor{framecolor}{RGB}{230,230,235}
+
+\mdfdefinestyle{codebox}{
+  backgroundcolor=shadecolor,
+  linecolor=framecolor,
+  linewidth=0.5pt,
+  roundcorner=3pt,
+  innerleftmargin=4pt,
+  innerrightmargin=4pt,
+  innertopmargin=6pt,
+  innerbottommargin=6pt,
+  skipabove=10pt,
+  skipbelow=10pt
+}
+
+\newenvironment{Shaded}{%
+  \begin{mdframed}[style=codebox]%
+}{%
+  \end{mdframed}%
+}
+\newcommand{\NormalTok}[1]{#1}
+\newcommand{\KeywordTok}[1]{\textcolor{blue}{#1}}
+\newcommand{\StringTok}[1]{\textcolor{red}{#1}}
+\newcommand{\CommentTok}[1]{\textcolor{gray}{#1}}
+\newcommand{\OperatorTok}[1]{\textcolor{violet}{#1}}
+\newcommand{\FunctionTok}[1]{\textcolor{blue}{#1}}
+\newcommand{\ExtensionTok}[1]{\textcolor{teal}{#1}}
+\newcommand{\DecValTok}[1]{\textcolor{orange}{#1}}
+\newcommand{\BuiltInTok}[1]{\textcolor{cyan}{#1}}
+\newcommand{\ControlFlowTok}[1]{\textcolor{magenta}{#1}}
+\newcommand{\VariableTok}[1]{\textcolor{olive}{#1}}
+\newcommand{\SpecialCharTok}[1]{\textcolor{red}{#1}}
+\newcommand{\DataTypeTok}[1]{\textcolor{purple}{#1}}
+\newcommand{\ImportTok}[1]{\textcolor{blue}{#1}}
+\newcommand{\AttributeTok}[1]{\textcolor{teal}{#1}}
+\newcommand{\RegionMarkerTok}[1]{#1}
+\newcommand{\InformationTok}[1]{\textcolor{gray}{#1}}
+\newcommand{\WarningTok}[1]{\textcolor{red}{\textbf{#1}}}
+\newcommand{\AlertTok}[1]{\textcolor{red}{\textbf{#1}}}
+\newcommand{\ErrorTok}[1]{\textcolor{red}{\textbf{#1}}}
+\newcommand{\VerbatimStringTok}[1]{\textcolor{red}{#1}}
+\newcommand{\PreprocessorTok}[1]{\textcolor{magenta}{#1}}
+
+\title{
+    EvenToNight \\
+    \large Applicazioni e Servizi Web
+}
+
+\author{
+    Federico Bravetti \{federico.bravetti2@studio.unibo.it\} \and
+    Tommaso Brini \{tommaso.brini@studio.unibo.it\} \and
+    Alice Alfonsi \{alice.alfonsi2@studio.unibo.it\}
+}
+
+\date{\today}
+
+\usepackage{natbib}
+
+% Configurazione hyperref
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    filecolor=magenta,
+    urlcolor=cyan,
+}
+
+% Path per le immagini
+\graphicspath{{../public/}}
+
+% Limita automaticamente le immagini troppo grandi
+\let\oldincludegraphics\includegraphics%
+\renewcommand{\includegraphics}[2][]{\oldincludegraphics[#1,max width=\textwidth,max height=0.85\textheight,keepaspectratio]{#2}}
+
+% Configurazione listings per codice
+\lstset{
+    basicstyle=\ttfamily\small,
+    breaklines=true,
+    frame=single,
+    numbers=left,
+    numberstyle=\tiny,
+    keywordstyle=\color{blue},
+    commentstyle=\color{gray},
+    stringstyle=\color{red}
+}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+\chapter{Introduzione}
+
+Questo progetto ha portato alla realizzazione di una piattaforma
+digitale chiamata \textbf{EvenToNight}, pensata per mettere in contatto
+organizzazioni che promuovono eventi sociali e utenti interessati a
+scoprirli e parteciparvi.
+
+La piattaforma è caratterizzata da un'interfaccia in stile social
+network, rendendo così l'esperienza di utilizzo semplice, intuitiva e
+coinvolgente.
+
+L'applicazione consente agli utenti di:
+
+\begin{itemize}
+\item
+  \textbf{Esplorare} eventi culturali, musicali e sociali
+\item
+  \textbf{Acquistare biglietti} direttamente dalla piattaforma
+\item
+  \textbf{Interagire} con le organizzazioni attraverso recensioni e chat
+\item
+  \textbf{Salvare} e tenere traccia degli eventi di interesse
+\end{itemize}
+
+Per le organizzazioni, la piattaforma offre:
+
+\begin{itemize}
+\item
+  \textbf{Visibilità} per i propri eventi
+\item
+  \textbf{Gestione} completa di eventi e biglietteria
+\item
+  \textbf{Analytics} sull'engagement degli utenti (like, follower)
+\item
+  \textbf{Comunicazione} diretta con i partecipanti
+\end{itemize}
+
+Il progetto è stato sviluppato adottando un'architettura a
+microservizi, garantendo scalabilità, manutenibilità e separazione
+delle responsabilità.
+
+\chapter{Requisiti}
+\input{sections/requisiti.tex}
+
+\chapter{Design}
+\input{sections/design.tex}
+
+\chapter{Tecnologie}
+\input{sections/tecnologie.tex}
+
+\chapter{Codice}
+\input{sections/codice.tex}
+
+\chapter{Test}
+\input{sections/test.tex}
+
+\chapter{Deployment}
+\input{sections/deployment.tex}
+
+\chapter{Conclusioni}
+\input{sections/conclusioni.tex}
+
+\end{document}

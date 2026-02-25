@@ -10,11 +10,11 @@ export class Conversation {
   organizationId: string;
 
   @Prop({ required: true })
-  memberId: string;
+  userId: string;
 }
 
 export const ConversationSchema = SchemaFactory.createForClass(Conversation);
 
 ConversationSchema.index({ organizationId: 1 });
-ConversationSchema.index({ memberId: 1 });
-ConversationSchema.index({ organizationId: 1, memberId: 1 }, { unique: true });
+ConversationSchema.index({ userId: 1 });
+ConversationSchema.index({ organizationId: 1, userId: 1 }, { unique: true });

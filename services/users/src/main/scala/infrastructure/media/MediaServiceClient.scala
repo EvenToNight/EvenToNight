@@ -1,15 +1,16 @@
 package infrastructure.media
 
 import cask.FormFile
+import domain.service.MediaService
 import infrastructure.Wiring.mediaBaseUrl
 import infrastructure.Wiring.mediaHost
 
 import java.nio.file.Files
 import scala.util.Try
 
-object MediaServiceClient:
+class MediaServiceClient extends MediaService:
   private def defaultAvatarUrl: String = s"http://${mediaBaseUrl}/users/default.png"
-  def uploadAvatarToMediaService(userId: String, avatarOpt: Option[FormFile]): String =
+  override def uploadAvatar(userId: String, avatarOpt: Option[FormFile]) =
     avatarOpt match
       case None => defaultAvatarUrl
       case Some(file) =>
@@ -30,7 +31,7 @@ object MediaServiceClient:
 
         result.getOrElse(defaultAvatarUrl)
 
-  def deleteAvatarFromMediaService(userId: String): Either[String, Unit] =
+  override def deleteAvatar(userId: String) =
     Try {
       requests.delete(
         s"http://${mediaHost}/users/$userId/avatar.jpg"

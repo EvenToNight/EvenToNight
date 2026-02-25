@@ -141,7 +141,7 @@ const handlePurchase = async () => {
     const session = await api.payments.createCheckoutSession({
       userId: authStore.user.id,
       items,
-      successUrl: window.location.origin,
+      successUrl: window.location.href.replace('/purchase', ''),
       cancelUrl: window.location.href,
     })
 
@@ -237,6 +237,7 @@ const handlePurchase = async () => {
                 <input
                   type="number"
                   :value="getQuantity(tt.id)"
+                  :aria-label="t('ticketSelection.quantityAriaLabel') + ' ' + tt.type"
                   class="quantity-input"
                   @keydown="preventInvalidNumberKeys"
                   @blur="(e) => handleQuantityChange(tt, (e.target as HTMLInputElement).value)"
@@ -263,7 +264,9 @@ const handlePurchase = async () => {
             <div class="summary-row total">
               <span
                 >{{ t('ticketSelection.total') }} ({{ totalTicketCount }}
-                {{ t('ticketSelection.ticket') }}{{ totalTicketCount > 1 ? 's' : '' }})</span
+                {{
+                  totalTicketCount > 1 ? t('ticketSelection.tickets') : t('ticketSelection.ticket')
+                }})</span
               >
               <span class="total-amount">{{ totalPrice.toFixed(2) }} $</span>
             </div>

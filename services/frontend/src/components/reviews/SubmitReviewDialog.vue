@@ -55,14 +55,11 @@ watch(
   { immediate: true }
 )
 const eventOptions = ref<Event[]>([])
-const hasSearched = ref(false)
 
 const rating = ref<Rating>(props.existingReview?.rating ?? 5)
 const reviewTitle = ref(props.existingReview?.title ?? '')
 const reviewDescription = ref(props.existingReview?.comment ?? '')
 
-//TODO: check
-// Reset form when dialog closes (only for new reviews, not edits)
 watch(isOpen, (newValue) => {
   if (!newValue && !props.existingReview) {
     rating.value = 5
@@ -72,25 +69,21 @@ watch(isOpen, (newValue) => {
   }
 })
 
-//TODO: search completed event where user has partecipated
 const filterEvents = (query: string, update: (callback: () => void) => void) => {
   update(() => {
-    if (!query) {
-      eventOptions.value = []
-      hasSearched.value = false
-    } else {
-      hasSearched.value = true
-      //TODO: search in user partecipations
-      api.events
-        .searchEvents({ organizationId: props.creatorId, status: 'COMPLETED', title: query })
-        .then((response) => {
-          eventOptions.value = response.items
-        })
-      const needle = query.toLowerCase()
-      eventOptions.value = eventOptions.value.filter(
-        (event) => event.title.toLowerCase().indexOf(needle) > -1
-      )
-    }
+    api.interactions
+      .userParticipations(authStore.user!.id, {
+        title: query,
+        reviewed: false,
+        eventStatus: 'COMPLETED',
+        organizationId: props.creatorId,
+      })
+      .then((response) => {
+        return Promise.all(response.items.map((event) => api.events.getEventById(event.eventId)))
+      })
+      .then((response) => {
+        eventOptions.value = response
+      })
   })
 }
 
@@ -124,6 +117,7 @@ const submitReview = async () => {
     } else {
       // Create new review
       await api.interactions.createEventReview(selectedEvent.value!.eventId, reviewData)
+      updateReview?.(selectedEvent.value!.eventId, authStore.user!.id)
     }
 
     isOpen.value = false
@@ -175,14 +169,14 @@ const submitReview = async () => {
             <template #no-option>
               <q-item>
                 <q-item-section class="text-grey">
-                  {{ hasSearched ? t('noEventsFound') : t('searchEventsHint') }}
+                  {{ t('noEventsFound') }}
                 </q-item-section>
               </q-item>
             </template>
           </FormSelectorField>
 
           <div class="rating-input">
-            <label>{{ t('ratingLabel') }}</label>
+            <span>{{ t('ratingLabel') }}</span>
             <RatingStars
               v-model:rating="rating"
               :show-number="true"
@@ -209,7 +203,7 @@ const submitReview = async () => {
           />
 
           <q-card-actions align="right" class="q-px-none q-pb-none">
-            <q-btn v-close-popup flat :label="t('cancel')" color="black" />
+            <q-btn v-close-popup flat :label="t('cancel')" color="grey-7" />
             <q-btn
               type="submit"
               flat

@@ -15,6 +15,11 @@ export const requireAuth = (
   _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
+  if (import.meta.env.VITE_TEST_A11Y === 'true') {
+    logger.warn('Auth guards are disabled. Skipping role check.')
+    next()
+    return
+  }
   const authStore = useAuthStore()
 
   if (!authStore.isAuthenticated) {
@@ -34,6 +39,11 @@ export const requireGuest = (
   _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
+  if (import.meta.env.VITE_TEST_A11Y === 'true') {
+    logger.warn('Auth guards are disabled. Skipping role check.')
+    next()
+    return
+  }
   const authStore = useAuthStore()
 
   if (authStore.isAuthenticated) {
@@ -50,6 +60,11 @@ export const requireRole = (role: string) => {
     from: RouteLocationNormalized,
     next: NavigationGuardNext
   ) => {
+    if (import.meta.env.VITE_TEST_A11Y === 'true') {
+      logger.warn('Auth guards are disabled. Skipping role check.')
+      next()
+      return
+    }
     const authStore = useAuthStore()
 
     if (!authStore.isAuthenticated) {
@@ -70,6 +85,11 @@ export const requireEventCreator = async (
   from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
+  if (import.meta.env.VITE_TEST_A11Y === 'true') {
+    logger.warn('Auth guards are disabled. Skipping role check.')
+    next()
+    return
+  }
   const authStore = useAuthStore()
   if (!authStore.isAuthenticated) {
     return requireAuth(to, from, next)
@@ -102,6 +122,11 @@ export const requireNotDraft = async (
   _from: RouteLocationNormalized,
   next: NavigationGuardNext
 ) => {
+  if (import.meta.env.VITE_TEST_A11Y === 'true') {
+    logger.warn('Auth guards are disabled. Skipping role check.')
+    next()
+    return
+  }
   const authStore = useAuthStore()
   const eventId = to.params.id as string
 

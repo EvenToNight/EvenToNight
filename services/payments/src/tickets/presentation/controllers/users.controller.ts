@@ -144,6 +144,7 @@ export class UsersController {
       eventId: ticket.getEventId().toString(),
       attendeeName: ticket.getAttendeeName(),
       purchaseDate: ticket.getPurchaseDate(),
+      eventDate: event.getDate(),
       priceLabel: `${ticket.getPrice().getAmount()} ${ticket.getPrice().getCurrency()}`,
       eventTitle: event.getTitle() || 'EventoNight',
     }));

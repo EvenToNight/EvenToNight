@@ -13,18 +13,22 @@ import {
 const ITEMS_PER_PAGE = 10
 
 interface SectionOptions {
-  status: EventStatus
+  status: EventStatus | Set<EventStatus>
   label?: string
   sortOrder: SortOrder
+  startDate?: Date
+  endDate?: Date
 }
 
 interface Props {
   sections: SectionConfig<EventStatus, SectionOptions>[]
   loadEvents: (
-    status: EventStatus,
+    status: EventStatus | Set<EventStatus>,
     offset: number,
     limit: number,
-    sortOrder: SortOrder
+    sortOrder: SortOrder,
+    startDate?: Date,
+    endDate?: Date
   ) => Promise<PaginatedResponse<EventLoadResult>>
   onAuthRequired?: () => void
   emptyText: string
@@ -37,8 +41,15 @@ const { sectionsData, loading, loadingMore, hasMore, isEmpty, onLoad, loadMore, 
   useMultiSectionInfiniteScroll<EventStatus, SectionOptions, EventLoadResult>({
     sections: props.sections,
     itemsPerPage: ITEMS_PER_PAGE,
-    loadFn: async (status, offset, limit, options) => {
-      return props.loadEvents(status, offset, limit, options?.sortOrder || 'asc')
+    loadFn: async (_key, offset, limit, options) => {
+      return props.loadEvents(
+        options!.status,
+        offset,
+        limit,
+        options!.sortOrder,
+        options!.startDate,
+        options!.endDate
+      )
     },
   })
 
@@ -53,12 +64,12 @@ defineExpose({
 
 <template>
   <div class="event-tab">
-    <q-inner-loading :showing="loading && isEmpty">
-      <q-spinner-dots color="primary" size="50px" />
-    </q-inner-loading>
+    <div v-if="loading && isEmpty" class="initial-loading">
+      <q-spinner color="primary" size="50px" />
+    </div>
 
     <q-infinite-scroll
-      v-if="!loading && !isEmpty"
+      v-else-if="!isEmpty"
       :offset="250"
       class="events-scroll"
       :disable="loadingMore || !hasMore"
@@ -70,9 +81,9 @@ defineExpose({
         :key="section.key"
         class="events-section"
       >
-        <h3 v-if="section.options?.label" class="section-label">
+        <h2 v-if="section.options?.label" class="section-label">
           {{ section.options.label }}
-        </h3>
+        </h2>
         <div class="events-grid">
           <EventCard
             v-for="(event, index) in sectionsData[section.key].items"
@@ -84,8 +95,8 @@ defineExpose({
       </div>
 
       <template #loading>
-        <div class="row justify-center q-my-md">
-          <q-spinner-dots color="primary" size="40px" />
+        <div class="loading-state">
+          <q-spinner color="primary" size="50px" />
         </div>
       </template>
     </q-infinite-scroll>
@@ -102,6 +113,11 @@ defineExpose({
 .event-tab {
   @include flex-column;
   height: 100%;
+  position: relative;
+}
+
+.initial-loading {
+  @include flex-center;
 }
 
 .events-scroll {
@@ -138,5 +154,10 @@ defineExpose({
     grid-template-columns: 1fr;
     gap: $spacing-4;
   }
+}
+
+.loading-state {
+  @include flex-center;
+  flex: 1;
 }
 </style>

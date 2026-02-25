@@ -79,7 +79,7 @@ const handleAvatarChange = async (file: File | null) => {
 
   $q.notify({
     color: 'positive',
-    message: t('profile.edit.saveSuccess'),
+    message: t('profileUpdate'),
     icon: 'check_circle',
   })
 }
@@ -90,7 +90,7 @@ const handleAvatarChange = async (file: File | null) => {
     <div v-if="isOwnProfile" style="display: none">
       <AvatarCropUpload
         ref="avatarCropUploadRef"
-        :preview-url="user.avatar || ''"
+        :preview-url="user.avatar"
         :default-icon="defaultIcon"
         @imageFile="handleAvatarChange"
         @error="handleAvatarError"
@@ -98,7 +98,15 @@ const handleAvatarChange = async (file: File | null) => {
     </div>
 
     <div class="profile-header">
-      <div class="avatar-container" :class="{ clickable: isOwnProfile }" @click="handleAvatarClick">
+      <div
+        class="avatar-container"
+        :class="{ clickable: isOwnProfile }"
+        role="button"
+        tabindex="0"
+        :aria-label="isOwnProfile ? t('changeAvatarAriaLabel') : t('viewAvatarAriaLabel')"
+        @click="handleAvatarClick"
+        @keydown.enter="handleAvatarClick"
+      >
         <img
           v-if="user.avatar"
           :src="user.avatar"

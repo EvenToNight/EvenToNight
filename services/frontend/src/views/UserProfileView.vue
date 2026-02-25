@@ -7,6 +7,9 @@ import ProfileHeader from '@/components/profile/ProfileHeader.vue'
 import ProfileBody from '@/components/profile/ProfileBody.vue'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
+import { useTranslation } from '@/composables/useTranslation'
+
+const { t } = useTranslation('components.profile.ProfileHeader')
 
 const route = useRoute()
 const showAuthDialog = ref(false)
@@ -67,7 +70,14 @@ const scrollToTop = (behavior: ScrollBehavior = 'auto') => {
   <NavigationButtons>
     <!-- TODO: improve username screen exiting detection -->
     <template v-if="user && showNavbarCustomContent" #left-custom-content>
-      <div class="navbar-user-info" @click="() => scrollToTop('smooth')">
+      <div
+        class="navbar-user-info"
+        role="button"
+        tabindex="0"
+        :aria-label="t('scrollToTopAriaLabel')"
+        @click="() => scrollToTop('smooth')"
+        @keydown.enter="() => scrollToTop('smooth')"
+      >
         <q-avatar size="32px">
           <img v-if="user.avatar" :src="user.avatar" :alt="user.name" class="navbar-avatar" />
           <q-icon v-else :name="defaultIcon" size="24px" />
@@ -77,7 +87,7 @@ const scrollToTop = (behavior: ScrollBehavior = 'auto') => {
     </template>
   </NavigationButtons>
 
-  <div class="user-profile">
+  <main class="user-profile">
     <AuthRequiredDialog v-model:isOpen="showAuthDialog" :redirect="route.fullPath" />
     <template v-if="user">
       <div ref="profileHeaderRef">
@@ -91,7 +101,7 @@ const scrollToTop = (behavior: ScrollBehavior = 'auto') => {
         <ProfileBody :user="user" @auth-required="showAuthDialog = true" />
       </div>
     </template>
-  </div>
+  </main>
 </template>
 
 <style lang="scss" scoped>
@@ -131,22 +141,22 @@ const scrollToTop = (behavior: ScrollBehavior = 'auto') => {
   background: var(--q-background);
   position: relative;
   margin-top: calc(-1 * v-bind(NAVBAR_HEIGHT_CSS));
-  padding-top: calc(v-bind(NAVBAR_HEIGHT_CSS) + #{$spacing-6});
+  padding-top: calc(v-bind(NAVBAR_HEIGHT_CSS) + #{$spacing-8});
 
   background: #f5f5f5;
 
   @include dark-mode {
-    background: #121212;
+    background: $grey-10;
   }
 }
 
 .profile-container {
   margin: 0 auto;
-  padding: 0 $spacing-6 $spacing-8;
+  padding: 0 0 $spacing-8;
   position: relative;
   margin-top: $spacing-6;
   @media (max-width: $breakpoint-mobile) {
-    padding: 0 $spacing-4 $spacing-6;
+    padding: 0 0 $spacing-6;
   }
 }
 </style>

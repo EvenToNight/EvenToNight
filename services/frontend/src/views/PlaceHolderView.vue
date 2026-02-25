@@ -78,13 +78,28 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div id="dvd" :style="dvdStyle" @click="() => goToHome()">
+  <div
+    id="dvd"
+    :style="dvdStyle"
+    role="button"
+    tabindex="0"
+    @click="() => goToHome()"
+    @keydown.enter="() => goToHome()"
+  >
     <div class="dvd-content">
       <div class="main-message">{{ message }}</div>
       <div class="sub-message">{{ t('navigationMessageHint') }}</div>
     </div>
   </div>
-  <!-- <div class="home-link" @click="() => goToHome()">{{ t('navigationMessage') }}</div> -->
+  <div
+    class="home-link"
+    role="button"
+    tabindex="0"
+    @click="() => goToHome()"
+    @keydown.enter="() => goToHome()"
+  >
+    {{ t('navigationMessage') }}
+  </div>
 </template>
 
 <style scoped>

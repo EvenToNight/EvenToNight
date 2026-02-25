@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 
 import { Conversation } from '../schemas/conversation.schema';
 import { Message, MessageDocument } from '../schemas/message.schema';
+import { DatabaseTransactionService } from '../../common/database';
 
 import { CreateConversationMessageDto } from '../dto/create-conversation-message.dto';
 import { SendMessageDto } from '../dto/send-message.dto';
@@ -31,6 +32,7 @@ export class ConversationsService {
     private readonly conversationModel: Model<any>,
     @InjectModel('Participant') private readonly participantModel: Model<any>,
     @InjectModel(Message.name) private readonly messageModel: Model<any>,
+    private readonly databaseTransaction: DatabaseTransactionService,
     private readonly dataMapperService: DataMapperService,
     private readonly messageManagerService: MessageManagerService,
     private readonly userSuggestionService: UserSuggestionService,
@@ -42,22 +44,27 @@ export class ConversationsService {
     senderId: string,
     dto: CreateConversationMessageDto,
   ): Promise<MessageDocument> {
-    await this.conversationManagerService.ensureConversationDoesNotExist(
-      dto.recipientId,
-      senderId,
-    );
-
-    const conversation =
-      await this.conversationManagerService.findOrCreateConversation(
-        senderId,
+    return this.databaseTransaction.executeInTransaction(async (session) => {
+      await this.conversationManagerService.ensureConversationDoesNotExist(
         dto.recipientId,
+        senderId,
+        session,
       );
 
-    return this.messageManagerService.createMessage(
-      conversation._id.toString(),
-      senderId,
-      dto.content,
-    );
+      const conversation =
+        await this.conversationManagerService.findOrCreateConversation(
+          senderId,
+          dto.recipientId,
+          session,
+        );
+
+      return this.messageManagerService.createMessage(
+        conversation._id.toString(),
+        senderId,
+        dto.content,
+        session,
+      );
+    });
   }
 
   async sendMessageToConversation(
@@ -65,18 +72,23 @@ export class ConversationsService {
     conversationId: string,
     dto: SendMessageDto,
   ): Promise<MessageDocument> {
-    await this.conversationManagerService.validateConversationExists(
-      conversationId,
-    );
-    await this.conversationManagerService.validateUserIsParticipant(
-      conversationId,
-      senderId,
-    );
-    return this.messageManagerService.createMessage(
-      conversationId,
-      senderId,
-      dto.content,
-    );
+    return this.databaseTransaction.executeInTransaction(async (session) => {
+      await this.conversationManagerService.validateConversationExists(
+        conversationId,
+        session,
+      );
+      await this.conversationManagerService.validateUserIsParticipant(
+        conversationId,
+        senderId,
+        session,
+      );
+      return this.messageManagerService.createMessage(
+        conversationId,
+        senderId,
+        dto.content,
+        session,
+      );
+    });
   }
 
   async getUserConversations(
@@ -173,11 +185,11 @@ export class ConversationsService {
 
   async getConversationByUsers(
     organizationId: string,
-    memberId: string,
+    userId: string,
   ): Promise<ConversationDetailDTO> {
     const conversation = await this.conversationModel.findOne({
       organizationId,
-      memberId,
+      userId,
     });
 
     if (!conversation) {
@@ -189,19 +201,19 @@ export class ConversationsService {
 
   async getConversationWithMessagesByUsers(
     organizationId: string,
-    memberId: string,
+    userId: string,
     query: GetMessagesQueryDto,
   ): Promise<MessageListResponse> {
     const conversation = await this.conversationModel.findOne({
       organizationId,
-      memberId,
+      userId,
     });
 
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
     }
 
-    return this.getMessages(conversation._id, memberId, query);
+    return this.getMessages(conversation._id, userId, query);
   }
 
   async searchConversationWithFilters(

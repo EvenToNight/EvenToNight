@@ -47,6 +47,7 @@ const searchEvents = async (
   return loadEvents({
     title: searchQuery.value || undefined,
     userId: authStore.user?.id,
+    status: new Set(['PUBLISHED', 'COMPLETED', 'CANCELLED']),
     pagination,
     ...params,
   })
@@ -63,7 +64,7 @@ watch(
 
 watch(activeTab, (newTab) => {
   if (hash.value !== `#${newTab}`) {
-    replaceRoute({ hash: `#${newTab}` })
+    replaceRoute({ hash: `#${newTab}`, query: route.query })
   }
 })
 
@@ -159,6 +160,11 @@ const tabs = computed<Tab[]>(() => [
 <style lang="scss" scoped>
 .explore-page {
   @include flex-column;
+  flex: 1;
+  background-color: $grey-2;
+  @include dark-mode {
+    background-color: $grey-10;
+  }
 }
 
 .explore-hero {

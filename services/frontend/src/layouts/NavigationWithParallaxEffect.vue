@@ -45,9 +45,9 @@ onUnmounted(() => {
     </div>
     <div class="hero-overlay"></div>
   </div>
-  <div class="page-content">
+  <main class="page-content">
     <slot></slot>
-  </div>
+  </main>
 </template>
 
 <style scoped lang="scss">

@@ -13,7 +13,7 @@ import FormField from '@/components/forms/FormField.vue'
 import FormSelectorField from '@/components/forms/FormSelectorField.vue'
 import type { Tag } from '@/api/types/events'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
-import { notEmpty, required } from '@/components/forms/validationUtils'
+import { notEmpty, required, isFutureDate } from '@/components/forms/validationUtils'
 import { useTranslation } from '@/composables/useTranslation'
 import { createLogger } from '@/utils/logger'
 import { SERVER_ERROR_ROUTE_NAME } from '@/router'
@@ -167,11 +167,13 @@ const filterCollaborators = (query: string, update: (fn: () => void) => void) =>
     })
     return
   }
-  api.users.searchUsers({ prefix: query, pagination: { limit: 10 } }).then((response) => {
-    update(() => {
-      collaboratorOptions.value = response.items.map(mapCollaborator)
+  api.users
+    .searchUsers({ prefix: query, role: 'organization', pagination: { limit: 10 } })
+    .then((response) => {
+      update(() => {
+        collaboratorOptions.value = response.items.map(mapCollaborator)
+      })
     })
-  })
 }
 
 const filterLocations = async (val: string, update: (fn: () => void) => void) => {
@@ -227,12 +229,12 @@ const handleDelete = async () => {
     message: t('form.dialog.delete.message'),
     cancel: {
       flat: true,
-      textColor: 'black',
+      color: 'grey-7',
       label: t('form.dialog.delete.cancelButton'),
     },
     ok: {
+      flat: true,
       color: 'negative',
-      textColor: 'black',
       label: t('form.dialog.delete.confirmButton'),
     },
     focus: 'none',
@@ -309,7 +311,7 @@ const saveDraft = async () => {
         message: t('form.messages.success.saveEventDraft'),
       })
     }
-    goToUserProfile(partialEventData.creatorId)
+    goToUserProfile(partialEventData.creatorId, '#drafted')
   } catch (error) {
     logger.error('Failed to save draft:', error)
     $q.notify({
@@ -451,7 +453,7 @@ onMounted(async () => {
 <template>
   <NavigationButtons />
 
-  <div class="create-event-page">
+  <main class="create-event-page">
     <div class="page-content">
       <div class="container">
         <h1 class="text-h3 q-mb-lg">
@@ -470,7 +472,10 @@ onMounted(async () => {
             v-model="date"
             type="date"
             :label="t('form.date.label') + ' *'"
-            :rules="[notEmpty(t('form.date.error'))]"
+            :rules="[
+              notEmpty(t('form.date.error')),
+              () => !time || isFutureDate(t('form.date.futureError'))(`${date}T${time}`),
+            ]"
           >
             <template #prepend>
               <q-icon
@@ -555,12 +560,20 @@ onMounted(async () => {
                 icon="delete"
                 color="negative"
                 class="delete-ticket-btn"
+                :aria-label="t('form.ticketTypes.deleteTicketButton')"
                 @click="removeTicketEntry(index)"
               />
             </div>
 
             <div v-if="canAddMoreTickets" class="add-ticket-btn-container">
-              <q-btn flat round icon="add" color="primary" @click="addTicketEntry" />
+              <q-btn
+                flat
+                round
+                icon="add"
+                color="primary"
+                :aria-label="t('form.ticketTypes.addTicketButton')"
+                @click="addTicketEntry"
+              />
             </div>
           </div>
 
@@ -719,7 +732,7 @@ onMounted(async () => {
         </q-form>
       </div>
     </div>
-  </div>
+  </main>
 </template>
 
 <style lang="scss" scoped>

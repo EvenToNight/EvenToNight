@@ -242,7 +242,7 @@ const handleDeleteProfile = () => {
         </section>
 
         <section class="settings-section">
-          <h3 class="section-title">{{ t('interestsSectionTitle') }}</h3>
+          <h3 class="section-title">{{ t('interestSectionTitle') }}</h3>
           <p class="section-description">
             {{ t('interestsLabelStart') }} {{ maxTags }} tags {{ t('interestsLabelEnd') }}
           </p>
@@ -299,7 +299,7 @@ const handleDeleteProfile = () => {
           </p>
 
           <q-btn
-            :label="t('deleteProfile')"
+            :label="t('deleteProfileButton')"
             icon="delete_forever"
             outline
             color="negative"

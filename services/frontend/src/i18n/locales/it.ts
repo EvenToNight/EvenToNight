@@ -29,8 +29,8 @@ export default {
     },
     CreateEventView: {
       title: {
-        new: 'Crea nuovo evento',
-        edit: 'Modifica evento',
+        new: 'Crea un nuovo evento',
+        edit: "Modifica l'evento",
       },
       form: {
         title: {
@@ -40,6 +40,7 @@ export default {
         date: {
           label: 'Data',
           error: 'La data è obbligatoria',
+          futureError: 'La data deve essere nel futuro', //[ignorei18n]
         },
         time: {
           label: 'Ora',
@@ -63,6 +64,8 @@ export default {
             label: 'Quantità',
             error: 'Inserisci una quantità',
           },
+          addTicketButton: 'Aggiungi tipo di biglietto',
+          deleteTicketButton: 'Elimina tipo di biglietto',
         },
         tags: {
           label: 'Tag',
@@ -276,8 +279,10 @@ export default {
         title: 'Seleziona Biglietti',
         available: 'disponibile',
         soldOut: 'Esaurito',
+        quantityAriaLabel: 'Quantità immessa per',
         total: 'Totale',
         ticket: 'Biglietto',
+        tickets: 'Biglietti',
         actions: {
           cancel: 'Indietro',
           continueToPayment: 'Procedi al pagamento',
@@ -333,6 +338,8 @@ export default {
         emailFormatError: 'Si prega di inserire un indirizzo email valido',
         passwordLabel: 'Password',
         passwordError: 'La password è obbligatoria',
+        passwordStrengthError:
+          'La password deve essere lunga almeno 8 caratteri e contenere una lettera minuscola, un numero e un carattere speciale.', //[ignorei18n]
         confirmPasswordLabel: 'Conferma password',
         emptyConfirmPasswordError: 'Per favore conferma la tua password',
         passwordMismatchError: 'Le password non corrispondono',
@@ -341,6 +348,20 @@ export default {
       },
     },
     buttons: {
+      actionButtons: {
+        BackHomeButton: {
+          goToHome: 'Vai a casa',
+        },
+        BackButton: {
+          goBack: 'Torna indietro',
+        },
+        HomeButton: {
+          goToHome: 'Vai a casa',
+        },
+        CloseButton: {
+          close: 'Vicino',
+        },
+      },
       basicButtons: {
         SeeAllButton: {
           seeAll: 'Vedi tutto',
@@ -358,6 +379,8 @@ export default {
         draftBadge: 'Bozza',
         cancelledBadge: 'Annullato',
         draftMissingTitle: 'Evento senza titolo',
+        viewEventAriaLabel: 'Visualizza evento:',
+        editDraftAriaLabel: 'Modifica bozza:',
       },
       ReviewCard: {
         deleteDialog: {
@@ -374,9 +397,14 @@ export default {
         },
       },
       SearchResultCard: {
+        eventPosterAlt: "Locandina dell'evento",
+        userAvatarAlt: "Avatar dell'utente",
         event: 'Evento',
         organization: 'Organizzazione',
         member: 'Utente',
+      },
+      UserInfoCard: {
+        avatarAlt: "Avatar dell'utente",
       },
     },
     chat: {
@@ -445,6 +473,7 @@ export default {
         noLikes: 'Nessun mi piace ancora',
         participants: 'Partecipanti',
         noParticipants: 'Nessun partecipante ancora',
+        likeButton: 'Come evento',
       },
       EventInfo: {
         freePrice: 'Gratuito',
@@ -455,6 +484,7 @@ export default {
         location: 'Posizione',
         price: 'Prezzo',
         about: 'Descrizione',
+        openInMaps: 'Apri in Google Maps',
       },
       EventReviewsPreview: {
         title: 'Recensioni',
@@ -487,7 +517,7 @@ export default {
         },
         FiltersButton: {
           filters: 'Filtri',
-          cancel: 'Chiudi',
+          cancel: 'Cancella',
           apply: 'Applica',
         },
         PriceFilters: {
@@ -519,6 +549,7 @@ export default {
         ExploreEventsTab: {
           emptySearch: 'Nessun evento trovato',
           emptySearchText: 'Cerca eventi per nome',
+          resultsHeading: 'Risultati della ricerca',
         },
       },
       ExploreViewContent: {
@@ -530,13 +561,19 @@ export default {
         usersEmptySearch: 'Nessun utente trovato',
         usersEmptySearchText: 'Cerca gli utenti per nome',
         title: 'Esplora',
-        subtitile: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
+        subtitle: 'Trova eventi, organizzatori o connettiti con i tuoi amici',
+      },
+    },
+    forms: {
+      FormSelectorField: {
+        noResultsText: 'Nessuna opzione trovata',
       },
     },
     home: {
       CategorySelection: {
         title: 'Esplora per categoria',
         subtitle: 'Scopri gli eventi che corrispondono ai tuoi interessi',
+        categoryButtonAriaLabel: 'Visualizza categoria',
       },
       HomeViewContent: {
         title: "Trova l'evento che fa per te",
@@ -560,13 +597,12 @@ export default {
         cropError: "Impossibile ritagliare l'immagine. Per favore riprova.",
         dialogCancelButton: 'Chiudi',
         dialogConfirmButton: 'Salva',
+        uploadAriaLabel: 'Carica immagine',
       },
       PosterCropUpload: {
         label: "Locandina dell'evento",
         title: "Carica e ritaglia la locandina dell'evento",
         uploadButtonLabel: 'Carica locandina',
-        dialogCancelButton: 'Chiudi',
-        dialogConfirmButton: 'Salva',
       },
     },
     navigation: {
@@ -581,6 +617,22 @@ export default {
         profile: 'Profilo',
         logout: 'Esci',
         darkMode: 'Modalità scura',
+        ariaLabels: {
+          closeSearch: 'Chiudi la ricerca',
+          search: 'Ricerca',
+          chat: 'Chiacchierata',
+          menu: 'Menu',
+          toggleTheme: 'Attiva/disattiva la modalità oscura',
+          createEvent: 'Crea evento',
+          notifications: 'Notifiche',
+        },
+      },
+      DrawerMenu: {
+        closeDrawerAriaLabel: 'Chiudi menù',
+      },
+      NavigationButtons: {
+        backButton: 'Torna indietro',
+        homeButton: 'Vai a casa',
       },
       SearchBar: {
         baseHint: 'Ricerca...',
@@ -615,11 +667,18 @@ export default {
           loading: 'Caricamento recensioni...',
           noReviews: 'Nessuna recensione ancora per questa organizzazione',
         },
+        TicketsTab: {
+          noTickets: 'Non hai ancora acquistato alcun biglietto',
+        },
       },
       ProfileActions: {
         createEvent: 'Crea evento',
         following: 'Segui Già',
         follow: 'Segui',
+        editProfileAriaLabel: 'Modifica profilo',
+        openChatAriaLabel: 'Apri i messaggi',
+        openSettingsAriaLabel: 'Apri le impostazioni',
+        sendMessageAriaLabel: 'Invia messaggio',
       },
       ProfileBody: {
         myEventsExternal: 'Eventi',
@@ -641,13 +700,19 @@ export default {
       ProfileHeader: {
         followError: 'Impossibile aggiornare lo stato di follow',
         uploadAvatarError: "Impossibile caricare l'immagine avatar, riprova",
+        profileUpdate: 'Profilo aggiornato con successo!',
         userAvatarAlt: "Avatar dell'utente",
+        changeAvatarAriaLabel: "Cambia l'immagine del profilo",
+        viewAvatarAriaLabel: "Visualizza l'immagine del profilo",
+        scrollToTopAriaLabel: "Scorri fino all'inizio del profilo",
       },
       UserInfo: {
         followers: 'Follower',
         noFollowers: 'Non è presente nessun follower',
         following: 'Seguiti',
         noFollowing: 'Non è presente nessun seguito',
+        viewFollowersAriaLabel: 'Visualizza follower',
+        viewFollowingAriaLabel: 'Visualizza di seguito',
       },
     },
     reviews: {
@@ -666,7 +731,7 @@ export default {
           label: 'Filtra per valutazione',
         },
       },
-      rating: {
+      ratings: {
         RatingInfo: {
           noReviews: 'Nessuna recensione',
           reviews: 'Recensioni',
@@ -685,7 +750,6 @@ export default {
         selectEventError: 'Seleziona un evento',
         eventPosterAlt: "Locandina dell'evento",
         noEventsFound: 'Nessun evento trovato',
-        searchEventsHint: 'Inizia a digitare per cercare eventi',
         ratingLabel: 'Valutazione',
         reviewTitle: 'Titolo',
         reviewTitlePlaceholder: 'Dai un titolo alla tua recensione...',
@@ -749,13 +813,19 @@ export default {
           languageTitle: 'Preferenza della lingua',
           languageSubtitle: "Scegli la lingua preferita per l'applicazione",
         },
-        ReviewsTab: {
+        MyReviewsTab: {
           loadReviewsError: 'Impossibile caricare le recensioni, riprova',
           searchHint: 'Cerca le tue recensioni...',
           noReviews: 'Non hai ancora inviato alcuna recensione',
           noReviewsFound: 'Nessuna recensione trovata corrispondente alla tua ricerca',
         },
       },
+    },
+  },
+  stores: {
+    auth: {
+      failedRegistration: 'La registrazione non è riuscita',
+      failedLogin: 'Nome utente o password errati',
     },
   },
 }

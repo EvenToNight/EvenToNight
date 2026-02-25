@@ -1,14 +1,14 @@
 package controller
 
+import application.ports.EventServicePort
 import cask.MainRoutes
 import cask.main.Routes
 import io.undertow.server.HttpHandler
 import middleware.cors.CorsHandler
-import service.EventService
 
 import routes.*
 
-class Controller(eventService: EventService) extends MainRoutes:
+class Controller(eventService: EventServicePort) extends MainRoutes:
   override def port: Int    = sys.env.get("EVENTS_SERVICE_PORT").map(_.toInt).getOrElse(9010)
   override def host: String = "0.0.0.0"
 

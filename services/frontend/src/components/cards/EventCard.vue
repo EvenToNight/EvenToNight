@@ -8,6 +8,7 @@ import { useTranslation } from '@/composables/useTranslation'
 import type { EventLoadResult } from '@/api/utils/eventUtils'
 import { createLogger } from '@/utils/logger'
 import { SERVER_ERROR_ROUTE_NAME } from '@/router'
+import type { EventID } from '@/api/types/events'
 
 const event = defineModel<EventLoadResult>({ required: true })
 const isDraft = computed(() => event.value.status === 'DRAFT')
@@ -16,6 +17,7 @@ const logger = createLogger(import.meta.url)
 
 const emit = defineEmits<{
   authRequired: []
+  togglelike: [eventId: EventID, liked: boolean]
 }>()
 
 const { t } = useTranslation('components.cards.EventCard')
@@ -53,18 +55,23 @@ const toggleFavorite = async (e: Event) => {
       await api.interactions.likeEvent(event.value.eventId, authStore.user!.id)
     }
     event.value.liked = !event.value.liked
+    emit('togglelike', event.value.eventId, event.value.liked)
   } catch (error) {
     logger.error('Failed to toggle like:', error)
     goToRoute(SERVER_ERROR_ROUTE_NAME)
   }
 }
+function onClick() {
+  if (isDraft.value) {
+    goToEditEvent(event.value.eventId)
+  } else {
+    goToEventDetails(event.value.eventId)
+  }
+}
 </script>
 
 <template>
-  <div
-    class="event-card"
-    @click="isDraft ? goToEditEvent(event.eventId) : goToEventDetails(event.eventId)"
-  >
+  <div class="event-card" role="button" tabindex="0" @click="onClick" @keydown.enter="onClick">
     <div class="event-image-container">
       <img
         v-if="!isLoadingImage && imageObjectUrl"
@@ -244,6 +251,10 @@ const toggleFavorite = async (e: Event) => {
 }
 
 .event-location {
-  opacity: 0.7;
+  color: $color-gray-600;
+
+  @include dark-mode {
+    color: $color-gray-400;
+  }
 }
 </style>

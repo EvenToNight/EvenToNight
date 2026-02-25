@@ -45,7 +45,14 @@ watch(
 
 <template>
   <Transition name="dialog">
-    <div v-if="props.isOpen" class="dialog-overlay" @click="close">
+    <div
+      v-if="props.isOpen"
+      class="dialog-overlay"
+      role="button"
+      tabindex="0"
+      @click="close"
+      @keydown.enter="close"
+    >
       <q-card class="auth-required-dialog" @click.stop>
         <CloseButton class="close-button" @click="close" />
 

@@ -82,8 +82,8 @@ const compactRatingClass = computed(() => {
 
     <span
       v-if="showNumber && props.variant === 'compact'"
-      class="text-weight-bold q-ml-sm text-grey"
-      :class="compactRatingClass"
+      class="text-weight-bold q-ml-sm"
+      :class="[compactRatingClass, $q.dark.isActive ? 'text-grey-4' : 'text-grey-9']"
     >
       {{ formattedRating }}/{{ maxRating }}
     </span>

@@ -110,6 +110,7 @@ defineExpose({
       ref="fileInput"
       type="file"
       accept="image/*"
+      :aria-label="t('uploadAriaLabel')"
       style="display: none"
       @change="onFileSelect"
     />
@@ -216,16 +217,10 @@ defineExpose({
 
 .dialog-actions {
   border-top: 1px solid rgba(0, 0, 0, 0.12);
-  padding: $spacing-2 !important;
+  padding: $spacing-2;
   gap: $spacing-2;
-  min-height: unset !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-
-  :deep(.q-btn) {
-    margin: 0 !important;
-  }
+  display: flex;
+  justify-content: flex-end;
 
   @include dark-mode {
     border-top-color: rgba(255, 255, 255, 0.12);

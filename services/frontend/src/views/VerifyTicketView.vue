@@ -8,7 +8,7 @@ import { createLogger } from '@/utils/logger'
 import { useTranslation } from '@/composables/useTranslation'
 
 const logger = createLogger(import.meta.url)
-const { t } = useTranslation('views.verifyTicketView')
+const { t } = useTranslation('views.VerifyTicketView')
 
 const { params, goToRoute } = useNavigation()
 const ticketId = ref<string>(params.ticketId as string)
@@ -51,7 +51,7 @@ onMounted(() => {
   <div class="verify-ticket-page">
     <div class="verify-container">
       <div v-if="loading" class="verify-state loading-state">
-        <q-spinner-dots color="primary" size="60px" />
+        <q-spinner color="primary" size="60px" />
         <h1 class="verify-title">{{ t('loadingTitle') }}</h1>
         <p class="verify-message">{{ t('loadingMessage') }}</p>
       </div>

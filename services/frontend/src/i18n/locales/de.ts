@@ -40,6 +40,7 @@ export default {
         date: {
           label: 'Datum',
           error: 'Datum ist erforderlich',
+          futureError: 'Das Datum muss in der Zukunft liegen', //[ignorei18n]
         },
         time: {
           label: 'Zeit',
@@ -63,6 +64,8 @@ export default {
             label: 'Menge',
             error: 'Bitte geben Sie eine Menge ein',
           },
+          addTicketButton: 'Tickettyp hinzufügen',
+          deleteTicketButton: 'Tickettyp löschen',
         },
         tags: {
           label: 'Schlagworte',
@@ -281,8 +284,10 @@ export default {
         title: 'Wählen Sie Tickets aus',
         available: 'verfügbar',
         soldOut: 'Ausverkauft',
+        quantityAriaLabel: 'Mengeneingabe für',
         total: 'Gesamt',
         ticket: 'Ticket',
+        tickets: 'Tickets',
         actions: {
           cancel: 'Zurück',
           continueToPayment: 'Weiter zur Zahlung',
@@ -338,6 +343,8 @@ export default {
         emailFormatError: 'Bitte geben Sie eine gültige E-Mail-Adresse ein',
         passwordLabel: 'Passwort',
         passwordError: 'Passwort ist erforderlich',
+        passwordStrengthError:
+          'Das Passwort muss mindestens 8 Zeichen lang sein und einen Kleinbuchstaben, eine Zahl und ein Sonderzeichen enthalten.', //[ignorei18n]
         confirmPasswordLabel: 'Passwort bestätigen',
         emptyConfirmPasswordError: 'Bitte bestätigen Sie Ihr Passwort',
         passwordMismatchError: 'Passwörter stimmen nicht überein',
@@ -346,6 +353,20 @@ export default {
       },
     },
     buttons: {
+      actionButtons: {
+        BackHomeButton: {
+          goToHome: 'Geh nach Hause',
+        },
+        BackButton: {
+          goBack: 'Geh zurück',
+        },
+        HomeButton: {
+          goToHome: 'Geh nach Hause',
+        },
+        CloseButton: {
+          close: 'Schließen',
+        },
+      },
       basicButtons: {
         SeeAllButton: {
           seeAll: 'Alle anzeigen',
@@ -363,6 +384,8 @@ export default {
         draftBadge: 'Entwurf',
         cancelledBadge: 'Abgesagt',
         draftMissingTitle: 'Veranstaltung ohne Titel',
+        viewEventAriaLabel: 'Veranstaltung ansehen:',
+        editDraftAriaLabel: 'Entwurf bearbeiten:',
       },
       ReviewCard: {
         deleteDialog: {
@@ -379,9 +402,14 @@ export default {
         },
       },
       SearchResultCard: {
+        eventPosterAlt: 'Veranstaltungsplakat',
+        userAvatarAlt: 'Benutzer-Avatar',
         event: 'Ereignis',
         organization: 'Organisation',
         member: 'Benutzer',
+      },
+      UserInfoCard: {
+        avatarAlt: 'Benutzer-Avatar',
       },
     },
     chat: {
@@ -451,6 +479,7 @@ export default {
         noLikes: 'Noch keine Likes',
         participants: 'Teilnehmer',
         noParticipants: 'Noch keine Teilnehmer',
+        likeButton: 'Wie ein Ereignis',
       },
       EventInfo: {
         freePrice: 'Frei',
@@ -461,6 +490,7 @@ export default {
         location: 'Standort',
         price: 'Preis',
         about: 'Über diese Veranstaltung',
+        openInMaps: 'In Google Maps öffnen',
       },
       EventReviewsPreview: {
         title: 'Rezensionen',
@@ -525,6 +555,7 @@ export default {
         ExploreEventsTab: {
           emptySearch: 'Keine Veranstaltungen gefunden',
           emptySearchText: 'Suchen Sie nach Ereignissen nach Namen',
+          resultsHeading: 'Suchergebnisse',
         },
       },
       ExploreViewContent: {
@@ -536,14 +567,20 @@ export default {
         usersEmptySearch: 'Keine Benutzer gefunden',
         usersEmptySearchText: 'Suchen Sie Benutzer nach Namen',
         title: 'Erkunden',
-        subtitile:
+        subtitle:
           'Finden Sie Veranstaltungen, Organisatoren oder vernetzen Sie sich mit Ihren Freunden',
+      },
+    },
+    forms: {
+      FormSelectorField: {
+        noResultsText: 'Keine Optionen gefunden',
       },
     },
     home: {
       CategorySelection: {
         title: 'Nach Kategorie durchsuchen',
         subtitle: 'Entdecken Sie Veranstaltungen, die Ihren Interessen entsprechen',
+        categoryButtonAriaLabel: 'Kategorie anzeigen',
       },
       HomeViewContent: {
         title: 'Finden Sie die Veranstaltung für Sie',
@@ -567,13 +604,12 @@ export default {
         cropError: 'Das Bild konnte nicht zugeschnitten werden. Bitte versuchen Sie es erneut.',
         dialogCancelButton: 'Schließen',
         dialogConfirmButton: 'Speichern',
+        uploadAriaLabel: 'Bild hochladen',
       },
       PosterCropUpload: {
         label: 'Veranstaltungsplakat',
         title: 'Veranstaltungsplakat hochladen und zuschneiden',
         uploadButtonLabel: 'Poster hochladen',
-        dialogCancelButton: 'Schließen',
-        dialogConfirmButton: 'Speichern',
       },
     },
     navigation: {
@@ -588,6 +624,22 @@ export default {
         profile: 'Profil',
         logout: 'Abmelden',
         darkMode: 'Dunkler Modus',
+        ariaLabels: {
+          closeSearch: 'Suche schließen',
+          search: 'Suchen',
+          chat: 'Chatten',
+          menu: 'Speisekarte',
+          toggleTheme: 'Schalten Sie den Dunkelmodus um',
+          createEvent: 'Veranstaltung erstellen',
+          notifications: 'Benachrichtigungen',
+        },
+      },
+      DrawerMenu: {
+        closeDrawerAriaLabel: 'Menü schließen',
+      },
+      NavigationButtons: {
+        backButton: 'Geh zurück',
+        homeButton: 'Geh nach Hause',
       },
       SearchBar: {
         baseHint: 'Suchen...',
@@ -622,11 +674,18 @@ export default {
           loading: 'Bewertungen werden geladen...',
           noReviews: 'Für diese Organisation liegen noch keine Bewertungen vor',
         },
+        TicketsTab: {
+          noTickets: 'Sie haben noch keine Tickets gekauft',
+        },
       },
       ProfileActions: {
         createEvent: 'Ereignis erstellen',
         following: 'Nachfolgend',
         follow: 'Folgen',
+        editProfileAriaLabel: 'Profil bearbeiten',
+        openChatAriaLabel: 'Nachrichten öffnen',
+        openSettingsAriaLabel: 'Einstellungen öffnen',
+        sendMessageAriaLabel: 'Nachricht senden',
       },
       ProfileBody: {
         myEventsExternal: 'Veranstaltungen',
@@ -649,13 +708,19 @@ export default {
         followError: 'Der Follow-Status konnte nicht aktualisiert werden',
         uploadAvatarError:
           'Das Hochladen des Avatarbildes ist fehlgeschlagen. Bitte versuchen Sie es erneut',
+        profileUpdate: 'Profil erfolgreich aktualisiert!',
         userAvatarAlt: 'Benutzer-Avatar',
+        changeAvatarAriaLabel: 'Profilbild ändern',
+        viewAvatarAriaLabel: 'Profilbild ansehen',
+        scrollToTopAriaLabel: 'Scrollen Sie zum Anfang des Profils',
       },
       UserInfo: {
         followers: 'Anhänger',
         noFollowers: 'Noch keine Follower',
         following: 'Nachfolgend',
         noFollowing: 'Ich folge noch niemandem',
+        viewFollowersAriaLabel: 'Follower anzeigen',
+        viewFollowingAriaLabel: 'Nachfolgend ansehen',
       },
     },
     reviews: {
@@ -674,7 +739,7 @@ export default {
           label: 'Nach Bewertung filtern',
         },
       },
-      rating: {
+      ratings: {
         RatingInfo: {
           noReviews: 'Keine Bewertungen',
           reviews: 'Rezensionen',
@@ -693,7 +758,6 @@ export default {
         selectEventError: 'Bitte wählen Sie eine Veranstaltung aus',
         eventPosterAlt: 'Veranstaltungsplakat',
         noEventsFound: 'Keine Veranstaltung gefunden',
-        searchEventsHint: 'Beginnen Sie mit der Eingabe, um nach Ereignissen zu suchen',
         ratingLabel: 'Bewertung',
         reviewTitle: 'Titel',
         reviewTitlePlaceholder: 'Geben Sie Ihrer Rezension einen Titel...',
@@ -759,7 +823,7 @@ export default {
           languageTitle: 'Sprachpräferenz',
           languageSubtitle: 'Wählen Sie Ihre bevorzugte Sprache für die Bewerbung',
         },
-        ReviewsTab: {
+        MyReviewsTab: {
           loadReviewsError:
             'Ihre Bewertungen konnten nicht geladen werden. Bitte versuchen Sie es erneut',
           searchHint: 'Durchsuchen Sie Ihre Bewertungen...',
@@ -767,6 +831,12 @@ export default {
           noReviewsFound: 'Es wurden keine Bewertungen gefunden, die Ihrer Suche entsprechen',
         },
       },
+    },
+  },
+  stores: {
+    auth: {
+      failedRegistration: 'Die Registrierung ist fehlgeschlagen',
+      failedLogin: 'Falscher Benutzername oder Passwort',
     },
   },
 }

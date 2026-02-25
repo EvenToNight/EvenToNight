@@ -2,6 +2,7 @@ import globals from 'globals'
 import pluginJs from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import pluginVue from 'eslint-plugin-vue'
+import vuejsAccessibility from 'eslint-plugin-vuejs-accessibility'
 import prettier from 'eslint-plugin-prettier/recommended'
 import { defineConfigWithVueTs, vueTsConfigs } from '@vue/eslint-config-typescript'
 import { defineConfig } from 'eslint/config'
@@ -63,6 +64,7 @@ export default defineConfig([
       ],
     },
   },
+  ...vuejsAccessibility.configs['flat/recommended'],
   {
     ignores: ['node_modules', '.nuxt', '.output', 'dist', 'dist/', '*.config.js'],
   },

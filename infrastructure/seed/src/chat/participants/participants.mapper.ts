@@ -11,8 +11,8 @@ export function filterParticipants(conversations: SeedConversation[], users: See
     for (const conversation of conversations) {
         participantInserts.push({
             conversationId: conversation._id,
-            userId: conversation.memberId,
-            userName: UserIdMap[conversation.memberId],
+            userId: conversation.userId,
+            userName: UserIdMap[conversation.userId],
             role: "member",
         });
         participantInserts.push({

@@ -75,13 +75,13 @@ const handleDelete = () => {
     message: t('deleteDialog.message'),
     cancel: {
       flat: true,
-      textColor: 'black',
+      color: 'grey-7',
       label: t('deleteDialog.cancelLabel'),
     },
     ok: {
       color: 'negative',
-      textColor: 'black',
       label: t('deleteDialog.confirmLabel'),
+      flat: true,
     },
     focus: 'none',
   }).onOk(async () => {
@@ -113,7 +113,14 @@ onMounted(() => {
           <q-icon v-else name="person" />
         </q-avatar>
         <div class="user-details flex column items-start">
-          <span class="user-name cursor-pointer" @click="handleUserClick">{{ user?.name }}</span>
+          <span
+            class="user-name cursor-pointer"
+            role="button"
+            tabindex="0"
+            @click="handleUserClick"
+            @keydown.enter="handleUserClick"
+            >{{ user?.name }}</span
+          >
           <RatingStars :rating="review.rating" size="sm" variant="compact" />
         </div>
       </div>
@@ -141,7 +148,10 @@ onMounted(() => {
       <div
         v-if="showEventInfo && eventInfo"
         class="event-info flex items-center cursor-pointer"
+        role="button"
+        tabindex="0"
         @click="handleEventClick"
+        @keydown.enter="handleEventClick"
       >
         <q-icon name="event" class="event-icon" />
         <span class="event-title">{{ eventInfo.title }}</span>

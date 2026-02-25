@@ -24,7 +24,6 @@ const authStore = useAuthStore()
 const organization = ref<User>()
 const reviewsStatistics = ref<OrganizationReviewsStatistics>()
 
-//TODO: when to put as query param?
 const getRatingFromQuery = (): Rating | null => {
   if (typeof query.rating !== 'string') return null
   const num = Number(query.rating)
@@ -37,11 +36,7 @@ const selectedRatingFilter = ref<Rating | null>(getRatingFromQuery())
 
 const canUserLeaveReview = ref(false)
 const userHasReviews = ref(false)
-// const tempEventIdForDialog = ref<EventID | null>(null)
-// const tempReview = ref<EventReview | null>(null)
 
-// TODO: show leave a review button if: user is Logged in (bait if user is not logged? mh sus) and is NOT own profile
-// AND user has participated in at least one event of the organization
 const showReviewDialog = ref(false)
 
 const loadReviewsStatistics = async () => {
@@ -76,29 +71,13 @@ const loadCurrentUserReviewInfo = async () => {
     const userHasUnreviewedParticipations = await api.interactions.userParticipations(userId, {
       organizationId: organization.value!.id,
       reviewed: false,
+      eventStatus: 'COMPLETED',
       pagination: {
         limit: 1,
       },
     })
-    //TODO: check from dialog
-    // if (query.eventId as EventID) {
-    //   const tempEventIdForDialogResponse = await api.interactions.userParticipatedToEvent(
-    //     userId,
-    //     query.eventId as EventID
-    //   )
-    //   if (tempEventIdForDialogResponse) {
-    //     const canAddReview =
-    //       tempEventIdForDialogResponse.hasParticipated && !tempEventIdForDialogResponse.hasReviewed
-    //     tempEventIdForDialog.value = canAddReview ? (query.eventId as EventID) : null
-    //   }
-    // }
-
-    if (userHasLeavedReview.totalItems > 0) {
-      userHasReviews.value = true
-    }
-    if (userHasUnreviewedParticipations.totalItems > 0) {
-      canUserLeaveReview.value = true
-    }
+    userHasReviews.value = userHasLeavedReview.totalItems > 0
+    canUserLeaveReview.value = userHasUnreviewedParticipations.totalItems > 0
   } catch (error) {
     logger.error('Failed to load current user review info:', error)
     goToRoute(SERVER_ERROR_ROUTE_NAME)
@@ -110,6 +89,7 @@ const handleUpdateReview = async (eventId: string, userId: string) => {
   logger.info('review modified or deleted', eventId, userId)
   reviewsListRef.value?.reload()
   await loadCurrentUserReviewInfo()
+  await loadReviewsStatistics()
   logger.info('reviews reloaded')
 }
 
@@ -142,9 +122,14 @@ onMounted(async () => {
               >
                 <img :src="organization.avatar" :alt="organization.name + ' avatar'" />
               </q-avatar>
-              <span class="organization-name" @click="goToUserProfile(organization.id)">{{
-                organization.name
-              }}</span>
+              <span
+                class="organization-name"
+                role="button"
+                tabindex="0"
+                @click="goToUserProfile(organization.id)"
+                @keydown.enter="goToUserProfile(organization.id)"
+                >{{ organization.name }}</span
+              >
             </div>
           </div>
         </div>
@@ -156,7 +141,14 @@ onMounted(async () => {
             :organizationId="organization.id"
           />
           <div v-if="canUserLeaveReview || userHasReviews" class="add-review-section">
-            <div v-if="canUserLeaveReview" class="event-info" @click="showReviewDialog = true">
+            <div
+              v-if="canUserLeaveReview"
+              class="event-info"
+              role="button"
+              tabindex="0"
+              @click="showReviewDialog = true"
+              @keydown.enter="showReviewDialog = true"
+            >
               <q-icon name="rate_review" class="event-icon" />
               <span class="event-title">{{ t('reviewButtonText') }}</span>
             </div>
@@ -166,7 +158,10 @@ onMounted(async () => {
             <span
               v-if="userHasReviews"
               class="modify-link"
+              role="button"
+              tabindex="0"
               @click="goToSettings(false, '#reviews')"
+              @keydown.enter="goToSettings(false, '#reviews')"
             >
               {{ t('modifyButtonText') }}
             </span>

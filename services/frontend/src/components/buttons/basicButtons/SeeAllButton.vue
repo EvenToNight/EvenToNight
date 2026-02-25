@@ -11,7 +11,14 @@ withDefaults(defineProps<Props>(), {
 </script>
 
 <template>
-  <span class="see-all-link" :data-variant="variant" @click="onClick">
+  <span
+    class="see-all-link"
+    :data-variant="variant"
+    role="button"
+    tabindex="0"
+    @click="onClick"
+    @keydown.enter="onClick"
+  >
     <span class="see-all-text">{{ t('seeAll') }}</span>
     <q-icon v-if="variant === 'default'" name="arrow_forward" size="18px" class="see-all-arrow" />
   </span>

@@ -21,6 +21,7 @@
   },
   "homepage": "https://github.com/EvenToNight/EvenToNight#readme",
   "devDependencies": {
+    "puppeteer-core": "^24.36.1",
     "semantic-release-preconfigured-conventional-commits": "1.1.146",
     "swagger-ui-dist": "^5.29.5"
   },
