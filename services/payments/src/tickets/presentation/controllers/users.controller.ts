@@ -44,10 +44,11 @@ export class UsersController {
         userId,
         eventId,
       );
+      const pagination = Pagination.parse(query.limit, query.offset);
       return Pagination.createResult(
-        result,
+        result.slice(pagination.offset, pagination.offset + pagination.limit),
         result.length,
-        Pagination.parse(query.limit, query.offset),
+        pagination,
       );
     }
 
