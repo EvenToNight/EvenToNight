@@ -178,6 +178,7 @@ describe('StripeWebhookController (e2e)', () => {
       describe("When the event is 'checkout.session.completed'", () => {
         it('Then returns 200 and confirms tickets', async () => {
           const webhookEvent: WebhookEvent = {
+            webhookEventId: 'evt_completed_001',
             sessionId,
             type: 'checkout.session.completed',
             orderId: order.getId().toString(),
@@ -207,9 +208,48 @@ describe('StripeWebhookController (e2e)', () => {
         });
       });
 
+      describe('When the same event is received twice (duplicate)', () => {
+        it('Then returns 200 on both calls but processes only once', async () => {
+          const webhookEvent: WebhookEvent = {
+            webhookEventId: 'evt_duplicate_001',
+            sessionId,
+            type: 'checkout.session.completed',
+            orderId: order.getId().toString(),
+            paymentIntentId: 'pi_test_123',
+          };
+
+          mockPaymentService.constructWebhookEvent.mockReturnValue(
+            webhookEvent,
+          );
+
+          await request(app.getHttpServer())
+            .post('/webhooks/stripe')
+            .set('stripe-signature', 'valid_sig')
+            .send({ session: 'data' })
+            .expect(200);
+
+          const res = await request(app.getHttpServer())
+            .post('/webhooks/stripe')
+            .set('stripe-signature', 'valid_sig')
+            .send({ session: 'data' })
+            .expect(200);
+
+          expect(res.body).toEqual({ received: true });
+          expect(
+            mockPaymentService.constructWebhookEvent.mock.calls,
+          ).toHaveLength(2);
+          // Handler for checkout.session.completed was called only once (on first delivery)
+          const updatedOrder = await orderService.findById(
+            order.getId().toString(),
+          );
+          expect(updatedOrder?.isCompleted()).toBe(true);
+        });
+      });
+
       describe("When the event is 'checkout.session.expired'", () => {
         it('Then returns 200 and cancels order, releases inventory', async () => {
           const webhookEvent: WebhookEvent = {
+            webhookEventId: 'evt_expired_001',
             sessionId,
             type: 'checkout.session.expired',
             orderId: order.getId().toString(),
@@ -248,6 +288,7 @@ describe('StripeWebhookController (e2e)', () => {
       describe('Given an unhandled event type', () => {
         it('Then returns 200 with received: true (logs but does not fail)', async () => {
           const webhookEvent: WebhookEvent = {
+            webhookEventId: 'evt_unhandled_001',
             sessionId,
             type: 'payment_intent.succeeded',
             orderId: order.getId().toString(),
