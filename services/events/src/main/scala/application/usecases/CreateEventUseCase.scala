@@ -11,6 +11,7 @@ import domain.repositories.{
   UnitOfWork
 }
 import domain.valueobjects.{EventDescription, EventId, EventTitle, Location, OrganizationId}
+import utils.Utils
 
 class CreateEventUseCase(
     eventRepository: EventRepository,
@@ -68,6 +69,17 @@ class CreateEventUseCase(
     eventResult match
       case Right(event) =>
         eventPublisher.publishAll(event.domainEvents)
+
+        val paymentsServiceUrl = sys.env.getOrElse("PAYMENTS_SERVICE_URL", "http://payments:9050")
+        Utils.notifyPaymentsService(
+          eventId = event.id.value,
+          creatorId = command.creatorId,
+          status = command.status.asString,
+          title = event.title.map(_.value),
+          date = command.date,
+          paymentsServiceUrl = paymentsServiceUrl
+        )
+
         if command.status == EventStatus.PUBLISHED then
           val creatorName = organizationRepository.getOrganizationName(
             OrganizationId.unsafe(command.creatorId)

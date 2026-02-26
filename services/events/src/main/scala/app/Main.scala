@@ -26,6 +26,8 @@ object Main extends App:
     exchangeName = "eventonight"
   )
 
+  val sharedMongoClient: com.mongodb.client.MongoClient = com.mongodb.client.MongoClients.create(mongoUri)
+
   val priceDatabase: MongoPriceRepository = new MongoPriceRepository(
     mongoUri,
     "eventonight",
@@ -38,11 +40,12 @@ object Main extends App:
     "eventonight",
     "events",
     messageBroker,
-    Some(priceDatabase)
+    Some(priceDatabase),
+    Some(sharedMongoClient)
   )
 
   val eventService: EventServiceAdapter = DependencyFactory.createEventService(
-    mongoClient = eventDatabase.mongoClient,
+    mongoClient = sharedMongoClient,
     connectionString = mongoUri,
     databaseName = "eventonight",
     eventPublisher = messageBroker,
@@ -54,7 +57,7 @@ object Main extends App:
     "eventonight",
     "users",
     messageBroker,
-    sharedMongoClient = Some(eventDatabase.mongoClient)
+    sharedMongoClient = Some(sharedMongoClient)
   )
 
   val externalEventHandler: ExternalEventHandler =
