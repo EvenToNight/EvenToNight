@@ -76,9 +76,9 @@ object Utils:
     Try {
       val payload = ujson.Obj(
         "creatorId" -> creatorId,
-        "status" -> status
+        "status"    -> status
       )
-      
+
       title.foreach(t => payload("title") = t)
       date.foreach(d => payload("date") = d.toString)
 
@@ -87,7 +87,7 @@ object Utils:
         data = payload.toString(),
         headers = Map("Content-Type" -> "application/json")
       )
-      
+
       if response.statusCode == 201 then
         println(s"[PAYMENTS] Event $eventId notified successfully")
       else

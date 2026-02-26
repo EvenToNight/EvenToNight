@@ -62,7 +62,7 @@ class CreateEventUseCase(
           creatorId = creatorId,
           collaboratorIds = Some(collaboratorIds)
         )
-        
+
         paymentsServiceUrl = sys.env.getOrElse("PAYMENTS_SERVICE_URL", "http://payments:9050")
         _ <- Utils.notifyPaymentsService(
           eventId = event.id.value,
@@ -72,7 +72,7 @@ class CreateEventUseCase(
           date = command.date,
           paymentsServiceUrl = paymentsServiceUrl
         )
-        
+
         _ <- eventRepository.save(event, ctx)
       yield event
     }
