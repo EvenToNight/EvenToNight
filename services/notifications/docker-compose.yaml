@@ -18,6 +18,12 @@ services:
       - "traefik.http.routers.notifications.entrypoints=web"
       - "traefik.http.services.notifications.loadbalancer.server.port=${NOTIFICATIONS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${NOTIFICATIONS_SERVICE_PORT}/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     depends_on:
       mongo-notifications:
         condition: service_healthy
