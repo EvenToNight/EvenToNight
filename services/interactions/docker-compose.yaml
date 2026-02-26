@@ -18,6 +18,12 @@ services:
       - "traefik.http.services.interactions.loadbalancer.server.port=${INTERACTIONS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${INTERACTIONS_SERVICE_PORT}/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     depends_on:
       mongo-interactions:
         condition: service_healthy
