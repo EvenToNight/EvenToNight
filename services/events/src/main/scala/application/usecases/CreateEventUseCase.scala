@@ -62,9 +62,16 @@ class CreateEventUseCase(
           creatorId = creatorId,
           collaboratorIds = Some(collaboratorIds)
         )
+        _ <- eventRepository.save(event, ctx)
+      yield event
+    }
 
-        paymentsServiceUrl = sys.env.getOrElse("PAYMENTS_SERVICE_URL", "http://payments:9050")
-        _ <- Utils.notifyPaymentsService(
+    eventResult match
+      case Right(event) =>
+        eventPublisher.publishAll(event.domainEvents)
+
+        val paymentsServiceUrl = sys.env.getOrElse("PAYMENTS_SERVICE_URL", "http://payments:9050")
+        Utils.notifyPaymentsService(
           eventId = event.id.value,
           creatorId = command.creatorId,
           status = command.status.asString,
@@ -73,13 +80,6 @@ class CreateEventUseCase(
           paymentsServiceUrl = paymentsServiceUrl
         )
 
-        _ <- eventRepository.save(event, ctx)
-      yield event
-    }
-
-    eventResult match
-      case Right(event) =>
-        eventPublisher.publishAll(event.domainEvents)
         if command.status == EventStatus.PUBLISHED then
           val creatorName = organizationRepository.getOrganizationName(
             OrganizationId.unsafe(command.creatorId)
