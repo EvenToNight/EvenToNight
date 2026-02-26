@@ -18,6 +18,6 @@ import { HealthController } from './health.controller';
     AuthModule,
     TransactionManagerModule,
   ],
-  providers: [HealthController],
+  controllers: [HealthController],
 })
 export class AppModule {}
