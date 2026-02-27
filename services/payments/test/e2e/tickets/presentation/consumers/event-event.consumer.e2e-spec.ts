@@ -100,6 +100,71 @@ describe('EventEventConsumer (e2e)', () => {
     payload,
   });
 
+  // ─── event.created ──────────────────────────────────────────────────────────
+
+  describe('event.created', () => {
+    it('creates the event and acks', async () => {
+      const ctx = createMockRmqContext('event.created');
+
+      await consumer.handleAllEvents(
+        envelope({
+          eventId: 'ev-new',
+          creatorId: 'creator-1',
+          status: 'DRAFT',
+        }),
+        ctx,
+      );
+
+      expect(ctx.getChannelRef().ack).toHaveBeenCalled();
+      const doc = await eventModel.findById('ev-new');
+      expect(doc).not.toBeNull();
+      expect(doc?.status).toBe('DRAFT');
+    });
+
+    it('acks and silences EventAlreadyExistsException when event already exists', async () => {
+      await seedEvent('ev-exists', 'DRAFT');
+      const ctx = createMockRmqContext('event.created');
+
+      await consumer.handleAllEvents(
+        envelope({
+          eventId: 'ev-exists',
+          creatorId: 'creator-1',
+          status: 'DRAFT',
+        }),
+        ctx,
+      );
+
+      expect(ctx.getChannelRef().ack).toHaveBeenCalled();
+      expect(ctx.getChannelRef().nack).not.toHaveBeenCalled();
+    });
+
+    it('nacks on generic error from createHandler', async () => {
+      const { CreateEventHandler } =
+        await import('src/tickets/application/handlers/create-event.handler');
+      const createHandler = app.get(CreateEventHandler);
+      const spy = jest
+        .spyOn(createHandler, 'handle')
+        .mockRejectedValueOnce(new Error('unexpected'));
+
+      const ctx = createMockRmqContext('event.created');
+      await consumer.handleAllEvents(
+        envelope({
+          eventId: 'ev-err',
+          creatorId: 'creator-1',
+          status: 'DRAFT',
+        }),
+        ctx,
+      );
+
+      expect(ctx.getChannelRef().nack).toHaveBeenCalledWith(
+        expect.anything(),
+        false,
+        false,
+      );
+      spy.mockRestore();
+    });
+  });
+
   // ─── event.updated ──────────────────────────────────────────────────────────
 
   describe('event.updated', () => {
@@ -257,6 +322,28 @@ describe('EventEventConsumer (e2e)', () => {
 
       expect(ctx.getChannelRef().ack).toHaveBeenCalled();
     });
+  });
+
+  // ─── non-Error thrown (covers logger branch in handleAllEvents) ─────────────
+
+  it('nacks even when a non-Error value is thrown', async () => {
+    const { EventService } =
+      await import('src/tickets/application/services/event.service');
+    const eventSvc = app.get(EventService);
+    const spy = jest
+      .spyOn(eventSvc, 'updateStatus')
+      .mockRejectedValueOnce('plain-string-not-an-error');
+
+    await seedEvent('ev-str-err', 'DRAFT');
+    const ctx = createMockRmqContext('event.published');
+    await consumer.handleAllEvents(envelope({ eventId: 'ev-str-err' }), ctx);
+
+    expect(ctx.getChannelRef().nack).toHaveBeenCalledWith(
+      expect.anything(),
+      false,
+      false,
+    );
+    spy.mockRestore();
   });
 
   // ─── unknown routing key ────────────────────────────────────────────────────

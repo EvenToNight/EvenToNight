@@ -63,6 +63,26 @@ describe('EventRepositoryImpl (integration)', () => {
   });
 
   describe('save + findById', () => {
+    it('throws EventAlreadyExistsException when saving a duplicate', async () => {
+      const { EventAlreadyExistsException } =
+        await import('src/tickets/domain/exceptions/event-already-exists.exception');
+      const event = makeEvent({ id: 'ev-dup' });
+      await repo.save(event);
+      await expect(repo.save(event)).rejects.toBeInstanceOf(
+        EventAlreadyExistsException,
+      );
+    });
+
+    it('rethrows non-duplicate errors from save', async () => {
+      const genericError = new Error('Unexpected DB failure');
+      const spy = jest
+        .spyOn(eventModel.prototype, 'save')
+        .mockRejectedValueOnce(genericError);
+      const event = makeEvent({ id: 'ev-err' });
+      await expect(repo.save(event)).rejects.toThrow('Unexpected DB failure');
+      spy.mockRestore();
+    });
+
     it('saves an event and retrieves it by ID', async () => {
       const event = makeEvent({ id: 'ev-save' });
       await repo.save(event);

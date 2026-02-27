@@ -60,6 +60,7 @@ describe('UserController (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useLogger(false);
     app.useGlobalFilters(new DomainExceptionFilter());
     app.useGlobalPipes(
       new ValidationPipe({
@@ -171,6 +172,23 @@ describe('UserController (e2e)', () => {
             }),
           );
           expect(body.items).toHaveLength(5);
+        });
+      });
+
+      describe('When filtering by eventId', () => {
+        it('Then returns only tickets for the specified event', async () => {
+          const res = await request(app.getHttpServer())
+            .get(`/users/${userId}/tickets`)
+            .query({ eventId: 'event-1' })
+            .set(
+              'Authorization',
+              `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
+            )
+            .expect(200);
+
+          const body = res.body as PaginatedResponseDto<TicketDocument>;
+          expect(body.totalItems).toBe(1);
+          expect(body.items).toHaveLength(1);
         });
       });
     });

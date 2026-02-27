@@ -23,6 +23,7 @@ import { TicketType } from 'src/tickets/domain/value-objects/ticket-type.vo';
 import { generateFakeToken, ONE_YEAR } from '@libs/ts-common';
 import { CreateCheckoutSessionDto } from 'src/tickets/application/dto/create-checkout-session.dto';
 import { CheckoutSession } from 'src/tickets/domain/types/payment-service.types';
+import { DomainExceptionFilter } from 'src/tickets/presentation/filters/domain-exception.filter';
 
 describe('CheckoutSessionsController (e2e)', () => {
   let app: INestApplication<App>;
@@ -71,6 +72,7 @@ describe('CheckoutSessionsController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.useLogger(false);
+    app.useGlobalFilters(new DomainExceptionFilter());
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
@@ -177,6 +179,78 @@ describe('CheckoutSessionsController (e2e)', () => {
         const ticketType = await eventTicketTypeService.findById(ticketTypeId);
         expect(ticketType?.getSoldQuantity()).toBe(2);
         expect(ticketType?.getAvailableQuantity()).toBe(98);
+      });
+    });
+
+    describe('Given a non-existing ticket type ID', () => {
+      it('Then returns 404 Not Found (covers line 63 - EventTicketTypeNotFoundException)', async () => {
+        const payload: CreateCheckoutSessionDto = {
+          userId,
+          items: [
+            {
+              ticketTypeId: 'non-existing-ticket-type-id',
+              attendeeName: 'Test',
+            },
+          ],
+          successUrl: 'http://localhost:3000/success',
+          cancelUrl: 'http://localhost:3000/cancel',
+        };
+
+        await request(app.getHttpServer())
+          .post('/checkout-sessions')
+          .set('Authorization', `Bearer ${generateFakeToken(userId, ONE_YEAR)}`)
+          .send(payload)
+          .expect(404);
+      });
+    });
+
+    describe('Given the event associated with the ticket type does not exist', () => {
+      it('Then returns 404 Not Found (covers line 94 - EventNotFoundException)', async () => {
+        // Delete the event but keep the ticket type
+        await eventService.deleteAll();
+
+        await request(app.getHttpServer())
+          .post('/checkout-sessions')
+          .set('Authorization', `Bearer ${generateFakeToken(userId, ONE_YEAR)}`)
+          .send(dto)
+          .expect(404);
+      });
+    });
+
+    describe('Given the event is not published (DRAFT status)', () => {
+      it('Then returns 400 Bad Request (covers line 97 - EventNotPublishedException)', async () => {
+        const draftEventId = 'draft-event-id';
+        await eventService.createOrUpdate(
+          draftEventId,
+          'creator-id',
+          'DRAFT',
+          new Date(),
+        );
+        const draftTicketType = await eventTicketTypeService.create({
+          eventId: EventId.fromString(draftEventId),
+          type: TicketType.fromString('STANDARD'),
+          description: 'Draft event ticket',
+          price: Money.fromAmount(50, 'USD'),
+          availableQuantity: 100,
+          soldQuantity: 0,
+        });
+        const draftPayload: CreateCheckoutSessionDto = {
+          userId,
+          items: [
+            {
+              ticketTypeId: draftTicketType.getId().toString(),
+              attendeeName: 'Test',
+            },
+          ],
+          successUrl: 'http://localhost:3000/success',
+          cancelUrl: 'http://localhost:3000/cancel',
+        };
+
+        await request(app.getHttpServer())
+          .post('/checkout-sessions')
+          .set('Authorization', `Bearer ${generateFakeToken(userId, ONE_YEAR)}`)
+          .send(draftPayload)
+          .expect(400);
       });
     });
 

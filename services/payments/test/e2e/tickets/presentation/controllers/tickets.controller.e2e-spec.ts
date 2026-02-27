@@ -21,6 +21,9 @@ import { EventTicketTypeId } from 'src/tickets/domain/value-objects/event-ticket
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
+import { getModelToken } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { UserDocument } from 'src/tickets/infrastructure/persistence/schemas/user.schema';
 
 const createMockGuard = (mockUserId: string) => ({
   canActivate: (context: ExecutionContext) => {
@@ -44,6 +47,8 @@ describe('TicketsController (e2e)', () => {
   const anotherUserId = `another-user-id`;
 
   describe('With real auth guard', () => {
+    let userModel: Model<UserDocument>;
+
     beforeAll(async () => {
       jest.spyOn(console, 'warn').mockImplementation();
       mongod = await MongoMemoryServer.create();
@@ -69,6 +74,7 @@ describe('TicketsController (e2e)', () => {
         .compile();
 
       app = moduleFixture.createNestApplication();
+      app.useLogger(false);
       app.useGlobalPipes(
         new ValidationPipe({
           transform: true,
@@ -80,6 +86,9 @@ describe('TicketsController (e2e)', () => {
       await app.init();
       ticketService = moduleFixture.get<TicketService>(TicketService);
       eventService = moduleFixture.get<EventService>(EventService);
+      userModel = moduleFixture.get<Model<UserDocument>>(
+        getModelToken(UserDocument.name),
+      );
     });
 
     afterAll(async () => {
@@ -90,6 +99,7 @@ describe('TicketsController (e2e)', () => {
     beforeEach(async () => {
       await ticketService.deleteAll();
       await eventService.deleteAll();
+      await userModel.deleteMany({});
     });
 
     describe('GET /tickets/:ticketId', () => {
@@ -254,6 +264,110 @@ describe('TicketsController (e2e)', () => {
           });
         });
       });
+
+      describe('Given a ticket exists but the event does not', () => {
+        let ticketNoEvent: Ticket;
+
+        beforeEach(async () => {
+          ticketNoEvent = await ticketService.create({
+            eventId: EventId.fromString(eventId),
+            userId: UserId.fromString(userId),
+            attendeeName: 'Attendee',
+            ticketTypeId: EventTicketTypeId.fromString('type-1'),
+            price: Money.fromAmount(1, 'USD'),
+            status: TicketStatus.ACTIVE,
+          });
+          // No event created
+        });
+
+        it('PUT /tickets/:ticketId/verify returns 404 when event does not exist', async () => {
+          await request(app.getHttpServer())
+            .put(`/tickets/${ticketNoEvent.getId().toString()}/verify`)
+            .set(
+              'Authorization',
+              `Bearer ${generateFakeToken(eventCreatorId, ONE_HOUR)}`,
+            )
+            .send()
+            .expect(404);
+        });
+      });
+    });
+
+    describe('GET /tickets/:ticketId/pdf', () => {
+      describe('Given a non-existing ticket', () => {
+        it('Then returns 404', async () => {
+          await request(app.getHttpServer())
+            .get('/tickets/non-existing-ticket/pdf')
+            .set(
+              'Authorization',
+              `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
+            )
+            .expect(404);
+        });
+      });
+
+      describe('Given an existing ticket', () => {
+        let ticket: Ticket;
+
+        beforeEach(async () => {
+          ticket = await ticketService.create({
+            eventId: EventId.fromString(eventId),
+            userId: UserId.fromString(userId),
+            attendeeName: 'Attendee 1',
+            ticketTypeId: EventTicketTypeId.fromString('type-1'),
+            price: Money.fromAmount(10, 'USD'),
+            status: TicketStatus.ACTIVE,
+          });
+        });
+
+        describe('When a different user requests the PDF', () => {
+          it('Then returns 403 Forbidden', async () => {
+            await request(app.getHttpServer())
+              .get(`/tickets/${ticket.getId().toString()}/pdf`)
+              .set(
+                'Authorization',
+                `Bearer ${generateFakeToken(anotherUserId, ONE_HOUR)}`,
+              )
+              .expect(403);
+          });
+        });
+
+        describe('When the owner requests the PDF but event does not exist', () => {
+          it('Then returns 404 Not Found', async () => {
+            await request(app.getHttpServer())
+              .get(`/tickets/${ticket.getId().toString()}/pdf`)
+              .set(
+                'Authorization',
+                `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
+              )
+              .expect(404);
+          });
+        });
+
+        describe('When the owner requests the PDF with event and user set up', () => {
+          beforeEach(async () => {
+            await eventService.createOrUpdate(
+              eventId,
+              eventCreatorId,
+              'PUBLISHED',
+              new Date('2025-12-01'),
+            );
+            await userModel.create({ _id: userId, language: 'en' });
+          });
+
+          it('Then returns 200 with a PDF', async () => {
+            const res = await request(app.getHttpServer())
+              .get(`/tickets/${ticket.getId().toString()}/pdf`)
+              .set(
+                'Authorization',
+                `Bearer ${generateFakeToken(userId, ONE_HOUR)}`,
+              )
+              .expect(200);
+
+            expect(res.headers['content-type']).toMatch(/application\/pdf/);
+          });
+        });
+      });
     });
   });
   describe('With mocked auth guard (bypass)', () => {
@@ -286,6 +400,7 @@ describe('TicketsController (e2e)', () => {
       // .useValue({ canActivate: () => true })
 
       app = moduleFixture.createNestApplication();
+      app.useLogger(false);
       app.useGlobalPipes(
         new ValidationPipe({
           transform: true,

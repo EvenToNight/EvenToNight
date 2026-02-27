@@ -45,4 +45,11 @@ describe('EventId', () => {
       expect(id.getValue()).toBe('event-123');
     });
   });
+
+  describe('toJSON', () => {
+    it('should return string value for serialization', () => {
+      const id = EventId.fromString('event-123');
+      expect(id.toJSON()).toBe('event-123');
+    });
+  });
 });

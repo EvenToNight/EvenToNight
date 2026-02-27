@@ -9,6 +9,7 @@ import { UserEventConsumer } from 'src/tickets/presentation/consumers/user-event
 import { UserDocument } from 'src/tickets/infrastructure/persistence/schemas/user.schema';
 import type { RmqContext } from '@nestjs/microservices';
 import { AppModule } from 'src/app.module';
+import { UserService } from 'src/tickets/application/services/user.service';
 
 interface MockChannel {
   ack: jest.Mock;
@@ -24,6 +25,7 @@ describe('UserEventConsumer (e2e)', () => {
   let mongod: MongoMemoryReplSet;
   let userEventConsumer: UserEventConsumer;
   let userModel: Model<UserDocument>;
+  let userService: UserService;
 
   beforeAll(async () => {
     jest.spyOn(console, 'warn').mockImplementation();
@@ -54,12 +56,14 @@ describe('UserEventConsumer (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useLogger(false);
     await app.init();
 
     userEventConsumer = moduleFixture.get<UserEventConsumer>(UserEventConsumer);
     userModel = moduleFixture.get<Model<UserDocument>>(
       getModelToken(UserDocument.name),
     );
+    userService = moduleFixture.get<UserService>(UserService);
   });
 
   afterAll(async () => {
@@ -199,5 +203,69 @@ describe('UserEventConsumer (e2e)', () => {
 
     // User should not have been re-created — duplicate was skipped
     expect(await userModel.findOne({ _id: 'user-dup' })).toBeNull();
+  });
+
+  it('should ack and silently ignore UserAlreadyExistsException on user.created', async () => {
+    // Seed the user so save() will throw UserAlreadyExistsException
+    await userModel.create({ _id: 'user-already', language: 'en' });
+
+    const envelope = {
+      eventType: 'user.created',
+      occurredAt: new Date(),
+      payload: { id: 'user-already', language: 'it' },
+    };
+    const context = createMockRmqContext('user.created');
+
+    await userEventConsumer.handleAllEvents(envelope, context);
+
+    // Should ack (not nack) — exception is silenced
+    expect(context.getChannelRef().ack).toHaveBeenCalled();
+    expect(context.getChannelRef().nack).not.toHaveBeenCalled();
+  });
+
+  it('should nack when a non-Error value is thrown (covers logger branch)', async () => {
+    const spy = jest
+      .spyOn(userService, 'save')
+      .mockRejectedValueOnce('plain-string-not-an-error');
+
+    const envelope = {
+      eventType: 'user.created',
+      occurredAt: new Date(),
+      payload: { id: 'user-str-err', language: 'en' },
+    };
+    const context = createMockRmqContext('user.created');
+
+    await userEventConsumer.handleAllEvents(envelope, context);
+
+    expect(context.getChannelRef().nack).toHaveBeenCalledWith(
+      expect.anything(),
+      false,
+      false,
+    );
+    expect(context.getChannelRef().ack).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it('should nack when a non-UserAlreadyExistsException is thrown', async () => {
+    const spy = jest
+      .spyOn(userService, 'save')
+      .mockRejectedValueOnce(new Error('Unexpected DB error'));
+
+    const envelope = {
+      eventType: 'user.created',
+      occurredAt: new Date(),
+      payload: { id: 'user-err', language: 'en' },
+    };
+    const context = createMockRmqContext('user.created');
+
+    await userEventConsumer.handleAllEvents(envelope, context);
+
+    expect(context.getChannelRef().nack).toHaveBeenCalledWith(
+      expect.anything(),
+      false,
+      false,
+    );
+    expect(context.getChannelRef().ack).not.toHaveBeenCalled();
+    spy.mockRestore();
   });
 });

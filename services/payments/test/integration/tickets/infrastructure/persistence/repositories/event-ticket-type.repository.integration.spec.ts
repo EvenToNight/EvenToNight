@@ -67,6 +67,26 @@ describe('EventTicketTypeRepositoryImpl (integration)', () => {
   });
 
   describe('save + findById', () => {
+    it('throws TicketTypeAlreadyExistsException when saving a duplicate', async () => {
+      const { TicketTypeAlreadyExistsException } =
+        await import('src/tickets/domain/exceptions/ticket-type-already-exists.exception');
+      const tt = makeTicketType({ id: 'ett-dup', eventId: 'ev-dup' });
+      await repo.save(tt);
+      await expect(repo.save(tt)).rejects.toBeInstanceOf(
+        TicketTypeAlreadyExistsException,
+      );
+    });
+
+    it('rethrows non-duplicate errors from save', async () => {
+      const genericError = new Error('Unexpected DB failure');
+      const spy = jest
+        .spyOn(model.prototype, 'save')
+        .mockRejectedValueOnce(genericError);
+      const tt = makeTicketType({ id: 'ett-err' });
+      await expect(repo.save(tt)).rejects.toThrow('Unexpected DB failure');
+      spy.mockRestore();
+    });
+
     it('saves a ticket type and retrieves it by ID', async () => {
       const tt = makeTicketType({ id: 'ett-save', eventId: 'ev-1' });
       await repo.save(tt);

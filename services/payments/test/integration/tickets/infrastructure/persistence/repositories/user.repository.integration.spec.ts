@@ -49,6 +49,26 @@ describe('UserRepositoryImpl (integration)', () => {
   });
 
   describe('save + findById', () => {
+    it('throws UserAlreadyExistsException when saving a duplicate', async () => {
+      const { UserAlreadyExistsException } =
+        await import('src/tickets/domain/exceptions/user-already-exists.exception');
+      const user = makeUser('user-dup');
+      await repo.save(user);
+      await expect(repo.save(user)).rejects.toBeInstanceOf(
+        UserAlreadyExistsException,
+      );
+    });
+
+    it('rethrows non-duplicate errors from save', async () => {
+      const genericError = new Error('Unexpected DB failure');
+      const spy = jest
+        .spyOn(userModel.prototype, 'save')
+        .mockRejectedValueOnce(genericError);
+      const user = makeUser('user-err');
+      await expect(repo.save(user)).rejects.toThrow('Unexpected DB failure');
+      spy.mockRestore();
+    });
+
     it('saves a user and retrieves it by ID', async () => {
       const user = makeUser('user-save', 'it');
       await repo.save(user);

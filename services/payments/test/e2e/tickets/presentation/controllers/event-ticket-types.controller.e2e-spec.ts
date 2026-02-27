@@ -59,6 +59,7 @@ describe('EventTicketTypesController (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useLogger(false);
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
@@ -156,6 +157,59 @@ describe('EventTicketTypesController (e2e)', () => {
     });
   });
 
+  describe('GET /ticket-types/:ticketTypeId (auth-restricted)', () => {
+    const draftEventId = 'draft-event-id';
+    let draftTicketTypeId: string;
+
+    beforeEach(async () => {
+      await eventService.createOrUpdate(
+        draftEventId,
+        creatorId,
+        'DRAFT',
+        new Date(),
+      );
+      const draftTicketType = await eventTicketTypeService.create({
+        eventId: EventId.fromString(draftEventId),
+        type: TicketType.fromString('VIP'),
+        description: 'VIP ticket',
+        price: Money.fromAmount(100, 'USD'),
+        availableQuantity: 10,
+        soldQuantity: 0,
+      });
+      draftTicketTypeId = draftTicketType.getId().toString();
+    });
+
+    describe('Given a ticket type in a DRAFT event without auth', () => {
+      it('Then returns 403 Forbidden', async () => {
+        await request(app.getHttpServer())
+          .get(`/ticket-types/${draftTicketTypeId}`)
+          .expect(403);
+      });
+    });
+
+    describe('Given a ticket type in a DRAFT event with a non-creator user', () => {
+      it('Then returns 403 Forbidden', async () => {
+        await request(app.getHttpServer())
+          .get(`/ticket-types/${draftTicketTypeId}`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken('other-user', ONE_YEAR)}`,
+          )
+          .expect(403);
+      });
+    });
+
+    describe('Given a ticket type whose event is missing from DB', () => {
+      it('Then returns 404 when event not found', async () => {
+        // Delete the event but keep the ticket type
+        await eventService.deleteAll();
+        await request(app.getHttpServer())
+          .get(`/ticket-types/${draftTicketTypeId}`)
+          .expect(404);
+      });
+    });
+  });
+
   //TODO: add tests for unauthorized access
   describe('PUT /ticket-types/:ticketTypeId', () => {
     describe('Given valid update data', () => {
@@ -226,6 +280,29 @@ describe('EventTicketTypesController (e2e)', () => {
       });
     });
 
+    describe('Given the new quantity is less than soldQuantity', () => {
+      it('Then returns 200 and caps quantity at soldQuantity (sold out)', async () => {
+        // beforeEach sets soldQuantity = 5, so quantity: 3 triggers updateTicketAndMakeSoldOut
+        const dto = { price: 50, quantity: 3 };
+
+        const res = await request(app.getHttpServer())
+          .put(`/ticket-types/${ticketTypeId}`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+          )
+          .send(dto)
+          .expect(200);
+
+        expect(res.body).toMatchObject({
+          id: ticketTypeId,
+          soldQuantity: 5,
+          totalQuantity: 5,
+          availableQuantity: 0,
+        });
+      });
+    });
+
     describe('Given invalid update data', () => {
       it('Then returns 400 for negative quantity', async () => {
         const dto = {
@@ -259,6 +336,21 @@ describe('EventTicketTypesController (e2e)', () => {
           )
           .send(dto)
           .expect(404);
+      });
+    });
+
+    describe('Given a non-creator user', () => {
+      it('Then returns 403 Forbidden', async () => {
+        const dto = { description: 'Updated', price: 50, quantity: 100 };
+
+        await request(app.getHttpServer())
+          .put(`/ticket-types/${ticketTypeId}`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken('other-user', ONE_YEAR)}`,
+          )
+          .send(dto)
+          .expect(403);
       });
     });
   });
@@ -296,6 +388,35 @@ describe('EventTicketTypesController (e2e)', () => {
       });
     });
 
+    describe('Given the event has more than one ticket type', () => {
+      it('Then deletes only the specified ticket type without deleting the event', async () => {
+        const secondTicketType = await eventTicketTypeService.create({
+          eventId: EventId.fromString(eventId),
+          type: TicketType.fromString('VIP'),
+          description: 'VIP ticket',
+          price: Money.fromAmount(100, 'USD'),
+          availableQuantity: 10,
+          soldQuantity: 0,
+        });
+        const secondTicketTypeId = secondTicketType.getId().toString();
+
+        await request(app.getHttpServer())
+          .delete(`/ticket-types/${ticketTypeId}`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+          )
+          .expect(204);
+
+        const deleted = await eventTicketTypeService.findById(ticketTypeId);
+        expect(deleted).toBeNull();
+
+        const remaining =
+          await eventTicketTypeService.findById(secondTicketTypeId);
+        expect(remaining).not.toBeNull();
+      });
+    });
+
     //TODO evaluate returning 204 for idempotency
     describe('Given non-existing ticket type', () => {
       it('Then returns returns 404', async () => {
@@ -306,6 +427,18 @@ describe('EventTicketTypesController (e2e)', () => {
             `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
           )
           .expect(404);
+      });
+    });
+
+    describe('Given a non-creator user', () => {
+      it('Then returns 403 Forbidden', async () => {
+        await request(app.getHttpServer())
+          .delete(`/ticket-types/${ticketTypeId}`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken('other-user', ONE_YEAR)}`,
+          )
+          .expect(403);
       });
     });
   });

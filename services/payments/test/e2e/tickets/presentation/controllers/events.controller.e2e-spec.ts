@@ -17,6 +17,7 @@ import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { generateFakeToken, ONE_YEAR } from '@libs/ts-common';
+import { DomainExceptionFilter } from 'src/tickets/presentation/filters/domain-exception.filter';
 
 describe('EventController (e2e)', () => {
   let app: INestApplication<App>;
@@ -59,6 +60,7 @@ describe('EventController (e2e)', () => {
       .compile();
 
     app = moduleFixture.createNestApplication();
+    app.useLogger(false);
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
@@ -66,6 +68,7 @@ describe('EventController (e2e)', () => {
         forbidNonWhitelisted: true,
       }),
     );
+    app.useGlobalFilters(new DomainExceptionFilter());
 
     await app.init();
     eventTicketTypeService = moduleFixture.get<EventTicketTypeService>(
@@ -131,6 +134,125 @@ describe('EventController (e2e)', () => {
     });
     soldTicketsIds.push(soldTicket.getId().toString());
   });
+  describe('GET /events', () => {
+    describe('When called with no query params', () => {
+      it('Then returns 200 with a paginated list', async () => {
+        const res = await request(app.getHttpServer())
+          .get('/events')
+          .expect(200);
+
+        expect(res.body).toMatchObject({ items: expect.any(Array) });
+      });
+    });
+  });
+
+  describe('GET /events/:eventId', () => {
+    describe('Given a published event', () => {
+      describe('When fetching it without authentication', () => {
+        it('Then returns 200 with event details', async () => {
+          const res = await request(app.getHttpServer())
+            .get(`/events/${eventId}`)
+            .expect(200);
+
+          expect(res.body).toMatchObject({
+            status: 'PUBLISHED',
+          });
+        });
+      });
+
+      describe('When fetching it as the creator', () => {
+        it('Then returns 200 with event details', async () => {
+          const res = await request(app.getHttpServer())
+            .get(`/events/${eventId}`)
+            .set(
+              'Authorization',
+              `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+            )
+            .expect(200);
+
+          expect(res.body).toMatchObject({
+            status: 'PUBLISHED',
+          });
+        });
+      });
+
+      describe('When fetching it as another user', () => {
+        it('Then returns 200 with event details', async () => {
+          const res = await request(app.getHttpServer())
+            .get(`/events/${eventId}`)
+            .set(
+              'Authorization',
+              `Bearer ${generateFakeToken('other-user-id', ONE_YEAR)}`,
+            )
+            .expect(200);
+
+          expect(res.body).toMatchObject({
+            status: 'PUBLISHED',
+          });
+        });
+      });
+    });
+
+    describe('Given a draft event', () => {
+      const draftEventId = 'draft-event-id';
+
+      beforeEach(async () => {
+        await eventService.createOrUpdate(
+          draftEventId,
+          creatorId,
+          'DRAFT',
+          new Date(),
+        );
+      });
+
+      describe('When fetching it without authentication', () => {
+        it('Then returns 403', async () => {
+          await request(app.getHttpServer())
+            .get(`/events/${draftEventId}`)
+            .expect(403);
+        });
+      });
+
+      describe('When fetching it as the creator', () => {
+        it('Then returns 200', async () => {
+          const res = await request(app.getHttpServer())
+            .get(`/events/${draftEventId}`)
+            .set(
+              'Authorization',
+              `Bearer ${generateFakeToken(creatorId, ONE_YEAR)}`,
+            )
+            .expect(200);
+
+          expect(res.body).toMatchObject({
+            status: 'DRAFT',
+          });
+        });
+      });
+
+      describe('When fetching it as another user', () => {
+        it('Then returns 403', async () => {
+          await request(app.getHttpServer())
+            .get(`/events/${draftEventId}`)
+            .set(
+              'Authorization',
+              `Bearer ${generateFakeToken('other-user-id', ONE_YEAR)}`,
+            )
+            .expect(403);
+        });
+      });
+    });
+
+    describe('Given a non-existent event', () => {
+      describe('When fetching it', () => {
+        it('Then returns 404', async () => {
+          await request(app.getHttpServer())
+            .get(`/events/non-existent-event-id`)
+            .expect(404);
+        });
+      });
+    });
+  });
+
   describe('GET /events/:eventId/ticket-types', () => {
     describe('Given no ticket types for the event', () => {
       describe('When fetching ticket types for the event', () => {
@@ -170,6 +292,47 @@ describe('EventController (e2e)', () => {
       });
     });
   });
+  describe('GET /events/:eventId/ticket-types (auth-restricted)', () => {
+    const draftEventId = 'draft-event-for-types';
+
+    beforeEach(async () => {
+      await eventService.createOrUpdate(
+        draftEventId,
+        creatorId,
+        'DRAFT',
+        new Date(),
+      );
+    });
+
+    describe('Given a non-existing event', () => {
+      it('Then returns 404', async () => {
+        await request(app.getHttpServer())
+          .get('/events/non-existent-event/ticket-types')
+          .expect(404);
+      });
+    });
+
+    describe('Given a DRAFT event without authentication', () => {
+      it('Then returns 403', async () => {
+        await request(app.getHttpServer())
+          .get(`/events/${draftEventId}/ticket-types`)
+          .expect(403);
+      });
+    });
+
+    describe('Given a DRAFT event with a non-creator user', () => {
+      it('Then returns 403', async () => {
+        await request(app.getHttpServer())
+          .get(`/events/${draftEventId}/ticket-types`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken('other-user', ONE_YEAR)}`,
+          )
+          .expect(403);
+      });
+    });
+  });
+
   //TODO: add tests for unauthorized access
   describe('POST /events/:eventId/ticket-types', () => {
     describe('Given valid ticket type data', () => {
@@ -291,6 +454,28 @@ describe('EventController (e2e)', () => {
     });
   });
 
+  describe('POST /events/:eventId/ticket-types (forbidden paths)', () => {
+    describe('Given a non-creator user', () => {
+      it('Then returns 403 Forbidden', async () => {
+        const dto = {
+          type: 'VIP',
+          description: 'VIP ticket',
+          price: 50,
+          quantity: 10,
+        };
+
+        await request(app.getHttpServer())
+          .post(`/events/${eventId}/ticket-types`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken('other-user', ONE_YEAR)}`,
+          )
+          .send(dto)
+          .expect(403);
+      });
+    });
+  });
+
   //TODO: add tests for unauthorized access
   describe('DELETE /events/:eventId/ticket-types', () => {
     describe('Given existing ticket types for the event', () => {
@@ -337,6 +522,18 @@ describe('EventController (e2e)', () => {
             )
             .expect(204);
         });
+      });
+    });
+
+    describe('Given a non-creator user', () => {
+      it('Then returns 403 Forbidden', async () => {
+        await request(app.getHttpServer())
+          .delete(`/events/${eventId}/ticket-types`)
+          .set(
+            'Authorization',
+            `Bearer ${generateFakeToken('other-user', ONE_YEAR)}`,
+          )
+          .expect(403);
       });
     });
   });
