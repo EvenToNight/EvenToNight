@@ -9,6 +9,7 @@ services:
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-admin}
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:-changeme-secret-cookie}
     healthcheck:
       test: [ 'CMD', 'rabbitmq-diagnostics', 'status' ]
       interval: 5s
