@@ -15,6 +15,17 @@ services:
         - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     depends_on: []
 
+  mongo-users:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mongo.users.1 == true
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+
 networks:
   eventonight-network:
     driver: overlay

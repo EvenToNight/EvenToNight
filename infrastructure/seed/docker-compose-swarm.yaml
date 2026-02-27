@@ -1,3 +1,10 @@
+services:
+  seed:
+    deploy:
+      placement:
+        constraints:
+          - node.role == manager
+
 networks:
   eventonight-network:
     external: true

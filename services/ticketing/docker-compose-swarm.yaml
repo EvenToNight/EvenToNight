@@ -16,6 +16,37 @@ services:
     depends_on: []
   mongo-ticketing:
     depends_on: []
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mongo.ticketing.1 == true
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+
+  mongo-ticketing-2:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mongo.ticketing.2 == true
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+
+  mongo-ticketing-3:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.mongo.ticketing.3 == true
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
 
 networks:
   eventonight-network:

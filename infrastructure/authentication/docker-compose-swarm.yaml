@@ -1,4 +1,15 @@
 services:
+  postgres-keycloak:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.postgres.keycloak.1 == true
+      restart_policy:
+        condition: on-failure
+        delay: 10s
+        max_attempts: 5
+
   keycloak:
     depends_on: []
     deploy:
