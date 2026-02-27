@@ -5,6 +5,7 @@ services:
       - TRAEFIK_PROVIDERS_SWARM_WATCH=true
       - TRAEFIK_PROVIDERS_SWARM_EXPOSEDBYDEFAULT=false
     deploy:
+      mode: global
       placement:
         constraints:
           - node.role == manager
