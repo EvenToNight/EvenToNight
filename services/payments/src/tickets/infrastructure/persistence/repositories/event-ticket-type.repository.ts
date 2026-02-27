@@ -11,6 +11,7 @@ import { CurrencyConverter } from '@libs/ts-common';
 import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { BaseMongoRepository } from '@libs/ts-common';
 import { EventTicketTypeNotFoundException } from 'src/tickets/domain/exceptions/event-ticket-type-not-found.exception';
+import { TicketTypeAlreadyExistsException } from 'src/tickets/domain/exceptions/ticket-type-already-exists.exception';
 
 @Injectable()
 export class EventTicketTypeRepositoryImpl
@@ -29,8 +30,18 @@ export class EventTicketTypeRepositoryImpl
 
     const document = EventTicketTypeMapper.toPersistence(ticketType);
     const created = new this.model(document);
-    const saved = await created.save({ session: session || undefined });
-    return EventTicketTypeMapper.toDomain(saved);
+    try {
+      const saved = await created.save({ session: session || undefined });
+      return EventTicketTypeMapper.toDomain(saved);
+    } catch (err) {
+      if (this.isDuplicateError(err)) {
+        throw new TicketTypeAlreadyExistsException(
+          ticketType.getType().toString(),
+          ticketType.getEventId().toString(),
+        );
+      }
+      throw err;
+    }
   }
 
   async findById(id: string): Promise<EventTicketType | null> {

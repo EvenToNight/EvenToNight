@@ -2,7 +2,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { TicketService } from '../services/ticket.service';
 import { OutboxService } from '@libs/nestjs-common';
-import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
+import {
+  TRANSACTION_MANAGER,
+  Transactional,
+  type TransactionManager,
+} from '@libs/ts-common';
 import { TicketTypeDeletedEvent } from 'src/tickets/domain/events/ticket-type-deleted.event';
 
 @Injectable()
@@ -15,19 +19,18 @@ export class DeleteEventTicketTypesHandler {
     private readonly transactionManager: TransactionManager,
   ) {}
 
+  @Transactional()
   async handle(eventId: string): Promise<void> {
-    return this.transactionManager.executeInTransaction(async () => {
-      const deletedEventTicketTypesIds =
-        await this.eventTicketTypeService.deleteEventTicketTypes(eventId);
-      for (const id of deletedEventTicketTypesIds) {
-        await this.outboxService.addEvent(
-          new TicketTypeDeletedEvent({
-            ticketTypeId: id,
-          }),
+    const deletedEventTicketTypesIds =
+      await this.eventTicketTypeService.deleteEventTicketTypes(eventId);
+    await Promise.all(
+      deletedEventTicketTypesIds.map((id) =>
+        this.outboxService.addEvent(
+          new TicketTypeDeletedEvent({ ticketTypeId: id }),
           'ticket-type.deleted',
-        );
-      }
-      await this.ticketService.revokeTickets(deletedEventTicketTypesIds);
-    });
+        ),
+      ),
+    );
+    await this.ticketService.revokeTickets(deletedEventTicketTypesIds);
   }
 }

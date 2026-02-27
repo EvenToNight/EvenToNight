@@ -1,17 +1,14 @@
-import {
-  BadRequestException,
-  Inject,
-  Injectable,
-  Logger,
-  NotFoundException,
-} from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Ticket } from '../../domain/aggregates/ticket.aggregate';
 import { UserId } from '../../domain/value-objects/user-id.vo';
 import {
   CreateCheckoutSessionDto,
   CheckoutSessionResponseDto,
 } from '../dto/create-checkout-session.dto';
+import { Order } from '../../domain/aggregates/order.aggregate';
 import { EventTicketTypeNotFoundException } from '../../domain/exceptions/event-ticket-type-not-found.exception';
+import { EventNotFoundException } from '../../domain/exceptions/event-not-found.exception';
+import { EventNotPublishedException } from '../../domain/exceptions/event-not-published.exception';
 import { EventTicketType } from 'src/tickets/domain/aggregates/event-ticket-type.aggregate';
 import {
   type PaymentService,
@@ -22,7 +19,6 @@ import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
 import { PAYMENT_SERVICE_BASE_URL } from '../constants';
-import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { EventService } from '../services/event.service';
 import { CheckoutSessionExpiredHandler } from './checkout-session-expired.handler';
 import { UserService } from '../services/user.service';
@@ -70,9 +66,9 @@ export class CreateCheckoutSessionHandler {
   }
 
   @Transactional()
-  private async reserveTickets(
+  private async reserveTicketsAndCreateOrder(
     dto: CreateCheckoutSessionDto,
-  ): Promise<LineItemsMap> {
+  ): Promise<{ lineItemsMap: LineItemsMap; order: Order }> {
     const tickets: Ticket[] = [];
     const ticketTypeMap = new Map<string, EventTicketType>(); // cache for ticket types
 
@@ -86,21 +82,19 @@ export class CreateCheckoutSessionHandler {
       ticketTypeMap.get(item.ticketTypeId)!.reserveTicket();
     }
 
-    for (const item of ticketTypeMap.values()) {
-      const res = await this.eventService.findById(
-        item.getEventId().toString(),
-      );
+    const events = await Promise.all(
+      Array.from(ticketTypeMap.values()).map((item) =>
+        this.eventService.findById(item.getEventId().toString()),
+      ),
+    );
+    for (let i = 0; i < events.length; i++) {
+      const item = Array.from(ticketTypeMap.values())[i];
+      const res = events[i];
       if (!res) {
-        throw new NotFoundException(
-          `Event with id ${item.getEventId().toString()} not found`,
-        );
+        throw new EventNotFoundException(item.getEventId().toString());
       }
       if (res.getStatus().toString() !== 'PUBLISHED') {
-        throw new BadRequestException(
-          `Cannot reserve tickets for event with id ${item
-            .getEventId()
-            .toString()} because it is not published`,
-        );
+        throw new EventNotPublishedException(item.getEventId().toString());
       }
     }
 
@@ -117,20 +111,30 @@ export class CreateCheckoutSessionHandler {
       tickets.push(ticket);
     }
 
-    for (const ticketType of ticketTypeMap.values()) {
-      await this.ticketTypeService.update(ticketType);
-    }
+    await Promise.all(
+      Array.from(ticketTypeMap.values()).map((ticketType) =>
+        this.ticketTypeService.update(ticketType),
+      ),
+    );
 
-    const savedTickets: Ticket[] = [];
-    for (const ticket of tickets) {
-      const saved = await this.ticketService.save(ticket);
-      savedTickets.push(saved);
-    }
+    const savedTickets = await Promise.all(
+      tickets.map((ticket) => this.ticketService.save(ticket)),
+    );
 
-    return this.groupTicketsByType(
+    const lineItemsMap = this.groupTicketsByType(
       savedTickets,
       Array.from(ticketTypeMap.values()),
     );
+
+    const ticketIds = savedTickets.map((t) => t.getId().toString());
+    const eventId = Array.from(ticketTypeMap.values())[0].getEventId();
+    const order = await this.orderService.createOrder(
+      UserId.fromString(dto.userId),
+      eventId,
+      ticketIds,
+    );
+
+    return { lineItemsMap, order };
   }
 
   private groupTicketsByType(
@@ -165,11 +169,12 @@ export class CreateCheckoutSessionHandler {
     dto: CreateCheckoutSessionDto,
   ): Promise<CheckoutSessionResponseDto> {
     // ========================================
-    // PHASE 1: Reserve inventory for all tickets (TX1)
+    // PHASE 1: Reserve inventory and create order (TX1)
     // ========================================
-    const reservedTickets = await this.reserveTickets(dto);
+    const { lineItemsMap, order } =
+      await this.reserveTicketsAndCreateOrder(dto);
 
-    const lineItems = Array.from(reservedTickets.values()).map((lineItem) => {
+    const lineItems = Array.from(lineItemsMap.values()).map((lineItem) => {
       const ticketType = lineItem.ticketType;
       return {
         productName: ticketType.getType().toString(),
@@ -179,48 +184,45 @@ export class CreateCheckoutSessionHandler {
       } as CheckoutLineItem;
     });
 
-    const ticketIds = Array.from(reservedTickets.values()).flatMap((lineItem) =>
+    const ticketIds = Array.from(lineItemsMap.values()).flatMap((lineItem) =>
       lineItem.tickets.map((t) => t.getId().toString()),
     );
-    const ticketTypeIds = Array.from(reservedTickets.values()).flatMap(
+    const ticketTypeIds = Array.from(lineItemsMap.values()).flatMap(
       (lineItem) =>
         new Set(lineItem.tickets.map((t) => t.getTicketTypeId().toString())),
     );
 
-    const eventId = Array.from(reservedTickets.values())[0]
+    const eventId = Array.from(lineItemsMap.values())[0]
       .ticketType.getEventId()
       .toString();
 
-    const event = await this.eventService.findById(eventId);
-    const userLanguage = await this.userService.getUserLanguage(dto.userId);
-    const order = await this.orderService.createOrder(
-      UserId.fromString(dto.userId),
-      EventId.fromString(eventId),
-      ticketIds,
-    );
-
-    this.logger.log('CREATING CHECKOUT SESSION');
-    if (this.isDev || this.isTest) {
-      this.logger.log('DEV/TEST ENVIRONMENT - MOCK CHECKOUT SESSION');
-      //TODO evaluate to uniform the redirectUrl, normally a GET has to be performed not a POST
-      // const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/webhooks/stripe/`;
-      if (this.isTest) {
-        await this.checkoutCompletedHandler.handle(
-          'cs_test_dev_session',
-          order.getId().toString(),
-          'pi_test_dev_payment_intent',
-        );
-      }
-      this.logger.log('Mock checkout session created');
-      return {
-        sessionId: 'cs_test_dev_session',
-        redirectUrl: dto.successUrl,
-        expiresAt: Date.now() + 3600,
-        orderId: order.getId().toString(),
-      };
-    }
-
     try {
+      const [event, userLanguage] = await Promise.all([
+        this.eventService.findById(eventId),
+        this.userService.getUserLanguage(dto.userId),
+      ]);
+
+      this.logger.log('CREATING CHECKOUT SESSION');
+      if (this.isDev || this.isTest) {
+        this.logger.log('DEV/TEST ENVIRONMENT - MOCK CHECKOUT SESSION');
+        //TODO evaluate to uniform the redirectUrl, normally a GET has to be performed not a POST
+        // const tempWebHook = `http://localhost:${process.env.PORT || 9050}/dev/webhooks/stripe/`;
+        if (this.isTest) {
+          await this.checkoutCompletedHandler.handle(
+            'cs_test_dev_session',
+            order.getId().toString(),
+            'pi_test_dev_payment_intent',
+          );
+        }
+        this.logger.log('Mock checkout session created');
+        return {
+          sessionId: 'cs_test_dev_session',
+          redirectUrl: dto.successUrl,
+          expiresAt: Date.now() + 3600,
+          orderId: order.getId().toString(),
+        };
+      }
+
       const session = await this.paymentService.createCheckoutSessionWithItems({
         userId: dto.userId,
         orderId: order.getId().toString(),

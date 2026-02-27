@@ -10,7 +10,7 @@ import {
 } from '@nestjs/common';
 import type { Response } from 'express';
 import { TicketService } from 'src/tickets/application/services/ticket.service';
-import { PaginatedQueryDto } from '@libs/nestjs-common';
+import { GetUserTicketsQueryDto } from 'src/tickets/application/dto/get-user-tickets-query.dto';
 import { UserEventsQueryDto } from 'src/tickets/application/dto/user-events-query.dto';
 import { Pagination } from '@libs/ts-common';
 import { Ticket } from 'src/tickets/domain/aggregates/ticket.aggregate';
@@ -36,13 +36,12 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   async getUserTickets(
     @Param('userId') userId: string,
-    @Query() query: PaginatedQueryDto,
-    @Query('eventId') eventId: string | undefined,
+    @Query() query: GetUserTicketsQueryDto,
   ): Promise<PaginatedResponseDto<Ticket>> {
-    if (eventId) {
+    if (query.eventId) {
       const result = await this.ticketService.findByUserIdAndEventId(
         userId,
-        eventId,
+        query.eventId,
       );
       const pagination = Pagination.parse(query.limit, query.offset);
       return Pagination.createResult(

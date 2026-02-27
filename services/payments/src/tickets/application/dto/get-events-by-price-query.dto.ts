@@ -3,11 +3,13 @@ import { Type } from 'class-transformer';
 import { PaginatedQueryDto } from '@libs/nestjs-common';
 
 export class GetEventsByPriceQueryDto extends PaginatedQueryDto {
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)
   minPrice?: number;
 
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   @Min(0)

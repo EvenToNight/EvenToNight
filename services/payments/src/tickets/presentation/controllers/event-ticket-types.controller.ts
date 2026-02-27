@@ -22,6 +22,8 @@ import { OptionalJwtAuthGuard } from '@libs/nestjs-common';
 import { CurrentUser } from '@libs/nestjs-common';
 import { EventService } from 'src/tickets/application/services/event.service';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
+import { EventTicketType } from '../../domain/aggregates/event-ticket-type.aggregate';
+import { Event } from '../../domain/aggregates/event.aggregate';
 
 @Controller('ticket-types')
 export class EventTicketTypesController {
@@ -53,20 +55,11 @@ export class EventTicketTypesController {
     @Param('ticketTypeId') ticketTypeId: string,
     @CurrentUser('userId') userId?: string,
   ): Promise<EventTicketTypeResponseDto> {
-    const ticketType = await this.eventTicketTypeService.findById(ticketTypeId);
-    if (!ticketType) {
-      throw new NotFoundException(
-        `EventTicketType with id ${ticketTypeId} not found`,
-      );
-    }
-    const event = await this.eventService.findById(
+    const ticketType = await this.findTicketTypeOrThrow(ticketTypeId);
+    const event = await this.findEventOrThrow(
       ticketType.getEventId().toString(),
     );
-    if (!event) {
-      throw new NotFoundException(
-        `Event with id ${ticketType.getEventId().toString()} not found`,
-      );
-    }
+
     if (
       (!userId && event.getStatus() !== EventStatus.PUBLISHED) ||
       (userId &&
@@ -93,20 +86,10 @@ export class EventTicketTypesController {
     @Body(ValidationPipe) dto: UpdateEventTicketTypeDto,
     @CurrentUser('userId') userId: string,
   ): Promise<EventTicketTypeResponseDto> {
-    const ticketType = await this.eventTicketTypeService.findById(ticketTypeId);
-    if (!ticketType) {
-      throw new NotFoundException(
-        `EventTicketType with id ${ticketTypeId} not found`,
-      );
-    }
-    const event = await this.eventService.findById(
+    const ticketType = await this.findTicketTypeOrThrow(ticketTypeId);
+    const event = await this.findEventOrThrow(
       ticketType.getEventId().toString(),
     );
-    if (!event) {
-      throw new NotFoundException(
-        `Event with id ${ticketType.getEventId().toString()} not found`,
-      );
-    }
 
     if (event.getCreatorId().toString() !== userId) {
       throw new ForbiddenException(
@@ -132,26 +115,37 @@ export class EventTicketTypesController {
     @Param('ticketTypeId') ticketTypeId: string,
     @CurrentUser('userId') userId: string,
   ): Promise<void> {
-    const ticketType = await this.eventTicketTypeService.findById(ticketTypeId);
-    if (!ticketType) {
-      throw new NotFoundException(
-        `EventTicketType with id ${ticketTypeId} not found`,
-      );
-    }
-    const event = await this.eventService.findById(
+    const ticketType = await this.findTicketTypeOrThrow(ticketTypeId);
+    const event = await this.findEventOrThrow(
       ticketType.getEventId().toString(),
     );
-    if (!event) {
-      throw new NotFoundException(
-        `Event with id ${ticketType.getEventId().toString()} not found`,
-      );
-    }
 
     if (event.getCreatorId().toString() !== userId) {
       throw new ForbiddenException(
         'User ID in token does not match event creator ID',
       );
     }
+
     return this.deleteHandler.handle(ticketTypeId);
+  }
+
+  private async findTicketTypeOrThrow(
+    ticketTypeId: string,
+  ): Promise<EventTicketType> {
+    const ticketType = await this.eventTicketTypeService.findById(ticketTypeId);
+    if (!ticketType) {
+      throw new NotFoundException(
+        `EventTicketType with id ${ticketTypeId} not found`,
+      );
+    }
+    return ticketType;
+  }
+
+  private async findEventOrThrow(eventId: string): Promise<Event> {
+    const event = await this.eventService.findById(eventId);
+    if (!event) {
+      throw new NotFoundException(`Event with id ${eventId} not found`);
+    }
+    return event;
   }
 }

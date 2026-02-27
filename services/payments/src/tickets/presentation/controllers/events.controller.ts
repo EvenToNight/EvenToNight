@@ -10,7 +10,6 @@ import {
   Delete,
   UseGuards,
   ForbiddenException,
-  NotFoundException,
   Query,
 } from '@nestjs/common';
 import { CreateEventTicketTypeHandler } from '../../application/handlers/create-event-ticket-type.handler';
@@ -28,6 +27,7 @@ import { EventId } from 'src/tickets/domain/value-objects/event-id.vo';
 import { EventStatus } from 'src/tickets/domain/value-objects/event-status.vo';
 import { GetEventsByPriceQueryDto } from '../../application/dto/get-events-by-price-query.dto';
 import { PaginatedResult } from '@libs/ts-common';
+import { EventNotFoundException } from '../../domain/exceptions/event-not-found.exception';
 
 @Controller('events')
 export class EventsController {
@@ -53,6 +53,40 @@ export class EventsController {
   }
 
   /**
+   * GET /events/:eventId
+   * Returns the event details for the specified event.
+   * Unauthenticated users can only access published events.
+   * Authenticated users can access their own events (any status) or published events.
+   */
+  @Get(':eventId')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(OptionalJwtAuthGuard)
+  async getEvent(
+    @Param('eventId') eventId: string,
+    @CurrentUser('userId') userId?: string,
+  ) {
+    const event = await this.eventService.findById(eventId);
+    if (!event) {
+      throw new EventNotFoundException(eventId);
+    }
+    if (
+      (!userId && event.getStatus() !== EventStatus.PUBLISHED) ||
+      (userId &&
+        event.getCreatorId().toString() !== userId &&
+        event.getStatus() !== EventStatus.PUBLISHED)
+    ) {
+      throw new ForbiddenException('Current user cannot access this event');
+    }
+    return {
+      id: event.getId().toString(),
+      creatorId: event.getCreatorId().toString(),
+      status: event.getStatus().toString(),
+      date: event.getDate(),
+      title: event.getTitle(),
+    };
+  }
+
+  /**
    * GET /events/:eventId/ticket-types
    * Returns the ticket types for the specified event.
    */
@@ -65,7 +99,7 @@ export class EventsController {
   ): Promise<EventTicketTypeResponseDto[]> {
     const event = await this.eventService.findById(eventId);
     if (!event) {
-      throw new NotFoundException(`Event with id ${eventId} not found`);
+      throw new EventNotFoundException(eventId);
     }
     if (
       (!userId && event.getStatus() !== EventStatus.PUBLISHED) ||

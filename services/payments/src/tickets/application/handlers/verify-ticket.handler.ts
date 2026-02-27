@@ -1,6 +1,10 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { TicketService } from '../services/ticket.service';
-import { TRANSACTION_MANAGER, type TransactionManager } from '@libs/ts-common';
+import {
+  TRANSACTION_MANAGER,
+  Transactional,
+  type TransactionManager,
+} from '@libs/ts-common';
 
 @Injectable()
 export class VerifyTicketHandler {
@@ -10,16 +14,13 @@ export class VerifyTicketHandler {
     private readonly transactionManager: TransactionManager,
   ) {}
 
+  @Transactional()
   async handle(ticketId: string): Promise<boolean> {
-    return await this.transactionManager.executeInTransaction(async () => {
-      const ticket = await this.ticketService.findById(ticketId);
-      if (!ticket) throw new Error('Ticket not found');
-
-      if (ticket.isUsed()) return false;
-
-      ticket.use();
-      await this.ticketService.update(ticket);
-      return true;
-    });
+    const ticket = await this.ticketService.findById(ticketId);
+    if (!ticket) throw new Error('Ticket not found');
+    if (ticket.isUsed()) return false;
+    ticket.use();
+    await this.ticketService.update(ticket);
+    return true;
   }
 }

@@ -19,7 +19,7 @@ import {
   CheckoutSessionResponseDto,
 } from '../../application/dto/create-checkout-session.dto';
 import type { PaymentService } from '../../domain/services/payment.service.interface';
-import { PAYMENT_SERVICE } from '../..//domain/services/payment.service.interface';
+import { PAYMENT_SERVICE } from '../../domain/services/payment.service.interface';
 import type { Response } from 'express';
 import { CheckoutSessionExpiredHandler } from 'src/tickets/application/handlers/checkout-session-expired.handler';
 import { JwtAuthGuard, SameUserGuard } from '@libs/nestjs-common';
