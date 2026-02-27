@@ -2,7 +2,7 @@
 export const PRICE_FILTERS = ['free'] as const
 </script>
 <script setup lang="ts">
-import { MAX_TICKET_PRICE } from '@/api/types/payments'
+import { MAX_TICKET_PRICE } from '@/api/types/ticketing'
 import { useTranslation } from '@/composables/useTranslation'
 import { ref, computed, watch } from 'vue'
 export type PriceFilter = (typeof PRICE_FILTERS)[number]

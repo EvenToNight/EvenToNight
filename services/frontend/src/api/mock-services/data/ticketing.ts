@@ -1,4 +1,4 @@
-import type { EventTicketType, TicketType } from '@/api/types/payments'
+import type { EventTicketType, TicketType } from '@/api/types/ticketing'
 
 export const DEFAULT_TICKET_TYPE: Omit<EventTicketType, 'eventId' | 'type'> = {
   id: '1',

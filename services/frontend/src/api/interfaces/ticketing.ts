@@ -4,7 +4,7 @@ import type {
   EventTicketTypeData,
   TicketType,
   UpdateEventTicketTypeData,
-} from '../types/payments'
+} from '../types/ticketing'
 import type { PaginatedRequest, PaginatedResponse, SortOrder } from './commons'
 
 export type TicketRequestEventStatus = Omit<EventStatus, 'DRAFT'>
@@ -28,7 +28,7 @@ export interface CreateCheckoutSessionRequest {
   cancelUrl?: string
 }
 
-export interface PaymentsAPI {
+export interface TicketingAPI {
   getTicketTypes(): Promise<TicketType[]>
   createEventTicketType(eventId: EventID, request: EventTicketTypeData): Promise<EventTicketType>
   updateEventTicketType(

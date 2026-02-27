@@ -3,7 +3,7 @@ import type { Event } from '../types/events'
 import { api } from '@/api'
 import type { UserID } from '../types/users'
 import { emptyPaginatedResponse } from './requestUtils'
-import type { TicketRequestEventStatus } from '../interfaces/payments'
+import type { TicketRequestEventStatus } from '../interfaces/ticketing'
 
 export const loadUserEventParticipations = async (
   userId: UserID,
@@ -15,7 +15,7 @@ export const loadUserEventParticipations = async (
 ): Promise<PaginatedResponse<Event>> => {
   const { eventStatus = 'PUBLISHED', sortOrder = 'asc' } = options || {}
 
-  const response = await api.payments.findEventsWithUserTickets(userId, {
+  const response = await api.ticketing.findEventsWithUserTickets(userId, {
     status: eventStatus,
     order: sortOrder,
     pagination,

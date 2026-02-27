@@ -10,7 +10,7 @@ import EventReviewsPreview from '@/components/eventDetails/EventReviewsPreview.v
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useNavigation } from '@/router/utils'
-import type { EventTicketType } from '@/api/types/payments'
+import type { EventTicketType } from '@/api/types/ticketing'
 import { NOT_FOUND_ROUTE_NAME } from '@/router'
 import { createLogger } from '@/utils/logger'
 import { useRoute } from 'vue-router'
@@ -28,7 +28,7 @@ const loadEvent = async () => {
   try {
     event.value = await api.events.getEventById(eventId.value)
     if (event.value && event.value.status === 'PUBLISHED') {
-      eventTickets.value = await api.payments.getEventTicketsType(eventId.value)
+      eventTickets.value = await api.ticketing.getEventTicketsType(eventId.value)
     }
   } catch (error) {
     logger.error('Failed to load event:', error)

@@ -1,7 +1,7 @@
-import type { EventID } from '../types/events'
+import type { EventID } from './events'
 import { api } from '@/api'
 export const MAX_TICKET_PRICE = 1000
-export const TICKET_TYPE_VALUES: string[] = await api.payments.getTicketTypes()
+export const TICKET_TYPE_VALUES: string[] = await api.ticketing.getTicketTypes()
 export type TicketType = (typeof TICKET_TYPE_VALUES)[number]
 export type EventTicketTypeID = string
 

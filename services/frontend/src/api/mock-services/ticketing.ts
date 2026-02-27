@@ -1,17 +1,17 @@
-import type { EventTicketType, EventTicketTypeData, TicketType } from '../types/payments'
+import type { EventTicketType, EventTicketTypeData, TicketType } from '../types/ticketing'
 import type { EventID } from '../types/events'
 import type {
   CreateCheckoutSessionRequest,
   CreateCheckoutSessionResponse,
-  PaymentsAPI,
+  TicketingAPI,
   TicketRequestEventStatus,
-} from '../interfaces/payments'
+} from '../interfaces/ticketing'
 import type { PaginatedRequest, PaginatedResponse, SortOrder } from '../interfaces/commons'
-import { createMockEventTicketType, mockEventTicketTypes } from './data/payments'
+import { createMockEventTicketType, mockEventTicketTypes } from './data/ticketing'
 import { getPaginatedItems } from '../utils/requestUtils'
 import { mockEvents } from './data/events'
 
-export const mockPaymentsApi: PaymentsAPI = {
+export const mockTicketingApi: TicketingAPI = {
   async getTicketTypes(): Promise<TicketType[]> {
     return ['STANDARD', 'VIP', 'A', 'B', 'C', 'D', 'E', 'F', 'G']
   },
