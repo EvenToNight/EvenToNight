@@ -10,6 +10,7 @@ module.exports = {
     '!<rootDir>/src/**/*.module.ts',
     '!<rootDir>/src/main.ts',
     '!<rootDir>/src/**/*.d.ts',
+    '!<rootDir>/src/tickets/application/constants.ts',
   ],
   coverageDirectory: '<rootDir>/coverage',
   testTimeout: 30000,

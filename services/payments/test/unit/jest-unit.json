@@ -5,7 +5,7 @@
   "testEnvironment": "node",
   "testRegex": ".*\\.spec\\.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.ts$": "ts-jest"
   },
   "collectCoverageFrom": [
     "<rootDir>/src/**/*.ts",
@@ -13,7 +13,8 @@
     "!<rootDir>/src/main.ts",
     "!<rootDir>/src/**/*.d.ts",
     "!<rootDir>/src/**/*.controller.ts",
-    "!<rootDir>/src/**/*.service.ts"
+    "!<rootDir>/src/**/*.service.ts",
+    "!<rootDir>/src/tickets/application/constants.ts"
   ],
   "coveragePathIgnorePatterns": [
     "/node_modules/",

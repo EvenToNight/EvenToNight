@@ -5,7 +5,7 @@
   "testEnvironment": "node",
   "testRegex": ".integration.spec.ts$",
   "transform": {
-    "^.+\\.(t|j)s$": "ts-jest"
+    "^.+\\.ts$": "ts-jest"
   },
   "moduleNameMapper": {
     "^reflect-metadata$": "<rootDir>/node_modules/reflect-metadata",
@@ -22,7 +22,8 @@
     "<rootDir>/src/**/*.ts",
     "!<rootDir>/src/**/*.module.ts",
     "!<rootDir>/src/main.ts",
-    "!<rootDir>/src/**/*.d.ts"
+    "!<rootDir>/src/**/*.d.ts",
+    "!<rootDir>/src/tickets/application/constants.ts"
   ],
   "coverageDirectory": "<rootDir>/coverage",
   "maxWorkers": 1,
