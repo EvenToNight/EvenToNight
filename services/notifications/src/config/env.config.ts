@@ -30,11 +30,11 @@ if (
 const rabbitMQHost = process.env.RABBITMQ_HOST || "localhost";
 const rabbitMQUser = process.env.RABBITMQ_USER || "guest";
 const rabbitMQPass = process.env.RABBITMQ_PASS || "guest";
-
 export const config = {
   port: process.env.PORT!,
   mongodbUri: `mongodb://${process.env.MONGO_HOST || "localhost"}:27017/eventonight-notifications`,
   jwtAuthPublicKeyUrl: process.env.AUTH_PUBLIC_KEY_URL || "",
+  redisUrl: process.env.REDIS_URL || "redis://localhost:6379",
   rabbitmq: {
     host: rabbitMQHost,
     user: rabbitMQUser,

@@ -3,6 +3,8 @@ import { RabbitMQ } from "./config/rabbitmq.config";
 
 import { createServer } from "http";
 import { Server } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { createClient } from "redis";
 import { createApp } from "./app";
 import { config } from "./config/env.config";
 
@@ -94,6 +96,10 @@ async function bootstrap() {
     );
     const notificationRoutes = createNotificationRoutes(notificationController);
 
+    const pubClient = createClient({ url: config.redisUrl });
+    const subClient = pubClient.duplicate();
+    await Promise.all([pubClient.connect(), subClient.connect()]);
+
     const app = createApp();
     const httpServer = createServer(app);
 
@@ -103,6 +109,7 @@ async function bootstrap() {
         credentials: true,
       },
     });
+    io.adapter(createAdapter(pubClient, subClient));
 
     const socketGateway = new SocketIOGateway(io);
 
