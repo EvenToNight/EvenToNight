@@ -23,10 +23,10 @@ if (
 }
 
 if (
-  !process.env.PAYMENTS_SERVICE_PORT &&
-  envFromRoot['PAYMENTS_SERVICE_PORT']
+  !process.env.TICKETING_SERVICE_PORT &&
+  envFromRoot['TICKETING_SERVICE_PORT']
 ) {
-  process.env.PAYMENTS_SERVICE_PORT = envFromRoot['PAYMENTS_SERVICE_PORT'];
+  process.env.TICKETING_SERVICE_PORT = envFromRoot['TICKETING_SERVICE_PORT'];
 }
 
 if (
@@ -88,7 +88,7 @@ async function bootstrap() {
   const rabbitmqPass = process.env.RABBITMQ_PASS || 'guest';
   const rabbitmqUrl = `amqp://${rabbitmqUser}:${rabbitmqPass}@${rabbitmqHost}:5672`;
 
-  const service_queue = 'payments_queue';
+  const service_queue = 'ticketing_queue';
 
   await waitForRabbitMQ(() =>
     RabbitMqService.setup({
@@ -126,14 +126,14 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
 
-  const port = process.env.PAYMENTS_SERVICE_PORT ?? 9050;
+  const port = process.env.TICKETING_SERVICE_PORT ?? 9050;
   await app.listen(port);
-  console.log(`Payments service running on port ${port}`);
+  console.log(`Ticketing service running on port ${port}`);
 }
 bootstrap()
   .then(() => {
-    console.log('Payments service is running...');
+    console.log('Ticketing service is running...');
   })
   .catch((err) => {
-    console.error('Error starting Payments service:', err);
+    console.error('Error starting Ticketing service:', err);
   });

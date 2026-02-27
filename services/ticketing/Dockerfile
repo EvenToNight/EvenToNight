@@ -27,14 +27,14 @@ WORKDIR /home/app
 COPY --from=ts-common-builder /home/app/libs/ts-common ./libs/ts-common
 COPY --from=nestjs-common-builder /home/app/libs/nestjs-common ./libs/nestjs-common
 
-WORKDIR /home/app/services/payments
+WORKDIR /home/app/services/ticketing
 
-COPY ./services/payments/package*.json ./
+COPY ./services/ticketing/package*.json ./
 
 RUN npm ci
 
-COPY ./services/payments/tsconfig*.json ./services/payments/nest-cli.json ./
-COPY ./services/payments/src ./src
+COPY ./services/ticketing/tsconfig*.json ./services/ticketing/nest-cli.json ./
+COPY ./services/ticketing/src ./src
 RUN npm run build
 RUN npm prune --omit=dev
 
@@ -49,8 +49,8 @@ WORKDIR /home/app
 
 RUN apt-get update && apt-get install -y curl
 
-COPY --from=builder /home/app/services/payments/node_modules ./node_modules
-COPY --from=builder /home/app/services/payments/dist ./dist
+COPY --from=builder /home/app/services/ticketing/node_modules ./node_modules
+COPY --from=builder /home/app/services/ticketing/dist ./dist
 
 USER node
 

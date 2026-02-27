@@ -1,7 +1,7 @@
 services:
-  payments:
+  ticketing:
     deploy:
-      replicas: ${PAYMENTS_SERVICE_REPLICAS:-1}
+      replicas: ${TICKETING_SERVICE_REPLICAS:-1}
       update_config:
         parallelism: 1
         delay: 10s
@@ -9,17 +9,17 @@ services:
         failure_action: rollback
       labels:
         - "traefik.enable=true"
-        - "traefik.http.routers.payments.rule=Host(`payments.${HOST}`) && !PathPrefix(`/internal`)"
-        - "traefik.http.routers.payments.entrypoints=web"
-        - "traefik.http.services.payments.loadbalancer.server.port=${PAYMENTS_SERVICE_PORT}"
+        - "traefik.http.routers.ticketing.rule=Host(`ticketing.${HOST}`) && !PathPrefix(`/internal`)"
+        - "traefik.http.routers.ticketing.entrypoints=web"
+        - "traefik.http.services.ticketing.loadbalancer.server.port=${TICKETING_SERVICE_PORT}"
         - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     depends_on: []
-  mongo-payments:
+  mongo-ticketing:
     depends_on: []
 
 networks:
   eventonight-network:
     driver: overlay
     attachable: true
-  payments-network:
+  ticketing-network:
     driver: overlay

@@ -183,13 +183,13 @@ if [[ "$FIRST_DEPLOY" == true ]]; then
     EVENT_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-events" --format "{{.Names}}" | head -1)
     INTERACTION_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-interactions" --format "{{.Names}}" | head -1)
     CHAT_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-chat" --format "{{.Names}}" | head -1)
-    PAYMENT_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-payments" --format "{{.Names}}" | head -1)
+    TICKETING_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-ticketing" --format "{{.Names}}" | head -1)
     NOTIFICATION_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-notifications" --format "{{.Names}}" | head -1)
     ./scripts/composeAll.sh --project-name "$STACK_NAME" -p ./infrastructure/seed --swarm run --rm \
         -e "EVENT_MONGO_URI=${EVENT_CONTAINER}" \
         -e "INTERACTION_MONGO_URI=${INTERACTION_CONTAINER}" \
         -e "CHAT_MONGO_URI=${CHAT_CONTAINER}" \
-        -e "PAYMENT_MONGO_URI=${PAYMENT_CONTAINER}" \
+        -e "PAYMENT_MONGO_URI=${TICKETING_CONTAINER}" \
         -e "NOTIFICATION_MONGO_URI=${NOTIFICATION_CONTAINER}" \
         seed
     echo "💬 Database initialized."

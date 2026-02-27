@@ -18,7 +18,7 @@ import { CheckoutLineItem } from '../../domain/types/payment-service.types';
 import { EventTicketTypeService } from '../services/event-ticket-type.service';
 import { TicketService } from '../services/ticket.service';
 import { OrderService } from '../services/order.service';
-import { PAYMENT_SERVICE_BASE_URL } from '../constants';
+import { TICKETING_SERVICE_BASE_URL } from '../constants';
 import { EventService } from '../services/event.service';
 import { CheckoutSessionExpiredHandler } from './checkout-session-expired.handler';
 import { UserService } from '../services/user.service';
@@ -233,7 +233,7 @@ export class CreateCheckoutSessionHandler {
         eventTitle: event?.getTitle(),
         language: userLanguage,
         successUrl: dto.successUrl,
-        cancelUrl: `${PAYMENT_SERVICE_BASE_URL}/checkout-sessions/{CHECKOUT_SESSION_ID}/cancel?redirect_to=${encodeURIComponent(dto.cancelUrl)}`,
+        cancelUrl: `${TICKETING_SERVICE_BASE_URL}/checkout-sessions/{CHECKOUT_SESSION_ID}/cancel?redirect_to=${encodeURIComponent(dto.cancelUrl)}`,
       });
 
       return {

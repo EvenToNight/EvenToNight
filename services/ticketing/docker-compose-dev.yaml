@@ -1,0 +1,20 @@
+services:
+  ticketing:
+    build:
+      context: .
+      dockerfile: ./services/ticketing/Dockerfile
+    ports:
+      - "${TICKETING_SERVICE_PORT}:${TICKETING_SERVICE_PORT}"
+
+  mongo-ticketing-express:
+    image: mongo-express:1.0.2-20-alpine3.19
+    restart: unless-stopped
+    networks:
+      - ticketing-network
+    ports:
+      - '${MONGO_EXPRESS_TICKETING_PORT}:8081'
+    environment:
+      ME_CONFIG_MONGODB_URL: 'mongodb://mongo-ticketing:27017/?replicaSet=rs0&directConnection=true'
+    depends_on:
+      mongo-ticketing:
+        condition: service_healthy

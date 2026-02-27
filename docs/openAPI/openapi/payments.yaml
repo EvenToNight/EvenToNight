@@ -1,12 +1,12 @@
 openapi: 3.0.1
 info:
-  title: EvenToNight - Payments API
+  title: EvenToNight - Ticketing API
   version: 1.0.0
   description: API for managing event ticket types, pricing, and availability
 servers:
   - url: http://localhost:9050
     description: Local server
-  - url: https://payments.eventonight.site
+  - url: https://ticketing.eventonight.site
     description: Production server
 paths:
 
@@ -34,7 +34,7 @@ paths:
     post:
       summary: Create an event (Internal)
       description: |
-        Creates an event in the payments service.
+        Creates an event in the ticketing service.
 
         **🔒 INTERNAL ENDPOINT**: This endpoint is only accessible to internal microservices.
         It is blocked from external access by Traefik.

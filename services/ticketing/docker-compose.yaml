@@ -1,17 +1,17 @@
 services:
-  payments:
-    image: ghcr.io/eventonight/eventonight/payments:latest
+  ticketing:
+    image: ghcr.io/eventonight/eventonight/ticketing:latest
     networks:
       - eventonight-network
-      - payments-network
+      - ticketing-network
     environment:
       - HOST=${HOST}
-      - PORT=${PAYMENTS_SERVICE_PORT}
+      - PORT=${TICKETING_SERVICE_PORT}
       - TEST_DEPLOYMENT=${TEST_DEPLOYMENT:-false}
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
-      - MONGO_HOST=mongo-payments
+      - MONGO_HOST=mongo-ticketing
       - STRIPE_SECRET_KEY=${STRIPE_SECRET_KEY:?}
       - STRIPE_WEBHOOK_SECRET=${STRIPE_WEBHOOK_SECRET:?}
       - REPLICA_SET_NAME=rs0
@@ -19,36 +19,36 @@ services:
       - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.payments.rule=Host(`payments.${HOST}`) && !PathPrefix(`/internal`)"
-      - "traefik.http.routers.payments.entrypoints=web"
-      - "traefik.http.services.payments.loadbalancer.server.port=${PAYMENTS_SERVICE_PORT}"
+      - "traefik.http.routers.ticketing.rule=Host(`ticketing.${HOST}`) && !PathPrefix(`/internal`)"
+      - "traefik.http.routers.ticketing.entrypoints=web"
+      - "traefik.http.services.ticketing.loadbalancer.server.port=${TICKETING_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${PAYMENTS_SERVICE_PORT}/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:${TICKETING_SERVICE_PORT}/health"]
       interval: 5s
       timeout: 3s
       retries: 3
       start_period: 10s
     depends_on:
-      mongo-payments:
+      mongo-ticketing:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
       users:
         condition: service_healthy
 
-  mongo-payments:
+  mongo-ticketing:
     image: mongo
     command: ["--replSet", "rs0", "--bind_ip_all"]
     restart: unless-stopped
     networks:
-      - payments-network
+      - ticketing-network
     environment:
       - REPLICA_SET_NODES_NUMBER=3
-      - MONGO_HOST=mongo-payments
+      - MONGO_HOST=mongo-ticketing
     volumes:
-      - mongo-payments-data:/data/db
+      - mongo-ticketing-data:/data/db
       - ./scripts/init-mongo-replica-set.sh:/scripts/init-mongo-replica-set.sh:ro
     healthcheck:
       test: /scripts/init-mongo-replica-set.sh
@@ -57,19 +57,19 @@ services:
       start_period: 30s
       retries: 30
     depends_on:
-      mongo-payments-2:
+      mongo-ticketing-2:
         condition: service_healthy
-      mongo-payments-3:
+      mongo-ticketing-3:
         condition: service_healthy
 
-  mongo-payments-2:
+  mongo-ticketing-2:
     image: mongo
     command: ["--replSet", "rs0", "--bind_ip_all"]
     restart: unless-stopped
     networks:
-      - payments-network
+      - ticketing-network
     volumes:
-      - mongo-payments-2-data:/data/db
+      - mongo-ticketing-2-data:/data/db
     healthcheck:
       test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
       interval: 2s
@@ -77,14 +77,14 @@ services:
       retries: 10
       start_period: 30s
 
-  mongo-payments-3:
+  mongo-ticketing-3:
     image: mongo
     command: ["--replSet", "rs0", "--bind_ip_all"]
     restart: unless-stopped
     networks:
-      - payments-network
+      - ticketing-network
     volumes:
-      - mongo-payments-3-data:/data/db
+      - mongo-ticketing-3-data:/data/db
     healthcheck:
       test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
       interval: 2s
@@ -95,10 +95,10 @@ services:
 networks:
   eventonight-network:
     driver: bridge
-  payments-network:
+  ticketing-network:
     driver: bridge
 
 volumes:
-  mongo-payments-data:
-  mongo-payments-2-data:
-  mongo-payments-3-data:
+  mongo-ticketing-data:
+  mongo-ticketing-2-data:
+  mongo-ticketing-3-data:

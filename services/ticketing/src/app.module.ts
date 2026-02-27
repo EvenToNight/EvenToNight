@@ -19,7 +19,7 @@ import { buildMongoUrl } from '@libs/ts-common';
             buildMongoUrl({
               mongoHost: process.env.MONGO_HOST,
               replicaSetNodes,
-              dbName: 'eventonight-payments',
+              dbName: 'eventonight-ticketing',
               replicaSetName: process.env.REPLICA_SET_NAME,
             }),
           retryWrites: true,

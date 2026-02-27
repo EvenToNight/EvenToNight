@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import Stripe from 'stripe';
-import { Money } from '../../../tickets/domain/value-objects/money.vo';
-import { PaymentException } from '../../../tickets/domain/exceptions/payment.exception';
+import { Money } from '../../domain/value-objects/money.vo';
+import { PaymentException } from '../../domain/exceptions/payment.exception';
 import codes from 'currency-codes';
 import { PaymentService } from 'src/tickets/domain/services/payment.service.interface';
 import {

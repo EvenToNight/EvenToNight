@@ -28,10 +28,10 @@ ENVIRONMENT VARIABLES
 
 EXAMPLES
     # Single node replica set
-    MONGO_HOST=mongo-payments REPLICA_SET_NODES=1 ./init-mongo-replica-set.sh
+    MONGO_HOST=mongo-service REPLICA_SET_NODES=1 ./init-mongo-replica-set.sh
 
     # Three node replica set (for production)
-    MONGO_HOST=mongo-payments REPLICA_SET_NODES=3 ./init-mongo-replica-set.sh
+    MONGO_HOST=mongo-service REPLICA_SET_NODES=3 ./init-mongo-replica-set.sh
 
 NOTES
     - This script is typically run as a Docker healthcheck or initialization script
