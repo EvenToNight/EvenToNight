@@ -70,16 +70,6 @@ paths:
                 statusCode: 400
                 message: status must be one of DRAFT, PUBLISHED, COMPLETED, CANCELLED
                 error: Bad Request
-        '409':
-          description: Conflict - Event with this ID already exists
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-              example:
-                statusCode: 409
-                message: Event with id evt_550e8400-e29b-41d4-a716-446655440000 already exists
-                error: Conflict
         '500':
           description: Internal Server Error - Failed to create or update event
           content:
@@ -93,7 +83,132 @@ paths:
       tags:
         - Event Internal
         
+  /events:
+    get:
+      summary: Get events paginated by price
+      description: Returns a paginated list of event IDs, optionally filtered by ticket price range.
+      parameters:
+        - name: minPrice
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 0
+          description: Minimum ticket price filter (optional)
+        - name: maxPrice
+          in: query
+          required: false
+          schema:
+            type: number
+            minimum: 0
+          description: Maximum ticket price filter (optional)
+        - name: currency
+          in: query
+          required: false
+          schema:
+            type: string
+            default: USD
+          description: Currency for price filtering (optional, defaults to USD)
+        - name: limit
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+          description: Max results per page (optional)
+        - name: offset
+          in: query
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+          description: Offset for pagination (optional)
+      responses:
+        '200':
+          description: Paginated list of event IDs
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      type: string
+                  totalItems:
+                    type: integer
+                  limit:
+                    type: integer
+                  offset:
+                    type: integer
+                  hasMore:
+                    type: boolean
+              example:
+                items:
+                  - evt_550e8400-e29b-41d4-a716-446655440000
+                  - evt_660e8400-e29b-41d4-a716-446655440001
+                totalItems: 2
+                limit: 10
+                offset: 0
+                hasMore: false
+      tags:
+        - Events
+
   # Event Ticket Types endpoints (per-event)
+  /events/{eventId}:
+    get:
+      summary: Get event by ID
+      description: |
+        Retrieve details of a specific event. Authentication is optional. Access rules:
+        - Unauthenticated users: can only access published events
+        - Authenticated users: can access their own events (any status) or published events from others
+      security:
+        - BearerAuth: []
+        - {}
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: ID of the event
+          schema:
+            type: string
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+      responses:
+        '200':
+          description: Event details
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventResponseDto'
+              example:
+                id: evt_550e8400-e29b-41d4-a716-446655440000
+                creatorId: usr_123e4567-e89b-12d3-a456-426614174000
+                status: PUBLISHED
+                date: "2024-12-31T20:00:00Z"
+                title: "New Year's Eve Party"
+        '403':
+          description: Forbidden - Unauthenticated user cannot access a non-published event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 403
+                message: Current user cannot access this event
+                error: Forbidden
+        '404':
+          description: Not Found - Event does not exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                statusCode: 404
+                message: Event with id evt_550e8400-e29b-41d4-a716-446655440000 not found
+                error: Not Found
+      tags:
+        - Event
+
   /events/{eventId}/ticket-types:
     get:
       summary: Get all ticket types for an event
@@ -1176,6 +1291,37 @@ components:
         description: "Updated ticket description"
         price: 49.99
         quantity: 150
+    EventResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Unique identifier of the event
+          example: evt_550e8400-e29b-41d4-a716-446655440000
+        creatorId:
+          type: string
+          description: ID of the user who created the event
+          example: usr_123e4567-e89b-12d3-a456-426614174000
+        status:
+          type: string
+          enum: [DRAFT, PUBLISHED, CANCELLED]
+          description: Current status of the event
+          example: PUBLISHED
+        date:
+          type: string
+          format: date-time
+          nullable: true
+          description: Date and time of the event
+          example: "2024-12-31T20:00:00Z"
+        title:
+          type: string
+          nullable: true
+          description: Title of the event
+          example: "New Year's Eve Party"
+      required:
+        - id
+        - creatorId
+        - status
     CreateEventDto:
       type: object
       description: Data required to create or update an event
