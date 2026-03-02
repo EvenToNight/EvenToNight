@@ -3,7 +3,7 @@ import { onMounted } from 'vue'
 import { withBase } from 'vitepress'
 
 onMounted(() => {
-  window.location.href = withBase('/introduzione')
+  window.location.href = withBase('/goals')
 })
 </script>
 <template>
