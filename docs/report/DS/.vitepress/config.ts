@@ -1,10 +1,11 @@
 import { defineConfig } from 'vitepress'
 import { fileURLToPath } from 'url'
 import path from 'path'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-export default defineConfig({
+export default withMermaid(defineConfig({
     base: process.env.NODE_ENV === 'production' ? "/EvenToNight/report/DS/" : "/",
     srcDir: "./markdown",
     title: "DS Project Report",
@@ -43,4 +44,4 @@ export default defineConfig({
         }
         ]
     }
-})
+}))
