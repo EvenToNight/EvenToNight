@@ -65,6 +65,39 @@ object Utils:
           case Right(url) => url
           case Left(_)    => defaultUrl
 
+  def notifyPaymentsService(
+      eventId: String,
+      creatorId: String,
+      status: String,
+      title: Option[String],
+      date: Option[LocalDateTime],
+      paymentsServiceUrl: String
+  ): Either[String, Unit] =
+    Try {
+      val payload = ujson.Obj(
+        "creatorId" -> creatorId,
+        "status"    -> status
+      )
+
+      title.foreach(t => payload("title") = t)
+      date.foreach(d => payload("date") = d.toString)
+
+      val response = requests.post(
+        s"$paymentsServiceUrl/internal/events/$eventId",
+        data = payload.toString(),
+        headers = Map("Content-Type" -> "application/json")
+      )
+
+      if response.statusCode == 201 then
+        println(s"[PAYMENTS] Event $eventId notified successfully")
+      else
+        println(s"[PAYMENTS] Warning: unexpected status ${response.statusCode}")
+    }.toEither match
+      case Right(_) => Right(())
+      case Left(e) =>
+        println(s"[PAYMENTS] Failed to notify payments service: ${e.getMessage}")
+        Left(s"Failed to notify payments service: ${e.getMessage}")
+
   def getCreateCommandFromJson(event: String): CreateEventCommand =
     val eventData = ujson.read(event)
 
