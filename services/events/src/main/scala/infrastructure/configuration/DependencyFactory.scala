@@ -40,7 +40,8 @@ object DependencyFactory:
       databaseName = databaseName,
       collectionName = "events",
       messageBroker = eventPublisher,
-      priceRepository = priceRepository
+      priceRepository = priceRepository,
+      sharedMongoClient = Some(mongoClient)
     )
 
     val infraUserMetadataRepository = MongoUserMetadataRepository(

@@ -5,6 +5,7 @@ import { MetadataModule } from './metadata/metadata.module';
 import { AuthModule } from './commons/auth';
 import { RabbitMqModule } from './rabbitmq/rabbitmq.module';
 import { TransactionManagerModule } from './commons/database/database.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -17,5 +18,6 @@ import { TransactionManagerModule } from './commons/database/database.module';
     AuthModule,
     TransactionManagerModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}

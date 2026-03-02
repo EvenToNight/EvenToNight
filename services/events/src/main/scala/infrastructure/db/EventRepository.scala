@@ -19,10 +19,11 @@ case class MongoEventRepository(
     databaseName: String,
     collectionName: String = "events",
     messageBroker: EventPublisher,
-    priceRepository: Option[PriceRepository] = None
+    priceRepository: Option[PriceRepository] = None,
+    sharedMongoClient: Option[MongoClient] = None
 ):
 
-  val mongoClient: MongoClient                      = MongoClients.create(connectionString)
+  private val mongoClient: MongoClient              = sharedMongoClient.getOrElse(MongoClients.create(connectionString))
   private val database: MongoDatabase               = mongoClient.getDatabase(databaseName)
   private val collection: MongoCollection[Document] = database.getCollection(collectionName)
 
