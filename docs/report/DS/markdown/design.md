@@ -1,0 +1,150 @@
+## 4.4 Architecture
+
+### 4.4.1 Architectural Style
+
+The system is designed according to a **microservices architecture**. The application is decomposed into a set of small, independently deployable services, each responsible for a specific bounded context: Users, Events, Chat, Interactions, Notifications, Media, and Ticketing.
+
+Each microservice encapsulates its own domain logic and adopts the **database-per-service** pattern.
+
+When shared information is required (e.g., basic user data such as `id`, `name`, and `avatar` needed by the `chat` or `interactions` services), it is propagated via **domain events** rather than retrieved through synchronous queries. This intentional data duplication reduces communication overhead and keeps services decoupled.
+
+Moreover, this design avoids the bottleneck that would arise from sharing a single database across multiple services and guarantees strong data ownership by preventing services from directly accessing another service's data store.
+
+
+**Inter-service communication**
+
+Two complementary communication styles are adopted:
+
+- **Synchronous (HTTP REST)**: used when fulfilling a request requires invoking an operation or retrieving data from another service, or to propagate state changes immediately to dependent services. For example, when an event is created, the `events` service notifies `ticketing` via its internal API so that ticket-related operations can proceed right away, without waiting for the asynchronous domain event to arrive. The RabbitMQ message still follows as a fault-tolerance fallback. Calls travel over the internal overlay network between services.
+- **Asynchronous**: used to propagate state changes across service boundaries without creating runtime dependencies between them. Two mechanisms are in place:
+  - **Domain events via RabbitMQ**: services publish events to the message broker; subscribers consume them independently. For example, when an event is created and published, the `events` service publishes an `EventPublished` domain event; the `notifications` service consumes it and delivers a real-time update to the relevant connected clients via WebSocket (Socket.IO) — in this case, users following the organisation.
+  - **Webhooks**: used for third-party integrations that push notifications to the system — for example, payment provider (Stripe) callbacks delivered to the `ticketing` service. The receiving service processes the incoming HTTP call asynchronously without blocking any client-facing request.
+
+**API gateway**
+
+All external traffic flows through an API gateway implemented with **Traefik**. It acts as a single entry point, handling routing, load balancing, and request timeouts, while keeping the internal service topology invisible to clients.
+
+**Motivation for the architectural choice**
+
+- **Service independence**: each service can be developed, tested and deployed independently.
+
+- **Scalability**: services can scale horizontally according to their specific load.
+
+- **Loose coupling**: the combination of database-per-service and event-driven communication minimises direct dependencies, improving maintainability.
+
+- **Data isolation**: each service's database schema evolves independently, preventing unintended cross-service coupling.
+
+- **Resilience and fault isolation**: failures are contained within individual services; asynchronous communication through the message broker allows a service to be temporarily unavailable without blocking the rest of the system.
+
+### 4.4.2 Infrastructure
+
+![Infrastructure diagram](/design/Infrastructure.png)
+
+**Components**
+
+All infrastructural components are listed in the table below.
+
+| Component | Technology | Description |
+|-----------|-----------|------|
+| DNS / TLS | Cloudflare | Authoritative DNS and TLS termination |
+| Tunnel daemon | cloudflared | Maintains an outbound encrypted tunnel to Cloudflare; no inbound ports required on the cluster |
+| Reverse proxy / Load balancer | Traefik v3 | Single entry point for all external HTTP/WebSocket traffic; routes requests to services via Docker label-based discovery |
+| Backend services | Scala 3 + Cask | `users`, `events` |
+| Backend services | NestJS (Node.js) | `chat`, `interactions`, `ticketing` |
+| Backend services | Express (Node.js) | `media`, `notifications` |
+| Frontend | Vue 3 + Vite | Single-page application served as static assets |
+| Identity provider | Keycloak | user authentication and JWT issuance |
+| Message broker | RabbitMQ | Asynchronous event delivery via a topic exchange |
+| Document databases | MongoDB | One dedicated instance per service |
+| Relational database | PostgreSQL | Backing store for Keycloak |
+| Object storage | MinIO | Binary file and image storage for the `media` service |
+| Payment provider | Stripe *(external)* | Third-party payment processing|
+| Seed service | Node.js | Populates databases with initial data on first deployment |
+
+**Network distribution**
+
+With the exception of Stripe, all components run inside a single host using **Docker Compose**. No service port is exposed to the public internet — the only inbound path is through the Cloudflare tunnel.
+
+Two Docker bridge networks are used:
+
+- **`eventonight-network`**: shared by all application services, Traefik, RabbitMQ, and Keycloak. Used for inter-service communication and Traefik routing.
+- **`<service>-network`**: one private network per service, shared exclusively between the service and its MongoDB instance. This enforces database isolation — no other service can reach another service's database.
+
+**Service discovery**
+
+External clients resolve subdomains through Cloudflare's authoritative DNS. Each subdomain is a CNAME record pointing to `<uuid>.cfargotunnel.com`, which resolves to a Cloudflare edge IP. Traffic enters the cluster through the `cloudflared` tunnel and is handed off to Traefik.
+
+Inside the host, discovery is handled by Docker Compose:
+
+- **Internal DNS**: Compose registers each service by name in the internal DNS (e.g., `http://users:9000`, `amqp://rabbitmq:5672`). No manual registration is required.
+- **Traefik routing**: Traefik watches the Docker API for label changes and rebuilds its routing table automatically when services are started or stopped.
+
+### 4.4.3 Data Flow
+
+**Synchronous request flow (HTTP REST)**
+
+```
+Browser → Cloudflare (DNS + TLS) → cloudflared → Traefik → Service → MongoDB → response
+```
+
+The browser sends an HTTPS request to a subdomain (e.g., `events.eventonight.com`). Cloudflare resolves the DNS and terminates TLS, then injects the request into the persistent QUIC tunnel maintained by `cloudflared` on the cluster. Traefik receives it, matches the `Host` header against its routing rules, and forwards the request to one of the available replicas via VIP load balancing. The service handles the request, queries its own MongoDB instance, and returns the response through the same chain.
+
+**Asynchronous event flow (AMQP)**
+
+```
+Service → Exchange (eventonight) → Queue (per-service) → Consumer service
+```
+
+![Message broker](/design/Broker.png)
+
+RabbitMQ uses a single **topic exchange** named `eventonight`. Each consuming service has a dedicated queue bound to the exchange with a set of topic subscriptions (e.g., `ticketing_queue` binds to `user.created`, `event.updated`, ...). When a service publishes a domain event with a routing key, the exchange fans it out to every queue whose binding pattern matches — without the publisher knowing who the consumers are.
+
+**Real-time push (WebSocket)**
+
+```
+notifications service → Socket.IO → Browser
+```
+
+The `notifications` service consumes events from its queue and pushes real-time updates to the relevant connected clients over WebSocket (Socket.IO).
+
+**Webhook flow (Stripe → ticketing)**
+
+```
+Stripe → Cloudflare → cloudflared → Traefik → ticketing (acknowledged immediately, processed asynchronously)
+```
+
+Stripe delivers payment event callbacks via HTTP POST to the `ticketing` service. The service responds immediately with `200 OK` and processes the event asynchronously, without blocking any client-facing operation.
+
+### 4.4.4 Web API
+
+All application services expose a **REST API** built with NestJS, accessible externally via Traefik at `<service>.eventonight.com`. Every protected endpoint requires a **JWT Bearer token** in the `Authorization` header, issued by Keycloak and validated independently by each service using Keycloak's public key — no centralised auth gateway is needed.
+
+The `notifications` service additionally exposes a **WebSocket endpoint** (Socket.IO) for real-time push delivery. WebSocket connections require **sticky sessions** — configured via a Traefik sticky cookie — to ensure that the Socket.IO handshake and all subsequent frames are consistently routed to the same backend replica.
+
+## 4.5 Corner cases
+
+The system is designed to be **highly available** and **eventually consistent**. Each service operates independently and failures are isolated: when a component goes down, only the functionality directly depending on it is affected, while the rest of the system continues to operate.
+
+**Fault detection**
+
+Each service and its dependencies declare a `healthcheck` in Docker Compose. Dependent services use `depends_on` with `condition: service_healthy`, so startup ordering is enforced and a service will not start before its dependencies are ready.
+
+**Error signalling**
+
+Every API endpoint returns standard HTTP status codes to communicate failures to clients: `400` for validation errors, `401` for missing or invalid tokens, `403` for authorisation failures, `404` for resources not found, `409` for conflicts, and `500` for unexpected server errors. Domain exceptions are mapped to the appropriate code at the presentation layer, without exposing internal details.
+
+**Component failure and recovery**
+
+All containers run with `restart: unless-stopped`, so Docker automatically restarts any crashed container. Docker itself is configured to start on host boot, meaning that even a full machine reboot brings the entire system back up without manual intervention. All reconnection attempts — to MongoDB, RabbitMQ, and other services — use an exponential backoff strategy.
+
+**Database failure.** If a MongoDB instance goes down, its owning service remains partially operational: requests that do not require the database can still be served, while those that do will fail gracefully. When the database comes back up, the service reconnects automatically. Multi-document operations are executed within MongoDB transactions (enabled by the replica set configuration), so a crash mid-operation leaves no inconsistent state — the transaction is simply rolled back.
+
+**Service failure.** If a service crashes, it is no longer reachable. Docker restarts it automatically. Since all writes are transactional, there is no risk of partial state being committed.
+
+**RabbitMQ failure.** All queues are declared as durable with persistent messages, so any message received by RabbitMQ before it goes down is safely stored to disk and delivered to consumers once it restarts. RabbitMQ provides at-least-once delivery semantics; services handle this either through idempotency keys or by designing message handlers to be idempotent. If RabbitMQ is unavailable at the moment a service needs to publish, messages are not lost: each service implements the transactional outbox pattern — the domain event is written to an outbox collection in the same database transaction as the state change, and a relay process reads from the outbox and forwards messages to RabbitMQ, retrying until delivery succeeds.
+
+**Keycloak failure.** New logins and token refreshes fail. However, services validate JWTs locally using Keycloak's public key, so requests carrying a still-valid token continue to be accepted until expiry. Once Keycloak restarts, authentication resumes normally.
+
+**Traefik or cloudflared failure.** External traffic cannot enter the system, but internal inter-service communication over `eventonight-network` is unaffected. Docker restarts the container and external access resumes.
+
+**Stripe unavailability.** Webhook callbacks are not delivered. Stripe automatically retries with exponential backoff; the `ticketing` service processes them when they eventually arrive.
