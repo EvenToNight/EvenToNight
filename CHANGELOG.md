@@ -1,3 +1,10 @@
+## [2.1.2](https://github.com/EvenToNight/EvenToNight/compare/v2.1.1...v2.1.2) (2026-03-02)
+
+### Bug Fixes
+
+* **events:** add push request to payments services ([14fea86](https://github.com/EvenToNight/EvenToNight/commit/14fea86e40c482fe69d5d1c0701d16197bf95f2f))
+* **events:** fix bug in event creation with shared mongo client ([482305f](https://github.com/EvenToNight/EvenToNight/commit/482305f556f8894723c38e9f41d6da021541046b))
+
 ## [2.1.1](https://github.com/EvenToNight/EvenToNight/compare/v2.1.0...v2.1.1) (2026-02-24)
 
 ### Bug Fixes
