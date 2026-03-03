@@ -4,22 +4,27 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.postgres.keycloak.1 == true
+          - node.labels.id == 1
       restart_policy:
         condition: on-failure
         delay: 10s
         max_attempts: 5
 
   keycloak:
-    depends_on: []
+    environment:
+      KC_CACHE: ispn
+      KC_CACHE_STACK: kubernetes
+      JAVA_OPTS_APPEND: -Djgroups.dns.query=tasks.keycloak
     deploy:
+      replicas: 3
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.auth.rule=Host(`auth.${HOST}`)"
         - "traefik.http.routers.auth.entrypoints=web"
         - "traefik.http.services.auth.loadbalancer.server.port=8080"
+        - "traefik.http.routers.auth.middlewares=global-retry@file,global-cb@file"  
+        
   keycloak-provision:
-    depends_on: []
     deploy:
       mode: replicated-job
 
