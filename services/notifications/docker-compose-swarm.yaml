@@ -16,14 +16,14 @@ services:
         - "traefik.http.services.notifications.loadbalancer.sticky.cookie.name=notifications_sticky"
         - "traefik.http.services.notifications.loadbalancer.sticky.cookie.httpOnly=true"
         - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-    depends_on: []
+        - "traefik.http.routers.notifications.middlewares=global-retry@file,global-cb@file"
 
   mongo-notifications:
     deploy:
       replicas: 1
       placement:
         constraints:
-          - node.labels.mongo.notifications.1 == true
+          - node.labels.id == 1
       restart_policy:
         condition: on-failure
         delay: 10s
