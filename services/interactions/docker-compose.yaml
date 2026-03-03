@@ -1,29 +1,13 @@
 services:
   interactions:
-    image: ghcr.io/eventonight/eventonight/interactions:latest
-    networks:
-      - eventonight-network
-      - interactions-network
-    environment:
-      - PORT=${INTERACTIONS_SERVICE_PORT}
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=${RABBITMQ_USER}
-      - RABBITMQ_PASS=${RABBITMQ_PASS}
-      - MONGO_HOST=mongo-interactions
-      - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
+    restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.interactions.rule=Host(`interactions.${HOST}`)"
       - "traefik.http.routers.interactions.entrypoints=web"
       - "traefik.http.services.interactions.loadbalancer.server.port=${INTERACTIONS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${INTERACTIONS_SERVICE_PORT}/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 3
-      start_period: 10s
+      - "traefik.http.routers.interactions.middlewares=global-retry@file,global-cb@file"    
     depends_on:
       mongo-interactions:
         condition: service_healthy
@@ -33,21 +17,7 @@ services:
         condition: service_healthy
 
   mongo-interactions:
-    image: mongo
     restart: unless-stopped
-    command: ["--replSet", "rs0", "--bind_ip_all"]
-    networks:
-      - interactions-network
-    environment:
-      - MONGO_HOST=mongo-interactions
-    volumes:
-      - ./scripts/init-mongo-replica-set.sh:/scripts/init-mongo-replica-set.sh:ro
-    healthcheck:
-      test: /scripts/init-mongo-replica-set.sh
-      interval: 5s
-      timeout: 10s
-      retries: 20
-      start_period: 40s
 
 networks:
   eventonight-network:
