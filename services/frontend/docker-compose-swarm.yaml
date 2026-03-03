@@ -13,6 +13,8 @@ services:
         - "traefik.http.routers.frontend.entrypoints=web"
         - "traefik.http.services.frontend.loadbalancer.server.port=${FRONTEND_SERVICE_PORT}"
         - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+        - "traefik.http.routers.frontend.middlewares=global-retry@file,global-cb@file"
+
 networks:
   eventonight-network:
     driver: overlay

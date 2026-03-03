@@ -1,32 +1,13 @@
 services:
   frontend:
-    image: ghcr.io/eventonight/eventonight/frontend:latest
-    networks:
-      - eventonight-network  
+    restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.frontend.rule=Host(`${HOST}`)"
       - "traefik.http.routers.frontend.entrypoints=web"
       - "traefik.http.services.frontend.loadbalancer.server.port=${FRONTEND_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${FRONTEND_SERVICE_PORT}/"]
-      interval: 5s
-      timeout: 3s
-      retries: 3
-      start_period: 10s
-    deploy:
-      replicas: ${FRONTEND_SERVICE_REPLICAS:-1}
-      update_config:
-        parallelism: 1
-        delay: 10s
-        order: start-first
-        failure_action: rollback
-    environment:
-        - VITE_HOST=${HOST}
-        - PORT=${FRONTEND_SERVICE_PORT}
-
+      - "traefik.http.routers.frontend.middlewares=global-retry@file,global-cb@file"
 networks:
   eventonight-network:
     driver: bridge
