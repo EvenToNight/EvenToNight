@@ -44,7 +44,25 @@ For instance, user management, event management, interactions, chat, payments an
 
 ### <u>Core Entities</u>
 
-// TODO: UML class diagram here with domain entities and possibly messages being exchanged
+<p align="center">
+    <img src="/core-entities.png" alt="design" width="100%" />
+    <br />
+</p>
+
+The diagram shows a simplification of the design, not every aspect of the model is represented in details.
+
+The diagram highlights the separation between bounded contexts and the absence of direct structural dependencies across services.
+
+Cross-service relationships are expressed through identifiers and domain events rather than object references or shared persistence.
+
+By adopting an event-driven communication model, each service can evolve and operate independently while still maintaining system-wide coherence.
+
+Event-based communication ensures that:
+- services remain loosely coupled, since they are not aware of the internal implementation of other services;
+- failures are isolated, as a temporary unavailability of one service does not block others;
+- consistency is maintained through messages rather than distributed transactions.
+
+By relying on domain events instead of cross-service atomic operations, the system avoids global locking and distributed transaction protocols, improving scalability and resilience while still guaranteeing business-level correctness.
 
 #### User
 
