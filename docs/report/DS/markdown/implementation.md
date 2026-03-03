@@ -2,8 +2,8 @@
 
 Full API documentation has been produced for all services:
 
-- [**OpenAPI specs** (REST)](/EvenToNight/openAPI/).
-- [**AsyncAPI specs** (RabbitMQ)](/EvenToNight/asyncAPI/).
+- [**OpenAPI specs** (REST)](https://eventonight.github.io/EvenToNight/openAPI/).
+- [**AsyncAPI specs** (RabbitMQ)](https://eventonight.github.io/EvenToNight/asyncAPI/).
 
 The sections below cover implementation choices not captured by the API specs.
 
@@ -94,3 +94,6 @@ sequenceDiagram
         note over Ticketing,MongoDB: ⚠ known limitation — tickets stuck PENDING
     end
 ```
+
+
+// TODO: add CQRS and NEST architecture

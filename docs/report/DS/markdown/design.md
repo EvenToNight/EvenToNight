@@ -1,26 +1,21 @@
 # 4 - Design
 
-The principal objective of the design phase has been to:
-- ensure service autonomy
-- avoid tight coupling through shared persistence
-- guarantee scalability and fault isolation
-- preserve local consistency while enabling eventual consistency across distributed services
-
 The system has been designed following a microservices architectural style, where each service models a specific subdomain and exclusively owns its data.
 
-This choice has been driven by the following requirements:
-- independence of features
-- high availability and fault isolation
-- scalability of single subsystems
+The principal objective of the design phase has been to:
+- ensure service autonomy
+- decoupling services persistence management
+- guarantee scalability and fault isolation
+- preserve local consistency while enabling eventual consistency across distributed services
 - separation of responsibilities aligned with domain boundaries
 
 A key design principle adopted is data ownership per service: no service directly accesses the database of another service.
 
 All inter-service coordination occurs either:
 - synchronously through request/response interactions
-- asynchronously through domain events
+- asynchronously through messages exchange.
 
-This separation allows the system to tolerate partial failures, avoid global locking mechanisms, and maintain loose coupling among components.
+This separation allows the system to tolerate partial failures, avoid cross-services synchronous operations chaining and maintain loose coupling among components.
 
 ## 4.1 - Structure 
 
@@ -30,8 +25,8 @@ The domain has been decomposed into bounded contexts, each representing a cohere
 
 This approach has been adopted to:
 - reduce semantic ambiguity
-- avoid shared data models across services
 - support independence between different subsystems
+- identify needed data for each services to let it indipendent to other. (//TODO: RISCRIVILA)
 
 Each bounded context corresponds to a logically autonomous service, encapsulating:
 - domain entities
@@ -40,7 +35,9 @@ Each bounded context corresponds to a logically autonomous service, encapsulatin
 
 This alignment between domain boundaries and service boundaries reduces coupling and minimizes the need for distributed transactions, favoring asynchronous coordination and eventual consistency.
 
-For instance, user management, event management, interactions, chat, payments and real-time communication have been modeled as separate bounded contexts.
+Given that, six bounded contexts are identified: user, event, interactions, chat, ticketing and notifications. 
+
+Moreover, some other services are used: auth (keykloack), media, payments (stripe).
 
 ### <u>Core Entities</u>
 
@@ -53,16 +50,7 @@ The diagram shows a simplification of the design, not every aspect of the model 
 
 The diagram highlights the separation between bounded contexts and the absence of direct structural dependencies across services.
 
-Cross-service relationships are expressed through identifiers and domain events rather than object references or shared persistence.
-
-By adopting an event-driven communication model, each service can evolve and operate independently while still maintaining system-wide coherence.
-
-Event-based communication ensures that:
-- services remain loosely coupled, since they are not aware of the internal implementation of other services;
-- failures are isolated, as a temporary unavailability of one service does not block others;
-- consistency is maintained through messages rather than distributed transactions.
-
-By relying on domain events instead of cross-service atomic operations, the system avoids global locking and distributed transaction protocols, improving scalability and resilience while still guaranteeing business-level correctness.
+Cross-service relationships are expressed through other entities identifier and domain events rather than object references or shared persistence.
 
 #### User
 
@@ -71,21 +59,21 @@ A User can assume one of two roles:
 - Member
 - Organization
 
-Attributes include identifier, authentication-related data, profile information and events' preferences
+Attributes include identifier, authentication-related data(account), profile information and events preferences
 
 #### Event
 Represents an activity created by an Organization.
 
-Its attributes include identifier, title, description and all informations about event (date, time, location, and other).
+Its attributes include identifier, title, description and all informations about event (e.g. date, time, location).
 
 #### Ticket
 Represents a User's receipt of payment to participate in a Event.
 
-It has its own lifecycle (creation, validation, possible refund or invalidation) and is modeled independently from Event to avoid coupling financial logic with event management logic.
+It has its own lifecycle (creation, validation or invalidation) and is modeled independently from Event to avoid coupling financial logic with event management logic.
 
 #### Interaction
 
-Abstract concept representing user behavior.
+Abstract concept representing user actions.
 
 In particular:
 - Like (User → Event)
@@ -93,20 +81,18 @@ In particular:
 - Review (User → Event)
 - Participation (User → Event)
 
-Interactions are separated from Event and User entities to:
-- avoid excessive coupling,
-- enable independent scaling,
-- support event-driven notification mechanisms.
+// TODO: commento sul perchè interaction è separato da event e user
+Interactions are separated from Event and User entities ...
 
 #### Conversation
 
 Represents a communication channel between two Users. This entity saves data like participants, messages and chat informations.
 
-Messages are not embedded directly in User entities to avoid data growth and to enable real-time distribution strategies.
+// TODO: commento sul perchè ho diviso conversation e messages
 
 #### Notification
 
-Represents a system-generated alert related to domain events.
+Represents a system-generated alert that must be sent to specific user.
 
 Examples:
 - new follower
@@ -132,6 +118,14 @@ Domain events enable asynchronous integration between bounded contexts and allow
 
 ## 4.2 - Interaction
 
+To implement communication between microservices, two interaction patterns were adopted:
+
+- **Synchronous REST communication between frontend and backend services**: the frontend interacts with backend services via REST APIs. This synchronous pattern ensures that a response is returned only after the backend has successfully processed the request and is suitable for handling user interactions (e.g., login, search, ticket purchase).
+
+- **Asynchronous event-driven communication between backend services**: backend microservices communicate via RabbitMQ events, using the publish-subscribe pattern with exchange and queues. This pattern decouples services and supports extensibility, maintainability, and potential horizontal scalability.
+
+This combination of synchronous and asynchronous interaction patterns ensures that user-driven requests are handled reliably, while preserving the benefits of distributed event-based coordination.
+
 ## 4.3 - Behaviour
 
 ## 4.4 Architecture
@@ -153,7 +147,8 @@ Two complementary communication styles are adopted:
 
 - **Synchronous (HTTP REST)**: used when fulfilling a request requires invoking an operation or retrieving data from another service, or to propagate state changes immediately to dependent services. For example, when an event is created, the `events` service notifies `ticketing` via its internal API so that ticket-related operations can proceed right away, without waiting for the asynchronous domain event to arrive. The RabbitMQ message still follows as a fault-tolerance fallback. Calls travel over the internal overlay network between services.
 - **Asynchronous**: used to propagate state changes across service boundaries without creating runtime dependencies between them. Two mechanisms are in place:
-  - **Domain events via RabbitMQ**: services publish events to the message broker; subscribers consume them independently. For example, when an event is created and published, the `events` service publishes an `EventPublished` domain event; the `notifications` service consumes it and delivers a real-time update to the relevant connected clients via WebSocket (Socket.IO) — in this case, users following the organisation.
+  - **Domain events via RabbitMQ**: services publish events to the message broker; subscribers consume them independently. For example, when an event is created and published, the `events` service publishes an `EventPublished` domain event; the `notifications` service consumes it and delivers a real-time update to the relevant connected clients via WebSocket (Socket.IO) — in this case, users following the organization.
+  - **WebSocket**: // TODO
   - **Webhooks**: used for third-party integrations that push notifications to the system — for example, payment provider (Stripe) callbacks delivered to the `ticketing` service. The receiving service processes the incoming HTTP call asynchronously without blocking any client-facing request.
 
 **API gateway**
@@ -205,6 +200,7 @@ Two Docker bridge networks are used:
 
 - **`eventonight-network`**: shared by all application services, Traefik, RabbitMQ, and Keycloak. Used for inter-service communication and Traefik routing.
 - **`<service>-network`**: one private network per service, shared exclusively between the service and its MongoDB instance. This enforces database isolation — no other service can reach another service's database.
+// TODO: keycloak network
 
 **Service discovery**
 

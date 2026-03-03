@@ -45,12 +45,12 @@ The main requirements that the application must meet are listed below.
 - **Accessibility**: the system’s graphical interface must be accessible, supporting standard accessibility guidelines.
 - **Portability**: the system must be responsive and adapt to different screen sizes and devices, including PCs, tablets, and smartphones.
 - **Deployability**: the system must automatically update to the latest release version.
-- **Architectural Constraint**: the system must be developed following a microservices architecture, ensuring modularity, independent service deployment, and scalability.
+- **Architectural Constraint**: the system must be developed following a microservices architecture.
 
-## **3.2 Top-down analysis
+## **3.2 Top-down analysis**
 
-### 3.2.1 Architectural styles**
-Starting from the identified requirements, an **event-based architecture** was selected to design the distributed platform. Backend microservices interact asynchronously through message-passing mechanisms implemented via RabbitMQ.
+### **3.2.1 Architectural styles**
+Starting from the identified requirements, an **event-based architecture** was selected to design the distributed platform. 
 
 This architectural style was chosen because it addresses several non-functional requirements of the system. In particular, the following architectural properties, provided by the event-based design, directly contribute to satisfying the system’s non-functional requirements:
 
@@ -58,7 +58,7 @@ This architectural style was chosen because it addresses several non-functional 
 - **Temporal decoupling**: durable queues and persistent messages ensure that events are stored until consumers are able to process them. This ensures that producer services remain responsive even if consumer services are temporarily unavailable, supporting fault tolerance and availability.
 - **Loosely coupled services**: producers publish messages without waiting for consumers to respond, and consumers process messages independently. It supports fault tolerance, maintainability and extensibility, as temporary service failures or modifications do not affect other components.
 - **Message queues as buffers**: queues smooth load peaks by decoupling producer and consumer execution timing. It supports extensibility by enabling the addition of multiple consumer instances in future deployments, allowing potential horizontal scalability.
-- **Decoupled service design**: microservices are modular and independently deployable. It supports maintainability and extensibility, simplifying debugging, updates, and the addition of new functionalities.
+- **Decoupled service design**: microservices are modular and independently deployable. It supports maintainability and extensibility, simplifying updates and the addition of new functionalities.
 
 At the system boundary level, the platform also follows a **layered architecture**:
 
@@ -67,11 +67,3 @@ At the system boundary level, the platform also follows a **layered architecture
 - **Data layer**: repositories interacting with databases for persistence.
 
 The layered organization provides a high-level view of control flow in the distributed platform, highlighting the separation of concerns between user interface, business logic, and data management.
-
-**3.2.2 Interaction patterns**
-To implement communication between microservices, two interaction patterns were adopted:
-
-- **Synchronous REST communication between frontend and backend services**: the frontend interacts with backend services via REST APIs. This synchronous pattern ensures that a response is returned only after the backend has successfully processed the request and is suitable for handling user interactions (e.g., login, search, ticket purchase).
-- **Asynchronous event-driven communication between backend services**: backend microservices communicate via RabbitMQ events, using the publish-subscribe pattern with exchange and queues. This pattern decouples services and supports extensibility, maintainability, and potential horizontal scalability.
-
-This combination of synchronous and asynchronous interaction patterns ensures that user-driven requests are handled reliably, while preserving the benefits of distributed event-based coordination.
