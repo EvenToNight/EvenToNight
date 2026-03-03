@@ -25,6 +25,7 @@ import { buildMongoUrl } from '@libs/ts-common';
           retryWrites: true,
           w: 'majority',
           readPreference: 'primaryPreferred',
+          readConcern: { level: 'majority' },
           directConnection: replicaSetNodes <= 1,
         };
       },
