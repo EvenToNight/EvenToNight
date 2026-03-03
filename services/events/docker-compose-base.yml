@@ -1,0 +1,44 @@
+services:
+  events:
+    image: ghcr.io/eventonight/eventonight/events:latest
+    networks:
+      - eventonight-network
+      - events-network
+    environment:
+      - PORT=${EVENTS_SERVICE_PORT}
+      - MONGO_HOST=mongo-events
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - RABBITMQ_PORT=${RABBITMQ_PORT}
+      - HOST=${HOST}
+      - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
+      - PAYMENTS_SERVICE_URL=http://ticketing:${TICKETING_SERVICE_PORT}
+    healthcheck:
+      test: ["CMD-SHELL", "true"]
+      #TODO add /health endpoint to events service and update this healthcheck
+      #test: ["CMD", "curl", "-f", "http://localhost:${EVENTS_SERVICE_PORT}/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  mongo-events:
+    image: mongo
+    networks:
+      - events-network
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    environment:
+      - MONGO_HOST=mongo-events
+    volumes:
+      - ./scripts/init-mongo-replica-set.sh:/scripts/init-mongo-replica-set.sh:ro
+    healthcheck:
+      test: /scripts/init-mongo-replica-set.sh
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 40s
+
+networks:
+  eventonight-network:
+  events-network:

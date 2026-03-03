@@ -13,14 +13,14 @@ services:
         - "traefik.http.routers.events.entrypoints=web"
         - "traefik.http.services.events.loadbalancer.server.port=${EVENTS_SERVICE_PORT}"
         - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-    depends_on: []
+        - "traefik.http.routers.events.middlewares=global-retry@file,global-cb@file"
 
   mongo-events:
     deploy:
       replicas: 1
       placement:
         constraints:
-          - node.labels.mongo.events.1 == true
+          - node.labels.id == 1
       restart_policy:
         condition: on-failure
         delay: 10s
