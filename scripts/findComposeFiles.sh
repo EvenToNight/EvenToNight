@@ -6,8 +6,10 @@ SYNOPSIS
     ./findComposeFiles.sh [OPTIONS]
 
 DESCRIPTION
-    Recursively searches for docker-compose.yaml files in the specified paths
-    and prints them to stdout (one per line).
+    Recursively searches for docker-compose-base.yml and docker-compose.yaml files
+    in the specified paths and prints them to stdout (one per line).
+    Base files are always emitted before the main compose files so that
+    docker compose merges them in the correct order (base → main → dev → swarm).
 
 OPTIONS
     -p, --path <PATH>
@@ -24,7 +26,8 @@ OPTIONS
         Include docker-compose-dev.yaml files in the search.
 
     --swarm
-        Include docker-compose-swarm.yaml files in the search.
+        Use swarm mode: include docker-compose-swarm.yaml and exclude docker-compose.yaml.
+        In swarm mode only base + swarm files are used (base → dev → swarm).
 
 EXAMPLES:
     ./findComposeFiles.sh -p ./services -p ./infrastructure -eP ./infrastructure/seed
@@ -79,9 +82,14 @@ if [[ "$HAS_CUSTOM_PATH" == false ]]; then
     SEARCH_PATHS=(".")
 fi
 
-FILE_PATTERNS=("docker-compose.yaml")
-$USE_DEV && FILE_PATTERNS+=("docker-compose-dev.yaml") || true
-$USE_SWARM && FILE_PATTERNS+=("docker-compose-swarm.yaml") || true
+if [[ "$USE_SWARM" == true ]]; then
+    FILE_PATTERNS=("docker-compose-base.yml")
+    $USE_DEV && FILE_PATTERNS+=("docker-compose-dev.yaml") || true
+    FILE_PATTERNS+=("docker-compose-swarm.yaml")
+else
+    FILE_PATTERNS=("docker-compose-base.yml" "docker-compose.yaml")
+    $USE_DEV && FILE_PATTERNS+=("docker-compose-dev.yaml") || true
+fi
 
 EXCLUDE_PATTERNS=""
 if [[ ${#EXCLUDE_PATHS[@]} -gt 0 ]]; then
