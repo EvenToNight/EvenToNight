@@ -13,14 +13,14 @@ services:
         - "traefik.http.routers.ticketing.entrypoints=web"
         - "traefik.http.services.ticketing.loadbalancer.server.port=${TICKETING_SERVICE_PORT}"
         - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-    depends_on: []
+        - "traefik.http.routers.ticketing.middlewares=global-retry@file,global-cb@file"
   mongo-ticketing:
     depends_on: []
     deploy:
       replicas: 1
       placement:
         constraints:
-          - node.labels.mongo.ticketing.1 == true
+          - node.labels.id == 1
       restart_policy:
         condition: on-failure
         delay: 10s
@@ -31,7 +31,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.mongo.ticketing.2 == true
+          - node.labels.id == 2
       restart_policy:
         condition: on-failure
         delay: 10s
@@ -42,7 +42,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.mongo.ticketing.3 == true
+          - node.labels.id == 3
       restart_policy:
         condition: on-failure
         delay: 10s
