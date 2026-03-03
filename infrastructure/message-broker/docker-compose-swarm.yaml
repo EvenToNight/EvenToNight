@@ -1,6 +1,8 @@
 services:
   rabbitmq:
     hostname: "rabbitmq-{{.Task.Slot}}"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
     configs:
       - source: rabbitmq_conf
         target: /etc/rabbitmq/rabbitmq.conf

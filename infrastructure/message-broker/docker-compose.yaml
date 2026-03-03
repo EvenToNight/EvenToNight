@@ -1,27 +1,9 @@
 services:
   rabbitmq:
-    image: rabbitmq:3-management-alpine
     restart: unless-stopped
-    networks:
-      - eventonight-network
     ports:
       - '5672:5672'
-    environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASS:-admin}
-      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE:-changeme-secret-cookie}
-    healthcheck:
-      test: [ 'CMD', 'rabbitmq-diagnostics', 'status' ]
-      interval: 5s
-      timeout: 200s
-      retries: 100
-      start_period: 200s
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq
 
 networks:
   eventonight-network:
     driver: bridge
-
-volumes:
-  rabbitmq-data:
