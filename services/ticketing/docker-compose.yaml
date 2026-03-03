@@ -1,6 +1,8 @@
 services:
   ticketing:
     restart: unless-stopped
+    environment:
+      - REPLICA_SET_NODES_NUMBER=1
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.ticketing.rule=Host(`ticketing.${HOST}`) && !PathPrefix(`/internal`)"
@@ -17,12 +19,8 @@ services:
         condition: service_healthy
 
   mongo-ticketing:
-    restart: unless-stopped
-
-  mongo-ticketing-2:
-    restart: unless-stopped
-
-  mongo-ticketing-3:
+    environment:
+        - REPLICA_SET_NODES_NUMBER=1
     restart: unless-stopped
 
 networks:
