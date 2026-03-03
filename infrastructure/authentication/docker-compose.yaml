@@ -9,9 +9,14 @@ services:
       - "traefik.http.routers.auth.middlewares=global-retry@file,global-cb@file"    
     ports:
       - "${KEYCLOAK_PORT}:8080"
+    depends_on:
+      postgres-keycloak:
+        condition: service_healthy
 
   keycloak-provision:
-    restart: unless-stopped
+    depends_on:
+      keycloak:
+        condition: service_healthy
 
 networks:
   eventonight-network:
