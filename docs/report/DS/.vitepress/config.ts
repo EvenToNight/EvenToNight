@@ -16,17 +16,6 @@ export default withMermaid(defineConfig({
         publicDir: path.resolve(__dirname, '../public')
     },
     themeConfig: {
-        nav: [
-        { text: "Goal/s of the project", link: "/goals" },
-        { text: "Background and link to the theory", link: "/background" },
-        { text: "Requirements Analysis", link: "/requirements" },
-        { text: "Design", link: "/design" },
-        { text: "Salient implementation details", link: "/implementation" },
-        { text: "Validation", link: "/validation" },
-        { text: "Deployment Instructions", link: "/deployment" },
-        { text: "Usage Examples", link: "/usage" },
-        { text: "Conclusion", link: "/conclusion" }
-        ],
         sidebar: [
         {
             text: "Report",
