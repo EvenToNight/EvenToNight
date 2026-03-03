@@ -4,7 +4,7 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.id == 1
+          - node.labels.id.1 == true
       restart_policy:
         condition: on-failure
         delay: 10s
