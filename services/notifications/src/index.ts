@@ -96,10 +96,6 @@ async function bootstrap() {
     );
     const notificationRoutes = createNotificationRoutes(notificationController);
 
-    const pubClient = createClient({ url: config.redisUrl });
-    const subClient = pubClient.duplicate();
-    await Promise.all([pubClient.connect(), subClient.connect()]);
-
     const app = createApp();
     const httpServer = createServer(app);
 
@@ -109,7 +105,13 @@ async function bootstrap() {
         credentials: true,
       },
     });
-    io.adapter(createAdapter(pubClient, subClient));
+
+    if (config.redisUrl) {
+      const pubClient = createClient({ url: config.redisUrl });
+      const subClient = pubClient.duplicate();
+      await Promise.all([pubClient.connect(), subClient.connect()]);
+      io.adapter(createAdapter(pubClient, subClient));
+    }
 
     const socketGateway = new SocketIOGateway(io);
 

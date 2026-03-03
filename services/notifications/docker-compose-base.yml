@@ -12,23 +12,11 @@ services:
       - RABBITMQ_PASS=${RABBITMQ_PASS}
       - MONGO_HOST=mongo-notifications
       - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
-      - REDIS_URL=redis://redis-notifications:6379
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:${NOTIFICATIONS_SERVICE_PORT}/health"]
       interval: 5s
       timeout: 3s
       retries: 3
-      start_period: 10s
-
-  redis-notifications:
-    image: redis:7-alpine
-    networks:
-      - notifications-network
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
-      timeout: 3s
-      retries: 10
       start_period: 10s
 
   mongo-notifications:

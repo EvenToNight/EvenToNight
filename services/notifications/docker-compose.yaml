@@ -11,15 +11,10 @@ services:
     depends_on:
       mongo-notifications:
         condition: service_healthy
-      redis-notifications:
-        condition: service_healthy
       rabbitmq:
         condition: service_healthy
       users:
         condition: service_healthy
-
-  redis-notifications:
-    restart: unless-stopped
 
   mongo-notifications:
     restart: unless-stopped

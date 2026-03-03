@@ -1,5 +1,7 @@
 services:
   notifications:
+    environment:
+      - REDIS_URL=redis://redis-notifications:6379
     deploy:
       replicas: ${NOTIFICATIONS_SERVICE_REPLICAS:-1}
       update_config:
@@ -23,13 +25,22 @@ services:
       replicas: 1
       placement:
         constraints:
-          - node.labels.id == 1
+          - node.labels.id.1 == true
       restart_policy:
         condition: on-failure
         delay: 10s
         max_attempts: 5
 
   redis-notifications:
+    image: redis:7-alpine
+    networks:
+      - notifications-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
     deploy:
       replicas: 1
       restart_policy:
