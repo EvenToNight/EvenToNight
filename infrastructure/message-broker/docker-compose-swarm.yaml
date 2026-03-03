@@ -7,7 +7,7 @@ services:
       - source: rabbitmq_conf
         target: /etc/rabbitmq/rabbitmq.conf
     deploy:
-      replicas: 3
+      replicas: ${RABBITMQ_REPLICAS:-3}
       placement:
         max_replicas_per_node: 1
       restart_policy:

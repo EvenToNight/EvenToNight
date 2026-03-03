@@ -127,6 +127,9 @@ set -o allexport
 source ./.env
 set +o allexport
 
+NODE_COUNT=$(docker node ls --format "{{.ID}}" 2>/dev/null | wc -l)
+[[ "$NODE_COUNT" -lt 3 ]] && export RABBITMQ_REPLICAS=1 || export RABBITMQ_REPLICAS=3
+
 FIRST_DEPLOY=false
 docker stack ls --format "{{.Name}}" | grep -q "^${STACK_NAME}$" || FIRST_DEPLOY=true
 
