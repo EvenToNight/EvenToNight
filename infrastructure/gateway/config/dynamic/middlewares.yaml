@@ -1,0 +1,9 @@
+http:
+  middlewares:
+    global-retry:
+      retry:
+        attempts: 3
+        initialInterval: 100ms
+    global-cb:
+      circuitBreaker:
+        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
