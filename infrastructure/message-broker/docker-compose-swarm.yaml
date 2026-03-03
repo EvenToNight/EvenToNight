@@ -17,7 +17,7 @@ services:
 
 configs:
   rabbitmq_conf:
-    file: ./rabbitmq.conf
+    file: ./infrastructure/message-broker/rabbitmq.conf
 
 networks:
   eventonight-network:
