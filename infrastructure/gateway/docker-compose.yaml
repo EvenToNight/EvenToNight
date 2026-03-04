@@ -1,11 +1,8 @@
 services:
   traefik:
     restart: unless-stopped
-    environment:
-      - TRAEFIK_PROVIDERS_DOCKER_ENDPOINT=unix:///var/run/docker.sock
-      - TRAEFIK_PROVIDERS_DOCKER_WATCH=true
-      - TRAEFIK_PROVIDERS_DOCKER_EXPOSEDBYDEFAULT=false
-
+    volumes:
+      - ./infrastructure/gateway/config/config.yaml:/etc/traefik/traefik.yaml:ro
 
 networks:
   eventonight-network:

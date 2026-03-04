@@ -10,7 +10,6 @@ services:
       - "${TRAEFIK_SECURE_SERVICE_PORT}:443"
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./infrastructure/gateway/config/config.yaml:/etc/traefik/traefik.yaml:ro
       - ./infrastructure/gateway/config/dynamic:/etc/traefik/dynamic:ro
     healthcheck:
       test: ["CMD", "traefik", "healthcheck", "--ping"]

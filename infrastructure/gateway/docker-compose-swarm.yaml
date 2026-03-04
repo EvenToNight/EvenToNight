@@ -1,14 +1,17 @@
 services:
   traefik:
-    environment:
-      - TRAEFIK_PROVIDERS_SWARM_ENDPOINT=unix:///var/run/docker.sock
-      - TRAEFIK_PROVIDERS_SWARM_WATCH=true
-      - TRAEFIK_PROVIDERS_SWARM_EXPOSEDBYDEFAULT=false
+    configs:
+      - source: traefik_config
+        target: /etc/traefik/traefik.yaml
     deploy:
       mode: global
       placement:
         constraints:
           - node.role == manager
+
+configs:
+  traefik_config:
+    file: ./infrastructure/gateway/config/config-swarm.yaml
 
 networks:
   eventonight-network:
