@@ -20,6 +20,7 @@ export class RabbitMqService {
 
     await channel.assertQueue(configuration.queue, {
       durable: true,
+      arguments: { 'x-single-active-consumer': true },
     });
 
     for (const key of configuration.routingKeys) {

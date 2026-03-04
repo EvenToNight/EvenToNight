@@ -3,6 +3,8 @@ services:
     restart: unless-stopped
     ports:
       - '5672:5672'
+    volumes:
+      - ./infrastructure/message-broker/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
 
 networks:
   eventonight-network:

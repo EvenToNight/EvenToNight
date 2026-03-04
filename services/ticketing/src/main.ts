@@ -116,6 +116,7 @@ async function bootstrap() {
       prefetchCount: 1,
       queueOptions: {
         durable: true,
+        arguments: { 'x-single-active-consumer': true },
       },
       socketOptions: {
         heartbeatIntervalInSeconds: 10,

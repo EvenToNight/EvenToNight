@@ -45,7 +45,9 @@ class RabbitEventConsumer(
 
       channel.exchangeDeclare(exchangeName, "topic", true)
 
-      channel.queueDeclare(queueName, true, false, false, null)
+      val queueArgs = new java.util.HashMap[String, Object]()
+      queueArgs.put("x-single-active-consumer", java.lang.Boolean.TRUE)
+      channel.queueDeclare(queueName, true, false, false, queueArgs)
 
       routingKeys.foreach { key =>
         channel.queueBind(queueName, exchangeName, key)
