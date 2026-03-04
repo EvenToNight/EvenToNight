@@ -53,7 +53,7 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   exit 0
 fi
 
-STACK_NAME="cccc"
+STACK_NAME="eventonight-swarm"
 USE_DEV=false
 STOP=false
 REMOVE_VOLUMES=false
