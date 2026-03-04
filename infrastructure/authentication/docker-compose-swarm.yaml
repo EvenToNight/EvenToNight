@@ -11,12 +11,12 @@ services:
         max_attempts: 5
 
   keycloak:
-    environment:
-      KC_CACHE: ispn
-      KC_CACHE_STACK: kubernetes
-      JAVA_OPTS_APPEND: -Djgroups.dns.query=tasks.keycloak
+    # environment:
+    #   KC_CACHE: ispn
+    #   KC_CACHE_STACK: kubernetes
+    #   JAVA_OPTS_APPEND: -Djgroups.dns.query=tasks.keycloak
     deploy:
-      replicas: 3
+      replicas: 1
       labels:
         - "traefik.enable=true"
         - "traefik.http.routers.auth.rule=Host(`auth.${HOST}`)"
