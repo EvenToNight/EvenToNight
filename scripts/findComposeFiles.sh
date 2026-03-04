@@ -83,7 +83,7 @@ if [[ "$HAS_CUSTOM_PATH" == false ]]; then
 fi
 
 if [[ "$USE_SWARM" == true ]]; then
-    FILE_PATTERNS=("docker-compose-base.yml")
+    FILE_PATTERNS=("docker-compose-base.yml" "docker-compose.yaml")
     $USE_DEV && FILE_PATTERNS+=("docker-compose-dev.yaml") || true
     FILE_PATTERNS+=("docker-compose-swarm.yaml")
 else
