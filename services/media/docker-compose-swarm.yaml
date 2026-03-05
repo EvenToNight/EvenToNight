@@ -22,7 +22,7 @@ services:
         constraints:
           - node.labels.id.1 == true
       restart_policy:
-        condition: on-failure
+        condition: any
         delay: 10s
         max_attempts: 5
 
