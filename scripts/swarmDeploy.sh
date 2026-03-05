@@ -351,9 +351,10 @@ if [[ -n "$REQUIRED_LABELS" ]]; then
     fi
 fi
 
+DEPLOY_ARGS=(--detach=false --compose-file -)
+[[ "$LOCAL" == true ]] && DEPLOY_ARGS+=(--with-registry-auth)
 echo "$STACK_CONFIG" | docker stack deploy \
-        --detach=false \
-        --compose-file - \
+        "${DEPLOY_ARGS[@]}" \
         "$STACK_NAME"
 echo "💬 Stack '$STACK_NAME' deployed successfully."
 
