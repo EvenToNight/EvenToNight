@@ -1,5 +1,5 @@
 # 0 - Introduction
-The project consists of the design and development of a distributed digital platform called EvenToNight, aimed at connecting organizations that promote social events with users interested in discovering and participating in them. The platform, accessible at [https://eventonight.site](https://eventonight.site/), can be used as guest or with an account for additional functionalities.
+The project consists of the design and development of a distributed digital platform called EvenToNight, aimed at connecting organizations that promote social events with users interested in discovering and participating in them. The platform, accessible at [eventonight](https://eventonight.site/), can be used as guest or with an account for additional functionalities.
 
 From a technical perspective, EvenToNight has been designed as a distributed system based on a microservices architecture, enabling modularity, scalability, and independent management of application components. *// TODO: (accenno al DDD ???)*
 

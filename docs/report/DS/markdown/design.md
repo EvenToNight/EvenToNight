@@ -81,14 +81,15 @@ In particular:
 - Review (User → Event)
 - Participation (User → Event)
 
-// TODO: commento sul perchè interaction è separato da event e user
-Interactions are separated from Event and User entities ...
+Interactions are separated from Event and User entities to enable event-driven propagation of user activities, allowing them to evolve independently from core domain entities.
 
 #### Conversation
 
-Represents a communication channel between two Users. This entity saves data like participants, messages and chat informations.
+Represents a communication channel between two Users. This entity stores information about the participants involved in the chat and metadata related to the conversation.
 
-// TODO: commento sul perchè ho diviso conversation e messages
+Messages are modeled as a separate entity rather than being embedded directly within the Conversation entity. This separation prevents unbounded data growth inside the conversation and allows message data to be managed independently.
+
+Moreover, this design improves efficiency when retrieving the list of conversations. When a user requests the list of active conversations, the system only needs to access conversation metadata without loading all the associated messages. Message data is retrieved only when a specific conversation is opened.
 
 #### Notification
 
