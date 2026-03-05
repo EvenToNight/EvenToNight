@@ -13,12 +13,19 @@ DESCRIPTION
 PARAMETERS
     STACK_NAME    Optional. Defaults to eventonight-swarm.
 
+OPTIONS
+    --status
+        Print a status table of all services in the stack and exit.
+
 EXAMPLES
     ./swarmRecover.sh
         Recover the default stack.
 
     ./swarmRecover.sh my-stack
         Recover a custom stack.
+
+    ./swarmRecover.sh --status
+        Show service status table.
 '
 set -euo pipefail
 
@@ -27,7 +34,21 @@ if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
   exit 0
 fi
 
-STACK_NAME="${1:-eventonight-swarm}"
+STACK_NAME="eventonight-swarm"
+STATUS=false
+
+for arg in "$@"; do
+    if [[ "$arg" == "--status" ]]; then
+        STATUS=true
+    elif [[ "$arg" != --* ]]; then
+        STACK_NAME="$arg"
+    fi
+done
+
+if [[ "$STATUS" == true ]]; then
+    docker stack services "$STACK_NAME" --format "table {{.Name}}\t{{.Replicas}}\t{{.Image}}" 2>&1
+    exit 0
+fi
 
 echo "💬 Checking services in stack '$STACK_NAME'..."
 
