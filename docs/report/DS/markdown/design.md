@@ -119,13 +119,25 @@ Domain events enable asynchronous integration between bounded contexts and allow
 
 ## 4.2 - Interaction
 
-To implement communication between microservices, two interaction patterns were adopted:
+Communication between the different components of the system follows two interaction patterns: synchronous request–response interactions and asynchronous event-based communication.
 
-- **Synchronous REST communication between frontend and backend services**: the frontend interacts with backend services via REST APIs. This synchronous pattern ensures that a response is returned only after the backend has successfully processed the request and is suitable for handling user interactions (e.g., login, search, ticket purchase).
+The choice of combining these two approaches allows the system to support direct user interactions while maintaining loose coupling and independent evolution of backend services.
 
-- **Asynchronous event-driven communication between backend services**: backend microservices communicate via RabbitMQ events, using the publish-subscribe pattern with exchange and queues. This pattern decouples services and supports extensibility, maintainability, and potential horizontal scalability.
+- **Synchronous interactions between frontend and backend services**: 
+  Synchronous communication is primarily used for interactions initiated by users through the frontend. In this pattern, a client sends a request to a service and waits for a response before continuing the execution.
 
-This combination of synchronous and asynchronous interaction patterns ensures that user-driven requests are handled reliably, while preserving the benefits of distributed event-based coordination.
+  This approach is suitable for operations that require an immediate result, such as authentication, event browsing, or ticket purchasing. The response returned by the service confirms the successful execution of the operation or reports possible validation errors.
+  Using synchronous interactions for user-driven operations simplifies the control flow and ensures that the user receives immediate feedback from the system.
+
+- **Asynchronous event-driven communication**:
+  Communication between backend services is primarily handled through asynchronous event-driven interactions. In this model, when a service completes an operation that may affect other parts of the system, it emits a domain event describing the change that occurred.
+  Other services can subscribe to the events they are interested in and react accordingly. For example, the creation of an interaction or the publication of an event may trigger the generation of notifications or updates in other subsystems.
+
+#### Consistency and coordination
+
+Each service guarantees consistency within its own boundaries by executing state-changing operations within local transactions. After a transaction completes, the service may emit one or more domain events describing the resulting state change.
+
+Other services process these events asynchronously, updating their own state or triggering additional operations. This approach avoids the need for distributed transactions across services and allows the system to maintain overall coherence through eventual consistency.
 
 ## 4.3 - Behaviour
 
