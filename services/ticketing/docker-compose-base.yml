@@ -33,7 +33,7 @@ services:
     volumes:
       - mongo-ticketing-data:/data/db
     healthcheck:
-      test: /scripts/init-mongo-replica-set.sh
+      test: ["CMD-SHELL", "bash /scripts/init-mongo-replica-set.sh"]
       interval: 5s
       timeout: 30s
       start_period: 30s

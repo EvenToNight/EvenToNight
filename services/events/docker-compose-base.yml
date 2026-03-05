@@ -31,7 +31,7 @@ services:
     environment:
       - MONGO_HOST=mongo-events
     healthcheck:
-      test: /scripts/init-mongo-replica-set.sh
+      test: ["CMD-SHELL", "bash /scripts/init-mongo-replica-set.sh"]
       interval: 5s
       timeout: 10s
       retries: 20
