@@ -28,7 +28,7 @@ OPTIONS
         Useful for testing with locally built images.
 
     --build
-        Build and push images to Docker Hub before deploying (requires --local).
+        Build and push images to Docker Hub (multi-arch). Without --local, exits after build without deploying.
 
     --remove-local-images
         Delete all :local tagged images from Docker Hub (pushed via --local).
@@ -46,6 +46,9 @@ EXAMPLES:
 
     ./swarmDeploy.sh --local
         Deploy using already-pushed local images (no build).
+
+    ./swarmDeploy.sh --build
+        Build and push images only (no deploy).
 
     ./swarmDeploy.sh --local --build
         Build, push, and deploy using local images.
@@ -187,6 +190,49 @@ if [[ "$STOP" == true || "$REMOVE_VOLUMES" == true || "$REMOVE_LOCAL_IMAGES" == 
     exit 0
 fi
 
+if [[ "$BUILD" == true ]]; then
+    docker login
+    DOCKER_USER=$(docker login 2>&1 | sed -n 's/.*\[Username: \([^]]*\)\].*/\1/p; s/.*[Ll]ogged in as \([^ ]*\).*/\1/p' | head -1 || true)
+    if [[ -z "$DOCKER_USER" ]]; then
+        echo "❌ Could not determine Docker Hub username."
+        exit 1
+    fi
+    DOCKERFILES=$(./scripts/findDockerfiles.sh 2>/dev/null | jq -r '.[]')
+    echo "💬 Build plan (Docker Hub: ${DOCKER_USER}):"
+    while IFS= read -r dockerfile; do
+        dir=$(dirname "$dockerfile")
+        file=$(basename "$dockerfile")
+        dir_name=$(basename "$dir")
+        [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
+        echo "  ${dockerfile} → ${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
+    done <<< "$DOCKERFILES"
+    echo "-----------------"
+    echo "💬 Building and pushing to Docker Hub (multi-arch: linux/amd64,linux/arm64)..."
+    if ! docker buildx inspect multiarch &>/dev/null; then
+        docker buildx create --name multiarch --driver docker-container --use
+        docker buildx inspect --bootstrap
+    else
+        docker buildx use multiarch
+    fi
+    while IFS= read -r dockerfile; do
+        dir=$(dirname "$dockerfile")
+        file=$(basename "$dockerfile")
+        dir_name=$(basename "$dir")
+        [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
+        HUB_TAG="${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
+        echo "  🔨 Building ${IMAGE_NAME}..."
+        docker buildx build --platform linux/amd64,linux/arm64 --push -t "$HUB_TAG" -f "$dockerfile" .
+        echo "  ✓ ${IMAGE_NAME} → ${HUB_TAG}"
+    done <<< "$DOCKERFILES"
+    echo "💬 Build complete."
+    [[ "$LOCAL" == false ]] && exit 0
+fi
+
+if ! docker node ls &>/dev/null; then
+    echo "❌ Not in a Docker Swarm. Run 'docker swarm init' or join a swarm as a manager first."
+    exit 1
+fi
+
 FIND_ARGS=(-p ./services -p ./infrastructure -eP ./infrastructure/seed --swarm)
 $USE_DEV && FIND_ARGS+=(--dev) || true
 
@@ -225,37 +271,15 @@ STACK_CONFIG=$(echo "$COMPOSE_CONFIG" \
     | awk '/^    depends_on:/{skip=1;next} skip && /^      /{next} {skip=0;print}')
 
 if [[ "$LOCAL" == true ]]; then
-    docker login
-    DOCKER_USER=$(docker login 2>&1 | sed -n 's/.*\[Username: \([^]]*\)\].*/\1/p; s/.*[Ll]ogged in as \([^ ]*\).*/\1/p' | head -1 || true)
+    if [[ -z "${DOCKER_USER:-}" ]]; then
+        docker login
+        DOCKER_USER=$(docker login 2>&1 | sed -n 's/.*\[Username: \([^]]*\)\].*/\1/p; s/.*[Ll]ogged in as \([^ ]*\).*/\1/p' | head -1 || true)
+        if [[ -z "$DOCKER_USER" ]]; then
+            echo "❌ Could not determine Docker Hub username."
+            exit 1
+        fi
+    fi
     echo "💬 Using local images from Docker Hub user: ${DOCKER_USER}"
-    if [[ -z "$DOCKER_USER" ]]; then
-        echo "❌ Could not determine Docker Hub username."
-        exit 1
-    fi
-    if [[ "$BUILD" == true ]]; then
-        DOCKERFILES=$(./scripts/findDockerfiles.sh 2>/dev/null | jq -r '.[]')
-        echo "💬 Build plan (Docker Hub: ${DOCKER_USER}):"
-        while IFS= read -r dockerfile; do
-            dir=$(dirname "$dockerfile")
-            file=$(basename "$dockerfile")
-            dir_name=$(basename "$dir")
-            [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
-            echo "  ${dockerfile} → ${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
-        done <<< "$DOCKERFILES"
-        echo "-----------------"
-        echo "💬 Building and pushing to Docker Hub..."
-        while IFS= read -r dockerfile; do
-            dir=$(dirname "$dockerfile")
-            file=$(basename "$dockerfile")
-            dir_name=$(basename "$dir")
-            [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
-            HUB_TAG="${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
-            echo "  🔨 Building ${IMAGE_NAME}..."
-            docker build -t "$HUB_TAG" -f "$dockerfile" .
-            docker push "$HUB_TAG"
-            echo "  ✓ ${IMAGE_NAME} → ${HUB_TAG}"
-        done <<< "$DOCKERFILES"
-    fi
     STACK_CONFIG=$(echo "$STACK_CONFIG" \
         | sed "s|ghcr\.io/eventonight/eventonight/\([^:]*\):latest|${DOCKER_USER}/${STACK_NAME}-\1:local|g")
 fi
