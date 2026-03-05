@@ -201,9 +201,11 @@ set -o allexport
 source ./.env
 set +o allexport
 
-#TODO: improve reading from env
-NODE_COUNT=$(docker node ls --format "{{.ID}}" 2>/dev/null | wc -l)
-[[ "$NODE_COUNT" -lt 3 ]] && export RABBITMQ_REPLICAS=1 || export RABBITMQ_REPLICAS=3
+COMPOSE_DEFAULT=$(grep -oh 'RABBITMQ_REPLICAS:-[0-9]*' infrastructure/message-broker/docker-compose-swarm.yaml 2>/dev/null \
+    | sed 's/RABBITMQ_REPLICAS:-//' | head -1)
+DESIRED="${RABBITMQ_REPLICAS:-${COMPOSE_DEFAULT:-1}}"
+NODE_COUNT=$(docker node ls --format "{{.ID}}" 2>/dev/null | wc -l | tr -d ' ')
+[[ "$NODE_COUNT" -lt "$DESIRED" ]] && export RABBITMQ_REPLICAS=1 || export RABBITMQ_REPLICAS="$DESIRED"
 
 FIRST_DEPLOY=false
 docker stack ls --format "{{.Name}}" | grep -q "^${STACK_NAME}$" || FIRST_DEPLOY=true
