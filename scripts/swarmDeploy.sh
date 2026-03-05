@@ -214,6 +214,7 @@ if [[ "$BUILD" == true ]]; then
     else
         docker buildx use multiarch
     fi
+    declare -A BUILD_PIDS
     while IFS= read -r dockerfile; do
         dir=$(dirname "$dockerfile")
         file=$(basename "$dockerfile")
@@ -221,9 +222,19 @@ if [[ "$BUILD" == true ]]; then
         [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
         HUB_TAG="${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
         echo "  🔨 Building ${IMAGE_NAME}..."
-        docker buildx build --platform linux/amd64,linux/arm64 --push -t "$HUB_TAG" -f "$dockerfile" .
-        echo "  ✓ ${IMAGE_NAME} → ${HUB_TAG}"
+        docker buildx build --platform linux/amd64,linux/arm64 --push -t "$HUB_TAG" -f "$dockerfile" . &
+        BUILD_PIDS["$IMAGE_NAME"]=$!
     done <<< "$DOCKERFILES"
+    BUILD_FAILED=false
+    for IMAGE_NAME in "${!BUILD_PIDS[@]}"; do
+        if wait "${BUILD_PIDS[$IMAGE_NAME]}"; then
+            echo "  ✓ ${IMAGE_NAME}"
+        else
+            echo "  ❌ ${IMAGE_NAME} failed"
+            BUILD_FAILED=true
+        fi
+    done
+    [[ "$BUILD_FAILED" == true ]] && exit 1
     echo "💬 Build complete."
     [[ "$LOCAL" == false ]] && exit 0
 fi
