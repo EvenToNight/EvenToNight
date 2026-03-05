@@ -18,7 +18,7 @@ OPTIONS
 
     --stack-name <NAME>
         Set the Docker Swarm stack name.
-        Default: eventonight-production
+        Default: eventonight-swarm
 
     --dev
         Include docker-compose-dev.yaml files in the search.
@@ -27,21 +27,40 @@ OPTIONS
         Use local images instead of pulling from the registry (--resolve-image never).
         Useful for testing with locally built images.
 
+    --build
+        Build and push images to Docker Hub before deploying (requires --local).
+
     --remove-local-images
         Delete all :local tagged images from Docker Hub (pushed via --local).
 
+    --auto-labels
+        Automatically assign missing node.labels constraints found in swarm compose files to swarm nodes, balancing the distribution across available nodes.
+
+
 EXAMPLES:
     ./swarmDeploy.sh
-        Deploy the stack.
+        Deploy the stack using registry images.
+
+    ./swarmDeploy.sh --auto-labels
+        Deploy the stack, auto-assigning missing node labels before deploying.
 
     ./swarmDeploy.sh --local
-        Deploy the stack using local images.
+        Deploy using already-pushed local images (no build).
+
+    ./swarmDeploy.sh --local --build
+        Build, push, and deploy using local images.
+
+    ./swarmDeploy.sh --local --build --auto-labels
+        Build, push, auto-assign labels, and deploy.
 
     ./swarmDeploy.sh --stop
-        Remove the stack.
+        Remove the stack (volumes are preserved).
 
     ./swarmDeploy.sh --stop --remove-volumes
         Remove the stack and all its volumes.
+
+    ./swarmDeploy.sh --remove-local-images
+        Delete all :local images pushed to Docker Hub for this stack.
 
 NOTES:
   - Requires Bash and Docker installed with Swarm mode initialized.
@@ -62,6 +81,8 @@ STOP=false
 REMOVE_VOLUMES=false
 REMOVE_LOCAL_IMAGES=false
 LOCAL=false
+BUILD=false
+AUTO_LABELS=false
 SKIP_NEXT=false
 
 for arg in "$@"; do
@@ -81,6 +102,10 @@ for arg in "$@"; do
         USE_DEV=true
     elif [[ "$arg" == "--local" ]]; then
         LOCAL=true
+    elif [[ "$arg" == "--build" ]]; then
+        BUILD=true
+    elif [[ "$arg" == "--auto-labels" ]]; then
+        AUTO_LABELS=true
     elif [[ "$arg" == "--stack-name" ]]; then
         SKIP_NEXT=true
     fi
@@ -190,7 +215,7 @@ COMPOSE_CONFIG=$(docker compose \
     --env-file ./.env \
     ${COMPOSE_ARGS[@]+"${COMPOSE_ARGS[@]}"} \
     config)
-echo "$COMPOSE_CONFIG"
+#echo "$COMPOSE_CONFIG"
 echo "-----------------"
 export COMPOSE_PROJECT_NAME="$STACK_NAME"
 STACK_CONFIG=$(echo "$COMPOSE_CONFIG" \
@@ -205,30 +230,87 @@ if [[ "$LOCAL" == true ]]; then
         echo "❌ Could not determine Docker Hub username."
         exit 1
     fi
-    DOCKERFILES=$(./scripts/findDockerfiles.sh 2>/dev/null | jq -r '.[]')
-    echo "💬 Build plan (Docker Hub: ${DOCKER_USER}):"
-    while IFS= read -r dockerfile; do
-        dir=$(dirname "$dockerfile")
-        file=$(basename "$dockerfile")
-        dir_name=$(basename "$dir")
-        [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
-        echo "  ${dockerfile} → ${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
-    done <<< "$DOCKERFILES"
-    echo "-----------------"
-    echo "💬 Building and pushing to Docker Hub..."
-    while IFS= read -r dockerfile; do
-        dir=$(dirname "$dockerfile")
-        file=$(basename "$dockerfile")
-        dir_name=$(basename "$dir")
-        [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
-        HUB_TAG="${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
-        echo "  🔨 Building ${IMAGE_NAME}..."
-        docker build -t "$HUB_TAG" -f "$dockerfile" .
-        docker push "$HUB_TAG"
-        echo "  ✓ ${IMAGE_NAME} → ${HUB_TAG}"
-    done <<< "$DOCKERFILES"
+    if [[ "$BUILD" == true ]]; then
+        DOCKERFILES=$(./scripts/findDockerfiles.sh 2>/dev/null | jq -r '.[]')
+        echo "💬 Build plan (Docker Hub: ${DOCKER_USER}):"
+        while IFS= read -r dockerfile; do
+            dir=$(dirname "$dockerfile")
+            file=$(basename "$dockerfile")
+            dir_name=$(basename "$dir")
+            [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
+            echo "  ${dockerfile} → ${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
+        done <<< "$DOCKERFILES"
+        echo "-----------------"
+        echo "💬 Building and pushing to Docker Hub..."
+        while IFS= read -r dockerfile; do
+            dir=$(dirname "$dockerfile")
+            file=$(basename "$dockerfile")
+            dir_name=$(basename "$dir")
+            [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
+            HUB_TAG="${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
+            echo "  🔨 Building ${IMAGE_NAME}..."
+            docker build -t "$HUB_TAG" -f "$dockerfile" .
+            docker push "$HUB_TAG"
+            echo "  ✓ ${IMAGE_NAME} → ${HUB_TAG}"
+        done <<< "$DOCKERFILES"
+    fi
     STACK_CONFIG=$(echo "$STACK_CONFIG" \
         | sed "s|ghcr\.io/eventonight/eventonight/\([^:]*\):latest|${DOCKER_USER}/${STACK_NAME}-\1:local|g")
+fi
+
+# Check and optionally assign node.labels placement constraints
+REQUIRED_LABELS=$(grep -rh 'node\.labels\.' services/ infrastructure/ --include="*swarm*" 2>/dev/null \
+    | grep -oE 'node\.labels\.[^[:space:]]+[[:space:]]*==[[:space:]]*[^[:space:]]+' \
+    | sed 's/node\.labels\.//' \
+    | sed 's/[[:space:]]*==[[:space:]]*/=/' \
+    | sort -u || true)
+
+if [[ -n "$REQUIRED_LABELS" ]]; then
+    echo "💬 Checking node labels..."
+    MISSING_LABELS=""
+    while IFS= read -r label_pair; do
+        LABEL_NAME="${label_pair%%=*}"
+        LABEL_VALUE="${label_pair#*=}"
+        LABELED_NODE=""
+        while IFS= read -r node; do
+            if docker node inspect "$node" --format "{{json .Spec.Labels}}" 2>/dev/null | grep -q "\"${LABEL_NAME}\":\"${LABEL_VALUE}\""; then
+                LABELED_NODE="$node"
+                break
+            fi
+        done < <(docker node ls -q 2>/dev/null)
+        if [[ -n "$LABELED_NODE" ]]; then
+            HOSTNAME=$(docker node inspect "$LABELED_NODE" --format "{{.Description.Hostname}}" 2>/dev/null)
+            echo "  ✓ $LABEL_NAME=$LABEL_VALUE → $HOSTNAME ($LABELED_NODE)"
+        else
+            echo "  ✗ $LABEL_NAME=$LABEL_VALUE → not assigned"
+            MISSING_LABELS="${MISSING_LABELS}"$'\n'"${label_pair}"
+        fi
+    done <<< "$REQUIRED_LABELS"
+    MISSING_LABELS="${MISSING_LABELS#$'\n'}"
+
+    if [[ -n "$MISSING_LABELS" && "$AUTO_LABELS" == true ]]; then
+        echo "💬 Assigning missing labels..."
+        while IFS= read -r label_pair; do
+            LABEL_NAME="${label_pair%%=*}"
+            LABEL_VALUE="${label_pair#*=}"
+            BEST_NODE=""
+            BEST_COUNT=999
+            while IFS= read -r node; do
+                COUNT=$(docker node inspect "$node" --format "{{json .Spec.Labels}}" 2>/dev/null | (grep -o '"[^"]*":' || true) | wc -l | tr -d ' ')
+                if [[ "$COUNT" -lt "$BEST_COUNT" ]]; then
+                    BEST_COUNT=$COUNT
+                    BEST_NODE=$node
+                fi
+            done < <(docker node ls -q 2>/dev/null)
+            if [[ -n "$BEST_NODE" ]]; then
+                HOSTNAME=$(docker node inspect "$BEST_NODE" --format "{{.Description.Hostname}}" 2>/dev/null)
+                docker node update --label-add "${LABEL_NAME}=${LABEL_VALUE}" "$BEST_NODE" > /dev/null
+                echo "  ✓ $LABEL_NAME=$LABEL_VALUE → $HOSTNAME ($BEST_NODE)"
+            fi
+        done <<< "$MISSING_LABELS"
+    elif [[ -n "$MISSING_LABELS" ]]; then
+        echo "  ⚠️  Use --auto-labels to assign missing labels automatically"
+    fi
 fi
 
 echo "$STACK_CONFIG" | docker stack deploy \
