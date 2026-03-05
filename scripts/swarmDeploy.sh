@@ -27,6 +27,9 @@ OPTIONS
         Use local images instead of pulling from the registry (--resolve-image never).
         Useful for testing with locally built images.
 
+    --remove-local-images
+        Delete all :local tagged images from Docker Hub (pushed via --local).
+
 EXAMPLES:
     ./swarmDeploy.sh
         Deploy the stack.
@@ -57,6 +60,7 @@ STACK_NAME="eventonight-swarm"
 USE_DEV=false
 STOP=false
 REMOVE_VOLUMES=false
+REMOVE_LOCAL_IMAGES=false
 LOCAL=false
 SKIP_NEXT=false
 
@@ -71,6 +75,8 @@ for arg in "$@"; do
         STOP=true
     elif [[ "$arg" == "--remove-volumes" ]]; then
         REMOVE_VOLUMES=true
+    elif [[ "$arg" == "--remove-local-images" ]]; then
+        REMOVE_LOCAL_IMAGES=true
     elif [[ "$arg" == "--dev" ]]; then
         USE_DEV=true
     elif [[ "$arg" == "--local" ]]; then
@@ -109,7 +115,50 @@ if [[ "$REMOVE_VOLUMES" == true ]]; then
     fi
 fi
 
-if [[ "$STOP" == true || "$REMOVE_VOLUMES" == true ]]; then
+if [[ "$REMOVE_LOCAL_IMAGES" == true ]]; then
+    echo "💬 Deleting :local images from Docker Hub..."
+    docker login
+    DOCKER_USER=$(docker login 2>&1 | sed -n 's/.*\[Username: \([^]]*\)\].*/\1/p; s/.*[Ll]ogged in as \([^ ]*\).*/\1/p' | head -1 || true)
+    if [[ -z "$DOCKER_USER" ]]; then
+        echo "❌ Could not determine Docker Hub username."
+        exit 1
+    fi
+    CREDS_STORE=$(jq -r '.credsStore // empty' ~/.docker/config.json 2>/dev/null || true)
+    if [[ -n "$CREDS_STORE" ]]; then
+        DOCKER_PASS=$(echo "https://index.docker.io/v1/" | "docker-credential-${CREDS_STORE}" get 2>/dev/null | jq -r '.Secret // empty' || true)
+    else
+        DOCKER_PASS=$(jq -r '.auths["https://index.docker.io/v1/"].auth // empty' ~/.docker/config.json 2>/dev/null | base64 -d 2>/dev/null | cut -d: -f2 || true)
+    fi
+    HUB_TOKEN=$(curl -s -X POST \
+        -H "Content-Type: application/json" \
+        -d "{\"username\": \"${DOCKER_USER}\", \"password\": \"${DOCKER_PASS}\"}" \
+        "https://hub.docker.com/v2/users/login" | jq -r '.token // empty')
+    if [[ -z "$HUB_TOKEN" ]]; then
+        echo "❌ Could not authenticate with Docker Hub API."
+        exit 1
+    fi
+    DOCKERFILES=$(./scripts/findDockerfiles.sh 2>/dev/null | jq -r '.[]')
+    while IFS= read -r dockerfile; do
+        dir=$(dirname "$dockerfile")
+        file=$(basename "$dockerfile")
+        dir_name=$(basename "$dir")
+        [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
+        echo "  🗑️  Deleting ${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local..."
+        STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X DELETE \
+            -H "Authorization: JWT ${HUB_TOKEN}" \
+            "https://hub.docker.com/v2/repositories/${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}/")
+        if [[ "$STATUS" == "202" ]]; then
+            echo "  ✓ Deleted"
+        elif [[ "$STATUS" == "404" ]]; then
+            echo "  ⚠️  Not found or already deleted"
+        else
+            echo "  ❌ Failed (HTTP $STATUS)"
+        fi
+    done <<< "$DOCKERFILES"
+    echo "💬 Done."
+fi
+
+if [[ "$STOP" == true || "$REMOVE_VOLUMES" == true || "$REMOVE_LOCAL_IMAGES" == true ]]; then
     exit 0
 fi
 
@@ -127,6 +176,7 @@ set -o allexport
 source ./.env
 set +o allexport
 
+#TODO: improve reading from env
 NODE_COUNT=$(docker node ls --format "{{.ID}}" 2>/dev/null | wc -l)
 [[ "$NODE_COUNT" -lt 3 ]] && export RABBITMQ_REPLICAS=1 || export RABBITMQ_REPLICAS=3
 
@@ -142,40 +192,46 @@ COMPOSE_CONFIG=$(docker compose \
     config)
 echo "$COMPOSE_CONFIG"
 echo "-----------------"
-RESOLVE_IMAGE="always"
-$LOCAL && RESOLVE_IMAGE="never" || true
-
-echo "💬 Using image resolution strategy: $RESOLVE_IMAGE"
 export COMPOSE_PROJECT_NAME="$STACK_NAME"
 STACK_CONFIG=$(echo "$COMPOSE_CONFIG" \
     | sed '/^name:/d; s/published: "\([0-9]*\)"/published: \1/g; s|@sha256:[a-f0-9]*||g' \
     | awk '/^    depends_on:/{skip=1;next} skip && /^      /{next} {skip=0;print}')
 
 if [[ "$LOCAL" == true ]]; then
-    echo "💬 Pinning images to local IDs..."
-    PINNED=""
-    while IFS= read -r line; do
-        if [[ "$line" =~ ^([[:space:]]*)image:[[:space:]]*(ghcr\.io/[^[:space:]]+)$ ]]; then
-            INDENT="${BASH_REMATCH[1]}"
-            IMAGE_REF="${BASH_REMATCH[2]}"
-            LOCAL_ID=$(docker image inspect --format '{{.Id}}' "$IMAGE_REF" 2>/dev/null || true)
-            if [[ -n "$LOCAL_ID" ]]; then
-                PINNED+="${INDENT}image: ${LOCAL_ID}"$'\n'
-                echo "  ✓ $IMAGE_REF → ${LOCAL_ID:7:12}"
-            else
-                PINNED+="$line"$'\n'
-                echo "  ⚠ $IMAGE_REF → not found locally, keeping tag"
-            fi
-        else
-            PINNED+="$line"$'\n'
-        fi
-    done <<< "$STACK_CONFIG"
-    STACK_CONFIG="$PINNED"
+    docker login
+    DOCKER_USER=$(docker login 2>&1 | sed -n 's/.*\[Username: \([^]]*\)\].*/\1/p; s/.*[Ll]ogged in as \([^ ]*\).*/\1/p' | head -1 || true)
+    echo "💬 Using local images from Docker Hub user: ${DOCKER_USER}"
+    if [[ -z "$DOCKER_USER" ]]; then
+        echo "❌ Could not determine Docker Hub username."
+        exit 1
+    fi
+    DOCKERFILES=$(./scripts/findDockerfiles.sh 2>/dev/null | jq -r '.[]')
+    echo "💬 Build plan (Docker Hub: ${DOCKER_USER}):"
+    while IFS= read -r dockerfile; do
+        dir=$(dirname "$dockerfile")
+        file=$(basename "$dockerfile")
+        dir_name=$(basename "$dir")
+        [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
+        echo "  ${dockerfile} → ${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
+    done <<< "$DOCKERFILES"
+    echo "-----------------"
+    echo "💬 Building and pushing to Docker Hub..."
+    while IFS= read -r dockerfile; do
+        dir=$(dirname "$dockerfile")
+        file=$(basename "$dockerfile")
+        dir_name=$(basename "$dir")
+        [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
+        HUB_TAG="${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
+        echo "  🔨 Building ${IMAGE_NAME}..."
+        docker build -t "$HUB_TAG" -f "$dockerfile" .
+        docker push "$HUB_TAG"
+        echo "  ✓ ${IMAGE_NAME} → ${HUB_TAG}"
+    done <<< "$DOCKERFILES"
+    STACK_CONFIG=$(echo "$STACK_CONFIG" \
+        | sed "s|ghcr\.io/eventonight/eventonight/\([^:]*\):latest|${DOCKER_USER}/${STACK_NAME}-\1:local|g")
 fi
 
-# Throubleshoot why --resolve-image never is not working
 echo "$STACK_CONFIG" | docker stack deploy \
-        --resolve-image "$RESOLVE_IMAGE" \
         --detach=false \
         --compose-file - \
         "$STACK_NAME"
