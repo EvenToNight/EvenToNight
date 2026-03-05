@@ -235,6 +235,7 @@ if [[ "$BUILD" == true ]]; then
         fi
     done
     [[ "$BUILD_FAILED" == true ]] && exit 1
+    docker buildx stop multiarch
     echo "💬 Build complete."
     [[ "$LOCAL" == false ]] && exit 0
 fi
