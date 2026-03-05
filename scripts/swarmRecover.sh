@@ -47,6 +47,10 @@ done
 
 if [[ "$STATUS" == true ]]; then
     docker stack services "$STACK_NAME" --format "table {{.Name}}\t{{.Replicas}}\t{{.Image}}" 2>&1
+    echo ""
+    docker stack ps "$STACK_NAME" \
+        --filter "desired-state=running" \
+        --format "table {{.Name}}\t{{.Node}}\t{{.CurrentState}}\t{{.Error}}" 2>&1
     exit 0
 fi
 
