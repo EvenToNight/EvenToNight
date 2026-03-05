@@ -30,8 +30,6 @@ services:
     command: ["--replSet", "rs0", "--bind_ip_all"]
     environment:
       - MONGO_HOST=mongo-events
-    volumes:
-      - ./scripts/init-mongo-replica-set.sh:/scripts/init-mongo-replica-set.sh:ro
     healthcheck:
       test: /scripts/init-mongo-replica-set.sh
       interval: 5s

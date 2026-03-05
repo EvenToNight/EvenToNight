@@ -16,6 +16,9 @@ services:
           - "traefik.http.routers.chat.middlewares=global-retry@file,global-cb@file"
 
   mongo-chat:
+    configs:
+      - source: init_mongo_replica_set
+        target: /scripts/init-mongo-replica-set.sh
     deploy:
       replicas: 1
       placement:
@@ -25,6 +28,10 @@ services:
         condition: on-failure
         delay: 10s
         max_attempts: 5
+
+configs:
+  init_mongo_replica_set:
+    file: ./scripts/init-mongo-replica-set.sh
 
 networks:
   eventonight-network:

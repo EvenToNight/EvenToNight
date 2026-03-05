@@ -32,7 +32,6 @@ services:
       - MONGO_HOST=mongo-ticketing
     volumes:
       - mongo-ticketing-data:/data/db
-      - ./scripts/init-mongo-replica-set.sh:/scripts/init-mongo-replica-set.sh:ro
     healthcheck:
       test: /scripts/init-mongo-replica-set.sh
       interval: 5s

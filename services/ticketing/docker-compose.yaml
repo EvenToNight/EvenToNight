@@ -19,6 +19,8 @@ services:
         condition: service_healthy
 
   mongo-ticketing:
+    volumes:
+      - ./scripts/init-mongo-replica-set.sh:/scripts/init-mongo-replica-set.sh:ro
     environment:
         - REPLICA_SET_NODES_NUMBER=1
     restart: unless-stopped
