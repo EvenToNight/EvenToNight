@@ -39,3 +39,4 @@ networks:
     attachable: true
   chat-network:
     driver: overlay
+    attachable: true

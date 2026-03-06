@@ -4,9 +4,9 @@ import { buildMongoConnectionString } from "../../../utils/mongo-connection.util
 
 export async function insertEvent(event: EventPaymentToInsert): Promise<SeedEventPayment> {
 
-    const DOCKER_CONTAINER =
-        process.env.PAYMENT_MONGO_URI || "eventonight-mongo-payments-1";
-    const MONGO_DB = "eventonight-payments";
+    const MONGO_HOST =
+        process.env.PAYMENT_MONGO_URI || "mongo-ticketing";
+    const MONGO_DB = "eventonight-ticketing";
 
     const eventPaymentToInsert: SeedEventPayment = {
         ...event,
@@ -17,10 +17,10 @@ export async function insertEvent(event: EventPaymentToInsert): Promise<SeedEven
     const insertCommand = `db.events.insertOne(${JSON.stringify(eventPaymentToInsert)})`;
 
     try {
-        const connectionString = buildMongoConnectionString(DOCKER_CONTAINER, MONGO_DB);
+        const connectionString = buildMongoConnectionString(MONGO_HOST, MONGO_DB);
 
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
+            `mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Event Payment inserted: ${event._id}`);

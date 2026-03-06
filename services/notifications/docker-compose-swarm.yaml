@@ -54,3 +54,4 @@ networks:
     attachable: true
   notifications-network:
     driver: overlay
+    attachable: true

@@ -1,7 +1,0 @@
-services:
-  seed:
-    restart: unless-stopped
-
-networks:
-  eventonight-network:
-    driver: bridge

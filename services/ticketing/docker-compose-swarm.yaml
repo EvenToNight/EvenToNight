@@ -88,3 +88,4 @@ networks:
     attachable: true
   ticketing-network:
     driver: overlay
+    attachable: true

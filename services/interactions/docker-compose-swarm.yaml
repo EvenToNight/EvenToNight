@@ -39,3 +39,4 @@ networks:
     attachable: true
   interactions-network:
     driver: overlay
+    attachable: true

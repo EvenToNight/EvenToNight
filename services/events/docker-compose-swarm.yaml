@@ -39,3 +39,4 @@ networks:
     attachable: true
   events-network:
     driver: overlay
+    attachable: true

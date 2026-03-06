@@ -8,9 +8,9 @@ export async function createOrder(orderData: OrderToCreate): Promise<SeedOrder> 
     const _id = crypto.randomUUID();
     const now = new Date();
 
-    const DOCKER_CONTAINER = 
-        process.env.PAYMENT_MONGO_URI || "eventonight-mongo-payments-1";
-    const MONGO_DB = "eventonight-payments";
+    const MONGO_HOST =
+        process.env.PAYMENT_MONGO_URI || "mongo-ticketing";
+    const MONGO_DB = "eventonight-ticketing";
 
     const orderToCreate: SeedOrder = {
         _id,
@@ -28,10 +28,10 @@ export async function createOrder(orderData: OrderToCreate): Promise<SeedOrder> 
     const insertCommand = `db.orders.insertOne(${jsonDoc})`;
 
     try {
-        const connectionString = buildMongoConnectionString(DOCKER_CONTAINER, MONGO_DB);
+        const connectionString = buildMongoConnectionString(MONGO_HOST, MONGO_DB);
 
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
+            `mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Order inserted: ${_id}`);

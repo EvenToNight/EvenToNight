@@ -1,10 +1,14 @@
 services:
   seed:
     image: ghcr.io/eventonight/eventonight/seed:latest
+    restart: unless-stopped
     networks:
       - eventonight-network
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
+      - events-network
+      - interactions-network
+      - chat-network
+      - ticketing-network
+      - notifications-network
     environment:
       - HOST=${HOST}
       - USER_HOST=http://users:${USERS_SERVICE_PORT}
@@ -15,11 +19,28 @@ services:
       - PAYMENTS_HOST=http://ticketing:${TICKETING_SERVICE_PORT}
       - NOTIFICATIONS_HOST=http://notifications:${NOTIFICATIONS_SERVICE_PORT}
       - MONGO_DB=eventonight
-      - EVENT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-events-1
-      - INTERACTION_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-interactions-1
-      - CHAT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-chat-1
-      - PAYMENT_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-ticketing-1
-      - NOTIFICATION_MONGO_URI=${COMPOSE_PROJECT_NAME}-mongo-notifications-1
+      - EVENT_MONGO_URI=mongo-events
+      - INTERACTION_MONGO_URI=mongo-interactions
+      - CHAT_MONGO_URI=mongo-chat
+      - PAYMENT_MONGO_URI=mongo-ticketing
+      - NOTIFICATION_MONGO_URI=mongo-notifications
 
 networks:
   eventonight-network:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_eventonight-network
+  events-network:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_events-network
+  interactions-network:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_interactions-network
+  chat-network:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_chat-network
+  ticketing-network:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_ticketing-network
+  notifications-network:
+    external: true
+    name: ${COMPOSE_PROJECT_NAME}_notifications-network

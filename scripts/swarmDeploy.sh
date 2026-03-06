@@ -209,12 +209,11 @@ if [[ "$BUILD" == true ]]; then
     echo "-----------------"
     echo "💬 Building and pushing to Docker Hub (multi-arch: linux/amd64,linux/arm64)..."
     if ! docker buildx inspect multiarch &>/dev/null; then
-        docker buildx create --name multiarch --driver docker-container --use
-        docker buildx inspect --bootstrap
-    else
-        docker buildx use multiarch
+        docker buildx create --name multiarch --driver docker-container
+        docker buildx inspect --builder multiarch --bootstrap
     fi
-    declare -A BUILD_PIDS
+    BUILD_PIDS=()
+    BUILD_NAMES=()
     while IFS= read -r dockerfile; do
         dir=$(dirname "$dockerfile")
         file=$(basename "$dockerfile")
@@ -222,15 +221,16 @@ if [[ "$BUILD" == true ]]; then
         [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
         HUB_TAG="${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
         echo "  🔨 Building ${IMAGE_NAME}..."
-        docker buildx build --platform linux/amd64,linux/arm64 --push -t "$HUB_TAG" -f "$dockerfile" . &
-        BUILD_PIDS["$IMAGE_NAME"]=$!
+        docker buildx build --builder multiarch --platform linux/amd64,linux/arm64 --push -t "$HUB_TAG" -f "$dockerfile" . &
+        BUILD_PIDS+=($!)
+        BUILD_NAMES+=("$IMAGE_NAME")
     done <<< "$DOCKERFILES"
     BUILD_FAILED=false
-    for IMAGE_NAME in "${!BUILD_PIDS[@]}"; do
-        if wait "${BUILD_PIDS[$IMAGE_NAME]}"; then
-            echo "  ✓ ${IMAGE_NAME}"
+    for i in "${!BUILD_PIDS[@]}"; do
+        if wait "${BUILD_PIDS[$i]}"; then
+            echo "  ✓ ${BUILD_NAMES[$i]}"
         else
-            echo "  ❌ ${IMAGE_NAME} failed"
+            echo "  ❌ ${BUILD_NAMES[$i]} failed"
             BUILD_FAILED=true
         fi
     done
@@ -360,17 +360,6 @@ echo "💬 Stack '$STACK_NAME' deployed successfully."
 
 if [[ "$FIRST_DEPLOY" == true ]]; then
     echo "💬 First deploy detected, initializing the database..."
-    EVENT_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-events" --format "{{.Names}}" | head -1)
-    INTERACTION_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-interactions" --format "{{.Names}}" | head -1)
-    CHAT_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-chat" --format "{{.Names}}" | head -1)
-    TICKETING_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-ticketing" --format "{{.Names}}" | head -1)
-    NOTIFICATION_CONTAINER=$(docker ps --filter "name=${STACK_NAME}_mongo-notifications" --format "{{.Names}}" | head -1)
-    ./scripts/composeAll.sh --project-name "$STACK_NAME" -p ./infrastructure/seed --swarm run --rm \
-        -e "EVENT_MONGO_URI=${EVENT_CONTAINER}" \
-        -e "INTERACTION_MONGO_URI=${INTERACTION_CONTAINER}" \
-        -e "CHAT_MONGO_URI=${CHAT_CONTAINER}" \
-        -e "PAYMENT_MONGO_URI=${TICKETING_CONTAINER}" \
-        -e "NOTIFICATION_MONGO_URI=${NOTIFICATION_CONTAINER}" \
-        seed
+    ./scripts/composeAll.sh --project-name "$STACK_NAME" -p ./infrastructure/seed --swarm run --rm seed
     echo "💬 Database initialized."
 fi

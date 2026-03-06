@@ -7,9 +7,9 @@ export async function createTicketType(ticketTypeData: TicketTypeToCreate): Prom
     const _id = new ObjectId();
     const now = new Date();
 
-    const DOCKER_CONTAINER = 
-        process.env.PAYMENT_MONGO_URI || "eventonight-mongo-payments-1";
-    const MONGO_DB = "eventonight-payments";
+    const MONGO_HOST =
+        process.env.PAYMENT_MONGO_URI || "mongo-ticketing";
+    const MONGO_DB = "eventonight-ticketing";
 
     const ticketTypeToCreate: SeedTicketType = {
         _id,
@@ -21,10 +21,10 @@ export async function createTicketType(ticketTypeData: TicketTypeToCreate): Prom
     const insertCommand = `db.event_ticket_types.insertOne(${JSON.stringify(ticketTypeToCreate)})`;
 
     try {
-        const connectionString = buildMongoConnectionString(DOCKER_CONTAINER, MONGO_DB);
+        const connectionString = buildMongoConnectionString(MONGO_HOST, MONGO_DB);
 
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
+            `mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Ticket Type inserted: ${_id}`);
@@ -40,8 +40,8 @@ export async function createTicketType(ticketTypeData: TicketTypeToCreate): Prom
 
 export async function insertEventPrice(ticketType: SeedTicketType): Promise<void> {
     const _id = new ObjectId();
-    const DOCKER_CONTAINER = 
-        process.env.EVENT_MONGO_URI || "eventonight-mongo-events-1";
+    const MONGO_HOST =
+        process.env.EVENT_MONGO_URI || "mongo-events";
     const MONGO_DB = process.env.MONGO_DB || "eventonight";
 
     const eventPriceToCreate = {
@@ -53,10 +53,10 @@ export async function insertEventPrice(ticketType: SeedTicketType): Promise<void
 
     const insertCommand = `db.prices.insertOne(${JSON.stringify(eventPriceToCreate)})`;
     try {
-        const connectionString = buildMongoConnectionString(DOCKER_CONTAINER, MONGO_DB);
+        const connectionString = buildMongoConnectionString(MONGO_HOST, MONGO_DB);
 
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
+            `mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Event Price inserted for events: ${ticketType.eventId}`);
