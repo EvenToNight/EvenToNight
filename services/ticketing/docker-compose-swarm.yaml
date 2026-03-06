@@ -17,6 +17,7 @@ services:
         - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
         - "traefik.http.routers.ticketing.middlewares=global-retry@file,global-cb@file"
   mongo-ticketing:
+    hostname: mongo-ticketing
     configs:
       - source: init_mongo_replica_set
         target: /scripts/init-mongo-replica-set.sh
@@ -33,6 +34,7 @@ services:
         max_attempts: 5
 
   mongo-ticketing-2:
+    hostname: mongo-ticketing-2
     image: mongo
     command: ["--replSet", "rs0", "--bind_ip_all"]
     networks:
@@ -56,6 +58,7 @@ services:
       start_period: 30s
 
   mongo-ticketing-3:
+    hostname: mongo-ticketing-3
     image: mongo
     command: ["--replSet", "rs0", "--bind_ip_all"]
     networks:
