@@ -46,6 +46,9 @@ COPY --from=nestjs-common-builder /home/app/libs/nestjs-common/package.json ./no
 
 FROM node:20-slim AS runner
 WORKDIR /home/app
+
+RUN apt-get update && apt-get install -y curl
+
 COPY --from=builder /home/app/services/payments/node_modules ./node_modules
 COPY --from=builder /home/app/services/payments/dist ./dist
 

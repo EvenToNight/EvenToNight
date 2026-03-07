@@ -29,6 +29,9 @@ OPTIONS
     --dev
         Include docker-compose-dev.yaml files in the search.
 
+    --swarm
+        Include docker-compose-swarm.yaml files in the search.
+
     Other arguments provided will be passed directly to the docker compose command.
 
 EXAMPLES:
@@ -87,6 +90,8 @@ for arg in "$@"; do
 
     if [[ "$arg" == "--dev" ]]; then
         FIND_ARGS+=(--dev)
+    elif [[ "$arg" == "--swarm" ]]; then
+        FIND_ARGS+=(--swarm)
     elif [[ "$arg" == "--project-name" ]]; then
         SKIP_NEXT=true
         SKIP_TYPE="project-name"

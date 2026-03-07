@@ -16,3 +16,4 @@ services:
 networks:
   eventonight-network:
     driver: overlay
+    attachable: true

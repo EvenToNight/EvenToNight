@@ -10,11 +10,11 @@ services:
   keycloak-provision:
     depends_on: []
     deploy:
-      restart_policy:
-        condition: on-failure
+      mode: replicated-job
 
 networks:
   eventonight-network:
     driver: overlay
+    attachable: true
   keycloak-network:
     driver: overlay

@@ -7,7 +7,7 @@ services:
     environment:
       - HOST=${HOST}
       - PORT=${PAYMENTS_SERVICE_PORT}
-      - TEST_DEPLOYMENT=${TEST_DEPLOYMENT}
+      - TEST_DEPLOYMENT=${TEST_DEPLOYMENT:-false}
       - RABBITMQ_HOST=rabbitmq
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASS=${RABBITMQ_PASS}
@@ -24,6 +24,12 @@ services:
       - "traefik.http.services.payments.loadbalancer.server.port=${PAYMENTS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${PAYMENTS_SERVICE_PORT}/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     depends_on:
       mongo-payments:
         condition: service_healthy

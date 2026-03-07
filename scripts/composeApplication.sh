@@ -122,3 +122,7 @@ if [ "$PULL" = "pull" ]; then
   ./scripts/composeAll.sh -p ./infrastructure/seed pull
   echo "💬 Latest images pulled successfully."
 fi
+if [ "$BUILD" = "--build" ]; then
+  docker image prune -f
+  echo "💬 Application built successfully."
+fi

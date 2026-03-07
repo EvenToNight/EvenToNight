@@ -20,5 +20,6 @@ services:
 networks:
   eventonight-network:
     driver: overlay
+    attachable: true
   payments-network:
     driver: overlay

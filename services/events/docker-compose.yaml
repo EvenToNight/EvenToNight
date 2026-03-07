@@ -21,6 +21,12 @@ services:
       - "traefik.http.services.events.loadbalancer.server.port=${EVENTS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "true"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
     depends_on:
       mongo-events:
         condition: service_healthy
@@ -35,26 +41,12 @@ services:
     networks:
       - events-network
     command: ["--replSet", "rs0", "--bind_ip_all"]
+    environment:
+      - MONGO_HOST=mongo-events
+    volumes:
+      - ./scripts/init-mongo-replica-set.sh:/scripts/init-mongo-replica-set.sh:ro
     healthcheck:
-      test: |
-        mongosh --quiet --eval "
-        try {
-          var status = rs.status();
-          if (status.ok === 1 && status.members && status.members[0].stateStr === 'PRIMARY') {
-            db.runCommand({ ping: 1 });
-          } else {
-            quit(1);
-          }
-        } catch(e) {
-          if (e.codeName === 'NotYetInitialized') {
-            rs.initiate({
-              _id: 'rs0',
-              members: [{ _id: 0, host: 'mongo-events:27017' }]
-            });
-          }
-          quit(1);
-        }
-        "
+      test: /scripts/init-mongo-replica-set.sh
       interval: 5s
       timeout: 10s
       retries: 20
