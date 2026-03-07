@@ -30,6 +30,14 @@ OPTIONS
     --build
         Build and push images to Docker Hub (multi-arch). Without --local, exits after build without deploying.
 
+    --host <HOSTNAME>
+        Override the HOST build arg for images that declare it (e.g. frontend).
+        Defaults to HOST from .env. Useful with --local --build to bake a custom hostname into the frontend image.
+
+    --no-deps
+        Sets the TEST_DEPLOYMENT environment variable to "true" for testing deployments.
+        It avoids using dependent services (e.g. stripe) during testing.
+
     --remove-local-images
         Delete all :local tagged images from Docker Hub (pushed via --local).
 
@@ -53,8 +61,14 @@ EXAMPLES:
     ./swarmDeploy.sh --local --build
         Build, push, and deploy using local images.
 
+    ./swarmDeploy.sh --local --build --host localhost
+        Build with localhost baked into the frontend, push, and deploy.
+
     ./swarmDeploy.sh --local --build --auto-labels
         Build, push, auto-assign labels, and deploy.
+
+    ./swarmDeploy.sh --no-deps
+        Deploy with TEST_DEPLOYMENT=true (skips external services like Stripe).
 
     ./swarmDeploy.sh --stop
         Remove the stack (volumes are preserved).
@@ -86,12 +100,19 @@ REMOVE_LOCAL_IMAGES=false
 LOCAL=false
 BUILD=false
 AUTO_LABELS=false
+NO_DEPS=false
+BUILD_HOST=""
 SKIP_NEXT=false
+SKIP_NEXT_KEY=""
 
 for arg in "$@"; do
     if [[ "$SKIP_NEXT" == true ]]; then
-        STACK_NAME="$arg"
+        case "$SKIP_NEXT_KEY" in
+            --stack-name) STACK_NAME="$arg" ;;
+            --host) BUILD_HOST="$arg" ;;
+        esac
         SKIP_NEXT=false
+        SKIP_NEXT_KEY=""
         continue
     fi
 
@@ -109,8 +130,11 @@ for arg in "$@"; do
         BUILD=true
     elif [[ "$arg" == "--auto-labels" ]]; then
         AUTO_LABELS=true
-    elif [[ "$arg" == "--stack-name" ]]; then
+    elif [[ "$arg" == "--no-deps" ]]; then
+        NO_DEPS=true
+    elif [[ "$arg" == "--stack-name" || "$arg" == "--host" ]]; then
         SKIP_NEXT=true
+        SKIP_NEXT_KEY="$arg"
     fi
 done
 
@@ -231,6 +255,9 @@ if [[ "$STOP" == true || "$REMOVE_VOLUMES" == true || "$REMOVE_LOCAL_IMAGES" == 
 fi
 
 if [[ "$BUILD" == true ]]; then
+    if [[ -z "$BUILD_HOST" ]]; then
+        BUILD_HOST=$(grep -E '^HOST=' ./.env 2>/dev/null | cut -d= -f2- | tr -d '"' || true)
+    fi
     docker login
     DOCKER_USER=$(docker login 2>&1 | sed -n 's/.*\[Username: \([^]]*\)\].*/\1/p; s/.*[Ll]ogged in as \([^ ]*\).*/\1/p' | head -1 || true)
     if [[ -z "$DOCKER_USER" ]]; then
@@ -261,7 +288,14 @@ if [[ "$BUILD" == true ]]; then
         [[ "$file" == "Dockerfile" ]] && IMAGE_NAME="$dir_name" || IMAGE_NAME="${dir_name}-${file#Dockerfile-}"
         HUB_TAG="${DOCKER_USER}/${STACK_NAME}-${IMAGE_NAME}:local"
         echo "  🔨 Building ${IMAGE_NAME}..."
-        docker buildx build --builder multiarch --platform linux/amd64,linux/arm64 --push -t "$HUB_TAG" -f "$dockerfile" . &
+        BUILD_ARGS=()
+        if [[ -n "$BUILD_HOST" ]] && grep -q '^ARG HOST' "$dockerfile" 2>/dev/null; then
+            BUILD_ARGS+=(--build-arg "HOST=${BUILD_HOST}")
+            if [[ "$BUILD_HOST" == "localhost" ]] && grep -q '^ARG USE_HTTPS' "$dockerfile" 2>/dev/null; then
+                BUILD_ARGS+=(--build-arg "USE_HTTPS=false")
+            fi
+        fi
+        docker buildx build --builder multiarch --platform linux/amd64,linux/arm64 --push -t "$HUB_TAG" -f "$dockerfile" "${BUILD_ARGS[@]+"${BUILD_ARGS[@]}"}" . &
         BUILD_PIDS+=($!)
         BUILD_NAMES+=("$IMAGE_NAME")
     done <<< "$DOCKERFILES"
@@ -275,7 +309,7 @@ if [[ "$BUILD" == true ]]; then
         fi
     done
     [[ "$BUILD_FAILED" == true ]] && exit 1
-    docker buildx stop multiarch
+    docker buildx rm multiarch
     echo "💬 Build complete."
     [[ "$LOCAL" == false ]] && exit 0
 fi
@@ -298,6 +332,8 @@ done
 set -o allexport
 source ./.env
 set +o allexport
+
+[[ "$NO_DEPS" == true ]] && export TEST_DEPLOYMENT="true" || true
 
 COMPOSE_DEFAULT=$(grep -oh 'RABBITMQ_REPLICAS:-[0-9]*' infrastructure/message-broker/docker-compose-swarm.yaml 2>/dev/null \
     | sed 's/RABBITMQ_REPLICAS:-//' | head -1)
