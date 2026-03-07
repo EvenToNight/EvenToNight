@@ -7,7 +7,7 @@ services:
       - "traefik.http.routers.events.entrypoints=web"
       - "traefik.http.services.events.loadbalancer.server.port=${EVENTS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-      - "traefik.http.routers.events.middlewares=global-retry@file,global-cb@file"    
+      - "traefik.http.routers.events.middlewares=global-retry@file,global-cb@file,global-rate-limit@file"    
     depends_on:
       mongo-events:
         condition: service_healthy

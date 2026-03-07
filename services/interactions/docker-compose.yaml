@@ -7,7 +7,7 @@ services:
       - "traefik.http.routers.interactions.entrypoints=web"
       - "traefik.http.services.interactions.loadbalancer.server.port=${INTERACTIONS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-      - "traefik.http.routers.interactions.middlewares=global-retry@file,global-cb@file"    
+      - "traefik.http.routers.interactions.middlewares=global-retry@file,global-cb@file,global-rate-limit@file"    
     depends_on:
       mongo-interactions:
         condition: service_healthy

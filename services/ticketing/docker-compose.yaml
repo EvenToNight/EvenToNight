@@ -9,7 +9,7 @@ services:
       - "traefik.http.routers.ticketing.entrypoints=web"
       - "traefik.http.services.ticketing.loadbalancer.server.port=${TICKETING_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-      - "traefik.http.routers.ticketing.middlewares=global-retry@file,global-cb@file"    
+      - "traefik.http.routers.ticketing.middlewares=global-retry@file,global-cb@file,global-rate-limit@file"    
     depends_on:
       mongo-ticketing:
         condition: service_healthy

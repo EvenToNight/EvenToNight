@@ -18,7 +18,7 @@ services:
         - "traefik.http.services.notifications.loadbalancer.sticky.cookie.name=notifications_sticky"
         - "traefik.http.services.notifications.loadbalancer.sticky.cookie.httpOnly=true"
         - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-        - "traefik.http.routers.notifications.middlewares=global-retry@file,global-cb@file"
+        - "traefik.http.routers.notifications.middlewares=global-retry@file,global-cb@file,global-rate-limit@file"
 
   mongo-notifications:
     deploy:

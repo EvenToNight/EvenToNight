@@ -22,7 +22,7 @@ services:
         - "traefik.http.routers.auth.rule=Host(`auth.${HOST}`)"
         - "traefik.http.routers.auth.entrypoints=web"
         - "traefik.http.services.auth.loadbalancer.server.port=8080"
-        - "traefik.http.routers.auth.middlewares=global-retry@file,global-cb@file"  
+        - "traefik.http.routers.auth.middlewares=global-retry@file,global-cb@file,global-rate-limit@file"  
         
   keycloak-provision:
     deploy:
