@@ -1,7 +1,7 @@
 package infrastructure.keycloak
 
+import application.dto.UserTokens
 import io.circe.Json
-import model.UserTokens
 
 object TokenParser:
   def parseAccessToken(json: Json): Either[String, String] =
