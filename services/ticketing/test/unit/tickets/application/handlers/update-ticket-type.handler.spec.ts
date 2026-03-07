@@ -77,12 +77,13 @@ describe('UpdateTicketTypeHandler', () => {
   });
 
   describe('Given the new quantity is less than soldQuantity', () => {
-    it('delegates to updateTicketAndMakeSoldOut without publishing an outbox event', async () => {
+    it('delegates to updateTicketAndMakeSoldOut and publishes a ticket-type.updated outbox event', async () => {
       const ticketType = makeTicketType(5); // soldQuantity = 5
       eventTicketTypeService.findById.mockResolvedValue(ticketType);
       eventTicketTypeService.updateTicketAndMakeSoldOut.mockResolvedValue(
         ticketType,
       );
+      outboxService.addEvent.mockResolvedValue(undefined as never);
 
       await handler.handle('some-id', { price: 50, quantity: 3 }); // quantity 3 < soldQuantity 5
 
@@ -93,7 +94,10 @@ describe('UpdateTicketTypeHandler', () => {
         expect.objectContaining({ quantity: 3 }),
       );
       expect(eventTicketTypeService.updateTicket).not.toHaveBeenCalled();
-      expect(outboxService.addEvent).not.toHaveBeenCalled();
+      expect(outboxService.addEvent).toHaveBeenCalledWith(
+        expect.objectContaining({ eventType: 'ticket-type.updated' }),
+        'ticket-type.updated',
+      );
     });
   });
 

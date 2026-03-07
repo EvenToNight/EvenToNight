@@ -49,6 +49,11 @@ export class RabbitMQConsumer {
     }
   }
 
+  async close(): Promise<void> {
+    await this.channelWrapper?.close();
+    await this.connection?.close();
+  }
+
   private async startConsuming(channel: ConfirmChannel): Promise<void> {
     const queue = config.rabbitmq.queue;
 

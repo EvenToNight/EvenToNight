@@ -5,6 +5,7 @@ import {
   Transactional,
   type TransactionManager,
 } from '@libs/ts-common';
+import { TicketNotFoundException } from 'src/tickets/domain/exceptions/ticket-not-found-exception';
 
 @Injectable()
 export class VerifyTicketHandler {
@@ -17,7 +18,7 @@ export class VerifyTicketHandler {
   @Transactional()
   async handle(ticketId: string): Promise<boolean> {
     const ticket = await this.ticketService.findById(ticketId);
-    if (!ticket) throw new Error('Ticket not found');
+    if (!ticket) throw new TicketNotFoundException(ticketId);
     if (ticket.isUsed()) return false;
     ticket.use();
     await this.ticketService.update(ticket);

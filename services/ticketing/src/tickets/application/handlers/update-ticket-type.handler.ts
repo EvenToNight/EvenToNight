@@ -30,10 +30,15 @@ export class UpdateTicketTypeHandler {
       throw new EventTicketTypeNotFoundException(id);
     }
     //TODO: cancel extra tickets and notify users --> refund
+    let updated: EventTicketType;
     if (dto.quantity && dto.quantity < ticketType.getSoldQuantity()) {
-      return this.eventTicketTypeService.updateTicketAndMakeSoldOut(id, dto);
+      updated = await this.eventTicketTypeService.updateTicketAndMakeSoldOut(
+        id,
+        dto,
+      );
+    } else {
+      updated = await this.eventTicketTypeService.updateTicket(id, dto);
     }
-    const updated = await this.eventTicketTypeService.updateTicket(id, dto);
     await this.outboxService.addEvent(
       new TicketTypeUpdatedEvent({
         ticketTypeId: id,

@@ -88,12 +88,12 @@ async function bootstrap() {
   const rabbitmqPass = process.env.RABBITMQ_PASS || 'guest';
   const rabbitmqUrl = `amqp://${rabbitmqUser}:${rabbitmqPass}@${rabbitmqHost}:5672`;
 
-  const service_queue = 'ticketing_queue';
+  const serviceQueue = 'ticketing_queue';
 
   await waitForRabbitMQ(() =>
     RabbitMqService.setup({
       url: rabbitmqUrl,
-      queue: service_queue,
+      queue: serviceQueue,
       routingKeys: [
         'user.created',
         'user.updated',
@@ -111,7 +111,7 @@ async function bootstrap() {
     transport: Transport.RMQ,
     options: {
       urls: [rabbitmqUrl],
-      queue: service_queue,
+      queue: serviceQueue,
       noAck: false,
       prefetchCount: 1,
       queueOptions: {

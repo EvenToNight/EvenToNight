@@ -3,7 +3,6 @@ import { InvalidTicketStatusValueException } from '../exceptions/invalid-ticket-
 export class TicketStatus {
   private constructor(private readonly value: string) {}
 
-  //TODO: evaluate ticket status values needed
   static readonly PENDING_PAYMENT = new TicketStatus('PENDING_PAYMENT');
   static readonly ACTIVE = new TicketStatus('ACTIVE');
   static readonly CANCELLED = new TicketStatus('CANCELLED');

@@ -254,8 +254,6 @@ describe('CheckoutSessionsController (e2e)', () => {
       });
     });
 
-    //TODO: missing param validation tests
-
     describe('GET /checkout-sessions/:sessionId/cancel', () => {
       const redirectTo = 'http://localhost:3000/cancelled';
 

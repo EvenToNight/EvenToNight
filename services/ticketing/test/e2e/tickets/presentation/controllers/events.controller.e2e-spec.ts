@@ -333,7 +333,6 @@ describe('EventController (e2e)', () => {
     });
   });
 
-  //TODO: add tests for unauthorized access
   describe('POST /events/:eventId/ticket-types', () => {
     describe('Given valid ticket type data', () => {
       describe('When creating a new ticket type for the event', () => {
@@ -476,7 +475,6 @@ describe('EventController (e2e)', () => {
     });
   });
 
-  //TODO: add tests for unauthorized access
   describe('DELETE /events/:eventId/ticket-types', () => {
     describe('Given existing ticket types for the event', () => {
       describe('When deleting ticket types', () => {

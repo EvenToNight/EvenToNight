@@ -93,7 +93,6 @@ export class StripeService implements PaymentService {
         `Created Stripe checkout session with ${lineItems.length} items: ${session.id}`,
       );
 
-      //TODO: get orderId from metadata or another way
       return {
         id: session.id,
         status: session.status!,

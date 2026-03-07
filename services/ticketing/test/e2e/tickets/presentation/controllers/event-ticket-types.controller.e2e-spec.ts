@@ -210,7 +210,6 @@ describe('EventTicketTypesController (e2e)', () => {
     });
   });
 
-  //TODO: add tests for unauthorized access
   describe('PUT /ticket-types/:ticketTypeId', () => {
     describe('Given valid update data', () => {
       it('Then returns 200 and updates description', async () => {
@@ -355,7 +354,6 @@ describe('EventTicketTypesController (e2e)', () => {
     });
   });
 
-  //TODO: add tests for unauthorized access
   describe('DELETE /ticket-types/:ticketTypeId', () => {
     describe('Given an existing ticket type', () => {
       it('Then returns returns 204', async () => {
@@ -417,7 +415,6 @@ describe('EventTicketTypesController (e2e)', () => {
       });
     });
 
-    //TODO evaluate returning 204 for idempotency
     describe('Given non-existing ticket type', () => {
       it('Then returns returns 404', async () => {
         await request(app.getHttpServer())

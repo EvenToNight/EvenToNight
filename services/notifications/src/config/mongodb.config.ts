@@ -11,6 +11,10 @@ export class MongoDB {
       throw error;
     }
   }
+
+  static async disconnect(): Promise<void> {
+    await mongoose.disconnect();
+  }
 }
 
 mongoose.connection.on("error", (error) => {

@@ -110,7 +110,7 @@ if [ "$PULL" != "pull" ]; then
   ./scripts/composeAll.sh --project-name "$PROJECT_NAME" -p ./services -p ./infrastructure rm -fsv keycloak-provision
   echo "💬 Init containers removed."
 else
-  echo "💬 LLatest images pulled successfully."
+  echo "💬 Latest images pulled successfully."
 fi
 
 if [ "$INIT_DB" = true ] && [ "$PULL" != "pull" ]; then

@@ -8,6 +8,7 @@ import { UserId } from 'src/tickets/domain/value-objects/user-id.vo';
 import { EventTicketTypeId } from 'src/tickets/domain/value-objects/event-ticket-type-id.vo';
 import { Money } from 'src/tickets/domain/value-objects/money.vo';
 import { TicketStatus } from 'src/tickets/domain/value-objects/ticket-status.vo';
+import { TicketNotFoundException } from 'src/tickets/domain/exceptions/ticket-not-found-exception';
 
 describe('VerifyTicketHandler', () => {
   let handler: VerifyTicketHandler;
@@ -51,7 +52,7 @@ describe('VerifyTicketHandler', () => {
       ticketService.findById.mockResolvedValue(null);
 
       await expect(handler.handle('non-existent-id')).rejects.toThrow(
-        'Ticket not found',
+        TicketNotFoundException,
       );
     });
   });
