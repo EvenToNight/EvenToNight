@@ -4,25 +4,66 @@
     <title>Async API</title>
     <link rel="icon" type="image/png" href="logo.png">
     <style>
-        html {
-            -moz-tab-size: 4;
-            -o-tab-size: 4;
-            tab-size: 4;
-            line-height: 1.15;
-            -webkit-text-size-adjust: 100%;
+        body {
+            font-family: system-ui, sans-serif;
+            background: #fafafa;
+            margin: 2rem;
         }
-
-        * {
+        .header-container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 2rem;
+        }
+        h1 {
+            font-size: 2.5rem;
+            color: #222;
             margin: 0;
-            font-family: system-ui,
-            -apple-system,
-            Segoe UI,
-            Roboto,
-            Helvetica,
-            Arial,
-            sans-serif,
-            Apple Color Emoji,
-            Segoe UI Emoji;
+            flex: 1;
+            text-align: center;
+        }
+        .service-list {
+            max-width: 500px;
+            margin: 2rem auto;
+        }
+        .service {
+            background: white;
+            margin: 1rem 0;
+            padding: 1rem 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            transition: all 0.2s ease;
+        }
+        .service:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+        }
+        a {
+            text-decoration: none;
+            color: #2a6edb;
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+        .back-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            flex-shrink: 0;
+            background: white;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .back-button:hover {
+            background: #f8f9fa;
+            transform: scale(1.1);
+        }
+        .back-button a {
+            font-size: 1.5rem;
+            line-height: 1;
         }
     </style>
     <link
@@ -33,12 +74,17 @@
 
 <body>
   <div class="header-container">
+    <div class="back-button" onclick="let url = window.location.href; let index = url.indexOf('asyncAPI/'); if(index !== -1) { window.location.href = url.substring(0, index); }">
+      <a href="javascript:void(0)">←</a>
+    </div>
     <h1>EvenToNight - Async API</h1>
+    <div style="width: 40px; flex-shrink: 0;"></div>
   </div>
 
   <div class="service-list">
-    <div><a href="asyncapi-viewer.html?url=users.yaml">Users Service</a></div>
-    <div><a href="asyncapi-viewer.html?url=events.yaml">Events Service</a></div>
-</div>
+    <div class="service"><a href="asyncapi-viewer.html?url=users.yaml">Users Service</a></div>
+    <div class="service"><a href="asyncapi-viewer.html?url=events.yaml">Events Service</a></div>
+    <div class="service"><a href="asyncapi-viewer.html?url=ticketing.yaml">Ticketing Service</a></div>
+  </div>
 </body>
 </html>
