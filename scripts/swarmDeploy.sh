@@ -140,12 +140,15 @@ if [[ "$REMOVE_VOLUMES" == true ]]; then
         --restart-condition none \
         --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
         docker:cli sh -c "
+            while docker ps -q --filter 'label=com.docker.stack.namespace=${STACK_NAME}' 2>/dev/null | grep -q .; do
+                echo 'Waiting for stack containers to stop...'
+                sleep 3
+            done
             VOLUMES=\$(docker volume ls -q --filter \"label=com.docker.stack.namespace=${STACK_NAME}\" 2>/dev/null)
             VOLUMES_BY_NAME=\$(docker volume ls -q 2>/dev/null | grep \"^${STACK_NAME}_\" || true)
             ALL=\$(printf '%s\n%s' \"\$VOLUMES\" \"\$VOLUMES_BY_NAME\" | sort -u | sed '/^$/d')
             if [ -n \"\$ALL\" ]; then
-                echo \"\$ALL\" | xargs docker volume rm 2>/dev/null
-                echo \"Removed: \$ALL\"
+                echo \"\$ALL\" | xargs docker volume rm
             else
                 echo 'No volumes found.'
             fi
