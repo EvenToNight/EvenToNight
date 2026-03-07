@@ -379,6 +379,17 @@ echo "💬 Stack '$STACK_NAME' deployed successfully."
 
 if [[ "$FIRST_DEPLOY" == true ]]; then
     echo "💬 First deploy detected, initializing the database..."
-    ./scripts/composeAll.sh --project-name "$STACK_NAME" -p ./infrastructure/seed --swarm run --rm seed
+    SEED_FIND_ARGS=(-p ./infrastructure/seed --swarm)
+    SEED_COMPOSE_FILES=$(./scripts/findComposeFiles.sh "${SEED_FIND_ARGS[@]}")
+    SEED_COMPOSE_ARGS=()
+    for file in $SEED_COMPOSE_FILES; do
+        SEED_COMPOSE_ARGS+=(-f "$file")
+    done
+    SEED_CONFIG=$(docker compose --project-name "$STACK_NAME" --project-directory . --env-file ./.env "${SEED_COMPOSE_ARGS[@]}" config)
+    if [[ "$LOCAL" == true ]]; then
+        SEED_CONFIG=$(echo "$SEED_CONFIG" \
+            | sed "s|ghcr\.io/eventonight/eventonight/\([^:]*\):latest|${DOCKER_USER}/${STACK_NAME}-\1:local|g")
+    fi
+    echo "$SEED_CONFIG" | docker compose --project-name "$STACK_NAME" --project-directory . -f - run --rm seed
     echo "💬 Database initialized."
 fi
