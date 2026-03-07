@@ -121,8 +121,8 @@ if [[ "$STOP" == true ]]; then
     while docker stack ls --format "{{.Name}}" | grep -q "^${STACK_NAME}$"; do
         sleep 2
     done
-    echo "💬 Waiting for stack containers to be fully removed..."
-    while docker ps -a -q --filter "label=com.docker.stack.namespace=$STACK_NAME" | grep -q .; do
+    echo "💬 Waiting for stack tasks to be fully removed on all nodes..."
+    while docker node ls -q 2>/dev/null | xargs -I{} docker node ps {} --format "{{.Name}}" --filter "desired-state=shutdown" 2>/dev/null | grep -q "^${STACK_NAME}_"; do
         sleep 2
     done
     echo "💬 Removing leftover networks..."
@@ -133,14 +133,33 @@ if [[ "$STOP" == true ]]; then
 fi
 
 if [[ "$REMOVE_VOLUMES" == true ]]; then
-    echo "💬 Removing volumes for stack '$STACK_NAME'..."
-    VOLUMES=$(docker volume ls -q --filter "label=com.docker.stack.namespace=$STACK_NAME")
-    if [[ -n "$VOLUMES" ]]; then
-        echo "$VOLUMES" | xargs docker volume rm
-        echo "💬 Volumes removed."
-    else
-        echo "💬 No volumes found for stack '$STACK_NAME'."
-    fi
+    echo "💬 Removing volumes for stack '$STACK_NAME' on all nodes..."
+    docker service create --detach \
+        --name "${STACK_NAME}-volume-cleanup" \
+        --mode global \
+        --restart-condition none \
+        --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+        docker:cli sh -c "
+            VOLUMES=\$(docker volume ls -q --filter \"label=com.docker.stack.namespace=${STACK_NAME}\" 2>/dev/null)
+            VOLUMES_BY_NAME=\$(docker volume ls -q 2>/dev/null | grep \"^${STACK_NAME}_\" || true)
+            ALL=\$(printf '%s\n%s' \"\$VOLUMES\" \"\$VOLUMES_BY_NAME\" | sort -u | sed '/^$/d')
+            if [ -n \"\$ALL\" ]; then
+                echo \"\$ALL\" | xargs docker volume rm 2>/dev/null
+                echo \"Removed: \$ALL\"
+            else
+                echo 'No volumes found.'
+            fi
+        " > /dev/null
+    echo "💬 Waiting for cleanup to complete..."
+    NODE_COUNT=$(docker node ls -q 2>/dev/null | wc -l | tr -d ' ')
+    while true; do
+        COMPLETED=$(docker service ps "${STACK_NAME}-volume-cleanup" --format "{{.CurrentState}}" 2>/dev/null | grep -ci "complete" || true)
+        [[ "$COMPLETED" -ge "$NODE_COUNT" ]] && break
+        sleep 2
+    done
+    docker service logs "${STACK_NAME}-volume-cleanup" 2>/dev/null || true
+    docker service rm "${STACK_NAME}-volume-cleanup" > /dev/null 2>&1 || true
+    echo "💬 Volumes removed."
 fi
 
 if [[ "$REMOVE_LOCAL_IMAGES" == true ]]; then
