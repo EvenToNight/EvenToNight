@@ -121,10 +121,26 @@ if [[ "$STOP" == true ]]; then
     while docker stack ls --format "{{.Name}}" | grep -q "^${STACK_NAME}$"; do
         sleep 2
     done
-    echo "💬 Waiting for stack tasks to be fully removed on all nodes..."
-    while docker node ls -q 2>/dev/null | xargs -I{} docker node ps {} --format "{{.Name}}" --filter "desired-state=shutdown" 2>/dev/null | grep -q "^${STACK_NAME}_"; do
+    echo "💬 Waiting for stack containers to stop on all nodes..."
+    docker service create --detach \
+        --name "${STACK_NAME}-wait-stop" \
+        --mode global \
+        --restart-condition none \
+        --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
+        docker:cli sh -c "
+            while docker ps -a -q --filter 'label=com.docker.stack.namespace=${STACK_NAME}' 2>/dev/null | grep -q .; do
+                sleep 2
+            done
+            echo 'All containers stopped.'
+        " > /dev/null
+    NODE_COUNT=$(docker node ls -q 2>/dev/null | wc -l | tr -d ' ')
+    while true; do
+        DONE=$(docker service ps "${STACK_NAME}-wait-stop" --format "{{.CurrentState}}" 2>/dev/null | grep -ciE "complete|failed" || true)
+        [[ "$DONE" -ge "$NODE_COUNT" ]] && break
         sleep 2
     done
+    docker service logs "${STACK_NAME}-wait-stop" 2>/dev/null || true
+    docker service rm "${STACK_NAME}-wait-stop" > /dev/null 2>&1 || true
     echo "💬 Removing leftover networks..."
     docker network ls --format "{{.Name}}" \
         | grep "^${STACK_NAME}_" \
@@ -140,7 +156,7 @@ if [[ "$REMOVE_VOLUMES" == true ]]; then
         --restart-condition none \
         --mount type=bind,source=/var/run/docker.sock,target=/var/run/docker.sock \
         docker:cli sh -c "
-            while docker ps -q --filter 'label=com.docker.stack.namespace=${STACK_NAME}' 2>/dev/null | grep -q .; do
+            while docker ps -a -q --filter 'label=com.docker.stack.namespace=${STACK_NAME}' 2>/dev/null | grep -q .; do
                 echo 'Waiting for stack containers to stop...'
                 sleep 3
             done
@@ -148,7 +164,9 @@ if [[ "$REMOVE_VOLUMES" == true ]]; then
             VOLUMES_BY_NAME=\$(docker volume ls -q 2>/dev/null | grep \"^${STACK_NAME}_\" || true)
             ALL=\$(printf '%s\n%s' \"\$VOLUMES\" \"\$VOLUMES_BY_NAME\" | sort -u | sed '/^$/d')
             if [ -n \"\$ALL\" ]; then
-                echo \"\$ALL\" | xargs docker volume rm
+                for v in \$ALL; do
+                    docker volume rm \"\$v\" 2>/dev/null && echo \"Removed: \$v\" || echo \"Skipped (in use): \$v\"
+                done
             else
                 echo 'No volumes found.'
             fi
@@ -156,8 +174,8 @@ if [[ "$REMOVE_VOLUMES" == true ]]; then
     echo "💬 Waiting for cleanup to complete..."
     NODE_COUNT=$(docker node ls -q 2>/dev/null | wc -l | tr -d ' ')
     while true; do
-        COMPLETED=$(docker service ps "${STACK_NAME}-volume-cleanup" --format "{{.CurrentState}}" 2>/dev/null | grep -ci "complete" || true)
-        [[ "$COMPLETED" -ge "$NODE_COUNT" ]] && break
+        DONE=$(docker service ps "${STACK_NAME}-volume-cleanup" --format "{{.CurrentState}}" 2>/dev/null | grep -ciE "complete|failed" || true)
+        [[ "$DONE" -ge "$NODE_COUNT" ]] && break
         sleep 2
     done
     docker service logs "${STACK_NAME}-volume-cleanup" 2>/dev/null || true
