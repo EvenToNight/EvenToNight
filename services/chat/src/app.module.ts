@@ -5,6 +5,7 @@ import { UsersModule } from './users/users.module';
 import { AuthModule } from './common/auth';
 import { DatabaseModule } from './common/database';
 import { RabbitMqModule } from './rabbitmq/rabbitmq.module';
+import { HealthController } from './health.controller';
 
 @Module({
   imports: [
@@ -20,5 +21,6 @@ import { RabbitMqModule } from './rabbitmq/rabbitmq.module';
     ConversationsModule,
     UsersModule,
   ],
+  controllers: [HealthController],
 })
 export class AppModule {}
