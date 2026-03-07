@@ -1,0 +1,541 @@
+asyncapi: "2.5.0"
+
+info:
+  title: Ticketing Service Async API
+  version: "1.0.0"
+  description: >
+    AsyncAPI specification for domain events published and consumed by the Ticketing service.
+    The service publishes events to the central RabbitMQ exchange `eventonight` and
+    consumes events from the dedicated queue `ticketing-queue`.
+
+servers:
+  rabbitmq:
+    url: amqp://rabbitmq:5672
+    protocol: amqp
+    description: RabbitMQ broker used by the Ticketing Service to publish and consume domain events.
+
+channels:
+  eventonight:
+    description: Central topic exchange — the service publishes domain events here
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: eventonight
+          type: topic
+          durable: true
+
+    publish:
+      operationId: publishTicketingEvent
+      message:
+        oneOf:
+          - $ref: "#/components/messages/OrderConfirmedMessage"
+          - $ref: "#/components/messages/OrderRejectedMessage"
+          - $ref: "#/components/messages/TicketTypeCreatedMessage"
+          - $ref: "#/components/messages/TicketTypeDeletedMessage"
+          - $ref: "#/components/messages/TicketTypeUpdatedMessage"
+
+  ticketing-queue:
+    description: Durable queue bound to the `eventonight` exchange — the service consumes domain events from here
+    bindings:
+      amqp:
+        is: queue
+        queue:
+          name: ticketing-queue
+          durable: true
+          exclusive: false
+          autoDelete: false
+
+    subscribe:
+      operationId: onDomainEvent
+      message:
+        oneOf:
+          - $ref: "#/components/messages/EventUpdatedMessage"
+          - $ref: "#/components/messages/EventPublishedMessage"
+          - $ref: "#/components/messages/EventCompletedMessage"
+          - $ref: "#/components/messages/EventCancelledMessage"
+          - $ref: "#/components/messages/EventDeletedMessage"
+          - $ref: "#/components/messages/UserCreatedMessage"
+          - $ref: "#/components/messages/UserUpdatedMessage"
+          - $ref: "#/components/messages/UserDeletedMessage"
+
+components:
+  messages:
+    # Published messages
+    OrderConfirmedMessage:
+      name: OrderConfirmed
+      title: Order Confirmed
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: payments.order.confirmed
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/OrderConfirmedEnvelope"
+
+    OrderRejectedMessage:
+      name: OrderRejected
+      title: Order Rejected
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: payments.order.rejected
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/OrderRejectedEnvelope"
+
+    TicketTypeCreatedMessage:
+      name: TicketTypeCreated
+      title: Ticket Type Created
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: ticket-type.created
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/TicketTypeCreatedEnvelope"
+
+    TicketTypeDeletedMessage:
+      name: TicketTypeDeleted
+      title: Ticket Type Deleted
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: ticket-type.deleted
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/TicketTypeDeletedEnvelope"
+
+    TicketTypeUpdatedMessage:
+      name: TicketTypeUpdated
+      title: Ticket Type Updated
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: ticket-type.updated
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/TicketTypeUpdatedEnvelope"
+
+    # Consumed messages
+    EventUpdatedMessage:
+      name: EventUpdated
+      title: Event Updated
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: event.updated
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventUpdatedEnvelope"
+
+    EventPublishedMessage:
+      name: EventPublished
+      title: Event Published
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: event.published
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventIdEnvelope"
+
+    EventCompletedMessage:
+      name: EventCompleted
+      title: Event Completed
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: event.completed
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventIdEnvelope"
+
+    EventCancelledMessage:
+      name: EventCancelled
+      title: Event Cancelled
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: event.cancelled
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventIdEnvelope"
+
+    EventDeletedMessage:
+      name: EventDeleted
+      title: Event Deleted
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: event.deleted
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventIdEnvelope"
+
+    UserCreatedMessage:
+      name: UserCreated
+      title: User Created
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: user.created
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/UserEnvelope"
+
+    UserUpdatedMessage:
+      name: UserUpdated
+      title: User Updated
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: user.updated
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/UserEnvelope"
+
+    UserDeletedMessage:
+      name: UserDeleted
+      title: User Deleted
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: user.deleted
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/UserDeletedEnvelope"
+
+  schemas:
+    EventHeaders:
+      type: object
+      description: Headers for domain events
+      properties:
+        event-type:
+          type: string
+          description: Routing key of the event
+          example: ticket-type.created
+        producer:
+          type: string
+          description: Microservice that produced the event
+          example: ticketing-service
+        schema:
+          type: string
+          description: Version of the event schema
+          example: "1"
+      required:
+        - event-type
+        - producer
+        - schema
+
+    # Published payloads
+    OrderConfirmedPayload:
+      type: object
+      description: Payload for OrderConfirmed event
+      properties:
+        orderId:
+          type: string
+          example: "order_xyz789"
+        userId:
+          type: string
+          example: "user_123"
+        eventId:
+          type: string
+          example: "event_456"
+      required:
+        - orderId
+        - userId
+        - eventId
+
+    OrderConfirmedEnvelope:
+      type: object
+      description: Envelope for OrderConfirmed event
+      properties:
+        eventType:
+          type: string
+          example: payments.order.confirmed
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T15:31:00Z"
+        payload:
+          $ref: "#/components/schemas/OrderConfirmedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    OrderRejectedPayload:
+      type: object
+      description: Payload for OrderRejected event
+      properties:
+        orderId:
+          type: string
+          example: "order_xyz789"
+        userId:
+          type: string
+          example: "user_123"
+        eventId:
+          type: string
+          example: "event_456"
+      required:
+        - orderId
+        - userId
+        - eventId
+
+    OrderRejectedEnvelope:
+      type: object
+      description: Envelope for OrderRejected event
+      properties:
+        eventType:
+          type: string
+          example: payments.order.rejected
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T15:32:00Z"
+        payload:
+          $ref: "#/components/schemas/OrderRejectedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    TicketTypeCreatedPayload:
+      type: object
+      description: Payload for TicketTypeCreated event
+      properties:
+        eventId:
+          type: string
+          example: "event_456"
+        ticketTypeId:
+          type: string
+          example: "tt_789"
+        price:
+          type: number
+          example: 25.00
+      required:
+        - eventId
+        - ticketTypeId
+        - price
+
+    TicketTypeCreatedEnvelope:
+      type: object
+      description: Envelope for TicketTypeCreated event
+      properties:
+        eventType:
+          type: string
+          example: ticket-type.created
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T10:00:00Z"
+        payload:
+          $ref: "#/components/schemas/TicketTypeCreatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    TicketTypeDeletedPayload:
+      type: object
+      description: Payload for TicketTypeDeleted event
+      properties:
+        ticketTypeId:
+          type: string
+          example: "tt_789"
+      required:
+        - ticketTypeId
+
+    TicketTypeDeletedEnvelope:
+      type: object
+      description: Envelope for TicketTypeDeleted event
+      properties:
+        eventType:
+          type: string
+          example: ticket-type.deleted
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T11:00:00Z"
+        payload:
+          $ref: "#/components/schemas/TicketTypeDeletedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    TicketTypeUpdatedPayload:
+      type: object
+      description: Payload for TicketTypeUpdated event
+      properties:
+        ticketTypeId:
+          type: string
+          example: "tt_789"
+        price:
+          type: number
+          example: 30.00
+      required:
+        - ticketTypeId
+        - price
+
+    TicketTypeUpdatedEnvelope:
+      type: object
+      description: Envelope for TicketTypeUpdated event
+      properties:
+        eventType:
+          type: string
+          example: ticket-type.updated
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T12:00:00Z"
+        payload:
+          $ref: "#/components/schemas/TicketTypeUpdatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    # Consumed payloads
+    EventUpdatedPayload:
+      type: object
+      description: Payload for EventUpdated event
+      properties:
+        eventId:
+          type: string
+          example: "event_456"
+        date:
+          type: string
+          format: date-time
+          nullable: true
+          example: "2026-06-15T20:00:00Z"
+        name:
+          type: string
+          nullable: true
+          example: "Summer Night Party"
+        status:
+          type: string
+          example: "PUBLISHED"
+      required:
+        - eventId
+        - status
+
+    EventUpdatedEnvelope:
+      type: object
+      description: Envelope for EventUpdated event
+      properties:
+        eventType:
+          type: string
+          example: event.updated
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T13:00:00Z"
+        payload:
+          $ref: "#/components/schemas/EventUpdatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    EventIdPayload:
+      type: object
+      description: Minimal payload carrying only an event identifier
+      properties:
+        eventId:
+          type: string
+          example: "event_456"
+      required:
+        - eventId
+
+    EventIdEnvelope:
+      type: object
+      description: Envelope for events carrying only an event identifier
+      properties:
+        eventType:
+          type: string
+          example: event.published
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T14:00:00Z"
+        payload:
+          $ref: "#/components/schemas/EventIdPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    UserPayload:
+      type: object
+      description: Payload for user events (created/updated)
+      properties:
+        id:
+          type: string
+          example: "user_123"
+        language:
+          type: string
+          example: "en"
+      required:
+        - id
+        - language
+
+    UserEnvelope:
+      type: object
+      description: Envelope for user created/updated events
+      properties:
+        eventType:
+          type: string
+          example: user.created
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T09:00:00Z"
+        payload:
+          $ref: "#/components/schemas/UserPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    UserDeletedPayload:
+      type: object
+      description: Payload for UserDeleted event
+      properties:
+        id:
+          type: string
+          example: "user_123"
+      required:
+        - id
+
+    UserDeletedEnvelope:
+      type: object
+      description: Envelope for UserDeleted event
+      properties:
+        eventType:
+          type: string
+          example: user.deleted
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T09:30:00Z"
+        payload:
+          $ref: "#/components/schemas/UserDeletedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
