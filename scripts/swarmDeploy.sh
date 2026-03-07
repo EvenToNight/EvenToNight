@@ -393,6 +393,9 @@ if [[ "$FIRST_DEPLOY" == true ]]; then
         SEED_CONFIG=$(echo "$SEED_CONFIG" \
             | sed "s|ghcr\.io/eventonight/eventonight/\([^:]*\):latest|${DOCKER_USER}/${STACK_NAME}-\1:local|g")
     fi
-    echo "$SEED_CONFIG" | docker compose --project-name "$STACK_NAME" --project-directory . -f - run --rm seed
+    SEED_TMPFILE=$(mktemp)
+    echo "$SEED_CONFIG" > "$SEED_TMPFILE"
+    docker compose --project-name "$STACK_NAME" --project-directory . -f "$SEED_TMPFILE" run --rm seed
+    rm -f "$SEED_TMPFILE"
     echo "💬 Database initialized."
 fi
