@@ -1,4 +1,11 @@
 services:
+  error-pages:
+    image: tarampampam/error-pages:3
+    networks:
+      - eventonight-network
+    environment:
+      - TEMPLATE_NAME=ghost
+
   traefik:
     image: traefik:v3.5
     networks:

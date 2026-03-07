@@ -1,4 +1,7 @@
 services:
+  error-pages:
+    restart: unless-stopped
+
   traefik:
     restart: unless-stopped
     volumes:

@@ -7,7 +7,7 @@ services:
       - "traefik.http.routers.users.entrypoints=web"
       - "traefik.http.services.users.loadbalancer.server.port=${USERS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-      - "traefik.http.routers.users.middlewares=global-retry@file,global-cb@file,global-rate-limit@file"    
+      - "traefik.http.routers.users.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"    
     depends_on:
       mongo-users:
         condition: service_healthy

@@ -7,7 +7,7 @@ services:
       - "traefik.http.routers.chat.entrypoints=web"
       - "traefik.http.services.chat.loadbalancer.server.port=${CHAT_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-      - "traefik.http.routers.chat.middlewares=global-retry@file,global-cb@file,global-rate-limit@file"    
+      - "traefik.http.routers.chat.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"    
     depends_on:
       mongo-chat:
         condition: service_healthy

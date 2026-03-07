@@ -1,4 +1,10 @@
 services:
+  error-pages:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
   traefik:
     configs:
       - source: traefik_config

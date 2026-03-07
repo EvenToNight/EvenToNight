@@ -1,5 +1,12 @@
 http:
   middlewares:
+    global-errors:
+      errors:
+        status:
+          - "429"
+          - "503"
+        service: error-pages
+        query: "/{status}.html"
     global-retry:
       retry:
         attempts: 3
@@ -15,3 +22,8 @@ http:
         sourceCriterion:
           ipStrategy:
             depth: 1
+  services:
+    error-pages:
+      loadBalancer:
+        servers:
+          - url: "http://error-pages:8080"
