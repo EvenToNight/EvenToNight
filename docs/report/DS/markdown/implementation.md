@@ -17,7 +17,8 @@ All REST APIs and RabbitMQ messages use **JSON** as the serialization format.
 
 All application services use **MongoDB** as their document store:
 
-- `users` and `events` (Scala) query MongoDB via the raw Java driver (`mongodb-driver-sync`), using the Filters API and manually registered BSON codecs — no ODM.
+- `users` and `events` (Scala) query MongoDB via the raw Java driver (`mongodb-driver-sync`).
+
 - `chat`, `interactions`, `notifications`, and `ticketing` (Node.js) use **Mongoose** as the ODM, with schema decorators and typed model queries.
 
 The `media` service has no database; it stores binary files in **MinIO**, an S3-compatible self-hosted object store. MinIO was chosen over AWS S3 to avoid vendor lock-in — the API is identical, so the AWS S3 SDK is used without modification. PostgreSQL is only used internally by Keycloak.
@@ -44,15 +45,13 @@ All domain events published to the `eventonight` topic exchange share a common e
 }
 ```
 
-The `eventType` field doubles as the AMQP routing key.
-
 **MongoDB single-node replica set**
 
-MongoDB transactions require a replica set. All services run MongoDB in replica set mode even on a single node — using `--replSet rs0` and initialising a one-member replica set at startup. This is a non-obvious setup choice that unlocks multi-document transaction support without requiring a multi-node cluster.
+MongoDB transactions require a replica set. All services run MongoDB in replica set mode even on a single node — using `--replSet rs0` and initialising a one-member replica set at startup. This setup unlocks multi-document transaction support and makes the transition to a multi-node replica set in a Swarm deployment straightforward, with no changes required to the application layer.
 
 **Stripe webhook authentication**
 
-Stripe signs every webhook payload with an HMAC-SHA256 signature using a shared secret. The `ticketing` service verifies this signature before processing any incoming webhook, ensuring that only legitimate Stripe events are accepted.
+Stripe signs every webhook payload using a shared secret. The `ticketing` service verifies this signature before processing any incoming webhook, ensuring that only legitimate Stripe events are accepted.
 
 **Socket.IO: authenticated connections and scaling**
 
@@ -96,4 +95,22 @@ sequenceDiagram
 ```
 
 
-// TODO: add CQRS and NEST architecture
+
+### 4.2 Service architecture patterns
+
+Services adopt different internal architectural styles.
+
+**Clean Architecture (`ticketing`, `users`, `events`, `notifications`)**
+
+Some services are structured around **Clean Architecture** with **Domain-Driven Design** principles. The codebase is organised into four layers with strict inward dependency rules:
+
+- `domain/` — aggregates, value objects, domain events, repository interfaces, domain service interfaces. No dependency on any framework or infrastructure.
+- `application/` — use cases, application services, DTOs. Orchestrates domain logic without touching infrastructure directly.
+- `infrastructure/` — concrete implementations of repository interfaces (MongoDB), external service adapters (Stripe, Keycloak), mappers between domain objects and persistence schemas.
+- `presentation/` — HTTP controllers, RabbitMQ consumers, WebSocket gateways. Translates inbound requests into application-layer calls.
+
+This separation ensures that domain logic is fully isolated from infrastructure concerns and is independently testable. Within this structure, the organisation of the application layer varies by service: `events` and `notifications` apply **Command Query Responsibility Segregation**(CQRS), with write operations represented as commands and read operations as queries, each handled by a dedicated class. The remaining services use a unified application service or handler approach without explicit read/write separation. The current implementation uses a single shared data model for reads and writes; fully separating the read and write models would unlock further performance and scalability gains, and is a natural evolution of the current design.
+
+**NestJS module organisation (`chat`, `interactions`)**
+
+Some services adopt the **NestJS default module structure**: the codebase is organised by feature module (e.g. `conversations`, `users` in `chat`), each encapsulating its own controllers, services, and Mongoose schemas.
