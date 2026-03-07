@@ -145,7 +145,7 @@ Other services process these events asynchronously, updating their own state or 
 
 ### 4.4.1 Architectural Style
 
-The system is designed according to a **microservices architecture**. The application is decomposed into a set of small, independently deployable services, each responsible for a specific bounded context: Users, Events, Chat, Interactions, Notifications, Media, and Ticketing.
+The system is designed according to a **microservices architecture**. The application is decomposed into a set of small, independently deployable services, each responsible for a specific bounded context: Users, Events, Chat, Interactions, Notifications, Media, and Ticketing. //TODO leave all services or only domain related ones?
 
 Each microservice encapsulates its own domain logic and adopts the **database-per-service** pattern.
 
@@ -158,15 +158,16 @@ Moreover, this design avoids the bottleneck that would arise from sharing a sing
 
 Two complementary communication styles are adopted:
 
-- **Synchronous (HTTP REST)**: used when fulfilling a request requires invoking an operation or retrieving data from another service, or to propagate state changes immediately to dependent services. For example, when an event is created, the `events` service notifies `ticketing` via its internal API so that ticket-related operations can proceed right away, without waiting for the asynchronous domain event to arrive. The RabbitMQ message still follows as a fault-tolerance fallback. Calls travel over the internal overlay network between services.
-- **Asynchronous**: used to propagate state changes across service boundaries without creating runtime dependencies between them. Two mechanisms are in place:
-  - **Domain events via RabbitMQ**: services publish events to the message broker; subscribers consume them independently. For example, when an event is created and published, the `events` service publishes an `EventPublished` domain event; the `notifications` service consumes it and delivers a real-time update to the relevant connected clients via WebSocket (Socket.IO) — in this case, users following the organization.
-  - **WebSocket**: // TODO
-  - **Webhooks**: used for third-party integrations that push notifications to the system — for example, payment provider (Stripe) callbacks delivered to the `ticketing` service. The receiving service processes the incoming HTTP call asynchronously without blocking any client-facing request.
+- **Synchronous (HTTP REST)**: used when fulfilling a request requires invoking an operation or retrieving data from another service, or to propagate state changes immediately to dependent services. For example, when an event is created, the `events` service notifies `ticketing` via its internal API so that ticket-related operations can proceed right away.
+
+- **Asynchronous**: used to propagate state changes across service boundaries without creating runtime dependencies between them, and to push real-time updates to connected clients. Three mechanisms are in place:
+  - **Domain events (RabbitMQ)**: services publish events to the message broker; subscribers consume them independently. For example, when an event is published, the `events` service emits an `EventPublished` domain event consumed by the `notifications`, `ticketing`, and `interactions` services.
+  - **WebSocket (Socket.IO)**: used by the `notifications` service to maintain persistent connections with clients, enabling server-side push of real-time updates without polling. For example, when `notifications` receives an `EventPublished` domain event, it delivers a real-time update to the relevant connected clients — in this case, users following the organization that published the event.
+  - **Webhooks**: used for third-party integrations that push notifications into the system — for example, payment provider (Stripe) callbacks delivered to the `ticketing` service. The receiving service processes the incoming HTTP call asynchronously without blocking any client-facing request.
 
 **API gateway**
 
-All external traffic flows through an API gateway implemented with **Traefik**. It acts as a single entry point, handling routing, load balancing, and request timeouts, while keeping the internal service topology invisible to clients.
+All external traffic flows through an API gateway implemented with **Traefik**, which acts as a single entry point and keeps the internal service topology invisible to clients.
 
 **Motivation for the architectural choice**
 
@@ -192,7 +193,7 @@ All infrastructural components are listed in the table below.
 |-----------|-----------|------|
 | DNS / TLS | Cloudflare | Authoritative DNS and TLS termination |
 | Tunnel daemon | cloudflared | Maintains an outbound encrypted tunnel to Cloudflare; no inbound ports required on the cluster |
-| Reverse proxy / Load balancer | Traefik v3 | Single entry point for all external HTTP/WebSocket traffic; routes requests to services via Docker label-based discovery |
+| API gateway / Reverse proxy | Traefik v3 | Single entry point for all external HTTP/WebSocket traffic; handles routing, load balancing, rate limiting, retries, circuit breaking, and request timeouts; discovers services via Docker label-based configuration |
 | Backend services | Scala 3 + Cask | `users`, `events` |
 | Backend services | NestJS (Node.js) | `chat`, `interactions`, `ticketing` |
 | Backend services | Express (Node.js) | `media`, `notifications` |
@@ -209,11 +210,10 @@ All infrastructural components are listed in the table below.
 
 With the exception of Stripe, all components run inside a single host using **Docker Compose**. No service port is exposed to the public internet — the only inbound path is through the Cloudflare tunnel.
 
-Two Docker bridge networks are used:
+Two categories of Docker bridge networks are used:
 
 - **`eventonight-network`**: shared by all application services, Traefik, RabbitMQ, and Keycloak. Used for inter-service communication and Traefik routing.
-- **`<service>-network`**: one private network per service, shared exclusively between the service and its MongoDB instance. This enforces database isolation — no other service can reach another service's database.
-// TODO: keycloak network
+- **`<service>-network`**: one private network per service, shared exclusively between the service, its database instance, and any auxiliary containers (e.g. provisioning scripts that perform initial setup, as in the case of Keycloak). This enforces database isolation — no other service can reach another service's database.
 
 **Service discovery**
 
@@ -229,10 +229,10 @@ Inside the host, discovery is handled by Docker Compose:
 **Synchronous request flow (HTTP REST)**
 
 ```
-Browser → Cloudflare (DNS + TLS) → cloudflared → Traefik → Service → MongoDB → response
+Browser → Cloudflare (DNS + TLS) → cloudflared → Traefik → Service → Database → response
 ```
 
-The browser sends an HTTPS request to a subdomain (e.g., `events.eventonight.com`). Cloudflare resolves the DNS and terminates TLS, then injects the request into the persistent QUIC tunnel maintained by `cloudflared` on the cluster. Traefik receives it, matches the `Host` header against its routing rules, and forwards the request to one of the available replicas via VIP load balancing. The service handles the request, queries its own MongoDB instance, and returns the response through the same chain.
+The browser sends an HTTPS request to a subdomain (e.g., `events.eventonight.site`). Cloudflare resolves the DNS and terminates TLS, then injects the request into the persistent encrypted tunnel (QUIC) maintained by `cloudflared` on the cluster. Traefik receives it, matches the `Host` header against its routing rules, and forwards the request to the target service. The service handles the request, queries its own database instance, and returns the response through the same chain.
 
 **Asynchronous event flow (AMQP)**
 
@@ -242,7 +242,7 @@ Service → Exchange (eventonight) → Queue (per-service) → Consumer service
 
 ![Message broker](/design/Broker.png)
 
-RabbitMQ uses a single **topic exchange** named `eventonight`. Each consuming service has a dedicated queue bound to the exchange with a set of topic subscriptions (e.g., `ticketing_queue` binds to `user.created`, `event.updated`, ...). When a service publishes a domain event with a routing key, the exchange fans it out to every queue whose binding pattern matches — without the publisher knowing who the consumers are.
+RabbitMQ uses a single **topic exchange** named `eventonight`. Each consuming service has a dedicated queue bound to the exchange with a set of topic subscriptions (e.g., `ticketing_queue` binds to `user.created`, `event.updated`, and many others). When a service publishes a domain event with a routing key, the exchange fans it out to every queue whose binding pattern matches — without the publisher knowing who the consumers are.
 
 **Real-time push (WebSocket)**
 
@@ -262,9 +262,45 @@ Stripe delivers payment event callbacks via HTTP POST to the `ticketing` service
 
 ### 4.4.4 Web API
 
-All application services expose a **REST API** built with NestJS, accessible externally via Traefik at `<service>.eventonight.com`. Every protected endpoint requires a **JWT Bearer token** in the `Authorization` header, issued by Keycloak and validated independently by each service using Keycloak's public key — no centralised auth gateway is needed.
+All application services expose a **REST API**, accessible externally via Traefik at `<service>.eventonight.site`. Every protected endpoint requires a **JWT Bearer token** in the `Authorization` header, issued by Keycloak and validated independently by each service using Keycloak's public key — no centralised auth gateway is needed.
 
-The `notifications` service additionally exposes a **WebSocket endpoint** (Socket.IO) for real-time push delivery. WebSocket connections require **sticky sessions** — configured via a Traefik sticky cookie — to ensure that the Socket.IO handshake and all subsequent frames are consistently routed to the same backend replica.
+The `notifications` service additionally exposes a **WebSocket endpoint**.
+
+### 4.4.5 Scalability and High Availability
+
+The current deployment runs all components on a **single host** using Docker Compose. Each service runs as a single container instance, which provides basic availability but represents a single point of failure at the host level.
+
+![Swarm](/design/Swarm.png)
+
+The architecture is designed to transition to **high availability** by adopting **Docker Swarm**. Even on a single node, Swarm already provides a first step toward HA through **rolling updates** — services can be updated replica by replica with zero downtime, unlike a plain Compose deployment where an update implies a brief interruption. Moving to a multi-node cluster then enables true HA by distributing replicas across machines, so that the failure of a node does not take down the service.
+
+However, adding nodes and replicas is a necessary but not sufficient condition for HA — it also requires deliberate design choices at the infrastructure level, and at the application level to preserve correctness: stateful services require dedicated replication strategies, and deploying multiple replicas of a service introduces competing consumer scenarios on the broker that must be explicitly handled.
+
+**Cluster topology**
+
+For true HA, the Swarm should have at least **three manager nodes**. Swarm managers use the Raft consensus protocol to maintain cluster state, and an odd number of managers is required to form a quorum and tolerate node failures (three managers tolerate one failure). Each manager node should run its own Traefik and `cloudflared` instance, so Cloudflare load-balances incoming traffic across all managers automatically.
+
+**Service placement**
+
+Stateless application services can be freely distributed across nodes. Stateful services (RabbitMQ and databases) require **placement constraints** to be distributed and binded on different machines. Manager nodes should be set to **drain** availability so the Swarm scheduler assigns no application workloads to them, keeping them dedicated exclusively to cluster management and incoming traffic.
+
+**Message broker with multiple consumers**
+
+Scaling application services to multiple replicas introduces a non-trivial consideration for broker consumption. The current setup uses a **single active consumer** per queue: only one replica consumes from a given queue at a time, guaranteeing FIFO message processing. This is sufficient for HA — if the active consumer fails, another replica takes over — but it does not improve throughput.
+
+To scale throughput beyond a single consumer, more refined strategies can be explored:
+
+- **Consistent hash exchange**: a RabbitMQ plugin that replaces the standard topic exchange with a hashing layer — messages are routed to one of N queues based on a hash of the routing key, allowing N consumers to process in parallel while preserving per-key ordering.
+- **Streams / Super Streams**: RabbitMQ Streams provide a persistent, replayable log. Super Streams partition a logical stream across multiple physical streams, each consumed by a dedicated replica — combining throughput scaling with ordering guarantees per partition.
+- **Sequence fields**: adding a monotonically increasing `version` or `seq` field per entity allows consumers to detect and discard out-of-order messages regardless of the consumption strategy adopted.
+
+**What changes with Swarm:**
+
+- **`cloudflared` and Traefik** scale with the number of manager nodes — one instance per manager. Traefik natively supports Swarm mode via the Docker API.
+- **Stateless application services** can be scaled to multiple replicas and distributed freely across nodes.
+- **Stateful services** require dedicated HA strategies: MongoDB moves to a **replica set** (primary + secondaries), and RabbitMQ to a **quorum queue cluster** — both require an odd number of members (3, 5, ...) to guarantee quorum and avoid split-brain — ensuring data redundancy and automatic failover. Each stateful instance must be pinned to a distinct node (at most one replica per node) so that a single node failure does not take down multiple members of the same cluster. Replicated data stores also improve **fault tolerance** — the system continues to operate and preserves data integrity even if individual nodes are lost.
+- **WebSocket sticky sessions**: when `notifications` runs as multiple replicas, Traefik must be configured with a sticky cookie to ensure Socket.IO handshake and subsequent frames are consistently routed to the same replica. However, sticky sessions alone are not sufficient: to broadcast events to all connected clients regardless of which replica they are connected to, a **Redis adapter** for Socket.IO is required to propagate messages across all instances.
+
 
 ## 4.5 Corner cases
 
@@ -272,24 +308,36 @@ The system is designed to be **highly available** and **eventually consistent**.
 
 **Fault detection**
 
-Each service and its dependencies declare a `healthcheck` in Docker Compose. Dependent services use `depends_on` with `condition: service_healthy`, so startup ordering is enforced and a service will not start before its dependencies are ready.
+Each service exposes a `/health` endpoint and declares a `healthcheck` in Docker Compose. In a Compose deployment this provides observable status; in a Swarm deployment, the scheduler polls healthchecks continuously and automatically restarts or reschedules tasks that become unhealthy, making fault detection active rather than just observable. To further improve observability, a dedicated monitoring service could be introduced.
+
+**Startup ordering and reconnection**
+
+In a Compose deployment, dependent services use `depends_on` with `condition: service_healthy` to enforce startup ordering. In a Swarm deployment this mechanism is not available: each service must instead be resilient to the temporary unavailability of its dependencies and implement reconnection logic autonomously. Note that reconnection logic is necessary regardless of the deployment model, as dependencies may also fail and recover during normal operation. All reconnection attempts — to MongoDB, RabbitMQ, and other services — use an exponential backoff strategy.
 
 **Error signalling**
 
-Every API endpoint returns standard HTTP status codes to communicate failures to clients: `400` for validation errors, `401` for missing or invalid tokens, `403` for authorisation failures, `404` for resources not found, `409` for conflicts, and `500` for unexpected server errors. Domain exceptions are mapped to the appropriate code at the presentation layer, without exposing internal details.
+Every API endpoint returns standard HTTP status codes to communicate failures to clients: `400` for validation errors, `401` for missing or invalid tokens, `403` for authorisation failures, `404` for resources not found, `409` for conflicts, `500` for unexpected server errors and so on. With a monitoring service in place, an alerting mechanism can be added to proactively notify on service failures.
 
 **Component failure and recovery**
 
-All containers run with `restart: unless-stopped`, so Docker automatically restarts any crashed container. Docker itself is configured to start on host boot, meaning that even a full machine reboot brings the entire system back up without manual intervention. All reconnection attempts — to MongoDB, RabbitMQ, and other services — use an exponential backoff strategy.
+In a Compose deployment, all containers run with `restart: unless-stopped`, so Docker automatically restarts any crashed container. Docker itself is configured to start on host boot, meaning that even a full machine reboot brings the entire system back up without manual intervention. In a Swarm deployment, the restart policy is managed by the Swarm scheduler, which restarts failed tasks and, if a node goes down, reschedules its tasks onto healthy nodes automatically. In both cases, full recovery is achieved because services are resilient to dependency failures and re-establish connections autonomously.
 
-**Database failure.** If a MongoDB instance goes down, its owning service remains partially operational: requests that do not require the database can still be served, while those that do will fail gracefully. When the database comes back up, the service reconnects automatically. Multi-document operations are executed within MongoDB transactions (enabled by the replica set configuration), so a crash mid-operation leaves no inconsistent state — the transaction is simply rolled back.
+**Database failure.** If a MongoDB instance goes down, its owning service remains partially operational: requests that do not require the database can still be served. The service reconnects automatically when the database comes back up. In a Swarm deployment with a replica set, a single node failure triggers an automatic primary election and the service reconnects to the new primary — avoiding a full outage. In both cases, multi-document operations are executed within MongoDB transactions, so a crash mid-operation leaves no inconsistent state — the transaction is simply rolled back.
 
-**Service failure.** If a service crashes, it is no longer reachable. Docker restarts it automatically. Since all writes are transactional, there is no risk of partial state being committed.
+**Service failure.** If a service crashes, Docker restarts it automatically. Since all writes are transactional, there is no risk of partial state being committed. However when a service crashes after initiating an outbound HTTP call to an external system (e.g. creating a Stripe checkout session or a Keycloak user) but before completing its local operations, an inconsistency may arise: the side effect on the external system has already occurred but the local state does not reflect it. In these cases specific strategy must be applied for each integration to handle it correctly.
 
-**RabbitMQ failure.** All queues are declared as durable with persistent messages, so any message received by RabbitMQ before it goes down is safely stored to disk and delivered to consumers once it restarts. RabbitMQ provides at-least-once delivery semantics; services handle this either through idempotency keys or by designing message handlers to be idempotent. If RabbitMQ is unavailable at the moment a service needs to publish, messages are not lost: each service implements the transactional outbox pattern — the domain event is written to an outbox collection in the same database transaction as the state change, and a relay process reads from the outbox and forwards messages to RabbitMQ, retrying until delivery succeeds.
+**RabbitMQ failure.** All queues are declared as durable with persistent messages, so any message received by RabbitMQ before it goes down is safely stored to disk and delivered to consumers once it restarts. In a Swarm deployment with a quorum queue cluster, a single node failure does not cause an outage — the cluster continues operating as long as a majority of nodes are available, and messages are replicated across them. RabbitMQ provides at-least-once delivery semantics; services handle this either through idempotency keys or by designing message handlers to be idempotent. If RabbitMQ is unavailable at the moment a service needs to publish, messages are not lost: each service implements the transactional outbox pattern — the domain event is written to an outbox collection in the same database transaction as the state change, and a relay process reads from the outbox and forwards messages to RabbitMQ, retrying until delivery succeeds.
 
 **Keycloak failure.** New logins and token refreshes fail. However, services validate JWTs locally using Keycloak's public key, so requests carrying a still-valid token continue to be accepted until expiry. Once Keycloak restarts, authentication resumes normally.
 
-**Traefik or cloudflared failure.** External traffic cannot enter the system, but internal inter-service communication over `eventonight-network` is unaffected. Docker restarts the container and external access resumes.
+**Traefik or cloudflared failure.** In a Compose deployment, external traffic cannot enter the system until Docker restarts the container and access resumes. In a Swarm deployment, both run one instance per manager node, so a single manager failure does not interrupt external traffic — Cloudflare simply routes through the remaining instances.
 
-**Stripe unavailability.** Webhook callbacks are not delivered. Stripe automatically retries with exponential backoff; the `ticketing` service processes them when they eventually arrive.
+**Ticketing crash during checkout session creation.** If `ticketing` crashes after tickets have been reserved and the Stripe session has been created, but before send response to the client, the session will eventually expire and Stripe delivers a `checkout.session.expired` webhook allowing `ticketing` to release the reserved tickets. If the crash occurs before the Stripe session is created, no webhook will ever arrive and the tickets remain stuck in `PENDING`; a background cleanup job on timed-out pending orders would be needed to handle this case.
+
+**Ticketing unavailability.** Webhook callbacks from Stripe cannot be processed. Stripe automatically retries undelivered events for up to three days, so the `ticketing` service will receive and process them once it recovers, without any data loss.
+
+**Dual notification path (sync + async)**
+When an event is created, the `events` service notifies `ticketing` synchronously via HTTP call to an internal endpoint, without waiting for the asynchronous domain event to arrive. The RabbitMQ message still follows as a fault-tolerance fallback.
+
+**User crash during register and password update.** If `users` crashes after creating the account in Keycloak but before persisting the user record locally, the user exists in the identity provider but not in the `users` service. On the next login attempt, Keycloak authenticates the user and issues a valid JWT, but `users` has no matching record. A recovery strategy can be to detect this condition at login time and create a minimal empty profile automatically, mirroring what registration would have done. For password updates, a crash mid-operation leaves the state consistent but the user may not have been correctly notified of the outcome; a "forgot password" flow provides a user-friendly self-service recovery path in this case.
+
