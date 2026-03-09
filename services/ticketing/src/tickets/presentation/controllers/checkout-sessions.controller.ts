@@ -1,0 +1,89 @@
+import {
+  Controller,
+  Post,
+  Body,
+  HttpCode,
+  HttpStatus,
+  ValidationPipe,
+  Get,
+  Query,
+  Res,
+  Param,
+  Inject,
+  Logger,
+  UseGuards,
+} from '@nestjs/common';
+import { CreateCheckoutSessionHandler } from '../../application/handlers/create-checkout-session.handler';
+import {
+  CreateCheckoutSessionDto,
+  CheckoutSessionResponseDto,
+} from '../../application/dto/create-checkout-session.dto';
+import type { PaymentService } from '../../domain/services/payment.service.interface';
+import { PAYMENT_SERVICE } from '../../domain/services/payment.service.interface';
+import type { Response } from 'express';
+import { CheckoutSessionExpiredHandler } from 'src/tickets/application/handlers/checkout-session-expired.handler';
+import { JwtAuthGuard, SameUserGuard } from '@libs/nestjs-common';
+
+@Controller('checkout-sessions')
+export class CheckoutSessionsController {
+  private readonly logger = new Logger(CheckoutSessionsController.name);
+  constructor(
+    private readonly createCheckoutSessionHandler: CreateCheckoutSessionHandler,
+    @Inject(PAYMENT_SERVICE)
+    private readonly paymentService: PaymentService,
+    private readonly checkoutSessionExpiredHandler: CheckoutSessionExpiredHandler,
+  ) {}
+
+  /**
+   * POST /checkout-sessions
+   * Create a new checkout session for multiple tickets
+   */
+  @Post()
+  @HttpCode(HttpStatus.CREATED)
+  @UseGuards(
+    JwtAuthGuard,
+    SameUserGuard((req) => (req.body as CreateCheckoutSessionDto).userId),
+  )
+  async createCheckoutSession(
+    @Body(ValidationPipe) dto: CreateCheckoutSessionDto,
+  ): Promise<CheckoutSessionResponseDto> {
+    return this.createCheckoutSessionHandler.handle(dto);
+  }
+
+  /**
+   * GET /checkout-sessions/:sessionId/cancel
+   * Handles the cancellation of a checkout session.
+   */
+  @Get(':sessionId/cancel')
+  @HttpCode(HttpStatus.OK)
+  async handleCancel(
+    @Param('sessionId') sessionId: string,
+    @Query('redirect_to') redirectTo: string,
+    @Res() res: Response,
+  ) {
+    try {
+      const session = await this.paymentService.getCheckoutSession(sessionId);
+      if (session.status === 'open') {
+        await this.paymentService.expireCheckoutSession(sessionId);
+        this.logger.log(`Manually expired checkout session: ${sessionId}`);
+        await this.checkoutSessionExpiredHandler.handle(
+          session.id,
+          session.orderId,
+          'User cancelled checkout',
+        );
+      } else {
+        this.logger.log(
+          `Session ${sessionId} already in status: ${session.status}`,
+        );
+      }
+
+      return res.redirect(redirectTo);
+    } catch (error) {
+      this.logger.error(
+        `Failed to handle cancel for session ${sessionId}`,
+        error,
+      );
+      return res.redirect(redirectTo);
+    }
+  }
+}

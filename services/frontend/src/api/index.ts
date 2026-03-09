@@ -7,14 +7,14 @@ import { mockInteractionsApi } from './mock-services/interactions'
 import { createInteractionsApi } from './services/interactions'
 import { mockUsersApi } from './mock-services/users'
 import { createChatApi } from './services/chat'
-import { createPaymentsApi } from './services/payments'
-import { mockPaymentsApi } from './mock-services/payments'
+import { createTicketingApi } from './services/ticketing'
+import { mockTicketingApi } from './mock-services/ticketing'
 import { createUsersApi } from './services/users'
 import {
   createEventsClient,
   createInteractionsClient,
   createChatClient,
-  createPaymentsClient,
+  createTicketingClient,
   createUsersClient,
   createNotificationsClient,
 } from './client'
@@ -37,6 +37,6 @@ export const api = {
   notifications: useRealApi
     ? createNotificationsApi(createNotificationsClient())
     : mockNotificationsApi,
-  payments: useRealApi ? createPaymentsApi(createPaymentsClient()) : mockPaymentsApi,
+  ticketing: useRealApi ? createTicketingApi(createTicketingClient()) : mockTicketingApi,
   users: useRealApi ? createUsersApi(createUsersClient()) : mockUsersApi,
 }

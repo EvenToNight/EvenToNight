@@ -5,9 +5,9 @@ import { ObjectId } from "mongodb";
 export async function insertParticipant(participant: ParticipantToInsert): Promise<SeedParticipant> {
 
     const _id = new ObjectId();
-    
-    const DOCKER_CONTAINER =
-        process.env.CHAT_MONGO_URI || "eventonight-mongo-chat-1";
+
+    const MONGO_HOST =
+        process.env.CHAT_MONGO_URI || "mongo-chat";
     const MONGO_DB = process.env.MONGO_DB || "eventonight";
 
     const now = new Date().toISOString();
@@ -32,7 +32,7 @@ export async function insertParticipant(participant: ParticipantToInsert): Promi
 
     try {
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval "${insertCommand}"`,
+            `mongosh "mongodb://${MONGO_HOST}:27017/${MONGO_DB}?directConnection=true" --quiet --eval "${insertCommand}"`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Participant inserted: ${_id}`);

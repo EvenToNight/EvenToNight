@@ -1,0 +1,29 @@
+services:
+  error-pages:
+    image: tarampampam/error-pages:3
+    networks:
+      - eventonight-network
+    environment:
+      - TEMPLATE_NAME=ghost
+
+  traefik:
+    image: traefik:v3.5
+    networks:
+      - eventonight-network
+    environment:
+      - HOST=${HOST}
+    ports:
+      - "${TRAEFIK_SERVICE_PORT}:80"
+      - "${TRAEFIK_SECURE_SERVICE_PORT}:443"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./infrastructure/gateway/config/dynamic:/etc/traefik/dynamic:ro
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+
+networks:
+  eventonight-network:

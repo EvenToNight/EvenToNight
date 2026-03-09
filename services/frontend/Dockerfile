@@ -1,9 +1,9 @@
 FROM node:25-alpine3.22 AS builder
 WORKDIR /home/app
 
-COPY ./services/frontend/package.json ./
+COPY ./services/frontend/package*.json ./
 RUN apk add --no-cache git
-RUN npm install --include=dev
+RUN npm ci
 COPY ./services/frontend .
 
 ENV NODE_ENV=production
@@ -21,5 +21,6 @@ WORKDIR /home/app
 ENV PORT=3000
 COPY --from=builder /home/app/dist ./dist
 COPY --from=builder /home/app/node_modules ./node_modules
+RUN apk add --no-cache curl
 RUN npm install -g serve@14.2.5
 ENTRYPOINT serve -s dist --no-clipboard -l ${PORT}

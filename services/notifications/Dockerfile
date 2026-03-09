@@ -1,8 +1,8 @@
 FROM node:20-slim AS builder
 WORKDIR /home/app
 
-COPY ./services/notifications/package.json ./
-RUN npm install
+COPY ./services/notifications/package*.json ./
+RUN npm ci
 COPY ./services/notifications/tsconfig.json ./
 COPY ./services/notifications/src ./src
 RUN npm run build

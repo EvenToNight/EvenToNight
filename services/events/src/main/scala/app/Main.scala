@@ -11,7 +11,7 @@ object Main extends App:
 
   val mongoHost: String = sys.env.getOrElse("MONGO_HOST", "localhost")
   val mongoPort: String = "27017"
-  val mongoUri: String  = s"mongodb://$mongoHost:$mongoPort"
+  val mongoUri: String  = s"mongodb://$mongoHost:$mongoPort/?replicaSet=rs0&directConnection=true"
 
   val rabbitHost: String = sys.env.getOrElse("RABBITMQ_HOST", "localhost")
   val rabbitPort: Int    = sys.env.getOrElse("RABBITMQ_PORT", "5672").toInt

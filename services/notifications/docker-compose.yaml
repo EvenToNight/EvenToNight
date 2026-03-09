@@ -1,29 +1,13 @@
 services:
   notifications:
-    image: ghcr.io/eventonight/eventonight/notifications:latest
-    networks:
-      - eventonight-network
-      - notifications-network
-    environment:
-      - HOST=${HOST}
-      - PORT=${NOTIFICATIONS_SERVICE_PORT}
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=${RABBITMQ_USER}
-      - RABBITMQ_PASS=${RABBITMQ_PASS}
-      - MONGO_HOST=mongo-notifications
-      - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
+    restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.notifications.rule=Host(`notifications.${HOST}`)"
       - "traefik.http.routers.notifications.entrypoints=web"
       - "traefik.http.services.notifications.loadbalancer.server.port=${NOTIFICATIONS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${NOTIFICATIONS_SERVICE_PORT}/health"]
-      interval: 5s
-      timeout: 3s
-      retries: 3
-      start_period: 10s
+      - "traefik.http.routers.notifications.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"    
     depends_on:
       mongo-notifications:
         condition: service_healthy
@@ -33,16 +17,7 @@ services:
         condition: service_healthy
 
   mongo-notifications:
-    image: mongo
     restart: unless-stopped
-    networks:
-      - notifications-network
-    healthcheck:
-      test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
-      interval: 2s
-      timeout: 3s
-      retries: 10
-      start_period: 30s
 
 networks:
   eventonight-network:

@@ -1,0 +1,36 @@
+services:
+  postgres-keycloak:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.id.1 == true
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+
+  keycloak:
+    # environment:
+    #   KC_CACHE: ispn
+    #   KC_CACHE_STACK: kubernetes
+    #   JAVA_OPTS_APPEND: -Djgroups.dns.query=tasks.keycloak
+    deploy:
+      replicas: 1
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.auth.rule=Host(`auth.${HOST}`)"
+        - "traefik.http.routers.auth.entrypoints=web"
+        - "traefik.http.services.auth.loadbalancer.server.port=8080"
+        - "traefik.http.routers.auth.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"  
+        
+  keycloak-provision:
+    deploy:
+      mode: replicated-job
+
+networks:
+  eventonight-network:
+    driver: overlay
+    attachable: true
+  keycloak-network:
+    driver: overlay

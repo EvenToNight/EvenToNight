@@ -6,7 +6,7 @@ import { api } from '@/api'
 import type { CreationEventStatus, PartialEventData } from '@/api/types/events'
 import type { Location } from '@/api/types/common'
 import { parseLocation, buildLocationDisplayName } from '@/api/utils/locationUtils'
-import { MAX_TICKET_PRICE, type TicketType } from '@/api/types/payments'
+import { MAX_TICKET_PRICE, type TicketType } from '@/api/types/ticketing'
 import { useNavigation } from '@/router/utils'
 import { useAuthStore } from '@/stores/auth'
 import FormField from '@/components/forms/FormField.vue'
@@ -259,13 +259,13 @@ const handleDelete = async () => {
 const createOrUpdateEventTicketTypes = async (eventId: string) => {
   ticketEntries.value.forEach(async (entry) => {
     if (entry.id === null) {
-      await api.payments.createEventTicketType(eventId, {
+      await api.ticketing.createEventTicketType(eventId, {
         type: entry.type!,
         price: Number(entry.price),
         quantity: Number(entry.quantity),
       })
     } else {
-      await api.payments.updateEventTicketType(entry.id, {
+      await api.ticketing.updateEventTicketType(entry.id, {
         price: Number(entry.price),
         quantity: Number(entry.quantity),
       })
@@ -359,7 +359,7 @@ const onSubmit = async () => {
 
 const loadTickets = async () => {
   try {
-    const ticketTypes = await api.payments.getEventTicketsType(eventId.value)
+    const ticketTypes = await api.ticketing.getEventTicketsType(eventId.value)
     ticketEntries.value = ticketTypes.map((ticket) => ({
       id: ticket.id,
       type: ticket.type,
@@ -407,7 +407,7 @@ const loadEvent = async () => {
 
 const loadTicketTypes = async () => {
   try {
-    availableTicketTypes.value = await api.payments.getTicketTypes()
+    availableTicketTypes.value = await api.ticketing.getTicketTypes()
     if (availableTicketTypes.value.length > 0 && ticketEntries.value.length === 0) {
       ticketEntries.value.push(createEmptyTicketEntry())
     }

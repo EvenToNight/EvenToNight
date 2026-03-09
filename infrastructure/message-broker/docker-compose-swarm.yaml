@@ -1,0 +1,25 @@
+services:
+  rabbitmq:
+    hostname: "rabbitmq-{{.Task.Slot}}"
+    environment:
+      RABBITMQ_ERLANG_COOKIE: ${RABBITMQ_ERLANG_COOKIE}
+    configs:
+      - source: rabbitmq_conf
+        target: /etc/rabbitmq/rabbitmq.conf
+    deploy:
+      replicas: ${RABBITMQ_REPLICAS:-3}
+      placement:
+        max_replicas_per_node: 1
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+
+configs:
+  rabbitmq_conf:
+    file: ./infrastructure/message-broker/rabbitmq.conf
+
+networks:
+  eventonight-network:
+    driver: overlay
+    attachable: true

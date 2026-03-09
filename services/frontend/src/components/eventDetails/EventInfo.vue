@@ -2,7 +2,7 @@
 import { computed } from 'vue'
 import { useNavigation } from '@/router/utils'
 import type { Event } from '@/api/types/events'
-import type { EventTicketType } from '@/api/types/payments'
+import type { EventTicketType } from '@/api/types/ticketing'
 import { useTranslation } from '@/composables/useTranslation'
 
 interface Props {

@@ -1,0 +1,34 @@
+services:
+  media:
+    deploy:
+      replicas: ${MEDIA_SERVICE_REPLICAS:-1}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.media.rule=Host(`media.${HOST}`)"
+        - "traefik.http.routers.media.entrypoints=web"
+        - "traefik.http.services.media.loadbalancer.server.port=9020"
+        - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+        - "traefik.http.routers.media.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"
+
+  minio:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.id.1 == true
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+
+networks:
+  eventonight-network:
+    driver: overlay
+    attachable: true
+  media-network:
+    driver: overlay

@@ -1,0 +1,37 @@
+services:
+  chat:
+    image: ghcr.io/eventonight/eventonight/chat:latest
+    networks:
+      - eventonight-network
+      - chat-network
+    environment:
+      - PORT=${CHAT_SERVICE_PORT}
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASS=${RABBITMQ_PASS}
+      - MONGO_HOST=mongo-chat
+      - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${CHAT_SERVICE_PORT}/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+  mongo-chat:
+    image: mongo
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    networks:
+      - chat-network
+    environment:
+      - MONGO_HOST=mongo-chat
+    healthcheck:
+      test: ["CMD-SHELL", "bash /scripts/init-mongo-replica-set.sh"]
+      interval: 5s
+      timeout: 10s
+      retries: 20
+      start_period: 40s
+
+networks:
+  eventonight-network:
+  chat-network:

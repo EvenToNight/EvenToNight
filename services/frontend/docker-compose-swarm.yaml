@@ -1,0 +1,21 @@
+services:
+  frontend:
+    deploy:
+      replicas: ${FRONTEND_SERVICE_REPLICAS:-1}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.frontend.rule=Host(`${HOST}`)"
+        - "traefik.http.routers.frontend.entrypoints=web"
+        - "traefik.http.services.frontend.loadbalancer.server.port=${FRONTEND_SERVICE_PORT}"
+        - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+        - "traefik.http.routers.frontend.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"
+
+networks:
+  eventonight-network:
+    driver: overlay
+    attachable: true

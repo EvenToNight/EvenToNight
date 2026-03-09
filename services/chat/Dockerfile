@@ -1,8 +1,8 @@
 FROM node:20-slim AS builder
 WORKDIR /home/app
 
-COPY ./services/chat/package.json ./ 
-RUN npm install
+COPY ./services/chat/package*.json ./ 
+RUN npm ci
 COPY ./services/chat/tsconfig*.json ./services/chat/nest-cli.json ./
 COPY ./services/chat/src ./src
 RUN npm run build

@@ -42,6 +42,7 @@ export class RabbitMqPublisherService implements OnModuleDestroy {
         // Assert queue
         await channel.assertQueue(config.queue, {
           durable: true,
+          arguments: { 'x-single-active-consumer': true },
         });
 
         // Bind routing keys

@@ -21,7 +21,7 @@ const verifyTicket = async () => {
   error.value = false
 
   try {
-    const result = await api.payments.verifyTicket(ticketId.value)
+    const result = await api.ticketing.verifyTicket(ticketId.value)
 
     if (result) {
       wasAlreadyUsed.value = false

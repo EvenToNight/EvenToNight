@@ -1,0 +1,109 @@
+import { Inject, Injectable, Logger } from '@nestjs/common';
+import { TicketService } from '../services/ticket.service';
+import { EventTicketTypeService } from '../services/event-ticket-type.service';
+import { OrderService } from '../services/order.service';
+import { Order } from 'src/tickets/domain/aggregates/order.aggregate';
+import { OrderRejectedEvent } from 'src/tickets/domain/events/order-rejected.event';
+import { OutboxService } from '@libs/nestjs-common';
+import {
+  TRANSACTION_MANAGER,
+  Transactional,
+  type TransactionManager,
+} from '@libs/ts-common';
+import { OrderNotFoundException } from 'src/tickets/domain/exceptions/order-not-found-exception';
+
+/**
+ * Handler for Checkout Session Expired Event (Saga Compensation)
+ *
+ * This handler is triggered when a user doesn't complete payment within
+ * the checkout session timeout (typically 30 minutes). It performs
+ * compensating actions to release reserved inventory.
+ *
+ * Flow:
+ * 1. Receive CheckoutSessionExpiredEvent from webhook controller
+ * 2. Mark all tickets as PAYMENT_FAILED (TX2)
+ * 3. Release inventory for all ticket types
+ */
+@Injectable()
+export class CheckoutSessionExpiredHandler {
+  private readonly logger = new Logger(CheckoutSessionExpiredHandler.name);
+
+  constructor(
+    private readonly ticketService: TicketService,
+    private readonly eventTicketTypeService: EventTicketTypeService,
+    private readonly orderService: OrderService,
+    @Inject(TRANSACTION_MANAGER)
+    private readonly transactionManager: TransactionManager,
+    private readonly outboxService: OutboxService,
+  ) {}
+
+  @Transactional()
+  async handle(
+    sessionId: string,
+    orderId: string,
+    reason?: string,
+  ): Promise<void> {
+    this.logger.log(`Handling checkout session expired: ${sessionId}`);
+    if (reason) {
+      this.logger.warn(`Session expired due to: ${reason}`);
+    }
+    const order = await this.orderService.findById(orderId);
+    if (!order) {
+      throw new OrderNotFoundException(orderId);
+    }
+    const ticketIds = order.getTicketIds().map((id) => id.toString());
+
+    try {
+      await this.cancelTicketPaymentAndPublish(ticketIds, order);
+      this.logger.log(
+        `Successfully handled expired session ${sessionId}: ` +
+          `${ticketIds.length} tickets marked as PAYMENT_FAILED and inventory released`,
+      );
+    } catch (error) {
+      this.logger.error(`Failed to handle expired session ${sessionId}`, error);
+      throw error;
+    }
+  }
+
+  private async cancelTicketPaymentAndPublish(
+    ticketIds: string[],
+    order: Order,
+  ): Promise<void> {
+    return this.transactionManager.executeInTransaction(async () => {
+      const ticketTypeMap = new Map<string, number>();
+      for (const ticketId of ticketIds) {
+        const ticket = await this.ticketService.findById(ticketId);
+        if (ticket && ticket.isPendingPayment()) {
+          ticket.markPaymentFailed();
+          await this.ticketService.update(ticket);
+          const typeId = ticket.getTicketTypeId().toString();
+          ticketTypeMap.set(typeId, (ticketTypeMap.get(typeId) || 0) + 1);
+        }
+      }
+
+      for (const [ticketTypeId, count] of ticketTypeMap.entries()) {
+        const ticketType =
+          await this.eventTicketTypeService.findById(ticketTypeId);
+        if (ticketType) {
+          for (let i = 0; i < count; i++) {
+            ticketType.releaseTicket();
+          }
+          await this.eventTicketTypeService.update(ticketType);
+        }
+      }
+
+      order.cancel();
+      await this.orderService.update(order);
+
+      const orderRejectedEvent = new OrderRejectedEvent({
+        orderId: order.getId().toString(),
+        userId: order.getUserId().toString(),
+        eventId: order.getEventId().toString(),
+      });
+      await this.outboxService.addEvent(
+        orderRejectedEvent,
+        orderRejectedEvent.eventType,
+      );
+    });
+  }
+}

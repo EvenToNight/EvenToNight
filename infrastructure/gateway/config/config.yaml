@@ -3,6 +3,7 @@ global:
   sendAnonymousUsage: false
 log:
   level: "DEBUG" #ERROR default
+ping: {}
 api:
   dashboard: true
   insecure: true
@@ -12,6 +13,9 @@ entryPoints:
   websecure:
     address: :443
 providers:
+  file:
+    directory: /etc/traefik/dynamic
+    watch: true
   docker:
     endpoint: "unix:///var/run/docker.sock"
     watch: true

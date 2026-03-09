@@ -1,0 +1,25 @@
+services:
+  error-pages:
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+
+  traefik:
+    configs:
+      - source: traefik_config
+        target: /etc/traefik/traefik.yaml
+    deploy:
+      mode: global
+      placement:
+        constraints:
+          - node.role == manager
+
+configs:
+  traefik_config:
+    file: ./infrastructure/gateway/config/config-swarm.yaml
+
+networks:
+  eventonight-network:
+    driver: overlay
+    attachable: true

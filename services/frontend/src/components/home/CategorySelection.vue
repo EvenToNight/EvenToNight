@@ -45,7 +45,7 @@ onMounted(async () => {
 </script>
 <template>
   <loadable-component :loading="loading">
-    <div class="category-selection q-py-lg">
+    <div v-if="categories.length > 0" class="category-selection q-py-lg">
       <div class="text-center q-mb-lg">
         <h2 class="category-title q-mb-sm">{{ t('title') }}</h2>
         <p class="category-subtitle q-ma-none">{{ t('subtitle') }}</p>

@@ -1,0 +1,94 @@
+services:
+  ticketing:
+    environment:
+        - REPLICA_SET_NODES_NUMBER=3
+    deploy:
+      replicas: ${TICKETING_SERVICE_REPLICAS:-1}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.ticketing.rule=Host(`ticketing.${HOST}`) && !PathPrefix(`/internal`)"
+        - "traefik.http.routers.ticketing.entrypoints=web"
+        - "traefik.http.services.ticketing.loadbalancer.server.port=${TICKETING_SERVICE_PORT}"
+        - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+        - "traefik.http.routers.ticketing.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"
+  mongo-ticketing:
+    hostname: mongo-ticketing
+    configs:
+      - source: init_mongo_replica_set
+        target: /scripts/init-mongo-replica-set.sh
+    environment:
+      - REPLICA_SET_NODES_NUMBER=3
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.id.1 == true
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+
+  mongo-ticketing-2:
+    hostname: mongo-ticketing-2
+    image: mongo
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    networks:
+      - ticketing-network
+    volumes:
+      - mongo-ticketing-2-data:/data/db
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.id.2 == true
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok']
+      interval: 2s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  mongo-ticketing-3:
+    hostname: mongo-ticketing-3
+    image: mongo
+    command: ["--replSet", "rs0", "--bind_ip_all"]
+    networks:
+      - ticketing-network
+    volumes:
+      - mongo-ticketing-3-data:/data/db
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.id.3 == true
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+    healthcheck:
+      test: ['CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok']
+      interval: 2s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+configs:
+  init_mongo_replica_set:
+    file: ./scripts/init-mongo-replica-set.sh
+
+networks:
+  eventonight-network:
+    driver: overlay
+    attachable: true
+  ticketing-network:
+    driver: overlay
+    attachable: true

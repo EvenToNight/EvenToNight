@@ -49,7 +49,7 @@ object Wiring:
   val roleIds: Map[String, String] = initializer.initializeRoles() match
     case Left(err) =>
       println(s"Failed to initialize member and organization roles: $err")
-      sys.error(s"Keycloak roles init failed: $err")
+      sys.exit(1)
     case Right(ids) =>
       println("Retrieve member and organization roles from Keycloak successfully.")
       ids

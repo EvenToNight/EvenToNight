@@ -1,62 +1,25 @@
 services:
   events:
-    image: ghcr.io/eventonight/eventonight/events:latest
-    networks:
-      - eventonight-network
-      - events-network
-    environment:
-      - PORT=${EVENTS_SERVICE_PORT}
-      - MONGO_HOST=mongo-events
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=${RABBITMQ_USER}
-      - RABBITMQ_PASS=${RABBITMQ_PASS}
-      - RABBITMQ_PORT=${RABBITMQ_PORT}
-      - HOST=${HOST}
-      - AUTH_PUBLIC_KEY_URL=http://users:${USERS_SERVICE_PORT}/public-keys
-      - PAYMENTS_SERVICE_URL=http://payments:${PAYMENTS_SERVICE_PORT}
+    restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.events.rule=Host(`events.${HOST}`)"
       - "traefik.http.routers.events.entrypoints=web"
       - "traefik.http.services.events.loadbalancer.server.port=${EVENTS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-    restart: unless-stopped
+      - "traefik.http.routers.events.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"    
     depends_on:
       mongo-events:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      users:
+        condition: service_healthy
 
   mongo-events:
-    image: mongo
+    volumes:
+      - ./scripts/init-mongo-replica-set.sh:/scripts/init-mongo-replica-set.sh:ro
     restart: unless-stopped
-    networks:
-      - events-network
-    command: ["--replSet", "rs0", "--bind_ip_all"]
-    healthcheck:
-      test: |
-        mongosh --quiet --eval "
-        try {
-          var status = rs.status();
-          if (status.ok === 1 && status.members && status.members[0].stateStr === 'PRIMARY') {
-            db.runCommand({ ping: 1 });
-          } else {
-            quit(1);
-          }
-        } catch(e) {
-          if (e.codeName === 'NotYetInitialized') {
-            rs.initiate({
-              _id: 'rs0',
-              members: [{ _id: 0, host: 'mongo-events:27017' }]
-            });
-          }
-          quit(1);
-        }
-        "
-      interval: 5s
-      timeout: 10s
-      retries: 20
-      start_period: 40s
 
 networks:
   eventonight-network:

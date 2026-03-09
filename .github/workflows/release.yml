@@ -175,6 +175,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
         with:
@@ -204,11 +210,13 @@ jobs:
           image_release="${image_base}:${release_tag}"
 
           echo "🚀 Building image for $service_name"
-          docker build -t "$image_latest" -t "$image_release" -f "$dockerfile" .
-
-          echo "📤 Pushing $image_latest and $image_release"
-          docker push "$image_latest"
-          docker push "$image_release"
+          docker buildx build \
+            --platform linux/amd64,linux/arm64 \
+            --tag "$image_latest" \
+            --tag "$image_release" \
+            --file "$dockerfile" \
+            --push \
+            .
 
   dev-deploy:
     needs: build-and-push-docker-images

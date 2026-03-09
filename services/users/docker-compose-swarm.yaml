@@ -1,0 +1,34 @@
+services:
+  users:
+    deploy:
+      replicas: ${USERS_SERVICE_REPLICAS:-1}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.users.rule=Host(`users.${HOST}`)"
+        - "traefik.http.routers.users.entrypoints=web"
+        - "traefik.http.services.users.loadbalancer.server.port=${USERS_SERVICE_PORT}"
+        - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+        - "traefik.http.routers.users.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"
+
+  mongo-users:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.id.1 == true
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+
+networks:
+  eventonight-network:
+    driver: overlay
+    attachable: true
+  users-network:
+    driver: overlay
