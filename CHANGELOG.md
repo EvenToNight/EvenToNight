@@ -1,3 +1,28 @@
+## [2.2.0](https://github.com/EvenToNight/EvenToNight/compare/v2.1.2...v2.2.0) (2026-03-09)
+
+### Features
+
+* **event-creation:** listen for create event message for resiliency ([29973c6](https://github.com/EvenToNight/EvenToNight/commit/29973c665d6240b959bede4240c4a84a85b7fb71))
+* **libs:** support transaction propagation in mongo transation manager ([7c4b03d](https://github.com/EvenToNight/EvenToNight/commit/7c4b03d3c61d91c7ed7796db79ecd131425ef1a7))
+* **notifications:** replicate traefik in all manager nodes ([886b22b](https://github.com/EvenToNight/EvenToNight/commit/886b22b5c3ab679704391a840a8f33bd4ce155c1))
+* **notifications:** setup replication ([050eb7e](https://github.com/EvenToNight/EvenToNight/commit/050eb7ea2158596fa9a47e1c472fb6d28cc547db))
+* **payment-consumers:** use inbox for idempotency ([2c1bd8d](https://github.com/EvenToNight/EvenToNight/commit/2c1bd8df26be1a4c07c07c7612cd9a41d463be92))
+* **payments:** setup mongo replica set ([94ed2d5](https://github.com/EvenToNight/EvenToNight/commit/94ed2d57748ecf6ef388a0129186e3ccb139bc29))
+* **rabbit:** setup quorum queues ([21910d6](https://github.com/EvenToNight/EvenToNight/commit/21910d6c6023e6ac01e3e5128678c72ca94a2707))
+* **stripe:** use inbox for idempotency ([ae158b5](https://github.com/EvenToNight/EvenToNight/commit/ae158b59490bff916c28c9dd1d4fa20591f99a39))
+* **swarm-deploy:** constrain stateful services to the same node ([95760aa](https://github.com/EvenToNight/EvenToNight/commit/95760aa10ba503a4d3aae164a4e0093a06b05155))
+
+### Bug Fixes
+
+* **payments-coverage:** fix coverage evaluation ([e121c64](https://github.com/EvenToNight/EvenToNight/commit/e121c64aeb3920efd1e2e64f73941bab97390353))
+* **swarmDeploy:** add hostnames to mongo ticketing ([bfdf6ee](https://github.com/EvenToNight/EvenToNight/commit/bfdf6ee81c2a27095b2f7e5f3121a0f01e4cdc6a))
+* **swarmDeploy:** remove volumes from all swarm nodes ([f62f343](https://github.com/EvenToNight/EvenToNight/commit/f62f3432b5c8446cd06a0b8a5460876ccd3a7bcd))
+* **swarmDeploy:** seed launch command ([cf6c35d](https://github.com/EvenToNight/EvenToNight/commit/cf6c35d8e7143e9a7ff423b4237b9863d67b5cbe))
+* **swarmDeploy:** update seed to be used in multi-node swarm ([b8bdf82](https://github.com/EvenToNight/EvenToNight/commit/b8bdf8293d0cfc44c00579a0fdab584ce568fb0c))
+* **swarmDeploy:** use local image to run seed when --local flag is used ([b54ec26](https://github.com/EvenToNight/EvenToNight/commit/b54ec2613bd2753dee064faee1cebbf9f2d83da5))
+* **traefik:** update configuration to correctly read from docker sock ([0363385](https://github.com/EvenToNight/EvenToNight/commit/0363385835e5f1ac9e4e839334a922bc045e4f98))
+* **users:** slice findByUserIdAndEventId response array in paymnets GET /users/:userId/tickets to correclty paginate response ([43b5a4c](https://github.com/EvenToNight/EvenToNight/commit/43b5a4c8f1abb2f27954d1f7da5725e4dd83e730))
+
 ## [2.1.2](https://github.com/EvenToNight/EvenToNight/compare/v2.1.1...v2.1.2) (2026-03-02)
 
 ### Bug Fixes
