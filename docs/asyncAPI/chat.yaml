@@ -1,0 +1,93 @@
+asyncapi: "2.5.0"
+
+info:
+  title: Chat Service Async API
+  version: "1.0.0"
+  description: >
+    AsyncAPI specification for events published by the Chat service.
+    The service publishes events to the central RabbitMQ exchange `eventonight`.
+
+servers:
+  rabbitmq:
+    url: amqp://localhost:5672
+    protocol: amqp
+    description: RabbitMQ broker used by the Chat Service to publish chat events.
+
+channels:
+  eventonight:
+    description: Central topic exchange for chat events
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: eventonight
+          type: topic
+          durable: true
+
+    publish:
+      operationId: publishChatEvent
+      message:
+        oneOf:
+          - $ref: "#/components/messages/ChatMessageCreatedMessage"
+
+components:
+  messages:
+    ChatMessageCreatedMessage:
+      name: ChatMessageCreated
+      title: Chat Message Created
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: chat.message.created
+      payload:
+        $ref: "#/components/schemas/ChatMessageCreatedEnvelope"
+
+  schemas:
+    ChatMessageCreatedPayload:
+      type: object
+      description: Payload for chat.message.created
+      properties:
+        receiverId:
+          type: string
+        conversationId:
+          type: string
+        senderId:
+          type: string
+        senderName:
+          type: string
+        message:
+          type: string
+        messageId:
+          type: string
+        senderAvatar:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - receiverId
+        - conversationId
+        - senderId
+        - senderName
+        - message
+        - messageId
+        - senderAvatar
+        - createdAt
+
+    ChatMessageCreatedEnvelope:
+      type: object
+      description: Envelope for chat.message.created
+      properties:
+        eventType:
+          type: string
+          example: chat.message.created
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T10:20:00Z"
+        payload:
+          $ref: "#/components/schemas/ChatMessageCreatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
