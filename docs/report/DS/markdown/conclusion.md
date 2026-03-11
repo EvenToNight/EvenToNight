@@ -1,4 +1,4 @@
-# **9 Conclusions**
+# **9 - Conclusions**
 We are satisfied with the platform developed, which originated from our business idea. The main achievements are:
 
 - **Achievements of project goals.**
