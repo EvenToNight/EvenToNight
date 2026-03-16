@@ -1,7 +1,7 @@
 # 0 - Introduction
 The project consists of the design and development of a distributed digital platform called **EvenToNight**, aimed at connecting organizations that promote social events with users interested in discovering and participating in them. The platform, accessible at [eventonight](https://eventonight.site/), can be used either as a guest or through a registered account that provides additional functionalities.
 
-From a technical perspective, EvenToNight has been designed as a distributed system based on a microservices architecture, supporting modularity, scalability, and the independent management of application components. *// TODO: (accenno al DDD ???)*
+From a technical perspective, EvenToNight has been designed as a distributed system based on a microservices architecture, supporting modularity, scalability, and the independent management of application components.
 
 This architectural choice enables horizontal and autonomous scaling of the various system components, allowing the platform to handle a large number of users concurrently. Furthermore, the distributed architecture ensures reliable data persistence, availability, and openness, thereby facilitating future extensions and adaptation to evolving requirements.
 
@@ -12,7 +12,7 @@ The main goals of the project are:
 
 1. **Create a digital platform for social events**: provide a platform for exploring, discovering, and interacting with social events and other users.
 
-2. **Support both public access and extended functionalities for registered users**: allow public browsing of events while offering additional functionalities for registered users and users registered as organization.
+2. **Support both public access and extended functionalities for registered users**: allow public browsing of events while offering additional functionalities for registered users and organizations.
 
 3. **Promote interaction between users and organizations**: enable users and organizations to communicate and collaborate on the platform.
 
@@ -22,10 +22,10 @@ The main goals of the project are:
 
 6. **Guarantee transparency and coherence in the distributed architecture**: ensure users perceive the platform as a reliable and consistent system, even if it is implemented as a distributed architecture.
 
-7. **Enable future extensibility and adaptability**: design the system to easily incorporate new features, services, or integrations without major changes.
+7. **Enable future extensibility and adaptability**: design the system to easily incorporate new features, services or integrations without major changes.
 
 ## **1.1 Usage scenarios**
-This section illustrates the typical interactions between the target users of the platform and the system itself. EvenToNight has been conceived for three types of users: unregistered users, registered users, and users registered as organization.
+This section illustrates the typical interactions between the target users of the platform and the system itself. EvenToNight has been conceived for three types of users: unregistered users, registered users and users registered as organization.
 
 The use case diagram below summarizes the main interactions of these three user types with the platform.
 

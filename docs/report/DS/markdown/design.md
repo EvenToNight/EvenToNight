@@ -11,11 +11,8 @@ The principal objective of the design phase has been to:
 
 A key design principle adopted is data ownership per service: no service directly accesses the database of another service.
 
-All inter-service coordination occurs either:
-- synchronously through request/response interactions
-- asynchronously through messages exchange.
-
-This separation allows the system to tolerate partial failures, avoid cross-services synchronous operations chaining and maintain loose coupling among components.
+All inter-service coordination occurs either synchronously or asynchronously.
+This separation allows the system to tolerate partial failures, avoiding where possible cross-services synchronous operations chaining and maintain loose coupling among components.
 
 ## 4.1 - Structure 
 
@@ -26,7 +23,6 @@ The domain has been decomposed into bounded contexts, each representing a cohere
 This approach has been adopted to:
 - reduce semantic ambiguity
 - support independence between different subsystems
-- identify needed data for each services to let it indipendent to other. (//TODO: RISCRIVILA)
 
 Each bounded context corresponds to a logically autonomous service, encapsulating:
 - domain entities
@@ -145,7 +141,7 @@ Other services process these events asynchronously, updating their own state or 
 
 ### 4.4.1 Architectural Style
 
-The system is designed according to a **microservices architecture**. The application is decomposed into a set of small, independently deployable services, each responsible for a specific bounded context: Users, Events, Chat, Interactions, Notifications, Media, and Ticketing. //TODO leave all services or only domain related ones?
+The system is designed according to a **microservices architecture**. The application is decomposed into a set of small, independently deployable services, each responsible for a specific bounded context: Users, Events, Chat, Interactions, Notifications and Ticketing.
 
 Each microservice encapsulates its own domain logic and adopts the **database-per-service** pattern.
 
@@ -298,7 +294,7 @@ To scale throughput beyond a single consumer, more refined strategies can be exp
 
 - **`cloudflared` and Traefik** scale with the number of manager nodes — one instance per manager. Traefik natively supports Swarm mode via the Docker API.
 - **Stateless application services** can be scaled to multiple replicas and distributed freely across nodes.
-- **Stateful services** require dedicated HA strategies: MongoDB moves to a **replica set** (primary + secondaries), and RabbitMQ to a **quorum queue cluster** — both require an odd number of members (3, 5, ...) to guarantee quorum and avoid split-brain — ensuring data redundancy and automatic failover. Each stateful instance must be pinned to a distinct node (at most one replica per node) so that a single node failure does not take down multiple members of the same cluster. Replicated data stores also improve **fault tolerance** — the system continues to operate and preserves data integrity even if individual nodes are lost.
+- **Stateful services** require dedicated HA strategies: MongoDB moves to a **replica set** (primary + secondaries), and RabbitMQ to a **quorum queue cluster** — both require an odd number of members (e.g. 3, 5, ...) to guarantee quorum and avoid split-brain — ensuring data redundancy and automatic failover. Each stateful instance must be pinned to a distinct node (at most one replica per node) so that a single node failure does not take down multiple members of the same cluster. Replicated data stores also improve **fault tolerance** — the system continues to operate and preserves data integrity even if individual nodes are lost.
 - **WebSocket sticky sessions**: when `notifications` runs as multiple replicas, Traefik must be configured with a sticky cookie to ensure Socket.IO handshake and subsequent frames are consistently routed to the same replica. However, sticky sessions alone are not sufficient: to broadcast events to all connected clients regardless of which replica they are connected to, a **Redis adapter** for Socket.IO is required to propagate messages across all instances.
 
 
