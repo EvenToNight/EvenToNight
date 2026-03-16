@@ -45,3 +45,9 @@ tasks.register("formatAndLintPreCommit"){
     dependsOn("formatAndLint")
     dependsOn("typeCheck")
 }
+
+tasks.register<NpmTask>("translateI18n") {
+    dependsOn("npmInstall")
+    finalizedBy("formatAndLint")
+    npmCommand.set(listOf("run", "translate:i18n"))
+}
