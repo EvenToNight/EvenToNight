@@ -22,10 +22,17 @@ class EventDescriptionSpec extends AnyFlatSpec with Matchers:
     result.map(_.value).shouldBe(Right(""))
   }
 
-  it should "accept whitespace-only strings" in {
+  it should "reject whitespace-only strings" in {
     val result = EventDescription("   ")
     result.isRight.shouldBe(true)
     result.map(_.value).shouldBe(Right(""))
+  }
+
+  it should "reject strings exceeding MaxLength" in {
+    val longString = "a" * 5001
+    val result = EventDescription(longString)
+    result.isLeft.shouldBe(true)
+    result.left.getOrElse("") should include("must not exceed 5000 characters")
   }
 
   "EventDescription.unsafe" should "create an EventDescription without validation" in {
