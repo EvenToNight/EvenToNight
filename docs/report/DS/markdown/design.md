@@ -182,7 +182,10 @@ The typical flow for this interaction is:
 
 This event-driven approach allows services to collaborate asynchronously while preserving loose coupling and independent evolution.
 
-// TODO: (UML diagram: Domain Event → Service → Transaction → State update / new events)
+<p align="center">
+    <img src="/design/behavior-event-driven.png" alt="behavior-event-driven" width="100%" />
+    <br />
+</p>
 
 ### 4.3.3. Real-time notification propagation
 
