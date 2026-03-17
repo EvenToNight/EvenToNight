@@ -202,7 +202,10 @@ The workflow is the following:
 
 This mechanism allows the system to react promptly to user-relevant events while maintaining a decoupled architecture.
 
-(UML diagram: Domain Event → Notification Service → Notification → Client)
+<p align="center">
+    <img src="/design/behavior-real-time.png" alt="behavior-real-time" width="100%" />
+    <br />
+</p>
 
 ## 4.4 Architecture
 
