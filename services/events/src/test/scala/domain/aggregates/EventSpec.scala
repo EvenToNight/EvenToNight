@@ -159,6 +159,14 @@ class EventSpec extends AnyFlatSpec with Matchers:
     result.toOption.get.domainEvents.exists(_.isInstanceOf[EventPublished]) shouldBe true
   }
 
+  it should "generate EventCancelled if status transitions to CANCELLED via update" in {
+    val event = createPublishableEvent().clearDomainEvents().publish("Org").getOrElse(fail("published failed")).clearDomainEvents()
+    val result = event.update(event.title, event.description, event.tags, event.location, event.date, EventStatus.CANCELLED, None, "Org")
+    
+    result.isRight.shouldBe(true)
+    result.toOption.get.domainEvents.exists(_.isInstanceOf[EventCancelled]) shouldBe true
+  }
+
   "Event.addCollaborator" should "add a new collaborator" in {
     val event          = createDraftEvent()
     val collaboratorId = OrganizationId.unsafe("collab-1")
@@ -207,6 +215,20 @@ class EventSpec extends AnyFlatSpec with Matchers:
     result.left.getOrElse("") should include("Cannot remove the event creator")
   }
 
+  it should "fail to remove a collaborator from a COMPLETED event" in {
+    val event = createPublishableEvent().clearDomainEvents().publish("Org").flatMap(_.complete()).getOrElse(fail("failed"))
+    val result = event.removeCollaborator(OrganizationId.unsafe("collab-1"))
+    result.isLeft.shouldBe(true)
+    result.left.getOrElse("") should include("Cannot remove collaborators from a completed event")
+  }
+
+  it should "fail to remove a collaborator that is not in the list" in {
+    val event = createDraftEvent()
+    val result = event.removeCollaborator(OrganizationId.unsafe("absent-collab"))
+    result.isLeft.shouldBe(true)
+    result.left.getOrElse("") should include("is not part of this event")
+  }
+
   "Event.updatePoster" should "update poster URL successfully" in {
     val event = createDraftEvent()
     val result = event.updatePoster("http://new-poster.jpg")
@@ -218,6 +240,13 @@ class EventSpec extends AnyFlatSpec with Matchers:
     val event = createDraftEvent()
     val result = event.updatePoster("   ")
     result.isLeft.shouldBe(true)
+  }
+
+  it should "fail if event is COMPLETED" in {
+    val event = createPublishableEvent().clearDomainEvents().publish("Org").flatMap(_.complete()).getOrElse(fail("failed"))
+    val result = event.updatePoster("http://new-poster.jpg")
+    result.isLeft.shouldBe(true)
+    result.left.getOrElse("") should include("Cannot update poster of a completed event")
   }
 
   "Event.hasPassed" should "return true if event date is in the past" in {
@@ -233,6 +262,14 @@ class EventSpec extends AnyFlatSpec with Matchers:
       collaboratorIds = None
     )
     event.hasPassed shouldBe true
+  }
+
+  it should "return false if event date is in the future or not set" in {
+    val futureEvent = Event.create(title = None, description = None, poster = None, tags = None, location = None, date = Some(LocalDateTime.now().plusDays(1)), status = EventStatus.DRAFT, creatorId = OrganizationId.unsafe("org-test"), collaboratorIds = None)
+    futureEvent.hasPassed shouldBe false
+
+    val noDateEvent = Event.create(title = None, description = None, poster = None, tags = None, location = None, date = None, status = EventStatus.DRAFT, creatorId = OrganizationId.unsafe("org-test"), collaboratorIds = None)
+    noDateEvent.hasPassed shouldBe false
   }
 
   "Event.isOrganizer" should "return true if organization is creator or collaborator" in {
@@ -270,6 +307,11 @@ class EventSpec extends AnyFlatSpec with Matchers:
     
     val result = event.prepareForDeletion()
     result.isLeft.shouldBe(true)
+  }
+
+  "Event.shouldBeSoftDeleted" should "return true only when PUBLISHED" in {
+    createPublishableEvent().publish("Org").getOrElse(fail("fail")).shouldBeSoftDeleted shouldBe true
+    createDraftEvent().shouldBeSoftDeleted shouldBe false
   }
 
   "Event.reconstitute" should "recreate an Event from persisted data without creating domain events" in {
