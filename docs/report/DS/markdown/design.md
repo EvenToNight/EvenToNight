@@ -161,7 +161,10 @@ The typical workflow can therefore be summarized as follows:
 
 This pattern guarantees internal consistency within the service while enabling reliable propagation of domain events to the rest of the system.
 
-// TODO: (UML diagram: Request → Service → Transaction → State update + Domain event generation)
+<p align="center">
+    <img src="/design/behavior-request-driven.png" alt="behavior-request-driven" width="100%" />
+    <br />
+</p>
 
 ### 4.3.2. Event-driven processing
 
