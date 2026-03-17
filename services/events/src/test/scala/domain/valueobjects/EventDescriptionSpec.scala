@@ -30,7 +30,7 @@ class EventDescriptionSpec extends AnyFlatSpec with Matchers:
 
   it should "reject strings exceeding MaxLength" in {
     val longString = "a" * 5001
-    val result = EventDescription(longString)
+    val result     = EventDescription(longString)
     result.isLeft.shouldBe(true)
     result.left.getOrElse("") should include("must not exceed 5000 characters")
   }

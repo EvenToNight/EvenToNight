@@ -26,8 +26,6 @@ class OrganizationIdSpec extends AnyFlatSpec with Matchers:
     result.shouldBe(Left("OrganizationId cannot be null or empty"))
   }
 
-
-
   "OrganizationId.unsafe" should "create an OrganizationId without validation" in {
     val id = OrganizationId.unsafe("any-org-id")
     id.value.shouldBe("any-org-id")

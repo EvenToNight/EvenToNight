@@ -11,9 +11,9 @@ import org.scalatest.matchers.should.Matchers
 class EventApplicationServiceSpec extends AnyFlatSpec with Matchers:
 
   "EventApplicationService" should "route CreateEventCommand correctly" in {
-    val eventRepo = new FakeEventRepository()
-    val orgRepo = new FakeOrganizationRepository()
-    val publisher = new FakeDomainEventPublisher()
+    val eventRepo  = new FakeEventRepository()
+    val orgRepo    = new FakeOrganizationRepository()
+    val publisher  = new FakeDomainEventPublisher()
     val unitOfWork = new FakeUnitOfWork()
 
     val service = new EventApplicationService(eventRepo, orgRepo, publisher, unitOfWork)
@@ -32,23 +32,30 @@ class EventApplicationServiceSpec extends AnyFlatSpec with Matchers:
 
     val result = service.handleCommand(command)
     result.isRight shouldBe true
-    
+
     result.getOrElse(fail()) match
       case eventId: String => eventRepo.events.contains(eventId) shouldBe true
-      case _ => fail("Result was not a string")
+      case _               => fail("Result was not a string")
   }
 
   it should "route DeleteEventCommand correctly" in {
-    val eventRepo = new FakeEventRepository()
-    val orgRepo = new FakeOrganizationRepository()
-    val publisher = new FakeDomainEventPublisher()
+    val eventRepo  = new FakeEventRepository()
+    val orgRepo    = new FakeOrganizationRepository()
+    val publisher  = new FakeDomainEventPublisher()
     val unitOfWork = new FakeUnitOfWork()
 
     val service = new EventApplicationService(eventRepo, orgRepo, publisher, unitOfWork)
 
     val draft = Event.create(
-      title = None, description = None, poster = None, tags = None, location = None, date = None,
-      status = EventStatus.DRAFT, creatorId = OrganizationId.unsafe("org-1"), collaboratorIds = None
+      title = None,
+      description = None,
+      poster = None,
+      tags = None,
+      location = None,
+      date = None,
+      status = EventStatus.DRAFT,
+      creatorId = OrganizationId.unsafe("org-1"),
+      collaboratorIds = None
     )
     eventRepo.save(draft)
 
@@ -60,16 +67,23 @@ class EventApplicationServiceSpec extends AnyFlatSpec with Matchers:
   }
 
   it should "route UpdateEventPosterCommand correctly" in {
-    val eventRepo = new FakeEventRepository()
-    val orgRepo = new FakeOrganizationRepository()
-    val publisher = new FakeDomainEventPublisher()
+    val eventRepo  = new FakeEventRepository()
+    val orgRepo    = new FakeOrganizationRepository()
+    val publisher  = new FakeDomainEventPublisher()
     val unitOfWork = new FakeUnitOfWork()
 
     val service = new EventApplicationService(eventRepo, orgRepo, publisher, unitOfWork)
 
     val draft = Event.create(
-      title = None, description = None, poster = None, tags = None, location = None, date = None,
-      status = EventStatus.DRAFT, creatorId = OrganizationId.unsafe("org-1"), collaboratorIds = None
+      title = None,
+      description = None,
+      poster = None,
+      tags = None,
+      location = None,
+      date = None,
+      status = EventStatus.DRAFT,
+      creatorId = OrganizationId.unsafe("org-1"),
+      collaboratorIds = None
     )
     eventRepo.save(draft)
 
@@ -81,16 +95,16 @@ class EventApplicationServiceSpec extends AnyFlatSpec with Matchers:
   }
 
   it should "route GetEventCommand correctly to GetEventQuery" in {
-    val eventRepo = new FakeEventRepository()
-    val orgRepo = new FakeOrganizationRepository()
-    val publisher = new FakeDomainEventPublisher()
+    val eventRepo  = new FakeEventRepository()
+    val orgRepo    = new FakeOrganizationRepository()
+    val publisher  = new FakeDomainEventPublisher()
     val unitOfWork = new FakeUnitOfWork()
 
     val service = new EventApplicationService(eventRepo, orgRepo, publisher, unitOfWork)
 
     val command = GetEventCommand(eventId = "missing")
-    val result = service.handleCommand(command)
-    
+    val result  = service.handleCommand(command)
+
     result.isLeft shouldBe true
     result.left.getOrElse("") should include("not found")
   }

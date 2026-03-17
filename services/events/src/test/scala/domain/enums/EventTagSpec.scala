@@ -31,21 +31,21 @@ class EventTagSpec extends AnyFlatSpec with Matchers:
 
   "EventTag.validateTagList" should "parse a JSON array formatted string" in {
     val jsonString = """["Live Music", "Club"]"""
-    val result = EventTag.validateTagList(jsonString)
+    val result     = EventTag.validateTagList(jsonString)
     result.isDefined shouldBe true
     result.get shouldBe List(EventTag.EventType.LiveMusic, EventTag.Venue.Club)
   }
 
   it should "parse a comma-separated string" in {
     val csvString = "Concert, Rock, invalid_tag"
-    val result = EventTag.validateTagList(csvString)
+    val result    = EventTag.validateTagList(csvString)
     result.isDefined shouldBe true
     result.get shouldBe List(EventTag.EventType.Concert, EventTag.MusicStyle.Rock)
   }
 
   it should "return None if no valid tags are found" in {
     val csvString = "invalid1, invalid2"
-    val result = EventTag.validateTagList(csvString)
+    val result    = EventTag.validateTagList(csvString)
     result.isEmpty shouldBe true
   }
 

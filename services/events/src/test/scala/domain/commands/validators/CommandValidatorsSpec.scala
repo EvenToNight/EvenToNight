@@ -1,6 +1,6 @@
 package domain.commands.validators
 
-import domain.commands._
+import domain.commands.*
 import domain.enums.EventStatus
 import infrastructure.dto.Location
 import org.scalatest.flatspec.AnyFlatSpec
@@ -17,7 +17,7 @@ class CommandValidatorsSpec extends AnyFlatSpec with Matchers:
 
   "CreateEventValidator" should "accept valid DRAFT command" in {
     val command = CreateEventCommand(status = EventStatus.DRAFT, creatorId = "creator-123")
-    val result = CreateEventValidator.validate(command)
+    val result  = CreateEventValidator.validate(command)
     result.isRight shouldBe true
   }
 
@@ -27,18 +27,39 @@ class CommandValidatorsSpec extends AnyFlatSpec with Matchers:
   }
 
   it should "validate fields for non-DRAFT command" in {
-    val validLoc = Location(country = Some("IT"), country_code = Some("IT"), road = Some("R"), postcode = Some("0"), lat = Some(0.0), lon = Some(0.0), name = None, state = None, province = None, city = None, house_number = None, link = None)
+    val validLoc = Location(
+      country = Some("IT"),
+      country_code = Some("IT"),
+      road = Some("R"),
+      postcode = Some("0"),
+      lat = Some(0.0),
+      lon = Some(0.0),
+      name = None,
+      state = None,
+      province = None,
+      city = None,
+      house_number = None,
+      link = None
+    )
     val validDate = LocalDateTime.now().plusDays(1)
-    
+
     val validCmd = CreateEventCommand(
-      title = Some("Title"), description = Some("Desc"), creatorId = "org-1",
-      location = Some(validLoc), date = Some(validDate), status = EventStatus.PUBLISHED
+      title = Some("Title"),
+      description = Some("Desc"),
+      creatorId = "org-1",
+      location = Some(validLoc),
+      date = Some(validDate),
+      status = EventStatus.PUBLISHED
     )
     CreateEventValidator.validate(validCmd).isRight shouldBe true
 
     val invalidCmd = CreateEventCommand(
-      title = None, description = None, creatorId = "",
-      location = None, date = Some(LocalDateTime.now().minusDays(1)), status = EventStatus.PUBLISHED
+      title = None,
+      description = None,
+      creatorId = "",
+      location = None,
+      date = Some(LocalDateTime.now().minusDays(1)),
+      status = EventStatus.PUBLISHED
     )
     val errs = CreateEventValidator.validate(invalidCmd).left.toOption.get
     errs.size shouldBe 5 // title, desc, creatorId, location, date
@@ -62,8 +83,30 @@ class CommandValidatorsSpec extends AnyFlatSpec with Matchers:
     val invalidDraft = draftCmd.copy(eventId = "")
     UpdateEventValidator.validate(invalidDraft).isLeft shouldBe true
 
-    val validLoc = Location(country = Some("IT"), country_code = Some("IT"), road = Some("R"), postcode = Some("0"), lat = Some(0.0), lon = Some(0.0), name = None, state = None, province = None, city = None, house_number = None, link = None)
-    val publishedCmd = UpdateEventCommand("1", Some("Title"), Some("Desc"), None, Some(validLoc), Some(LocalDateTime.now().plusDays(1)), EventStatus.PUBLISHED, None)
+    val validLoc = Location(
+      country = Some("IT"),
+      country_code = Some("IT"),
+      road = Some("R"),
+      postcode = Some("0"),
+      lat = Some(0.0),
+      lon = Some(0.0),
+      name = None,
+      state = None,
+      province = None,
+      city = None,
+      house_number = None,
+      link = None
+    )
+    val publishedCmd = UpdateEventCommand(
+      "1",
+      Some("Title"),
+      Some("Desc"),
+      None,
+      Some(validLoc),
+      Some(LocalDateTime.now().plusDays(1)),
+      EventStatus.PUBLISHED,
+      None
+    )
     UpdateEventValidator.validate(publishedCmd).isRight shouldBe true
   }
 
@@ -73,13 +116,49 @@ class CommandValidatorsSpec extends AnyFlatSpec with Matchers:
   }
 
   "GetFilteredEventsValidator" should "validate limits, offsets and dates" in {
-    val valid = GetFilteredEventsCommand(Some(10), Some(0), None, None, None, None, None, None, None, None, None, None, None, None, None, None)
+    val valid = GetFilteredEventsCommand(
+      Some(10),
+      Some(0),
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None
+    )
     GetFilteredEventsValidator.validate(valid).isRight shouldBe true
 
-    val invalid = GetFilteredEventsCommand(Some(-1), Some(-1), None, None, None, Some(LocalDateTime.now().plusDays(1)), Some(LocalDateTime.now()), None, None, None, None, None, None, None, None, None)
+    val invalid = GetFilteredEventsCommand(
+      Some(-1),
+      Some(-1),
+      None,
+      None,
+      None,
+      Some(LocalDateTime.now().plusDays(1)),
+      Some(LocalDateTime.now()),
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None,
+      None
+    )
     GetFilteredEventsValidator.validate(invalid).isLeft shouldBe true
   }
 
   "ValidatorsInstances" should "provide given instances" in {
-    Validator.validateCommand(GetEventCommand("1"))(using ValidatorsInstances.given_Validator_GetEventCommand).isRight shouldBe true
+    Validator.validateCommand(GetEventCommand("1"))(using
+      ValidatorsInstances.given_Validator_GetEventCommand
+    ).isRight shouldBe true
   }

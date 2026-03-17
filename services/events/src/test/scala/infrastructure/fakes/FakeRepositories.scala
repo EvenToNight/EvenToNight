@@ -3,7 +3,13 @@ package infrastructure.fakes
 import domain.aggregates.Event
 import domain.enums.EventStatus
 import domain.events.DomainEvent
-import domain.repositories.{DomainEventPublisher, EventRepository, OrganizationRepository, TransactionContext, UnitOfWork}
+import domain.repositories.{
+  DomainEventPublisher,
+  EventRepository,
+  OrganizationRepository,
+  TransactionContext,
+  UnitOfWork
+}
 import domain.valueobjects.{EventId, OrganizationId}
 
 import java.time.LocalDateTime
@@ -21,19 +27,19 @@ class FakeDomainEventPublisher extends DomainEventPublisher:
     publishedEvents = publishedEvents :+ event
 
 class FakeOrganizationRepository extends OrganizationRepository:
-  var existingOrgs: Set[String] = Set("org-1", "org-2")
+  var existingOrgs: Set[String]     = Set("org-1", "org-2")
   var orgNames: Map[String, String] = Map("org-1" -> "First Org", "org-2" -> "Second Org")
 
   override def isOrganization(id: OrganizationId): Boolean = existingOrgs.contains(id.value)
-  
-  override def isOrganization(id: OrganizationId, ctx: TransactionContext): Boolean = 
+
+  override def isOrganization(id: OrganizationId, ctx: TransactionContext): Boolean =
     isOrganization(id)
-    
+
   override def getOrganizationName(id: OrganizationId): Option[String] = orgNames.get(id.value)
 
 class FakeEventRepository extends EventRepository:
   var events: Map[String, Event] = Map.empty
-  var saveFailures: Boolean = false
+  var saveFailures: Boolean      = false
 
   override def save(event: Event): Either[String, Unit] =
     if saveFailures then Left("Simulated save failure")

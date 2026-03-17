@@ -1,9 +1,9 @@
 package domain.commands.validators
 import infrastructure.dto.Location
-
-import java.time.LocalDateTime
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+
+import java.time.LocalDateTime
 
 class ValidationRulesSpec extends AnyFlatSpec with Matchers:
 
@@ -34,18 +34,49 @@ class ValidationRulesSpec extends AnyFlatSpec with Matchers:
       postcode = Some("00100"),
       lat = Some(41.9),
       lon = Some(12.5),
-      name = None, state = None, province = None, city = None, house_number = None, link = None
+      name = None,
+      state = None,
+      province = None,
+      city = None,
+      house_number = None,
+      link = None
     )
     ValidationRules.correctLocality(validLoc) shouldBe Right(validLoc)
   }
 
   it should "return Left if latitude is out of bounds" in {
-    val invalidLoc = Location(country = Some("Italy"), country_code = Some("IT"), road = Some("R"), postcode = Some("0"), lat = Some(100.0), lon = Some(0.0), name = None, state = None, province = None, city = None, house_number = None, link = None)
+    val invalidLoc = Location(
+      country = Some("Italy"),
+      country_code = Some("IT"),
+      road = Some("R"),
+      postcode = Some("0"),
+      lat = Some(100.0),
+      lon = Some(0.0),
+      name = None,
+      state = None,
+      province = None,
+      city = None,
+      house_number = None,
+      link = None
+    )
     ValidationRules.correctLocality(invalidLoc).isLeft shouldBe true
   }
 
   it should "return Left if required fields are missing" in {
-    val invalidLoc = Location(country = None, country_code = Some("IT"), road = Some("R"), postcode = Some("0"), lat = Some(0.0), lon = Some(0.0), name = None, state = None, province = None, city = None, house_number = None, link = None)
+    val invalidLoc = Location(
+      country = None,
+      country_code = Some("IT"),
+      road = Some("R"),
+      postcode = Some("0"),
+      lat = Some(0.0),
+      lon = Some(0.0),
+      name = None,
+      state = None,
+      province = None,
+      city = None,
+      house_number = None,
+      link = None
+    )
     ValidationRules.correctLocality(invalidLoc).isLeft shouldBe true
   }
 
@@ -71,13 +102,13 @@ class ValidationRulesSpec extends AnyFlatSpec with Matchers:
 
   "dateRange" should "return Right if start is before end" in {
     val start = LocalDateTime.now()
-    val end = start.plusDays(1)
+    val end   = start.plusDays(1)
     ValidationRules.dateRange(Some(start), Some(end), "Range") shouldBe Right(())
   }
 
   it should "return Left if start is after end" in {
     val start = LocalDateTime.now().plusDays(1)
-    val end = LocalDateTime.now()
+    val end   = LocalDateTime.now()
     ValidationRules.dateRange(Some(start), Some(end), "Range").isLeft shouldBe true
   }
 

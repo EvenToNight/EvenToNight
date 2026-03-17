@@ -26,7 +26,7 @@ class DomainExceptionsSpec extends AnyFlatSpec with Matchers:
 
   "ValidationException" should "join errors with comma" in {
     val errors = List("Error 1", "Error 2")
-    val ex = ValidationException(errors)
+    val ex     = ValidationException(errors)
     ex.getMessage shouldBe "Error 1, Error 2"
     ex.errors shouldBe errors
   }

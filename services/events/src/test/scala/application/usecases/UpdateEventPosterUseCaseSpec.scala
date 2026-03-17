@@ -13,11 +13,18 @@ class UpdateEventPosterUseCaseSpec extends AnyFlatSpec with Matchers:
   "UpdateEventPosterUseCase" should "update poster URL successfully" in {
     val eventRepo = new FakeEventRepository()
     val publisher = new FakeDomainEventPublisher()
-    val useCase = new UpdateEventPosterUseCase(eventRepo, publisher)
+    val useCase   = new UpdateEventPosterUseCase(eventRepo, publisher)
 
     val draft = Event.create(
-      title = None, description = None, poster = None, tags = None, location = None, date = None,
-      status = EventStatus.DRAFT, creatorId = OrganizationId.unsafe("org-1"), collaboratorIds = None
+      title = None,
+      description = None,
+      poster = None,
+      tags = None,
+      location = None,
+      date = None,
+      status = EventStatus.DRAFT,
+      creatorId = OrganizationId.unsafe("org-1"),
+      collaboratorIds = None
     )
     eventRepo.save(draft)
 
@@ -35,11 +42,11 @@ class UpdateEventPosterUseCaseSpec extends AnyFlatSpec with Matchers:
   it should "fail if event does not exist" in {
     val eventRepo = new FakeEventRepository()
     val publisher = new FakeDomainEventPublisher()
-    val useCase = new UpdateEventPosterUseCase(eventRepo, publisher)
+    val useCase   = new UpdateEventPosterUseCase(eventRepo, publisher)
 
     val command = UpdateEventPosterCommand("nonexistent", "http://image.jpg")
-    val result = useCase.execute(command)
-    
+    val result  = useCase.execute(command)
+
     result.isLeft shouldBe true
     result.left.getOrElse("") should include("not found")
   }
@@ -47,11 +54,18 @@ class UpdateEventPosterUseCaseSpec extends AnyFlatSpec with Matchers:
   it should "fail if poster URL is empty" in {
     val eventRepo = new FakeEventRepository()
     val publisher = new FakeDomainEventPublisher()
-    val useCase = new UpdateEventPosterUseCase(eventRepo, publisher)
+    val useCase   = new UpdateEventPosterUseCase(eventRepo, publisher)
 
     val draft = Event.create(
-      title = None, description = None, poster = None, tags = None, location = None, date = None,
-      status = EventStatus.DRAFT, creatorId = OrganizationId.unsafe("org-1"), collaboratorIds = None
+      title = None,
+      description = None,
+      poster = None,
+      tags = None,
+      location = None,
+      date = None,
+      status = EventStatus.DRAFT,
+      creatorId = OrganizationId.unsafe("org-1"),
+      collaboratorIds = None
     )
     eventRepo.save(draft)
 
