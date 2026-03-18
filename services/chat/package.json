@@ -80,13 +80,15 @@
       "!src/**/*.module.ts",
       "!src/main.ts",
       "!src/**/*.d.ts",
-      "!src/**/*.controller.ts",
-      "!src/**/*.service.ts"
+      "!src/common/*",
+      "!src/rabbitmq/*"
     ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",
       "/dist/",
-      "/coverage/"
+      "/coverage/",
+      "/src/common/",
+      "/src/rabbitmq/"
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
