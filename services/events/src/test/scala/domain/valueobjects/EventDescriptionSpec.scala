@@ -35,6 +35,15 @@ class EventDescriptionSpec extends AnyFlatSpec with Matchers:
     result.left.getOrElse("") should include("must not exceed 5000 characters")
   }
 
+  it should "accept strings exactly at MaxLength" in {
+    val exact = "a" * 5000
+    EventDescription(exact).map(_.value) shouldBe Right(exact)
+  }
+
+  it should "trim non-empty descriptions" in {
+    EventDescription("  padded text  ").map(_.value) shouldBe Right("padded text")
+  }
+
   "EventDescription.unsafe" should "create an EventDescription without validation" in {
     val description = EventDescription.unsafe("Any description")
     description.value.shouldBe("Any description")

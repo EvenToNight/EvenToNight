@@ -14,6 +14,15 @@ class EventTagSpec extends AnyFlatSpec with Matchers:
     EventTag.Extras should contain("Dress Code")
   }
 
+  it should "match enum values count for every category" in {
+    EventTag.EventTypes.size.shouldBe(EventTag.EventType.values.length)
+    EventTag.Venues.size.shouldBe(EventTag.Venue.values.length)
+    EventTag.MusicStyles.size.shouldBe(EventTag.MusicStyle.values.length)
+    EventTag.Specials.size.shouldBe(EventTag.Special.values.length)
+    EventTag.Targets.size.shouldBe(EventTag.Target.values.length)
+    EventTag.Extras.size.shouldBe(EventTag.Extra.values.length)
+  }
+
   "EventTag.fromString" should "parse valid tags ignoring case" in {
     EventTag.fromString("live MUSIC") shouldBe EventTag.EventType.LiveMusic
     EventTag.fromString("club") shouldBe EventTag.Venue.Club
@@ -27,6 +36,27 @@ class EventTagSpec extends AnyFlatSpec with Matchers:
     val invalid = EventTag.fromString("Unknown Tag")
     invalid.isInstanceOf[EventTag.InvalidTag] shouldBe true
     invalid.displayName shouldBe "Invalid Tag"
+  }
+
+  it should "roundtrip all enum display names" in {
+    EventTag.EventType.values.foreach { value =>
+      EventTag.fromString(value.displayName).shouldBe(value)
+    }
+    EventTag.Venue.values.foreach { value =>
+      EventTag.fromString(value.displayName).shouldBe(value)
+    }
+    EventTag.MusicStyle.values.foreach { value =>
+      EventTag.fromString(value.displayName).shouldBe(value)
+    }
+    EventTag.Special.values.foreach { value =>
+      EventTag.fromString(value.displayName).shouldBe(value)
+    }
+    EventTag.Target.values.foreach { value =>
+      EventTag.fromString(value.displayName).shouldBe(value)
+    }
+    EventTag.Extra.values.foreach { value =>
+      EventTag.fromString(value.displayName).shouldBe(value)
+    }
   }
 
   "EventTag.validateTagList" should "parse a JSON array formatted string" in {
@@ -51,4 +81,9 @@ class EventTagSpec extends AnyFlatSpec with Matchers:
 
   it should "return None if string is empty or spaces" in {
     EventTag.validateTagList("   ").isEmpty shouldBe true
+  }
+
+  it should "trim comma-separated values before parsing" in {
+    val csvString = "  Live Music  ,   Club  "
+    EventTag.validateTagList(csvString) shouldBe Some(List(EventTag.EventType.LiveMusic, EventTag.Venue.Club))
   }

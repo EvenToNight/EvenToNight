@@ -17,9 +17,21 @@ class EventStatusSpec extends AnyFlatSpec with Matchers:
     EventStatus.withNameOpt("") shouldBe None
   }
 
+  it should "throw on null input" in {
+    assertThrows[NullPointerException] {
+      EventStatus.withNameOpt(null)
+    }
+  }
+
   "EventStatus.asString" should "return the string representation" in {
     EventStatus.DRAFT.asString shouldBe "DRAFT"
     EventStatus.PUBLISHED.asString shouldBe "PUBLISHED"
     EventStatus.CANCELLED.asString shouldBe "CANCELLED"
     EventStatus.COMPLETED.asString shouldBe "COMPLETED"
+  }
+
+  it should "roundtrip all statuses through withNameOpt" in {
+    EventStatus.values.foreach { status =>
+      EventStatus.withNameOpt(status.asString).shouldBe(Some(status))
+    }
   }
