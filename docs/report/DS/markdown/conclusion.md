@@ -10,7 +10,7 @@ The system was designed as a collection of independent services with clear bound
 - **Distributed architecture implementation.**
 Services were containerized using Docker and orchestrated with Docker Swarm, simulating a distributed environment with service isolation and internal networking.
 - **Modularity and extensibility.**
-The architecture provides a clear separation of concerns, ensuring maintainability, easy addition of new features, and future scalability. The modular design also facilitated parallel development of different functionalities.
+The architecture provides a clear separation of concerns, ensuring maintainability, easy addition of new features and future scalability. The modular design also facilitated parallel development of different functionalities.
 
 ## **9.1 Future Works**
 Although the platform was designed according to distributed principles, it was deployed on a single physical machine. As a result, the system does not provide real high availability: if the host machine fails, all services become unavailable. Future improvements could include deployment on multiple physical or virtual machines to achieve infrastructure-level fault tolerance and resilience.
@@ -28,4 +28,4 @@ This project allowed us to apply distributed system concepts that we had previou
 
 - We gained practical experience with the trade-offs between consistency and availability in the presence of network partitions, as described by the CAP theorem.
 - We experimented with containerization and faced challenges in guaranteeing consistency when introducing replication.
-- We gained a deeper understanding of service decoupling, transparency, reliability, and the difference between simulated distribution and real infrastructure-level fault tolerance.
+- We gained a deeper understanding of service decoupling, transparency, reliability and the difference between simulated distribution and real infrastructure-level fault tolerance.

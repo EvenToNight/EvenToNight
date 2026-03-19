@@ -1,6 +1,6 @@
 # 7 - Deployment
 
-The application supports two deployment modes: **Docker Compose** for single-node setups, and **Docker Swarm** (beta) for multi-node, highly available deployments. In both cases, all services run as independent containers and are managed via a centralised script.
+The application supports two deployment modes: **Docker Compose** for single-node setups and **Docker Swarm** (beta) for multi-node, highly available deployments. In both cases, all services run as independent containers and are managed via a centralised script.
 
 ## 7.1 - Installation
 
@@ -45,7 +45,7 @@ cp .env.template .env
 ./scripts/composeApplication.sh --init-db up -d --wait
 ```
 
-**Deploy in development mode** (with host-mapped ports and dashboards for databases, RabbitMQ, and Traefik):
+**Deploy in development mode** (with host-mapped ports and dashboards for databases, RabbitMQ and Traefik):
 ```bash
 ./scripts/composeApplication.sh --init-db --dev up -d --wait
 ```

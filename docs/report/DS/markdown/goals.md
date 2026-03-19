@@ -1,16 +1,16 @@
-# 0 - Introduction
-The project consists of the design and development of a distributed digital platform called **EvenToNight**, aimed at connecting organizations that promote social events with users interested in discovering and participating in them. The platform, accessible at [eventonight](https://eventonight.site/), can be used either as a guest or through a registered account that provides additional functionalities.
+# Introduction
+The project consists of the design and development of a distributed digital platform called **EvenToNight**, aimed at connecting organizations that promote social events with users interested in discovering and participating in them. The platform, accessible at [EvenToNight](https://eventonight.site/), can be used either as a guest or through a registered account that provides additional functionalities.
 
-From a technical perspective, EvenToNight has been designed as a distributed system based on a microservices architecture, supporting modularity, scalability, and the independent management of application components.
+From a technical perspective, EvenToNight has been designed as a distributed system based on a microservices architecture, supporting modularity, scalability and the independent management of application components.
 
-This architectural choice enables horizontal and autonomous scaling of the various system components, allowing the platform to handle a large number of users concurrently. Furthermore, the distributed architecture ensures reliable data persistence, availability, and openness, thereby facilitating future extensions and adaptation to evolving requirements.
+This architectural choice enables horizontal and autonomous scaling of the various system components, allowing the platform to handle a large number of users concurrently. Furthermore, the distributed architecture ensures reliable data persistence, availability and openness, thereby facilitating future extensions and adaptation to evolving requirements.
 
 Overall, the project represents a practical application of distributed systems principles within the context of a realistic web-based platform.
 
 # 1 - Goals of the project
 The main goals of the project are:
 
-1. **Create a digital platform for social events**: provide a platform for exploring, discovering, and interacting with social events and other users.
+1. **Create a digital platform for social events**: provide a platform for exploring, discovering social events and interacting with other users.
 
 2. **Support both public access and extended functionalities for registered users**: allow public browsing of events while offering additional functionalities for registered users and organizations.
 
@@ -42,9 +42,9 @@ A practical view of how each type of user interacts with the system according to
 - **Objective**: Explore events according to location and gather information without registering an account.
 - **Main flow**:
     1. The user browses the list of upcoming events.
-    2. The user views event details, including photo, description, time, and location.
+    2. The user views event details, including poster, description, time and location.
     3. The user applies filters to find events nearby.
-    4. The user explores users registered on the platform.
+    4. The user searches for users registered on the platform.
 - **Outcome**:
     1. The user accesses all event information without providing personal data.
     2. The user identifies events aligned with their location.
@@ -53,7 +53,7 @@ A practical view of how each type of user interacts with the system according to
 **Usage scenario: Personalized event discovery, ticket purchase and post-event review as a registered user.**
 
 - **Actor**: Registered user.
-- **Objective**: Discover events based on personal preferences, evaluate them, and purchase tickets on the platform.
+- **Objective**: Discover events based on personal preferences, evaluate them and purchase tickets on the platform.
 - **Main flow**:
     1. The user logs in to the EvenToNight platform.
     2. The user navigates their personalized event feed, based on specified interests.
@@ -81,7 +81,7 @@ A practical view of how each type of user interacts with the system according to
 
 **Usage scenario: Publication of events and monitoring engagement as an organization.**
 
-- **Actor**: User registered as organization.
+- **Actor**: Organization.
 - **Objective**: Publish events and monitor user engagement. 
 - **Main flow**:
     1. The user logs in to the EvenToNight platform.
@@ -90,7 +90,7 @@ A practical view of how each type of user interacts with the system according to
     4. The user publishes the event.
 - **Outcome**:
     1. The event is successfully published and visible to platform users.  
-    2. The user receives notifications about new followers and event likes, enabling monitoring of user engagement.
+    2. The organization receives notifications about new followers and event likes, enabling monitoring of user engagement.
 
 
 ## **1.2 Definition of done**
@@ -114,4 +114,4 @@ The project is considered *done* when the following criteria are met:
 
 **4. Documentation updated.** 
 
-- API documentation, architectural diagrams, and project documentation are complete, consistent, and up to date with the implemented system.
+- API documentation, architectural diagrams and project documentation are complete, consistent and up to date with the implemented system.

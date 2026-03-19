@@ -1,22 +1,22 @@
 # 3 - Requirements Analysis
 
-## **3.1 Requirements list**
+## **3.1 - Requirements list**
 The main requirements that the application must meet are listed below.
 
-### **3.1.1 Business requirements**
+### **3.1.1 - Business requirements**
 
 - The platform allows organizations to create and publish posts related to the events they promote.
 - The platform allows users to discover events based on their location and interests.
 - The platform enables online ticket sales for events, allowing organizations to monetize them.
 
-### **3.1.2 Functional requirements**
+### **3.1.2 - Functional requirements**
 **Types of users supported by the system:**
 - **Unregistered users**, who can explore the platform.
 - **Registered users**, who can access features reserved for authenticated users.
 - **Users registered as an organization**, who can access all platform features and additionally create and publish events and manage ticketing.
 
 **Functional requirements for all users:**
-- View the Home screen, including interaction modes such as searching for events, viewing popular events, upcoming events, and latest additions.
+- View the Home screen, including interaction modes such as searching for events, viewing popular events, upcoming events and latest additions.
 - View all events published on the platform and all registered users from the Explore screen, applying search filters.
 
 **Functional requirements for registered users:**
@@ -36,7 +36,7 @@ The main requirements that the application must meet are listed below.
 - Specify collaborators when creating events.
 - Receive notifications about likes and reviews on their own events.
 
-### **3.1.3 Non-functional requirements**
+### **3.1.3 - Non-functional requirements**
 - **Availability**: every request sent to a non-failing node in the system must receive a response.
 - **Reliability**: the system must operate correctly over time, minimizing the occurrence of faults.
 - **Fault Tolerance**: the system must tolerate failures of individual services (i.e. containerized microservices) without affecting the overall platform operation.
@@ -46,20 +46,20 @@ The main requirements that the application must meet are listed below.
 - **Extensibility**: the system must support easy customization and the addition of new functionalities.
 - **Maintainability**: the system must be easy to maintain with respect to the addition of new features and system updates. This is supported by well-structured and well-documented code.
 - **Accessibility**: the system’s graphical interface must be accessible, supporting standard accessibility guidelines.
-- **Portability**: the system must be responsive and adapt to different screen sizes and devices, including PCs, tablets, and smartphones.
+- **Portability**: the system must be responsive and adapt to different screen sizes and devices, including PCs, tablets and smartphones.
 - **Deployability**: the system must automatically update to the latest release version.
 - **Architectural Constraint**: the system must be developed following a microservices architecture.
 
-## **3.2 Top-down analysis**
+## **3.2 - Top-down analysis**
 
-### **3.2.1 Architectural styles**
+### **3.2.1 - Architectural styles**
 Starting from the identified requirements, an **event-based architecture** was selected to design the distributed platform. 
 
 This architectural style was chosen because it addresses several non-functional requirements of the system. In particular, the following architectural properties directly contribute to satisfying the system’s non-functional requirements:
 
 - **Referential and spatial decoupling**: producers and consumers do not reference or depend on each other’s location. This supports extensibility, allowing new services to be added without modifying existing components.
 - **Temporal decoupling**: events are stored in a persistent event space until consumers are able to process them. This ensures that producer services remain responsive even if consumer services are temporarily unavailable, supporting fault tolerance and availability. In addition, this storage smooths load peaks by decoupling producer and consumer execution timing and it supports extensibility and horizontal scalability by allowing the addition of multiple consumer instances.
-- **Loosely coupled services**: producers publish events without waiting for consumers to respond, and consumers process events independently. This independence supports fault tolerance, maintainability, and extensibility, as temporary service failures or modifications do not affect other components and the addition of new functionalities and service updates is simplified.
+- **Loosely coupled services**: producers publish events without waiting for consumers to respond and consumers process events independently. This independence supports fault tolerance, maintainability and extensibility, as temporary service failures or modifications do not affect other components and the addition of new functionalities and service updates is simplified.
 
 At the system boundary level, the platform also follows a **layered architecture**:
 
@@ -67,4 +67,4 @@ At the system boundary level, the platform also follows a **layered architecture
 - **Application layer**: containerized backend microservices exposing REST APIs.
 - **Data layer**: repositories interacting with databases for persistence.
 
-The layered organization provides a high-level view of control flow in the distributed platform, highlighting the separation of concerns between user interface, business logic, and data management.
+The layered organization provides a high-level view of control flow in the distributed platform, highlighting the separation of concerns between user interface, business logic and data management.
