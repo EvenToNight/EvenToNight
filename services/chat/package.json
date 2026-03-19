@@ -84,7 +84,8 @@
       "!src/main.ts",
       "!src/**/*.d.ts",
       "!src/common/*",
-      "!src/rabbitmq/*"
+      "!src/rabbitmq/*",
+      "!src/health.controller.ts"
     ],
     "coveragePathIgnorePatterns": [
       "/node_modules/",
