@@ -178,7 +178,7 @@ export class ConversationsService {
       participant,
     );
 
-    this.markAsReadAsync(conversationId, userId);
+    void this.markAsReadAsync(conversationId, userId);
 
     return { items: messageDTOs, limit, offset, hasMore };
   }
