@@ -1,0 +1,43 @@
+\section{Conclusions}
+
+We are satisfied with the platform developed, which originated from our business idea. The main achievements are:
+
+\begin{itemize}
+  \item \textbf{Achievement of project goals.} All project goals were reached, with particular focus on aspects defining a distributed system. The system consists of isolated, loosely coupled components that appear to users as a single coherent platform.
+
+  \item \textbf{Requirements fulfillment.} All functional and non-functional requirements were satisfied, with iterative refinement based on feedback from potential users.
+
+  \item \textbf{Microservices architecture design.} The system was designed as a collection of independent services with clear boundaries. Backend microservices communicate and coordinate via a message broker and expose well-defined REST APIs used by the frontend.
+
+  \item \textbf{Distributed architecture implementation.} Services were containerized using Docker and deployed both with Docker Compose and Docker Swarm, simulating a distributed environment with service isolation and internal networking.
+
+  \item \textbf{Modularity and extensibility.} The architecture provides a clear separation of concerns, ensuring maintainability, easy addition of new features and future scalability. The modular design also facilitated parallel development of different functionalities.
+\end{itemize}
+
+\subsection{Future Works}
+
+Although the platform was designed according to distributed principles, it was deployed on a single physical machine. As a result, the system does not provide real high availability: if the host machine fails, all services become unavailable. Future improvements could include deployment on multiple physical or virtual machines to achieve infrastructure-level fault tolerance and resilience.
+
+From a functional perspective, potential extensions include:
+
+\begin{itemize}
+  \item Allowing organizations to respond to reviews.
+  \item Additional notifications, such as friendship suggestions and updates on liked events.
+  \item Profile insights and statistics.
+  \item Refund management.
+  \item Multi-currency support to enhance internationalization.
+\end{itemize}
+
+\subsection{What We Learned}
+
+This project allowed us to apply distributed system concepts that we had previously studied only from a theoretical perspective. In particular:
+
+\begin{itemize}
+  \item We gained practical experience with the trade-offs between consistency and availability in the presence of network partitions, as described by the CAP theorem.
+
+  \item We experimented with containerization and faced challenges in guaranteeing data consistency across multiple services and system correctness when multiple replicas are deployed.
+
+  \item We gained a deeper understanding of service decoupling, transparency, reliability and resilience both in single and multiple node deployments.
+
+  \item We learnt how to make a real online deployment using a proprietary domain and physical server.
+\end{itemize}

@@ -1,0 +1,73 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{pgf-umlsd}
+\usepackage{float}
+
+\geometry{margin=2.5cm}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  keywordstyle=\color{blue}\bfseries,
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{red!70!black},
+  numbers=left,
+  numberstyle=\tiny,
+  tabsize=2,
+}
+
+\title{\textbf{EvenToNight}\\
+Distributed Systems - Final Report}
+\author{
+  Alfonsi Alice (alice.alfonsi2@studio.unibo.it)\\
+  Bravetti Federico (federico.bravetti2@studio.unibo.it)\\
+  Brini Tommaso (tommaso.brini@studio.unibo.it)
+}
+\date{March 2026}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+The project consists of the design and development of a distributed digital platform called **EvenToNight**, aimed at connecting organizations that promote social events with users interested in discovering and participating in them. The platform, accessible at [EvenToNight](https://eventonight.site/), can be used either as a guest or through a registered account that provides additional functionalities.
+
+From a technical perspective, EvenToNight has been designed as a distributed system based on a microservices architecture, supporting modularity, scalability and the independent management of application components.
+
+This architectural choice enables horizontal and autonomous scaling of the various system components, allowing the platform to handle a large number of users concurrently. Furthermore, the distributed architecture ensures reliable data persistence, availability and openness, thereby facilitating future extensions and adaptation to evolving requirements.
+
+Overall, the project represents a practical application of distributed systems principles within the context of a realistic web-based platform.\end{abstract}
+
+\tableofcontents
+\newpage
+
+\input{sections/goals}
+\newpage
+\input{sections/background}
+\newpage
+\input{sections/requirements}
+\newpage
+\input{sections/design}
+\newpage
+\input{sections/implementation}
+\newpage
+\input{sections/validation}
+\newpage
+\input{sections/deployment}
+\newpage
+\input{sections/usage}
+\newpage
+\input{sections/conclusion}
+
+\end{document}
