@@ -257,9 +257,9 @@ All infrastructural components are listed in the table below.
 | DNS / TLS | Cloudflare | Authoritative DNS and TLS termination |
 | Tunnel daemon | cloudflared | Maintains an outbound encrypted tunnel to Cloudflare; no inbound ports required on the cluster |
 | API gateway / Reverse proxy | Traefik v3 | Single entry point for all external HTTP/WebSocket traffic; handles routing, load balancing, rate limiting, retries, circuit breaking and request timeouts; discovers services via Docker label-based configuration |
-| Backend services | Scala 3 + Cask | `users`, `events` |
-| Backend services | NestJS (Node.js) | `chat`, `interactions`, `ticketing` |
-| Backend services | Express (Node.js) | `media`, `notifications` |
+| Backend services | Scala 3 + Cask | `user`, `event` |
+| Backend services | NestJS (Node.js) | `chat`, `interaction`, `ticketing` |
+| Backend services | Express (Node.js) | `media`, `notification` |
 | Frontend | Vue 3 + Vite | Single-page application served as static assets |
 | Identity provider | Keycloak | user authentication and JWT issuance |
 | Message broker | RabbitMQ | Asynchronous event delivery via a topic exchange |
@@ -369,11 +369,11 @@ To scale throughput beyond a single consumer, more refined strategies can be exp
 
 ## 4.5 - Corner cases
 
-The system is designed to be **highly available** and **eventually consistent**. Each service operates independently and failures are isolated: when a component goes down, only the functionality directly depending on it is affected, while the rest of the system continues to operate.
+The system is designed to be **highly available** and **eventual consistent**. Each service operates independently and failures are isolated: when a component goes down, only the functionality directly depending on it is affected, while the rest of the system continues to operate.
 
 **Fault detection**
 
-Each service exposes a `/health` endpoint and declares a `healthcheck` in Docker Compose. In a Compose deployment this provides observable status; in a Swarm deployment, the scheduler polls healthchecks continuously and automatically restarts or reschedules tasks that become unhealthy, making fault detection active rather than just observable. To further improve observability, a dedicated monitoring service could be introduced.
+Each service exposes a `/health` endpoint and declares a `healthcheck` in Docker Compose. This allow Docker to automatically restarts or reschedules tasks that become unhealthy, making fault detection active. To further improve observability, a dedicated monitoring service could be introduced.
 
 **Startup ordering and reconnection**
 
@@ -391,9 +391,9 @@ In a Compose deployment, all containers run with `restart: unless-stopped`, so D
 
 **Service failure.** If a service crashes, Docker restarts it automatically. Since all writes are transactional, there is no risk of partial state being committed. However when a service crashes after initiating an outbound HTTP call to an external system (e.g. creating a Stripe checkout session or a Keycloak user) but before completing its local operations, an inconsistency may arise: the side effect on the external system has already occurred but the local state does not reflect it. In these cases specific strategy must be applied for each integration to handle it correctly.
 
-**RabbitMQ failure.** All queues are declared as durable with persistent messages, so any message received by RabbitMQ before it goes down is safely stored to disk and delivered to consumers once it restarts. In a Swarm deployment with a quorum queue cluster, a single node failure does not cause an outage, the cluster continues operating as long as a majority of nodes are available and messages are replicated across them. RabbitMQ provides at-least-once delivery semantics; services handle this either through idempotency keys or by designing message handlers to be idempotent. If RabbitMQ is unavailable at the moment a service needs to publish, messages are not lost: each service implements the transactional outbox pattern, the domain event is written to an outbox collection in the same database transaction as the state change and a relay process reads from the outbox and forwards messages to RabbitMQ, retrying until delivery succeeds.
+**RabbitMQ failure.** All queues are declared as durable with persistent messages, so any message received by RabbitMQ before it goes down is safely stored to disk and delivered to consumers once it restarts. In a Swarm deployment with a quorum queue cluster, a single node failure does not cause an outage, the cluster continues operating as long as a majority of nodes are available and messages are replicated across them. RabbitMQ provides at-least-once delivery semantics; services handle this by designing message handlers to be idempotent. If RabbitMQ is unavailable at the moment a service needs to publish, messages are not lost since each service implements the outbox pattern.
 
-**Keycloak failure.** New logins and token refreshes fail. However, services validate JWTs locally using Keycloak's public key, so requests carrying a still-valid token continue to be accepted until expiry. Once Keycloak restarts, authentication resumes normally.
+**Keycloak failure.** If Keycloak goes down new logins and token refreshes will fail. However, services validate JWTs locally using Keycloak's public key, so requests carrying a still-valid token continue to be accepted until expiry. Once Keycloak restarts, authentication resumes normally.
 
 **Traefik or cloudflared failure.** In a Compose deployment, external traffic cannot enter the system until Docker restarts the container and access resumes. In a Swarm deployment, both run one instance per manager node, so a single manager failure does not interrupt external traffic, Cloudflare simply routes through the remaining instances.
 
@@ -401,10 +401,10 @@ In a Compose deployment, all containers run with `restart: unless-stopped`, so D
 
 **Ticketing unavailability.** Webhook callbacks from Stripe cannot be processed. Stripe automatically retries undelivered events for up to three days, so the `ticketing` service will receive and process them once it recovers, without any data loss.
 
-**Dual notification path (sync + async)**
-When an event is created, the `events` service notifies `ticketing` synchronously via HTTP call to an internal endpoint, without waiting for the asynchronous domain event to arrive. The RabbitMQ message still follows as a fault-tolerance fallback.
+**Dual notification path (sync + async).**
+When an event is created, the `event` service notifies `ticketing` synchronously via HTTP call to an internal endpoint, without waiting for the asynchronous domain event to arrive. The RabbitMQ message still follows as a fault-tolerance fallback.
 
-**User crash during register and password update.** If `users` crashes after creating the account in Keycloak but before persisting the user record locally, the user exists in the identity provider but not in the `users` service. On the next login attempt, Keycloak authenticates the user and issues a valid JWT, but `users` has no matching record. A recovery strategy can be to detect this condition at login time and create a minimal empty profile automatically, mirroring what registration would have done. For password updates, a crash mid-operation leaves the state consistent but the user may not have been correctly notified of the outcome; a "forgot password" flow provides a user-friendly self-service recovery path in this case.
+**User crash during register and password update.** If `user` crashes after creating the account in Keycloak but before persisting the user record locally, the user exists in the identity provider but not in the `user` service. On the next login attempt, Keycloak authenticates the user and issues a valid JWT, but `user` has no matching record. A recovery strategy can be to detect this condition at login time and create a minimal empty profile automatically, mirroring what registration would have done. For password updates, a crash mid-operation leaves the state consistent but the user may not have been correctly notified of the outcome; a "forgot password" flow provides a user-friendly self-service recovery path in this case.
 
 **Consistent backup.** Because each service owns its own database, there is no single point from which to take a globally consistent snapshot. Backing up each database independently means the captured states may be at slightly different points in time. Full cross-service consistency at backup time is not achievable without a distributed snapshot protocol. One practical mitigation is to temporarily halt writes across all services, snapshot all databases simultaneously, then resume, guaranteeing consistency at the cost of a short downtime.
 
