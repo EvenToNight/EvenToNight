@@ -1,15 +1,43 @@
 import { MongoMemoryServer } from 'mongodb-memory-server';
-import { Connection, Model, connect } from 'mongoose';
+import { Connection, HydratedDocument, Model, connect } from 'mongoose';
 import {
   User,
   UserSchema,
   UserRole,
 } from '../../src/users/schemas/user.schema';
 
+type UserEntity = {
+  id: string;
+  role: UserRole;
+  name?: string | null;
+  avatar?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
+type UserDocument = HydratedDocument<UserEntity>;
+type SchemaIndex = [Record<string, number>, { unique?: boolean } | undefined];
+
+function getSchemaIndexes(model: Model<UserEntity>): SchemaIndex[] {
+  const typedModel = model as unknown as {
+    schema: { indexes: () => SchemaIndex[] };
+  };
+
+  return typedModel.schema.indexes();
+}
+
+function assertFound<T>(value: T | null): T {
+  expect(value).toBeTruthy();
+  if (!value) {
+    throw new Error('Expected value to be found');
+  }
+  return value;
+}
+
 describe('UserSchema', () => {
   let mongod: MongoMemoryServer;
   let mongoConnection: Connection;
-  let userModel: Model<any>;
+  let userModel: Model<UserEntity>;
 
   beforeAll(async () => {
     mongod = await MongoMemoryServer.create();
@@ -25,10 +53,10 @@ describe('UserSchema', () => {
   });
 
   afterEach(async () => {
-    const collections = mongoConnection.collections;
-    for (const key in collections) {
-      await collections[key].deleteMany({});
-    }
+    const collections = Object.values(mongoConnection.collections);
+    await Promise.all(
+      collections.map((collection) => collection.deleteMany({})),
+    );
   });
 
   describe('Schema validation', () => {
@@ -198,16 +226,16 @@ describe('UserSchema', () => {
 
   describe('Indexes', () => {
     it('should have unique index on id', () => {
-      const indexes = userModel.schema.indexes();
+      const indexes = getSchemaIndexes(userModel);
       const hasIdIndex = indexes.some(
-        (index: any) => index[0].id === 1 && index[1]?.unique === true,
+        ([keys, options]) => keys.id === 1 && options?.unique === true,
       );
       expect(hasIdIndex).toBe(true);
     });
 
     it('should have index on role', () => {
-      const indexes = userModel.schema.indexes();
-      const hasRoleIndex = indexes.some((index: any) => index[0].role === 1);
+      const indexes = getSchemaIndexes(userModel);
+      const hasRoleIndex = indexes.some(([keys]) => keys.role === 1);
       expect(hasRoleIndex).toBe(true);
     });
 
@@ -244,10 +272,11 @@ describe('UserSchema', () => {
         { name: 'Jane Doe' },
         { new: true },
       );
+      const found = assertFound(updated);
 
-      expect(updated.name).toBe('Jane Doe');
-      expect(updated.avatar).toBe('https://example.com/avatar1.jpg');
-      expect(updated.role).toBe(UserRole.MEMBER);
+      expect(found.name).toBe('Jane Doe');
+      expect(found.avatar).toBe('https://example.com/avatar1.jpg');
+      expect(found.role).toBe(UserRole.MEMBER);
     });
 
     it('should update avatar only', async () => {
@@ -264,9 +293,10 @@ describe('UserSchema', () => {
         { avatar: 'https://example.com/avatar2.jpg' },
         { new: true },
       );
+      const found = assertFound(updated);
 
-      expect(updated.name).toBe('John Doe');
-      expect(updated.avatar).toBe('https://example.com/avatar2.jpg');
+      expect(found.name).toBe('John Doe');
+      expect(found.avatar).toBe('https://example.com/avatar2.jpg');
     });
 
     it('should update both name and avatar', async () => {
@@ -283,9 +313,10 @@ describe('UserSchema', () => {
         { name: 'Jane Doe', avatar: 'https://example.com/avatar2.jpg' },
         { new: true },
       );
+      const found = assertFound(updated);
 
-      expect(updated.name).toBe('Jane Doe');
-      expect(updated.avatar).toBe('https://example.com/avatar2.jpg');
+      expect(found.name).toBe('Jane Doe');
+      expect(found.avatar).toBe('https://example.com/avatar2.jpg');
     });
 
     it('should handle upsert operation', async () => {
@@ -298,10 +329,11 @@ describe('UserSchema', () => {
         },
         { upsert: true, new: true },
       );
+      const found = assertFound(updated);
 
-      expect(updated.id).toBe('newuser123');
-      expect(updated.role).toBe(UserRole.MEMBER);
-      expect(updated.name).toBe('New User');
+      expect(found.id).toBe('newuser123');
+      expect(found.role).toBe(UserRole.MEMBER);
+      expect(found.name).toBe('New User');
 
       const count = await userModel.countDocuments({ id: 'newuser123' });
       expect(count).toBe(1);
@@ -377,7 +409,7 @@ describe('UserSchema', () => {
       });
 
       expect(users).toHaveLength(3);
-      const userIds = users.map((u) => u.id);
+      const userIds = users.map((u: UserDocument) => u.id);
       expect(userIds).toContain('user1');
       expect(userIds).toContain('user2');
       expect(userIds).toContain('org1');
@@ -397,7 +429,7 @@ describe('UserSchema', () => {
       });
 
       expect(users.length).toBeGreaterThanOrEqual(1);
-      const charlie = users.find((u) => u.id === 'user3');
+      const charlie = users.find((u: UserDocument) => u.id === 'user3');
       expect(charlie).toBeDefined();
     });
 

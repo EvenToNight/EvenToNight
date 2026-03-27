@@ -53,7 +53,6 @@ export class SocketIOGateway implements NotificationGateway {
         return;
       }
 
-      // TODO: maybe verify token user_is matches with socket.data userId
       const data = socket.data as { userId?: string };
       data.userId = payload.user_id;
       next();

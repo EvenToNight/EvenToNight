@@ -39,6 +39,11 @@ class LocationSpec extends AnyFlatSpec with Matchers:
     result.map(_.latLon) shouldBe Right(Some((45.4642, 9.1900)))
   }
 
+  it should "not set coordinates when only one coordinate is provided" in {
+    Location(name = Some("Venue"), lat = Some(45.0), lon = None).map(_.hasCoordinates) shouldBe Right(false)
+    Location(name = Some("Venue"), lat = None, lon = Some(9.0)).map(_.hasCoordinates) shouldBe Right(false)
+  }
+
   it should "normalize countryCode to uppercase" in {
     val result = Location(
       name = Some("Venue"),
@@ -85,6 +90,18 @@ class LocationSpec extends AnyFlatSpec with Matchers:
     location.displayName shouldBe "Test"
   }
 
+  it should "support equality and product behavior" in {
+    val base  = Location.unsafe(name = Some("Base"), city = Some("Rome"), lat = Some(41.9), lon = Some(12.5))
+    val same  = Location.unsafe(name = Some("Base"), city = Some("Rome"), lat = Some(41.9), lon = Some(12.5))
+    val other = Location.unsafe(name = Some("Other"), city = Some("Rome"), lat = Some(41.9), lon = Some(12.5))
+
+    base.shouldBe(same)
+    base.equals(other).shouldBe(false)
+    base.productArity.shouldBe(11)
+    base.equals(null).shouldBe(false)
+    base.equals("x").shouldBe(false)
+  }
+
   "Coordinates" should "validate latitude range" in {
     Coordinates(-90.0, 0.0).isRight shouldBe true
     Coordinates(90.0, 0.0).isRight shouldBe true
@@ -97,4 +114,13 @@ class LocationSpec extends AnyFlatSpec with Matchers:
     Coordinates(0.0, 180.0).isRight shouldBe true
     Coordinates(0.0, -181.0).isLeft shouldBe true
     Coordinates(0.0, 181.0).isLeft shouldBe true
+  }
+
+  it should "support unsafe coordinates and case class semantics" in {
+    val c1 = Coordinates.unsafe(10.0, 20.0)
+    val c2 = Coordinates.unsafe(10.0, 20.0)
+    c1 shouldBe c2
+    c1.productArity shouldBe 2
+    c1.equals(null) shouldBe false
+    c1.equals("other") shouldBe false
   }

@@ -1,0 +1,42 @@
+services:
+  interactions:
+    deploy:
+      replicas: ${INTERACTIONS_SERVICE_REPLICAS:-1}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.interactions.rule=Host(`interactions.${HOST}`)"
+        - "traefik.http.routers.interactions.entrypoints=web"
+        - "traefik.http.services.interactions.loadbalancer.server.port=${INTERACTIONS_SERVICE_PORT}"
+        - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+        - "traefik.http.routers.interactions.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"
+
+  mongo-interactions:
+    configs:
+      - source: init_mongo_replica_set
+        target: /scripts/init-mongo-replica-set.sh
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.id.1 == true
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+
+configs:
+  init_mongo_replica_set:
+    file: ./scripts/init-mongo-replica-set.sh
+
+networks:
+  eventonight-network:
+    driver: overlay
+    attachable: true
+  interactions-network:
+    driver: overlay
+    attachable: true

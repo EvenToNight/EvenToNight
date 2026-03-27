@@ -1,33 +1,13 @@
 services:
   users:
-    image: ghcr.io/eventonight/eventonight/users:latest
-    networks:
-      - eventonight-network
-      - users-network
-    environment:
-      - PORT=${USERS_SERVICE_PORT}
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_USER=${RABBITMQ_USER}
-      - RABBITMQ_PASS=${RABBITMQ_PASS}
-      - RABBITMQ_PORT=${RABBITMQ_PORT}
-      - MONGO_HOST=mongo-users
-      - USERS_SERVICE_SECRET=${USERS_SERVICE_SECRET}
-      - KEYCLOAK_URL=http://keycloak:8080
-      - MEDIA_HOST=media
-      - MEDIA_BASE_URL=media.${HOST}
+    restart: unless-stopped
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.users.rule=Host(`users.${HOST}`)"
       - "traefik.http.routers.users.entrypoints=web"
       - "traefik.http.services.users.loadbalancer.server.port=${USERS_SERVICE_PORT}"
       - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:${USERS_SERVICE_PORT}/health"]
-      interval: 2s
-      timeout: 3s
-      retries: 100
-      start_period: 500s
+      - "traefik.http.routers.users.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"    
     depends_on:
       mongo-users:
         condition: service_healthy
@@ -37,16 +17,7 @@ services:
         condition: service_completed_successfully
 
   mongo-users:
-    image: mongo
     restart: unless-stopped
-    networks:
-      - users-network
-    healthcheck:
-      test: [ 'CMD', 'mongosh', '--quiet', '--eval', 'db.runCommand({ ping: 1 }).ok' ]
-      interval: 2s
-      timeout: 3s
-      retries: 10
-      start_period: 30s
 
 networks:
   eventonight-network:

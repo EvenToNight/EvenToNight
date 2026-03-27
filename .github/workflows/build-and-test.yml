@@ -20,6 +20,8 @@ jobs:
             echo "KEYCLOAK_ADMIN_PASSWORD=testkeycloakadminpassword" >> .env
             echo "USERS_SERVICE_SECRET=testusersservicesecret" >> .env
             echo "MINIO_PASSWORD=testminiopassword" >> .env
+            npm --prefix libs/ts-common ci
+            npm --prefix libs/nestjs-common ci
           build-command: ./gradlew clean build --parallel --no-configuration-cache
           java-distribution: temurin
           java-version: '21'
@@ -35,7 +37,7 @@ jobs:
             services/media/coverage/lcov.info
             services/interactions/coverage/lcov.info
             services/chat/coverage/lcov.info
-            services/payments/coverage/lcov.info
+            services/ticketing/coverage/lcov.info
             services/notifications/coverage/lcov.info
           flags: unittests
           fail_ci_if_error: true

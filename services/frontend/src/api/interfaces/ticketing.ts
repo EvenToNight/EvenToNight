@@ -1,0 +1,52 @@
+import type { EventID, EventStatus } from '../types/events'
+import type {
+  EventTicketType,
+  EventTicketTypeData,
+  TicketType,
+  UpdateEventTicketTypeData,
+} from '../types/ticketing'
+import type { PaginatedRequest, PaginatedResponse, SortOrder } from './commons'
+
+export type TicketRequestEventStatus = Omit<EventStatus, 'DRAFT'>
+
+export interface CreateCheckoutSessionResponse {
+  sessionId: string
+  redirectUrl: string
+  expiresAt: number
+  reservedTicketIds: string[]
+}
+
+export interface CheckoutTicketItem {
+  ticketTypeId: string
+  attendeeName: string
+}
+
+export interface CreateCheckoutSessionRequest {
+  userId: string
+  items: CheckoutTicketItem[]
+  successUrl?: string
+  cancelUrl?: string
+}
+
+export interface TicketingAPI {
+  getTicketTypes(): Promise<TicketType[]>
+  createEventTicketType(eventId: EventID, request: EventTicketTypeData): Promise<EventTicketType>
+  updateEventTicketType(
+    ticketTypeId: string,
+    request: UpdateEventTicketTypeData
+  ): Promise<EventTicketType>
+  getEventTicketsType(eventId: EventID): Promise<EventTicketType[]>
+  createCheckoutSession(
+    request: CreateCheckoutSessionRequest
+  ): Promise<CreateCheckoutSessionResponse>
+  findEventsWithUserTickets(
+    userId: string,
+    params?: {
+      status?: TicketRequestEventStatus
+      order?: SortOrder
+      pagination?: PaginatedRequest
+    }
+  ): Promise<PaginatedResponse<EventID>>
+  getEventPdfTickets(userId: string, eventId: string): Promise<Blob>
+  verifyTicket(ticketId: string): Promise<boolean>
+}

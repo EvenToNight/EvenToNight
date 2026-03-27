@@ -12,7 +12,7 @@ export function useTicketDownload() {
   const downloadTickets = async (event: Event) => {
     try {
       if (!authStore.user) throw new Error('User not authenticated')
-      const blob = await api.payments.getEventPdfTickets(authStore.user!.id, event.eventId)
+      const blob = await api.ticketing.getEventPdfTickets(authStore.user!.id, event.eventId)
       const url = URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url

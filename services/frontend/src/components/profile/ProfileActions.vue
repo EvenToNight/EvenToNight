@@ -15,7 +15,7 @@ interface Props {
 }
 const props = defineProps<Props>()
 
-const { isOwnProfile, isOrganization } = useUserProfile(toRef(() => props.user))
+const { isOwnProfile, isOrganization, isMember } = useUserProfile(toRef(() => props.user))
 const { unreadMessagesCount } = useUnreadMessagesCount()
 const authStore = useAuthStore()
 
@@ -84,7 +84,9 @@ const handleOpenChat = () => {
     </template>
     <template v-else>
       <q-btn
-        v-if="authStore.isAuthenticated && isOrganization != authStore.isOrganization"
+        v-if="
+          authStore.isAuthenticated && (isOrganization || (isMember && authStore.isOrganization))
+        "
         icon="send"
         flat
         class="action-btn action-btn--secondary"

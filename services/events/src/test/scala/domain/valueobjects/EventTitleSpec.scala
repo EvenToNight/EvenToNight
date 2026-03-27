@@ -26,6 +26,20 @@ class EventTitleSpec extends AnyFlatSpec with Matchers:
     result.shouldBe(Left("Event title cannot be empty"))
   }
 
+  it should "reject titles shorter than minimum length" in {
+    val result = EventTitle("ab")
+    result shouldBe Left("Event title must be at least 3 characters long")
+  }
+
+  it should "accept titles exactly at max length and reject longer ones" in {
+    EventTitle("a" * 200).isRight shouldBe true
+    EventTitle("a" * 201) shouldBe Left("Event title must not exceed 200 characters")
+  }
+
+  it should "trim valid titles before storing" in {
+    EventTitle("   My Event   ").map(_.value) shouldBe Right("My Event")
+  }
+
   "EventTitle.unsafe" should "create an EventTitle without validation" in {
     val title = EventTitle.unsafe("Any title")
     title.value.shouldBe("Any title")

@@ -5,8 +5,8 @@ import { ParticipationToCreate, SeedParticipation } from "../types/participation
 export async function createParticipation(participation: ParticipationToCreate): Promise<SeedParticipation> {
     const _id = crypto.randomUUID();
     
-    const DOCKER_CONTAINER =
-        process.env.INTERACTION_MONGO_URI || "eventonight-mongo-interactions-1";
+    const MONGO_HOST =
+        process.env.INTERACTION_MONGO_URI || "mongo-interactions";
     const MONGO_DB = process.env.MONGO_DB || "eventonight";
     
     const participationToCreate = {
@@ -18,7 +18,7 @@ export async function createParticipation(participation: ParticipationToCreate):
 
     try {
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval '${insertCommand}'`,
+            `mongosh "mongodb://${MONGO_HOST}:27017/${MONGO_DB}?directConnection=true" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Participation inserted: ${_id}`);

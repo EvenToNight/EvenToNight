@@ -1,0 +1,57 @@
+services:
+  notifications:
+    environment:
+      - REDIS_URL=redis://redis-notifications:6379
+    deploy:
+      replicas: ${NOTIFICATIONS_SERVICE_REPLICAS:-1}
+      update_config:
+        parallelism: 1
+        delay: 10s
+        order: start-first
+        failure_action: rollback
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.notifications.rule=Host(`notifications.${HOST}`)"
+        - "traefik.http.routers.notifications.entrypoints=web"
+        - "traefik.http.services.notifications.loadbalancer.server.port=${NOTIFICATIONS_SERVICE_PORT}"
+        - "traefik.http.services.notifications.loadbalancer.sticky.cookie=true"
+        - "traefik.http.services.notifications.loadbalancer.sticky.cookie.name=notifications_sticky"
+        - "traefik.http.services.notifications.loadbalancer.sticky.cookie.httpOnly=true"
+        - "traefik.docker.network=${COMPOSE_PROJECT_NAME}_eventonight-network"
+        - "traefik.http.routers.notifications.middlewares=global-errors@file,global-retry@file,global-cb@file,global-rate-limit@file"
+
+  mongo-notifications:
+    deploy:
+      replicas: 1
+      placement:
+        constraints:
+          - node.labels.id.1 == true
+      restart_policy:
+        condition: any
+        delay: 10s
+        max_attempts: 5
+
+  redis-notifications:
+    image: redis:7-alpine
+    networks:
+      - notifications-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: any
+        delay: 5s
+        max_attempts: 5
+
+networks:
+  eventonight-network:
+    driver: overlay
+    attachable: true
+  notifications-network:
+    driver: overlay
+    attachable: true

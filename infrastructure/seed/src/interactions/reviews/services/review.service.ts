@@ -5,8 +5,8 @@ import { ReviewToCreate, SeedReview } from "../types/review.types";
 export async function createReview(review: ReviewToCreate): Promise<SeedReview> {
     const _id = new ObjectId();
     
-    const DOCKER_CONTAINER =
-        process.env.INTERACTION_MONGO_URI || "eventonight-mongo-interactions-1";
+    const MONGO_HOST =
+        process.env.INTERACTION_MONGO_URI || "mongo-interactions";
     const MONGO_DB = process.env.MONGO_DB || "eventonight";
     
     const reviewToCreate = {
@@ -17,7 +17,7 @@ export async function createReview(review: ReviewToCreate): Promise<SeedReview> 
     const insertCommand = `db.reviews.insertOne(${JSON.stringify(reviewToCreate)})`;
     try {
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval '${insertCommand}'`,
+            `mongosh "mongodb://${MONGO_HOST}:27017/${MONGO_DB}?directConnection=true" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Review inserted: ${_id}`);

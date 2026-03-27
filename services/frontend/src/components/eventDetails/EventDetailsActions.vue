@@ -5,7 +5,7 @@ import { api } from '@/api'
 import type { Event } from '@/api/types/events'
 import { useTicketDownload } from '@/composables/useTicketDownload'
 import { useNavigation } from '@/router/utils'
-import type { EventTicketType } from '@/api/types/payments'
+import type { EventTicketType } from '@/api/types/ticketing'
 import { useTranslation } from '@/composables/useTranslation'
 import { createLogger } from '@/utils/logger'
 

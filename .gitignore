@@ -17,14 +17,14 @@ Thumbs.db
 # ----------------------
 # Node / VitePress
 # ----------------------
-node_modules/
+node_modules
 docs/node_modules/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
 dist/
 
 # Lock files (se non vuoi committarli)
-package-lock.json
+#package-lock.json
 pnpm-lock.yaml
 yarn.lock
 infrastructure/seed/seed-output/

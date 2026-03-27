@@ -1,4 +1,4 @@
-import { MAX_TICKET_PRICE } from '@/api/types/payments'
+import { MAX_TICKET_PRICE } from '@/api/types/ticketing'
 import { DATE_FILTERS, type DateFilter } from '@/components/explore/filters/DateFilters.vue'
 import { FEED_FILTERS, type OtherFilter } from '@/components/explore/filters/FeedFilters.vue'
 import type { EventFilters } from '@/components/explore/filters/FiltersButton.vue'

@@ -5,7 +5,7 @@ import EmptyState from '@/components/navigation/tabs/EmptyTab.vue'
 import { useInfiniteScroll } from '@/composables/useInfiniteScroll'
 import { useAuthStore } from '@/stores/auth'
 import type { Event } from '@/api/types/events'
-import { loadUserEventParticipations } from '@/api/utils/paymentsUtils'
+import { loadUserEventParticipations } from '@/api/utils/ticketingUtils'
 import { useTranslation } from '@/composables/useTranslation'
 
 const ITEMS_PER_PAGE = 20

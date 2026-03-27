@@ -1,0 +1,17 @@
+services:
+  frontend:
+    image: ghcr.io/eventonight/eventonight/frontend:latest
+    networks:
+      - eventonight-network
+    environment:
+      - VITE_HOST=${HOST}
+      - PORT=${FRONTEND_SERVICE_PORT}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${FRONTEND_SERVICE_PORT}/"]
+      interval: 5s
+      timeout: 3s
+      retries: 3
+      start_period: 10s
+
+networks:
+  eventonight-network:

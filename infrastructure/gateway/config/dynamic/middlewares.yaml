@@ -1,0 +1,29 @@
+http:
+  middlewares:
+    global-errors:
+      errors:
+        status:
+          - "429"
+          - "503"
+        service: error-pages
+        query: "/{status}.html"
+    global-retry:
+      retry:
+        attempts: 3
+        initialInterval: 100ms
+    global-cb:
+      circuitBreaker:
+        expression: "NetworkErrorRatio() > 0.30 || ResponseCodeRatio(500, 600, 0, 600) > 0.25"
+    global-rate-limit:
+      rateLimit:
+        average: 100
+        burst: 200
+        period: 1s
+        sourceCriterion:
+          ipStrategy:
+            depth: 1
+  services:
+    error-pages:
+      loadBalancer:
+        servers:
+          - url: "http://error-pages:8080"

@@ -3,6 +3,8 @@ import { RabbitMQ } from "./config/rabbitmq.config";
 
 import { createServer } from "http";
 import { Server } from "socket.io";
+import { createAdapter } from "@socket.io/redis-adapter";
+import { createClient } from "redis";
 import { createApp } from "./app";
 import { config } from "./config/env.config";
 
@@ -104,6 +106,24 @@ async function bootstrap() {
       },
     });
 
+    let pubClient: ReturnType<typeof createClient> | null = null;
+    let subClient: ReturnType<typeof createClient> | null = null;
+
+    if (config.redisUrl) {
+      pubClient = createClient({ url: config.redisUrl });
+      subClient = pubClient.duplicate();
+
+      pubClient.on("error", (err) =>
+        console.error("Redis pubClient error:", err),
+      );
+      subClient.on("error", (err) =>
+        console.error("Redis subClient error:", err),
+      );
+
+      await Promise.all([pubClient.connect(), subClient.connect()]);
+      io.adapter(createAdapter(pubClient, subClient));
+    }
+
     const socketGateway = new SocketIOGateway(io);
 
     const isOnlineHandler = new IsOnlineHandler(socketGateway);
@@ -137,6 +157,26 @@ async function bootstrap() {
     httpServer.listen(config.port, () => {
       console.log(`🚀 Notification service running on port ${config.port}`);
     });
+
+    const shutdown = async (signal: string) => {
+      console.log(`${signal} received, shutting down gracefully...`);
+      try {
+        await new Promise<void>((resolve, reject) =>
+          httpServer.close((err) => (err ? reject(err) : resolve())),
+        );
+        await rabbitmqConsumer.close();
+        await Promise.all([pubClient?.quit(), subClient?.quit()]);
+        await MongoDB.disconnect();
+        console.log("Graceful shutdown complete");
+        process.exit(0);
+      } catch (err) {
+        console.error("Error during shutdown:", err);
+        process.exit(1);
+      }
+    };
+
+    process.on("SIGTERM", () => void shutdown("SIGTERM"));
+    process.on("SIGINT", () => void shutdown("SIGINT"));
   } catch (error) {
     console.error("Failed to start server:", error);
     process.exit(1);

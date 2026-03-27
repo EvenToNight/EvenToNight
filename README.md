@@ -215,7 +215,7 @@ You can add `--no-deps` to any deploy command to skip external service dependenc
 4. **For Stripe payments in local environment** (required only if NOT using `--no-deps`):
 
 ```bash
-./services/payments/scripts/local-webhooks.sh
+./services/ticketing/scripts/local-webhooks.sh
 ```
 
 This script must be run to forward Stripe webhooks to your local environment.

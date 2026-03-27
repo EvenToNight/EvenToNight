@@ -1,14 +1,15 @@
 import { SeedTicket, TicketToCreate } from "../types/ticket.types";
 import { ObjectId } from "mongodb";
 import { execSync } from "child_process";
+import { buildMongoConnectionString } from "../../../utils/mongo-connection.utils";
 
 export async function createTicket(ticketData: TicketToCreate): Promise<SeedTicket> {
     const _id = new ObjectId();
     const now = new Date();
 
-    const DOCKER_CONTAINER = 
-        process.env.PAYMENT_MONGO_URI || "eventonight-mongo-payments-1";
-    const MONGO_DB = "eventonight-payments";
+    const MONGO_HOST =
+        process.env.PAYMENT_MONGO_URI || "mongo-ticketing";
+    const MONGO_DB = "eventonight-ticketing";
 
     const ticketToCreate: SeedTicket = {
         _id,
@@ -30,8 +31,10 @@ export async function createTicket(ticketData: TicketToCreate): Promise<SeedTick
     const insertCommand = `db.tickets.insertOne(${jsonDoc})`;
 
     try {
+        const connectionString = buildMongoConnectionString(MONGO_HOST, MONGO_DB);
+
         execSync(
-            `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval '${insertCommand}'`,
+            `mongosh "${connectionString}" --quiet --eval '${insertCommand}'`,
             { stdio: "pipe" }
         );
         console.log(`[DB] Ticket inserted: ${_id}`);

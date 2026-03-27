@@ -33,8 +33,8 @@ export async function createEvent(event: EventToCreate): Promise<SeedEvent> {
     }
   }
 
-  const DOCKER_CONTAINER =
-    process.env.EVENT_MONGO_URI || "eventonight-mongo-events-1";
+  const MONGO_HOST =
+    process.env.EVENT_MONGO_URI || "mongo-events";
   const MONGO_DB = process.env.MONGO_DB || "eventonight";
   
   const eventToInsert = {
@@ -48,7 +48,7 @@ export async function createEvent(event: EventToCreate): Promise<SeedEvent> {
 
   try {
     execSync(
-      `docker exec ${DOCKER_CONTAINER} mongosh ${MONGO_DB} --quiet --eval '${insertCommand}'`,
+      `mongosh "mongodb://${MONGO_HOST}:27017/${MONGO_DB}?directConnection=true" --quiet --eval '${insertCommand}'`,
       { stdio: "pipe" }
     );
     console.log(`[DB] Event inserted: ${eventId}`);

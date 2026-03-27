@@ -1,0 +1,203 @@
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import {
+  OutboxDocument,
+  OutboxSchema,
+  OutboxMongoRepository,
+  OutboxRelayService,
+  OutboxService,
+  InboxDocument,
+  InboxSchema,
+  InboxMongoRepository,
+  InboxService as IdempotencyService,
+} from '@libs/nestjs-common';
+import { INBOX_REPOSITORY, OUTBOX_REPOSITORY } from '@libs/ts-common';
+
+// Schemas
+import {
+  EventTicketTypeDocument,
+  EventTicketTypeSchema,
+} from './infrastructure/persistence/schemas/event-ticket-type.schema';
+import {
+  TicketDocument,
+  TicketSchema,
+} from './infrastructure/persistence/schemas/ticket.schema';
+import {
+  OrderDocument,
+  OrderSchema,
+} from './infrastructure/persistence/schemas/order.schema';
+import {
+  UserDocument,
+  UserSchema,
+} from './infrastructure/persistence/schemas/user.schema';
+import {
+  EventDocument,
+  EventSchema,
+} from './infrastructure/persistence/schemas/event.schema';
+
+// Repositories
+import { EventTicketTypeRepositoryImpl } from './infrastructure/persistence/repositories/event-ticket-type.repository';
+import { EVENT_TICKET_TYPE_REPOSITORY } from './domain/repositories/event-ticket-type.repository.interface';
+import { TicketRepositoryImpl } from './infrastructure/persistence/repositories/ticket.repository';
+import { TICKET_REPOSITORY } from './domain/repositories/ticket.repository.interface';
+import { OrderRepositoryImpl } from './infrastructure/persistence/repositories/order.repository';
+import { ORDER_REPOSITORY } from './domain/repositories/order.repository.interface';
+import { UserRepositoryImpl } from './infrastructure/persistence/repositories/user.repository';
+import { USER_REPOSITORY } from './domain/repositories/user.repository.interface';
+import { EventRepositoryImpl } from './infrastructure/persistence/repositories/event.repository';
+import { EVENT_REPOSITORY } from './domain/repositories/event.repository.interface';
+
+// Domain Services
+import { StripeService } from './infrastructure/payment/stripe.service';
+import { PAYMENT_SERVICE } from './domain/services/payment.service.interface';
+
+// Handlers
+import { CreateEventHandler } from './application/handlers/create-event.handler';
+import { CreateEventTicketTypeHandler } from './application/handlers/create-event-ticket-type.handler';
+import { CreateCheckoutSessionHandler } from './application/handlers/create-checkout-session.handler';
+import { DeleteEventTicketTypesHandler } from './application/handlers/delete-event-ticket-types.handler';
+import { DeleteEventHandler } from './application/handlers/delete-event.handler';
+import { DeleteTicketTypeHandler } from './application/handlers/delete-ticket-type.handler';
+import { StripeWebhookHandler } from './application/handlers/stripe-webhook.handler';
+import { CheckoutSessionCompletedHandler } from './application/handlers/checkout-session-completed.handler';
+import { CheckoutSessionExpiredHandler } from './application/handlers/checkout-session-expired.handler';
+import { UpdateTicketTypeHandler } from './application/handlers/update-ticket-type.handler';
+import { VerifyTicketHandler } from './application/handlers/verify-ticket.handler';
+import { GetUserEventTicketsPdfHandler } from './application/handlers/get-user-event-tickets-pdf.handler';
+
+// Infrastructure
+import { TRANSACTION_MANAGER } from '@libs/ts-common';
+import { MongoTransactionManager } from '@libs/ts-common';
+import { getConnectionToken } from '@nestjs/mongoose';
+import { Connection } from 'mongoose';
+
+// Controllers
+import { EventTicketTypesController } from './presentation/controllers/event-ticket-types.controller';
+import { CheckoutSessionsController } from './presentation/controllers/checkout-sessions.controller';
+import { StripeWebhookController } from './presentation/controllers/stripe-webhook.controller';
+import { TicketsController } from './presentation/controllers/tickets.controller';
+import { OrderController } from './presentation/controllers/order-controller';
+import { EventsController } from './presentation/controllers/events.controller';
+import { InternalEventsController } from './presentation/controllers/internal-events.controller';
+import { UsersController } from './presentation/controllers/users.controller';
+
+// Consumers
+import { EventDispatcher } from './presentation/consumers/event.dispatcher';
+import { UserEventConsumer } from './presentation/consumers/user-event.consumer';
+import { EventEventConsumer } from './presentation/consumers/event-event.consumer';
+
+// Services
+import { PdfService } from './application/services/pdf.service';
+import { EventTicketTypeService } from './application/services/event-ticket-type.service';
+import { TicketService } from './application/services/ticket.service';
+import { OrderService } from './application/services/order.service';
+import { EventService } from './application/services/event.service';
+import { UserService } from './application/services/user.service';
+
+@Module({
+  imports: [
+    MongooseModule.forFeature([
+      { name: EventTicketTypeDocument.name, schema: EventTicketTypeSchema },
+      { name: TicketDocument.name, schema: TicketSchema },
+      { name: OrderDocument.name, schema: OrderSchema },
+      { name: UserDocument.name, schema: UserSchema },
+      { name: EventDocument.name, schema: EventSchema },
+      { name: OutboxDocument.name, schema: OutboxSchema },
+      {
+        name: InboxDocument.name,
+        schema: InboxSchema,
+      },
+    ]),
+  ],
+  controllers: [
+    EventTicketTypesController,
+    CheckoutSessionsController,
+    StripeWebhookController,
+    TicketsController,
+    OrderController,
+    EventsController,
+    InternalEventsController,
+    EventDispatcher,
+    UsersController,
+  ],
+  providers: [
+    // Repositories
+    {
+      provide: EVENT_TICKET_TYPE_REPOSITORY,
+      useClass: EventTicketTypeRepositoryImpl,
+    },
+    {
+      provide: TICKET_REPOSITORY,
+      useClass: TicketRepositoryImpl,
+    },
+    {
+      provide: ORDER_REPOSITORY,
+      useClass: OrderRepositoryImpl,
+    },
+    {
+      provide: USER_REPOSITORY,
+      useClass: UserRepositoryImpl,
+    },
+    {
+      provide: EVENT_REPOSITORY,
+      useClass: EventRepositoryImpl,
+    },
+    {
+      provide: OUTBOX_REPOSITORY,
+      useClass: OutboxMongoRepository,
+    },
+    {
+      provide: INBOX_REPOSITORY,
+      useClass: InboxMongoRepository,
+    },
+
+    // Domain Services
+    {
+      provide: PAYMENT_SERVICE,
+      useClass: StripeService,
+    },
+
+    // Use Case Handlers
+    CreateEventHandler,
+    CreateEventTicketTypeHandler,
+    CreateCheckoutSessionHandler,
+    DeleteEventTicketTypesHandler,
+    DeleteEventHandler,
+    DeleteTicketTypeHandler,
+    StripeWebhookHandler,
+    CheckoutSessionCompletedHandler,
+    CheckoutSessionExpiredHandler,
+    UpdateTicketTypeHandler,
+    VerifyTicketHandler,
+    GetUserEventTicketsPdfHandler,
+
+    // Infrastructure
+    {
+      provide: TRANSACTION_MANAGER,
+      useFactory: (connection: Connection) => {
+        return new MongoTransactionManager(connection);
+      },
+      inject: [getConnectionToken()],
+    },
+
+    // Outbox
+    OutboxService,
+    OutboxRelayService,
+
+    // Services
+    PdfService,
+    EventTicketTypeService,
+    TicketService,
+    OrderService,
+    EventService,
+    UserService,
+
+    IdempotencyService,
+
+    // Event Consumers
+    UserEventConsumer,
+    EventEventConsumer,
+  ],
+  exports: [EVENT_TICKET_TYPE_REPOSITORY, ORDER_REPOSITORY, USER_REPOSITORY],
+})
+export class TicketsModule {}

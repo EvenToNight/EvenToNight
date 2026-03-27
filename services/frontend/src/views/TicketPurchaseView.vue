@@ -3,7 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useNavigation } from '@/router/utils'
 import { api } from '@/api'
 import type { Event } from '@/api/types/events'
-import type { EventTicketType } from '@/api/types/payments'
+import type { EventTicketType } from '@/api/types/ticketing'
 import { useQuasar } from 'quasar'
 import NavigationButtons from '@/components/navigation/NavigationButtons.vue'
 import { NAVBAR_HEIGHT_CSS } from '@/components/navigation/NavigationBar.vue'
@@ -101,7 +101,7 @@ onMounted(async () => {
     loading.value = true
     const [eventData, ticketsAvailable] = await Promise.all([
       api.events.getEventById(eventId.value),
-      api.payments.getEventTicketsType(eventId.value),
+      api.ticketing.getEventTicketsType(eventId.value),
     ])
     event.value = eventData
     ticketTypes.value = ticketsAvailable
@@ -138,7 +138,7 @@ const handlePurchase = async () => {
       }
     }
 
-    const session = await api.payments.createCheckoutSession({
+    const session = await api.ticketing.createCheckoutSession({
       userId: authStore.user.id,
       items,
       successUrl: window.location.href.replace('/purchase', ''),
