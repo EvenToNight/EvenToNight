@@ -3,7 +3,7 @@ import domain.commands.{CreateEventCommand, GetFilteredEventsCommand, UpdateEven
 import domain.enums.{EventStatus, EventTag}
 import domain.enums.EventTag.validateTagList
 import infrastructure.converters.EventConversions.*
-import infrastructure.db.MongoUserMetadataRepository
+import infrastructure.db.UserMetadataRepository
 import infrastructure.dto.{Event, Location}
 
 import java.nio.file.Files
@@ -251,7 +251,7 @@ object Utils:
       "hasMore" -> hasMore
     )
 
-  def checkUserIsOrganization(userId: String, userMetadataDatabase: MongoUserMetadataRepository): Boolean =
+  def checkUserIsOrganization(userId: String, userMetadataDatabase: UserMetadataRepository): Boolean =
     userMetadataDatabase.findById(userId) match
       case Some(userMetadata) if userMetadata.role == "organization" => true
       case _                                                         => false

@@ -26,6 +26,10 @@ class EventIdSpec extends AnyFlatSpec with Matchers:
     result.shouldBe(Left("EventId cannot be null or empty"))
   }
 
+  it should "preserve valid values as provided" in {
+    EventId("  id-with-spaces  ").map(_.value) shouldBe Right("  id-with-spaces  ")
+  }
+
   "EventId.generate" should "create unique EventIds" in {
     val id1 = EventId.generate()
     val id2 = EventId.generate()

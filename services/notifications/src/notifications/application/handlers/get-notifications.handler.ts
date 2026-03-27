@@ -14,9 +14,11 @@ export class GetNotificationsHandler {
       query.unreadOnly,
     );
 
-    for (const notification of notifications) {
-      this.repository.markAsRead(notification.id.toString());
-    }
+    await Promise.all(
+      notifications.map((notification) =>
+        this.repository.markAsRead(notification.id.toString()),
+      ),
+    );
 
     const notificationDtos = notifications.map((notification) =>
       NotificationDto.fromEntity(notification),
