@@ -69,6 +69,11 @@ jobs:
         run: npm run docs:build -- --base /EvenToNight/report/DS/ --outDir ../../../site/report/DS
         working-directory: ./docs/report/DS
 
+      - name: Copy DS PDF Report
+        run: |
+          mkdir -p ${{ env.SITE }}/report/DS/latex
+          cp ./docs/report/DS/latex/DS-Report.pdf ${{ env.SITE }}/report/DS/latex/DS-Report.pdf
+          
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
