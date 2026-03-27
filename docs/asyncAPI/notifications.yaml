@@ -1,0 +1,397 @@
+asyncapi: "2.5.0"
+
+info:
+  title: Notifications Service Socket API
+  version: "1.0.0"
+  description: >
+    AsyncAPI specification for Socket.IO events published by the Notifications service.
+    The service emits real-time notifications to connected clients over WebSocket.
+
+servers:
+  socket:
+    url: ws://localhost:${NOTIFICATIONS_SERVICE_PORT}
+    protocol: ws
+    description: Socket.IO server for Notifications (WebSocket upgrade over HTTP).
+
+channels:
+  registered:
+    description: Emitted to a user after successful socket registration.
+    publish:
+      operationId: emitRegistered
+      message:
+        $ref: "#/components/messages/RegisteredMessage"
+
+  user-online:
+    description: Broadcast when a user goes online.
+    publish:
+      operationId: emitUserOnline
+      message:
+        $ref: "#/components/messages/UserOnlineMessage"
+
+  user-offline:
+    description: Broadcast when a user goes offline.
+    publish:
+      operationId: emitUserOffline
+      message:
+        $ref: "#/components/messages/UserOfflineMessage"
+
+  message:
+    description: Direct message notification.
+    publish:
+      operationId: emitMessageNotification
+      message:
+        $ref: "#/components/messages/MessageNotificationMessage"
+
+  like:
+    description: Notification about a like.
+    publish:
+      operationId: emitLikeNotification
+      message:
+        $ref: "#/components/messages/LikeNotificationMessage"
+
+  follow:
+    description: Notification about a follow.
+    publish:
+      operationId: emitFollowNotification
+      message:
+        $ref: "#/components/messages/FollowNotificationMessage"
+
+  review:
+    description: Notification about a review.
+    publish:
+      operationId: emitReviewNotification
+      message:
+        $ref: "#/components/messages/ReviewNotificationMessage"
+
+  new_event:
+    description: Notification about a new event published by a creator.
+    publish:
+      operationId: emitNewEventNotification
+      message:
+        $ref: "#/components/messages/NewEventNotificationMessage"
+
+  notification:
+    description: Fallback notification channel for unknown types.
+    publish:
+      operationId: emitGenericNotification
+      message:
+        $ref: "#/components/messages/GenericNotificationMessage"
+
+components:
+  messages:
+    RegisteredMessage:
+      name: Registered
+      title: Registered
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/RegisteredPayload"
+
+    UserOnlineMessage:
+      name: UserOnline
+      title: User Online
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/UserOnlinePayload"
+
+    UserOfflineMessage:
+      name: UserOffline
+      title: User Offline
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/UserOfflinePayload"
+
+    MessageNotificationMessage:
+      name: MessageNotification
+      title: Message Notification
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/MessageNotificationPayload"
+
+    LikeNotificationMessage:
+      name: LikeNotification
+      title: Like Notification
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/LikeNotificationPayload"
+
+    FollowNotificationMessage:
+      name: FollowNotification
+      title: Follow Notification
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/FollowNotificationPayload"
+
+    ReviewNotificationMessage:
+      name: ReviewNotification
+      title: Review Notification
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/ReviewNotificationPayload"
+
+    NewEventNotificationMessage:
+      name: NewEventNotification
+      title: New Event Notification
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/NewEventNotificationPayload"
+
+    GenericNotificationMessage:
+      name: GenericNotification
+      title: Generic Notification
+      contentType: application/json
+      payload:
+        $ref: "#/components/schemas/GenericNotificationPayload"
+
+  schemas:
+    RegisteredPayload:
+      type: object
+      properties:
+        userId:
+          type: string
+      required:
+        - userId
+
+    UserOnlinePayload:
+      type: object
+      properties:
+        userId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - userId
+        - timestamp
+
+    UserOfflinePayload:
+      type: object
+      properties:
+        userId:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+      required:
+        - userId
+        - timestamp
+
+    MessageNotificationPayload:
+      type: object
+      properties:
+        type:
+          type: string
+          example: message
+        metadata:
+          $ref: "#/components/schemas/MessageNotificationMetadata"
+      required:
+        - type
+        - metadata
+
+    MessageNotificationMetadata:
+      type: object
+      properties:
+        conversationId:
+          type: string
+        senderId:
+          type: string
+        senderName:
+          type: string
+        message:
+          type: string
+        messageId:
+          type: string
+        senderAvatar:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - conversationId
+        - senderId
+        - senderName
+        - message
+        - messageId
+        - senderAvatar
+        - createdAt
+
+    LikeNotificationPayload:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          example: like
+        metadata:
+          $ref: "#/components/schemas/LikeNotificationMetadata"
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - metadata
+        - read
+        - createdAt
+
+    LikeNotificationMetadata:
+      type: object
+      properties:
+        eventId:
+          type: string
+        eventName:
+          type: string
+        userId:
+          type: string
+        userName:
+          type: string
+        userAvatar:
+          type: string
+      required:
+        - eventId
+        - eventName
+        - userId
+        - userName
+        - userAvatar
+
+    FollowNotificationPayload:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          example: follow
+        metadata:
+          $ref: "#/components/schemas/FollowNotificationMetadata"
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - metadata
+        - read
+        - createdAt
+
+    FollowNotificationMetadata:
+      type: object
+      properties:
+        followerId:
+          type: string
+        followerName:
+          type: string
+        followerAvatar:
+          type: string
+      required:
+        - followerId
+        - followerName
+        - followerAvatar
+
+    ReviewNotificationPayload:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          example: review
+        metadata:
+          $ref: "#/components/schemas/ReviewNotificationMetadata"
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - metadata
+        - read
+        - createdAt
+
+    ReviewNotificationMetadata:
+      type: object
+      properties:
+        eventId:
+          type: string
+        userId:
+          type: string
+        userName:
+          type: string
+        userAvatar:
+          type: string
+      required:
+        - eventId
+        - userId
+        - userName
+        - userAvatar
+
+    NewEventNotificationPayload:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+          example: new_event
+        metadata:
+          $ref: "#/components/schemas/NewEventNotificationMetadata"
+        read:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - metadata
+        - read
+        - createdAt
+
+    NewEventNotificationMetadata:
+      type: object
+      properties:
+        creatorId:
+          type: string
+        eventId:
+          type: string
+        eventName:
+          type: string
+        creatorName:
+          type: string
+      required:
+        - creatorId
+        - eventId
+        - eventName
+        - creatorName
+
+    GenericNotificationPayload:
+      type: object
+      properties:
+        id:
+          type: string
+        type:
+          type: string
+        metadata:
+          type: object
+          additionalProperties: true
+        read:
+          type: boolean
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - metadata
+        - read
+        - createdAt

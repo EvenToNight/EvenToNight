@@ -5,7 +5,7 @@ info:
   version: "1.0.0"
   description: >
     AsyncAPI specification for domain events published by the Events service.
-    The service publishes and consumes events to the central RabbitMQ exchange `eventonight`.
+    The service publishes events to the central RabbitMQ exchange `eventonight`.
 
 servers:
   rabbitmq:
@@ -15,7 +15,7 @@ servers:
 
 channels:
   eventonight:
-    description: Domain events exchange
+    description: Central topic exchange for event domain messages
     bindings:
       amqp:
         is: routingKey
@@ -24,16 +24,31 @@ channels:
           type: topic
           durable: true
 
-    subscribe:
-      operationId: onDomainEvent
+    publish:
+      operationId: publishEventDomainEvent
       message:
         oneOf:
+          - $ref: "#/components/messages/EventCreatedMessage"
           - $ref: "#/components/messages/EventPublishedMessage"
           - $ref: "#/components/messages/EventUpdatedMessage"
           - $ref: "#/components/messages/EventDeletedMessage"
+          - $ref: "#/components/messages/EventCompletedMessage"
+          - $ref: "#/components/messages/EventCancelledMessage"
 
 components:
   messages:
+    EventCreatedMessage:
+      name: EventCreated
+      title: Event Created
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: event.created
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventCreatedEnvelope"
+
     EventPublishedMessage:
       name: EventPublished
       title: Event Published
@@ -44,7 +59,7 @@ components:
       headers:
         $ref: "#/components/schemas/EventHeaders"
       payload:
-        $ref: "#/components/schemas/EventPublished"
+        $ref: "#/components/schemas/EventPublishedEnvelope"
 
     EventUpdatedMessage:
       name: EventUpdated
@@ -56,7 +71,7 @@ components:
       headers:
         $ref: "#/components/schemas/EventHeaders"
       payload:
-        $ref: "#/components/schemas/EventUpdated"
+        $ref: "#/components/schemas/EventUpdatedEnvelope"
 
     EventDeletedMessage:
       name: EventDeleted
@@ -68,27 +83,57 @@ components:
       headers:
         $ref: "#/components/schemas/EventHeaders"
       payload:
-        $ref: "#/components/schemas/EventDeleted"
+        $ref: "#/components/schemas/EventDeletedEnvelope"
+
+    EventCompletedMessage:
+      name: EventCompleted
+      title: Event Completed
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: event.completed
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventCompletedEnvelope"
+
+    EventCancelledMessage:
+      name: EventCancelled
+      title: Event Cancelled
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: event.cancelled
+      headers:
+        $ref: "#/components/schemas/EventHeaders"
+      payload:
+        $ref: "#/components/schemas/EventCancelledEnvelope"
 
   schemas:
     EventHeaders:
       type: object
+      description: Headers for event domain events
       properties:
         event-type:
           type: string
           description: Routing key of the event
-          example: event.published
+          example: event.created
         producer:
           type: string
+          description: Microservice that produced the event
           example: events-service
         schema:
           type: string
+          description: Version of the event schema
           example: "1"
       required:
         - event-type
+        - producer
+        - schema
 
-    EventPublished:
+    EventCreatedPayload:
       type: object
+      description: Payload for EventCreated event
       properties:
         eventId:
           type: string
@@ -98,12 +143,90 @@ components:
           type: array
           items:
             type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+        instant:
+          type: integer
+          format: int64
+          nullable: true
+        locationName:
+          type: string
+          nullable: true
       required:
         - eventId
         - creatorId
+        - status
 
-    EventUpdated:
+    EventCreatedEnvelope:
       type: object
+      description: Envelope for EventCreated event
+      properties:
+        eventType:
+          type: string
+          example: event.created
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T12:00:00Z"
+        payload:
+          $ref: "#/components/schemas/EventCreatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    EventPublishedPayload:
+      type: object
+      description: Payload for EventPublished event
+      properties:
+        eventId:
+          type: string
+        name:
+          type: string
+        creatorId:
+          type: string
+        creatorName:
+          type: string
+      required:
+        - eventId
+        - name
+        - creatorId
+        - creatorName
+
+    EventPublishedEnvelope:
+      type: object
+      description: Envelope for EventPublished event
+      properties:
+        eventType:
+          type: string
+          example: event.published
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T12:05:00Z"
+        payload:
+          $ref: "#/components/schemas/EventPublishedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    EventUpdatedPayload:
+      type: object
+      description: Payload for EventUpdated event
       properties:
         eventId:
           type: string
@@ -111,13 +234,127 @@ components:
           type: array
           items:
             type: string
+          nullable: true
+        name:
+          type: string
+          nullable: true
+        date:
+          type: string
+          format: date-time
+          nullable: true
+        status:
+          type: string
+        tags:
+          type: array
+          items:
+            type: string
+          nullable: true
+        instant:
+          type: integer
+          format: int64
+          nullable: true
+        locationName:
+          type: string
+          nullable: true
       required:
         - eventId
+        - status
 
-    EventDeleted:
+    EventUpdatedEnvelope:
       type: object
+      description: Envelope for EventUpdated event
+      properties:
+        eventType:
+          type: string
+          example: event.updated
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T12:10:00Z"
+        payload:
+          $ref: "#/components/schemas/EventUpdatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    EventDeletedPayload:
+      type: object
+      description: Payload for EventDeleted event
       properties:
         eventId:
           type: string
       required:
         - eventId
+
+    EventDeletedEnvelope:
+      type: object
+      description: Envelope for EventDeleted event
+      properties:
+        eventType:
+          type: string
+          example: event.deleted
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T12:15:00Z"
+        payload:
+          $ref: "#/components/schemas/EventDeletedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    EventCompletedPayload:
+      type: object
+      description: Payload for EventCompleted event
+      properties:
+        eventId:
+          type: string
+      required:
+        - eventId
+
+    EventCompletedEnvelope:
+      type: object
+      description: Envelope for EventCompleted event
+      properties:
+        eventType:
+          type: string
+          example: event.completed
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T12:20:00Z"
+        payload:
+          $ref: "#/components/schemas/EventCompletedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    EventCancelledPayload:
+      type: object
+      description: Payload for EventCancelled event
+      properties:
+        eventId:
+          type: string
+      required:
+        - eventId
+
+    EventCancelledEnvelope:
+      type: object
+      description: Envelope for EventCancelled event
+      properties:
+        eventType:
+          type: string
+          example: event.cancelled
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T12:25:00Z"
+        payload:
+          $ref: "#/components/schemas/EventCancelledPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload

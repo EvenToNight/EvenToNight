@@ -1,0 +1,100 @@
+\section{Deployment Instructions}
+
+The application supports two deployment modes: \textbf{Docker Compose} for single-node setups and \textbf{Docker Swarm} (beta) for multi-node, highly available deployments. In both cases, all services run as independent containers managed via a centralised script.
+
+\subsection{Installation}
+
+\noindent\textbf{1. Clone the repository.}\par
+\begin{lstlisting}[language=bash]
+git clone https://github.com/EvenToNight/EvenToNight.git
+cd EvenToNight
+\end{lstlisting}
+
+\noindent\textbf{2. Configure environment variables.}\par
+\begin{lstlisting}[language=bash]
+cp .env.template .env
+# Edit .env and fill in all required fields
+\end{lstlisting}
+
+\subsection{Docker Compose}
+
+\noindent\textbf{Option A: Use pre-built images from ghcr.io (Recommended).}\par
+\begin{lstlisting}[language=bash]
+# Pull images
+./scripts/composeApplication.sh pull
+
+# Deploy the application
+./scripts/composeApplication.sh up -d --wait
+
+# Deploy with database seeding
+./scripts/composeApplication.sh --init-db up -d --wait
+
+# Deploy in development mode (with host-mapped ports and dashboards)
+./scripts/composeApplication.sh --init-db --dev up -d --wait
+\end{lstlisting}
+
+\noindent\textbf{Option B: Local build.}
+Add the \texttt{--build} flag to build services locally. The \texttt{--dev} flag is required as it includes the build instructions:
+\begin{lstlisting}[language=bash]
+./scripts/composeApplication.sh --dev up --build -d --wait
+./scripts/composeApplication.sh --init-db --dev up --build -d --wait
+\end{lstlisting}
+
+\noindent\textbf{Additional flags.}\par\noindent
+\texttt{--no-deps}: Excludes external dependencies (Stripe). When using this flag, the Stripe keys in \texttt{.env} can contain arbitrary values.
+\begin{lstlisting}[language=bash]
+./scripts/composeApplication.sh --no-deps up -d --wait
+\end{lstlisting}
+
+\noindent\texttt{--project-name}: Overrides the Docker Compose project name (defaults to \texttt{eventonight}).
+
+\noindent\textbf{Stripe configuration.} For Stripe payments in a local environment (required only if NOT using \texttt{--no-deps}):
+\begin{lstlisting}[language=bash]
+./services/payments/scripts/local-webhooks.sh
+\end{lstlisting}
+
+\noindent\textbf{Alternative setup.} Use Gradle to set up the entire environment with seeding and the Stripe listener:
+\begin{lstlisting}[language=bash]
+./gradlew setupApplicationEnvironment
+\end{lstlisting}
+
+\noindent\textbf{Teardown.}\par
+\begin{lstlisting}[language=bash]
+./scripts/composeApplication.sh down
+./scripts/composeApplication.sh down -v   # also remove volumes
+./gradlew teardownApplicationEnvironment  # via Gradle
+\end{lstlisting}
+
+\subsection{Docker Swarm (Beta)}
+
+\noindent\textbf{Prerequisites.}\par
+\begin{lstlisting}[language=bash]
+docker swarm init
+docker swarm join --token <token> <manager-ip>:2377
+\end{lstlisting}
+
+\noindent\textbf{Option A: Use pre-built images from ghcr.io (Recommended).}\par
+\begin{lstlisting}[language=bash]
+./scripts/deploySwarm.sh
+./scripts/deploySwarm.sh --auto-labels   # auto-assign placement labels
+\end{lstlisting}
+
+\noindent\textbf{Option B: Local build.}\par
+\begin{lstlisting}[language=bash]
+./scripts/deploySwarm.sh --local --build
+./scripts/deploySwarm.sh --local --build --host <hostname> --auto-labels
+\end{lstlisting}
+
+\noindent\textbf{Recovery.}\par
+\begin{lstlisting}[language=bash]
+./scripts/swarmRecover.sh [STACK_NAME]
+./scripts/swarmRecover.sh [STACK_NAME] --status
+\end{lstlisting}
+
+\noindent\textbf{Teardown.}\par
+\begin{lstlisting}[language=bash]
+./scripts/deploySwarm.sh --stop
+./scripts/deploySwarm.sh --stop --remove-volumes
+\end{lstlisting}
+
+Alternatively, the application is already running in production at \url{https://eventonight.site/}.

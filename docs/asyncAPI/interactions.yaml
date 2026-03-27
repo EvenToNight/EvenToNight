@@ -1,0 +1,224 @@
+asyncapi: "2.5.0"
+
+info:
+  title: Interactions Service Async API
+  version: "1.0.0"
+  description: >
+    AsyncAPI specification for domain events published by the Interactions service.
+    The service publishes events to the central RabbitMQ exchange `eventonight`.
+
+servers:
+  rabbitmq:
+    url: amqp://localhost:5672
+    protocol: amqp
+    description: RabbitMQ broker used by the Interactions Service to publish interaction events.
+
+channels:
+  eventonight:
+    description: Central topic exchange for interaction events
+    bindings:
+      amqp:
+        is: routingKey
+        exchange:
+          name: eventonight
+          type: topic
+          durable: true
+
+    publish:
+      operationId: publishInteractionEvent
+      message:
+        oneOf:
+          - $ref: "#/components/messages/LikeCreatedMessage"
+          - $ref: "#/components/messages/FollowCreatedMessage"
+          - $ref: "#/components/messages/FollowDeletedMessage"
+          - $ref: "#/components/messages/ReviewCreatedMessage"
+
+components:
+  messages:
+    LikeCreatedMessage:
+      name: LikeCreated
+      title: Like Created
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: interactions.like.created
+      payload:
+        $ref: "#/components/schemas/LikeCreatedEnvelope"
+
+    FollowCreatedMessage:
+      name: FollowCreated
+      title: Follow Created
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: interactions.follow.created
+      payload:
+        $ref: "#/components/schemas/FollowCreatedEnvelope"
+
+    FollowDeletedMessage:
+      name: FollowDeleted
+      title: Follow Deleted
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: interactions.follow.deleted
+      payload:
+        $ref: "#/components/schemas/FollowDeletedEnvelope"
+
+    ReviewCreatedMessage:
+      name: ReviewCreated
+      title: Review Created
+      contentType: application/json
+      bindings:
+        amqp:
+          routingKey: interactions.review.created
+      payload:
+        $ref: "#/components/schemas/ReviewCreatedEnvelope"
+
+  schemas:
+    LikeCreatedPayload:
+      type: object
+      description: Payload for LikeCreated event
+      properties:
+        creatorId:
+          type: string
+        eventId:
+          type: string
+        eventName:
+          type: string
+        userId:
+          type: string
+        userName:
+          type: string
+        userAvatar:
+          type: string
+      required:
+        - creatorId
+        - eventId
+        - eventName
+        - userId
+        - userName
+        - userAvatar
+
+    LikeCreatedEnvelope:
+      type: object
+      description: Envelope for LikeCreated event
+      properties:
+        eventType:
+          type: string
+          example: interactions.like.created
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T10:00:00Z"
+        payload:
+          $ref: "#/components/schemas/LikeCreatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    FollowCreatedPayload:
+      type: object
+      description: Payload for FollowCreated event
+      properties:
+        followedId:
+          type: string
+        followerId:
+          type: string
+        followerName:
+          type: string
+        followerAvatar:
+          type: string
+      required:
+        - followedId
+        - followerId
+        - followerName
+        - followerAvatar
+
+    FollowCreatedEnvelope:
+      type: object
+      description: Envelope for FollowCreated event
+      properties:
+        eventType:
+          type: string
+          example: interactions.follow.created
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T10:05:00Z"
+        payload:
+          $ref: "#/components/schemas/FollowCreatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    FollowDeletedPayload:
+      type: object
+      description: Payload for FollowDeleted event
+      properties:
+        followedId:
+          type: string
+        followerId:
+          type: string
+      required:
+        - followedId
+        - followerId
+
+    FollowDeletedEnvelope:
+      type: object
+      description: Envelope for FollowDeleted event
+      properties:
+        eventType:
+          type: string
+          example: interactions.follow.deleted
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T10:10:00Z"
+        payload:
+          $ref: "#/components/schemas/FollowDeletedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
+
+    ReviewCreatedPayload:
+      type: object
+      description: Payload for ReviewCreated event
+      properties:
+        creatorId:
+          type: string
+        eventId:
+          type: string
+        userId:
+          type: string
+        userName:
+          type: string
+        userAvatar:
+          type: string
+      required:
+        - creatorId
+        - eventId
+        - userId
+        - userName
+        - userAvatar
+
+    ReviewCreatedEnvelope:
+      type: object
+      description: Envelope for ReviewCreated event
+      properties:
+        eventType:
+          type: string
+          example: interactions.review.created
+        occurredAt:
+          type: string
+          format: date-time
+          example: "2026-02-02T10:15:00Z"
+        payload:
+          $ref: "#/components/schemas/ReviewCreatedPayload"
+      required:
+        - eventType
+        - occurredAt
+        - payload
