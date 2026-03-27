@@ -154,7 +154,7 @@ The typical workflow can therefore be summarized as follows:
 1. A client request is received through the service API.
 2. The request is validated and processed (optionally, also making synchronous request to other services) by the service logic. 
 3. A local transaction updates the service state and if necessary records in the outbox the domain events describing the change.
-5. After the transaction completes, the events are asynchronously published.
+4. After the transaction completes, the events are asynchronously published.
 
 This pattern guarantees internal consistency within the service while enabling reliable propagation of domain events to the rest of the system.
 

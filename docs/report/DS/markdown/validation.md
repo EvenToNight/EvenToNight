@@ -1,14 +1,13 @@
 # 6 - Validation
 
-The system has been validated through a combination of automated testing and API-level verification with the objective to verifying both the internal correctness of services and the proper behavior of exposed interfaces.
+The system has been validated through a combination of automated testing and API-level verification with the objective of verifying both the internal correctness of services and the proper behavior of exposed interfaces.
 
 Two main testing approaches have been adopted: unit and integration testing of service logic and API-level testing through interactive documentation.
 
 ## 6.1 - Automated Testing and Coverage
 
-Each service has been tested through automated test.
+Each service has been tested through automated tests designed to cover:
 
-Test have been designed to cover:
 - domain logic and service-layer behavior
 - validation rules and edge cases
 
