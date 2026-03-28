@@ -87,7 +87,7 @@ sequenceDiagram
         note over Ticketing,MongoDB: Compensating TX
         Ticketing->>MongoDB: release tickets, cancel order
         Ticketing-->>Client: 500 error
-    else Service crashes after TX2
+    else Service crashes after TX1
         note over Ticketing,MongoDB: ⚠ known limitation, tickets stuck PENDING
     end
 ```

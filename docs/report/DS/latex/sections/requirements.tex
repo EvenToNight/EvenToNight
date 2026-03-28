@@ -14,20 +14,20 @@ The main requirements that the application must meet are listed below.
 
 \subsubsection{Functional Requirements}
 
-\paragraph{Types of users supported by the system:}
+\noindent\textbf{Types of users supported by the system:}
 \begin{itemize}
   \item \textbf{Unregistered users}, who can explore the platform.
   \item \textbf{Registered users}, who can access features reserved for authenticated users.
   \item \textbf{Users registered as an organization}, who can access all platform features and additionally create and publish events and manage ticketing.
 \end{itemize}
 
-\paragraph{Functional requirements for all users:}
+\noindent\textbf{Functional requirements for all users:}
 \begin{itemize}
   \item View the Home screen, including interaction modes such as searching for events, viewing popular events, upcoming events and latest additions.
   \item View all events published on the platform and all registered users from the Explore screen, applying search filters.
 \end{itemize}
 
-\paragraph{Functional requirements for registered users:}
+\noindent\textbf{Functional requirements for registered users:}
 \begin{itemize}
   \item Receive a personalized event feed based on specified interests.
   \item Like and unlike events.
@@ -35,10 +35,15 @@ The main requirements that the application must meet are listed below.
   \item Purchase tickets for events.
   \item Leave a review after attending an event.
   \item Contact organizations directly within the platform to request support.
-  \item Receive notifications about: new followers, new events published by followed organizations, new messages.
+  \item Receive notifications about:
+    \begin{itemize}
+      \item new followers
+      \item new events published by followed organizations
+      \item new messages
+    \end{itemize}
 \end{itemize}
 
-\paragraph{Functional requirements for users registered as an organization:}
+\noindent\textbf{Functional requirements for users registered as an organization:}
 \begin{itemize}
   \item Create events, choosing whether to make them public or save them as drafts.
   \item Specify collaborators when creating events.
@@ -50,14 +55,14 @@ The main requirements that the application must meet are listed below.
 \begin{itemize}
   \item \textbf{Availability}: every request sent to a non-failing node in the system must receive a response.
   \item \textbf{Reliability}: the system must operate correctly over time, minimizing the occurrence of faults.
-  \item \textbf{Fault Tolerance}: the system must tolerate failures of individual services without affecting the overall platform operation.
-  \item \textbf{Security}: the system requires user authentication and enforces authorization to access resources. Only a secure hash of each user's password will be stored.
-  \item \textbf{Robustness}: the system must handle incorrect inputs, providing consistent error messages without compromising stability.
-  \item \textbf{Scalability}: the system must be able to handle increasing loads by adding new resources without degrading performance.
-  \item \textbf{Extensibility}: the system must support easy customization and addition of new functionalities.
-  \item \textbf{Maintainability}: the system must be easy to maintain with respect to addition of new features and updates, supported by well-structured and well-documented code.
+  \item \textbf{Fault Tolerance}: the system must tolerate failures of individual services (i.e. containerized microservices) without affecting the overall platform operation.
+  \item \textbf{Security}: the system requires user authentication and enforces authorization to access resources according to defined rules. In addition, to ensure password confidentiality, only a secure hash of each user's password will be stored.
+  \item \textbf{Robustness}: the system must handle incorrect inputs, providing consistent error messages without compromising system stability.
+  \item \textbf{Scalability}: the system must be able to handle increasing loads by adding new resources, without degrading performance.
+  \item \textbf{Extensibility}: the system must support easy customization and the addition of new functionalities.
+  \item \textbf{Maintainability}: the system must be easy to maintain with respect to the addition of new features and system updates. This is supported by well-structured and well-documented code.
   \item \textbf{Accessibility}: the system's graphical interface must be accessible, supporting standard accessibility guidelines.
-  \item \textbf{Portability}: the system must be responsive and adapt to different screen sizes and devices.
+  \item \textbf{Portability}: the system must be responsive and adapt to different screen sizes and devices, including PCs, tablets and smartphones.
   \item \textbf{Deployability}: the system must automatically update to the latest release version.
   \item \textbf{Architectural Constraint}: the system must be developed following a microservices architecture.
 \end{itemize}
@@ -68,12 +73,12 @@ The main requirements that the application must meet are listed below.
 
 Starting from the identified requirements, an \textbf{event-based architecture} was selected to design the distributed platform.
 
-This architectural style was chosen because it addresses several non-functional requirements of the system. In particular, the following architectural properties directly contribute to satisfying the non-functional requirements:
+This architectural style was chosen because it addresses several non-functional requirements of the system. In particular, the following architectural properties directly contribute to satisfying the system's non-functional requirements:
 
 \begin{itemize}
   \item \textbf{Referential and spatial decoupling}: producers and consumers do not reference or depend on each other's location. This supports extensibility, allowing new services to be added without modifying existing components.
-  \item \textbf{Temporal decoupling}: events are stored in a persistent event space until consumers are able to process them. This ensures that producer services remain responsive even if consumer services are temporarily unavailable, supporting fault tolerance and availability. In addition, this storage smooths load peaks and supports extensibility and horizontal scalability by allowing multiple consumer instances.
-  \item \textbf{Loosely coupled services}: producers publish events without waiting for consumers to respond and consumers process events independently. This independence supports fault tolerance, maintainability and extensibility.
+  \item \textbf{Temporal decoupling}: events are stored in a persistent event space until consumers are able to process them. This ensures that producer services remain responsive even if consumer services are temporarily unavailable, supporting fault tolerance and availability. In addition, this storage smooths load peaks by decoupling producer and consumer execution timing and it supports extensibility and horizontal scalability by allowing the addition of multiple consumer instances.
+  \item \textbf{Loosely coupled services}: producers publish events without waiting for consumers to respond and consumers process events independently. This independence supports fault tolerance, maintainability and extensibility, as temporary service failures or modifications do not affect other components and the addition of new functionalities and service updates is simplified.
 \end{itemize}
 
 At the system boundary level, the platform also follows a \textbf{layered architecture}:

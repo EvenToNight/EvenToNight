@@ -24,7 +24,9 @@ The use case diagram in fig.~\ref{fig:case-diagram} summarizes the main interact
   \label{fig:case-diagram}
 \end{figure}
 
-\paragraph{Usage scenario: Browsing and filtering events as an unregistered user.}
+A practical view of how each type of user interacts with the system according to their needs is provided in the following usage scenarios.
+
+\paragraph{Usage scenario: Browsing and filtering events, exploring other users as an unregistered user.}
 \begin{itemize}
   \item \textbf{Actor}: Unregistered user.
   \item \textbf{Objective}: Explore events according to location and gather information without registering an account.
@@ -35,35 +37,51 @@ The use case diagram in fig.~\ref{fig:case-diagram} summarizes the main interact
       \item The user applies filters to find events nearby.
       \item The user searches for users registered on the platform.
     \end{enumerate}
-  \item \textbf{Outcome}: The user accesses all event information without providing personal data and discovers other platform users.
+  \item \textbf{Outcome}:
+    \begin{enumerate}
+      \item The user accesses all event information without providing personal data.
+      \item The user identifies events aligned with their location.
+      \item The user discovers other users of the platform.
+    \end{enumerate}
 \end{itemize}
 
 \paragraph{Usage scenario: Personalized event discovery, ticket purchase and post-event review as a registered user.}
 \begin{itemize}
   \item \textbf{Actor}: Registered user.
-  \item \textbf{Objective}: Discover events based on personal preferences, evaluate them and purchase tickets.
+  \item \textbf{Objective}: Discover events based on personal preferences, evaluate them and purchase tickets on the platform.
   \item \textbf{Main flow}:
     \begin{enumerate}
       \item The user logs in to the EvenToNight platform.
-      \item The user navigates their personalized event feed based on specified interests.
-      \item The user selects an event and reads reviews on the organization's page.
-      \item The user purchases tickets for the event.
+      \item The user navigates their personalized event feed, based on specified interests.
+      \item The user selects an event and reads reviews of past events on the organization's page.
+      \item The user purchases tickets for the event on the platform.
     \end{enumerate}
-  \item \textbf{Outcome}: The user quickly finds matching events, evaluates the organization's reliability and the purchased ticket appears on the user's personal page and can be downloaded.
-  \item \textbf{Post-event action}: After attending the event, the user leaves a review on the organization's page.
+  \item \textbf{Outcome}:
+    \begin{enumerate}
+      \item The user quickly finds events that match their interests.
+      \item The user evaluates the organization's reliability and the type of experiences offered.
+      \item The purchased ticket appears on the user's personal page and can be downloaded.
+    \end{enumerate}
+  \item \textbf{Post-event action}: After attending the event, the user leaves a review for the event on the organization's page, providing feedback on their experience.
 \end{itemize}
 
-\paragraph{Usage scenario: Saving events and contacting organizations as a registered user.}
+\paragraph{Usage scenario: Browsing the platform with personalized account settings, saving events and contacting organizations as a registered user.}
 \begin{itemize}
   \item \textbf{Actor}: Registered user.
-  \item \textbf{Objective}: Navigate the platform, save events and contact organizations via a customized interface.
+  \item \textbf{Objective}: Navigate the platform, save events and contact organizations via an interface customized with language and appearance preferences stored in the user account.
   \item \textbf{Main flow}:
     \begin{enumerate}
-      \item The user logs in and navigates the platform with saved language and appearance settings.
-      \item The user selects an event and saves it to their personal list.
+      \item The user logs in to the EvenToNight platform.
+      \item The user navigates the platform, displayed according to the user's saved language and appearance settings (dark or light mode).
+      \item The user selects an event from the catalog and saves it to their personal list.
       \item The user contacts the organization to request additional information.
     \end{enumerate}
-  \item \textbf{Outcome}: Selected events are stored in the user's personal list and the user can communicate with the organization through the platform.
+  \item \textbf{Outcome}:
+    \begin{enumerate}
+      \item The user browses events in their preferred language and interface mode.
+      \item Selected events are stored in the user's personal list.
+      \item The user can easily communicate with the organization through the platform for support.
+    \end{enumerate}
 \end{itemize}
 
 \paragraph{Usage scenario: Publication of events and monitoring engagement as an organization.}
@@ -72,20 +90,42 @@ The use case diagram in fig.~\ref{fig:case-diagram} summarizes the main interact
   \item \textbf{Objective}: Publish events and monitor user engagement.
   \item \textbf{Main flow}:
     \begin{enumerate}
-      \item The user logs in and creates an event as a draft.
+      \item The user logs in to the EvenToNight platform.
+      \item The user creates an event as a draft.
       \item The user adds a collaborating organization to the event.
       \item The user publishes the event.
     \end{enumerate}
-  \item \textbf{Outcome}: The event is successfully published and the organization receives notifications about new followers and event likes.
+  \item \textbf{Outcome}:
+    \begin{enumerate}
+      \item The event is successfully published and visible to platform users.
+      \item The organization receives notifications about new followers and event likes, enabling monitoring of user engagement.
+    \end{enumerate}
 \end{itemize}
 
 \subsection{Definition of Done}
 
 The project is considered \textit{done} when the following criteria are met:
 
-\begin{enumerate}
-  \item \textbf{Requirements fulfilled.} All main functionalities of the platform are implemented and all business and non-functional requirements are satisfied.
-  \item \textbf{Testing completed.} Unit and integration tests for all services pass successfully. All API endpoints have been verified using Swagger/OpenAPI.
-  \item \textbf{Deploy ready.} All services are containerized and managed via Docker Compose. The simulated distributed environment demonstrates service isolation and internal networking.
-  \item \textbf{Documentation updated.} API documentation, architectural diagrams and project documentation are complete, consistent and up to date.
-\end{enumerate}
+\noindent\textbf{1. Requirements fulfilled.}
+\begin{itemize}
+  \item All main functionalities of the platform, as defined in the functional requirements section, are implemented.
+  \item All business and non-functional requirements specified for the project are satisfied.
+\end{itemize}
+
+\noindent\textbf{2. Testing completed.}
+\begin{itemize}
+  \item Unit and integration tests for all services pass successfully.
+  \item All API endpoints have been verified using Swagger/OpenAPI.
+\end{itemize}
+
+\noindent\textbf{3. Deploy ready.}
+\begin{itemize}
+  \item All services are containerized and managed via Docker Compose.
+  \item The simulated distributed environment demonstrates service isolation and internal networking.
+  \item All services can be deployed and executed without errors, ensuring a stable runtime environment.
+\end{itemize}
+
+\noindent\textbf{4. Documentation updated.}
+\begin{itemize}
+  \item API documentation, architectural diagrams and project documentation are complete, consistent and up to date with the implemented system.
+\end{itemize}

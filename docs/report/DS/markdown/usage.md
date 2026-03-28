@@ -13,7 +13,7 @@ Specifically, the following use cases are shown:
 
 The storyboards are presented directly using the developed platform, showing the main user interactions.
 
-When designing the navigation flows, the **three-click rule** was always taken into account, aiming to make the main features accessible in just a few steps. In the examples below, some secondary or repetitive navigation dynamics have been omitted.
+In the examples below, some secondary or repetitive navigation dynamics have been omitted.
 
 ### Explore the platform
 

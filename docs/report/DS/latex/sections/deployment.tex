@@ -1,6 +1,6 @@
 \section{Deployment Instructions}
 
-The application supports two deployment modes: \textbf{Docker Compose} for single-node setups and \textbf{Docker Swarm} (beta) for multi-node, highly available deployments. In both cases, all services run as independent containers managed via a centralised script.
+The application supports two deployment modes: \textbf{Docker Compose} for single-node setups and \textbf{Docker Swarm} (beta) for multi-node, highly available deployments. In both cases, all services run as independent containers and are managed via a centralised script.
 
 \subsection{Installation}
 
@@ -14,6 +14,7 @@ cd EvenToNight
 \begin{lstlisting}[language=bash]
 cp .env.template .env
 # Edit .env and fill in all required fields
+# Note: if using the --no-deps flag, Stripe keys can contain arbitrary values. All fields must still be filled in.
 \end{lstlisting}
 
 \subsection{Docker Compose}
@@ -23,35 +24,52 @@ cp .env.template .env
 # Pull images
 ./scripts/composeApplication.sh pull
 
+# Pull images with database seeding
+./scripts/composeApplication.sh --init-db pull
+
 # Deploy the application
 ./scripts/composeApplication.sh up -d --wait
 
 # Deploy with database seeding
 ./scripts/composeApplication.sh --init-db up -d --wait
 
-# Deploy in development mode (with host-mapped ports and dashboards)
+# Deploy in development mode (with host-mapped ports and dashboards for databases, RabbitMQ and Traefik)
 ./scripts/composeApplication.sh --init-db --dev up -d --wait
 \end{lstlisting}
 
 \noindent\textbf{Option B: Local build.}
-Add the \texttt{--build} flag to build services locally. The \texttt{--dev} flag is required as it includes the build instructions:
+Add the \texttt{-{}-build} flag to build services locally instead of using pre-built images. The \texttt{-{}-dev} flag is required as it includes the build instructions:
 \begin{lstlisting}[language=bash]
+# Build and deploy
 ./scripts/composeApplication.sh --dev up --build -d --wait
+
+# Build and deploy with seeding
 ./scripts/composeApplication.sh --init-db --dev up --build -d --wait
 \end{lstlisting}
 
 \noindent\textbf{Additional flags.}\par\noindent
-\texttt{--no-deps}: Excludes external dependencies (Stripe). When using this flag, the Stripe keys in \texttt{.env} can contain arbitrary values.
+\texttt{-{}-no-deps}: Excludes external dependencies (Stripe). The flag can be added to any deploy command to exclude external services:
 \begin{lstlisting}[language=bash]
+# Deploy without external dependencies
 ./scripts/composeApplication.sh --no-deps up -d --wait
+
+# Deploy with seeding but without external dependencies
+./scripts/composeApplication.sh --init-db --no-deps up -d --wait
 \end{lstlisting}
 
-\noindent\texttt{--project-name}: Overrides the Docker Compose project name (defaults to \texttt{eventonight}).
+\noindent \textbf{Note:} When using \texttt{-{}-no-deps}, the Stripe keys (\texttt{STRIPE\_SECRET\_KEY}, \texttt{STRIPE\_PUBLISHABLE\_KEY}, \texttt{STRIPE\_WEBHOOK\_SECRET}) in \texttt{.env} can contain arbitrary values.
 
-\noindent\textbf{Stripe configuration.} For Stripe payments in a local environment (required only if NOT using \texttt{--no-deps}):
+\noindent\texttt{-{}-project-name}: Overrides the Docker Compose project name (defaults to \texttt{eventonight}):
+\begin{lstlisting}[language=bash]
+./scripts/composeApplication.sh --project-name myproject up -d --wait
+\end{lstlisting}
+
+\noindent\textbf{Stripe configuration.}\label{par:stripe-config} For Stripe payments in a local environment (required only if NOT using \texttt{-{}-no-deps}):
 \begin{lstlisting}[language=bash]
 ./services/payments/scripts/local-webhooks.sh
 \end{lstlisting}
+
+\noindent This script must be run to forward Stripe webhooks to the local environment. For more information on using sandbox mode, refer to the \href{https://docs.stripe.com/testing}{Stripe documentation}.
 
 \noindent\textbf{Alternative setup.} Use Gradle to set up the entire environment with seeding and the Stripe listener:
 \begin{lstlisting}[language=bash]
@@ -68,33 +86,79 @@ Add the \texttt{--build} flag to build services locally. The \texttt{--dev} flag
 \subsection{Docker Swarm (Beta)}
 
 \noindent\textbf{Prerequisites.}\par
+Initialise the swarm on the manager node:
 \begin{lstlisting}[language=bash]
 docker swarm init
+\end{lstlisting}
+
+\noindent Join additional worker nodes using the token provided by the manager:
+\begin{lstlisting}[language=bash]
 docker swarm join --token <token> <manager-ip>:2377
 \end{lstlisting}
 
 \noindent\textbf{Option A: Use pre-built images from ghcr.io (Recommended).}\par
 \begin{lstlisting}[language=bash]
 ./scripts/deploySwarm.sh
-./scripts/deploySwarm.sh --auto-labels   # auto-assign placement labels
 \end{lstlisting}
 
+\noindent The \texttt{-{}-auto-labels} flag can be added to automatically assign placement labels to nodes in a balanced way, without having to configure them manually:
+\begin{lstlisting}[language=bash]
+./scripts/deploySwarm.sh --auto-labels
+\end{lstlisting}
+
+\noindent\textbf{Note:} On the first deploy, database seeding is performed automatically.
+
+\newpage
 \noindent\textbf{Option B: Local build.}\par
+Build images locally and push them to Docker Hub (multi-arch) so all workers have access to them, then deploy:
 \begin{lstlisting}[language=bash]
 ./scripts/deploySwarm.sh --local --build
+\end{lstlisting}
+
+\noindent To override the hostname baked into the frontend image (defaults to \texttt{HOST} from \texttt{.env}, e.g. to use \texttt{localhost} for local testing):
+\begin{lstlisting}[language=bash]
 ./scripts/deploySwarm.sh --local --build --host <hostname> --auto-labels
 \end{lstlisting}
 
+\noindent To deploy using already-pushed local images (without rebuilding):
+\begin{lstlisting}[language=bash]
+./scripts/deploySwarm.sh --local
+\end{lstlisting}
+
+\noindent To build and push without deploying:
+\begin{lstlisting}[language=bash]
+./scripts/deploySwarm.sh --build
+\end{lstlisting}
+
+\noindent\textbf{Additional flags.}\par\noindent
+\texttt{-{}-no-deps}: Same behaviour as in Docker Compose: excludes external dependencies. Stripe configuration applies equally (see p.~\pageref{par:stripe-config}).
+\begin{lstlisting}[language=bash]
+./scripts/deploySwarm.sh --no-deps
+\end{lstlisting}
+
+\noindent\texttt{-{}-stack-name}: Overrides the stack name (defaults to \texttt{eventonight-swarm}):
+\begin{lstlisting}[language=bash]
+./scripts/deploySwarm.sh --stack-name mystack
+\end{lstlisting}
+
 \noindent\textbf{Recovery.}\par
+If some services are not fully running after a deploy, the recovery script force-updates only the failing ones:
 \begin{lstlisting}[language=bash]
 ./scripts/swarmRecover.sh [STACK_NAME]
+\end{lstlisting}
+
+\noindent To check the current status of all services without recovering:
+\begin{lstlisting}[language=bash]
 ./scripts/swarmRecover.sh [STACK_NAME] --status
 \end{lstlisting}
+
+\noindent \texttt{STACK\_NAME} defaults to \texttt{eventonight-swarm}.
 
 \noindent\textbf{Teardown.}\par
 \begin{lstlisting}[language=bash]
 ./scripts/deploySwarm.sh --stop
 ./scripts/deploySwarm.sh --stop --remove-volumes
+./scripts/deploySwarm.sh --remove-local-images  # remove test images from Docker Hub
 \end{lstlisting}
 
-Alternatively, the application is already running in production at \url{https://eventonight.site/}.
+Alternatively, the application is already running in production at \href{https://eventonight.site/it}{EvenToNight}.
