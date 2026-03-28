@@ -11,7 +11,7 @@ Each service has been tested through automated tests designed to cover:
 - domain logic and service-layer behavior
 - validation rules and edge cases
 
-Integration test of data persistence operations have been done using MongoDB in memory implementation or by a mongo container automatically started (teared down lately) during gradle test execution.
+Integration test of data persistence operations have been done using MongoDB in memory implementation or by a mongo container automatically started (and  torn down lately) during gradle test execution.
 
 To assess the effectiveness of the test suite, code coverage has been measured. The project achieves an overall coverage of at least 70%, ensuring that the majority of the codebase is exercised during testing.
 
