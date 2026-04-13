@@ -21,6 +21,7 @@ services:
 
   mongo-notifications:
     image: mongo
+    command: ["--wiredTigerCacheSizeGB", "0.25"]
     networks:
       - notifications-network
     healthcheck:

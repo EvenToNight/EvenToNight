@@ -27,7 +27,7 @@ services:
     image: mongo
     networks:
       - events-network
-    command: ["--replSet", "rs0", "--bind_ip_all"]
+    command: ["--replSet", "rs0", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
     environment:
       - MONGO_HOST=mongo-events
     healthcheck:
