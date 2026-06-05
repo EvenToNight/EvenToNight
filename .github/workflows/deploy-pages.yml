@@ -73,7 +73,15 @@ jobs:
         run: |
           mkdir -p ${{ env.SITE }}/report/DS/latex
           cp ./docs/report/DS/latex/DS-Report.pdf ${{ env.SITE }}/report/DS/latex/DS-Report.pdf
-          
+
+      - name: Install dependencies for SPE Report
+        run: npm ci
+        working-directory: ./docs/report/SPE
+
+      - name: Build SPE Report with VitePress
+        run: npm run docs:build -- --base /EvenToNight/report/SPE/ --outDir ../../../site/report/SPE
+        working-directory: ./docs/report/SPE
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
