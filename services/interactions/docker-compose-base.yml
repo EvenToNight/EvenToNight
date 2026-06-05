@@ -20,7 +20,7 @@ services:
 
   mongo-interactions:
     image: mongo
-    command: ["--replSet", "rs0", "--bind_ip_all"]
+    command: ["--replSet", "rs0", "--bind_ip_all", "--wiredTigerCacheSizeGB", "0.25"]
     networks:
       - interactions-network
     environment:

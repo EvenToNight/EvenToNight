@@ -24,6 +24,7 @@ services:
 
   mongo-users:
     image: mongo
+    command: ["--wiredTigerCacheSizeGB", "0.25"]
     networks:
       - users-network
     healthcheck:

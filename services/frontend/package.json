@@ -22,7 +22,10 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "a11y:multi": "node scripts/a11y-check-multi.js"
+    "a11y:multi": "node scripts/a11y-check-multi.js",
+    "i18n": "npx @eventonight/auto-i18n@1.9.0 --source en --targets it,fr,de,es --file src/i18n/locales/en.ts",
+    "translate:i18n": "npm run i18n -- --evaluate-changes",
+    "check:i18n": "npm run i18n -- --check-only"
   },
   "dependencies": {
     "@quasar/extras": "^1.17.0",

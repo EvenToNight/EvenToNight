@@ -40,7 +40,7 @@ export default {
         date: {
           label: 'Datum',
           error: 'Datum ist erforderlich',
-          futureError: 'Das Datum muss in der Zukunft liegen', //[ignorei18n]
+          futureError: 'Das Datum muss in der Zukunft liegen',
         },
         time: {
           label: 'Zeit',

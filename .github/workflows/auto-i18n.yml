@@ -5,9 +5,11 @@ on:
   push:
     branches:
       - feature/frontend-service
+  pull_request:
 
 permissions:
   contents: write
+  pull-requests: read
 
 concurrency:
   group: auto-translate-${{ github.ref }}
@@ -17,11 +19,26 @@ jobs:
   translate:
     runs-on: ubuntu-latest
     steps:
+      - name: Get commit message
+        id: commit_message
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          PR_TITLE=$(gh pr view ${{ github.ref_name }} --repo ${{ github.repository }} --json title -q '.title' 2>/dev/null || echo "")
+          if [ -n "$PR_TITLE" ]; then
+            echo "message=chore(i18n): auto-translate i18n files" >> $GITHUB_OUTPUT
+          else
+            echo "message=chore(i18n): auto-translate i18n files [skip ci]" >> $GITHUB_OUTPUT
+          fi
+
       - name: Translate i18n files
-        uses: eventonight/auto-i18n@v1.7.0
+        uses: eventonight/auto-i18n@v1.9.0
         with:
           source: 'en'
           targets: 'it,fr,de,es'
           input_file: 'services/frontend/src/i18n/locales/en.ts'
           npm_working_directory: 'services/frontend'
           pre_commit_npm_command: 'lint:fix'
+          check_only: ${{ github.event_name == 'pull_request' }}
+          commit_message: ${{ steps.commit_message.outputs.message }}
