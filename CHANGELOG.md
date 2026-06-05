@@ -1,3 +1,9 @@
+## [2.2.1](https://github.com/EvenToNight/EvenToNight/compare/v2.2.0...v2.2.1) (2026-06-05)
+
+### Bug Fixes
+
+* **mongo:** limit WiredTiger cache to 256MB per instance ([3e14560](https://github.com/EvenToNight/EvenToNight/commit/3e14560bfdd684f42fd9a7ab67dc119bdfea1286))
+
 ## [2.2.0](https://github.com/EvenToNight/EvenToNight/compare/v2.1.2...v2.2.0) (2026-03-09)
 
 ### Features
