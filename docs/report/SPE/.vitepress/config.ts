@@ -31,7 +31,7 @@ export default defineConfig({
 //              - **single versioning and changelog** for the whole product.
             items: [
                 { text: "Introduction", link: "/introduction" },// { text: "Versioning e Licensing", link: "/versioning-e-licensing" }, //due robe su semantic versioning e come vengono versionate le immagini docker + dev pre release + perche abbiamo scelto gpl invece che le altre (apache/mit)
-                { text: "Design", link: "/design" }, //tecnologie qua sotto? DDD - tommi (event storming, ubiquitus language/glossario, come si mappano i domain in microservices, domain events, shared kernel (o solo concetti replicati) o solo lib condivise, acl?, architettura dei microservizi(clean + setup cors)?)
+                { text: "Design", link: "/design" }, // DDD - tommi (event storming, ubiquitus language/glossario, come si mappano i domain in microservices, domain events, shared kernel (o solo concetti replicati) o solo lib condivise, acl?, architettura dei microservizi(clean + setup cqrs)?)
                 { text: "DevOps", link: "/devops" }, //build automation (con nota a struttura monorepo) gradle setup + exec tasks + git hooks + building?scripting? , gestione Dockerization, CI/QA pipeline (anche test & coverage) and documentation(forse poco devOps però ci sono le pages), Infrastructure and test CD, [gestione .env e secrets e branch protection, gestione gitflow(quando merge/rebase)?]
                 { text: "Translation tool", link: "/translation-tool" }, //io
                 { text: "Conclusion", link: "/conclusion" }
