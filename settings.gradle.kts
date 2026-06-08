@@ -18,6 +18,9 @@ gitHooks{
     createHooks(true)
 }
 
+include("libs:ts-common")
+include("libs:nestjs-common")
+
 include("services:users")
 include("services:events")
 include("services:frontend")
