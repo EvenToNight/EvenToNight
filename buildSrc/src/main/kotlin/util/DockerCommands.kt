@@ -1,3 +1,5 @@
+package util
+
 object DockerCommands {
     const val TEARDOWN_TEST_ENVIRONMENT = "./scripts/composeDevEnvironment.sh --project-name eventonight-test-environment down -v --remove-orphans"
     const val TEARDOWN_DEV_ENVIRONMENT = "./scripts/composeDevEnvironment.sh --dev down -v --remove-orphans"

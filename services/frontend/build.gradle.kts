@@ -1,49 +1,12 @@
 import com.github.gradle.node.npm.task.NpmTask
 
 plugins {
-    id("com.github.node-gradle.node") version "7.1.0"
+    id("com.github.node-gradle.node")
     base
 }
 
 node {
     version = "22.20.0"
-    download = true
-}
-
-tasks.named("build") {
-    dependsOn("npmInstall")
-    dependsOn("checkStyle")
-    dependsOn("buildFrontend")
-}
-
-tasks.register<NpmTask>("runDev"){
-    dependsOn("npmInstall")
-    npmCommand.set(listOf("run","dev"))
-}
-
-tasks.register<NpmTask>("checkStyle"){
-    dependsOn("npmInstall")
-    npmCommand.set(listOf("run","lint"))
-}
-
-tasks.register<NpmTask>("formatAndLint"){
-    dependsOn("npmInstall")
-    npmCommand.set(listOf("run","lint:fix"))
-}
-
-tasks.register<NpmTask>("typeCheck"){
-    dependsOn("npmInstall")
-    npmCommand.set(listOf("run","type-check"))
-}
-
-tasks.register<NpmTask>("buildFrontend"){
-    dependsOn("npmInstall")
-    npmCommand.set(listOf("run","build"))
-}
-
-tasks.register("formatAndLintPreCommit"){
-    dependsOn("formatAndLint")
-    dependsOn("typeCheck")
 }
 
 tasks.register<NpmTask>("translateI18n") {
