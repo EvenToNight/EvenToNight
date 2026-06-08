@@ -14,7 +14,7 @@ node {
 }
 
 tasks.named("build") {
-    dependsOn("npmInstall")
+    dependsOn("npmInstall", ":libs:nestjs-common:build")
 }
 
 tasks.register<NpmTask>("checkStyle") {
