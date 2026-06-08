@@ -1,10 +1,11 @@
 import { defineConfig } from 'vitepress'
+import { withMermaid } from 'vitepress-plugin-mermaid'
 import { fileURLToPath } from 'url'
 import path from 'path'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-export default defineConfig({
+export default withMermaid(defineConfig({
     base: process.env.NODE_ENV === 'production' ? "/EvenToNight/report/SPE/" : "/",
     srcDir: "./markdown",
     title: "Report Progetto SPE",
@@ -39,7 +40,7 @@ export default defineConfig({
         }
         ]
     }
-})
+}))
 
 /*
 Il progetto si è posto i seguenti obiettivi di processo, indipendentemente dal dominio applicativo:
