@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "vite",
+    "start:dev": "npm run dev",
     "dev-prod": "VITE_USE_MOCK_API=false VITE_HOST=localhost vite",
     "dev:memberView": "VITE_AUTO_LOGIN=true VITE_DEV_EMAIL=member_1@example.com VITE_DEV_PASSWORD=password123 VITE_DEV_ROLE=member npm run dev",
     "dev:organizationView": "VITE_AUTO_LOGIN=true VITE_DEV_EMAIL=contact@sunsetvibes.com VITE_DEV_PASSWORD=sunsetCesena2026! VITE_DEV_ROLE=organization npm run dev",
@@ -22,6 +23,7 @@
     "type-check": "vue-tsc --build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "format": "npm run lint:fix",
     "a11y:multi": "node scripts/a11y-check-multi.js",
     "i18n": "npx @eventonight/auto-i18n@1.9.0 --source en --targets it,fr,de,es --file src/i18n/locales/en.ts",
     "translate:i18n": "npm run i18n -- --evaluate-changes",

@@ -1,14 +1,5 @@
-import io.github.cosmicsilence.scalafix.ScalafixTask
-import io.github.cosmicsilence.scalafix.ConfigSemanticDbTask
-import org.gradle.api.tasks.scala.ScalaCompile
-
 plugins {
-    scala
-    application
-    id("com.github.johnrengelman.shadow") version "8.1.1"
-    id("cz.alenkacz.gradle.scalafmt") version "1.16.2"
-    id("io.github.cosmicsilence.scalafix") version "0.2.5"
-    jacoco
+    id("convention.scala-service")
 }
 
 application {
@@ -30,118 +21,28 @@ dependencies {
     testRuntimeOnly("org.scalatestplus:junit-5-13_3:3.2.19.0")
 }
 
-scalafmt {
-    configFilePath = ".scalafmt.conf"
-}
-
-jacoco {
-    toolVersion = "0.8.12" 
-}
-
-tasks.matching { it.name.contains("Scalafmt", ignoreCase = true) }.configureEach {
-        notCompatibleWithConfigurationCache("Scalafmt plugin not compatible with Gradle configuration cache")
-}
-
-tasks.register("checkStyle") {
-    dependsOn("checkScalafix")
-    dependsOn("checkScalafmtAll")
-}
-
-tasks.register("formatAndLintPreCommit") {
-    dependsOn("scalafix")
-    dependsOn("scalafmtAll")
-}
-
-tasks.withType<ScalaCompile> {
-    scalaCompileOptions.apply {
-        additionalParameters = listOf("-deprecation", "-feature")
-    }
-}
-
 tasks.test {
     dependsOn(rootProject.tasks.named("setupTestEnvironment"))
     finalizedBy(rootProject.tasks.named("teardownTestEnvironment"))
-    useJUnitPlatform {
-        includeEngines("scalatest")
-        testLogging {
-            showStandardStreams = true
-            events("passed", "skipped", "failed")
-        }
-    }
-    finalizedBy(tasks.jacocoTestReport)
 }
 
 tasks.shadowJar {
-    archiveFileName.set("events.jar") 
+    archiveFileName.set("events.jar")
     manifest {
         attributes["Main-Class"] = "app.Main"
     }
 }
 
-tasks.withType<ScalafixTask>().configureEach {
-    notCompatibleWithConfigurationCache("Scalafix Gradle plugin is not compatible with configuration cache")
-}
-
-tasks.withType<ConfigSemanticDbTask>().configureEach {
-    notCompatibleWithConfigurationCache("Scalafix Gradle plugin is not compatible with configuration cache")
-}
-
-tasks.withType<ScalaCompile>().configureEach {
-    scalaCompileOptions.additionalParameters =
-        listOf("-Wunused:imports", "-Wunused:all")
-}
-
-
-tasks {
-    val shadowJar by getting(com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar::class)
-
-    named<Jar>("jar") {
-        enabled = false
-    }
-
-    named("build") {
-        dependsOn(shadowJar)
-    }
-
-    named("distZip") {
-        dependsOn(shadowJar)
-    }
-
-    named("distTar") {
-        dependsOn(shadowJar)
-    }
-
-    named("startScripts") {
-        dependsOn(shadowJar)
-    }
-}
-
 tasks.jacocoTestReport {
-    dependsOn(tasks.test)
-    reports {
-        xml.required.set(true)
-        html.required.set(true)
-    }
     classDirectories.setFrom(files(classDirectories.files.map {
         fileTree(it) {
             exclude(
                 "**/app/Main**",
                 "**/controller/**",
-                "**/routes/**", 
+                "**/routes/**",
                 "**/middleware/**",
                 "**/infrastructure/**",
             )
         }
     }))
-}
-
-tasks.register("runCoverage") {
-    description = "Run coverage analysis for Events service"
-    group = "verification"
-    dependsOn("test", "jacocoTestReport")
-    
-    doLast {
-        println("✅ Events service coverage completed!")
-        println("📋 Report available at: build/reports/jacoco/test/jacocoTestReport.xml")
-    }
 }
