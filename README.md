@@ -131,7 +131,7 @@ The platform supports **internationalization (i18n)**.
 
 ## Getting Started
 
-To get a local copy up and running, follow these simple steps.
+The application supports two deployment modes: **Docker Compose** for single-node setups and **Docker Swarm** (beta) for multi-node, highly available deployments. In both cases, all services run as independent containers and are managed via a centralised script.
 
 ### Prerequisites
 
@@ -140,36 +140,38 @@ To get a local copy up and running, follow these simple steps.
 
 ### Installation
 
-1. Clone the repository
+#### 1. Clone the repository
 
 ```bash
 git clone https://github.com/EvenToNight/EvenToNight.git
 cd EvenToNight
 ```
 
-2. Configure environment variables
+#### 2. Configure environment variables
 
 ```bash
 cp .env.template .env
-# Edit .env and fill all required fields
-# Note: If using --no-deps flag, Stripe keys can be filled with any value. All values MUST be filled.
+# Edit .env and fill in all required fields
+# Note: if using the --no-deps flag, Stripe keys can contain arbitrary values. All fields must still be filled in.
 ```
 
-3. Deploy the application
+#### 3. Start the application
 
-#### Option A: Using pre-built images from ghcr.io (Recommended)
+##### 3.1 - Docker Compose
 
-**Download latest images:**
+###### Option A: Use pre-built images from ghcr.io (Recommended)
+
+**Pull images:**
 ```bash
 ./scripts/composeApplication.sh pull
 ```
 
-**Download latest images with database seeding:**
+**Pull images with database seeding:**
 ```bash
 ./scripts/composeApplication.sh --init-db pull
 ```
 
-**Deploy application:**
+**Deploy the application:**
 ```bash
 ./scripts/composeApplication.sh up -d --wait
 ```
@@ -179,28 +181,28 @@ cp .env.template .env
 ./scripts/composeApplication.sh --init-db up -d --wait
 ```
 
-**Deploy in development mode** (with mapped ports and dashboards for databases/RabbitMQ/Traefik):
+**Deploy in development mode** (with host-mapped ports and dashboards for databases, RabbitMQ and Traefik):
 ```bash
 ./scripts/composeApplication.sh --init-db --dev up -d --wait
 ```
 
-#### Option B: Build locally
+###### Option B: Local build
 
-Add the `--build` flag to build services locally instead of using pre-built images:
+Add the `--build` flag to build services locally instead of using pre-built images. The `--dev` flag is required as it includes the build instructions:
 
 ```bash
 # Build and deploy
-./scripts/composeApplication.sh up --build -d --wait
+./scripts/composeApplication.sh --dev up --build -d --wait
 
 # Build and deploy with seeding
-./scripts/composeApplication.sh --init-db up --build -d --wait
+./scripts/composeApplication.sh --init-db --dev up --build -d --wait
 ```
 
-#### Additional Flags
+###### Additional flags
 
-**`--no-deps`**: Skip external dependencies (Stripe)
+**`--no-deps`**: Excludes external dependencies (Stripe)
 
-You can add `--no-deps` to any deploy command to skip external service dependencies:
+The `--no-deps` flag can be added to any deploy command to exclude external services:
 
 ```bash
 # Deploy without external dependencies
@@ -210,27 +212,37 @@ You can add `--no-deps` to any deploy command to skip external service dependenc
 ./scripts/composeApplication.sh --init-db --no-deps up -d --wait
 ```
 
-**Note:** When using `--no-deps`, Stripe keys in `.env` can be filled with any value.
+**Note:** When using `--no-deps`, the Stripe keys (`STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`) in `.env` can contain arbitrary values.
 
-4. **For Stripe payments in local environment** (required only if NOT using `--no-deps`):
+**`--project-name`**: Overrides the Docker Compose project name (defaults to `eventonight`):
+
+```bash
+./scripts/composeApplication.sh --project-name myproject up -d --wait
+```
+
+###### Stripe configuration
+
+**For Stripe payments in a local environment** (required only if NOT using `--no-deps`):
 
 ```bash
 ./services/ticketing/scripts/local-webhooks.sh
 ```
 
-This script must be run to forward Stripe webhooks to your local environment.
+This script must be run to forward Stripe webhooks to the local environment.
 
-### Alternative Setup
+For more information on using sandbox mode, refer to the [Stripe documentation](https://docs.stripe.com/testing).
 
-Use Gradle to set up the entire environment with seeding and Stripe listener:
+###### Alternative setup
+
+Use Gradle to set up the entire environment with seeding and the Stripe listener:
 
 ```bash
 ./gradlew setupApplicationEnvironment
 ```
 
-### Teardown
+###### Teardown
 
-**Stop application:**
+**Stop the application:**
 ```bash
 ./scripts/composeApplication.sh down
 ```
@@ -239,6 +251,118 @@ Use Gradle to set up the entire environment with seeding and Stripe listener:
 ```bash
 ./scripts/composeApplication.sh down -v
 ```
+
+Or using Gradle:
+```bash
+./gradlew teardownApplicationEnvironment
+```
+
+##### 3.2 - Docker Swarm (beta)
+
+###### Prerequisites
+
+Initialise the swarm on the manager node:
+
+```bash
+docker swarm init
+```
+
+Join additional worker nodes using the token provided by the manager:
+
+```bash
+docker swarm join --token <token> <manager-ip>:2377
+```
+
+###### Option A: Use pre-built images from ghcr.io (Recommended)
+
+```bash
+./scripts/swarmDeploy.sh
+```
+
+The `--auto-labels` flag can be added to automatically assign placement labels to nodes in a balanced way, without having to configure them manually:
+
+```bash
+./scripts/swarmDeploy.sh --auto-labels
+```
+
+**Note:** On the first deploy, database seeding is performed automatically.
+
+###### Option B: Local build
+
+Build images locally and push them to Docker Hub (multi-arch) so all workers have access to them, then deploy:
+
+```bash
+./scripts/swarmDeploy.sh --local --build
+```
+
+To override the hostname baked into the frontend image (defaults to `HOST` from `.env`, e.g. to use `localhost` for local testing):
+
+```bash
+./scripts/swarmDeploy.sh --local --build --host <hostname> --auto-labels
+```
+
+To deploy using already-pushed local images (without rebuilding):
+
+```bash
+./scripts/swarmDeploy.sh --local
+```
+
+To build and push without deploying:
+
+```bash
+./scripts/swarmDeploy.sh --build
+```
+
+###### Additional flags
+
+**`--no-deps`**: same behaviour as in Docker Compose: excludes external dependencies. Stripe configuration applies equally (see *Stripe configuration* above).
+
+```bash
+./scripts/swarmDeploy.sh --no-deps
+```
+
+**`--stack-name`**: Overrides the stack name (defaults to `eventonight-swarm`):
+
+```bash
+./scripts/swarmDeploy.sh --stack-name mystack
+```
+
+###### Recovery
+
+If some services are not fully running after a deploy, the recovery script force-updates only the failing ones:
+
+```bash
+./scripts/swarmRecover.sh [STACK_NAME]
+```
+
+To check the current status of all services without recovering:
+
+```bash
+./scripts/swarmRecover.sh [STACK_NAME] --status
+```
+
+`STACK_NAME` defaults to `eventonight-swarm`.
+
+###### Teardown
+
+**Remove the stack:**
+```bash
+./scripts/swarmDeploy.sh --stop
+```
+
+**Remove the stack and volumes:**
+```bash
+./scripts/swarmDeploy.sh --stop --remove-volumes
+```
+
+**Remove test images from Docker Hub:**
+```bash
+./scripts/swarmDeploy.sh --remove-local-images
+```
+
+---
+
+Alternatively, the application is already running in production at [EvenToNight](https://eventonight.site/it).
 
 ## Usage
 
