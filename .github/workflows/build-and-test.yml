@@ -1,9 +1,9 @@
 name: Build and Test
 
 on:
-  push:
-    branches: [ main, feature/**, ci/**, refactor/** ]
   pull_request:
+    branches:
+      - main
 
 jobs:
   build-and-test-services:
