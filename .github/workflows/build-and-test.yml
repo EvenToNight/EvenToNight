@@ -1,6 +1,9 @@
 name: Build and Test
 
 on:
+  push:
+    branches:
+      - main
   pull_request:
     branches:
       - main
@@ -83,3 +86,17 @@ jobs:
           fi
           echo "🚀 Building image for $service_name"
           docker build -f "$dockerfile" .
+
+  build-docker-images-check:
+    needs: build-docker-images
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Verify Docker image builds
+        run: |
+          result="${{ needs.build-docker-images.result }}"
+          echo "build-docker-images result: $result"
+          if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+            exit 1
+          fi
+          exit 0
