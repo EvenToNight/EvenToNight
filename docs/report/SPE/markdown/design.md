@@ -1,6 +1,6 @@
 # 2 - Design
 
-The system has been designed following a **microservices architectural style**, where each service models a specific subdomain and exclusively owns its data. 
+The system has been designed following a **microservice architectural style**, where each service models a specific subdomain and exclusively owns its data. 
 
 The principal objectives of the design phase were:
 
@@ -12,21 +12,17 @@ The principal objectives of the design phase were:
 
 To ensure separation of responsibilities, the identification of domain entities and service boundaries has been guided by principles inspired by Domain-Driven Design (DDD).
 
-The platform is articulated into autonomous **bounded contexts**, each one shipped as an independent microservice and communicating with the others either synchronously over HTTP (for request issued by the frontend) or asynchronously through domain events on a shared RabbitMQ broker (for every state-changing cross-context interaction). 
-
-The remainder of this chapter documents that design, from the event-storming sessions that bootstrapped the model to the strategic decomposition into bounded contexts, the tactical patterns adopted inside each service and the integration mechanisms that keep the system loosely coupled while remaining consistent.
+The platform is articulated into autonomous **bounded contexts**, each one shipped as an independent microservice and communicating with the others either synchronously over HTTP (for request issued by the frontend) or asynchronously through domain events on a shared RabbitMQ broker.
 
 ## 2.1 Domain
 
 The domain of this project is *connecting organizations that promote social events with users interested in discovering and participating in them*. 
 
-The model that supports this domain was distilled collaboratively through Event Storming and consolidated as the glossary of the ubiquitous language.
+This domain was modelled through Event Storming, from which the glossary that constitutes the ubiquitous language was then derived.
 
 ### 2.1.1 Event Storming
 
 The DDD model emerges from a sequence of collaborative **Event Storming** sessions, each producing one of the diagrams reproduced below. The sessions were carried out on a shared [LucidChart board](https://lucid.app/lucidchart/ba6c762a-70a7-4fc0-8aee-00e68e1f82e0/edit?invitationId=inv_e7f16288-d064-498b-aeb2-6fa7e3444695&page=0_0#).
-
-A consistent colour code is used across the three levels: **orange** for domain events (facts, past tense), **blue** for commands (the intent that triggers an event), **yellow ovals** for aggregates that receive commands and emit events, **purple** for policies (`whenever X happens then Y`) and **light yellow** for *hotspots* — open questions and conflicts to be resolved.
 
 #### Big Picture Event Storming
 
@@ -39,7 +35,7 @@ The first session collected every relevant domain event as a past-tense fact, wi
 
 #### Process Modeling Event Storming
 
-A second pass ordered the events along temporal arrows, surfaced open questions as **hotspots** (yellow stickies, addressed in the rest of the chapter) and promoted a small subset of events to **pivotal** by drawing a thicker border: `Member Created`, `Organization Created`, `Event Published`, `Order Confirmed` and `Event Completed`. Around the pivotal events the team made explicit the **policies** the system runs automatically; the convergence of every cross-context policy on `Notification Created` is the strongest evidence that Notifications deserves to be extracted as a context of its own, a decision finalised at the next level.
+A second pass ordered the events along temporal arrows, surfaced open questions as **hotspots** (yellow post-it, addressed in the rest of the chapter) and promoted a small subset of events to **pivotal** by drawing a thicker border. Around the pivotal events the team made explicit the **policies** the system runs automatically; the convergence of every cross-context policy on `Notification Created` is the strongest evidence that Notifications deserves to be extracted as a context of its own, a decision finalised at the next level.
 
 <p align="center">
     <img src="/eventstorming/phase2.png" alt="Process Modeling Event Storming" width="100%" />
@@ -48,17 +44,7 @@ A second pass ordered the events along temporal arrows, surfaced open questions 
 
 #### Software Design Event Storming
 
-The third pass introduced the only technical element: aggregates. For each command, the team identified the aggregate that validates it and emits the resulting event; clustering aggregates by linguistic cohesion yielded the seven bounded contexts shown in the figure, which became the seven microservices of §2.2.
-
-| Bounded context | Aggregates |
-|---|---|
-| User | `Member`, `Organization` |
-| Media | `Media` |
-| Events | `Event` |
-| Notification | `Notification` |
-| Chat | `Conversation`, `Message` |
-| Interaction | `Follow`, `Like`, `Review`, `Participation` |
-| Ticketing | `Order`, `Ticket` |
+The third pass introduced the only technical element: aggregates. For each command, the team identified the aggregate that validates it and emits the resulting event; clustering aggregates by linguistic cohesion yielded the seven bounded contexts shown in the figure, which became the seven microservices.
 
 <p align="center">
     <img src="/eventstorming/phase3.png" alt="Software Design Event Storming" width="100%" />
@@ -67,7 +53,7 @@ The third pass introduced the only technical element: aggregates. For each comma
 
 ## 2.2 Ubiquitous Language
 
-The ubiquitous language is the glossary that the team and the code use to talk about the domain. The following table collects the terms that recur both in the report and in the source code, with the bounded context that owns each definition. Anywhere two contexts use the same word, they may give it a *different* meaning: that is intentional and is what justifies the translation step performed by the Anti-Corruption Layers.
+The ubiquitous language is the shared vocabulary that both the team and the code use to describe the domain. The following table collects the terms that recur both in the report and in the source code, with the bounded context that owns each definition. Anywhere two contexts use the same word, they may give it a *different* meaning: that is intentional and is what justifies the translation each context applies when consuming another context's domain events.
 
 | Term | Owner context | Meaning |
 |---|---|---|
@@ -88,17 +74,17 @@ The ubiquitous language is the glossary that the team and the code use to talk a
 
 ## 2.3 Bounded contexts and microservices
 
-The bounded contexts identified at the third event-storming level are mapped one-to-one to deployable microservices. Each microservice owns its persistence, exposes an HTTP API for synchronous reads issued by the frontend and exchanges domain events with the others through RabbitMQ.
+The bounded contexts identified in the last event-storming phase are mapped one-to-one to deployable microservices. Each microservice owns its persistence, exposes an HTTP API for synchronous reads issued by the frontend and exchanges domain events with the others through RabbitMQ.
 
-| Bounded context | Microservice | Stack | Persistence | Responsibility |
-|---|---|---|---|---|
-| Identity & User Management | [`users`](https://github.com/EvenToNight/EvenToNight/tree/main/services/users) | Scala 3 (Cask) | MongoDB + Keycloak | Registration, profile management, authentication tokens |
-| Events | [`events`](https://github.com/EvenToNight/EvenToNight/tree/main/services/events) | Scala 3 (Cask) | MongoDB | Lifecycle of `Event`, tags, search, filtering |
-| Ticketing & Sales | [`ticketing`](https://github.com/EvenToNight/EvenToNight/tree/main/services/ticketing) | NestJS | MongoDB + Stripe | Ticket types, checkout, tickets, orders, PDF / QR generation |
-| Social Interactions | [`interactions`](https://github.com/EvenToNight/EvenToNight/tree/main/services/interactions) | NestJS | MongoDB | Likes, reviews, participations, follows, projections of events / users used for cross-cutting validation |
-| Chat | [`chat`](https://github.com/EvenToNight/EvenToNight/tree/main/services/chat) | NestJS + Socket.IO | MongoDB | Real-time private conversations |
-| Notifications | [`notifications`](https://github.com/EvenToNight/EvenToNight/tree/main/services/notifications) | Node.js (Express) + Socket.IO | MongoDB | Persistent notification feed and real-time push |
-| Media Storage | [`media`](https://github.com/EvenToNight/EvenToNight/tree/main/services/media) | NestJS | S3-compatible bucket, MinIo | Generic upload / download of binary assets |
+| Microservice | Stack | Persistence | Responsibility |
+|---|---|---|---|
+| [`users`](https://github.com/EvenToNight/EvenToNight/tree/main/services/users) | Scala 3 (Cask) | MongoDB + Keycloak | Registration, profile management, authentication tokens |
+| [`events`](https://github.com/EvenToNight/EvenToNight/tree/main/services/events) | Scala 3 (Cask) | MongoDB | Lifecycle of `Event`, tags, search, filtering |
+| [`ticketing`](https://github.com/EvenToNight/EvenToNight/tree/main/services/ticketing) | NestJS | MongoDB + Stripe | Ticket types, checkout, tickets, orders, PDF / QR generation |
+| [`interactions`](https://github.com/EvenToNight/EvenToNight/tree/main/services/interactions) | NestJS | MongoDB | Likes, reviews, participations, follows, projections of events / users used for cross-cutting validation |
+| [`chat`](https://github.com/EvenToNight/EvenToNight/tree/main/services/chat) | NestJS + Socket.IO | MongoDB | Real-time private conversations |
+| [`notifications`](https://github.com/EvenToNight/EvenToNight/tree/main/services/notifications) | Node.js (Express) + Socket.IO | MongoDB | Persistent notification feed and real-time push |
+| [`media`](https://github.com/EvenToNight/EvenToNight/tree/main/services/media) | NestJS | S3-compatible bucket, MinIo | Generic upload / download of binary assets |
 
 ### Domain Model
 
@@ -150,7 +136,7 @@ A *shared kernel* was deliberately avoided: it would force deployment coupling a
 
 Only purely technical and domain agnostic code is shared, as two TypeScript packages consumed by the Node services:
 
-- **[`libs/ts-common`]** contains `EventEnvelope`, RabbitMQ publisher, MongoDB transaction manager and `@Transactional()` decorator, Outbox/Inbox base implementations, pagination and currency helpers.
+- **[`libs/ts-common`]** contains `EventEnvelope`, RabbitMQ publisher, MongoDB transaction manager and `@Transactional()` decorator, Outbox base implementations, pagination and currency helpers.
 - **`libs/nestjs-common`** contains NestJS adapters of the above (Mongoose schemas, messaging module, JWT guards).
 
 The Scala services reimplement the same primitives natively, a modest duplication accepted in exchange for stack independence.
