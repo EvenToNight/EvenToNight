@@ -2,115 +2,104 @@
 
 ## 3.1 - Build Automation
 
-### Gradle as a Multi-language orchestratior
+### Gradle as a multi-language orchestrator
 
-Come sistema di build principale è stato utilizzato gradle, nella root del progetto sono presenti il file build.gradle.kts principale che definisce task generici del progetto e il file settings.gradle dove sono configurati i git hooks e registrati i diversi subprojects. Nel caso in cui i subproject siano jvm based (events e users) anche nei subproject è utilizzato gradle, in caso di servizi js/ts è utilizzato gradle ma con riferimento al build sistem npm utilizzando il plugin node per gradle.
+Gradle is the project's primary build system, set up as a single multi-project build. The root holds two files: `build.gradle.kts`, defining project-wide tasks (environment setup, Docker environment orchestration and git pre-commit helpers), and `settings.gradle`, which registers every subproject and configures the git hooks.
 
-é stato preferito questo setup a monorepo per semplificare la gestione del codice di progetto ecc.. trova motivazioni vere per cui è comodo.
+Each service is a Gradle subproject, but the build spans different languages. JVM/Scala services (`events`, `users`) build natively through Gradle, while JS/TS services (`chat`, `interactions`, `media`, `notifications`, `ticketing` and the `frontend`) are wrapped via the node-gradle plugin, which delegates the actual work to npm. A single Gradle invocation thus drives heterogeneous toolchains behind one uniform task interface.
 
-### Convention plugins e task personalizzati
+The monorepo layout was preferred because it enables:
+- **unified build and CI**: one Gradle invocation builds, checks and tests the whole system, and a single CI pipeline validates every service;
+- **frictionless code sharing**: the libraries under `libs/` are consumed directly by the Node services, with no external registry publishing;
+- **single versioning and changelog** for the whole product;
+- **simplicity for a small team**: one repository, one build and one set of conventions keep the maintenance and cognitive overhead low.
 
-nella cartella buildSrc sono stati definiti due convention plugin per semplificare la definizione dei suproject e evitare la duplicazione di codice. oltre a questi è stato definito un task custom per semplificare l'esecuzione di arbitrary shell commands, sequential chaining and with success/failure callbacks, Cross-platform support is handled inside.
+### Convention plugins and custom tasks
 
-qua sono definite anche delle utiliti con costanti per colori e docker commands.
+To avoid duplicating build logic, `buildSrc/` defines two **convention plugins**, one for the Scala services and one for the JS/TS ones. Each encapsulates the language-specific compilation, style and coverage setup and exposes it under a common set of task names.
+
+A custom `ExecTask` further simplifies running arbitrary shell commands, with sequential chaining, `onSuccess`/`onFailure` callbacks and built-in cross-platform support. Shared constants for ANSI colors and the project's Docker commands live alongside it under `util/`.
 
 ### Git hooks
 
-hooks are installed using a plugin in settings.gradle, in particolare sono configurati due pre-commit:
--formatAndLintPreCommit: che lancia il task format and lint, che deve essere correttamente configurato in ogni subproject e poi riaggiunge in staged tutti i file presenti al momento del commit così da includere le eventuali modifiche di stile.
--updateAndCheckEnvSetup: aggiorna il file .env sulla base del file .env.template aggiungendo eventuali variabili mancanti e controlla che entrambi i file contengano le stesse e che in caso di .env siano popolate. in questo caso è utilizzato per prevenire il push di variabili aggiunte solo in .env
+Hooks are installed through the `gradle-pre-commit-git-hooks` plugin configured in `settings.gradle`. Two **pre-commit** hooks are registered:
+- **`formatAndLintPreCommit`** runs the format-and-lint task (which every subproject configures via its convention plugin), then re-stages the files that were staged at commit time, so any style fix is included in the commit;
+- **`updateAndCheckEnvSetup`** updates `.env` from `.env.template` (adding any missing variable) and verifies that both files share the same keys and that `.env` values are populated, preventing the accidental commit of variables added only locally.
 
-e un commit-msg hook che controlla che il messaggio di commit rispetti le conventionalCommits convention.
+A **`commit-msg`** hook additionally validates the commit message against the Conventional Commits convention.
 
----
 ## 3.2 - Dockerization
 
 ### Dockerfile design
 
-Every service has its own `Dockerfile`. The design follows consistent principles shaped by two goals: **layer caching** and **minimazing image size**. this is achieved by properly order the instruction and by dividing the image creation in two-stage, one for building and the other to maintain only the relevant files.
+Every service ships its own `Dockerfile`, designed around two goals: **layer caching** and **minimal image size**. Instructions are ordered properly for maximising cache reuse, and each image uses a **two-stage build**: a builder stage compiles the artifact while the final stage carries only the runtime plus the built output.
 
 ### Docker Compose layer system
 
-Compose files are defined for every service and infrastructure component, in the project are not standalone — they are rilevati e **merged in layers** by utility scripts. la confiration is the following:
+Every service and infrastructure component defines its Compose files, which are not standalone: utility scripts (`findComposeFiles.sh`, `composeAll.sh`) discover them and **merge them in layers**, each adding a concern on top of the previous one:
 
--base file 
--compose file
--dev compose
--swarm compose
-(in tutti spiega cosa ci sta)
-l'idea è che alla base ci sta il base file, poi per un deploy normale viene unito il compose file, per un deploy dev viene unito anche il dev.
+- **base** (`docker-compose-base.yml`) — the canonical service definition: image, networks, environment and healthchecks;
+- **main** (`docker-compose.yaml`) — production-oriented overrides: restart policy, Traefik routing labels and `depends_on` conditions;
+- **dev** (`docker-compose-dev.yaml`) — development extras: local image `build`, exposed host ports and dev tooling (e.g. mongo-express);
+- **swarm** (`docker-compose-swarm.yaml`) — Swarm-specific settings: `deploy` (replicas, placement constraints, restart policy), overlay networks and configs.
 
-nel caso del deploy swarm (beta) al di sopra del base file viene unito lo swarm
+A standard deploy merges `base → main`; a development environment adds `dev` on top; a Swarm deploy (beta) merges `base → swarm` instead of the main file.
 
----
 ## 3.3 - DVCS
 
 ### Git Flow
 
-il repo e la strategia di branching/merge è stata gestita seguendo git flow, quindi c'è un unico brach principale 'main' su cui exlusively through a **pull request**. 
+The repository follows a Git-Flow-inspired strategy: a single long-lived branch, `main`, updated exclusively through a **pull request** from feature branches. The merge strategy depends on the PR: small changes whose individual history carries little value are **rebased** to keep the history linear, while larger feature branches are integrated with **merge commits**, preserving the branch topology.
 
-la strategia di merge dipende dai cambiamenti presenti nella pr, in caso di piccole modifiche di cui il tracciamento non è significativo si è optati per un rebase di modo da tenere la hystori piu lineare, **merge commits** are used for larger feature branches to preserve the branch topology and keep the work unit traceable as a unit in the graph.
+### Branch protection
 
-### Branch Protection
+`main` is protected by a set of rules:
+- changes must arrive through a pull request **reviewed and approved by at least one other team member**;
+- the required CI status checks — **Build and Test**, **Check Style** and **Check Commit Convention** — must pass before merging; ##vedi se togliere/sistemare elenco
+- direct pushes to `main` are blocked; the only whitelisted identity is a dedicated **GitHub App**, whose token lets the release workflow push the generated CHANGELOG.
 
-Per il branch main sono state definite delle regole per gestirne l'utilizzo, in particolare:
+Pull requests to `main` also enable automatic **Copilot review**, which gives an immediate first-pass on every PR — flagging obvious bugs and smells before a human reviewer steps in, without adding reviewing load.
 
-le modifiche su main devono essere fatte tramite pr almeno revisionate/approvate da un altro membro del team
+### Environment and secrets
 
-workflow ci devono passare (elenca quali workflow)
+The `.env.template` file is the authoritative schema for the environment. Configuration variables are given a default value, while API keys and passwords are left empty. The `checkEnvSetup` task leverages this convention to enforce two properties:
+1. it **fails on empty values**, forcing real secrets to be provided locally and removing the risk of shipping placeholder credentials;
+2. it **fails on key mismatches** between `.env` and `.env.template`, keeping the schema in sync.
 
-il push su main è bloccato, l'unica entità withelistata è una github app creata per generare un token da associare al workflow di release cosi da renedere possibile il push dei changelog.
+To still allow building and testing in CI the pipeline injects default passwords before the check runs. Variables and secrets actually needed by the workflows are stored as **GitHub Actions Variables/Secrets**.
 
-in pull request for main are also enabled automatic copilot review (aggiungi un micro perche possono essere utili)
-
-### Environment and Secret
-
-The `.env.template` file acts as the authoritative schema for the environment, in case of configuration variable a default value is placed, in case of api-key and passwords no value is placed, so in that way check env task 1.ti obbliga a mettere delle password evitando il rischio di usare i placeholder
-2. will fail if some value are missing, to allow building and testing in ci, default value for password are inserted.
-
-Environment variable and secrets required in workflows are stored
-as **GitHub Actions Variables/Secrets**
 ## 3.4 - CI/CD Pipelines
 
 ### Quality gates on pull requests
 
-Three quality workflows fire on every pull request on main:
+Three workflows act as quality gates on every pull request to `main`:
 
-**`build-and-test.yml`** runs build test and push coverage report and after detected which dockerifile are changed check that that docker images builds validating that the image builds cleanly before the code lands.
+- **`build-and-test.yml`** runs `./gradlew clean build` across all services (compile, check and test) and uploads the JaCoCo/lcov coverage reports to **Codecov**; on pull requests it additionally detects which `Dockerfile`s changed and builds those images, validating that they build cleanly before the code lands.
+- **`check-style.yml`** runs `./gradlew checkStyle` to verify linting and formatting.
+- **`check-commit-convention.yml`** inspects every commit in the PR and validates it against the Conventional Commits specification.
 
-**`check-style.yml`** runs `./gradlew checkStyle` to verify linting and formatting
-
-**`check-commit-convention.yml`** runs a dedicated action that inspects every commit in the PR and validates it against the Conventional Commits specification. 
-
-both check style and commit convention are present as hooks but they are double checked in ci since hooks can be bypassed.
+Style and commit-convention checks are also enforced as git hooks, but they are re-checked in CI because hooks can be bypassed locally.
 
 ### Translation check
 
-è definito un **`auto-i18n.yml`** workflow che è eseguito triggers on pushes to the frontend feature branch (`feature/frontend-service`) and on every pull request. on push it evaluates if the transaltion are present and in caso fa commit con le traduzioni, nelle pr fa solo check. per evitare di fare partire i check anche nel commit è usato il [skip ci], però se c'è gia una pr aperta da quel branch viene omesso cosi da far passare tutti i check required.
+The **`auto-i18n.yml`** workflow runs the project's own `auto-i18n` action on pushes to the frontend feature branch (`feature/frontend-service`) and on every pull request. On push it generates the missing translations and commits them; on pull requests it runs in **check-only** mode. To avoid re-triggering the pipeline on the auto-generated commit, the commit message carries `[skip ci]` — which is omitted when a PR is already open from that branch, so that all required checks still run.
 
-### Github Pages
+### GitHub Pages
 
-**`deploy-pages.yml`** triggers on pushes to `main` and any `docs/*` branch. It builds all three VitePress report sites (ASW, DS, SPE), copies static assets, OpenAPI and AsyncAPI specs into the output tree, and publishes everything to **GitHub Pages**.
+The **`deploy-pages.yml`** workflow triggers on pushes to `main` and to any `docs/*` branch. It builds the three VitePress report sites (ASW, DS, SPE), copies the static assets and the OpenAPI/AsyncAPI specifications into the output tree, and publishes everything to **GitHub Pages**.
 
 ### Release and Deploy
 
-Every merge to `main` triggers `release.yml` pipeline. Come prima cosa viene valutata e generata una release, le versioni seguono semantic versioning, se ci sono modifiche sotto infratsctucture e service e non è stata generata nessuna nuova versione è generata incrementalmente una dev pre-release. 
+Every push to `main` triggers the `release.yml` pipeline, which first decides whether a release is needed:
+- **semantic-release** inspects the commits and, following Conventional Commits + SemVer, publishes a new versioned release (tag + CHANGELOG) when relevant changes are present;
+- if no release is published but `services/` or `infrastructure/` changed, the pipeline falls back to an incremental **dev pre-release** (e.g. `v1.4.0-dev.2`), so that every meaningful change still produces a deployable tag.
 
-in caso venga generato un nuovo tag allora si procede andando a cercare le Find all modified directories with Dockerfiles per poi successivamente build-and-push-docker-images su ghcr.io, le imagini sono buioldare multiarch (scrivi meglio) The service name is derived from the Dockerfile path: `services/chat/Dockerfile` → `chat`
+When a tag is produced, the pipeline finds all modified directories containing a `Dockerfile`, then builds and pushes the corresponding **multi-arch images** (`linux/amd64` + `linux/arm64`, via Buildx and QEMU) to `ghcr.io`. The service name is derived from the Dockerfile path (`services/chat/Dockerfile` → `chat`).
 
-[metti immagine public/devops/deployed-infrastructure.png]
+The deployed production infrastructure is the following:
 
-Considerando che l'infrastruttura usata è questa viene fatto login ssh passando per cloudflare SSHs into the production server through a **Cloudflare Tunnel**. the tunnel authenticates via Cloudflare Access and the action bridges the connection through Cloudflare's network
+![Deployed infrastructure](/devops/deployed-infrastructure.png)
 
-after login the repo is pulled on remote machine, the new docker images are pulled and 
-deployed
+The deploy job then opens an SSH session to the production server through a **Cloudflare Tunnel**: the connection is authenticated via Cloudflare Access and bridged through Cloudflare's network, so no SSH port is exposed publicly. On the remote machine the repository is pulled, the new images are pulled from the registry and the stack is redeployed via `composeApplication.sh`.
 
-
-il deploy swarm è ancora in beta `scripts/swarmDeploy.sh` manages the full Docker Swarm lifecycle, including images deploy to docker hub to make it available to all swarm nodes. 
-
-
-
-
-
-
-
+A **Docker Swarm** deployment path is also available (still in beta): `scripts/swarmDeploy.sh` manages the full Swarm lifecycle, including pushing the images to Docker Hub so they are reachable from every swarm node.
