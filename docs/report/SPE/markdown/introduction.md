@@ -31,3 +31,22 @@ From a technical perspective, EvenToNight is designed as a **multi-language, con
 - **Semantic versioning**: versions are derived automatically from the commit convention via **semantic-release**.
 - **Dockerization**: each service is packaged as a Docker image and published to a container registry (**ghcr.io**).
 - **Deployment**: the system must be deployed to a test environment.
+
+## Versioning
+
+The project adopts **Semantic Versioning** (SemVer): version numbers follow the `MAJOR.MINOR.PATCH` scheme, where a breaking change increments `MAJOR`, a new backward-compatible feature increments `MINOR`, and a bug fix increments `PATCH`. Version bumps are **fully automated** via [**semantic-release**](https://semantic-release.gitbook.io/semantic-release/) using the `conventionalcommits` preset: on every push to `main` the tool inspects the commit history since the last tag and derives the next version.
+- `feat:` triggers a minor bump, 
+- `fix:` a patch bump, 
+- `BREAKING CHANGE` footer a major bump.
+
+Each Docker image is published to **ghcr.io** with two tags: the exact SemVer tag (e.g. `v1.2.3`) and `latest`, always pointing to the most recent release. When a push to `main` modifies service or infrastructure files but does not contain commits that trigger a semantic-release bump (e.g. only `chore:` or `docs:` commits), the pipeline automatically creates a **dev pre-release** tag in the form `vMAJOR.MINOR.(PATCH+1)-dev.N` (e.g. `v1.2.4-dev.1`, `v1.2.4-dev.2`, …). 
+
+These pre-release images are still published to the registry so that the staging environment always runs an up-to-date build, while being clearly distinguishable from production releases.
+
+## Licensing
+
+EvenToNight is released under the **GNU General Public License v3.0** (GPL-3.0), a **strong copyleft** license. The key distinction from permissive alternatives is the copyleft obligation: anyone who distributes a modified version of the software must do so under the same license, ensuring that the source remains open through any chain of redistribution.
+
+**MIT** and **Apache 2.0** are permissive licenses, they impose no such obligation, allowing modified versions to be incorporated into proprietary closed-source products without any requirement to publish the changes. Apache 2.0 additionally provides an explicit patent grant, but shares the same permissive stance on distribution.
+
+Given the academic and open-source nature of this project, a copyleft license best reflects the intent to keep the codebase and any derivative works freely available and inspectable.
