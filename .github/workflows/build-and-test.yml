@@ -43,7 +43,7 @@ jobs:
 
 
   find-dockerfiles:
-    if : ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-22.04
     outputs:
       dockerfiles: ${{ steps.find-dockerfiles.outputs.dockerfiles }}

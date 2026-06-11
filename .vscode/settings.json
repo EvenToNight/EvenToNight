@@ -35,4 +35,5 @@
     "source.fixAll.eslint": "explicit"
   },
   "java.compile.nullAnalysis.mode": "automatic",
+  "js/ts.experimental.useTsgo": false,
 }
