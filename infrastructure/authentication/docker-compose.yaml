@@ -1,4 +1,7 @@
 services:
+  postgres-keycloak:
+    restart: unless-stopped
+
   keycloak:
     restart: unless-stopped
     labels:
