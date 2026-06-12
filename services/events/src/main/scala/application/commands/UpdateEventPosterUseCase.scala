@@ -1,4 +1,4 @@
-package application.usecases
+package application.commands
 
 import domain.commands.UpdateEventPosterCommand
 import domain.repositories.{DomainEventPublisher, EventRepository}

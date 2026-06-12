@@ -1,4 +1,4 @@
-package application.usecases
+package application.commands
 
 import domain.aggregates.Event
 import domain.commands.UpdateEventPosterCommand
