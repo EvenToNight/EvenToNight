@@ -43,7 +43,10 @@ describe('UserSchema', () => {
     mongod = await MongoMemoryServer.create();
     const uri = mongod.getUri();
     mongoConnection = (await connect(uri)).connection;
-    userModel = mongoConnection.model(User.name, UserSchema);
+    userModel = mongoConnection.model(
+      User.name,
+      UserSchema,
+    ) as unknown as Model<UserEntity>;
   });
 
   afterAll(async () => {
@@ -397,10 +400,10 @@ describe('UserSchema', () => {
 
     it('should find user by id', async () => {
       const user = await userModel.findOne({ id: 'user1' });
+      const found = assertFound(user);
 
-      expect(user).toBeDefined();
-      expect(user.name).toBe('Alice');
-      expect(user.role).toBe(UserRole.MEMBER);
+      expect(found.name).toBe('Alice');
+      expect(found.role).toBe(UserRole.MEMBER);
     });
 
     it('should find multiple users by id array', async () => {
@@ -417,7 +420,7 @@ describe('UserSchema', () => {
 
     it('should find users with avatar', async () => {
       const users = await userModel.find({
-        avatar: { $exists: true, $nin: [null, '', undefined] },
+        avatar: { $exists: true, $nin: [null, ''] },
       });
 
       expect(users.length).toBeGreaterThanOrEqual(3);

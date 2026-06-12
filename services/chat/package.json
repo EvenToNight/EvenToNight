@@ -94,7 +94,7 @@
       "/src/common/",
       "/src/rabbitmq/"
     ],
-    "coverageDirectory": "../coverage",
+    "coverageDirectory": "coverage",
     "testEnvironment": "node"
   }
 }

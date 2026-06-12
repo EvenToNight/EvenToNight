@@ -137,25 +137,39 @@ export class JwtStrategy
       return;
     }
 
-    try {
-      const response = await fetch(publicKeyUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch public key: ${response.statusText}`);
+    // Retry indefinitely with capped exponential backoff: the auth source may
+    // not be reachable yet at boot (e.g. after a host restart), and the service
+    // cannot validate tokens without the key, so keep waiting until it loads.
+    let attempt = 0;
+    for (;;) {
+      try {
+        const response = await fetch(publicKeyUrl);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch public key: ${response.statusText}`);
+        }
+        const data = (await response.json()) as {
+          keys: { kid: string; publicKey: string }[];
+        };
+        if (!data.keys?.length) {
+          throw new Error('No public keys found in response');
+        }
+        JwtStrategy.publicKeys = data.keys.map((key) => ({
+          kid: key.kid,
+          pem: `-----BEGIN PUBLIC KEY-----\n${key.publicKey}\n-----END PUBLIC KEY-----`,
+        }));
+        this.logger.log(
+          `Loaded ${JwtStrategy.publicKeys.length} public key(s)`,
+        );
+        return;
+      } catch (error) {
+        const delayMs = Math.min(1000 * 2 ** attempt, 30_000);
+        this.logger.warn(
+          `Failed to load public key, retrying in ${delayMs}ms (attempt ${attempt + 1})`,
+          error,
+        );
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+        attempt++;
       }
-      const data = (await response.json()) as {
-        keys: { kid: string; publicKey: string }[];
-      };
-      if (!data.keys?.length) {
-        throw new Error('No public keys found in response');
-      }
-      JwtStrategy.publicKeys = data.keys.map((key) => ({
-        kid: key.kid,
-        pem: `-----BEGIN PUBLIC KEY-----\n${key.publicKey}\n-----END PUBLIC KEY-----`,
-      }));
-      this.logger.log(`Loaded ${JwtStrategy.publicKeys.length} public key(s)`);
-    } catch (error) {
-      this.logger.error('Failed to load public key', error);
-      throw error;
     }
   }
 
