@@ -86,21 +86,22 @@ The bounded contexts identified in the last event-storming phase are mapped one-
 | [`notifications`](https://github.com/EvenToNight/EvenToNight/tree/main/services/notifications) | Node.js (Express) + Socket.IO | MongoDB | Persistent notification feed and real-time push |
 | [`media`](https://github.com/EvenToNight/EvenToNight/tree/main/services/media) | NestJS | S3-compatible bucket, MinIo | Generic upload / download of binary assets |
 
-### Domain Model
+### 2.3.1 Domain Model
 
 <p align="center">
     <img src="/core-entities.png" alt="Domain Model overview" width="100%" />
     <br />
 </p>
 
-### Context map
+### 2.3.2 Context map
 
-The relationships between bounded contexts are classified with the standard DDD context-map vocabulary. Each arrow goes from the **upstream** context to the **downstream** consumer and is labelled with the pattern that governs the integration:
+Each arrow goes from the **upstream** context to the **downstream** consumer and is labelled with the integration pattern:
 
-- **Published Language (PL)** -> the publisher commits to a stable event envelope and routing-key contract;
-- **Anti-Corruption Layer (ACL)** -> the consumer translates the upstream payload into its own internal types;
-- **Customer / Supplier** -> a stronger relationship where the downstream's needs influence the upstream's release schedule;
-- **Open Host Service (OHS)** -> a synchronous REST contract, used by the generic Media context.
+- **PL (Published Language)** — the publisher commits to a stable event envelope and routing-key contract;
+- **ACL (Anti-Corruption Layer)** — the consumer translates the upstream payload into its own internal types;
+- **OHS (Open Host Service)** — a synchronous REST contract, used by the generic Media context.
+
+Every asynchronous relationship uses both PL and ACL: the publisher owns the contract, the consumer owns the translation.
 
 ```mermaid
 flowchart LR
@@ -112,17 +113,19 @@ flowchart LR
     Events -->|PL + ACL| Ticketing
     Events -->|PL + ACL| Interaction
     Events -->|PL + ACL| Notification
-    Ticketing -->|Customer/Supplier + PL| Interaction
+    Ticketing -->|PL + ACL| Events
+    Ticketing -->|PL + ACL| Interaction
     Interaction -->|PL + ACL| Notification
     Chat -->|PL + ACL| Notification
     Media -.->|OHS / REST| Events
     Media -.->|OHS / REST| User
 ```
 
-Two structural observations follow directly from this map:
+Three structural observations follow directly from this map:
 
-1. **Notification is the system's pure downstream** — it consumes from at least five different publishers and emits no business event of its own. This convergence is what justified extracting Notification as a context of its own already at the third Event-Storming level.
-2. **Media is the only synchronous integration** — it is invoked over HTTP by the contexts that need to store posters and avatars; the contract is a thin REST API, not a Published Language. Every other inter-context communication is asynchronous over RabbitMQ.
+1. **User is the system's pure upstream** — it publishes user lifecycle events consumed by every other context, but it does not consume events from any other context. All contexts maintain a local user projection to avoid runtime coupling to the User service.
+2. **Notification is the system's pure downstream** — it consumes from four different publishers (Events, Interaction, Chat, and User) and emits no business event of its own. This convergence is what justified extracting Notification as a context of its own already at the third Event-Storming level.
+3. **Media is the only synchronous integration** — it is invoked over HTTP by the contexts that need to store posters and avatars; the contract is a thin REST API, not a Published Language. Every other inter-context communication is asynchronous over RabbitMQ.
 
 ## 2.4 Integration patterns
 
@@ -153,27 +156,26 @@ interface EventEnvelope<T> {
 }
 ```
 
-The envelope is minimal by design: enough for any consumer to dispatch, log and persist for idempotency, without requiring a schema-registry infrastructure.
-
 ### 2.4.4 Anti-Corruption Layer
 
-Every consumer wraps the incoming envelope with an ACL that validates the routing key, parses the payload and translates it into local types. Concrete implementations span both stacks: the Ticketing event/user consumers in TypeScript, the Scala `ExternalEventHandler` in Events, the event router in Notifications. The Interactions ACL is special: beyond translation it persists the upstream facts as a local read model, used to authorise likes, reviews and follows without synchronous calls to other services.
+Every consumer implements an ACL that dispatches on the routing key, validates the payload against a local DTO, and maps it into the service's own internal types.
+
+Beyond translation, each ACL also **persists a local projection** of the upstream facts it needs. This is the mechanism that allows services to enforce domain rules that depend on data owned by another context, without issuing synchronous cross-service calls at request time.
 
 ## 2.5 Behaviour
 
-Three behavioural patterns describe how the services process work. They are direct consequences of the strategic choices of the integration patterns described above.
+Two behavioural patterns describe how the services process work.
 
 ### 2.5.1 Request-driven operations
 
 User actions follow a request-driven workflow:
 
 1. A client request is received through the service API.
-2. The request is validated and processed (optionally, also making synchronous request to other services) by the service logic. 
-3. A local transaction updates the service state and if necessary records in the outbox the domain events describing the change.
-4. After the transaction completes, the events are asynchronously published.
+2. The request is validated and processed (optionally, also making synchronous request to other services) by the service logic.
+3. A local transaction updates the service state and, if necessary, records the resulting domain events in the outbox.
+4. After the transaction completes, the events are asynchronously published to RabbitMQ.
 
-To guarantee reliability, it's adopted the **Outbox Pattern**. Instead of publishing events directly after the state update, domain events are first stored in a dedicated outbox structure within the same transaction as the database update. This ensures that the state change and the corresponding domain event recording occur atomically.
-Once the transaction successfully completes, the events stored in the outbox can be asynchronously delivered to the message broker.
+The full HTTP API contract for each service is documented in the [OpenAPI specification](https://eventonight.github.io/EvenToNight/openAPI/).
 
 <p align="center">
     <img src="/design/behavior-request-driven.png" alt="behavior-request-driven" width="100%" />
@@ -182,10 +184,7 @@ Once the transaction successfully completes, the events stored in the outbox can
 
 ### 2.5.2 Event-driven operations
 
-Services also react to domain events generated by other services.
-When an event is received, the service processes it through its domain logic and may update its internal state or trigger additional events.
-
-This approach enables coordination between bounded contexts without requiring direct dependencies between services.
+Services also react to domain events generated by other services. When an event is received, the service processes it through its domain logic and may update its internal state or trigger additional events. This approach enables coordination between bounded contexts without requiring direct dependencies between services.
 
 The typical flow for this interaction is:
 
@@ -194,40 +193,45 @@ The typical flow for this interaction is:
 3. If required, a local transaction updates the service state.
 4. Additional domain events may be generated.
 
-This event-driven approach allows services to collaborate asynchronously while preserving loose coupling and independent evolution.
+The full set of domain events exchanged between services is documented in the [AsyncAPI specification](https://eventonight.github.io/EvenToNight/asyncAPI/).
 
 <p align="center">
     <img src="/design/behavior-event-driven.png" alt="behavior-event-driven" width="100%" />
     <br />
 </p>
 
+## 2.6 Internal service architecture
 
-### 2.5.3 Cross-context domain events
+### 2.6.1 Clean Architecture
 
-The table below inventories the domain events that cross context boundaries:
+The DDD-styled services (`users`, `events`, `ticketing`, `notifications`) are structured into four concentric layers with strict inward dependency rules:
 
-| Event (routing key) | Publisher | Subscribers | Effect |
-|---|---|---|---|
-| `user.created` | `users` | `events`, `ticketing`, `interactions`, `chat`, `notifications` | A new `User` projection appears in every context |
-| `user.updated` | `users` | same | Local user projection refreshed |
-| `user.deleted` | `users` | same | Cascade deletion of all user-related entities |
-| `event.created` | `events` | `ticketing`, `interactions` | Local `Event` projection created in `DRAFT` |
-| `event.published` | `events` | `ticketing`, `interactions`, `notifications` | Event becomes purchasable; followers receive a notification |
-| `event.updated` | `events` | `ticketing`, `interactions` | Projections refreshed |
-| `event.cancelled` | `events` | `ticketing`, `interactions` | Projections updated, no more ticket sales |
-| `event.completed` | `events` | `ticketing`, `interactions` | Reviews become possible |
-| `event.deleted` | `events` | `ticketing`, `interactions` | Cascade cleanup |
-| `ticket-type.created/updated/deleted` | `ticketing` | `events` | The Events context flips `isFree` and tracks price ranges |
-| `payments.order.confirmed` | `ticketing` | `interactions` | A `Participation` is recorded for the buyer |
-| `interactions.like.created` | `interactions` | `notifications` | Creator receives a notification |
-| `interactions.review.created` | `interactions` | `notifications` | Same |
-| `interactions.follow.created/deleted` | `interactions` | `notifications` | Persistent follow projection updated, followee notified |
-| `chat.message.created` | `chat` | `notifications` | Recipient notified |
+- **`domain/`** — aggregates, value objects, domain events, repository interfaces, domain services. No framework imports, no I/O.
+- **`application/`** — use cases (commands) and queries (reads), DTOs and mappers. Orchestrates the domain without containing business rules of its own.
+- **`infrastructure/`** — concrete adapters of the domain ports: MongoDB repositories, RabbitMQ publishers and consumers, Keycloak / Stripe / S3 clients.
+- **`presentation/`** (`controller/` in Scala) — HTTP routes, REST controllers, AMQP consumer dispatchers, WebSocket gateways.
 
+The remaining services (`chat`, `interactions`) adopt the default **NestJS module-per-feature** organisation, with each feature module encapsulating its controllers, services and Mongoose schemas. This is acceptable because their domain logic is comparatively thin.
 
-### 2.5.4 Choreographed saga: the ticket purchase
+### 2.6.2 CQRS (light)
 
-The ticket purchase flow is implemented as a two-phase saga. Phase 1 reserves inventory and creates an order atomically in MongoDB (TX1). Phase 2 calls Stripe to create a checkout session. If Stripe fails, a compensating transaction releases the reserved tickets and cancels the order. If the service crashes between the two phases, the compensation does not run, tickets remain in `PENDING` state indefinitely. The correct mitigation would be a scheduled cleanup job that releases orders stuck in `PENDING` beyond a timeout threshold; this is a known limitation of the current implementation.
+CQRS (Command Query Responsibility Segregation) is an architectural pattern that separates the *write* path (commands that mutate state) from the *read* path (queries that return data), allowing each to evolve, scale, and be optimised independently. In its full form it pairs naturally with Event Sourcing and dedicated read stores.
+
+In this project CQRS has been adopted only at the structural level: the write and read paths are syntactically separated into distinct handler classes, but they ultimately share the same MongoDB collections. No separate read store or projection pipeline has been implemented. The separation is therefore primarily a code-organisation choice.
+
+## 2.7 Distributed consistency
+
+Each service guarantees strong consistency within its own boundaries by executing state-changing operations inside local MongoDB transactions. Coordination across services is achieved through eventual consistency: a service emits domain events after completing its local transaction, and downstream services update their own state asynchronously upon receiving them. No distributed transaction spanning multiple services is ever required.
+
+### 2.7.1 Outbox pattern
+
+Publishing a domain event directly after a database write creates a race condition: if the service crashes between the write and the publish, the event is lost and downstream services diverge silently.
+
+To eliminate this risk, every service that emits domain events uses the **Outbox pattern**: the event is written to an outbox collection *within the same local transaction* as the state update. A background process then reads the outbox and forwards the events to RabbitMQ. This guarantees that a committed state change is always paired with at least one event delivery, and that no event is published for a transaction that was rolled back.
+
+### 2.7.2 Choreographed saga: the ticket purchase
+
+The ticket purchase flow cannot be completed in a single local transaction because it spans both MongoDB and an external system (Stripe). It is therefore implemented as a two-phase **choreographed saga**:
 
 ```mermaid
 sequenceDiagram
@@ -257,23 +261,3 @@ sequenceDiagram
         note over Ticketing,MongoDB: ⚠ known limitation, tickets stuck PENDING
     end
 ```
-
-## 2.6 Internal service architecture
-
-### 2.6.1 Clean Architecture
-
-The DDD-styled services (`users`, `events`, `ticketing`, `notifications`) are structured into four concentric layers with strict inward dependency rules:
-
-- **`domain/`** — aggregates, value objects, domain events, repository interfaces, domain services. No framework imports, no I/O.
-- **`application/`** — use cases (commands) and queries (reads), DTOs and mappers. Orchestrates the domain without containing business rules of its own.
-- **`infrastructure/`** — concrete adapters of the domain ports: MongoDB repositories, RabbitMQ publishers and consumers, Keycloak / Stripe / S3 clients.
-- **`presentation/`** (`controller/` in Scala) — HTTP routes, REST controllers, AMQP consumer dispatchers, WebSocket gateways.
-
-The remaining services (`chat`, `interactions`) adopt the default **NestJS module-per-feature** organisation, with each feature module encapsulating its controllers, services and Mongoose schemas. This is acceptable because their domain logic is comparatively thin.
-
-### 2.6.2 CQRS (light)
-
-Inside the layered services the *write* path and the *read* path are syntactically separated even when they ultimately share the same MongoDB collections. The benefit is cognitive: a reader of the codebase always knows whether a piece of code is allowed to mutate state.
-
-- In the Scala services the separation is realised by two sibling packages: `application/usecases` (one class per command) and `application/queries` (one class per query).
-- In the Node services it is realised by **one class per command/query handler** (`CreateEventHandler`, `CheckoutSessionCompletedHandler`, `GetUserEventTicketsPdfHandler`, …) invoked from the controller.
