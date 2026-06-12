@@ -1,4 +1,4 @@
-package application.usecases
+package application.commands
 
 import domain.commands.CreateEventCommand
 import domain.enums.EventStatus

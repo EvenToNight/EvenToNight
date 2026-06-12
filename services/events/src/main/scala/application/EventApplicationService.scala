@@ -1,7 +1,7 @@
 package application
 
 import application.queries.*
-import application.usecases.*
+import application.commands.*
 import domain.commands.*
 import domain.repositories.{DomainEventPublisher, EventRepository, OrganizationRepository, UnitOfWork}
 import domain.services.EventDomainService

@@ -1,4 +1,4 @@
-package application.usecases
+package application.commands
 
 import domain.commands.DeleteEventCommand
 import domain.repositories.{DomainEventPublisher, EventRepository}
