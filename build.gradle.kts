@@ -260,13 +260,3 @@ tasks.register("formatAndLintPreCommit") {
 
     finalizedBy("updateStagedFiles")
 }
-
-tasks.register("runCoverage") {
-    description = "Run coverage analysis for all services"
-    group = "verification"
-    
-    val coverageTasks = subprojects.mapNotNull { proj ->
-        proj.tasks.findByName("runCoverage")
-    }
-    dependsOn(coverageTasks)
-}

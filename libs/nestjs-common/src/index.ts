@@ -19,3 +19,6 @@ export * from './outbox/outbox-relay.service';
 export * from './inbox/inbox.schema';
 export * from './inbox/inbox-mongo.repository';
 export * from './inbox/inbox.service';
+
+// Utils
+export * from './utils/retry';

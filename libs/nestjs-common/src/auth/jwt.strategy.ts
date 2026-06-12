@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
+import { retryWithBackoff } from '../utils/retry';
 
 export interface JwtPayload {
   user_id: string;
@@ -137,27 +138,39 @@ export class JwtStrategy
       return;
     }
 
-    try {
-      const response = await fetch(publicKeyUrl);
-      if (!response.ok) {
-        throw new Error(`Failed to fetch public key: ${response.statusText}`);
-      }
-      const data = (await response.json()) as {
-        keys: { kid: string; publicKey: string }[];
-      };
-      if (!data.keys?.length) {
-        throw new Error('No public keys found in response');
-      }
-      // Convert all keys to PEM format
-      JwtStrategy.publicKeys = data.keys.map((key) => ({
-        kid: key.kid,
-        pem: `-----BEGIN PUBLIC KEY-----\n${key.publicKey}\n-----END PUBLIC KEY-----`,
-      }));
-      this.logger.log(`Loaded ${JwtStrategy.publicKeys.length} public key(s)`);
-    } catch (error) {
-      this.logger.error('Failed to load public key', error);
-      throw error;
-    }
+    // Retry indefinitely with capped exponential backoff: the auth source may
+    // not be reachable yet at boot (e.g. after a host restart), and the service
+    // cannot validate tokens without the key, so keep waiting until it loads.
+    await retryWithBackoff(
+      async () => {
+        const response = await fetch(publicKeyUrl);
+        if (!response.ok) {
+          throw new Error(
+            `Failed to fetch public key: ${response.statusText}`,
+          );
+        }
+        const data = (await response.json()) as {
+          keys: { kid: string; publicKey: string }[];
+        };
+        if (!data.keys?.length) {
+          throw new Error('No public keys found in response');
+        }
+        JwtStrategy.publicKeys = data.keys.map((key) => ({
+          kid: key.kid,
+          pem: `-----BEGIN PUBLIC KEY-----\n${key.publicKey}\n-----END PUBLIC KEY-----`,
+        }));
+        this.logger.log(
+          `Loaded ${JwtStrategy.publicKeys.length} public key(s)`,
+        );
+      },
+      {
+        onRetry: (attempt, delayMs, error) =>
+          this.logger.warn(
+            `Failed to load public key, retrying in ${delayMs}ms (attempt ${attempt})`,
+            error,
+          ),
+      },
+    );
   }
 
   validate(payload: JwtPayload): AuthUser {

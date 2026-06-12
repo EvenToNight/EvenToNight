@@ -6,6 +6,7 @@ import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import * as dotenv from 'dotenv';
 import { join } from 'path';
 import { RabbitMqService } from '@libs/ts-common';
+import { retryWithBackoff } from '@libs/nestjs-common';
 
 const envFromRoot: Record<string, string> = {};
 dotenv.config({
@@ -45,27 +46,6 @@ if (
   process.env.RABBITMQ_PASS = envFromRoot['RABBITMQ_PASS'];
 }
 
-async function waitForRabbitMQ(
-  fn: () => Promise<void>,
-  maxRetries?: number,
-): Promise<void> {
-  let attempt = 0;
-  while (maxRetries === undefined || attempt < maxRetries) {
-    try {
-      await fn();
-      return;
-    } catch (err) {
-      if (maxRetries !== undefined && attempt === maxRetries - 1) throw err;
-      const delayMs = Math.min(1000 * Math.pow(2, attempt), 30000);
-      console.warn(
-        `RabbitMQ not ready, retrying in ${delayMs / 1000}s... (attempt ${attempt + 1})`,
-      );
-      await new Promise((resolve) => setTimeout(resolve, delayMs));
-      attempt++;
-    }
-  }
-}
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     rawBody: true,
@@ -90,21 +70,28 @@ async function bootstrap() {
 
   const serviceQueue = 'ticketing_queue';
 
-  await waitForRabbitMQ(() =>
-    RabbitMqService.setup({
-      url: rabbitmqUrl,
-      queue: serviceQueue,
-      routingKeys: [
-        'user.created',
-        'user.updated',
-        'user.deleted',
-        'event.updated',
-        'event.published',
-        'event.completed',
-        'event.cancelled',
-        'event.deleted',
-      ],
-    }),
+  await retryWithBackoff(
+    () =>
+      RabbitMqService.setup({
+        url: rabbitmqUrl,
+        queue: serviceQueue,
+        routingKeys: [
+          'user.created',
+          'user.updated',
+          'user.deleted',
+          'event.updated',
+          'event.published',
+          'event.completed',
+          'event.cancelled',
+          'event.deleted',
+        ],
+      }),
+    {
+      onRetry: (attempt, delayMs) =>
+        console.warn(
+          `RabbitMQ not ready, retrying in ${delayMs / 1000}s... (attempt ${attempt})`,
+        ),
+    },
   );
 
   app.connectMicroservice<MicroserviceOptions>({

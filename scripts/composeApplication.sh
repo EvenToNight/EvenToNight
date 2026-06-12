@@ -106,9 +106,9 @@ fi
 ./scripts/composeAll.sh --project-name "$PROJECT_NAME" -p ./services -p ./infrastructure -eP ./infrastructure/seed "${FILTERED_ARGS[@]}"
 if [ "$PULL" != "pull" ]; then
   echo "💬 Application built successfully."
-  echo "💬 Removing init containers..."
-  ./scripts/composeAll.sh --project-name "$PROJECT_NAME" -p ./services -p ./infrastructure rm -fsv keycloak-provision
-  echo "💬 Init containers removed."
+#   echo "💬 Removing init containers..."
+#   ./scripts/composeAll.sh --project-name "$PROJECT_NAME" -p ./services -p ./infrastructure rm -fsv keycloak-provision
+#   echo "💬 Init containers removed."
 else
   echo "💬 Latest images pulled successfully."
 fi

@@ -2,8 +2,11 @@ name: Build and Test
 
 on:
   push:
-    branches: [ main, feature/**, ci/**, refactor/** ]
+    branches:
+      - main
   pull_request:
+    branches:
+      - main
 
 jobs:
   build-and-test-services:
@@ -29,20 +32,16 @@ jobs:
         uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: |
-            services/users/build/reports/jacoco/test/jacocoTestReport.xml
-            services/events/build/reports/jacoco/test/jacocoTestReport.xml
-            services/media/coverage/lcov.info
-            services/interactions/coverage/lcov.info
-            services/chat/coverage/lcov.info
-            services/ticketing/coverage/lcov.info
-            services/notifications/coverage/lcov.info
+          files: services/users/build/reports/jacoco/test/jacocoTestReport.xml,services/events/build/reports/jacoco/test/jacocoTestReport.xml,services/media/coverage/lcov.info,services/interactions/coverage/lcov.info,services/chat/coverage/lcov.info,services/ticketing/coverage/lcov.info,services/notifications/coverage/lcov.info
           flags: unittests
           fail_ci_if_error: true
-      
+
+      - name: Check project coverage threshold
+        run: ./scripts/checkProjectCoverage.sh "${{ github.event.pull_request.head.sha || github.sha }}"
+
 
   find-dockerfiles:
-    if : ${{ github.event_name == 'pull_request' }}
+    if: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-22.04
     outputs:
       dockerfiles: ${{ steps.find-dockerfiles.outputs.dockerfiles }}
@@ -81,3 +80,17 @@ jobs:
           fi
           echo "🚀 Building image for $service_name"
           docker build -f "$dockerfile" .
+
+  build-docker-images-check:
+    needs: build-docker-images
+    if: always()
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Verify Docker image builds
+        run: |
+          result="${{ needs.build-docker-images.result }}"
+          echo "build-docker-images result: $result"
+          if [ "$result" = "failure" ] || [ "$result" = "cancelled" ]; then
+            exit 1
+          fi
+          exit 0
