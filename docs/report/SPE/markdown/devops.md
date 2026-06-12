@@ -94,7 +94,7 @@ Every push to `main` triggers the `release.yml` pipeline, which first decides wh
 - **semantic-release** inspects the commits and publishes a new versioned release following Conventional Commits + SemVer;
 - if no release is published but `services/` or `infrastructure/` changed, the pipeline falls back to an incremental **dev pre-release** (e.g. `v1.4.0-dev.2`), so that every meaningful change still produces a deployable tag.
 
-When a tag is produced, the pipeline finds all modified directories containing a `Dockerfile`, then builds and pushes the corresponding **multi-arch images** (`linux/amd64` + `linux/arm64`, via Buildx and QEMU) to `ghcr.io`. The service name is derived from the Dockerfile path (e.g. `services/chat/Dockerfile` → `chat`).
+When a tag is produced, the pipeline finds all modified directories containing a `Dockerfile`, then builds and pushes the corresponding **multi-arch images** (`linux/amd64` + `linux/arm64`, via Buildx and QEMU) to `ghcr.io`. The service name is derived from the Dockerfile path (e.g. `services/chat/Dockerfile` → `chat`). Each image is pushed under two tags: the **release version** (e.g. `chat:2.2.2`) and **`:latest`**.
 
 The deployed production infrastructure is the following:
 
