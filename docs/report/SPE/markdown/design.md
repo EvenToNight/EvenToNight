@@ -123,7 +123,7 @@ flowchart LR
 
 Three structural observations follow directly from this map:
 
-1. **User is the system's pure upstream** — it publishes user lifecycle events consumed by every other context, but it does not consume events from any other context. All contexts maintain a local user projection to avoid runtime coupling to the User service.
+1. **User is the system's pure upstream** — it publishes user lifecycle events consumed by every other context, but it does not consume events from any other context.
 2. **Notification is the system's pure downstream** — it consumes from four different publishers (Events, Interaction, Chat, and User) and emits no business event of its own. This convergence is what justified extracting Notification as a context of its own already at the third Event-Storming level.
 3. **Media is the only synchronous integration** — it is invoked over HTTP by the contexts that need to store posters and avatars; the contract is a thin REST API, not a Published Language. Every other inter-context communication is asynchronous over RabbitMQ.
 
@@ -172,8 +172,8 @@ User actions follow a request-driven workflow:
 
 1. A client request is received through the service API.
 2. The request is validated and processed (optionally, also making synchronous request to other services) by the service logic.
-3. A local transaction updates the service state and, if necessary, records the resulting domain events in the outbox.
-4. After the transaction completes, the events are asynchronously published to RabbitMQ.
+3. A local transaction updates the service state.
+4. Optionally after the transaction completes, a domain event is asynchronously published to RabbitMQ.
 
 The full HTTP API contract for each service is documented in the [OpenAPI specification](https://eventonight.github.io/EvenToNight/openAPI/).
 
@@ -204,20 +204,20 @@ The full set of domain events exchanged between services is documented in the [A
 
 ### 2.6.1 Clean Architecture
 
-The DDD-styled services (`users`, `events`, `ticketing`, `notifications`) are structured into four concentric layers with strict inward dependency rules:
+The DDD-styled services (`users`, `events`, `ticketing`, `notifications`) are structured following clean architecture structure:
 
-- **`domain/`** — aggregates, value objects, domain events, repository interfaces, domain services. No framework imports, no I/O.
-- **`application/`** — use cases (commands) and queries (reads), DTOs and mappers. Orchestrates the domain without containing business rules of its own.
-- **`infrastructure/`** — concrete adapters of the domain ports: MongoDB repositories, RabbitMQ publishers and consumers, Keycloak / Stripe / S3 clients.
+- **`domain/`** — aggregates, value objects, domain events, repository interfaces, domain services.
+- **`application/`** — use cases, services and DTOs. Orchestrates the domain without containing business rules of its own.
+- **`infrastructure/`** — concrete adapters of the domain ports: MongoDB repositories, RabbitMQ publishers and consumers, Keycloak / Stripe.
 - **`presentation/`** (`controller/` in Scala) — HTTP routes, REST controllers, AMQP consumer dispatchers, WebSocket gateways.
 
-The remaining services (`chat`, `interactions`) adopt the default **NestJS module-per-feature** organisation, with each feature module encapsulating its controllers, services and Mongoose schemas. This is acceptable because their domain logic is comparatively thin.
+The remaining services (`chat`, `interactions`) adopt the default **NestJS module-per-feature** organisation, with each feature module encapsulating its controllers, services and Mongoose schemas.
 
 ### 2.6.2 CQRS (light)
 
-CQRS (Command Query Responsibility Segregation) is an architectural pattern that separates the *write* path (commands that mutate state) from the *read* path (queries that return data), allowing each to evolve, scale, and be optimised independently. In its full form it pairs naturally with Event Sourcing and dedicated read stores.
+CQRS (Command Query Responsibility Segregation) is an architectural pattern that separates the *write* path (commands that mutate state) from the *read* path (queries that return data), allowing each to evolve, scale, and be optimised independently.
 
-In this project CQRS has been adopted only at the structural level: the write and read paths are syntactically separated into distinct handler classes, but they ultimately share the same MongoDB collections. No separate read store or projection pipeline has been implemented. The separation is therefore primarily a code-organisation choice.
+In this project CQRS has been adopted in *Events* and *Notifications* only at the structural level: the write and read paths are syntactically separated into distinct handler classes, but they ultimately share the same MongoDB collections. No separate read store or projection pipeline has been implemented. The separation is therefore primarily a code-organisation choice.
 
 ## 2.7 Distributed consistency
 
@@ -225,9 +225,9 @@ Each service guarantees strong consistency within its own boundaries by executin
 
 ### 2.7.1 Outbox pattern
 
-Publishing a domain event directly after a database write creates a race condition: if the service crashes between the write and the publish, the event is lost and downstream services diverge silently.
+Publishing a domain event directly after a database write is not atomic: if the service crashes between the two operations, the state change is committed but the event is never delivered, leaving downstream services in a stale state with no indication that anything went wrong.
 
-To eliminate this risk, every service that emits domain events uses the **Outbox pattern**: the event is written to an outbox collection *within the same local transaction* as the state update. A background process then reads the outbox and forwards the events to RabbitMQ. This guarantees that a committed state change is always paired with at least one event delivery, and that no event is published for a transaction that was rolled back.
+To eliminate this risk, every service that emits domain events uses the **Outbox pattern**: the event is written to an outbox collection *within the same local transaction* as the state update. A background process then reads the outbox and forwards the events to RabbitMQ, guaranteeing at-least-once delivery.
 
 ### 2.7.2 Choreographed saga: the ticket purchase
 
