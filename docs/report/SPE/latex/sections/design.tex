@@ -60,45 +60,64 @@ The third pass introduced the only technical element: aggregates. For each comma
 
 The ubiquitous language is the shared vocabulary that both the team and the code use to describe the domain. The following table collects the terms that recur both in the report and in the source code, with the bounded context that owns each definition. Anywhere two contexts use the same word, they may give it a \textit{different} meaning: that is intentional and is what justifies the translation each context applies when consuming another context's domain events.
 
-\begin{longtable}{p{2.8cm} p{2.6cm} p{9cm}}
-\toprule
+\begin{longtable}{|L{3.6cm}|L{2.4cm}|L{8.7cm}|}
+\hline
 \textbf{Term} & \textbf{Owner context} & \textbf{Meaning} \\
-\midrule
+\hline
 \endhead
 \textbf{Member} & User & A registered physical person, attendee of events \\
+\hline
 \textbf{Organization} & User & A registered entity that creates and runs events \\
+\hline
 \textbf{RegisteredUser} & User & Sealed family that covers both \texttt{Member} and \texttt{Organization} \\
-\textbf{Event} (entity) & Event & A social event scheduled by an organization; has a lifecycle \texttt{DRAFT} $\rightarrow$ \texttt{PUBLISHED} $\rightarrow$ \texttt{(CANCELLED \textbar{} COMPLETED)} \\
+\hline
+\textbf{Event} (entity) & Event & A social event scheduled by an organization; has a lifecycle \texttt{DRAFT} $\rightarrow$ \texttt{PUBLISHED} $\rightarrow$ \texttt{(CANCELLED} \textbar{} \texttt{COMPLETED)} \\
+\hline
 \textbf{Collaborator} & Event & An organization, other than the creator, that co-hosts an event \\
+\hline
 \textbf{EventTicketType} & Ticketing & A purchasable tier of tickets for a given event (price, available quantity, sold quantity) \\
-\textbf{Ticket} & Ticketing & A single seat sold to a single attendee; has its own lifecycle \texttt{PENDING\_PAYMENT} $\rightarrow$ \texttt{ACTIVE} $\rightarrow$ \texttt{(USED \textbar{} REFUNDED \textbar{} CANCELLED \textbar{} PAYMENT\_FAILED)} \\
+\hline
+\textbf{Ticket} & Ticketing & A single seat sold to a single attendee; has its own lifecycle \texttt{PENDING\_PAYMENT} $\rightarrow$ \texttt{ACTIVE} $\rightarrow$ \texttt{(USED} \textbar{} \texttt{REFUNDED} \textbar{} \texttt{CANCELLED} \textbar{} \texttt{PAYMENT\_FAILED)} \\
+\hline
 \textbf{Order} & Ticketing & The transactional grouping of tickets bought together in one checkout session \\
+\hline
 \textbf{CheckoutSession} & Ticketing & The Stripe-hosted payment session that confirms or expires an order \\
+\hline
 \textbf{Like} / \textbf{Review} / \textbf{Participation} & Interaction / Notification & The three ways a member interacts with an event \\
+\hline
 \textbf{Follow} & Interaction / Notification & The directed relationship \texttt{follower $\rightarrow$ followed} between two users \\
+\hline
 \textbf{Conversation} / \textbf{Message} & Chat & A two-party private chat between any pair of users \\
+\hline
 \textbf{Notification} & Notifications & A user-facing fact derived from a domain event, possibly delivered in real time \\
+\hline
 \textbf{Domain Event} & (shared) & A fact, named in past tense, that the publishing context guarantees happened (e.g. \texttt{EventPublished}, \texttt{OrderConfirmed}) \\
-\bottomrule
+\hline
 \end{longtable}
 
 \subsection{Bounded contexts and microservices}
 
 The bounded contexts identified in the last event-storming phase are mapped one-to-one to deployable microservices. Each microservice owns its persistence, exposes an HTTP API for synchronous reads issued by the frontend and exchanges domain events with the others through RabbitMQ.
 
-\begin{longtable}{p{2.2cm} p{2.6cm} p{3cm} p{6.4cm}}
-\toprule
+\begin{longtable}{|L{3.6cm}|L{2.3cm}|L{2.7cm}|L{5.7cm}|}
+\hline
 \textbf{Microservice} & \textbf{Stack} & \textbf{Persistence} & \textbf{Responsibility} \\
-\midrule
+\hline
 \endhead
 \href{https://github.com/EvenToNight/EvenToNight/tree/main/services/users}{\texttt{users}} & Scala 3 (Cask) & MongoDB + Keycloak & Registration, profile management, authentication tokens \\
+\hline
 \href{https://github.com/EvenToNight/EvenToNight/tree/main/services/events}{\texttt{events}} & Scala 3 (Cask) & MongoDB & Lifecycle of \texttt{Event}, tags, search, filtering \\
+\hline
 \href{https://github.com/EvenToNight/EvenToNight/tree/main/services/ticketing}{\texttt{ticketing}} & NestJS & MongoDB + Stripe & Ticket types, checkout, tickets, orders, PDF / QR generation \\
+\hline
 \href{https://github.com/EvenToNight/EvenToNight/tree/main/services/interactions}{\texttt{interactions}} & NestJS & MongoDB & Likes, reviews, participations, follows, projections of events / users used for cross-cutting validation \\
+\hline
 \href{https://github.com/EvenToNight/EvenToNight/tree/main/services/chat}{\texttt{chat}} & NestJS + Socket.IO & MongoDB & Real-time private conversations \\
+\hline
 \href{https://github.com/EvenToNight/EvenToNight/tree/main/services/notifications}{\texttt{notifications}} & Node.js (Express) + Socket.IO & MongoDB & Persistent notification feed and real-time push \\
+\hline
 \href{https://github.com/EvenToNight/EvenToNight/tree/main/services/media}{\texttt{media}} & NestJS & S3-compatible bucket, MinIo & Generic upload / download of binary assets \\
-\bottomrule
+\hline
 \end{longtable}
 
 \subsubsection{Domain Model}
@@ -155,7 +174,7 @@ The Scala services reimplement the same primitives natively, a modest duplicatio
 
 \subsubsection{Published Language}
 
-The contract carried on RabbitMQ has three layers: a hierarchical \textbf{routing key} (\texttt{<context>.<aggregate>.<verb-past>}, e.g. \texttt{event.published}, \texttt{payments.order.confirmed}), a common \textbf{envelope} defined in \texttt{libs/ts-common} and a \textbf{payload schema} owned by each publishing context.
+The contract carried on RabbitMQ has three layers: a hierarchical \textbf{routing key} (\texttt{<context>.\allowbreak<aggregate>.\allowbreak<verb-past>}, e.g. \texttt{event.\allowbreak published}, \texttt{payments.\allowbreak order.\allowbreak confirmed}), a common \textbf{envelope} defined in \texttt{libs/ts-common} and a \textbf{payload schema} owned by each publishing context.
 
 \begin{lstlisting}[language=Java]
 interface EventEnvelope<T> {
