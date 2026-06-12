@@ -1,0 +1,256 @@
+\section{Design}
+
+The system has been designed following a \textbf{microservice architectural style}, where each service models a specific subdomain and exclusively owns its data.
+
+The principal objectives of the design phase were:
+
+\begin{itemize}
+  \item service \textbf{autonomy} and independent deployability;
+  \item \textbf{isolated persistence} per service: no service ever reads or writes another service's database directly;
+  \item \textbf{scalability and fault isolation} at the service granularity;
+  \item \textbf{local strong consistency} within each service, complemented by \textbf{eventual consistency} across services;
+  \item \textbf{separation of responsibilities} aligned with the partitioning of the business domain.
+\end{itemize}
+
+To ensure separation of responsibilities, the identification of domain entities and service boundaries has been guided by principles inspired by Domain-Driven Design (DDD).
+
+The platform is articulated into autonomous \textbf{bounded contexts}, each one shipped as an independent microservice and communicating with the others either synchronously over HTTP (for request issued by the frontend) or asynchronously through domain events on a shared RabbitMQ broker.
+
+\subsection{Domain}
+
+The domain of this project is \textit{connecting organizations that promote social events with users interested in discovering and participating in them}.
+
+This domain was modelled through Event Storming, from which the glossary that constitutes the ubiquitous language was then derived.
+
+\subsubsection{Event Storming}
+
+The DDD model emerges from a sequence of collaborative \textbf{Event Storming} sessions, each producing one of the diagrams reproduced below. The sessions were carried out on a shared \href{https://lucid.app/lucidchart/ba6c762a-70a7-4fc0-8aee-00e68e1f82e0/edit?invitationId=inv_e7f16288-d064-498b-aeb2-6fa7e3444695&page=0_0#}{LucidChart board}.
+
+\paragraph{Big Picture Event Storming}
+
+The first session collected every relevant domain event as a past-tense fact, with no order, command or aggregate attached yet; just the raw vocabulary of the domain, clustered loosely by topic.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../public/eventstorming/phase1.png}
+  \caption{Big Picture Event Storming}
+\end{figure}
+
+\paragraph{Process Modeling Event Storming}
+
+A second pass ordered the events along temporal arrows, surfaced open questions as \textbf{hotspots} (yellow post-it, addressed in the rest of the chapter) and promoted a small subset of events to \textbf{pivotal} by drawing a thicker border. Around the pivotal events the team made explicit the \textbf{policies} the system runs automatically; the convergence of every cross-context policy on \texttt{Notification Created} is the strongest evidence that Notifications deserves to be extracted as a context of its own, a decision finalised at the next level.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../public/eventstorming/phase2.png}
+  \caption{Process Modeling Event Storming}
+\end{figure}
+
+\paragraph{Software Design Event Storming}
+
+The third pass introduced the only technical element: aggregates. For each command, the team identified the aggregate that validates it and emits the resulting event; clustering aggregates by linguistic cohesion yielded the seven bounded contexts shown in the figure, which became the seven microservices.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../public/eventstorming/phase3.png}
+  \caption{Software Design Event Storming}
+\end{figure}
+
+\subsection{Ubiquitous Language}
+
+The ubiquitous language is the shared vocabulary that both the team and the code use to describe the domain. The following table collects the terms that recur both in the report and in the source code, with the bounded context that owns each definition. Anywhere two contexts use the same word, they may give it a \textit{different} meaning: that is intentional and is what justifies the translation each context applies when consuming another context's domain events.
+
+\begin{longtable}{p{2.8cm} p{2.6cm} p{9cm}}
+\toprule
+\textbf{Term} & \textbf{Owner context} & \textbf{Meaning} \\
+\midrule
+\endhead
+\textbf{Member} & User & A registered physical person, attendee of events \\
+\textbf{Organization} & User & A registered entity that creates and runs events \\
+\textbf{RegisteredUser} & User & Sealed family that covers both \texttt{Member} and \texttt{Organization} \\
+\textbf{Event} (entity) & Event & A social event scheduled by an organization; has a lifecycle \texttt{DRAFT} $\rightarrow$ \texttt{PUBLISHED} $\rightarrow$ \texttt{(CANCELLED \textbar{} COMPLETED)} \\
+\textbf{Collaborator} & Event & An organization, other than the creator, that co-hosts an event \\
+\textbf{EventTicketType} & Ticketing & A purchasable tier of tickets for a given event (price, available quantity, sold quantity) \\
+\textbf{Ticket} & Ticketing & A single seat sold to a single attendee; has its own lifecycle \texttt{PENDING\_PAYMENT} $\rightarrow$ \texttt{ACTIVE} $\rightarrow$ \texttt{(USED \textbar{} REFUNDED \textbar{} CANCELLED \textbar{} PAYMENT\_FAILED)} \\
+\textbf{Order} & Ticketing & The transactional grouping of tickets bought together in one checkout session \\
+\textbf{CheckoutSession} & Ticketing & The Stripe-hosted payment session that confirms or expires an order \\
+\textbf{Like} / \textbf{Review} / \textbf{Participation} & Interaction / Notification & The three ways a member interacts with an event \\
+\textbf{Follow} & Interaction / Notification & The directed relationship \texttt{follower $\rightarrow$ followed} between two users \\
+\textbf{Conversation} / \textbf{Message} & Chat & A two-party private chat between any pair of users \\
+\textbf{Notification} & Notifications & A user-facing fact derived from a domain event, possibly delivered in real time \\
+\textbf{Domain Event} & (shared) & A fact, named in past tense, that the publishing context guarantees happened (e.g. \texttt{EventPublished}, \texttt{OrderConfirmed}) \\
+\bottomrule
+\end{longtable}
+
+\subsection{Bounded contexts and microservices}
+
+The bounded contexts identified in the last event-storming phase are mapped one-to-one to deployable microservices. Each microservice owns its persistence, exposes an HTTP API for synchronous reads issued by the frontend and exchanges domain events with the others through RabbitMQ.
+
+\begin{longtable}{p{2.2cm} p{2.6cm} p{3cm} p{6.4cm}}
+\toprule
+\textbf{Microservice} & \textbf{Stack} & \textbf{Persistence} & \textbf{Responsibility} \\
+\midrule
+\endhead
+\href{https://github.com/EvenToNight/EvenToNight/tree/main/services/users}{\texttt{users}} & Scala 3 (Cask) & MongoDB + Keycloak & Registration, profile management, authentication tokens \\
+\href{https://github.com/EvenToNight/EvenToNight/tree/main/services/events}{\texttt{events}} & Scala 3 (Cask) & MongoDB & Lifecycle of \texttt{Event}, tags, search, filtering \\
+\href{https://github.com/EvenToNight/EvenToNight/tree/main/services/ticketing}{\texttt{ticketing}} & NestJS & MongoDB + Stripe & Ticket types, checkout, tickets, orders, PDF / QR generation \\
+\href{https://github.com/EvenToNight/EvenToNight/tree/main/services/interactions}{\texttt{interactions}} & NestJS & MongoDB & Likes, reviews, participations, follows, projections of events / users used for cross-cutting validation \\
+\href{https://github.com/EvenToNight/EvenToNight/tree/main/services/chat}{\texttt{chat}} & NestJS + Socket.IO & MongoDB & Real-time private conversations \\
+\href{https://github.com/EvenToNight/EvenToNight/tree/main/services/notifications}{\texttt{notifications}} & Node.js (Express) + Socket.IO & MongoDB & Persistent notification feed and real-time push \\
+\href{https://github.com/EvenToNight/EvenToNight/tree/main/services/media}{\texttt{media}} & NestJS & S3-compatible bucket, MinIo & Generic upload / download of binary assets \\
+\bottomrule
+\end{longtable}
+
+\subsubsection{Domain Model}
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../public/core-entities.png}
+  \caption{Domain Model overview}
+\end{figure}
+
+\subsubsection{Context map}
+
+Each arrow goes from the \textbf{upstream} context to the \textbf{downstream} consumer and is labelled with the integration pattern:
+
+\begin{itemize}
+  \item \textbf{PL (Published Language)} --- the publisher commits to a stable event envelope and routing-key contract;
+  \item \textbf{ACL (Anti-Corruption Layer)} --- the consumer translates the upstream payload into its own internal types;
+  \item \textbf{OHS (Open Host Service)} --- a synchronous REST contract, used by the generic Media context.
+\end{itemize}
+
+Every asynchronous relationship uses both PL and ACL: the publisher owns the contract, the consumer owns the translation.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../public/design/context-map.png}
+\end{figure}
+
+Three structural observations follow directly from this map:
+
+\begin{enumerate}
+  \item \textbf{User is the system's pure upstream} --- it publishes user lifecycle events consumed by every other context, but it does not consume events from any other context.
+  \item \textbf{Notification is the system's pure downstream} --- it consumes from four different publishers (Events, Interaction, Chat, and User) and emits no business event of its own. This convergence is what justified extracting Notification as a context of its own already at the third Event-Storming level.
+  \item \textbf{Media is the only synchronous integration} --- it is invoked over HTTP by the contexts that need to store posters and avatars; the contract is a thin REST API, not a Published Language. Every other inter-context communication is asynchronous over RabbitMQ.
+\end{enumerate}
+
+\subsection{Integration patterns}
+
+This section captures \textit{how} the bounded contexts collaborate at the code level, given that they are independently deployed on different stacks.
+
+\subsubsection{No shared domain kernel}
+
+A \textit{shared kernel} was deliberately avoided: it would force deployment coupling and language coupling (the kernel must run on every stack). Each bounded context defines its own internal types, with \textbf{only the attributes it needs locally}. E.g. The \texttt{users} service models a \texttt{RegisteredUser} with full profile and account value objects; the \texttt{ticketing} service models a \texttt{User} as \texttt{(UserId, Language)}, enough to localise the ticket PDF.
+
+\subsubsection{Shared technical libraries}
+
+Only purely technical and domain agnostic code is shared, as two TypeScript packages consumed by the Node services:
+
+\begin{itemize}
+  \item \textbf{[\texttt{libs/ts-common}]} contains \texttt{EventEnvelope}, RabbitMQ publisher, MongoDB transaction manager and \texttt{@Transactional()} decorator, Outbox base implementations, pagination and currency helpers.
+  \item \textbf{\texttt{libs/nestjs-common}} contains NestJS adapters of the above (Mongoose schemas, messaging module, JWT guards).
+\end{itemize}
+
+The Scala services reimplement the same primitives natively, a modest duplication accepted in exchange for stack independence.
+
+\subsubsection{Published Language}
+
+The contract carried on RabbitMQ has three layers: a hierarchical \textbf{routing key} (\texttt{<context>.<aggregate>.<verb-past>}, e.g. \texttt{event.published}, \texttt{payments.order.confirmed}), a common \textbf{envelope} defined in \texttt{libs/ts-common} and a \textbf{payload schema} owned by each publishing context.
+
+\begin{lstlisting}[language=Java]
+interface EventEnvelope<T> {
+  eventType: string;   // the routing key
+  occurredAt: Date;
+  payload: T;
+}
+\end{lstlisting}
+
+\subsubsection{Anti-Corruption Layer}
+
+Every consumer implements an ACL that dispatches on the routing key, validates the payload against a local DTO, and maps it into the service's own internal types.
+
+Beyond translation, each ACL also \textbf{persists a local projection} of the upstream facts it needs. This is the mechanism that allows services to enforce domain rules that depend on data owned by another context, without issuing synchronous cross-service calls at request time.
+
+\subsection{Behaviour}
+
+Two behavioural patterns describe how the services process work.
+
+\subsubsection{Request-driven operations}
+
+User actions follow a request-driven workflow:
+
+\begin{enumerate}
+  \item A client request is received through the service API.
+  \item The request is validated and processed (optionally, also making synchronous request to other services) by the service logic.
+  \item A local transaction updates the service state.
+  \item Optionally after the transaction completes, a domain event is asynchronously published to RabbitMQ.
+\end{enumerate}
+
+The full HTTP API contract for each service is documented in the \href{https://eventonight.github.io/EvenToNight/openAPI/}{OpenAPI specification}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../public/design/behavior-request-driven.png}
+  \caption{behavior-request-driven}
+\end{figure}
+
+\subsubsection{Event-driven operations}
+
+Services also react to domain events generated by other services. When an event is received, the service processes it through its domain logic and may update its internal state or trigger additional events. This approach enables coordination between bounded contexts without requiring direct dependencies between services.
+
+The typical flow for this interaction is:
+
+\begin{enumerate}
+  \item A domain event is received.
+  \item The service processes the event through its domain logic.
+  \item If required, a local transaction updates the service state.
+  \item Additional domain events may be generated.
+\end{enumerate}
+
+The full set of domain events exchanged between services is documented in the \href{https://eventonight.github.io/EvenToNight/asyncAPI/}{AsyncAPI specification}.
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../public/design/behavior-event-driven.png}
+  \caption{behavior-event-driven}
+\end{figure}
+
+\subsection{Internal service architecture}
+
+\subsubsection{Clean Architecture}
+
+The DDD-styled services (\texttt{users}, \texttt{events}, \texttt{ticketing}, \texttt{notifications}) are structured following clean architecture structure:
+
+\begin{itemize}
+  \item \textbf{\texttt{domain/}} --- aggregates, value objects, domain events, repository interfaces, domain services.
+  \item \textbf{\texttt{application/}} --- use cases, services and DTOs. Orchestrates the domain without containing business rules of its own.
+  \item \textbf{\texttt{infrastructure/}} --- concrete adapters of the domain ports: MongoDB repositories, RabbitMQ publishers and consumers, Keycloak / Stripe.
+  \item \textbf{\texttt{presentation/}} (\texttt{controller/} in Scala) --- HTTP routes, REST controllers, AMQP consumer dispatchers, WebSocket gateways.
+\end{itemize}
+
+The remaining services (\texttt{chat}, \texttt{interactions}) adopt the default \textbf{NestJS module-per-feature} organisation, with each feature module encapsulating its controllers, services and Mongoose schemas.
+
+\subsubsection{CQRS (light)}
+
+CQRS (Command Query Responsibility Segregation) is an architectural pattern that separates the \textit{write} path (commands that mutate state) from the \textit{read} path (queries that return data), allowing each to evolve, scale, and be optimised independently.
+
+In this project CQRS has been adopted in \textit{Events} and \textit{Notifications} only at the structural level: the write and read paths are syntactically separated into distinct handler classes, but they ultimately share the same MongoDB collections. No separate read store or projection pipeline has been implemented. The separation is therefore primarily a code-organisation choice.
+
+\subsection{Distributed consistency}
+
+Each service guarantees strong consistency within its own boundaries by executing state-changing operations inside local MongoDB transactions. Coordination across services is achieved through eventual consistency: a service emits domain events after completing its local transaction, and downstream services update their own state asynchronously upon receiving them. No distributed transaction spanning multiple services is ever required.
+
+\subsubsection{Outbox pattern}
+
+Publishing a domain event directly after a database write is not atomic: if the service crashes between the two operations, the state change is committed but the event is never delivered, leaving downstream services in a stale state with no indication that anything went wrong.
+
+To eliminate this risk, every service that emits domain events uses the \textbf{Outbox pattern}: the event is written to an outbox collection \textit{within the same local transaction} as the state update. A background process then reads the outbox and forwards the events to RabbitMQ, guaranteeing at-least-once delivery.
+
+\subsubsection{Choreographed saga: the ticket purchase}
+
+The ticket purchase flow cannot be completed in a single local transaction because it spans both MongoDB and an external system (Stripe). It is therefore implemented as a two-phase \textbf{choreographed saga}:
+
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=\textwidth]{../public/design/saga.png}
+\end{figure}

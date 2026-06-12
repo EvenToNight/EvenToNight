@@ -1,0 +1,61 @@
+\documentclass[a4paper,12pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{geometry}
+\usepackage{enumitem}
+\usepackage{caption}
+\usepackage{float}
+
+\geometry{margin=2.5cm}
+
+\definecolor{codegreen}{rgb}{0.0,0.5,0.0}
+\definecolor{codeblue}{rgb}{0.0,0.0,0.7}
+\definecolor{codered}{rgb}{0.7,0.0,0.0}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  frame=single,
+  keywordstyle=\color{codeblue}\bfseries,
+  commentstyle=\color{codegreen},
+  stringstyle=\color{codered},
+  numbers=left,
+  numberstyle=\tiny,
+  tabsize=2,
+}
+
+\title{\textbf{EvenToNight}\\
+Software Process Engineering - Final Report}
+\author{
+  Alfonsi Alice (alice.alfonsi2@studio.unibo.it)\\
+  Bravetti Federico (federico.bravetti2@studio.unibo.it)\\
+  Brini Tommaso (tommaso.brini@studio.unibo.it)
+}
+\date{\today}
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+\newpage
+
+\input{sections/introduction}
+\newpage
+\input{sections/design}
+\newpage
+\input{sections/devops}
+\newpage
+\input{sections/translation-action-and-cli-tool}
+\newpage
+\input{sections/conclusion}
+
+\end{document}
