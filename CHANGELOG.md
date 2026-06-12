@@ -1,3 +1,12 @@
+## [2.2.2](https://github.com/EvenToNight/EvenToNight/compare/v2.2.1...v2.2.2) (2026-06-12)
+
+### Bug Fixes
+
+* **auth:** retry JWT public key load with backoff and set postgres-keycloak restart policy ([b2cef07](https://github.com/EvenToNight/EvenToNight/commit/b2cef07fa2e120e154c9507cc832a817cd86ddae))
+* **chat:** correct user schema spec types for strictNullChecks ([94883d8](https://github.com/EvenToNight/EvenToNight/commit/94883d852f2d6a4f02637d7f26bf2b42c72e9173))
+* **chat:** output jest coverage to services/chat/coverage so codecov finds lcov.info ([861b614](https://github.com/EvenToNight/EvenToNight/commit/861b614073a19ed39dfbc5416b77711ec69d5820))
+* **compose:** keep keycloak-provision so the stack can be restarted ([6347cf1](https://github.com/EvenToNight/EvenToNight/commit/6347cf126d93948005818ef5fc33185893b90996))
+
 ## [2.2.1](https://github.com/EvenToNight/EvenToNight/compare/v2.2.0...v2.2.1) (2026-06-05)
 
 ### Bug Fixes
