@@ -1,0 +1,48 @@
+\section{Introduction}
+
+The project consists of the design and development of a distributed digital platform called \href{https://eventonight.site/}{\textbf{EvenToNight}}, aimed at connecting organizations that promote social events with users interested in discovering and participating in them.
+
+This report presents the project from the perspective of the \textbf{software development process} and the \textbf{DevOps} practices adopted throughout its development, including build automation, versioning, quality assurance, deployment and continuous integration / continuous delivery (CI/CD) pipelines.
+
+From a technical perspective, EvenToNight is designed as a \textbf{multi-language, containerized and distributed microservices system} and the entire codebase is organized as a \textbf{monorepo}, where all services, shared libraries, infrastructure and documentation live in a single Git repository.
+
+\subsection{Project Requirements}
+
+\begin{itemize}
+  \item \textbf{Meaningful Microservices architecture}: design and implement a meaningful division into independent microservices leveraging DDD.
+  \item \textbf{Multi-platform}: microservices implemented on at least two different platforms --- \textbf{Node.js} and the \textbf{JVM}.
+  \item \textbf{Build automation}: unified build orchestration with \textbf{Gradle} across all services and languages.
+  \item \textbf{CI/CD pipelines}: automated pipelines covering building, testing, convention enforcement (e.g. Conventional Commits), documentation deployment, Docker image publishing to a registry, and automated deployment to a test environment.
+\end{itemize}
+
+\subsection{Process Organization}
+
+\subsubsection{Version control}
+
+\begin{itemize}
+  \item \textbf{Git}: the team adopted GitHub Flow --- \texttt{main} is the only release branch and is protected via branch protection rules; working branches are merged into \texttt{main} exclusively via pull request subject to \textbf{code review} and automated checks.
+  \item \textbf{Commit convention}: all commits follow the \href{https://www.conventionalcommits.org/en/v1.0.0/}{\textbf{Conventional Commits}} specification.
+  \item \textbf{Branch convention}: all branches follow the \href{https://conventionalbranch.org/}{\textbf{Conventional Branch}} specification (prefixed \texttt{feature/}, \texttt{refactor/}, \texttt{ci/}, \texttt{docs/}).
+\end{itemize}
+
+\subsubsection{Build and quality}
+
+\begin{itemize}
+  \item \textbf{Build system}: \textbf{Gradle} is used as the single build orchestrator; each microservice is a Gradle subproject, including Node.js services, which are integrated via the node-gradle plugin.
+  \item \textbf{Linting and formatting}: configured per microservice according to its language and ecosystem.
+  \item \textbf{Testing}: each microservice has its own test suite, targeting an overall coverage of \textbf{70\%}.
+\end{itemize}
+
+\subsubsection{Release and deployment}
+
+\begin{itemize}
+  \item \textbf{Semantic versioning}: versions are derived automatically from the commit convention via \href{https://semantic-release.gitbook.io/semantic-release/}{\textbf{semantic-release}} .
+  \item \textbf{Dockerization}: each service is packaged as a Docker image and published to a container registry (\textbf{ghcr.io}).
+  \item \textbf{Deployment}: the system must be deployed to a test environment.
+\end{itemize}
+
+\subsection{Licensing}
+
+EvenToNight is released under the \textbf{GNU General Public License v3.0} (GPL-3.0), a \textbf{strong copyleft} license: any redistributed modified version must keep the same license, so the source stays open through every chain of redistribution. Unlike permissive licenses such as \textbf{MIT} or \textbf{Apache 2.0} which allow modifications to be folded into proprietary closed-source products.
+
+Given the academic and open-source nature of this project, this license best reflects the intent to keep the codebase and any derivative works freely available and inspectable.

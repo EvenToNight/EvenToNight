@@ -82,6 +82,11 @@ jobs:
         run: npm run docs:build -- --base /EvenToNight/report/SPE/ --outDir ../../../site/report/SPE
         working-directory: ./docs/report/SPE
 
+      - name: Copy SPE PDF Report
+        run: |
+          mkdir -p ${{ env.SITE }}/report/SPE/latex
+          cp ./docs/report/SPE/latex/SPE-Report.pdf ${{ env.SITE }}/report/SPE/latex/SPE-Report.pdf
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:

@@ -1,0 +1,10 @@
+\section{Translation Action and CLI Tool}
+
+Internationalising the frontend was a project requirement: the application is offered in five languages: English, Italian, Spanish, French and German. Keeping five translation files aligned by hand is tedious and error-prone, so \textbf{English was chosen as the source of truth} and a dedicated tool, \href{https://github.com/EvenToNight/auto-i18n}{\textbf{\texttt{auto-i18n}}}, was developed to keep the other locale files in sync and to verify their completeness.
+
+The tool lives in an \textbf{independent repository} and is distributed in two complementary forms built around a single shared core:
+
+\begin{itemize}
+  \item a \textbf{GitHub Action}, invoked from the CI pipeline (see \hyperref[sec:devops]{DevOps}) to translate on push and to gate pull requests;
+  \item an \textbf{npm CLI} (\texttt{@eventonight/auto-i18n}), for running the same translation locally during development.
+\end{itemize}
