@@ -18,7 +18,7 @@ From a technical perspective, EvenToNight is designed as a **multi-language, con
 
 - **Git**: the team adopted GitHub Flow — `main` is the only release branch and is protected via branch protection rules; working branches are merged into `main` exclusively via pull request subject to **code review** and automated checks.
 - **Commit convention**: all commits follow the [**Conventional Commits**](https://www.conventionalcommits.org/en/v1.0.0/) specification.
-- **Branch convention**: all branches follow the [**Conventional Branch**](https://conventionalbranch.org/) specification (prefixed `feature/`, `refactor/`, `ci/`, `docs/`).
+- **Branch convention**: all branches follow the [**Conventional Branch**](https://conventionalbranch.org/) specification.
 
 ### Build and quality
 
