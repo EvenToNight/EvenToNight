@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 : '
 Check Project Coverage Script
 
@@ -29,7 +30,6 @@ NOTES:
   - Public repo: the Codecov API is queried without a token.
 '
 
-#!/usr/bin/env bash
 set -euo pipefail
 
 SHA="${1:?usage: checkProjectCoverage.sh <commit-sha> [target] [threshold]}"

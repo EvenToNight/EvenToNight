@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 : '
 Update Local Environment Script
 
@@ -17,7 +18,6 @@ NOTES:
   - Preserves comments and formatting in .env.
 '
 
-#!/usr/bin/env bash
 set -euo pipefail
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then

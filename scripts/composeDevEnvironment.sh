@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 : '
 Developer Environment Runner Script
 
@@ -28,7 +29,6 @@ NOTES:
   - The docker compose project name is set to eventonight-dev-environment.
 '
 
-#!/usr/bin/env bash
 set -euo pipefail
 
 cd "$(dirname "$0")/.." || exit 1

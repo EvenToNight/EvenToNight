@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 : '
 Check Environment Setup Script
 
@@ -17,7 +18,6 @@ NOTES:
   - Reports all issues before exiting.
 '
 
-#!/usr/bin/env bash
 set -euo pipefail
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then
