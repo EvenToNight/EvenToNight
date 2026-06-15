@@ -1,3 +1,4 @@
+#!/usr/bin/env bash
 : '
 Find Dockerfiles Script
 
@@ -33,7 +34,6 @@ NOTES:
   - Output is a JSON array suitable for GitHub Actions matrix strategy.
 '
 
-#!/usr/bin/env bash
 set -euo pipefail
 
 if [[ "${1:-}" == "--help" || "${1:-}" == "-h" ]]; then

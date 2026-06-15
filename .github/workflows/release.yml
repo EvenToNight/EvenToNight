@@ -238,8 +238,8 @@ jobs:
             REPO_URL="https://github.com/EvenToNight/EvenToNight.git"
             DEST_DIR="EvenToNight-production"
 
-            # pull or clone fresh
-            if ! git -C "$DEST_DIR" pull; then
+            # pull or clone fresh (stay on main)
+            if ! { git -C "$DEST_DIR" checkout main && git -C "$DEST_DIR" pull origin main; }; then
               echo "Pull failed..."
               # Backup .env if exists
               if [ -f "$DEST_DIR/.env" ]; then
@@ -253,7 +253,7 @@ jobs:
                 echo "Project directory removed."
               fi
               echo "Cloning fresh repository..."
-              git clone "$REPO_URL" "$DEST_DIR"
+              git clone --branch main "$REPO_URL" "$DEST_DIR"
               # Restore .env
               if [ -f ".env" ]; then
                 echo "Restoring .env..."
