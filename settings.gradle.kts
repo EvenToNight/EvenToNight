@@ -18,6 +18,26 @@ gitHooks{
     createHooks(true)
 }
 
+// Refresh the local .env from .env.template on every configuration (e.g. IDE sync),
+// the same moment the git hooks above get (re)installed. Uses providers.exec so it
+// stays configuration-cache compatible. Best-effort: a failure here must never break
+// the project import — the pre-commit hook still validates the .env on commit.
+val isWindows = System.getProperty("os.name").lowercase().contains("windows")
+val updateEnvOutput = providers.exec {
+    workingDir = rootDir
+    isIgnoreExitValue = true
+    if (isWindows) {
+        commandLine("powershell", "-Command", "& 'C:\\Program Files\\Git\\bin\\bash.exe' -c './scripts/updateLocalEnv.sh'")
+    } else {
+        commandLine("bash", "scripts/updateLocalEnv.sh")
+    }
+}
+runCatching {
+    print(updateEnvOutput.standardOutput.asText.get())
+    val exitCode = updateEnvOutput.result.get().exitValue
+    if (exitCode != 0) println("⚠️  updateEnvFile exited with code $exitCode")
+}.onFailure { println("⚠️  Could not update .env automatically: ${it.message}") }
+
 include("libs:ts-common")
 include("libs:nestjs-common")
 
